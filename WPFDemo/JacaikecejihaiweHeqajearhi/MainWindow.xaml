@@ -1,0 +1,716 @@
+﻿<Window
+    x:Class="JacaikecejihaiweHeqajearhi.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="WPF X8 → A8 渲染性能验证"
+    Width="1160"
+    Height="760"
+    MinWidth="960"
+    MinHeight="640"
+    AllowsTransparency="False"
+    ResizeMode="CanResize"
+    Style="{StaticResource PerformanceWindowStyle}"
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="None"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <Storyboard x:Key="InfinitePerformanceStoryboard" RepeatBehavior="Forever">
+            <DoubleAnimation
+                Storyboard.TargetName="OuterOrbit"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                From="0"
+                To="360"
+                Duration="0:0:8"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="MiddleOrbit"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                From="360"
+                To="0"
+                Duration="0:0:5.5"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="InnerOrbit"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                From="0"
+                To="360"
+                Duration="0:0:3.6"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="SweepBeam"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)"
+                From="0"
+                To="360"
+                Duration="0:0:2.8"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="CoreVisual"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                AutoReverse="True"
+                From="0.92"
+                To="1.08"
+                Duration="0:0:1.4"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="CoreVisual"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                AutoReverse="True"
+                From="0.92"
+                To="1.08"
+                Duration="0:0:1.4"
+                RepeatBehavior="Forever" />
+            <ColorAnimation
+                Storyboard.TargetName="AnimatedCoreGradientStop"
+                Storyboard.TargetProperty="Color"
+                AutoReverse="True"
+                From="#FF65D1FF"
+                To="#FF8B7CFF"
+                Duration="0:0:1.8"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="PulseRingOne"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                From="0.38"
+                To="1.35"
+                Duration="0:0:2.4"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="PulseRingOne"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                From="0.38"
+                To="1.35"
+                Duration="0:0:2.4"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="PulseRingOne"
+                Storyboard.TargetProperty="Opacity"
+                From="0.9"
+                To="0"
+                Duration="0:0:2.4"
+                RepeatBehavior="Forever" />
+            <DoubleAnimationUsingKeyFrames
+                Storyboard.TargetName="PulseRingTwo"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                RepeatBehavior="Forever">
+                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.38" />
+                <DiscreteDoubleKeyFrame KeyTime="0:0:0.8" Value="0.38" />
+                <LinearDoubleKeyFrame KeyTime="0:0:3.2" Value="1.35" />
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames
+                Storyboard.TargetName="PulseRingTwo"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                RepeatBehavior="Forever">
+                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.38" />
+                <DiscreteDoubleKeyFrame KeyTime="0:0:0.8" Value="0.38" />
+                <LinearDoubleKeyFrame KeyTime="0:0:3.2" Value="1.35" />
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames
+                Storyboard.TargetName="PulseRingTwo"
+                Storyboard.TargetProperty="Opacity"
+                RepeatBehavior="Forever">
+                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                <DiscreteDoubleKeyFrame KeyTime="0:0:0.8" Value="0.9" />
+                <LinearDoubleKeyFrame KeyTime="0:0:3.2" Value="0" />
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimation
+                Storyboard.TargetName="OuterOrbitPath"
+                Storyboard.TargetProperty="StrokeDashOffset"
+                From="0"
+                To="40"
+                Duration="0:0:2"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="MiddleOrbitPath"
+                Storyboard.TargetProperty="StrokeDashOffset"
+                From="24"
+                To="0"
+                Duration="0:0:1.6"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="FloatingMetricOne"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                AutoReverse="True"
+                From="-6"
+                To="8"
+                Duration="0:0:2.2"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="FloatingMetricTwo"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                AutoReverse="True"
+                From="8"
+                To="-7"
+                Duration="0:0:2.7"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="LoadBarOne"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                AutoReverse="True"
+                From="0.25"
+                To="1"
+                Duration="0:0:0.72"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="LoadBarTwo"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                AutoReverse="True"
+                From="0.45"
+                To="0.9"
+                Duration="0:0:0.94"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="LoadBarThree"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                AutoReverse="True"
+                From="0.2"
+                To="0.82"
+                Duration="0:0:0.63"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="LoadBarFour"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                AutoReverse="True"
+                From="0.58"
+                To="1"
+                Duration="0:0:1.08"
+                RepeatBehavior="Forever" />
+            <DoubleAnimation
+                Storyboard.TargetName="LoadBarFive"
+                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                AutoReverse="True"
+                From="0.32"
+                To="0.92"
+                Duration="0:0:0.84"
+                RepeatBehavior="Forever" />
+        </Storyboard>
+    </Window.Resources>
+
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard Storyboard="{StaticResource InfinitePerformanceStoryboard}" />
+        </EventTrigger>
+    </Window.Triggers>
+
+    <Grid x:Name="RootSurface" Background="{StaticResource WindowOpaqueBackgroundBrush}">
+        <Border
+            x:Name="WindowShell"
+            Margin="18"
+            Padding="0"
+            Style="{StaticResource GlassShellStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="42" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid
+                    x:Name="TitleBar"
+                    Grid.Row="0"
+                    Background="Transparent"
+                    MouseLeftButtonDown="TitleBarMouseLeftButtonDown">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Margin="3,0,0,0" VerticalAlignment="Center" Orientation="Horizontal">
+                        <Ellipse Width="9" Height="9" Margin="0,0,10,0" Fill="{StaticResource SuccessBrush}" />
+                        <TextBlock Style="{StaticResource WindowTitleTextStyle}" Text="WPF X8 → A8 单向升级实验室" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button
+                            Click="MinimizeButtonClick"
+                            Content="&#xE921;"
+                            Style="{StaticResource WindowCommandButtonStyle}"
+                            ToolTip="最小化"
+                            WindowChrome.IsHitTestVisibleInChrome="True" />
+                        <Button
+                            Click="MaximizeButtonClick"
+                            Content="&#xE922;"
+                            Style="{StaticResource WindowCommandButtonStyle}"
+                            ToolTip="最大化或还原"
+                            WindowChrome.IsHitTestVisibleInChrome="True" />
+                        <Button
+                            Click="CloseButtonClick"
+                            Content="&#xE8BB;"
+                            Style="{StaticResource CloseWindowButtonStyle}"
+                            ToolTip="关闭"
+                            WindowChrome.IsHitTestVisibleInChrome="True" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid Grid.Row="1" Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="340" />
+                        <ColumnDefinition Width="22" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0">
+                            <TextBlock Style="{StaticResource HeroTitleTextStyle}">
+                                <Run Text="比较 " />
+                                <Run Foreground="{StaticResource AccentBrush}" Text="X8" />
+                                <Run Text=" 与 " />
+                                <Run Foreground="{StaticResource SecondaryAccentBrush}" Text="A8" />
+                                <LineBreak />
+                                <Run Text="窗口渲染性能" />
+                            </TextBlock>
+                            <TextBlock
+                                Margin="0,12,0,0"
+                                Style="{StaticResource BodyTextStyle}"
+                                Text="窗口默认以完全不透明内容运行。点击按钮后，按照 WindowChrome → 渲染边界 → WS_EX_LAYERED 的顺序单向切换到带 Alpha 的模式。右侧动画永不停止。" />
+                        </StackPanel>
+
+                        <Border Grid.Row="2" Style="{StaticResource ControlPanelStyle}">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Style="{StaticResource BodyTextStyle}" Text="当前状态" />
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" Orientation="Horizontal">
+                                        <Ellipse Width="8" Height="8" Margin="0,0,8,0" Fill="{StaticResource SuccessBrush}" />
+                                        <TextBlock Style="{StaticResource StatusTextStyle}" Text="{Binding TransparencyState}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Button
+                                    Margin="0,16,0,0"
+                                    Click="UpgradeToTransparentButtonClick"
+                                    Content="切换到透明 A8 模式"
+                                    IsEnabled="{Binding IsUpgradeEnabled}"
+                                    Style="{StaticResource PrimaryButtonStyle}" />
+
+                                <TextBlock
+                                    Margin="0,12,0,0"
+                                    Style="{StaticResource BodyTextStyle}"
+                                    Text="该操作不可逆。同一 HWND 在本次生命周期内不会恢复为 X8。" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Row="4" Style="{StaticResource ControlPanelStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="14" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="12" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="实时呈现采样" />
+
+                                <Grid Grid.Row="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="10" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Style="{StaticResource MetricCardStyle}">
+                                        <StackPanel>
+                                            <TextBlock
+                                                Style="{StaticResource MetricValueTextStyle}"
+                                                Text="{Binding FramesPerSecond, StringFormat={}{0:F1}}" />
+                                            <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="FPS（约 1 秒采样）" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="2" Style="{StaticResource MetricCardStyle}">
+                                        <StackPanel>
+                                            <TextBlock
+                                                Style="{StaticResource MetricValueTextStyle}"
+                                                Text="{Binding AverageFrameTimeMilliseconds, StringFormat={}{0:F2}}" />
+                                            <TextBlock Style="{StaticResource MetricCaptionTextStyle}" Text="平均帧时（ms）" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+
+                                <Grid Grid.Row="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource BodyTextStyle}" Text="CompositionTarget.Rendering" />
+                                        <TextBlock
+                                            Foreground="{StaticResource TextMutedBrush}"
+                                            FontSize="11"
+                                            Text="累计回调帧数" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Cascadia Mono, Consolas"
+                                        FontSize="18"
+                                        Foreground="{StaticResource TextSecondaryBrush}"
+                                        Text="{Binding RenderedFrameCount, StringFormat={}{0:N0}}" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <Border
+                        Grid.Column="2"
+                        Padding="18"
+                        Style="{StaticResource AnimationStageStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource SectionTitleTextStyle}" Text="持续动画负载" />
+                                    <TextBlock
+                                        Margin="0,5,0,0"
+                                        Style="{StaticResource BodyTextStyle}"
+                                        Text="多层旋转、脉冲、渐变与缩放动画将无限循环。" />
+                                </StackPanel>
+                                <Border
+                                    Grid.Column="1"
+                                    Padding="10,6"
+                                    Background="#332EEA8A"
+                                    BorderBrush="#6657E39F"
+                                    BorderThickness="1"
+                                    CornerRadius="9">
+                                    <TextBlock
+                                        Foreground="{StaticResource SuccessBrush}"
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Text="REPEAT: FOREVER" />
+                                </Border>
+                            </Grid>
+
+                            <Grid Grid.Row="1" Margin="0,12,0,12">
+                                <Border
+                                    x:Name="FloatingMetricOne"
+                                    Width="126"
+                                    Padding="12,9"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Background="#8A263453"
+                                    BorderBrush="{StaticResource SubtleBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    RenderTransformOrigin="0.5,0.5">
+                                    <Border.RenderTransform>
+                                        <TranslateTransform />
+                                    </Border.RenderTransform>
+                                    <StackPanel>
+                                        <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="10" Text="TARGET FORMAT" />
+                                        <TextBlock Margin="0,3,0,0" FontFamily="Cascadia Mono, Consolas" FontSize="13" Text="X8 → A8" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border
+                                    x:Name="FloatingMetricTwo"
+                                    Width="136"
+                                    Padding="12,9"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    Background="#8A263453"
+                                    BorderBrush="{StaticResource SubtleBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    RenderTransformOrigin="0.5,0.5">
+                                    <Border.RenderTransform>
+                                        <TranslateTransform />
+                                    </Border.RenderTransform>
+                                    <StackPanel>
+                                        <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="10" Text="ALPHA PATH" />
+                                        <TextBlock Margin="0,3,0,0" FontFamily="Cascadia Mono, Consolas" FontSize="13" Text="PER-PIXEL" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Grid
+                                    Width="430"
+                                    Height="430"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                    <Ellipse
+                                        x:Name="PulseRingOne"
+                                        Width="330"
+                                        Height="330"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource PulseRingStyle}">
+                                        <Ellipse.RenderTransform>
+                                            <ScaleTransform />
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+                                    <Ellipse
+                                        x:Name="PulseRingTwo"
+                                        Width="330"
+                                        Height="330"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Opacity="0"
+                                        Style="{StaticResource PulseRingStyle}">
+                                        <Ellipse.RenderTransform>
+                                            <ScaleTransform />
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+
+                                    <Grid
+                                        x:Name="OuterOrbit"
+                                        Width="330"
+                                        Height="330"
+                                        RenderTransformOrigin="0.5,0.5">
+                                        <Grid.RenderTransform>
+                                            <RotateTransform />
+                                        </Grid.RenderTransform>
+                                        <Ellipse
+                                            x:Name="OuterOrbitPath"
+                                            Stroke="#8065D1FF"
+                                            StrokeDashArray="2 7"
+                                            StrokeThickness="2" />
+                                        <Ellipse
+                                            Margin="0,9,0,0"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Top"
+                                            Style="{StaticResource OrbitParticleStyle}" />
+                                        <Ellipse
+                                            Margin="12,0,0,44"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Bottom"
+                                            Fill="{StaticResource SecondaryAccentBrush}"
+                                            Style="{StaticResource OrbitParticleStyle}" />
+                                        <Ellipse
+                                            Margin="0,0,25,76"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Bottom"
+                                            Fill="{StaticResource SuccessBrush}"
+                                            Style="{StaticResource OrbitParticleStyle}" />
+                                    </Grid>
+
+                                    <Grid
+                                        x:Name="MiddleOrbit"
+                                        Width="250"
+                                        Height="250"
+                                        RenderTransformOrigin="0.5,0.5">
+                                        <Grid.RenderTransform>
+                                            <RotateTransform />
+                                        </Grid.RenderTransform>
+                                        <Ellipse
+                                            x:Name="MiddleOrbitPath"
+                                            Stroke="#708B7CFF"
+                                            StrokeDashArray="6 5"
+                                            StrokeThickness="2" />
+                                        <Ellipse
+                                            Margin="0,18,0,0"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Top"
+                                            Fill="{StaticResource SecondaryAccentBrush}"
+                                            Style="{StaticResource OrbitParticleStyle}" />
+                                        <Ellipse
+                                            Margin="18,0,0,55"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Bottom"
+                                            Fill="{StaticResource AccentBrush}"
+                                            Style="{StaticResource OrbitParticleStyle}" />
+                                        <Ellipse
+                                            Margin="0,72,7,0"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Top"
+                                            Fill="{StaticResource WarningBrush}"
+                                            Style="{StaticResource OrbitParticleStyle}" />
+                                    </Grid>
+
+                                    <Grid
+                                        x:Name="InnerOrbit"
+                                        Width="168"
+                                        Height="168"
+                                        RenderTransformOrigin="0.5,0.5">
+                                        <Grid.RenderTransform>
+                                            <RotateTransform />
+                                        </Grid.RenderTransform>
+                                        <Ellipse Stroke="#8065D1FF" StrokeThickness="1.5" />
+                                        <Ellipse
+                                            Margin="0,5,0,0"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Top"
+                                            Fill="{StaticResource SuccessBrush}"
+                                            Style="{StaticResource OrbitParticleStyle}" />
+                                        <Ellipse
+                                            Margin="4,0,0,26"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Bottom"
+                                            Fill="{StaticResource AccentBrush}"
+                                            Style="{StaticResource OrbitParticleStyle}" />
+                                    </Grid>
+
+                                    <Rectangle
+                                        x:Name="SweepBeam"
+                                        Width="8"
+                                        Height="178"
+                                        Margin="0,37,0,0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Top"
+                                        Opacity="0.52"
+                                        RadiusX="4"
+                                        RadiusY="4"
+                                        RenderTransformOrigin="0.5,1">
+                                        <Rectangle.Fill>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                <GradientStop Offset="0" Color="#0065D1FF" />
+                                                <GradientStop Offset="0.7" Color="#8065D1FF" />
+                                                <GradientStop Offset="1" Color="#0065D1FF" />
+                                            </LinearGradientBrush>
+                                        </Rectangle.Fill>
+                                        <Rectangle.RenderTransform>
+                                            <RotateTransform />
+                                        </Rectangle.RenderTransform>
+                                    </Rectangle>
+
+                                    <Ellipse
+                                        x:Name="CoreVisual"
+                                        Width="104"
+                                        Height="104"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        RenderTransformOrigin="0.5,0.5">
+                                        <Ellipse.Fill>
+                                            <RadialGradientBrush>
+                                                <GradientStop x:Name="AnimatedCoreGradientStop" Offset="0" Color="#FF65D1FF" />
+                                                <GradientStop Offset="0.52" Color="#CC8B7CFF" />
+                                                <GradientStop Offset="1" Color="#1857E39F" />
+                                            </RadialGradientBrush>
+                                        </Ellipse.Fill>
+                                        <Ellipse.Effect>
+                                            <DropShadowEffect BlurRadius="34" Color="#FF65D1FF" Opacity="0.9" ShadowDepth="0" />
+                                        </Ellipse.Effect>
+                                        <Ellipse.RenderTransform>
+                                            <ScaleTransform />
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontFamily="Cascadia Mono, Consolas"
+                                        FontSize="18"
+                                        FontWeight="Bold"
+                                        Text="WPF" />
+                                </Grid>
+                            </Grid>
+
+                            <Grid Grid.Row="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="10" Text="ANIMATION LOAD" />
+                                    <TextBlock Margin="0,3,0,0" FontFamily="Cascadia Mono, Consolas" FontSize="13" Text="ACTIVE" />
+                                </StackPanel>
+
+                                <Grid Grid.Column="2" Height="42" VerticalAlignment="Bottom">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="9" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="9" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="9" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="9" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border
+                                        x:Name="LoadBarOne"
+                                        Grid.Column="0"
+                                        Background="{StaticResource AccentBrush}"
+                                        CornerRadius="4"
+                                        RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform />
+                                        </Border.RenderTransform>
+                                    </Border>
+                                    <Border
+                                        x:Name="LoadBarTwo"
+                                        Grid.Column="2"
+                                        Background="{StaticResource SecondaryAccentBrush}"
+                                        CornerRadius="4"
+                                        RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform />
+                                        </Border.RenderTransform>
+                                    </Border>
+                                    <Border
+                                        x:Name="LoadBarThree"
+                                        Grid.Column="4"
+                                        Background="{StaticResource SuccessBrush}"
+                                        CornerRadius="4"
+                                        RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform />
+                                        </Border.RenderTransform>
+                                    </Border>
+                                    <Border
+                                        x:Name="LoadBarFour"
+                                        Grid.Column="6"
+                                        Background="{StaticResource WarningBrush}"
+                                        CornerRadius="4"
+                                        RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform />
+                                        </Border.RenderTransform>
+                                    </Border>
+                                    <Border
+                                        x:Name="LoadBarFive"
+                                        Grid.Column="8"
+                                        Background="{StaticResource AccentBrush}"
+                                        CornerRadius="4"
+                                        RenderTransformOrigin="0.5,1">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform />
+                                        </Border.RenderTransform>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Border
+            x:Name="TransitionShield"
+            Panel.ZIndex="20"
+            Background="{StaticResource WindowOpaqueBackgroundBrush}"
+            Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource SectionTitleTextStyle}"
+                    Text="正在建立带 Alpha 的渲染目标" />
+                <TextBlock
+                    Margin="0,8,0,0"
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource BodyTextStyle}"
+                    Text="保持不透明安全帧，完成后自动显示透明内容。" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

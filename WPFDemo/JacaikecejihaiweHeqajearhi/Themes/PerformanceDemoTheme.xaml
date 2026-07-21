@@ -1,0 +1,231 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="WindowOpaqueBackgroundBrush" Color="#FF0A1020" />
+    <SolidColorBrush x:Key="ShellBackgroundBrush" Color="#E61A2238" />
+    <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#B8212C48" />
+    <SolidColorBrush x:Key="MetricBackgroundBrush" Color="#A62B3858" />
+    <SolidColorBrush x:Key="SubtleBorderBrush" Color="#667A90B8" />
+    <SolidColorBrush x:Key="StrongBorderBrush" Color="#9965D1FF" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#FF65D1FF" />
+    <SolidColorBrush x:Key="SecondaryAccentBrush" Color="#FF8B7CFF" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="#FF57E39F" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#FFFFC857" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFF5F8FF" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FFB9C5DD" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#FF8391AD" />
+    <SolidColorBrush x:Key="WindowCommandHoverBrush" Color="#334C628F" />
+    <SolidColorBrush x:Key="CloseCommandHoverBrush" Color="#FFE25555" />
+
+    <LinearGradientBrush x:Key="PrimaryButtonBackgroundBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#FF4CB8F5" />
+        <GradientStop Offset="1" Color="#FF7C67F2" />
+    </LinearGradientBrush>
+
+    <RadialGradientBrush x:Key="AnimationStageBackgroundBrush" Center="0.5,0.45" GradientOrigin="0.5,0.45" RadiusX="0.72" RadiusY="0.72">
+        <GradientStop Offset="0" Color="#7A2C436A" />
+        <GradientStop Offset="0.58" Color="#5217233E" />
+        <GradientStop Offset="1" Color="#2810192B" />
+    </RadialGradientBrush>
+
+    <LinearGradientBrush x:Key="SpectrumBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#FF65D1FF" />
+        <GradientStop Offset="0.5" Color="#FF8B7CFF" />
+        <GradientStop Offset="1" Color="#FF57E39F" />
+    </LinearGradientBrush>
+
+    <Style x:Key="PerformanceWindowStyle" TargetType="{x:Type Window}">
+        <Setter Property="Background" Value="{StaticResource WindowOpaqueBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="Segoe UI" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <Style TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style x:Key="WindowTitleTextStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="HeroTitleTextStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontSize" Value="30" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LineHeight" Value="38" />
+    </Style>
+
+    <Style x:Key="SectionTitleTextStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style x:Key="BodyTextStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="LineHeight" Value="20" />
+    </Style>
+
+    <Style x:Key="MetricValueTextStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+    </Style>
+
+    <Style x:Key="MetricCaptionTextStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </Style>
+
+    <Style x:Key="StatusTextStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="GlassShellStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource ShellBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SubtleBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="22" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="28" Opacity="0.38" ShadowDepth="8" Color="#FF000000" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ControlPanelStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource PanelBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SubtleBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="18" />
+    </Style>
+
+    <Style x:Key="MetricCardStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource MetricBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SubtleBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="14" />
+    </Style>
+
+    <Style x:Key="AnimationStageStyle" TargetType="{x:Type Border}">
+        <Setter Property="Background" Value="{StaticResource AnimationStageBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource StrongBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+
+    <Style x:Key="PrimaryButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{StaticResource PrimaryButtonBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="#9965D1FF" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="MinHeight" Value="44" />
+        <Setter Property="Padding" Value="20,10" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border
+                        x:Name="ButtonChrome"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="10"
+                        Padding="{TemplateBinding Padding}">
+                        <ContentPresenter
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ButtonChrome" Property="Opacity" Value="0.9" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="ButtonChrome" Property="Opacity" Value="0.72" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="ButtonChrome" Property="Opacity" Value="0.42" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="WindowCommandButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Width" Value="40" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border x:Name="CommandChrome" Background="{TemplateBinding Background}" CornerRadius="7">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="CommandChrome" Property="Background" Value="{StaticResource WindowCommandHoverBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="CommandChrome" Property="Opacity" Value="0.65" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="CloseWindowButtonStyle" BasedOn="{StaticResource WindowCommandButtonStyle}" TargetType="{x:Type Button}">
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource CloseCommandHoverBrush}" />
+                <Setter Property="Foreground" Value="White" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="OrbitParticleStyle" TargetType="{x:Type Ellipse}">
+        <Setter Property="Width" Value="14" />
+        <Setter Property="Height" Value="14" />
+        <Setter Property="Fill" Value="{StaticResource AccentBrush}" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="12" Color="#FF65D1FF" Opacity="0.95" ShadowDepth="0" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PulseRingStyle" TargetType="{x:Type Ellipse}">
+        <Setter Property="Stroke" Value="{StaticResource SpectrumBrush}" />
+        <Setter Property="StrokeThickness" Value="2" />
+        <Setter Property="Fill" Value="Transparent" />
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+    </Style>
+</ResourceDictionary>
