@@ -229,16 +229,20 @@ public sealed class ChatRoomRoleManagementToolsTests
     }
 
     [TestMethod(DisplayName = "edit_character 应更新已有角色属性")]
+    [Timeout(5000)]
     public async Task EditCharacter_ExistingRole_UpdatesProperties()
     {
         var manager = new ChatRoomManager();
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
-        await manager.AddRoleAsync(new ChatRoomRole(new ChatRoomRoleDefinition
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
         {
             RoleId = "role-1",
             RoleName = "原角色名",
             SystemPrompt = "原人设",
-        }));
+        });
+        await manager.AddRoleAsync(role);
+        ChatRoomRole? updatedRole = null;
+        manager.RoleUpdated += (_, value) => updatedRole = value;
 
         IReadOnlyList<AITool> tools = ChatRoomRoleManagementTools.CreateTools(manager);
         AIFunction editTool = GetTool(tools, "edit_character");
@@ -256,8 +260,45 @@ public sealed class ChatRoomRoleManagementToolsTests
 
         string result = GetResultString(resultObj);
         Assert.Contains("✅", result);
+        Assert.AreSame(role, manager.Roles[0]);
+        Assert.AreSame(role, updatedRole);
         Assert.AreEqual("新角色名", manager.Roles[0].Definition.RoleName);
         Assert.AreEqual("新人设", manager.Roles[0].Definition.SystemPrompt);
+    }
+
+    [TestMethod(DisplayName = "edit_character 编辑 Coding 角色时应保留执行器和执行种类")]
+    [Timeout(5000)]
+    public async Task EditCharacter_CodingRole_PreservesRuntimeAndExecutionKind()
+    {
+        var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>());
+        var executor = new TestRoleExecutor(ChatRoomRoleExecutionKind.Coding);
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "coding-role",
+            ExecutionKind = ChatRoomRoleExecutionKind.Coding,
+            RoleName = "编程角色",
+            SystemPrompt = string.Empty,
+        }, null, executor);
+        await manager.AddRoleAsync(role);
+
+        AIFunction editTool = GetTool(ChatRoomRoleManagementTools.CreateTools(manager), "edit_character");
+        object? resultObj = await editTool.InvokeAsync(new AIFunctionArguments
+        {
+            ["roleId"] = "coding-role",
+            ["roleName"] = "高级编程角色",
+            ["systemPrompt"] = null,
+            ["modelId"] = null,
+            ["modelProviderId"] = null,
+            ["memoryContent"] = "保留上下文",
+        });
+
+        Assert.Contains("✅", GetResultString(resultObj));
+        Assert.AreSame(role, manager.Roles.Single());
+        Assert.AreSame(executor, role.Executor);
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, role.Definition.ExecutionKind);
+        Assert.IsFalse(role.Definition.IsHuman);
+        Assert.AreEqual("保留上下文", role.Definition.MemoryContent);
     }
 
     [TestMethod(DisplayName = "edit_character 角色不存在时应返回错误")]
@@ -476,4 +517,25 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.AreEqual("原角色名", manager.Roles[0].Definition.RoleName);
     }
 
+    private sealed class TestRoleExecutor(ChatRoomRoleExecutionKind executionKind) : IChatRoomRoleExecutor
+    {
+        public ChatRoomRoleExecutionKind ExecutionKind { get; } = executionKind;
+
+        public Task<ChatRoomRoleExecutionResult> RunAsync(
+            ChatRoomRoleExecutionContext context,
+            IReadOnlyList<AIContent> contents,
+            CancellationToken cancellationToken) => throw new NotSupportedException();
+
+        public Task SetWorkspacePathAsync(
+            CopilotChatManager chatManager,
+            string? workspacePath,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            chatManager.WorkspacePath = workspacePath;
+            return Task.CompletedTask;
+        }
+
+        public ValueTask DisposeAsync() => default;
+    }
 }

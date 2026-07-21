@@ -108,6 +108,22 @@ public sealed class ChatRoomSession : NotifyBase
         AddMessageCore(message);
     }
 
+    internal async Task RemoveMessageAsync(ChatRoomMessage message)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+        if (_mainThreadDispatcher is not null)
+        {
+            await _mainThreadDispatcher.InvokeAsync(() =>
+            {
+                RemoveMessageCore(message);
+                return Task.CompletedTask;
+            });
+            return;
+        }
+
+        RemoveMessageCore(message);
+    }
+
     /// <summary>
     /// 同步添加消息，仅在确定无 dispatcher 的构造期使用。
     /// </summary>
@@ -132,6 +148,25 @@ public sealed class ChatRoomSession : NotifyBase
         if (!string.IsNullOrEmpty(message.SenderRoleId))
         {
             _lastSpeakTimeByRole[message.SenderRoleId] = message.Timestamp;
+        }
+    }
+
+    private void RemoveMessageCore(ChatRoomMessage message)
+    {
+        if (!Messages.Remove(message) || string.IsNullOrEmpty(message.SenderRoleId))
+        {
+            return;
+        }
+
+        ChatRoomMessage? previousMessage = Messages
+            .LastOrDefault(candidate => candidate.SenderRoleId == message.SenderRoleId);
+        if (previousMessage is null)
+        {
+            _lastSpeakTimeByRole.Remove(message.SenderRoleId);
+        }
+        else
+        {
+            _lastSpeakTimeByRole[message.SenderRoleId] = previousMessage.Timestamp;
         }
     }
 

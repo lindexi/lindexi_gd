@@ -102,6 +102,24 @@ public sealed class ChatRoomRoleFactoryTests
             ]));
     }
 
+    [TestMethod(DisplayName = "执行器工厂注册中包含 null 时应被拒绝")]
+    [Timeout(5000)]
+    public void ConstructorShouldRejectNullExecutorFactory()
+    {
+        Assert.ThrowsExactly<ArgumentNullException>(() => new ChatRoomRoleFactory(
+            null,
+            [null!]));
+    }
+
+    [TestMethod(DisplayName = "执行器工厂声明未知执行种类时应被拒绝")]
+    [Timeout(5000)]
+    public void ConstructorShouldRejectUnknownFactoryExecutionKind()
+    {
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new ChatRoomRoleFactory(
+            null,
+            [new RecordingExecutorFactory((ChatRoomRoleExecutionKind)99)]));
+    }
+
     [TestMethod(DisplayName = "缺少执行器工厂时应立即失败")]
     public void CreateRoleShouldFailWhenFactoryRegistrationIsMissing()
     {
@@ -127,6 +145,17 @@ public sealed class ChatRoomRoleFactoryTests
 
         Assert.ThrowsExactly<InvalidOperationException>(() => factory.CreateRole(CreateDefinition()));
         Assert.AreEqual(1, executor.DisposeCount);
+    }
+
+    [TestMethod(DisplayName = "执行器工厂返回 null 时应立即失败")]
+    [Timeout(5000)]
+    public void CreateRoleShouldFailWhenFactoryReturnsNullExecutor()
+    {
+        var factory = new ChatRoomRoleFactory(
+            null,
+            [new NullExecutorFactory(ChatRoomRoleExecutionKind.Standard)]);
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => factory.CreateRole(CreateDefinition()));
     }
 
     [TestMethod(DisplayName = "管理器按定义添加角色时应使用角色工厂")]
@@ -191,6 +220,13 @@ public sealed class ChatRoomRoleFactoryTests
             LastRole = new ChatRoomRole(definition);
             return LastRole;
         }
+    }
+
+    private sealed class NullExecutorFactory(ChatRoomRoleExecutionKind executionKind) : IChatRoomRoleExecutorFactory
+    {
+        public ChatRoomRoleExecutionKind ExecutionKind { get; } = executionKind;
+
+        public IChatRoomRoleExecutor Create(ChatRoomRoleExecutorCreationContext context) => null!;
     }
 
     private sealed class RecordingExecutorFactory(

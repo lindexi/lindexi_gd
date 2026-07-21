@@ -3,11 +3,13 @@ namespace AgentLib.Coding;
 internal sealed class CodingWorkspaceToolCandidate : IAsyncDisposable
 {
     private CodingWorkspaceToolSession? _session;
-    private int _isConsumed;
+    private Action? _onHandled;
+    private int _state;
 
-    internal CodingWorkspaceToolCandidate(CodingWorkspaceToolSession? session)
+    internal CodingWorkspaceToolCandidate(CodingWorkspaceToolSession? session, Action? onHandled = null)
     {
         _session = session;
+        _onHandled = onHandled;
         WorkspacePath = session?.WorkspacePath;
     }
 
@@ -15,7 +17,7 @@ internal sealed class CodingWorkspaceToolCandidate : IAsyncDisposable
 
     internal CodingWorkspaceToolSession? TakeSession()
     {
-        if (Interlocked.Exchange(ref _isConsumed, 1) != 0)
+        if (Interlocked.CompareExchange(ref _state, 1, 0) != 0)
         {
             throw new InvalidOperationException("工作区候选已经发布或释放。");
         }
@@ -23,17 +25,36 @@ internal sealed class CodingWorkspaceToolCandidate : IAsyncDisposable
         return Interlocked.Exchange(ref _session, null);
     }
 
-    public async ValueTask DisposeAsync()
+    internal void CompleteHandling()
     {
-        if (Interlocked.Exchange(ref _isConsumed, 1) != 0)
+        int oldState = Interlocked.Exchange(ref _state, 2);
+        if (oldState == 2)
         {
             return;
         }
 
-        CodingWorkspaceToolSession? session = Interlocked.Exchange(ref _session, null);
-        if (session is not null)
+        Interlocked.Exchange(ref _onHandled, null)?.Invoke();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        int oldState = Interlocked.Exchange(ref _state, 2);
+        if (oldState == 2)
         {
-            await session.DisposeAsync().ConfigureAwait(false);
+            return;
+        }
+
+        try
+        {
+            CodingWorkspaceToolSession? session = Interlocked.Exchange(ref _session, null);
+            if (session is not null)
+            {
+                await session.DisposeAsync().ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _onHandled, null)?.Invoke();
         }
     }
 }

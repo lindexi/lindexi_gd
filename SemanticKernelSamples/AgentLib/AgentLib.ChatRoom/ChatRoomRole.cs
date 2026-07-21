@@ -327,7 +327,7 @@ public sealed class ChatRoomRole : NotifyBase, IAsyncDisposable
             string modelDisplayName = GetCurrentModelDisplayName();
             return new ChatRoomSpeakResult(executionResult.AssistantChatMessage, finalContentTask, modelDisplayName);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             return null;
         }

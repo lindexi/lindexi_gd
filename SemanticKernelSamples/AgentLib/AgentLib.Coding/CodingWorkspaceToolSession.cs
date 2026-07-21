@@ -26,7 +26,7 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
 
         WorkspacePath = workspacePath;
         _asyncDisposable = asyncDisposable;
-        Tools = tools;
+        Tools = Array.AsReadOnly(tools.ToArray());
     }
 
     public string WorkspacePath { get; }

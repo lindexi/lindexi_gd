@@ -27,12 +27,12 @@ public enum ChatRoomRoleExecutionKind
     /// <summary>
     /// 使用标准聊天室发送流程。
     /// </summary>
-    Standard,
+    Standard = 0,
 
     /// <summary>
     /// 使用专用编程代理流程。
     /// </summary>
-    Coding,
+    Coding = 1,
 }
 
 /// <summary>

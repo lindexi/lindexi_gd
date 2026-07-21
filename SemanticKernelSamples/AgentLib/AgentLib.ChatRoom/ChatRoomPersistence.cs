@@ -25,6 +25,7 @@ namespace AgentLib.ChatRoom;
 /// </summary>
 public sealed class ChatRoomPersistence
 {
+    private static readonly char[] InvalidStorageIdentifierCharacters = ['/', '\\', ':', '*', '?', '"', '<', '>', '|'];
     private readonly string _baseFolder;
     private readonly FileCopilotChatLogger _publicLogger;
     private readonly Dictionary<string, FileCopilotChatLogger> _roleLoggers = [];
@@ -37,7 +38,7 @@ public sealed class ChatRoomPersistence
     public ChatRoomPersistence(string baseFolder)
     {
         ArgumentNullException.ThrowIfNull(baseFolder);
-        _baseFolder = baseFolder;
+        _baseFolder = Path.GetFullPath(baseFolder);
         Directory.CreateDirectory(_baseFolder);
 
         // 公开消息的日志记录器
@@ -47,7 +48,10 @@ public sealed class ChatRoomPersistence
     /// <summary>
     /// 获取指定会话的存储文件夹路径。
     /// </summary>
-    private string GetSessionFolder(string sessionId) => Path.Join(_baseFolder, sessionId);
+    private string GetSessionFolder(string sessionId)
+    {
+        return GetStorageChildPath(_baseFolder, sessionId, nameof(sessionId));
+    }
 
     /// <summary>
     /// 获取配置文件路径。
@@ -57,7 +61,10 @@ public sealed class ChatRoomPersistence
     /// <summary>
     /// 获取角色私有历史文件夹路径。
     /// </summary>
-    private static string GetRoleHistoryFolder(string sessionFolder, string roleId) => Path.Join(sessionFolder, roleId);
+    private static string GetRoleHistoryFolder(string sessionFolder, string roleId)
+    {
+        return GetStorageChildPath(sessionFolder, roleId, nameof(roleId));
+    }
 
     /// <summary>
     /// 获取角色 AgentSession 状态文件路径。
@@ -90,6 +97,7 @@ public sealed class ChatRoomPersistence
     public async Task SaveConfigAsync(ChatRoomSessionData data, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(data);
+        ValidateRoleDefinitions(data.Roles);
 
         string sessionFolder = GetSessionFolder(data.SessionId.ToString("N"));
         Directory.CreateDirectory(sessionFolder);
@@ -136,10 +144,16 @@ public sealed class ChatRoomPersistence
 
         string json = await File.ReadAllTextAsync(configPath, cancellationToken).ConfigureAwait(false);
 #if NET6_0
-        return JsonSerializer.Deserialize<ChatRoomSessionData>(json);
+        ChatRoomSessionData? data = JsonSerializer.Deserialize<ChatRoomSessionData>(json);
 #else
-        return JsonSerializer.Deserialize(json, ChatRoomJsonSerializerContext.Default.ChatRoomSessionData);
+        ChatRoomSessionData? data = JsonSerializer.Deserialize(json, ChatRoomJsonSerializerContext.Default.ChatRoomSessionData);
 #endif
+        if (data is not null)
+        {
+            ValidateRoleDefinitions(data.Roles);
+        }
+
+        return data;
     }
 
     /// <summary>
@@ -320,5 +334,60 @@ public sealed class ChatRoomPersistence
         byte[] guidBytes = new byte[16];
         Array.Copy(hash, guidBytes, 16);
         return new Guid(guidBytes);
+    }
+
+    private static void ValidateRoleDefinitions(IEnumerable<ChatRoomRoleDefinition> definitions)
+    {
+        foreach (ChatRoomRoleDefinition definition in definitions)
+        {
+            ValidateStorageIdentifier(definition.RoleId, nameof(definition.RoleId));
+            if (!Enum.IsDefined(typeof(ChatRoomRoleExecutionKind), definition.ExecutionKind))
+            {
+                throw new InvalidDataException(
+                    $"角色 {definition.RoleId} 包含未知执行种类值 {(int)definition.ExecutionKind}。");
+            }
+
+            if (definition.IsHuman && definition.ExecutionKind != ChatRoomRoleExecutionKind.Standard)
+            {
+                throw new InvalidDataException($"人类角色 {definition.RoleId} 只能使用 Standard 执行种类。");
+            }
+        }
+    }
+
+    private static void ValidateStorageIdentifier(string value, string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException("持久化标识不能为空。", parameterName);
+        }
+
+        if (value is "." or ".."
+            || value[^1] is '.' or ' '
+            || Path.IsPathRooted(value)
+            || value.IndexOfAny(InvalidStorageIdentifierCharacters) >= 0
+            || value.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        {
+            throw new ArgumentException("持久化标识必须是安全的单个路径片段。", parameterName);
+        }
+    }
+
+    private static string GetStorageChildPath(string parentPath, string identifier, string parameterName)
+    {
+        ValidateStorageIdentifier(identifier, parameterName);
+        string fullParentPath = Path.GetFullPath(parentPath);
+        string fullChildPath = Path.GetFullPath(Path.Join(fullParentPath, identifier));
+        string parentPrefix = Path.EndsInDirectorySeparator(fullParentPath)
+            ? fullParentPath
+            : fullParentPath + Path.DirectorySeparatorChar;
+        StringComparison comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        if (!fullChildPath.StartsWith(parentPrefix, comparison)
+            || fullChildPath.Length <= parentPrefix.Length)
+        {
+            throw new ArgumentException("持久化标识解析后必须位于父目录内。", parameterName);
+        }
+
+        return fullChildPath;
     }
 }

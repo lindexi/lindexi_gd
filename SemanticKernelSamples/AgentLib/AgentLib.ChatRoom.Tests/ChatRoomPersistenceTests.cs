@@ -163,6 +163,7 @@ public sealed class ChatRoomPersistenceTests
     }
 
     [TestMethod(DisplayName = "源生成上下文应往返执行种类且不写出运行时字段")]
+    [Timeout(5000)]
     public void SourceGeneratedContextShouldRoundTripExecutionKindWithoutRuntimeState()
     {
         var data = new ChatRoomSessionData
@@ -186,9 +187,118 @@ public sealed class ChatRoomPersistenceTests
             ChatRoomJsonSerializerContext.Default.ChatRoomSessionData);
 
         Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, result!.Roles.Single().ExecutionKind);
+        StringAssert.Contains(json, "\"ExecutionKind\": 1");
         Assert.IsFalse(json.Contains("Tools", StringComparison.Ordinal));
         Assert.IsFalse(json.Contains("CodingAgent", StringComparison.Ordinal));
         Assert.IsFalse(json.Contains("Executor", StringComparison.Ordinal));
+    }
+
+    [TestMethod(DisplayName = "加载会话时应拒绝未知执行种类")]
+    [Timeout(5000)]
+    public async Task LoadConfigAsyncShouldRejectUnknownExecutionKind()
+    {
+        var persistence = new ChatRoomPersistence(_tempBaseFolder);
+        var sessionId = Guid.NewGuid();
+        var data = new ChatRoomSessionData
+        {
+            SessionId = sessionId,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Roles =
+            [
+                new ChatRoomRoleDefinition
+                {
+                    RoleId = "unknown-role",
+                    ExecutionKind = (ChatRoomRoleExecutionKind)99,
+                },
+            ],
+        };
+        string sessionFolder = Path.Join(_tempBaseFolder, sessionId.ToString("N"));
+        Directory.CreateDirectory(sessionFolder);
+        string json = JsonSerializer.Serialize(data, ChatRoomJsonSerializerContext.Default.ChatRoomSessionData);
+        await File.WriteAllTextAsync(Path.Join(sessionFolder, "room.config.json"), json);
+
+        await Assert.ThrowsExactlyAsync<InvalidDataException>(() =>
+            persistence.LoadConfigAsync(sessionId.ToString("N")));
+    }
+
+    [TestMethod(DisplayName = "保存会话时应拒绝人类 Coding 角色")]
+    [Timeout(5000)]
+    public async Task SaveConfigAsyncShouldRejectHumanCodingRole()
+    {
+        var persistence = new ChatRoomPersistence(_tempBaseFolder);
+        var data = new ChatRoomSessionData
+        {
+            SessionId = Guid.NewGuid(),
+            Roles =
+            [
+                new ChatRoomRoleDefinition
+                {
+                    RoleId = "invalid-human",
+                    ExecutionKind = ChatRoomRoleExecutionKind.Coding,
+                    IsHuman = true,
+                },
+            ],
+        };
+
+        await Assert.ThrowsExactlyAsync<InvalidDataException>(() => persistence.SaveConfigAsync(data));
+    }
+
+    [TestMethod(DisplayName = "保存会话时应拒绝包含目录穿越的角色标识")]
+    [Timeout(5000)]
+    public async Task SaveConfigAsyncShouldRejectRoleIdPathTraversal()
+    {
+        var persistence = new ChatRoomPersistence(_tempBaseFolder);
+        var data = new ChatRoomSessionData
+        {
+            SessionId = Guid.NewGuid(),
+            Roles =
+            [
+                new ChatRoomRoleDefinition
+                {
+                    RoleId = Path.Join("..", "..", "escaped-role"),
+                    RoleName = "无效角色",
+                },
+            ],
+        };
+
+        await Assert.ThrowsExactlyAsync<ArgumentException>(() => persistence.SaveConfigAsync(data));
+    }
+
+    [TestMethod(DisplayName = "加载会话时应拒绝包含目录穿越的角色标识")]
+    [Timeout(5000)]
+    public async Task LoadConfigAsyncShouldRejectRoleIdPathTraversal()
+    {
+        var persistence = new ChatRoomPersistence(_tempBaseFolder);
+        var sessionId = Guid.NewGuid();
+        var data = new ChatRoomSessionData
+        {
+            SessionId = sessionId,
+            Roles =
+            [
+                new ChatRoomRoleDefinition
+                {
+                    RoleId = Path.Join("..", "..", "escaped-role"),
+                    RoleName = "无效角色",
+                },
+            ],
+        };
+        string sessionFolder = Path.Join(_tempBaseFolder, sessionId.ToString("N"));
+        Directory.CreateDirectory(sessionFolder);
+        string json = JsonSerializer.Serialize(data, ChatRoomJsonSerializerContext.Default.ChatRoomSessionData);
+        await File.WriteAllTextAsync(Path.Join(sessionFolder, "room.config.json"), json);
+
+        await Assert.ThrowsExactlyAsync<ArgumentException>(() =>
+            persistence.LoadConfigAsync(sessionId.ToString("N")));
+    }
+
+    [TestMethod(DisplayName = "删除会话时应拒绝 Windows 目录别名")]
+    [Timeout(5000)]
+    public void DeleteShouldRejectWindowsDirectoryAlias()
+    {
+        var persistence = new ChatRoomPersistence(_tempBaseFolder);
+
+        Assert.ThrowsExactly<ArgumentException>(() => persistence.Delete("..."));
+        Assert.IsTrue(Directory.Exists(_tempBaseFolder));
     }
 
     #endregion

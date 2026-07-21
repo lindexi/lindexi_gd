@@ -13,7 +13,9 @@ public sealed class CodingWorkspaceToolProvider : IAsyncDisposable
     private readonly object _disposeSync = new();
     private readonly List<Task> _retiredSessionDisposals = [];
     private CodingWorkspaceToolSession? _session;
+    private TaskCompletionSource? _candidateCreationsDrained;
     private Task? _disposeTask;
+    private int _activeCandidateCreations;
     private int _isDisposed;
     private long _workspaceChangeVersion;
 
@@ -39,11 +41,6 @@ public sealed class CodingWorkspaceToolProvider : IAsyncDisposable
         _languageServerCommand = languageServerCommand;
         _sessionFactory = sessionFactory;
     }
-
-    /// <summary>
-    /// 获取当前工作区已发布的 AI 工具。
-    /// </summary>
-    public IReadOnlyList<AITool> AITools => Volatile.Read(ref _session)?.Tools ?? [];
 
     /// <summary>
     /// 获取当前已发布的工作区路径。
@@ -73,14 +70,37 @@ public sealed class CodingWorkspaceToolProvider : IAsyncDisposable
         string? workspacePath,
         CancellationToken cancellationToken)
     {
-        ThrowIfDisposed();
-        CodingWorkspaceToolSession? candidateSession = string.IsNullOrWhiteSpace(workspacePath)
-            ? null
-            : await _sessionFactory(
-                workspacePath,
-                _languageServerCommand,
-                cancellationToken).ConfigureAwait(false);
-        return new CodingWorkspaceToolCandidate(candidateSession);
+        BeginCandidateCreation();
+        bool candidateOwnsTracking = false;
+        try
+        {
+            CodingWorkspaceToolSession? candidateSession = string.IsNullOrWhiteSpace(workspacePath)
+                ? null
+                : await _sessionFactory(
+                    workspacePath,
+                    _languageServerCommand,
+                    cancellationToken).ConfigureAwait(false);
+            if (Volatile.Read(ref _isDisposed) != 0)
+            {
+                if (candidateSession is not null)
+                {
+                    await candidateSession.DisposeAsync().ConfigureAwait(false);
+                }
+
+                ThrowIfDisposed();
+            }
+
+            var candidate = new CodingWorkspaceToolCandidate(candidateSession, EndCandidateCreation);
+            candidateOwnsTracking = true;
+            return candidate;
+        }
+        finally
+        {
+            if (!candidateOwnsTracking)
+            {
+                EndCandidateCreation();
+            }
+        }
     }
 
     internal async Task PublishCandidateAsync(
@@ -90,34 +110,52 @@ public sealed class CodingWorkspaceToolProvider : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(candidate);
 
-        await _lifecycleLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        CodingWorkspaceToolSession? rejectedSession = null;
+        bool candidateTaken = false;
         try
         {
-            ThrowIfDisposed();
-            CodingWorkspaceToolSession? candidateSession = candidate.TakeSession();
-            CodingWorkspaceToolSession? sessionToRetire = _session;
+            await _lifecycleLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
+                ThrowIfDisposed();
+                rejectedSession = candidate.TakeSession();
+                candidateTaken = true;
+                CodingWorkspaceToolSession? sessionToRetire = _session;
                 commit?.Invoke();
-                _session = candidateSession;
-                candidateSession = null;
+                _session = rejectedSession;
+                rejectedSession = null;
+                if (sessionToRetire is not null)
+                {
+                    TrackRetiredSession(sessionToRetire);
+                }
             }
             finally
             {
-                if (candidateSession is not null)
-                {
-                    await candidateSession.DisposeAsync().ConfigureAwait(false);
-                }
+                _lifecycleLock.Release();
+            }
+        }
+        catch (Exception publishException) when (rejectedSession is not null)
+        {
+            try
+            {
+                await rejectedSession.DisposeAsync().ConfigureAwait(false);
+            }
+            catch (Exception disposeException)
+            {
+                throw new AggregateException(
+                    "发布工作区候选失败，且释放未发布候选时发生错误。",
+                    publishException,
+                    disposeException);
             }
 
-            if (sessionToRetire is not null)
-            {
-                TrackRetiredSession(sessionToRetire);
-            }
+            throw;
         }
         finally
         {
-            _lifecycleLock.Release();
+            if (candidateTaken)
+            {
+                candidate.CompleteHandling();
+            }
         }
     }
 
@@ -163,14 +201,23 @@ public sealed class CodingWorkspaceToolProvider : IAsyncDisposable
     {
         lock (_disposeSync)
         {
-            _disposeTask ??= DisposeCoreAsync();
+            if (_disposeTask is null)
+            {
+                Volatile.Write(ref _isDisposed, 1);
+                Task candidateCreationsTask = _activeCandidateCreations == 0
+                    ? Task.CompletedTask
+                    : (_candidateCreationsDrained ??= new TaskCompletionSource(
+                        TaskCreationOptions.RunContinuationsAsynchronously)).Task;
+                _disposeTask = DisposeCoreAsync(candidateCreationsTask);
+            }
+
             return new ValueTask(_disposeTask);
         }
     }
 
-    private async Task DisposeCoreAsync()
+    private async Task DisposeCoreAsync(Task candidateCreationsTask)
     {
-        Volatile.Write(ref _isDisposed, 1);
+        await candidateCreationsTask.ConfigureAwait(false);
         Task[] disposalTasks;
         await _lifecycleLock.WaitAsync().ConfigureAwait(false);
         try
@@ -191,6 +238,30 @@ public sealed class CodingWorkspaceToolProvider : IAsyncDisposable
         }
 
         await Task.WhenAll(disposalTasks).ConfigureAwait(false);
+    }
+
+    private void BeginCandidateCreation()
+    {
+        lock (_disposeSync)
+        {
+            ThrowIfDisposed();
+            _activeCandidateCreations++;
+        }
+    }
+
+    private void EndCandidateCreation()
+    {
+        TaskCompletionSource? candidateCreationsDrained = null;
+        lock (_disposeSync)
+        {
+            _activeCandidateCreations--;
+            if (_activeCandidateCreations == 0)
+            {
+                candidateCreationsDrained = _candidateCreationsDrained;
+            }
+        }
+
+        candidateCreationsDrained?.TrySetResult();
     }
 
     private void TrackRetiredSession(CodingWorkspaceToolSession session)

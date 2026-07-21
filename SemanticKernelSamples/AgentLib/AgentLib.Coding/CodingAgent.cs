@@ -92,13 +92,13 @@ public sealed class CodingAgent : IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(contents);
-        if (contents.Count == 0)
+        AIContent[] runContents = [.. contents];
+        if (runContents.Length == 0)
         {
             throw new ArgumentException("编程任务内容不能为空。", nameof(contents));
         }
 
         EnterRun();
-        AIContent[] runContents = [.. contents];
         CodingWorkspaceToolLease? lease = null;
         CancellationTokenSource? runCancellationTokenSource = null;
         bool ownershipTransferred = false;
@@ -124,10 +124,6 @@ public sealed class CodingAgent : IAsyncDisposable
                 _startupLock.Release();
             }
 
-            CopilotChatMessage userChatMessage = context.UserChatMessage;
-            CopyContents(userChatMessage, runContents);
-            await context.AppendMessagesToSessionAsync().ConfigureAwait(false);
-
             Task<string?> completionTask = RunCoreAsync(
                 context,
                 runContents,
@@ -151,12 +147,27 @@ public sealed class CodingAgent : IAsyncDisposable
         }
     }
 
-    internal Task<CodingWorkspaceToolCandidate> CreateWorkspaceCandidateAsync(
+    internal async Task<CodingWorkspaceToolCandidate> CreateWorkspaceCandidateAsync(
         string? workspacePath,
         CancellationToken cancellationToken)
     {
         ThrowIfDisposed();
-        return _toolProvider.CreateCandidateAsync(workspacePath, cancellationToken);
+        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            _disposeCancellationTokenSource.Token);
+        CodingWorkspaceToolCandidate candidate = await _toolProvider
+            .CreateCandidateAsync(workspacePath, linkedCancellationTokenSource.Token)
+            .ConfigureAwait(false);
+        try
+        {
+            ThrowIfDisposed();
+            return candidate;
+        }
+        catch
+        {
+            await candidate.DisposeAsync().ConfigureAwait(false);
+            throw;
+        }
     }
 
     internal Task PublishWorkspaceCandidateAsync(
@@ -250,9 +261,14 @@ public sealed class CodingAgent : IAsyncDisposable
         CodingWorkspaceToolLease lease,
         CancellationTokenSource runCancellationTokenSource)
     {
+        bool hasResponseUpdate = false;
         try
         {
+            await Task.Yield();
             CancellationToken cancellationToken = runCancellationTokenSource.Token;
+            CopilotChatMessage userChatMessage = context.UserChatMessage;
+            CopyContents(userChatMessage, contents);
+            await context.AppendMessagesToSessionAsync().ConfigureAwait(false);
             using IDisposable chatting = context.StartChatting();
             ChatClientAgent chatClientAgent = await context.GetChatClientAgentAsync(options =>
             {
@@ -273,9 +289,15 @@ public sealed class CodingAgent : IAsyncDisposable
                 cancellationToken).ConfigureAwait(false))
             {
                 await AppendResponseUpdateAsync(context, update).ConfigureAwait(false);
+                hasResponseUpdate = true;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
+            if (!hasResponseUpdate)
+            {
+                await ClearAssistantPlaceholderAsync(context).ConfigureAwait(false);
+            }
+
             string content = context.AssistantChatMessage.Content;
             return string.IsNullOrWhiteSpace(content) ? null : content;
         }
@@ -283,12 +305,22 @@ public sealed class CodingAgent : IAsyncDisposable
         {
             try
             {
-                await lease.DisposeAsync().ConfigureAwait(false);
+                if (!hasResponseUpdate)
+                {
+                    await ClearAssistantPlaceholderAsync(context).ConfigureAwait(false);
+                }
             }
             finally
             {
-                runCancellationTokenSource.Dispose();
-                ExitRun();
+                try
+                {
+                    await lease.DisposeAsync().ConfigureAwait(false);
+                }
+                finally
+                {
+                    runCancellationTokenSource.Dispose();
+                    ExitRun();
+                }
             }
         }
     }
@@ -307,6 +339,27 @@ public sealed class CodingAgent : IAsyncDisposable
         await dispatcher.InvokeAsync(() =>
         {
             context.AppendResponseUpdate(update);
+            return Task.CompletedTask;
+        }).ConfigureAwait(false);
+    }
+
+    private static async Task ClearAssistantPlaceholderAsync(IManualSendMessageContext context)
+    {
+        if (context.AssistantChatMessage.Content != CopilotChatMessage.PlaceholderContent)
+        {
+            return;
+        }
+
+        IMainThreadDispatcher? dispatcher = context.MainThreadDispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess())
+        {
+            context.AssistantChatMessage.ClearMessageItems();
+            return;
+        }
+
+        await dispatcher.InvokeAsync(() =>
+        {
+            context.AssistantChatMessage.ClearMessageItems();
             return Task.CompletedTask;
         }).ConfigureAwait(false);
     }
