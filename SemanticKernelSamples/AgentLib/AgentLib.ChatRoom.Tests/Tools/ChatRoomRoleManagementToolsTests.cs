@@ -116,6 +116,7 @@ public sealed class ChatRoomRoleManagementToolsTests
         Assert.AreEqual("架构师", manager.Roles[0].Definition.RoleName);
         Assert.IsFalse(manager.Roles[0].Definition.IsHuman);
         Assert.AreEqual(ChatRoomParticipationMode.MentionOnly, manager.Roles[0].Definition.ParticipationMode);
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Standard, manager.Roles[0].Definition.ExecutionKind);
     }
 
     [TestMethod(DisplayName = "create_character 新角色默认仅在被提及时参与")]

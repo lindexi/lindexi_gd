@@ -112,6 +112,7 @@ public static class ChatRoomRoleManagementTools
             var definition = new ChatRoomRoleDefinition
             {
                 RoleId = roleId,
+                ExecutionKind = ChatRoomRoleExecutionKind.Standard,
                 RoleName = roleName.Trim(),
                 SystemPrompt = systemPrompt.Trim(),
                 IsHuman = false,

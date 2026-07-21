@@ -96,6 +96,7 @@ public sealed class RoleListViewModel : ViewModelBase
 {
     private readonly ChatRoomService _chatRoomService;
     private readonly ModelProviderService _modelProviderService;
+    private ChatRoomManager? _subscribedManager;
 
     /// <summary>
     /// 角色列表。
@@ -207,6 +208,13 @@ public sealed class RoleListViewModel : ViewModelBase
 
     private void OnSessionChanged(object? sender, ChatRoomManager? manager)
     {
+        if (_subscribedManager is not null)
+        {
+            _subscribedManager.Roles.CollectionChanged -= OnRolesCollectionChanged;
+            _subscribedManager.RoleUpdated -= OnRoleUpdated;
+        }
+
+        _subscribedManager = manager;
         Roles.Clear();
 
         if (manager is null)
@@ -220,9 +228,20 @@ public sealed class RoleListViewModel : ViewModelBase
         }
 
         manager.Roles.CollectionChanged += OnRolesCollectionChanged;
+        manager.RoleUpdated += OnRoleUpdated;
     }
 
     private void OnRolesCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        RefreshRoles();
+    }
+
+    private void OnRoleUpdated(object? sender, ChatRoomRole e)
+    {
+        RefreshRoles();
+    }
+
+    private void RefreshRoles()
     {
         Roles.Clear();
 

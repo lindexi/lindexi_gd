@@ -90,8 +90,8 @@ public sealed class RoleTemplateServiceTests
         Assert.AreSame(replacement, service.LoadAll().Single());
     }
 
-    [TestMethod(DisplayName = "角色模板转换为定义时应复制角色种类")]
-    public void ToDefinitionShouldCopyRoleKind()
+    [TestMethod(DisplayName = "角色模板转换为定义时应复制执行种类")]
+    public void ToDefinitionShouldCopyExecutionKind()
     {
         string folder = CreateTestFolder();
         var service = new RoleTemplateService(folder);
@@ -99,13 +99,13 @@ public sealed class RoleTemplateServiceTests
         template.Definition = new ChatRoomRoleDefinition
         {
             RoleId = "coding-template",
-            Kind = ChatRoomRoleKind.CodingAssistant,
+            ExecutionKind = ChatRoomRoleExecutionKind.Coding,
             RoleName = "编程模板",
         };
 
         ChatRoomRoleDefinition definition = service.ToDefinition(template);
 
-        Assert.AreEqual(ChatRoomRoleKind.CodingAssistant, definition.Kind);
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, definition.ExecutionKind);
     }
 
     [TestMethod(DisplayName = "补齐预置模板时不应覆盖用户保存的同标识模板")]

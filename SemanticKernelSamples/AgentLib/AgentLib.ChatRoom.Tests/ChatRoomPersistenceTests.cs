@@ -162,8 +162,8 @@ public sealed class ChatRoomPersistenceTests
         Assert.AreEqual("加载测试", result.Title);
     }
 
-    [TestMethod(DisplayName = "源生成上下文应往返角色种类且不写出工具字段")]
-    public void SourceGeneratedContextShouldRoundTripRoleKindWithoutTools()
+    [TestMethod(DisplayName = "源生成上下文应往返执行种类且不写出运行时字段")]
+    public void SourceGeneratedContextShouldRoundTripExecutionKindWithoutRuntimeState()
     {
         var data = new ChatRoomSessionData
         {
@@ -174,7 +174,7 @@ public sealed class ChatRoomPersistenceTests
                 new ChatRoomRoleDefinition
                 {
                     RoleId = "coding-role",
-                    Kind = ChatRoomRoleKind.CodingAssistant,
+                    ExecutionKind = ChatRoomRoleExecutionKind.Coding,
                     RoleName = "编程角色",
                 },
             ],
@@ -185,8 +185,10 @@ public sealed class ChatRoomPersistenceTests
             json,
             ChatRoomJsonSerializerContext.Default.ChatRoomSessionData);
 
-        Assert.AreEqual(ChatRoomRoleKind.CodingAssistant, result!.Roles.Single().Kind);
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, result!.Roles.Single().ExecutionKind);
         Assert.IsFalse(json.Contains("Tools", StringComparison.Ordinal));
+        Assert.IsFalse(json.Contains("CodingAgent", StringComparison.Ordinal));
+        Assert.IsFalse(json.Contains("Executor", StringComparison.Ordinal));
     }
 
     #endregion

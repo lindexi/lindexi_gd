@@ -225,6 +225,11 @@ public sealed partial class ChatRoomManager : NotifyBase, IAsyncDisposable
     public event EventHandler<ChatRoomRole>? RoleRemoved;
 
     /// <summary>
+    /// 角色的可编辑定义已原位更新后的通知。
+    /// </summary>
+    public event EventHandler<ChatRoomRole>? RoleUpdated;
+
+    /// <summary>
     /// 启动自动循环。自动循环按当前消息上下文调度待发言角色，并在普通角色无法继续推进时让管理者介入。
     /// 流式内容直接追加到 <see cref="ChatRoomSession.Messages"/> 集合，UI 绑定感知实时更新。
     /// </summary>
@@ -329,6 +334,115 @@ public sealed partial class ChatRoomManager : NotifyBase, IAsyncDisposable
             _workspaceChangeLock.Release();
         }
     }
+
+    /// <summary>
+    /// 原位更新指定角色的可编辑定义字段，保留角色执行器、工作区资源和 AgentSession。
+    /// </summary>
+    /// <param name="roleId">目标角色 ID。</param>
+    /// <param name="roleName">新的角色显示名。</param>
+    /// <param name="systemPrompt">新的系统提示词。</param>
+    /// <param name="isHuman">是否为人类角色。</param>
+    /// <param name="modelProviderId">新的模型提供商 ID。</param>
+    /// <param name="modelId">新的模型 ID。</param>
+    /// <param name="memoryContent">新的角色记忆。</param>
+    /// <param name="participationMode">新的参与模式。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    public async Task UpdateRoleAsync(
+        string roleId,
+        string roleName,
+        string systemPrompt,
+        bool isHuman,
+        string? modelProviderId,
+        string? modelId,
+        string? memoryContent,
+        ChatRoomParticipationMode participationMode,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(roleId))
+        {
+            throw new ArgumentException("角色 ID 不能为空。", nameof(roleId));
+        }
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            throw new ArgumentException("角色名称不能为空。", nameof(roleName));
+        }
+        ArgumentNullException.ThrowIfNull(systemPrompt);
+
+        ThrowIfClosingOrClosed();
+        ChatRoomRole role = Roles.FirstOrDefault(candidate => candidate.Definition.RoleId == roleId)
+            ?? throw new InvalidOperationException($"找不到角色：{roleId}");
+        ChatRoomRoleDefinition definition = role.Definition;
+        string normalizedRoleName = roleName.Trim();
+        if (definition.ExecutionKind != ChatRoomRoleExecutionKind.Standard && isHuman)
+        {
+            throw new InvalidOperationException("非 Standard 执行角色不能改为人类角色。");
+        }
+        if (Roles.Any(candidate =>
+                !ReferenceEquals(candidate, role)
+                && string.Equals(candidate.Definition.RoleName, normalizedRoleName, StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException($"角色名称已存在：{normalizedRoleName}");
+        }
+
+        string oldRoleName = definition.RoleName;
+        string oldSystemPrompt = definition.SystemPrompt;
+        bool oldIsHuman = definition.IsHuman;
+        string? oldModelProviderId = definition.ModelProviderId;
+        string? oldModelId = definition.ModelId;
+        string? oldMemoryContent = definition.MemoryContent;
+        ChatRoomParticipationMode oldParticipationMode = definition.ParticipationMode;
+        var newlyRegisteredProviders = new List<ILanguageModelProvider>();
+        try
+        {
+            definition.RoleName = normalizedRoleName;
+            definition.SystemPrompt = systemPrompt;
+            definition.IsHuman = isHuman;
+            definition.ModelProviderId = NormalizeOptionalValue(modelProviderId);
+            definition.ModelId = NormalizeOptionalValue(modelId);
+            definition.MemoryContent = NormalizeOptionalValue(memoryContent);
+            definition.ParticipationMode = participationMode;
+
+            if (!isHuman && _languageModelProviders is not null)
+            {
+                foreach (ILanguageModelProvider provider in _languageModelProviders.Values)
+                {
+                    if (role.RegisterLanguageModelProvider(provider))
+                    {
+                        newlyRegisteredProviders.Add(provider);
+                    }
+                }
+
+                TrySetPrimaryModel(role);
+            }
+
+            await SaveAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            definition.RoleName = oldRoleName;
+            definition.SystemPrompt = oldSystemPrompt;
+            definition.IsHuman = oldIsHuman;
+            definition.ModelProviderId = oldModelProviderId;
+            definition.ModelId = oldModelId;
+            definition.MemoryContent = oldMemoryContent;
+            definition.ParticipationMode = oldParticipationMode;
+            foreach (ILanguageModelProvider provider in newlyRegisteredProviders)
+            {
+                role.UnregisterLanguageModelProvider(provider);
+            }
+            if (!oldIsHuman && _languageModelProviders is not null)
+            {
+                TrySetPrimaryModel(role);
+            }
+
+            throw;
+        }
+
+        await RaiseRoleUpdatedAsync(role).ConfigureAwait(false);
+    }
+
+    private static string? NormalizeOptionalValue(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>
     /// 使用管理器持有的统一角色工厂创建角色并添加到聊天室。
@@ -459,11 +573,27 @@ public sealed partial class ChatRoomManager : NotifyBase, IAsyncDisposable
         // 无论 ModelProviderId 为何值，都注册所有可用提供商
         foreach (ILanguageModelProvider provider in _languageModelProviders.Values)
         {
-            role.EndpointManager.RegisterLanguageModelProvider(provider);
+            role.RegisterLanguageModelProvider(provider);
         }
 
         // 根据角色定义的 ModelProviderId 和 ModelId 设置首选模型
         TrySetPrimaryModel(role);
+    }
+
+    private async Task RaiseRoleUpdatedAsync(ChatRoomRole role)
+    {
+        IMainThreadDispatcher? dispatcher = role.MainThreadDispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess())
+        {
+            RoleUpdated?.Invoke(this, role);
+            return;
+        }
+
+        await dispatcher.InvokeAsync(() =>
+        {
+            RoleUpdated?.Invoke(this, role);
+            return Task.CompletedTask;
+        }).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -855,7 +985,7 @@ public sealed partial class ChatRoomManager : NotifyBase, IAsyncDisposable
 }
 
 /// <summary>
-/// 发言角色变更事件参数。
+/// 发言角色变更事件。
 /// </summary>
 public sealed class SpeakingChangedEventArgs : EventArgs
 {

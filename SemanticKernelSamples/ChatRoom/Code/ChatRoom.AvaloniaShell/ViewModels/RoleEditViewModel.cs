@@ -28,11 +28,18 @@ public sealed class RoleEditViewModel : ViewModelBase
     private string? _modelId;
     private string? _participationMode;
     private string? _currentEffectiveModel;
+    private string _errorMessage = string.Empty;
 
     /// <summary>
     /// 是否为编辑模式（而非新建）。
     /// </summary>
     public bool IsEditing => _editingRoleId is not null;
+
+    /// <summary>
+    /// 编辑已有角色时，是否允许改变人类角色状态。
+    /// Coding 等专用执行角色不能改为人类角色。
+    /// </summary>
+    public bool CanEditIsHuman { get; private set; } = true;
 
     /// <summary>
     /// 页面标题文本。
@@ -47,6 +54,26 @@ public sealed class RoleEditViewModel : ViewModelBase
         get => _roleName;
         set => SetField(ref _roleName, value);
     }
+
+    /// <summary>
+    /// 保存失败时显示的错误信息。
+    /// </summary>
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        private set
+        {
+            if (SetField(ref _errorMessage, value))
+            {
+                OnPropertyChanged(nameof(HasErrorMessage));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 是否存在保存错误。
+    /// </summary>
+    public bool HasErrorMessage => !string.IsNullOrWhiteSpace(ErrorMessage);
 
     /// <summary>
     /// 系统提示词。
@@ -177,6 +204,7 @@ public sealed class RoleEditViewModel : ViewModelBase
         _systemPrompt = def.SystemPrompt;
         _memoryContent = def.MemoryContent ?? string.Empty;
         _isHuman = def.IsHuman;
+        CanEditIsHuman = def.ExecutionKind == ChatRoomRoleExecutionKind.Standard;
         _modelProviderId = def.ModelProviderId;
         _modelId = def.ModelId;
         _participationMode = def.ParticipationMode == ChatRoomParticipationMode.MentionOnly
@@ -190,37 +218,51 @@ public sealed class RoleEditViewModel : ViewModelBase
         OnPropertyChanged(nameof(SystemPrompt));
         OnPropertyChanged(nameof(MemoryContent));
         OnPropertyChanged(nameof(IsHuman));
+        OnPropertyChanged(nameof(CanEditIsHuman));
         OnPropertyChanged(nameof(ModelProviderId));
         OnPropertyChanged(nameof(ModelId));
         OnPropertyChanged(nameof(ParticipationMode));
         OnPropertyChanged(nameof(CurrentEffectiveModel));
     }
 
-        /// <summary>
-        /// 从角色运行时的 <see cref="AgentLib.Core.AgentApiEndpointManager.PrimaryModel"/> 读取当前实际生效的模型。
-        /// 若端点管理器尚无可用模型，返回 "加入聊天室后生效"。
-        /// </summary>
-        private static string? ResolveEffectiveModel(ChatRoomRole role)
+    /// <summary>
+    /// 从角色运行时的 <see cref="AgentLib.Core.AgentApiEndpointManager.PrimaryModel"/> 读取当前实际生效的模型。
+    /// 若端点管理器尚无可用模型，返回 "加入聊天室后生效"。
+    /// </summary>
+    private static string? ResolveEffectiveModel(ChatRoomRole role)
+    {
+        try
         {
-            try
-            {
-                var supportedModels = role.EndpointManager.GetSupportedModels();
-                if (supportedModels.Count == 0)
-                {
-                    return "加入聊天室后生效";
-                }
-
-                var primary = role.EndpointManager.PrimaryModel;
-                var def = primary.ModelDefinition;
-                return $"{def.Provider} / {def.ModelName}";
-            }
-            catch
+            var supportedModels = role.EndpointManager.GetSupportedModels();
+            if (supportedModels.Count == 0)
             {
                 return "加入聊天室后生效";
             }
-        }
 
-        private async Task SaveAsync()
+            var primary = role.EndpointManager.PrimaryModel;
+            var def = primary.ModelDefinition;
+            return $"{def.Provider} / {def.ModelName}";
+        }
+        catch
+        {
+            return "加入聊天室后生效";
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        ErrorMessage = string.Empty;
+        try
+        {
+            await SaveCoreAsync().ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+
+    private async Task SaveCoreAsync()
     {
         if (_chatRoomService.CurrentManager is null)
         {
@@ -233,15 +275,24 @@ public sealed class RoleEditViewModel : ViewModelBase
 
         if (IsEditing && _editingRoleId is not null)
         {
-            // 编辑模式：移除旧角色，添加更新后的角色
-            await _chatRoomService.RemoveRoleAsync(_editingRoleId).ConfigureAwait(true);
+            await _chatRoomService.UpdateRoleAsync(
+                _editingRoleId,
+                _roleName,
+                _systemPrompt,
+                _isHuman,
+                _modelProviderId,
+                _modelId,
+                string.IsNullOrWhiteSpace(_memoryContent) ? null : _memoryContent,
+                mode).ConfigureAwait(true);
+
+            SaveCompleted?.Invoke(this, EventArgs.Empty);
+            return;
         }
 
         var definition = new ChatRoomRoleDefinition
         {
-            RoleId = IsEditing && _editingRoleId is not null
-                ? _editingRoleId
-                : Guid.NewGuid().ToString("N"),
+            RoleId = Guid.NewGuid().ToString("N"),
+            ExecutionKind = ChatRoomRoleExecutionKind.Standard,
             RoleName = _roleName,
             SystemPrompt = _systemPrompt,
             IsHuman = _isHuman,

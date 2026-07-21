@@ -2,10 +2,9 @@ using AgentLib;
 using AgentLib.ChatRoom.Model;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.Contexts;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Logging;
 using AgentLib.Model;
-using AgentLib.Tools;
-using AgentLib.ChatRoom.Tools;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -29,7 +28,10 @@ public sealed class ChatRoomRole : NotifyBase, IAsyncDisposable
     private IMainThreadDispatcher? _mainThreadDispatcher;
     private CopilotChatManager? _chatManager;
     private readonly AgentApiEndpointManager _endpointManager;
-    private readonly IReadOnlyList<IChatRoomRoleTool> _roleTools;
+    private readonly IChatRoomRoleExecutor _executor;
+    private readonly HashSet<ILanguageModelProvider> _registeredModelProviders = new(ReferenceEqualityComparer.Instance);
+    private readonly object _disposeSync = new();
+    private Task? _disposeTask;
     private bool _isDisposed;
     private UsageDetails? _lastUsageDetails;
     private bool _hasSpoken;
@@ -43,21 +45,22 @@ public sealed class ChatRoomRole : NotifyBase, IAsyncDisposable
     /// 传入自定义实例可实现多角色共享同一 provider。
     /// </param>
     public ChatRoomRole(ChatRoomRoleDefinition definition, AgentApiEndpointManager? endpointManager = null)
-        : this(definition, endpointManager, [])
+        : this(definition, endpointManager, new StandardChatRoomRoleExecutor())
     {
     }
 
     internal ChatRoomRole(
         ChatRoomRoleDefinition definition,
         AgentApiEndpointManager? endpointManager,
-        IReadOnlyList<IChatRoomRoleTool> roleTools)
+        IChatRoomRoleExecutor executor)
     {
         ArgumentNullException.ThrowIfNull(definition);
-        ArgumentNullException.ThrowIfNull(roleTools);
+        ArgumentNullException.ThrowIfNull(executor);
+        ValidateExecutionConfiguration(definition, executor);
         Definition = definition;
 
         _endpointManager = endpointManager ?? new AgentApiEndpointManager();
-        _roleTools = roleTools;
+        _executor = executor;
     }
 
     /// <summary>
@@ -136,9 +139,36 @@ public sealed class ChatRoomRole : NotifyBase, IAsyncDisposable
         MainThreadDispatcher = _mainThreadDispatcher,
     };
 
-    internal IReadOnlyList<AITool> WorkspaceTools => [.. _roleTools.SelectMany(tool => tool.AITools)];
+    internal IChatRoomRoleExecutor Executor => _executor;
 
-    internal IReadOnlyList<IChatRoomRoleTool> RoleTools => _roleTools;
+    internal bool RegisterLanguageModelProvider(ILanguageModelProvider provider)
+    {
+        ArgumentNullException.ThrowIfNull(provider);
+        if (!_registeredModelProviders.Add(provider))
+        {
+            return false;
+        }
+
+        try
+        {
+            _endpointManager.RegisterLanguageModelProvider(provider);
+            return true;
+        }
+        catch
+        {
+            _registeredModelProviders.Remove(provider);
+            throw;
+        }
+    }
+
+    internal void UnregisterLanguageModelProvider(ILanguageModelProvider provider)
+    {
+        ArgumentNullException.ThrowIfNull(provider);
+        if (_registeredModelProviders.Remove(provider))
+        {
+            _endpointManager.UnregisterLanguageModelProvider(provider);
+        }
+    }
 
     /// <summary>
     /// 初始化角色。注册模型 provider、加载技能文件夹、配置工具等。
@@ -283,25 +313,19 @@ public sealed class ChatRoomRole : NotifyBase, IAsyncDisposable
                 systemPrompt = BuildSystemPrompt();
             }
 
-            IManualSendMessageContext manualContext = await ChatManager.CreateManualSendMessageContextAsync(cancellationToken).ConfigureAwait(false);
-            string combinedText = string.Join("\n", incrementalUserTexts);
-            manualContext.UserChatMessage.AppendText(combinedText);
-            await manualContext.AppendMessagesToSessionAsync().ConfigureAwait(false);
-
-            var chatMessages = new List<ChatMessage>(incrementalUserTexts.Count + (string.IsNullOrWhiteSpace(systemPrompt) ? 0 : 1));
-            if (!string.IsNullOrWhiteSpace(systemPrompt))
-            {
-                chatMessages.Add(new ChatMessage(ChatRole.System, systemPrompt));
-            }
-
-            foreach (string incrementalUserText in incrementalUserTexts)
-            {
-                chatMessages.Add(new ChatMessage(ChatRole.User, incrementalUserText));
-            }
-
-            Task<string?> finalContentTask = RunManualSendAsync(manualContext, chatMessages, additionalTools, cancellationToken);
+            IReadOnlyList<AIContent> contents = incrementalUserTexts
+                .Select(text => (AIContent)new TextContent(text))
+                .ToArray();
+            var executionContext = new ChatRoomRoleExecutionContext(
+                ChatManager,
+                systemPrompt,
+                additionalTools ?? []);
+            ChatRoomRoleExecutionResult executionResult = await _executor
+                .RunAsync(executionContext, contents, cancellationToken)
+                .ConfigureAwait(false);
+            Task<string?> finalContentTask = CompleteSpeakAsync(executionResult);
             string modelDisplayName = GetCurrentModelDisplayName();
-            return new ChatRoomSpeakResult(manualContext.AssistantChatMessage, finalContentTask, modelDisplayName);
+            return new ChatRoomSpeakResult(executionResult.AssistantChatMessage, finalContentTask, modelDisplayName);
         }
         catch (OperationCanceledException)
         {
@@ -326,55 +350,17 @@ public sealed class ChatRoomRole : NotifyBase, IAsyncDisposable
             : $"{modelDefinition.Provider}/{modelName}";
     }
 
-    private async Task<string?> RunManualSendAsync(
-        IManualSendMessageContext manualContext,
-        IReadOnlyList<ChatMessage> chatMessages,
-        IReadOnlyList<AITool>? additionalTools,
-        CancellationToken cancellationToken)
+    private async Task<string?> CompleteSpeakAsync(ChatRoomRoleExecutionResult executionResult)
     {
-        try
-        {
-            using IDisposable chatting = manualContext.StartChatting();
-
-            ChatClientAgent chatClientAgent = await manualContext.GetChatClientAgentAsync(options =>
-            {
-                IReadOnlyList<AITool> tools = MergeTools(
-                    manualContext.DefaultTools,
-                    WorkspaceTools,
-                    additionalTools);
-                if (tools.Count > 0)
-                {
-                    options.ChatOptions ??= new ChatOptions();
-                    options.ChatOptions.Tools = [.. tools];
-                }
-            }, cancellationToken).ConfigureAwait(false);
-            AgentSession agentSession = await manualContext.GetAgentSessionAsync(cancellationToken).ConfigureAwait(false);
-
-            await foreach (AgentResponseUpdate update in chatClientAgent.RunWithHistoryCompletionAsync(chatMessages,
-                agentSession,
-                cancellationToken))
-            {
-                manualContext.AppendResponseUpdate(update);
-            }
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return null;
-            }
-
-            _hasSpoken = true;
-            await UpdateLastUsageDetailsAsync(manualContext.AssistantChatMessage.CurrentUsageDetails).ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(manualContext.AssistantChatMessage.Content))
-            {
-                return null;
-            }
-
-            return manualContext.AssistantChatMessage.Content;
-        }
-        catch (OperationCanceledException)
+        ChatRoomRoleExecutionCompletion completion = await executionResult.CompletionTask.ConfigureAwait(false);
+        if (completion.WasCanceled)
         {
             return null;
         }
+
+        _hasSpoken = true;
+        await UpdateLastUsageDetailsAsync(executionResult.AssistantChatMessage.CurrentUsageDetails).ConfigureAwait(false);
+        return string.IsNullOrWhiteSpace(completion.Content) ? null : completion.Content;
     }
 
     internal async Task SetWorkspacePathAsync(
@@ -382,47 +368,9 @@ public sealed class ChatRoomRole : NotifyBase, IAsyncDisposable
         CancellationToken cancellationToken)
     {
         ThrowIfDisposed();
-        foreach (IChatRoomWorkspaceAwareTool workspaceAwareTool in GetWorkspaceAwareTools())
-        {
-            await workspaceAwareTool.SetWorkspacePathAsync(workspacePath, cancellationToken).ConfigureAwait(false);
-        }
-
-        ChatManager.WorkspacePath = workspacePath;
-    }
-
-    private IEnumerable<IChatRoomWorkspaceAwareTool> GetWorkspaceAwareTools()
-    {
-        return _roleTools.OfType<IChatRoomWorkspaceAwareTool>();
-    }
-
-    internal static IReadOnlyList<AITool> MergeTools(
-        IReadOnlyList<AITool> defaultTools,
-        IReadOnlyList<AITool> runtimeTools,
-        IReadOnlyList<AITool>? additionalTools)
-    {
-        ArgumentNullException.ThrowIfNull(defaultTools);
-        ArgumentNullException.ThrowIfNull(runtimeTools);
-
-        int additionalCount = additionalTools?.Count ?? 0;
-        var toolsByName = new Dictionary<string, AITool>(
-            defaultTools.Count + runtimeTools.Count + additionalCount,
-            StringComparer.Ordinal);
-        if (additionalTools is not null)
-        {
-            AddToolsIfMissing(toolsByName, additionalTools);
-        }
-        AddToolsIfMissing(toolsByName, runtimeTools);
-        AddToolsIfMissing(toolsByName, defaultTools);
-
-        return toolsByName.Values.ToList();
-    }
-
-    private static void AddToolsIfMissing(Dictionary<string, AITool> toolsByName, IReadOnlyList<AITool> tools)
-    {
-        foreach (AITool tool in tools)
-        {
-            toolsByName.TryAdd(tool.Name, tool);
-        }
+        await _executor
+            .SetWorkspacePathAsync(ChatManager, workspacePath, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private async Task UpdateLastUsageDetailsAsync(UsageDetails? usageDetails)
@@ -561,30 +509,41 @@ public sealed class ChatRoomRole : NotifyBase, IAsyncDisposable
     /// <summary>
     /// 异步释放角色拥有的资源。
     /// </summary>
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        if (_isDisposed)
+        lock (_disposeSync)
         {
-            return;
+            if (_disposeTask is not null)
+            {
+                return new ValueTask(_disposeTask);
+            }
+
+            _isDisposed = true;
+            _disposeTask = _executor.DisposeAsync().AsTask();
+            return new ValueTask(_disposeTask);
+        }
+    }
+
+    private static void ValidateExecutionConfiguration(
+        ChatRoomRoleDefinition definition,
+        IChatRoomRoleExecutor executor)
+    {
+        if (!Enum.IsDefined(typeof(ChatRoomRoleExecutionKind), definition.ExecutionKind))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(definition),
+                definition.ExecutionKind,
+                "角色定义包含未知执行种类。");
         }
 
-        _isDisposed = true;
-        List<Exception>? exceptions = null;
-        foreach (IChatRoomRoleTool roleTool in _roleTools)
+        if (definition.IsHuman && definition.ExecutionKind != ChatRoomRoleExecutionKind.Standard)
         {
-            try
-            {
-                await roleTool.DisposeAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                (exceptions ??= []).Add(ex);
-            }
+            throw new ArgumentException("人类角色只能使用 Standard 执行种类。", nameof(definition));
         }
 
-        if (exceptions is { Count: > 0 })
+        if (executor.ExecutionKind != definition.ExecutionKind)
         {
-            throw new AggregateException("释放角色工具时发生错误。", exceptions);
+            throw new ArgumentException("角色定义与执行器声明的执行种类不一致。", nameof(executor));
         }
     }
 

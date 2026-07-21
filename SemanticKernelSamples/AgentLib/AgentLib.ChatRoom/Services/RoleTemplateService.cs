@@ -179,7 +179,7 @@ public sealed class RoleTemplateService
         return new ChatRoomRoleDefinition
         {
             RoleId = Guid.NewGuid().ToString("N"),
-            Kind = source.Kind,
+            ExecutionKind = source.ExecutionKind,
             RoleName = source.RoleName,
             SystemPrompt = source.SystemPrompt,
             IsHuman = source.IsHuman,
@@ -225,7 +225,7 @@ public sealed class RoleTemplateService
             Definition = new ChatRoomRoleDefinition
             {
                 RoleId = definition.RoleId,
-                Kind = definition.Kind,
+                ExecutionKind = definition.ExecutionKind,
                 RoleName = definition.RoleName,
                 SystemPrompt = definition.SystemPrompt,
                 IsHuman = definition.IsHuman,
@@ -267,7 +267,7 @@ public sealed class RoleTemplateService
         template.Definition = new ChatRoomRoleDefinition
         {
             RoleId = definition.RoleId,
-            Kind = definition.Kind,
+            ExecutionKind = definition.ExecutionKind,
             RoleName = definition.RoleName,
             SystemPrompt = definition.SystemPrompt,
             IsHuman = definition.IsHuman,

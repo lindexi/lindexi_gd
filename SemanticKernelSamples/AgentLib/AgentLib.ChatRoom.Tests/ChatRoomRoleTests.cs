@@ -1,6 +1,5 @@
 ﻿using AgentLib.ChatRoom;
 using AgentLib.ChatRoom.Model;
-using AgentLib.ChatRoom.Tools;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
@@ -16,132 +15,81 @@ namespace AgentLib.ChatRoom.Tests;
 [TestClass]
 public sealed class ChatRoomRoleTests
 {
-    [TestMethod(DisplayName = "合并工具时本轮工具应覆盖同名运行时工具")]
-    public void MergeToolsShouldPreferAdditionalTool()
+    [TestMethod(DisplayName = "便捷构造函数只允许 Standard 执行种类")]
+    public void Constructor_WithCodingDefinition_ThrowsArgumentException()
     {
-        AITool defaultTool = CreateTool("same_tool");
-        AITool runtimeTool = CreateTool("same_tool");
-        AITool additionalTool = CreateTool("same_tool");
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "coding-role",
+            ExecutionKind = ChatRoomRoleExecutionKind.Coding,
+        };
 
-        IReadOnlyList<AITool> result = ChatRoomRole.MergeTools([defaultTool], [runtimeTool], [additionalTool]);
-
-        Assert.AreSame(additionalTool, result.Single());
+        Assert.ThrowsExactly<ArgumentException>(() => new ChatRoomRole(definition));
     }
 
-    [TestMethod(DisplayName = "合并工具时运行时工具应覆盖同名默认工具")]
-    public void MergeToolsShouldPreferRuntimeTool()
+    [TestMethod(DisplayName = "定义与执行器种类不一致时应立即失败")]
+    public void Constructor_WithMismatchedExecutor_ThrowsArgumentException()
     {
-        AITool defaultTool = CreateTool("same_tool");
-        AITool runtimeTool = CreateTool("same_tool");
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            ExecutionKind = ChatRoomRoleExecutionKind.Standard,
+        };
+        var executor = new RecordingExecutor(ChatRoomRoleExecutionKind.Coding);
 
-        IReadOnlyList<AITool> result = ChatRoomRole.MergeTools([defaultTool], [runtimeTool], null);
-
-        Assert.AreSame(runtimeTool, result.Single());
+        Assert.ThrowsExactly<ArgumentException>(() => new ChatRoomRole(definition, null, executor));
     }
 
-    [TestMethod(DisplayName = "合并工具时应按名称去重并保持优先级顺序")]
-    public void MergeToolsShouldDeduplicateByOrdinalNameInPriorityOrder()
+    [TestMethod(DisplayName = "SpeakAsync 应只委托统一执行器并复用同一流式消息")]
+    public async Task SpeakAsync_ShouldDelegateToExecutorAndReuseMessage()
     {
-        AITool additionalTool = CreateTool("shared_tool");
-        AITool runtimeTool = CreateTool("runtime_tool");
-        AITool defaultTool = CreateTool("default_tool");
+        var executor = new RecordingExecutor(ChatRoomRoleExecutionKind.Standard);
+        await using var role = new ChatRoomRole(CreateDefinition("test-provider"), null, executor);
+        RegisterFakeModel(role, "test-provider");
+        AITool additionalTool = AIFunctionFactory.Create(() => string.Empty, "additional_tool");
 
-        IReadOnlyList<AITool> result = ChatRoomRole.MergeTools(
-            [defaultTool, CreateTool("shared_tool")],
-            [runtimeTool, CreateTool("shared_tool")],
-            [additionalTool]);
+        ChatRoomSpeakResult? result = await role.SpeakAsync(["第一条", "第二条"], [additionalTool]);
 
+        Assert.IsNotNull(result);
+        Assert.AreSame(executor.AssistantMessage, result.AssistantChatMessage);
         CollectionAssert.AreEqual(
-            new[] { "shared_tool", "runtime_tool", "default_tool" },
-            result.Select(tool => tool.Name).ToArray());
-    }
+            new[] { "第一条", "第二条" },
+            executor.Contents!.OfType<TextContent>().Select(content => content.Text).ToArray());
+        Assert.AreSame(additionalTool, executor.Context!.AdditionalTools.Single());
+        StringAssert.Contains(executor.Context.SystemPrompt, "测试角色");
 
-    [TestMethod(DisplayName = "设置工作区应发布路径和工具快照")]
-    public async Task SetWorkspaceShouldPublishPathAndToolSnapshot()
-    {
-        string workspacePath = CreateWorkspacePath();
-        var roleTool = new TestChatRoomRoleTool(CreateTool("workspace_tool"));
-        await using ChatRoomRole role = CreateRole(roleTool);
-
-        await role.SetWorkspacePathAsync(workspacePath, CancellationToken.None);
-
-        Assert.AreEqual(workspacePath, role.WorkspacePath);
-        Assert.AreSame(roleTool.AITools.Single(), role.WorkspaceTools.Single());
-    }
-
-    [TestMethod(DisplayName = "设置工作区不应通知普通角色工具")]
-    public async Task SetWorkspaceShouldNotNotifyRegularRoleTool()
-    {
-        string workspacePath = CreateWorkspacePath();
-        var roleTool = new RegularChatRoomRoleTool(CreateTool("regular_tool"));
-        await using ChatRoomRole role = CreateRole(roleTool);
-
-        await role.SetWorkspacePathAsync(workspacePath, CancellationToken.None);
-
-        Assert.AreEqual(workspacePath, role.WorkspacePath);
-        Assert.AreEqual(0, roleTool.WorkspaceNotificationCount);
-    }
-
-    [TestMethod(DisplayName = "切换工作区应替换工具快照")]
-    public async Task SetWorkspaceShouldReplaceToolSnapshot()
-    {
-        string firstPath = CreateWorkspacePath();
-        string secondPath = CreateWorkspacePath();
-        var roleTool = new TestChatRoomRoleTool(CreateTool("workspace_tool"));
-        await using ChatRoomRole role = CreateRole(roleTool);
-        await role.SetWorkspacePathAsync(firstPath, CancellationToken.None);
-
-        await role.SetWorkspacePathAsync(secondPath, CancellationToken.None);
-
-        Assert.AreEqual(secondPath, role.WorkspacePath);
-        Assert.AreEqual(secondPath, roleTool.WorkspacePath);
+        executor.Completion.TrySetResult(new ChatRoomRoleExecutionCompletion("完成", WasCanceled: false));
+        Assert.AreEqual("完成", await result.FinalContentTask);
     }
 
     [TestMethod(DisplayName = "角色发言期间设置工作区不应等待发言完成")]
-    [Timeout(15000, CooperativeCancellation = true)]
     public async Task SetWorkspaceDuringSpeakingShouldNotWaitForSpeakingToComplete()
     {
+        var executor = new RecordingExecutor(ChatRoomRoleExecutionKind.Standard);
+        await using var role = new ChatRoomRole(CreateDefinition("test-provider"), null, executor);
+        RegisterFakeModel(role, "test-provider");
+        ChatRoomSpeakResult? result = await role.SpeakAsync(["开始"]);
+        Assert.IsNotNull(result);
         string workspacePath = CreateWorkspacePath();
-        var roleTool = new TestChatRoomRoleTool(CreateTool("workspace_tool"));
-        var streamStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var releaseStream = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        FakeChatClient client = CreateBlockingClient(streamStarted, releaseStream);
-        ChatRoomRole role = CreateRole(roleTool, "test-provider");
-        ChatRoomSpeakResult? result = null;
-        try
-        {
-            RegisterFakeModel(role, "test-provider", client);
-            result = await role.SpeakAsync(["开始"]);
-            Assert.IsNotNull(result);
-            await streamStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
-            await role.SetWorkspacePathAsync(workspacePath, CancellationToken.None);
+        await role.SetWorkspacePathAsync(workspacePath, CancellationToken.None);
 
-            Assert.IsFalse(result.FinalContentTask.IsCompleted);
-            Assert.AreSame(roleTool.AITools.Single(), role.WorkspaceTools.Single());
-        }
-        finally
-        {
-            releaseStream.TrySetResult();
-            if (result is not null)
-            {
-                await result.FinalContentTask.WaitAsync(TimeSpan.FromSeconds(5));
-            }
-            await role.DisposeAsync();
-        }
+        Assert.IsFalse(result.FinalContentTask.IsCompleted);
+        Assert.AreEqual(workspacePath, executor.WorkspacePath);
+        executor.Completion.TrySetResult(new ChatRoomRoleExecutionCompletion("完成", WasCanceled: false));
+        await result.FinalContentTask;
     }
 
-    [TestMethod(DisplayName = "异步释放重复调用应保持幂等")]
+    [TestMethod(DisplayName = "异步释放重复调用应只释放统一执行器一次")]
     public async Task DisposeAsyncShouldBeIdempotent()
     {
-        var roleTool = new TestChatRoomRoleTool(CreateTool("workspace_tool"));
-        ChatRoomRole role = CreateRole(roleTool);
-        await role.SetWorkspacePathAsync(CreateWorkspacePath(), CancellationToken.None);
+        var executor = new RecordingExecutor(ChatRoomRoleExecutionKind.Standard);
+        var role = new ChatRoomRole(CreateDefinition(), null, executor);
 
         await role.DisposeAsync();
         await role.DisposeAsync();
 
-        Assert.AreEqual(1, roleTool.DisposeCount);
+        Assert.AreEqual(1, executor.DisposeCount);
     }
 
     [TestMethod]
@@ -149,17 +97,6 @@ public sealed class ChatRoomRoleTests
     {
         Assert.ThrowsExactly<ArgumentNullException>(() => new ChatRoomRole(null!));
     }
-
-    private static AITool CreateTool(string name) => AIFunctionFactory.Create(
-        () => string.Empty,
-        name);
-
-    private static ChatRoomRole CreateRole() => new(CreateDefinition());
-
-    private static ChatRoomRole CreateRole(
-        IChatRoomRoleTool roleTool,
-        string? providerId = null) =>
-        new(CreateDefinition(providerId), null, [roleTool]);
 
     private static ChatRoomRoleDefinition CreateDefinition(string? providerId = null) => new()
     {
@@ -175,9 +112,9 @@ public sealed class ChatRoomRoleTests
         return workspacePath;
     }
 
-    private static void RegisterFakeModel(ChatRoomRole role, string providerName, FakeChatClient client)
+    private static void RegisterFakeModel(ChatRoomRole role, string providerName)
     {
-        var model = new FakeLanguageModel(client)
+        var model = new FakeLanguageModel(new FakeChatClient())
         {
             ModelDefinition = new ModelDefinition
             {
@@ -189,63 +126,49 @@ public sealed class ChatRoomRoleTests
         role.EndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([model]));
     }
 
-    private sealed class TestChatRoomRoleTool(AITool aiTool) : IChatRoomRoleTool, IChatRoomWorkspaceAwareTool
+    private sealed class RecordingExecutor(ChatRoomRoleExecutionKind executionKind) : IChatRoomRoleExecutor
     {
-        public IReadOnlyList<AITool> AITools { get; } = [aiTool];
+        public ChatRoomRoleExecutionKind ExecutionKind { get; } = executionKind;
+
+        public CopilotChatMessage AssistantMessage { get; } = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
+
+        public TaskCompletionSource<ChatRoomRoleExecutionCompletion> Completion { get; } =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public ChatRoomRoleExecutionContext? Context { get; private set; }
+
+        public IReadOnlyList<AIContent>? Contents { get; private set; }
 
         public string? WorkspacePath { get; private set; }
 
         public int DisposeCount { get; private set; }
 
-        public Task SetWorkspacePathAsync(string? workspacePath, CancellationToken cancellationToken)
+        public Task<ChatRoomRoleExecutionResult> RunAsync(
+            ChatRoomRoleExecutionContext context,
+            IReadOnlyList<AIContent> contents,
+            CancellationToken cancellationToken)
+        {
+            Context = context;
+            Contents = [.. contents];
+            return Task.FromResult(new ChatRoomRoleExecutionResult(AssistantMessage, Completion.Task));
+        }
+
+        public Task SetWorkspacePathAsync(
+            CopilotChatManager chatManager,
+            string? workspacePath,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             WorkspacePath = workspacePath;
+            chatManager.WorkspacePath = workspacePath;
             return Task.CompletedTask;
         }
 
         public ValueTask DisposeAsync()
         {
             DisposeCount++;
-            return ValueTask.CompletedTask;
+            return default;
         }
-    }
-
-    private sealed class RegularChatRoomRoleTool(AITool aiTool) : IChatRoomRoleTool
-    {
-        public IReadOnlyList<AITool> AITools { get; } = [aiTool];
-
-        public int WorkspaceNotificationCount { get; }
-
-        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
-    }
-
-    private static FakeChatClient CreateBlockingClient(
-        TaskCompletionSource streamStarted,
-        TaskCompletionSource releaseStream)
-    {
-        var client = new FakeChatClient();
-        client.OnGetStreamingResponseAsync = (_, _, cancellationToken) => StreamBlockingResponseAsync(
-            streamStarted,
-            releaseStream,
-            cancellationToken);
-        client.OnGetResponseAsync = (_, _, _) => Task.FromResult(new ChatResponse(
-            new ChatMessage(ChatRole.Assistant, "完成")));
-        return client;
-    }
-
-    private static async IAsyncEnumerable<ChatResponseUpdate> StreamBlockingResponseAsync(
-        TaskCompletionSource streamStarted,
-        TaskCompletionSource releaseStream,
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        streamStarted.SetResult();
-        await releaseStream.Task.WaitAsync(cancellationToken);
-        yield return new ChatResponseUpdate
-        {
-            Role = ChatRole.Assistant,
-            Contents = [new TextContent("完成")],
-        };
     }
 
     [TestMethod]
