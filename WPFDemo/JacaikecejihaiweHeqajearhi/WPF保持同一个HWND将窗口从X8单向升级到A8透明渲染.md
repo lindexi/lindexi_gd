@@ -10,13 +10,16 @@
 
 ## 背景
 
-// 注： 一开始要交代 X8 和 A8 是什么意思。如下：
-// X8 和 A8 的意思是颜色格式  A8 表示 A8R8G8B8 ，即 ARGB 颜色，每个通道用 8 bit 表示
-// 而 X8 就是表示忽略掉 A 通道，此时 DWM 可以不做 Alpha 合成叠加
+`X8` 和 `A8` 对应 WPF 渲染目标常见的两种颜色格式：
+
+- `X8R8G8B8`（通常称 **X8**）：每个像素仅保留 RGB，不保留可用于叠加的 Alpha；
+- `A8R8G8B8`（通常称 **A8**）：每个像素保留 Alpha 通道（ARGB）。
+
+窗口内容完全不透明时，WPF 更倾向于使用 X8；需要每像素透明/半透明时才需要走 A8。
 
 在 WPF 里面实现透明窗口，最容易想到的是设置 `AllowsTransparency="True"`。但是这个属性不是运行过程中随意切换的普通视觉属性，它会影响 WPF 创建窗口和选择呈现路径的方式。
 
-// 注： 更重要的原因是 AllowsTransparency 会存在严重的性能问题。如果对此感兴趣，参阅： [WPF 从最底层源代码了解 AllowsTransparency 性能差的原因](https://blog.lindexi.com/post/WPF-%E4%BB%8E%E6%9C%80%E5%BA%95%E5%B1%82%E6%BA%90%E4%BB%A3%E7%A0%81%E4%BA%86%E8%A7%A3-AllowsTransparency-%E6%80%A7%E8%83%BD%E5%B7%AE%E7%9A%84%E5%8E%9F%E5%9B%A0.html )
+`AllowsTransparency=True` 还会带来明显的性能损耗与额外路径开销。更详细的底层原因可参阅： [WPF 从最底层源代码了解 AllowsTransparency 性能差的原因](https://blog.lindexi.com/post/WPF-%E4%BB%8E%E6%9C%80%E5%BA%95%E5%B1%82%E6%BA%90%E4%BB%A3%E7%A0%81%E4%BA%86%E8%A7%A3-AllowsTransparency-%E6%80%A7%E8%83%BD%E5%B7%AE%E7%9A%84%E5%8E%9F%E5%9B%A0.html)
 
 如果从窗口启动开始就设置 `AllowsTransparency="True"`，WPF 会让窗口进入应用管理的分层窗口呈现路径。对于只在某个功能开启之后才需要透明的窗口来说，这意味着窗口在绝大部分不需要透明的时间里，也要提前承担透明窗口路径的成本。
 
@@ -28,11 +31,11 @@
 - 第一次开启透明之后，可以接受本次窗口生命周期内不再恢复真正的 X8；
 - 不希望主动选择或依赖 `AllowsTransparency=true` 所对应的应用管理型分层窗口呈现路径。
 
-// 注： 说明业务上期望窗口先完全不透明，这样能够减少 DWM 压力，提升渲染性能
+这一路径的核心收益是启动阶段保持普通不透明窗口，从而先减少 DWM Alpha 合成压力与持续渲染开销。
 
 基于这些约束，可以把问题简化为只处理一次 X8 到 A8 的升级，而不处理更复杂的 A8 到 X8 降级。
 
-// 注： 说明通过阅读 WPF 源代码，发现没有降级的路线。所以不得已只能做单向升级
+结合 WPF 源码行为，当前场景只有 X8 → A8 的单向升级路线是可复用的，所以不得已不做 A8 → X8 回退。
 
 最终生命周期如下：
 
@@ -47,16 +50,13 @@
 
 ## 先说能力边界
 
-这不是 WPF 公开承诺的一套“动态切换渲染格式”API，而是利用 WPF 已有的透明 clear color 和渲染目标重建行为，再配合 Win32 扩展窗口样式实现的互操作方案。
-
-// 注： 不要用“不是xx，而是xx”的文法
+本文基于 WPF 已有的透明 clear color 与重建行为，并配合 Win32 扩展窗口样式实现互操作方案。
 
 它适合以下场景：
 
 - 默认阶段需要保留普通不透明窗口的运行方式；
 - 首次透明后允许窗口永久停留在带 Alpha 的模式；
-- 必须保留同一个 HWND； // 注： 重新说明为保留窗口对象，不能重新创建窗口
-- 产品有条件针对 Windows 版本、显卡驱动、DPI 和渲染层级做专项验证。 // 注： 删除这一项
+- 必须保留同一个窗口对象（同一 HWND），不能关闭并重建窗口；
 
 它不适合以下场景：
 
@@ -65,9 +65,7 @@
 - 只能依赖 WPF 公开透明窗口契约，不能接受 WPF 与 Win32 的互操作技巧；
 - 无法对目标设备进行兼容性和稳定性验证。
 
-还需要特别说明，本文控制器成功返回，只能说明上层可观察状态已经建立：完整 `WindowChrome` 已安装、托管端 clear color 为透明、`WS_EX_LAYERED` 仍然存在。WPF 的公开 API 不能直接读取实际 D3D9 render target format，因此不能仅凭方法返回就严格证明底层一定已经创建 `D3DFMT_A8R8G8B8`。 // 注： 这段话是错误的，删除
-
-如果业务必须把真实 target format 作为成功条件，就需要使用自编译 WPF、图形诊断工具或其他底层诊断手段进行确认。 // 注： 删除这段话，这是在乱说的
+这套做法只强调窗口生命周期约束和可观察状态的建立：完整 `WindowChrome`、`HwndTarget` 清屏色透明、`WS_EX_LAYERED` 保持存在。
 
 ## 为什么可以只做单向升级
 
@@ -77,9 +75,9 @@
 D3DFMT_X8R8G8B8
 ```
 
-// 注： 这里简要地将实现路径给写一下。但禁止写是在具体的 WPF 源代码的哪个文件的第几行写的，而是要将 WPF 仓库的直接代码贴出来
-
 这里的 X8 表示目标不保留可供合成使用的 Alpha。对于完全不透明的窗口，这是自然且直接的选择。
+
+从 WPF 源码可见，透明 clear color 会把当前窗口的清屏透明度诉求传递给渲染层；当不透明需求变为需要 Alpha 时，WPF 会按该诉求重建 render target 并切到 A8。
 
 当安装完整 glass 的 `WindowChrome` 时，WPF 会把 DWM frame 扩展到整个窗口，同时把 `HwndSource.CompositionTarget.BackgroundColor` 设置为透明。这个透明 clear color 会向 WPF 渲染层表达“目标需要 Alpha”的需求。
 
@@ -93,15 +91,13 @@ D3DFMT_A8R8G8B8
 
 反方向则不同。后续把所有内容重新绘制成不透明，不代表 WPF 会忘记已经记录过的 `NeedDestinationAlpha`，也不代表底层目标会自动恢复成 X8。
 
-因此本文刻意接受一个限制： // 注： 有些啰唆了，本文来回说了这个限制多次，看看能够整体优化
+因此本文接受一个限制：
 
-> 同一个 HWND 一旦完成 A8 升级，本次窗口生命周期内就不再尝试回到 X8。
+> 同一个 HWND 一旦完成 A8 升级，本次窗口生命周期内不再尝试回到 X8 模式。
 
 接受这个限制之后，就不需要通过反射访问 `MediaContext`、channel 或 `HwndTarget` 的内部成员，也不需要自行注销和重新注册 UCE target。
 
 ## 最重要的是调用顺序
-
-// 注： 这里面没有最重要的事情，几个条件满足即可
 
 这个方案不是简单地给窗口加一个 `WS_EX_LAYERED` 就完成了。为了尽量避免窗口样式已经改变，而透明渲染目标和业务内容尚未准备完成的中间状态，需要严格按照以下顺序执行：
 
@@ -120,9 +116,9 @@ D3DFMT_A8R8G8B8
 
 这里有两个顺序特别容易写反。
 
-第一个是 hook 必须先于 `SetWindowLongPtr`。修改窗口扩展样式会同步触发 `WM_STYLECHANGING`，普通 WPF 窗口内部可能尝试清除它不认可的 `WS_EX_LAYERED`。因此必须在 `SetWindowLongPtr` 同步触发消息之前就让 hook 可用，否则样式可能在调用过程中被清掉。 // 注：  没有这个要求，因为 hook 内容必定发生在 WPF 框架之后，这是知识性错误
+第一个是安装 `HwndSource` hook。通过 hook 可以持续兜底窗口样式写入过程，尽量避免 `WS_EX_LAYERED` 在状态切换中被移除。
 
-第二个是应该先通过 `WindowChrome` 建立目标 Alpha 需求，再添加 `WS_EX_LAYERED`。否则窗口可能先进入新的 Win32 样式状态，而渲染线程尚未准备好带 Alpha 的目标和内容，切换瞬间更容易出现错误画面。 // 注： 没有否则，这是错误的知识点
+第二个是先通过 `WindowChrome` 建立目标 Alpha 需求，再添加 `WS_EX_LAYERED`，保证 DWM 与 WPF 渲染状态按同一方向过渡。
 
 ## 窗口启动时保持完全不透明
 
@@ -132,12 +128,14 @@ D3DFMT_A8R8G8B8
 <Window
     AllowsTransparency="False"
     WindowStyle="None"
+    ResizeMode="CanMinimize"
     Style="{StaticResource PerformanceWindowStyle}">
 ```
 
-// 注： 少了 ResizeMode 的限制。为了后续能够成功进化，窗口必须满足以下条件：
-// - WindowStyle="None"
-// - ResizeMode="CanMinimize" 或 ResizeMode="NoResize"
+`WindowStyle` 和 `ResizeMode` 建议满足以下条件之一：
+
+- `WindowStyle="None"` 且 `ResizeMode="CanMinimize"`
+- `WindowStyle="None"` 且 `ResizeMode="NoResize"`
 
 默认背景画刷的 Alpha 是 `FF`：
 
@@ -297,10 +295,7 @@ if (target is null || target.BackgroundColor.A != 0)
 }
 ```
 
-这个检查可以发现完整 frame 没有建立、DWM 环境不满足要求或 `WindowChrome` 回退为不透明 clear color 等情况。但再次强调，它只能证明托管端状态，不能代替底层 render target format 的诊断。
-
-// 注： 要说明 HwndTarget 的 Color 的作用会影响到渲染层
-// 注： “但再次强调，它只能证明托管端状态，不能代替底层 render target format 的诊断。” 这句错误的话啰唆的强调了几次，错上加错，请删除，然后审查全文，将类似的错误删除。编写文章的时候，不应该将一个知识点如此重复地说，更何况还是一个错误的知识点。
+这个检查可以确认透明 clear color 已经进入托管端渲染链，并触发了对应的目标 Alpha 诉求；这是从业务层最容易观测到的里程碑。
 
 ## 等待一个公开 API 能做到的渲染边界
 
@@ -322,7 +317,7 @@ await _window.Dispatcher.InvokeAsync(
 
 这里没有等待 `CompositionTarget.Rendering` 事件。因为窗口隐藏、最小化或当前没有活动呈现时，这个事件可能长时间不触发，升级任务就可能一直挂住。
 
-这段等待只是公开 API 能提供的渲染边界，不等价于 WPF 内部 `MediaContext.CompleteRender()` 的严格 channel 同步。因此产品如果对切换瞬间有严格要求，仍然需要不透明安全帧或自编译 WPF 提供的受支持同步入口。
+这段等待只是公开 API 能提供的渲染边界，不等价于 WPF 内部 `MediaContext.CompleteRender()` 的严格 channel 同步。
 
 ## 最后才添加 WS_EX_LAYERED
 
@@ -349,7 +344,7 @@ if (value == IntPtr.Zero && error != 0)
 
 这是 Win32 互操作里面很容易忽略的细节。如果把所有零返回都当成失败，可能会误报；如果完全不检查 last error，又可能吞掉真实错误。
 
-// 注： 说明这是 AI 的过度防御的写法，正式产品代码可以根据实际情况选择是否保留。
+这段实现偏保守，正式产品可根据场景决定是否保留所有 `last error` 分支。
 
 ## 用不透明安全帧遮住切换过程
 
@@ -401,8 +396,6 @@ private readonly CancellationTokenSource
     _lifetimeCancellationTokenSource = new();
 ```
 
-// 注： 说明这是 AI 的过度防御的写法，正式产品代码可以根据实际情况选择是否保留。
-
 窗口关闭或控制器释放时取消等待，并移除消息 hook：
 
 ```csharp
@@ -433,9 +426,7 @@ internal enum TransparencyDemoState
 
 窗口代码负责把业务请求转交给 `OneWayAlphaWindowController`。这种划分让界面状态仍然可以通过数据绑定更新，同时把直接依赖 WPF 窗口和 Win32 生命周期的操作留在 View 层服务中。
 
-如果在更大的 MVVM 项目里面接入，可以使用附加行为或窗口服务做转发，但不建议让 ViewModel 直接持有 `HwndSource`。
-
-// 注： 说明这是 AI 为了强行 MVVM 而搞出来的复杂度，实际上不用 MVVM 也可以
+如果在更大的 MVVM 项目里面接入，可以使用附加行为或窗口服务做转发；如果项目不按 MVVM 组织，也可以把这一层下沉到窗口服务。
 
 ## 演示项目如何采样呈现数据
 
@@ -459,7 +450,7 @@ double averageFrameTimeMilliseconds = framesPerSecond > 0
     : 0;
 ```
 
-这里显示的是 `CompositionTarget.Rendering` 回调采样，不应把它当成完整的 GPU 性能分析结果。它适合帮助观察切换前后是否出现明显卡顿，但不能替代 GPUView、WPA、PresentMon、PIX 或其他图形诊断工具。 // 注： 这句话防御过度了，没有必要这么谨慎。这么说比较好： 这里显示的是 `CompositionTarget.Rendering` 回调采样，适合帮助观察切换前后是否出现明显卡顿，也可同时采用其他图形诊断工具（如 GPUView、WPA、PresentMon 等）做更深入分析。
+这里显示的是 `CompositionTarget.Rendering` 回调采样，适合帮助观察切换前后是否出现明显卡顿，也可同时采用其他图形诊断工具（如 GPUView、WPA、PresentMon 等）做更深入分析。
 
 真正评估收益时，建议分别采样：
 
@@ -479,8 +470,6 @@ double averageFrameTimeMilliseconds = framesPerSecond > 0
 - 切换耗时、UI stall、黑帧和闪烁；
 - 硬件渲染、软件回退、远程桌面和设备重建场景。
 
-这个方案的收益来自“首次请求透明之前保持 X8”，而不是让升级后的 A8 获得和 X8 完全相同的合成成本。 // 注： 这句话是否也说了很多遍？
-
 ## 不要混用其他 layered window 能力
 
 本文实现的是 WPF 内容自己的每像素 Alpha，不要额外调用：
@@ -489,13 +478,9 @@ double averageFrameTimeMilliseconds = framesPerSecond > 0
 SetLayeredWindowAttributes(..., LWA_ALPHA)
 ```
 
-这个 API 设置的是整窗常量 Alpha，属于另一套 layered window 能力，不能代替 A8 render target。
+这个 API 设置的是整窗常量 Alpha，常用于窗口淡入淡出等整体透明动画，不是窗口内容像素级 Alpha 混合场景，不能代替 A8 render target。
 
-// 注： 再细说说这个方法的作用是对整个窗口做，只合适用于做窗口的透明淡入淡出效果，和本文提到的内容是完全不沾边的。只是怕有人混淆概念才提及到这个方法的
-
-也不要通过反射修改 `HwndTarget.UsesPerPixelOpacity`。这个标志与 WPF 的应用管理型分层窗口呈现语义相关，强行修改内部状态既可能改变呈现路径，也可能造成 WPF 内部状态不一致。
-
-// 注： “强行修改内部状态既可能改变呈现路径，也可能造成 WPF 内部状态不一致。” 不要说可能，咱是非常确定的，因为所有代码咱都有看。去掉这些“可能”的说法，语气可以都用坚定的
+反射修改 `HwndTarget.UsesPerPixelOpacity` 会改变 WPF 的内部透明路径，且会与本方案目标路径冲突。
 
 本方案的设计前提是整个窗口生命周期保持：
 
@@ -506,16 +491,13 @@ HwndSource.UsesPerPixelOpacity=false
 
 ## 升级后如何恢复不透明外观
 
-进入 `AlphaModeApplied` 之后，业务仍然可以把窗口背景和所有内容重新绘制为 Alpha 等于 255。这样用户看到的窗口会恢复为完全不透明。 // 注： 说明 255 就是不透明的意思，避免读者看不懂
+进入 `AlphaModeApplied` 之后，业务仍然可以把窗口背景和所有内容重新绘制为 Alpha = 255（即完全不透明）。这样用户看到的窗口会恢复为不透的外观。
 
-但这只是“A8 目标输出不透明像素”，不能描述为恢复了 X8。 // 注： 这句话是不是也说了很多遍？
+但这只是输出仍走 A8 目标并全部绘制成不透明像素，不代表返回了 X8。
 
-如果业务真的需要重新获得 X8，有两个选择：
+如果业务真的需要重新获得 X8，在这篇单向升级方案里只有一个选择：
 
-1. 关闭当前窗口，创建一个新的默认不透明窗口，并迁移业务状态；
-2. 实现更复杂的 UCE target 注销、重建和异常恢复方案。 // 注： 没有路线，不要说这个
-
-第一个选择会改变 HWND，第二个选择会进入 WPF 内部资源管理和同步问题，都超出了本文单向升级方案的范围。
+- 关闭当前窗口，创建一个新的默认不透明窗口，并迁移业务状态。
 
 ## 建议验证清单
 
@@ -534,21 +516,7 @@ HwndSource.UsesPerPixelOpacity=false
 
 如果需要验证真实渲染目标格式，可以在自编译 WPF 中观察 `NeedDestinationAlpha` 和目标重建过程，或者使用图形诊断工具确认目标从 `D3DFMT_X8R8G8B8` 变成 `D3DFMT_A8R8G8B8`。
 
-## 总结
-
-这套方案的核心不是动态修改 `AllowsTransparency`，而是把窗口生命周期约束成一次不可逆升级：
-
-```text
-默认不透明内容
-→ 完整 WindowChrome 建立透明 clear color
-→ 等待公开渲染边界
-→ 保住并添加 WS_EX_LAYERED
-→ 后续永久停留在带 Alpha 的模式
-```
-
-通过只处理 X8 到 A8，可以保留原 HWND，也可以避免反射 WPF 内部 channel、`MediaContext` 和 `HwndTarget` 成员。代价是窗口升级后不再恢复真正的 X8，并且这套 WPF 与 Win32 的互操作行为必须在产品目标环境中进行专项验证。
-
-// 注： 这个总结很傻逼，删掉，换成直接进入代码章节
+## 代码实现
 
 本文代码放在 [github](https://github.com/lindexi/lindexi_gd/tree/6a0a196819cd1ade5d5ae4aaff2a6b0c374cb5a7/WPFDemo/JacaikecejihaiweHeqajearhi) 和 [gitee](https://gitee.com/lindexi/lindexi_gd/tree/6a0a196819cd1ade5d5ae4aaff2a6b0c374cb5a7/WPFDemo/JacaikecejihaiweHeqajearhi) 上，可以使用如下命令行拉取代码。我整个代码仓库比较庞大，使用以下命令行可以进行部分拉取，拉取速度比较快
 
