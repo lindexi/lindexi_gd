@@ -14,6 +14,10 @@
     <InternalsVisibleTo Include="CoursewarePptxGenerator.Core.Tests" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="System.Text.Json" Version="10.0.9" />
+  </ItemGroup>
+
   <ItemGroup>
     <Folder Include="Polyfills\" />
   </ItemGroup>
