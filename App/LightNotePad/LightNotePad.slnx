@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/Code/">
+    <Project Path="Code/LightNotePad/LightNotePad.csproj" />
+  </Folder>
+  <Project Path="Docs/Docs.csproj" />
+</Solution>
