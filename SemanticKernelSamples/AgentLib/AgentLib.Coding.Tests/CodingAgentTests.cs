@@ -107,6 +107,38 @@ public sealed class CodingAgentTests
         Assert.IsGreaterThan(observedMessageCounts[0], observedMessageCounts[1]);
     }
 
+    [TestMethod(DisplayName = "连续运行后会话历史只应保留一个系统提示词")]
+    [Timeout(10000)]
+    public async Task RunAsyncShouldKeepOnlyOneSystemPromptInSessionHistory()
+    {
+        var client = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (messages, _, cancellationToken) => ImmediateStreamAsync(
+                messages,
+                [],
+                cancellationToken),
+        };
+        CopilotChatManager chatManager = CreateChatManager(client);
+        await using var agent = new CodingAgent(CreateProvider("workspace", []));
+
+        CodingAgentRunResult first = await agent.RunAsync(
+            await chatManager.CreateManualSendMessageContextAsync(),
+            "第一轮",
+            "workspace");
+        await first.CompletionTask;
+        CodingAgentRunResult second = await agent.RunAsync(
+            await chatManager.CreateManualSendMessageContextAsync(),
+            "第二轮",
+            "workspace");
+        await second.CompletionTask;
+
+        AgentSession agentSession = chatManager.SelectedSession.AgentSession!;
+        int systemPromptCount = agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? messages)
+            ? messages.Count(message => message.Role == ChatRole.System)
+            : 0;
+        Assert.AreEqual(1, systemPromptCount);
+    }
+
     [TestMethod(DisplayName = "同一 CodingAgent 允许重叠运行")]
     [Timeout(10000)]
     public async Task RunAsyncShouldAllowOverlappingRuns()

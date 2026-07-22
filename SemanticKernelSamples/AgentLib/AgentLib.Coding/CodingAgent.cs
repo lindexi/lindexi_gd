@@ -214,9 +214,9 @@ public sealed class CodingAgent : IAsyncDisposable
                 options.AIContextProviders = [];
             }, cancellationToken).ConfigureAwait(false);
             AgentSession agentSession = await context.GetAgentSessionAsync(cancellationToken).ConfigureAwait(false);
+            EnsureSystemPromptInSession(agentSession);
             ChatMessage[] inputMessages =
             [
-                new ChatMessage(ChatRole.System, SystemPrompt),
                 new ChatMessage(ChatRole.User, new List<AIContent>(contents)),
             ];
 
@@ -259,6 +259,28 @@ public sealed class CodingAgent : IAsyncDisposable
                 }
             }
         }
+    }
+
+    private static void EnsureSystemPromptInSession(AgentSession agentSession)
+    {
+        if (agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? messages)
+            && messages.Any(message =>
+                message.Role == ChatRole.System
+                && string.Equals(message.Text, SystemPrompt, StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        var initializedMessages = new List<ChatMessage>((messages?.Count ?? 0) + 1)
+        {
+            new(ChatRole.System, SystemPrompt),
+        };
+        if (messages is not null)
+        {
+            initializedMessages.AddRange(messages);
+        }
+
+        agentSession.SetInMemoryChatHistory(initializedMessages);
     }
 
     private static Task ClearAssistantPlaceholderAsync(IManualSendMessageContext context)

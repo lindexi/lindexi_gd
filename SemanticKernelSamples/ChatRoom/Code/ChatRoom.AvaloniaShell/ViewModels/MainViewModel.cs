@@ -160,20 +160,13 @@ public sealed class MainViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 初始化主 ViewModel。创建默认会话并添加一个名为"助手"的默认角色。
+    /// 初始化主 ViewModel。创建默认会话并添加“助手”和“编程助手”默认角色。
     /// </summary>
     public async Task InitializeAsync()
     {
         await _chatRoomService.CreateNewSessionAsync().ConfigureAwait(true);
 
-        var assistantDefinition = new ChatRoomRoleDefinition
-        {
-            RoleId = Guid.NewGuid().ToString("N"),
-            RoleName = "助手",
-            SystemPrompt = "你是一个乐于助人的 AI 助手，请根据用户的提问提供准确、有用的回答。",
-            IsManagerRole = true,
-        };
-        await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(true);
+        await AddDefaultRolesAsync().ConfigureAwait(true);
 
         // 持久化到磁盘并刷新会话列表
         await _chatRoomService.SaveAsync().ConfigureAwait(true);
@@ -193,6 +186,17 @@ public sealed class MainViewModel : ViewModelBase
 
     private async void OnNewSessionCreated(object? sender, EventArgs e)
     {
+        await AddDefaultRolesAsync().ConfigureAwait(true);
+
+        // 持久化到磁盘并刷新会话列表
+        await _chatRoomService.SaveAsync().ConfigureAwait(true);
+        await SessionListViewModel.RefreshSessionsAsync().ConfigureAwait(true);
+        SessionListViewModel.OpenCurrentSession();
+        NavigateToChat();
+    }
+
+    private async Task AddDefaultRolesAsync()
+    {
         var assistantDefinition = new ChatRoomRoleDefinition
         {
             RoleId = Guid.NewGuid().ToString("N"),
@@ -202,11 +206,9 @@ public sealed class MainViewModel : ViewModelBase
         };
         await _chatRoomService.AddRoleAsync(assistantDefinition).ConfigureAwait(true);
 
-        // 持久化到磁盘并刷新会话列表
-        await _chatRoomService.SaveAsync().ConfigureAwait(true);
-        await SessionListViewModel.RefreshSessionsAsync().ConfigureAwait(true);
-        SessionListViewModel.OpenCurrentSession();
-        NavigateToChat();
+        var codingAssistantRoleFactory = new CodingAssistantRoleFactory();
+        ChatRoomRoleDefinition codingAssistantDefinition = codingAssistantRoleFactory.CreateDefinition();
+        await _chatRoomService.AddRoleAsync(codingAssistantDefinition).ConfigureAwait(true);
     }
 
     private void OnAddRoleRequested(object? sender, EventArgs e)
