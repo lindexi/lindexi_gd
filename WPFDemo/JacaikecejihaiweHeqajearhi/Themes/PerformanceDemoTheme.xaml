@@ -97,11 +97,6 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="20" />
         <Setter Property="Padding" Value="22" />
-        <Setter Property="Effect">
-            <Setter.Value>
-                <DropShadowEffect BlurRadius="28" Opacity="0.38" ShadowDepth="8" Color="#FF000000" />
-            </Setter.Value>
-        </Setter>
     </Style>
 
     <Style x:Key="ControlPanelStyle" TargetType="{x:Type Border}">
@@ -214,11 +209,6 @@
         <Setter Property="Width" Value="14" />
         <Setter Property="Height" Value="14" />
         <Setter Property="Fill" Value="{StaticResource AccentBrush}" />
-        <Setter Property="Effect">
-            <Setter.Value>
-                <DropShadowEffect BlurRadius="12" Color="#FF65D1FF" Opacity="0.95" ShadowDepth="0" />
-            </Setter.Value>
-        </Setter>
     </Style>
 
     <Style x:Key="PulseRingStyle" TargetType="{x:Type Ellipse}">
