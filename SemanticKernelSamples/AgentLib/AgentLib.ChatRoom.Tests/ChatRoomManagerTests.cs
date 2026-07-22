@@ -325,6 +325,194 @@ public sealed class ChatRoomManagerTests
         Assert.Contains("IsSpeaking", propertyChanges);
     }
 
+    [TestMethod(DisplayName = "单 AI 应将多条人类消息按原文顺序输入")]
+    public async Task StepAsyncSingleAiShouldUseOriginalHumanMessagesInOrder()
+    {
+        var executor = new TestChatRoomRoleExecutor();
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "assistant",
+            RoleName = "助手",
+            ModelProviderId = "test-provider",
+        }, null, executor);
+        await using var manager = new ChatRoomManager();
+        RegisterFakeModel(manager, new FakeChatClient());
+        await manager.AddRoleAsync(role);
+        await manager.HumanInterjectAsync("第一条", "human-1", "用户甲");
+        await manager.HumanInterjectAsync("第二条", "human-2", "用户乙");
+
+        _ = await manager.StepAsync(role);
+
+        CollectionAssert.AreEqual(new[] { "第一条", "第二条" }, executor.LastInputTexts.ToArray());
+    }
+
+    [TestMethod(DisplayName = "单 Coding AI 和 MentionOnly AI 应省略人类前缀")]
+    [DataRow(ChatRoomRoleExecutionKind.Coding, ChatRoomParticipationMode.AlwaysParticipate, false)]
+    [DataRow(ChatRoomRoleExecutionKind.Standard, ChatRoomParticipationMode.MentionOnly, false)]
+    [DataRow(ChatRoomRoleExecutionKind.Standard, ChatRoomParticipationMode.AlwaysParticipate, true)]
+    public async Task StepAsyncSingleSpecialAiShouldOmitHumanPrefix(
+        ChatRoomRoleExecutionKind executionKind,
+        ChatRoomParticipationMode participationMode,
+        bool isManagerRole)
+    {
+        var executor = new TestChatRoomRoleExecutor(executionKind);
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "assistant",
+            ExecutionKind = executionKind,
+            RoleName = "助手",
+            ModelProviderId = "test-provider",
+            ParticipationMode = participationMode,
+            IsManagerRole = isManagerRole,
+        }, null, executor);
+        await using var manager = new ChatRoomManager();
+        RegisterFakeModel(manager, new FakeChatClient());
+        await manager.AddRoleAsync(role);
+        await manager.HumanInterjectAsync("@助手 请处理", "human", "用户");
+
+        _ = await manager.StepAsync(role);
+
+        CollectionAssert.AreEqual(new[] { "@助手 请处理" }, executor.LastInputTexts.ToArray());
+    }
+
+    [TestMethod(DisplayName = "增量消息格式化器应覆盖人类和匿名参与者分支")]
+    public void IncrementalMessageFormatterShouldCoverHumanAndAnonymousParticipantBranches()
+    {
+        Assert.AreEqual("原文", ChatRoomIncrementalMessageFormatter.Format("原文", true, "用户", true));
+        Assert.AreEqual("用户说：原文", ChatRoomIncrementalMessageFormatter.Format("原文", true, "用户", false));
+        Assert.AreEqual("角色说：内容", ChatRoomIncrementalMessageFormatter.Format("内容", false, "角色", true));
+        Assert.AreEqual("另一位参与者说：内容", ChatRoomIncrementalMessageFormatter.Format("内容", false, " ", false));
+    }
+
+    [TestMethod(DisplayName = "多 AI 应保留人类和其他角色发送者前缀")]
+    public async Task StepAsyncMultipleAiShouldKeepSenderPrefixes()
+    {
+        var firstExecutor = new TestChatRoomRoleExecutor();
+        var firstRole = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "first",
+            RoleName = "甲",
+            ModelProviderId = "test-provider",
+        }, null, firstExecutor);
+        var secondRole = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "second",
+            RoleName = "乙",
+            ModelProviderId = "test-provider",
+        });
+        await using var manager = new ChatRoomManager();
+        RegisterFakeModel(manager, new FakeChatClient());
+        await manager.AddRoleAsync(firstRole);
+        await manager.AddRoleAsync(secondRole);
+        await manager.HumanInterjectAsync("问题", "human", "用户");
+        await manager.Session.AddMessageAsync(ChatRoomMessage.CreateAssistant("补充", "second", "乙"));
+
+        _ = await manager.StepAsync(firstRole);
+
+        CollectionAssert.AreEqual(new[] { "用户说：问题", "乙说：补充" }, firstExecutor.LastInputTexts.ToArray());
+    }
+
+    [TestMethod(DisplayName = "单 AI 应保留已移除 AI 历史标签并跳过系统和自身消息")]
+    public async Task StepAsyncSingleAiShouldKeepHistoricalAiPrefixAndSkipFilteredMessages()
+    {
+        var executor = new TestChatRoomRoleExecutor();
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "assistant",
+            RoleName = "助手",
+            ModelProviderId = "test-provider",
+        }, null, executor);
+        await using var manager = new ChatRoomManager();
+        RegisterFakeModel(manager, new FakeChatClient());
+        await manager.AddRoleAsync(role);
+        await manager.Session.AddMessageAsync(ChatRoomMessage.CreateAssistant("自身历史", "assistant", "助手"));
+        await manager.HumanInterjectAsync("问题", "human", "用户");
+        await manager.Session.AddMessageAsync(ChatRoomMessage.CreateAssistant("旧回答", "removed", "旧角色"));
+        await manager.Session.AddMessageAsync(ChatRoomMessage.CreateSystem("系统消息"));
+
+        _ = await manager.StepAsync(role);
+
+        CollectionAssert.AreEqual(new[] { "问题", "旧角色说：旧回答" }, executor.LastInputTexts.ToArray());
+    }
+
+    [TestMethod(DisplayName = "动态增删第二个 AI 应立即切换人类消息格式")]
+    public async Task StepAsyncRoleChangesShouldImmediatelySwitchHumanMessageFormat()
+    {
+        var executor = new TestChatRoomRoleExecutor();
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "assistant",
+            RoleName = "助手",
+            ModelProviderId = "test-provider",
+        }, null, executor);
+        var secondRole = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "second",
+            RoleName = "第二助手",
+            ModelProviderId = "test-provider",
+        });
+        await using var manager = new ChatRoomManager();
+        RegisterFakeModel(manager, new FakeChatClient());
+        await manager.AddRoleAsync(role);
+        await manager.HumanInterjectAsync("单 AI 消息", "human", "用户");
+        _ = await manager.StepAsync(role);
+        CollectionAssert.AreEqual(new[] { "单 AI 消息" }, executor.LastInputTexts.ToArray());
+
+        await manager.AddRoleAsync(secondRole);
+        await manager.HumanInterjectAsync("多 AI 消息", "human", "用户");
+        _ = await manager.StepAsync(role);
+        CollectionAssert.AreEqual(new[] { "用户说：多 AI 消息" }, executor.LastInputTexts.ToArray());
+
+        await manager.RemoveRoleAsync(secondRole.Definition.RoleId);
+        await manager.HumanInterjectAsync("恢复单 AI", "human", "用户");
+        _ = await manager.StepAsync(role);
+        CollectionAssert.AreEqual(new[] { "恢复单 AI" }, executor.LastInputTexts.ToArray());
+    }
+
+    [TestMethod(DisplayName = "系统提示词应按单 AI 和多 AI 描述实际消息格式")]
+    public async Task StepAsyncShouldDescribeCurrentSenderFormatInSystemPrompt()
+    {
+        var singleExecutor = new TestChatRoomRoleExecutor();
+        var singleRole = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "single",
+            RoleName = "单助手",
+            ModelProviderId = "test-provider",
+        }, null, singleExecutor);
+        await using var singleManager = new ChatRoomManager();
+        RegisterFakeModel(singleManager, new FakeChatClient());
+        await singleManager.AddRoleAsync(singleRole);
+        await singleManager.HumanInterjectAsync("问题", "human", "用户");
+        _ = await singleManager.StepAsync(singleRole);
+
+        Assert.Contains("人类消息会直接作为 User 消息输入", singleExecutor.LastSystemPrompt);
+        Assert.Contains("历史中出现其他角色消息", singleExecutor.LastSystemPrompt);
+        Assert.DoesNotContain("人类和其他角色消息会通过", singleExecutor.LastSystemPrompt);
+
+        var multiExecutor = new TestChatRoomRoleExecutor();
+        var multiRole = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "first",
+            RoleName = "甲",
+            ModelProviderId = "test-provider",
+        }, null, multiExecutor);
+        await using var multiManager = new ChatRoomManager();
+        RegisterFakeModel(multiManager, new FakeChatClient());
+        await multiManager.AddRoleAsync(multiRole);
+        await multiManager.AddRoleAsync(new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "second",
+            RoleName = "乙",
+            ModelProviderId = "test-provider",
+        }));
+        await multiManager.HumanInterjectAsync("问题", "human", "用户");
+        _ = await multiManager.StepAsync(multiRole);
+
+        Assert.Contains("人类和其他角色消息会通过“用户说：...”或“角色名说：...”标明来源", multiExecutor.LastSystemPrompt);
+        Assert.Contains("@机制：", multiExecutor.LastSystemPrompt);
+        Assert.Contains("协作原则：", multiExecutor.LastSystemPrompt);
+    }
+
     [TestMethod]
     public async Task StepAsync_NonHumanRole_WhenSpeakThrows_FiresOnRoleSpeakFailedAndReturnsSystemMessage()
     {
@@ -1533,11 +1721,17 @@ public sealed class ChatRoomManagerTests
 
         public int DisposeCount { get; private set; }
 
+        public IReadOnlyList<string> LastInputTexts { get; private set; } = [];
+
+        public string? LastSystemPrompt { get; private set; }
+
         public Task<ChatRoomRoleExecutionResult> RunAsync(
             ChatRoomRoleExecutionContext context,
             IReadOnlyList<AIContent> contents,
             CancellationToken cancellationToken)
         {
+            LastSystemPrompt = context.SystemPrompt;
+            LastInputTexts = contents.Select(content => ((TextContent)content).Text).ToArray();
             CopilotChatMessage assistantMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
             return Task.FromResult(new ChatRoomRoleExecutionResult(
                 assistantMessage,

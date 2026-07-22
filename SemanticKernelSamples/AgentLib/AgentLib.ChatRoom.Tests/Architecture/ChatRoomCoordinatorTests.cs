@@ -91,6 +91,44 @@ public sealed class ChatRoomCoordinatorTests
         await WaitForStateAsync(coordinator, state => state.CurrentExecution is null);
     }
 
+    [TestMethod(DisplayName = "执行请求应按当前非人类角色数量设置人类前缀省略事实")]
+    [Timeout(5000)]
+    public async Task ExecutionRequestShouldReflectCurrentAiRoleCount()
+    {
+        CoordinatorFixture fixture = await CreateCoordinatorWithRoleAsync();
+        await using ChatRoomCoordinator coordinator = fixture.Coordinator;
+        await coordinator.ExecuteAsync(new AddRoleCommand(Guid.NewGuid(), new ChatRoomRoleDefinition(
+            new ChatRoomRoleIdentity("human-role", incarnation: 0),
+            ChatRoomRoleExecutionKind.Standard,
+            "另一位人类",
+            "",
+            isHuman: true)));
+
+        await coordinator.ExecuteAsync(new StartRoleExecutionCommand(
+            Guid.NewGuid(),
+            fixture.Definition.Identity.RoleId));
+        ControlledRuntimeInvocation singleInvocation = await fixture.Runtime.NextInvocationAsync();
+        Assert.IsTrue(singleInvocation.Request.OmitHumanSenderPrefix);
+        singleInvocation.Complete("单 AI 回答");
+        await WaitForStateAsync(coordinator, state => state.CurrentExecution is null);
+
+        ChatRoomRoleDefinition secondDefinition = CreateDefinition("second", "第二助手", runtimeVersion: 1);
+        await coordinator.ExecuteAsync(new AddRoleCommand(Guid.NewGuid(), secondDefinition));
+        await coordinator.ExecuteAsync(new AppendHumanMessageCommand(
+            Guid.NewGuid(),
+            "新的问题",
+            "human",
+            "用户"));
+        await coordinator.ExecuteAsync(new StartRoleExecutionCommand(
+            Guid.NewGuid(),
+            fixture.Definition.Identity.RoleId));
+        ControlledRuntimeInvocation multipleInvocation = await fixture.Runtime.NextInvocationAsync();
+
+        Assert.IsFalse(multipleInvocation.Request.OmitHumanSenderPrefix);
+        multipleInvocation.Complete("多 AI 回答");
+        await WaitForStateAsync(coordinator, state => state.CurrentExecution is null);
+    }
+
     [TestMethod(DisplayName = "执行期间插话不应改变固定输入水位且下一轮不得跳过消息")]
     [Timeout(5000)]
     public async Task HumanInterjectionShouldNotAdvanceActiveExecutionInputWatermark()

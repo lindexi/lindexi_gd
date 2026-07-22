@@ -424,6 +424,7 @@ public sealed partial class ChatRoomManager
         {
             int additionalMessageCount = additionalUserMessages?.Count ?? 0;
             var list = new List<string>(additionalMessageCount);
+            bool omitHumanPrefix = _manager.Roles.Count(r => !r.Definition.IsHuman) == 1;
 
             // 获取自该角色上次发言后的增量消息
             IReadOnlyList<ChatRoomMessage> incrementalMessages = _manager.Session.GetMessagesSinceLastSpeak(role.Definition.RoleId);
@@ -452,17 +453,11 @@ public sealed partial class ChatRoomManager
                     continue;
                 }
 
-                string prefix;
-                if (message.IsHumanMessage)
-                {
-                    prefix = "用户";
-                }
-                else
-                {
-                    prefix = string.IsNullOrEmpty(message.SenderRoleName) ? "另一位参与者" : message.SenderRoleName;
-                }
-
-                string content = $"{prefix}说：{message.Content}";
+                string content = ChatRoomIncrementalMessageFormatter.Format(
+                    message.Content,
+                    message.IsHumanMessage,
+                    message.SenderRoleName,
+                    omitHumanPrefix);
                 list.Add(content);
             }
 

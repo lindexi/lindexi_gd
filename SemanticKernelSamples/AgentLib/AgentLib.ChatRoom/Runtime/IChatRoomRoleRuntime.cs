@@ -56,7 +56,8 @@ public sealed record ChatRoomRoleExecutionRequest
         IReadOnlyList<ChatRoomMessage> inputMessages,
         long inputThroughSequence,
         ChatRoomRoleCheckpoint? committedCheckpoint,
-        string? workspacePath)
+        string? workspacePath,
+        bool omitHumanSenderPrefix)
     {
         if (executionId == Guid.Empty)
         {
@@ -102,6 +103,7 @@ public sealed record ChatRoomRoleExecutionRequest
         InputThroughSequence = inputThroughSequence;
         CommittedCheckpoint = committedCheckpoint;
         WorkspacePath = string.IsNullOrWhiteSpace(workspacePath) ? null : workspacePath.Trim();
+        OmitHumanSenderPrefix = omitHumanSenderPrefix;
     }
 
     /// <summary>
@@ -133,6 +135,11 @@ public sealed record ChatRoomRoleExecutionRequest
     /// 瞬态工作区路径。
     /// </summary>
     public string? WorkspacePath { get; }
+
+    /// <summary>
+    /// 本轮人类消息是否省略发送者前缀。
+    /// </summary>
+    public bool OmitHumanSenderPrefix { get; }
 }
 
 /// <summary>

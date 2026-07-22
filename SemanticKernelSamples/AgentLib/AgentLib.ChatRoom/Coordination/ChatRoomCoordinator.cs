@@ -807,13 +807,15 @@ public sealed class ChatRoomCoordinator : IAsyncDisposable
         }
 
         _checkpoints.TryGetValue(definition.Identity, out ChatRoomRoleCheckpoint? checkpoint);
+        bool omitHumanSenderPrefix = _state.Roles.Count(role => !role.IsHuman) == 1;
         var request = new ChatRoomRoleExecutionRequest(
             command.CommandId,
             definition,
             inputMessages,
             inputThroughSequence,
             checkpoint,
-            _workspacePath);
+            _workspacePath,
+            omitHumanSenderPrefix);
         var execution = new ChatRoomExecutionState(
             command.CommandId,
             definition.Identity,

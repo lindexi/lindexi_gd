@@ -100,14 +100,56 @@ public sealed class ChatRoomRoleRuntimeTests
             [message],
             inputThroughSequence: 1,
             staleCheckpoint,
-            workspacePath: null));
+            workspacePath: null,
+            omitHumanSenderPrefix: true));
         _ = Assert.ThrowsExactly<ArgumentException>(() => new ChatRoomRoleExecutionRequest(
             Guid.NewGuid(),
             definition,
             [message],
             inputThroughSequence: 1,
             futureCheckpoint,
-            workspacePath: null));
+            workspacePath: null,
+            omitHumanSenderPrefix: true));
+    }
+
+    [TestMethod(DisplayName = "隔离运行时应按执行事实格式化人类消息并始终标注 AI 消息")]
+    public void IsolatedRuntimeShouldFormatIncrementalMessagesFromExecutionFact()
+    {
+        ChatRoomMessage human = CreateHumanMessage();
+        var assistant = new ChatRoomMessage(
+            2,
+            Guid.NewGuid(),
+            ChatRoomMessageKind.Assistant,
+            "历史回答",
+            DateTimeOffset.UtcNow,
+            "other",
+            "其他助手");
+        var own = new ChatRoomMessage(
+            3,
+            Guid.NewGuid(),
+            ChatRoomMessageKind.Assistant,
+            "自身回答",
+            DateTimeOffset.UtcNow,
+            "assistant",
+            "助手");
+        var system = new ChatRoomMessage(
+            4,
+            Guid.NewGuid(),
+            ChatRoomMessageKind.System,
+            "系统消息",
+            DateTimeOffset.UtcNow);
+
+        IReadOnlyList<string> singleAi = IsolatedChatRoomRoleRuntime.BuildIncrementalMessages(
+            [human, assistant, own, system],
+            "assistant",
+            omitHumanSenderPrefix: true);
+        IReadOnlyList<string> multipleAi = IsolatedChatRoomRoleRuntime.BuildIncrementalMessages(
+            [human, assistant, own, system],
+            "assistant",
+            omitHumanSenderPrefix: false);
+
+        CollectionAssert.AreEqual(new[] { "问题", "其他助手说：历史回答" }, singleAi.ToArray());
+        CollectionAssert.AreEqual(new[] { "用户说：问题", "其他助手说：历史回答" }, multipleAi.ToArray());
     }
 
     [TestMethod(DisplayName = "替换运行时后旧租约应延迟退休旧资源")]

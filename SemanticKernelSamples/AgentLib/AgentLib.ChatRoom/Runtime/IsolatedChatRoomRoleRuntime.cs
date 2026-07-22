@@ -80,7 +80,8 @@ internal sealed class IsolatedChatRoomRoleRuntime : IChatRoomRoleRuntime
 
             IReadOnlyList<string> incrementalMessages = BuildIncrementalMessages(
                 request.InputMessages,
-                request.Definition.Identity.RoleId);
+                request.Definition.Identity.RoleId,
+                request.OmitHumanSenderPrefix);
             if (incrementalMessages.Count == 0)
             {
                 throw new ArgumentException("角色执行至少需要一条其他参与者的公开消息。", nameof(request));
@@ -311,9 +312,10 @@ internal sealed class IsolatedChatRoomRoleRuntime : IChatRoomRoleRuntime
             cancellationToken).ConfigureAwait(false);
     }
 
-    private static IReadOnlyList<string> BuildIncrementalMessages(
+    internal static IReadOnlyList<string> BuildIncrementalMessages(
         IReadOnlyList<ChatRoomMessage> messages,
-        string roleId)
+        string roleId,
+        bool omitHumanSenderPrefix)
     {
         var values = new List<string>(messages.Count);
         foreach (ChatRoomMessage message in messages)
@@ -324,12 +326,11 @@ internal sealed class IsolatedChatRoomRoleRuntime : IChatRoomRoleRuntime
                 continue;
             }
 
-            string prefix = message.Kind == ChatRoomMessageKind.Human
-                ? "用户"
-                : string.IsNullOrWhiteSpace(message.SenderRoleName)
-                    ? "另一位参与者"
-                    : message.SenderRoleName;
-            values.Add($"{prefix}说：{message.Content}");
+            values.Add(ChatRoomIncrementalMessageFormatter.Format(
+                message.Content,
+                message.Kind == ChatRoomMessageKind.Human,
+                message.SenderRoleName,
+                omitHumanSenderPrefix));
         }
 
         return values;
