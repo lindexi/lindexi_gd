@@ -8,7 +8,7 @@ using Microsoft.Extensions.AI;
 namespace AgentLib.Coding;
 
 /// <summary>
-/// 提供限定在代码工作区内的 .NET 构建与测试工具。
+/// 提供 .NET 构建与测试工具。
 /// </summary>
 public sealed class DotNetCliTools
 {
@@ -52,14 +52,14 @@ public sealed class DotNetCliTools
     ];
 
     /// <summary>
-    /// 使用 <c>dotnet build</c> 构建工作区或工作区内指定的解决方案或项目。
+    /// 使用 <c>dotnet build</c> 构建工作区或指定目标。
     /// </summary>
     /// <param name="targetPath">可选的解决方案或项目路径。</param>
     /// <param name="cancellationToken">用于取消构建的令牌。</param>
     /// <returns>构建输出、退出码和执行结果。</returns>
-    [Description("使用 dotnet build 构建代码工作区或工作区内指定的解决方案/项目，并返回构建输出和退出码。")]
+    [Description("使用 dotnet build 构建代码工作区或指定目标，并返回构建输出和退出码。")]
     public Task<string> RunBuildAsync(
-        [Description("可选的解决方案或项目路径。可以传工作区内的绝对路径；相对路径则相对于代码工作区。留空表示构建整个工作区。")]
+        [Description("可选的构建目标路径。可以传绝对路径；相对路径则相对于代码工作区。留空表示构建整个工作区。")]
         string? targetPath = null,
         CancellationToken cancellationToken = default)
     {
@@ -67,14 +67,14 @@ public sealed class DotNetCliTools
     }
 
     /// <summary>
-    /// 使用 <c>dotnet test</c> 测试工作区或工作区内指定的解决方案或项目。
+    /// 使用 <c>dotnet test</c> 测试工作区或指定目标。
     /// </summary>
     /// <param name="targetPath">可选的解决方案或项目路径。</param>
     /// <param name="cancellationToken">用于取消测试的令牌。</param>
     /// <returns>测试输出、退出码和执行结果。</returns>
-    [Description("使用 dotnet test 测试代码工作区或工作区内指定的解决方案/项目，并返回测试输出和退出码。")]
+    [Description("使用 dotnet test 测试代码工作区或指定目标，并返回测试输出和退出码。")]
     public Task<string> RunTestsAsync(
-        [Description("可选的解决方案或项目路径。可以传工作区内的绝对路径；相对路径则相对于代码工作区。留空表示测试整个工作区。")]
+        [Description("可选的测试目标路径。可以传绝对路径；相对路径则相对于代码工作区。留空表示测试整个工作区。")]
         string? targetPath = null,
         CancellationToken cancellationToken = default)
     {
@@ -311,26 +311,9 @@ public sealed class DotNetCliTools
         string fullPath = Path.IsPathRooted(targetPath)
             ? Path.GetFullPath(targetPath)
             : Path.GetFullPath(Path.Join(_workspacePath, targetPath));
-        if (!IsPathInsideWorkspace(fullPath))
-        {
-            errorMessage = $"目标不在代码工作区范围内: {targetPath}";
-            return false;
-        }
-
         if (!File.Exists(fullPath))
         {
-            errorMessage = $"解决方案或项目不存在: {ToDisplayPath(fullPath)}";
-            return false;
-        }
-
-        string extension = Path.GetExtension(fullPath);
-        if (!extension.Equals(".sln", StringComparison.OrdinalIgnoreCase)
-            && !extension.Equals(".slnx", StringComparison.OrdinalIgnoreCase)
-            && !extension.Equals(".csproj", StringComparison.OrdinalIgnoreCase)
-            && !extension.Equals(".vbproj", StringComparison.OrdinalIgnoreCase)
-            && !extension.Equals(".fsproj", StringComparison.OrdinalIgnoreCase))
-        {
-            errorMessage = $"仅支持 .sln、.slnx、.csproj、.vbproj 或 .fsproj 文件: {ToDisplayPath(fullPath)}";
+            errorMessage = $"目标文件不存在: {ToDisplayPath(fullPath)}";
             return false;
         }
 
@@ -375,24 +358,9 @@ public sealed class DotNetCliTools
         builder.AppendLine($"</{title}>");
     }
 
-    private bool IsPathInsideWorkspace(string fullPath)
-    {
-        if (string.Equals(_workspacePath, fullPath, GetPathComparison()))
-        {
-            return true;
-        }
-
-        return fullPath.StartsWith(_workspacePath + Path.DirectorySeparatorChar, GetPathComparison());
-    }
-
     private string ToDisplayPath(string fullPath)
     {
         return Path.GetRelativePath(_workspacePath, fullPath);
-    }
-
-    private static StringComparison GetPathComparison()
-    {
-        return OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
     }
 
     private sealed class LogSnapshot
