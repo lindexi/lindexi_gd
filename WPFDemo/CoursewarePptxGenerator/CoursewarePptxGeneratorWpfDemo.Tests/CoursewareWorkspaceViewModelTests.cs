@@ -44,8 +44,8 @@ public sealed class CoursewareWorkspaceViewModelTests
         StringAssert.Contains(viewModel.AnalysisCaption, "主题建议");
         Assert.AreEqual("已通过", viewModel.TextAnalysisCapabilityText);
         Assert.AreEqual("已通过", viewModel.ThemeSuggestionCapabilityText);
-        Assert.AreEqual("暂不支持", viewModel.DesignSystemCapabilityText);
-        Assert.AreEqual("暂不支持", viewModel.TemplateValidationCapabilityText);
+        Assert.AreEqual("已通过", viewModel.DesignSystemCapabilityText);
+        Assert.AreEqual("已通过", viewModel.TemplateValidationCapabilityText);
         Assert.AreEqual("未请求", viewModel.VisualAnalysisCapabilityText);
         Assert.AreEqual("尚未生成", viewModel.PageGenerationCapabilityText);
         Assert.HasCount(2, viewModel.CoursewareThumbnails);
@@ -482,7 +482,7 @@ public sealed class CoursewareWorkspaceViewModelTests
             .Build();
         var agent = new CopilotCoursewareThemeAgent(
             new FastCopilotChatManagerFactory(assistantText),
-            new CoursewareThemeValidator());
+            new CoursewareDesignSystemValidator());
         var analysisService = new CoursewareThemeAnalysisService(
             new CoursewareAnalysisInputBuilder(),
             agent);
@@ -498,7 +498,7 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.IsTrue(viewModel.AnalysisChatMessages.Where(message => message.Role == ChatRole.User).All(message => !string.IsNullOrWhiteSpace(message.Content)));
         Assert.IsTrue(viewModel.AnalysisChatMessages.Where(message => message.Role == ChatRole.Assistant).All(message => message.Content == assistantText));
         var validationEvent = viewModel.AnalysisEvents.Single(item => item.Stage == CoursewareAnalysisStage.ValidatingTheme);
-        Assert.AreEqual("主题结构校验", validationEvent.Title);
+        Assert.AreEqual("可执行设计系统校验", validationEvent.Title);
         Assert.AreEqual(CoursewareAnalysisEventState.Warning, validationEvent.State);
     }
 

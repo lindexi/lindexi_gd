@@ -15,10 +15,20 @@ internal static class CoursewareModelContextBudgetValidator
         AIFunction tool,
         CancellationToken cancellationToken = default)
     {
+        return ValidateIfConfigured(modelDefinition, systemPrompt, userPrompt, [tool], cancellationToken);
+    }
+
+    internal static CoursewareModelContextBudget? ValidateIfConfigured(
+        ModelDefinition modelDefinition,
+        string systemPrompt,
+        string userPrompt,
+        IReadOnlyList<AIFunction> tools,
+        CancellationToken cancellationToken = default)
+    {
         ArgumentNullException.ThrowIfNull(modelDefinition);
         ArgumentNullException.ThrowIfNull(systemPrompt);
         ArgumentNullException.ThrowIfNull(userPrompt);
-        ArgumentNullException.ThrowIfNull(tool);
+        ArgumentNullException.ThrowIfNull(tools);
         cancellationToken.ThrowIfCancellationRequested();
 
         if (modelDefinition.ContextWindowSize is not > 0
@@ -37,7 +47,7 @@ internal static class CoursewareModelContextBudgetValidator
 
         var systemPromptTokenCount = CoursewareTokenEstimator.Estimate(systemPrompt, cancellationToken);
         var userPromptTokenCount = CoursewareTokenEstimator.Estimate(userPrompt, cancellationToken);
-        var toolSchemaTokenCount = EstimateToolSchema(tool, cancellationToken);
+        var toolSchemaTokenCount = tools.Sum(tool => EstimateToolSchema(tool, cancellationToken));
         var safetyMarginTokenCount = checked((int) Math.Ceiling(contextWindowSize * SafetyMarginRatio));
         var requiredTokenCount = (long) systemPromptTokenCount
             + userPromptTokenCount

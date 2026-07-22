@@ -1,5 +1,7 @@
 namespace CoursewarePptxGeneratorWpfDemo.Models;
 
+using CoursewarePptxGenerator.Core.Models;
+
 /// <summary>
 /// Represents the structured theme context supplied to one slide-generation request.
 /// </summary>
@@ -8,7 +10,67 @@ public sealed record CoursewarePageDesignContext
     /// <summary>
     /// Gets the current design capability represented by this context.
     /// </summary>
-    public string Capability { get; init; } = "ThemeSuggestion";
+    public string Capability { get; init; } = "ExecutableDesignSystem";
+
+    /// <summary>
+    /// Gets the frozen design-system identifier.
+    /// </summary>
+    public string DesignSystemId { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the executable design-system schema version.
+    /// </summary>
+    public string DesignSystemSchemaVersion { get; init; } = CoursewareDesignSystem.CurrentSchemaVersion;
+
+    /// <summary>
+    /// Gets the current slide's assigned dynamic page type.
+    /// </summary>
+    public CoursewarePageTypeContract? CurrentPageType { get; init; }
+
+    /// <summary>
+    /// Gets the validated SlideML template selected for the current slide.
+    /// </summary>
+    public CoursewarePageTemplate? CurrentTemplate { get; init; }
+
+    /// <summary>
+    /// Gets whether the selected template passed real compilation and stress testing.
+    /// </summary>
+    public bool CurrentTemplateValidated { get; init; }
+
+    /// <summary>
+    /// Gets the complete executable color tokens.
+    /// </summary>
+    public IReadOnlyList<CoursewareColorToken> ColorTokens { get; init; } = [];
+
+    /// <summary>
+    /// Gets the complete executable typography tokens.
+    /// </summary>
+    public IReadOnlyList<CoursewareTypographyToken> TypographyTokens { get; init; } = [];
+
+    /// <summary>
+    /// Gets the complete executable spacing tokens.
+    /// </summary>
+    public IReadOnlyList<CoursewareSpacingToken> SpacingTokens { get; init; } = [];
+
+    /// <summary>
+    /// Gets reusable components available to the current page type.
+    /// </summary>
+    public IReadOnlyList<CoursewareComponentSpecification> Components { get; init; } = [];
+
+    /// <summary>
+    /// Gets logical asset rules relevant to the current slide.
+    /// </summary>
+    public IReadOnlyList<CoursewareAssetUsageRule> AssetRules { get; init; } = [];
+
+    /// <summary>
+    /// Gets accessibility gates applied to generated SlideML.
+    /// </summary>
+    public CoursewareAccessibilityRules Accessibility { get; init; } = new();
+
+    /// <summary>
+    /// Gets cross-slide consistency rules applied to generated SlideML.
+    /// </summary>
+    public CoursewareConsistencyRules Consistency { get; init; } = new();
 
     /// <summary>
     /// Gets the theme title.

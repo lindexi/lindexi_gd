@@ -164,7 +164,7 @@ public sealed class CoursewareSlidePromptBuilder : ICoursewareSlidePromptBuilder
                 Previous = CreateNeighborSummary(source.AnalysisEnvelope, slideIndex - 1),
                 Next = CreateNeighborSummary(source.AnalysisEnvelope, slideIndex + 1),
             },
-            DesignContext = _designContextFactory.Create(source.AnalysisResult, slideCanvas.DocumentContext),
+            DesignContext = CreateDesignContext(source, sourceSlide.SlideId, slideCanvas.DocumentContext),
             VisualInput = new CoursewareSlideVisualInput
             {
                 SourceScreenshotAvailable = sourceSlide.ScreenshotFile is not null,
@@ -188,6 +188,40 @@ public sealed class CoursewareSlidePromptBuilder : ICoursewareSlidePromptBuilder
             Prompt = prompt,
             EstimatedTokenCount = CoursewareTokenEstimator.Estimate(prompt, cancellationToken),
             Envelope = envelope,
+        };
+    }
+
+    private CoursewarePageDesignContext CreateDesignContext(
+        CoursewareSlidePromptSource source,
+        string slideId,
+        PptxGenerator.Models.SlideDocumentContext slideCanvas)
+    {
+        var context = _designContextFactory.Create(source.AnalysisResult, slideCanvas);
+        var designSystem = source.AnalysisResult.DesignSystem;
+        var assignment = designSystem.PageTypeAssignments.SingleOrDefault(item => item.SlideId == slideId);
+        var pageType = assignment is null
+            ? null
+            : designSystem.PageTypes.SingleOrDefault(item => item.PageTypeId == assignment.PageTypeId);
+        var template = pageType is null
+            ? null
+            : designSystem.PageTemplates.FirstOrDefault(item => item.PageTypeId == pageType.PageTypeId);
+        var templateValidated = template is not null
+            && source.AnalysisResult.TemplateValidation.Samples
+                .Where(sample => sample.TemplateId == template.TemplateId)
+                .Any()
+            && source.AnalysisResult.TemplateValidation.Samples
+                .Where(sample => sample.TemplateId == template.TemplateId)
+                .All(sample => sample.Passed);
+        var componentIds = pageType?.ComponentIds.ToHashSet(StringComparer.Ordinal) ?? [];
+        var slideFacts = source.AnalysisResult.StructuredFacts.Slides.SingleOrDefault(item => item.SlideId == slideId);
+        var resourceIds = slideFacts?.ResourceIds.ToHashSet(StringComparer.Ordinal) ?? [];
+        return context with
+        {
+            CurrentPageType = pageType,
+            CurrentTemplate = template,
+            CurrentTemplateValidated = templateValidated,
+            Components = designSystem.Components.Where(component => componentIds.Contains(component.ComponentId)).ToArray(),
+            AssetRules = designSystem.AssetPolicy.ResourceRules.Where(rule => resourceIds.Contains(rule.ResourceId)).ToArray(),
         };
     }
 

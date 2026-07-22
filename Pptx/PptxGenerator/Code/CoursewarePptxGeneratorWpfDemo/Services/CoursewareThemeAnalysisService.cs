@@ -14,6 +14,9 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
 {
     private readonly ICoursewareAnalysisInputBuilder _inputBuilder;
     private readonly ICoursewareThemeAgent? _themeAgent;
+    private readonly CoursewareStructuredFactBuilder _factBuilder;
+    private readonly CoursewareVisualSampleSelector _visualSampleSelector;
+    private readonly CoursewareTemplateStressTester _templateStressTester;
 
     /// <summary>
     /// Initializes a service that resolves language-model configuration when analysis starts.
@@ -30,12 +33,16 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
     /// <param name="themeAgent">The optional injected theme agent.</param>
     public CoursewareThemeAnalysisService(
         ICoursewareAnalysisInputBuilder inputBuilder,
-        ICoursewareThemeAgent? themeAgent)
+        ICoursewareThemeAgent? themeAgent,
+        CoursewareTemplateStressTester? templateStressTester = null)
     {
         ArgumentNullException.ThrowIfNull(inputBuilder);
 
         _inputBuilder = inputBuilder;
         _themeAgent = themeAgent;
+        _factBuilder = new CoursewareStructuredFactBuilder();
+        _visualSampleSelector = new CoursewareVisualSampleSelector();
+        _templateStressTester = templateStressTester ?? new CoursewareTemplateStressTester();
     }
 
     /// <inheritdoc />
@@ -81,16 +88,28 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
 
         try
         {
+            var structuredFacts = _factBuilder.Build(analysisInput, cancellationToken);
+            var visualSamples = _visualSampleSelector.Select(inputPackage, structuredFacts);
             var dimensions = GetDominantDimensions(inputPackage);
             var referenceCanvas = CoursewareCanvasAdapter.CreateDocumentContext(dimensions.Width, dimensions.Height);
             var agent = _themeAgent ?? CreateDefaultAgent();
-            var theme = await agent.AnalyzeAsync(
+            var designResult = await agent.AnalyzeAsync(
                 analysisInput,
-                dimensions.Width,
-                dimensions.Height,
+                inputPackage,
+                structuredFacts,
+                visualSamples,
                 progress,
                 messageProgress,
                 cancellationToken).ConfigureAwait(false);
+            var templateValidation = await _templateStressTester.ValidateAsync(
+                designResult.DesignSystem,
+                structuredFacts,
+                inputPackage.Resources
+                    .Where(resource => resource.Exists && !string.IsNullOrWhiteSpace(resource.ResourceId))
+                    .Select(resource => resource.ResourceId!)
+                    .ToHashSet(StringComparer.Ordinal),
+                cancellationToken).ConfigureAwait(false);
+            var theme = CoursewareDesignSystemThemeAdapter.CreateTheme(designResult.DesignSystem);
             progress?.Report(CreateProgressEvent(
                 CoursewareAnalysisStage.AnalyzingContentHierarchy,
                 "内容层级分析完成",
@@ -118,14 +137,23 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
             return new CoursewareThemeAnalysisResult
             {
                 Theme = theme,
+                DesignSystem = designResult.DesignSystem,
+                StructuredFacts = structuredFacts,
+                DesignSystemValidation = designResult.Validation,
+                TemplateValidation = templateValidation,
+                VisualAnalysis = designResult.VisualAnalysis,
                 ReferenceCanvas = referenceCanvas,
                 CapabilityStates = new CoursewareAnalysisCapabilityStates
                 {
                     TextAnalysis = CoursewareCapabilityStatus.Passed,
                     ThemeSuggestion = CoursewareCapabilityStatus.Passed,
-                    DesignSystem = CoursewareCapabilityStatus.NotSupported,
-                    TemplateValidation = CoursewareCapabilityStatus.NotSupported,
-                    VisualAnalysis = CoursewareCapabilityStatus.NotRequested,
+                    DesignSystem = designResult.Validation.IsValid ? CoursewareCapabilityStatus.Passed : CoursewareCapabilityStatus.Failed,
+                    TemplateValidation = templateValidation.IsValid ? CoursewareCapabilityStatus.Passed : CoursewareCapabilityStatus.Failed,
+                    VisualAnalysis = designResult.VisualAnalysis.Observations.Count > 0
+                        ? CoursewareCapabilityStatus.Passed
+                        : designResult.VisualAnalysis.WasRequested && !designResult.VisualAnalysis.ModelSupportedImages
+                            ? CoursewareCapabilityStatus.NotSupported
+                            : CoursewareCapabilityStatus.NotRequested,
                     PageGeneration = CoursewareCapabilityStatus.NotRequested,
                 },
                 AnalyzedAt = completedAt,
@@ -148,7 +176,7 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
     private static ICoursewareThemeAgent CreateDefaultAgent()
     {
         var chatManagerFactory = new CopilotChatManagerFactory();
-        return new CopilotCoursewareThemeAgent(chatManagerFactory, new CoursewareThemeValidator());
+        return new CopilotCoursewareThemeAgent(chatManagerFactory, new CoursewareDesignSystemValidator());
     }
 
     private static (double Width, double Height) GetDominantDimensions(CoursewareInputPackage inputPackage)

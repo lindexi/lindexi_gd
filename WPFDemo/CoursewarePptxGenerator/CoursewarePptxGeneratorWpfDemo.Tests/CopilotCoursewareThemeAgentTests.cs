@@ -30,28 +30,20 @@ public sealed class CopilotCoursewareThemeAgentTests
         };
         var agent = new CopilotCoursewareThemeAgent(
             new FakeThemeChatManagerFactory(fakeChatClient, CreateModelDefinition()),
-            new CoursewareThemeValidator());
+            new CoursewareDesignSystemValidator());
 
         var exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            () => agent.AnalyzeAsync(analysisInput, 1280, 720));
+            () => AnalyzeAsync(agent, analysisInput));
 
         Assert.HasCount(2, capturedMessages, exception.ToString());
         var firstRequestText = string.Join("\n", capturedMessages[0].Select(message => message.Text));
-        var repairRequestText = capturedMessages[1]
-            .Select(message => message.Text)
-            .Where(text => text.TrimStart().StartsWith('{'))
-            .Single(text => text.Contains("courseware-theme-repair/v1", StringComparison.Ordinal));
+        var repairRequestText = string.Join("\n", capturedMessages[1].Select(message => message.Text));
         StringAssert.Contains(firstRequestText, originalPrompt);
-        using var repairDocument = System.Text.Json.JsonDocument.Parse(repairRequestText);
-        Assert.AreEqual("courseware-theme-repair/v1", repairDocument.RootElement.GetProperty("schemaVersion").GetString());
-        StringAssert.Contains(repairRequestText, "上一轮没有调用 submit_courseware_theme");
+        StringAssert.Contains(repairRequestText, "继续修订现有草稿");
+        StringAssert.Contains(repairRequestText, "尚未调用完成工具");
         StringAssert.Contains(repairRequestText, "TAIL-MARKER");
-        var embeddedOriginal = repairDocument.RootElement.GetProperty("originalAnalysisEnvelope");
-        using var originalDocument = System.Text.Json.JsonDocument.Parse(originalPrompt);
-        Assert.IsTrue(System.Text.Json.JsonElement.DeepEquals(originalDocument.RootElement, embeddedOriginal));
-        Assert.AreEqual(analysisInput.TotalSlideCount, embeddedOriginal.GetProperty("slides").GetArrayLength());
-        Assert.IsFalse(repairRequestText.Contains("<repair-task>", StringComparison.Ordinal));
-        StringAssert.Contains(exception.Message, "未调用 submit_courseware_theme");
+        StringAssert.Contains(repairRequestText, originalPrompt);
+        StringAssert.Contains(exception.Message, "未调用 complete_courseware_design_system");
     }
 
     [TestMethod(DisplayName = "模型缺少上下文容量配置时仍应发送完整请求")]
@@ -75,18 +67,14 @@ public sealed class CopilotCoursewareThemeAgentTests
         };
         var agent = new CopilotCoursewareThemeAgent(
             new FakeThemeChatManagerFactory(fakeChatClient, modelDefinition),
-            new CoursewareThemeValidator());
+            new CoursewareDesignSystemValidator());
 
         var exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            () => agent.AnalyzeAsync(
-                CreateAnalysisInput("完整课件输入"),
-                1280,
-                720,
-                new SynchronousProgress<CoursewareAnalysisEvent>(events.Add)));
+            () => AnalyzeAsync(agent, CreateAnalysisInput("完整课件输入"), new SynchronousProgress<CoursewareAnalysisEvent>(events.Add)));
 
         Assert.AreEqual(2, invocationCount, exception.ToString());
-        Assert.IsTrue(events.Any(item => item.Message.Contains("已跳过本地预算预检", StringComparison.Ordinal)));
-        StringAssert.Contains(exception.Message, "未调用 submit_courseware_theme");
+        Assert.IsTrue(events.Any(item => item.Stage == CoursewareAnalysisStage.DesigningTheme));
+        StringAssert.Contains(exception.Message, "未调用 complete_courseware_design_system");
     }
 
     [TestMethod(DisplayName = "完整课件超过模型预算时应在发送前失败且不得截断")]
@@ -110,16 +98,45 @@ public sealed class CopilotCoursewareThemeAgentTests
         var analysisInput = CreateAnalysisInput($"{new string('文', 5_000)}\nTAIL-MARKER");
         var agent = new CopilotCoursewareThemeAgent(
             new FakeThemeChatManagerFactory(fakeChatClient, modelDefinition),
-            new CoursewareThemeValidator());
+            new CoursewareDesignSystemValidator());
 
         var exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
-            () => agent.AnalyzeAsync(analysisInput, 1280, 720));
+            () => AnalyzeAsync(agent, analysisInput));
 
         Assert.AreEqual(0, invocationCount);
         Assert.IsFalse(analysisInput.WasTruncated);
         StringAssert.Contains(analysisInput.Prompt, "TAIL-MARKER");
         StringAssert.Contains(exception.Message, "超出模型");
         StringAssert.Contains(exception.Message, "不会静默截断或丢弃页面");
+    }
+
+    private static Task<CoursewareDesignSystemAgentResult> AnalyzeAsync(
+        CopilotCoursewareThemeAgent agent,
+        CoursewareAnalysisInput analysisInput,
+        IProgress<CoursewareAnalysisEvent>? progress = null)
+    {
+        var package = CreatePackage(analysisInput.TotalSlideCount);
+        var facts = new CoursewareStructuredFactBuilder().Build(analysisInput);
+        return agent.AnalyzeAsync(analysisInput, package, facts, [], progress);
+    }
+
+    private static CoursewareInputPackage CreatePackage(int slideCount)
+    {
+        return new CoursewareInputPackage
+        {
+            RootDirectory = new System.IO.DirectoryInfo(System.IO.Path.GetTempPath()),
+            CoursewareName = "测试课件",
+            Slides = Enumerable.Range(0, slideCount).Select(index => new CoursewareSlideInput
+            {
+                SlideIndex = index,
+                PageNumber = index + 1,
+                SlideId = $"slide-{index + 1}",
+                Width = 1280,
+                Height = 720,
+                MarkdownFile = new System.IO.FileInfo(System.IO.Path.Join(System.IO.Path.GetTempPath(), $"Slide{index:D3}.md")),
+                MarkdownText = $"## 页面信息\n\n- Id: slide-{index + 1}\n- 尺寸: 1280×720\n- 序号(1-base): {index + 1}",
+            }).ToArray(),
+        };
     }
 
     [TestMethod(DisplayName = "分析输入应为外部不可构造且不可修改的只读产物")]

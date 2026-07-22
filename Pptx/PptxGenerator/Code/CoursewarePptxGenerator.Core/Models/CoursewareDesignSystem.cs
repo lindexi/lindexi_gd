@@ -80,6 +80,18 @@ public sealed record CoursewareDesignAnalysisResult
     /// <summary>Gets independently verifiable capability states.</summary>
     public CoursewareAnalysisCapabilityStates CapabilityStates { get; set; } = new();
 
+    /// <summary>Gets deterministic facts extracted from the complete Markdown input.</summary>
+    public CoursewareStructuredFactReport StructuredFacts { get; set; } = new();
+
+    /// <summary>Gets the deterministic core design-system validation report.</summary>
+    public CoursewareDesignSystemValidationReport DesignSystemValidation { get; set; } = new();
+
+    /// <summary>Gets optional SlideML template compilation and stress-test results.</summary>
+    public CoursewareTemplateValidationReport TemplateValidation { get; set; } = new();
+
+    /// <summary>Gets optional image-backed visual-analysis evidence.</summary>
+    public CoursewareVisualAnalysisReport VisualAnalysis { get; set; } = new();
+
     /// <summary>Gets the completion timestamp.</summary>
     public DateTimeOffset AnalyzedAt { get; set; }
 

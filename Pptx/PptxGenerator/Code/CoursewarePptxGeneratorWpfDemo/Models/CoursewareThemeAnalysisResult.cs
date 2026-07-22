@@ -14,6 +14,31 @@ public sealed record CoursewareThemeAnalysisResult
     public required CoursewareTheme Theme { get; init; }
 
     /// <summary>
+    /// Gets the frozen executable design system.
+    /// </summary>
+    public required CoursewareDesignSystem DesignSystem { get; init; }
+
+    /// <summary>
+    /// Gets deterministic facts extracted from complete slide Markdown.
+    /// </summary>
+    public CoursewareStructuredFactReport StructuredFacts { get; init; } = new();
+
+    /// <summary>
+    /// Gets deterministic design-system validation results.
+    /// </summary>
+    public CoursewareDesignSystemValidationReport DesignSystemValidation { get; init; } = new();
+
+    /// <summary>
+    /// Gets SlideML template compilation and stress-test results.
+    /// </summary>
+    public CoursewareTemplateValidationReport TemplateValidation { get; init; } = new();
+
+    /// <summary>
+    /// Gets optional image-backed visual-analysis evidence.
+    /// </summary>
+    public CoursewareVisualAnalysisReport VisualAnalysis { get; init; } = new();
+
+    /// <summary>
     /// Gets the reference canvas used when the theme coordinates were produced.
     /// </summary>
     public required SlideDocumentContext ReferenceCanvas { get; init; }

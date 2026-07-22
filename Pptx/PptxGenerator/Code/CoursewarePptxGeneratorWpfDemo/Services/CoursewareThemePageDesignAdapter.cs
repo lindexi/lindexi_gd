@@ -24,10 +24,20 @@ public sealed class CoursewareThemePageDesignAdapter : ICoursewarePageDesignCont
         ArgumentNullException.ThrowIfNull(slideCanvas);
 
         var theme = analysisResult.Theme;
+        var designSystem = analysisResult.DesignSystem;
         var diagnostics = CreateCanvasDiagnostics(analysisResult.ReferenceCanvas, slideCanvas);
         return new CoursewarePageDesignContext
         {
-            Capability = "ThemeSuggestion",
+            Capability = "ExecutableDesignSystem",
+            DesignSystemId = designSystem.DesignSystemId,
+            DesignSystemSchemaVersion = designSystem.SchemaVersion,
+            ColorTokens = designSystem.Colors.Tokens,
+            TypographyTokens = designSystem.Typography.Tokens,
+            SpacingTokens = designSystem.Spacing.Tokens,
+            Components = designSystem.Components,
+            AssetRules = designSystem.AssetPolicy.ResourceRules,
+            Accessibility = designSystem.Accessibility,
+            Consistency = designSystem.Consistency,
             ThemeTitle = theme.Title,
             ThemeSummary = theme.Summary,
             StyleKeywords = theme.StyleKeywords,

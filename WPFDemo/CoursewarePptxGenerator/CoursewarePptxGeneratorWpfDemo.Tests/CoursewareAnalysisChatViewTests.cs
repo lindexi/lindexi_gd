@@ -109,7 +109,7 @@ public sealed class CoursewareAnalysisChatViewTests
         var responseGate = new StreamingResponseGate(assistantText);
         var agent = new CopilotCoursewareThemeAgent(
             new GatedCopilotChatManagerFactory(responseGate),
-            new CoursewareThemeValidator());
+            new CoursewareDesignSystemValidator());
         var analysisService = new CoursewareThemeAnalysisService(
             new CoursewareAnalysisInputBuilder(),
             agent);

@@ -48,7 +48,7 @@ public sealed class CoursewareSlidePromptBuilderTests
         Assert.AreEqual(720d, envelope.CurrentSlide.LogicalHeight);
         Assert.IsTrue(envelope.CurrentSlide.ScreenshotAttached);
         Assert.IsTrue(envelope.VisualInput.WasAttached);
-        Assert.AreEqual("ThemeSuggestion", envelope.DesignContext.Capability);
+        Assert.AreEqual("ExecutableDesignSystem", envelope.DesignContext.Capability);
         Assert.AreEqual(640, envelope.DesignContext.ReferenceCanvasWidth);
         Assert.AreEqual(360, envelope.DesignContext.ReferenceCanvasHeight);
         Assert.AreEqual("Page", envelope.OutputRequirements.RootElement);
