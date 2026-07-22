@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net10.0</TargetFrameworks>
@@ -16,10 +16,6 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
     <PackageReference Include="System.Text.Json" Version="10.0.9" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Polyfills\" />
   </ItemGroup>
 
 </Project>
