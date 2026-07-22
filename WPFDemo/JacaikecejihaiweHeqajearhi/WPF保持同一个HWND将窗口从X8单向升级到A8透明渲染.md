@@ -97,9 +97,9 @@ D3DFMT_A8R8G8B8
 
 接受这个限制之后，就不需要通过反射访问 `MediaContext`、channel 或 `HwndTarget` 的内部成员，也不需要自行注销和重新注册 UCE target。
 
-## 最重要的是调用顺序
+## 需要满足的调用条件
 
-这个方案不是简单地给窗口加一个 `WS_EX_LAYERED` 就完成了。为了尽量避免窗口样式已经改变，而透明渲染目标和业务内容尚未准备完成的中间状态，需要严格按照以下顺序执行：
+这个方案不是简单地给窗口加一个 `WS_EX_LAYERED` 就完成了。为避免样式变更与渲染目标/内容准备不同步，需要同时满足以下条件：
 
 ```text
 保持 AllowsTransparency=false
@@ -114,11 +114,11 @@ D3DFMT_A8R8G8B8
 验证样式没有被 WPF 清除
 ```
 
-这里有两个顺序特别容易写反。
+其中两个条件容易写反：
 
-第一个是安装 `HwndSource` hook。通过 hook 可以持续兜底窗口样式写入过程，尽量避免 `WS_EX_LAYERED` 在状态切换中被移除。
+第一个是先在窗口创建流程中安装 `HwndSource` hook。它用于拦截样式写入路径，避免 `WS_EX_LAYERED` 在状态切换中被清理。
 
-第二个是先通过 `WindowChrome` 建立目标 Alpha 需求，再添加 `WS_EX_LAYERED`，保证 DWM 与 WPF 渲染状态按同一方向过渡。
+第二个是先通过 `WindowChrome` 建立目标 Alpha 需求，再添加 `WS_EX_LAYERED`，避免 DWM 条件与 WPF 状态出现阶段性不一致。
 
 ## 窗口启动时保持完全不透明
 
