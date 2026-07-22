@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace PptxGenerator.Models;
 
 /// <summary>
@@ -30,6 +32,7 @@ public sealed class SlideDocumentContext
     /// </summary>
     /// <param name="canvasWidth">画布宽度（像素）。</param>
     /// <param name="canvasHeight">画布高度（像素）。</param>
+    [JsonConstructor]
     public SlideDocumentContext(int canvasWidth, int canvasHeight)
     {
         CanvasWidth = canvasWidth;

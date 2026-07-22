@@ -7,6 +7,7 @@ using CoursewarePptxGenerator.Core.Analysis;
 using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.Tests.Fakes;
+using CoursewarePptxGeneratorWpfDemo.Threading;
 using CoursewarePptxGeneratorWpfDemo.ViewModels;
 using CoursewarePptxGeneratorWpfDemo.Views;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -162,11 +163,14 @@ public sealed class MainWindowCompositionTests
         var summaryService = new CoursewareSlideSummaryService();
         var viewModel = new CoursewareWorkspaceViewModel(
             new CoursewareFolderLoader(),
-            new ImmediateViewModelDispatcher(),
+            new DispatcherViewModelDispatcher(Dispatcher.CurrentDispatcher),
             new FakeCoursewareThemeAnalysisService(),
             new FakeSlideChatManagerFactory(),
             summaryService,
-            new CoursewareSlidePromptBuilder(summaryService, new CoursewareThemePageDesignAdapter()));
+            new CoursewareSlidePromptBuilder(summaryService, new CoursewareThemePageDesignAdapter()),
+            new CoursewareThemeAnalysisSnapshotStore(Directory.CreateDirectory(Path.Join(
+                Path.GetTempPath(),
+                $"CoursewareThemeSnapshotTests_{Guid.NewGuid():N}")).FullName));
         var window = new MainWindow
         {
             DataContext = viewModel,
@@ -289,4 +293,18 @@ public sealed class MainWindowCompositionTests
         thread.Start();
         return taskCompletionSource.Task;
     }
+
+        private sealed class DispatcherViewModelDispatcher(Dispatcher dispatcher) : IViewModelDispatcher
+        {
+            public async Task InvokeAsync(Func<Task> action)
+            {
+                var task = await dispatcher.InvokeAsync(action).Task;
+                await task;
+            }
+
+            public async Task InvokeAsync(Action action)
+            {
+                await dispatcher.InvokeAsync(action).Task;
+            }
+        }
 }

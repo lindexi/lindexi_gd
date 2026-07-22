@@ -19,16 +19,23 @@ public partial class App : Application
         var slidePromptBuilder = new CoursewareSlidePromptBuilder(
             slideSummaryService,
             new CoursewareThemePageDesignAdapter());
+        var coursewareFolderLoader = new CoursewareFolderLoader();
+        var themeAnalysisSnapshotStore = new CoursewareThemeAnalysisSnapshotStore();
+        var workspaceFolderLoader = new CoursewareWorkspaceFolderLoader(
+            coursewareFolderLoader,
+            themeAnalysisSnapshotStore);
 
         var mainWindow = new MainWindow
         {
             DataContext = new CoursewareWorkspaceViewModel(
-                new CoursewareFolderLoader(),
+                coursewareFolderLoader,
                 WpfViewModelDispatcher.Instance,
                 themeAnalysisService: new CoursewareThemeAnalysisService(),
                 slideChatManagerFactory: new SlideChatManagerFactory(),
                 slideSummaryService,
-                slidePromptBuilder),
+                slidePromptBuilder,
+                themeAnalysisSnapshotStore,
+                workspaceFolderLoader),
         };
         mainWindow.Show();
     }

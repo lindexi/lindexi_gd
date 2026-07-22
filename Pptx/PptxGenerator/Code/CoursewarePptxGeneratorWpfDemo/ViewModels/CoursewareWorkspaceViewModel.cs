@@ -49,7 +49,8 @@ public enum CoursewareAnalysisTab
 /// </summary>
 public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
 {
-    private readonly CoursewareFolderLoader _coursewareFolderLoader;
+    private readonly CoursewareWorkspaceFolderLoader _workspaceFolderLoader;
+    private readonly ICoursewareThemeAnalysisSnapshotStore _themeAnalysisSnapshotStore;
     private readonly ICoursewareThemeAnalysisService _themeAnalysisService;
     private readonly ISlideChatManagerFactory _slideChatManagerFactory;
     private readonly CoursewareSlideSummaryService _slideSummaryService;
@@ -85,17 +86,23 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
     /// <param name="slideChatManagerFactory">The factory used to create independent page runtimes.</param>
     /// <param name="slideSummaryService">The deterministic page summary service.</param>
     /// <param name="slidePromptBuilder">The structured page prompt builder.</param>
+    /// <param name="themeAnalysisSnapshotStore">The store used to save and restore theme-analysis snapshots.</param>
+    /// <param name="workspaceFolderLoader">The unified ordinary-courseware and snapshot folder loader.</param>
     public CoursewareWorkspaceViewModel(
         CoursewareFolderLoader coursewareFolderLoader,
         IViewModelDispatcher? dispatcher = null,
         ICoursewareThemeAnalysisService? themeAnalysisService = null,
         ISlideChatManagerFactory? slideChatManagerFactory = null,
         CoursewareSlideSummaryService? slideSummaryService = null,
-        ICoursewareSlidePromptBuilder? slidePromptBuilder = null)
+        ICoursewareSlidePromptBuilder? slidePromptBuilder = null,
+        ICoursewareThemeAnalysisSnapshotStore? themeAnalysisSnapshotStore = null,
+        CoursewareWorkspaceFolderLoader? workspaceFolderLoader = null)
     {
         ArgumentNullException.ThrowIfNull(coursewareFolderLoader);
 
-        _coursewareFolderLoader = coursewareFolderLoader;
+        _themeAnalysisSnapshotStore = themeAnalysisSnapshotStore ?? new CoursewareThemeAnalysisSnapshotStore();
+        _workspaceFolderLoader = workspaceFolderLoader
+            ?? new CoursewareWorkspaceFolderLoader(coursewareFolderLoader, _themeAnalysisSnapshotStore);
         _themeAnalysisService = themeAnalysisService ?? new CoursewareThemeAnalysisService();
         _slideChatManagerFactory = slideChatManagerFactory ?? new SlideChatManagerFactory();
         _slideSummaryService = slideSummaryService ?? new CoursewareSlideSummaryService();
@@ -631,7 +638,9 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
 
         try
         {
-            var package = await _coursewareFolderLoader.LoadAsync(folderPath, cancellationTokenSource.Token).ConfigureAwait(true);
+            var folderLoadResult = await _workspaceFolderLoader.LoadAsync(folderPath, cancellationTokenSource.Token)
+                .ConfigureAwait(true);
+            var package = folderLoadResult.InputPackage;
             var thumbnails = new List<CoursewareThumbnailItemViewModel>(package.Slides.Count);
             foreach (var slide in package.Slides)
             {
@@ -650,10 +659,22 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
 
                 CoursewareSession = new CoursewareWorkspaceSession(package);
                 ClearAnalysisPresentation();
-                WorkspaceState = CoursewareWorkspaceState.AnalyzingCourseware;
+                WorkspaceState = folderLoadResult.IsThemeAnalysisSnapshot
+                    ? CoursewareWorkspaceState.LoadingCourseware
+                    : CoursewareWorkspaceState.AnalyzingCourseware;
                 OnPropertyChanged(nameof(SlideCountText));
                 OnPropertyChanged(nameof(InputHealthText));
             });
+
+            if (folderLoadResult.AnalysisResult is not null)
+            {
+                await _dispatcher.InvokeAsync(() => PublishRestoredAnalysisResult(
+                    package,
+                    cancellationTokenSource,
+                    folderLoadResult.AnalysisResult));
+                await EnterWorkspaceAsync().ConfigureAwait(false);
+                return;
+            }
 
             var progress = CreateAnalysisProgress(package, cancellationTokenSource);
             var analysisResult = await _themeAnalysisService.AnalyzeAsync(
@@ -661,6 +682,11 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
                 progress,
                 CreateAnalysisMessageProgress(package, cancellationTokenSource),
                 cancellationTokenSource.Token).ConfigureAwait(false);
+            await _themeAnalysisSnapshotStore.SaveAsync(
+                    package,
+                    analysisResult,
+                    cancellationTokenSource.Token)
+                .ConfigureAwait(false);
             await _dispatcher.InvokeAsync(() => PublishAnalysisResult(package, cancellationTokenSource, analysisResult));
         }
         catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
@@ -734,6 +760,11 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
                 progress,
                 CreateAnalysisMessageProgress(session.InputPackage, cancellationTokenSource),
                 cancellationTokenSource.Token).ConfigureAwait(false);
+            await _themeAnalysisSnapshotStore.SaveAsync(
+                    session.InputPackage,
+                    analysisResult,
+                    cancellationTokenSource.Token)
+                .ConfigureAwait(false);
             await _dispatcher.InvokeAsync(() => PublishAnalysisResult(session.InputPackage, cancellationTokenSource, analysisResult));
         }
         catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
@@ -781,12 +812,37 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
             return;
         }
 
-        CoursewareSession.ThemeAnalysisResult = analysisResult;
+        CommitThemeAnalysisResult(CoursewareSession, analysisResult);
+    }
+
+    private void PublishRestoredAnalysisResult(
+        CoursewareInputPackage inputPackage,
+        CancellationTokenSource workflowCancellationTokenSource,
+        CoursewareThemeAnalysisResult analysisResult)
+    {
+        if (CoursewareSession is null
+            || !ReferenceEquals(CoursewareSession.InputPackage, inputPackage)
+            || !ReferenceEquals(_workflowCancellationTokenSource, workflowCancellationTokenSource))
+        {
+            return;
+        }
+
+        CommitThemeAnalysisResult(CoursewareSession, analysisResult);
+    }
+
+    private void CommitThemeAnalysisResult(
+        CoursewareWorkspaceSession session,
+        CoursewareThemeAnalysisResult analysisResult)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(analysisResult);
+
+        session.ThemeAnalysisResult = analysisResult;
         ApplyThemePresentation(analysisResult.Theme);
         if (SlideWorkspace is null)
         {
             ReplaceSlideWorkspace(new CoursewareSlideWorkspaceViewModel(
-                CoursewareSession,
+                session,
                 _slideChatManagerFactory,
                 _slidePromptBuilder,
                 _slideSummaryService,
@@ -991,7 +1047,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
             return;
         }
 
-        CurrentPage = CoursewareApplicationPage.SlideWorkspace;
+        await _dispatcher.InvokeAsync(() => CurrentPage = CoursewareApplicationPage.SlideWorkspace);
         await workspace.ActivateAsync().ConfigureAwait(false);
     }
 

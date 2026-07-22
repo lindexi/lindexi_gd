@@ -1,3 +1,4 @@
+using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -115,7 +116,8 @@ public sealed class CoursewareAnalysisChatViewTests
         var viewModel = new CoursewareWorkspaceViewModel(
             new CoursewareFolderLoader(),
             new DispatcherViewModelDispatcher(Dispatcher.CurrentDispatcher),
-            analysisService);
+            analysisService,
+            themeAnalysisSnapshotStore: CreateSnapshotStore());
         var view = new CoursewareAnalysisView
         {
             DataContext = viewModel,
@@ -214,7 +216,8 @@ public sealed class CoursewareAnalysisChatViewTests
         var viewModel = new CoursewareWorkspaceViewModel(
             new CoursewareFolderLoader(),
             new DispatcherViewModelDispatcher(Dispatcher.CurrentDispatcher),
-            analysisService);
+            analysisService,
+            themeAnalysisSnapshotStore: CreateSnapshotStore());
         var view = new CoursewareAnalysisView
         {
             DataContext = viewModel,
@@ -306,6 +309,14 @@ public sealed class CoursewareAnalysisChatViewTests
 
         application ??= new App();
         ((App) application).InitializeComponent();
+    }
+
+    private static CoursewareThemeAnalysisSnapshotStore CreateSnapshotStore()
+    {
+        var outputRoot = Directory.CreateDirectory(Path.Join(
+            Path.GetTempPath(),
+            $"CoursewareThemeSnapshotTests_{Guid.NewGuid():N}"));
+        return new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName);
     }
 
     private static async Task PumpDispatcherUntilAsync(Window window, Func<bool> condition)

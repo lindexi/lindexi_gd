@@ -92,6 +92,96 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.AreEqual("保留的页面输入", workspace.SelectedSlide.InputText);
     }
 
+    [TestMethod(DisplayName = "分析生成快照后新实例打开快照应跳过分析并直达等价页面美化工作台")]
+    [Timeout(60_000)]
+    public async Task OpeningSavedSnapshotShouldEnterEquivalentWorkspaceWithoutAnalyzingAgain()
+    {
+        const string generationInstruction = "保持教学语义并突出当前页结论。";
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容 resource-first"), width: 1600, height: 900)
+            .AddSlide("slide-second", CreateSlideMarkdown("第二页标题", "第二页内容"), hasScreenshot: false, width: 1600, height: 900)
+            .AddResource("resource-first", "image", "resource-first.png")
+            .Build();
+        var snapshotOutputRoot = Directory.CreateDirectory(Path.Join(
+            Path.GetTempPath(),
+            $"CoursewareSnapshotWorkspaceTests_{Guid.NewGuid():N}"));
+        var snapshotStore = new CoursewareThemeAnalysisSnapshotStore(snapshotOutputRoot.FullName);
+        var normalAnalysisService = new FakeCoursewareThemeAnalysisService();
+        var normalViewModel = CreateViewModel(
+            normalAnalysisService,
+            new FakeSlideChatManagerFactory(),
+            snapshotStore);
+
+        await normalViewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
+        var snapshotDirectory = snapshotOutputRoot.EnumerateDirectories().Single();
+        await normalViewModel.EnterWorkspaceCommand.ExecuteAsync();
+        var normalWorkspace = normalViewModel.SlideWorkspace!;
+        var normalSelectedSlide = normalWorkspace.SelectedSlide!;
+        Assert.IsNotNull(normalSelectedSlide.Runtime);
+
+        var restoredAnalysisService = new FakeCoursewareThemeAnalysisService();
+        var restoredViewModel = CreateViewModel(
+            restoredAnalysisService,
+            new FakeSlideChatManagerFactory(),
+            snapshotStore);
+
+        await restoredViewModel.OpenCoursewareFolderAsync(snapshotDirectory.FullName);
+
+        Assert.AreEqual(1, normalAnalysisService.AnalysisCount);
+        Assert.AreEqual(0, restoredAnalysisService.AnalysisCount);
+        Assert.AreEqual(CoursewareWorkspaceState.AnalysisReady, restoredViewModel.WorkspaceState);
+        Assert.IsTrue(restoredViewModel.IsWorkspacePage);
+        Assert.IsNotNull(restoredViewModel.CoursewareSession);
+        Assert.IsNotNull(restoredViewModel.CoursewareSession.ThemeAnalysisResult);
+        Assert.IsNotNull(restoredViewModel.SlideWorkspace);
+        Assert.HasCount(2, restoredViewModel.CoursewareThumbnails);
+        Assert.HasCount(2, restoredViewModel.SlideWorkspace.Slides);
+        Assert.IsEmpty(restoredViewModel.AnalysisEvents);
+        Assert.IsEmpty(restoredViewModel.AnalysisChatMessages);
+
+        var restoredWorkspace = restoredViewModel.SlideWorkspace;
+        var restoredSelectedSlide = restoredWorkspace.SelectedSlide!;
+        Assert.IsNotNull(restoredSelectedSlide.Runtime);
+        Assert.AreEqual(normalViewModel.CoursewareTitle, restoredViewModel.CoursewareTitle);
+        Assert.AreEqual(normalViewModel.ThemeTitle, restoredViewModel.ThemeTitle);
+        Assert.AreEqual(normalViewModel.ThemeDescription, restoredViewModel.ThemeDescription);
+        Assert.AreEqual(normalViewModel.FontRecommendationText, restoredViewModel.FontRecommendationText);
+        Assert.AreEqual(normalViewModel.SafeAreaText, restoredViewModel.SafeAreaText);
+        Assert.AreEqual(normalViewModel.ColorRationale, restoredViewModel.ColorRationale);
+        CollectionAssert.AreEqual(normalViewModel.StyleKeywords.ToArray(), restoredViewModel.StyleKeywords.ToArray());
+        CollectionAssert.AreEqual(normalViewModel.LayoutPrinciples.ToArray(), restoredViewModel.LayoutPrinciples.ToArray());
+        CollectionAssert.AreEqual(normalViewModel.AnalysisWarnings.ToArray(), restoredViewModel.AnalysisWarnings.ToArray());
+        Assert.AreEqual(normalSelectedSlide.SlideId, restoredSelectedSlide.SlideId);
+        Assert.AreEqual(normalSelectedSlide.SourceMarkdownText, restoredSelectedSlide.SourceMarkdownText);
+        Assert.AreEqual(normalSelectedSlide.CanvasWidth, restoredSelectedSlide.CanvasWidth);
+        Assert.AreEqual(normalSelectedSlide.CanvasHeight, restoredSelectedSlide.CanvasHeight);
+        Assert.AreEqual(normalSelectedSlide.HasSourceScreenshot, restoredSelectedSlide.HasSourceScreenshot);
+        Assert.AreEqual(
+            normalSelectedSlide.Runtime!.SlideChatManager.Pipeline.PromptProvider.BuildSystemPrompt(),
+            restoredSelectedSlide.Runtime!.SlideChatManager.Pipeline.PromptProvider.BuildSystemPrompt());
+
+        var promptBuilder = new CoursewareSlidePromptBuilder(
+            new CoursewareSlideSummaryService(),
+            new CoursewareThemePageDesignAdapter());
+        var normalPrompt = promptBuilder.Build(
+            normalViewModel.CoursewareSession!.InputPackage,
+            normalViewModel.CoursewareSession.ThemeAnalysisResult!,
+            normalSelectedSlide.SlideIndex,
+            generationInstruction,
+            screenshotAttached: true);
+        var restoredPrompt = promptBuilder.Build(
+            restoredViewModel.CoursewareSession.InputPackage,
+            restoredViewModel.CoursewareSession.ThemeAnalysisResult!,
+            restoredSelectedSlide.SlideIndex,
+            generationInstruction,
+            screenshotAttached: true);
+
+        Assert.AreEqual(normalPrompt.Prompt, restoredPrompt.Prompt);
+        Assert.AreEqual(normalPrompt.EstimatedTokenCount, restoredPrompt.EstimatedTokenCount);
+        Assert.AreEqual(normalPrompt.Envelope.DesignContext.ReferenceCanvasWidth, restoredPrompt.Envelope.DesignContext.ReferenceCanvasWidth);
+        Assert.AreEqual(normalPrompt.Envelope.DesignContext.ReferenceCanvasHeight, restoredPrompt.Envelope.DesignContext.ReferenceCanvasHeight);
+    }
+
     [TestMethod(DisplayName = "打开新课件后应替换旧真实工作台且不复用页面运行时")]
     [Timeout(60_000)]
     public async Task OpeningAnotherCoursewareShouldReplaceSlideWorkspace()
@@ -155,6 +245,83 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.AreEqual("更新主题", workspace.ThemeTitle);
         Assert.AreEqual("更新主题", viewModel.ThemeTitle);
         Assert.AreEqual(CoursewareWorkspaceState.AnalysisReady, viewModel.WorkspaceState);
+    }
+
+    [TestMethod(DisplayName = "重新分析主题应保存新快照且不覆盖已有版本")]
+    [Timeout(60_000)]
+    public async Task ReanalyzeShouldPublishAnotherSnapshotVersion()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
+            .Build();
+        var snapshotOutputRoot = Directory.CreateDirectory(Path.Join(
+            Path.GetTempPath(),
+            $"CoursewareReanalysisSnapshotTests_{Guid.NewGuid():N}"));
+        var timestamp = DateTimeOffset.Parse("2026-07-22T03:44:47.123+08:00");
+        var snapshotStore = new CoursewareThemeAnalysisSnapshotStore(
+            snapshotOutputRoot.FullName,
+            () => timestamp);
+        var analysisService = new FakeCoursewareThemeAnalysisService();
+        var viewModel = CreateViewModel(analysisService, snapshotStore: snapshotStore);
+
+        await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
+        await viewModel.ReanalyzeCommand.ExecuteAsync();
+
+        Assert.AreEqual(2, analysisService.AnalysisCount);
+        CollectionAssert.AreEquivalent(
+            new[]
+            {
+                "CoursewareThemeAnalysis_20260722_034447_123",
+                "CoursewareThemeAnalysis_20260722_034447_123_1",
+            },
+            snapshotOutputRoot.EnumerateDirectories().Select(directory => directory.Name).ToArray());
+        Assert.AreEqual(CoursewareWorkspaceState.AnalysisReady, viewModel.WorkspaceState);
+        Assert.IsNotNull(viewModel.SlideWorkspace);
+    }
+
+    [TestMethod(DisplayName = "主题分析完成但快照保存失败时不应提交结果或创建工作台")]
+    [Timeout(60_000)]
+    public async Task SnapshotSaveFailureShouldPreventAnalysisResultPublication()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
+            .Build();
+        var analysisService = new FakeCoursewareThemeAnalysisService();
+        var viewModel = CreateViewModel(
+            analysisService,
+            snapshotStore: new FailingCoursewareThemeAnalysisSnapshotStore());
+
+        await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
+
+        Assert.AreEqual(1, analysisService.AnalysisCount);
+        Assert.AreEqual(CoursewareWorkspaceState.AnalysisFailed, viewModel.WorkspaceState);
+        Assert.IsNotNull(viewModel.CoursewareSession);
+        Assert.IsNull(viewModel.CoursewareSession.ThemeAnalysisResult);
+        Assert.IsNull(viewModel.SlideWorkspace);
+        Assert.AreEqual("测试快照保存失败", viewModel.LoadErrorMessage);
+        Assert.IsFalse(viewModel.EnterWorkspaceCommand.CanExecute(null));
+    }
+
+    [TestMethod(DisplayName = "目录存在损坏快照标记时应明确失败且不得回退普通主题分析")]
+    [Timeout(60_000)]
+    public async Task CorruptedSnapshotMarkerShouldFailWithoutFallingBackToThemeAnalysis()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
+            .Build();
+        await File.WriteAllTextAsync(
+            Path.Join(exportDirectory.FullName, CoursewareThemeAnalysisSnapshotManifest.FileName),
+            "{ invalid snapshot json");
+        var analysisService = new FakeCoursewareThemeAnalysisService();
+        var viewModel = CreateViewModel(analysisService);
+
+        await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
+
+        Assert.AreEqual(0, analysisService.AnalysisCount);
+        Assert.AreEqual(CoursewareWorkspaceState.LoadFailed, viewModel.WorkspaceState);
+        Assert.IsNull(viewModel.CoursewareSession);
+        Assert.IsNull(viewModel.SlideWorkspace);
+        StringAssert.Contains(viewModel.LoadErrorMessage, CoursewareThemeAnalysisSnapshotManifest.FileName);
     }
 
     [TestMethod(DisplayName = "课件级页面生成状态应优先显示进行中和全部取消")]
@@ -369,9 +536,11 @@ public sealed class CoursewareWorkspaceViewModelTests
 
     private static CoursewareWorkspaceViewModel CreateViewModel(
         ICoursewareThemeAnalysisService? themeAnalysisService = null,
-        ISlideChatManagerFactory? slideChatManagerFactory = null)
+        ISlideChatManagerFactory? slideChatManagerFactory = null,
+        ICoursewareThemeAnalysisSnapshotStore? snapshotStore = null)
     {
         var summaryService = new CoursewareSlideSummaryService();
+        snapshotStore ??= CreateSnapshotStore();
         return new CoursewareWorkspaceViewModel(
             new CoursewareFolderLoader(),
             new ImmediateViewModelDispatcher(),
@@ -380,7 +549,16 @@ public sealed class CoursewareWorkspaceViewModelTests
             summaryService,
             new CoursewareSlidePromptBuilder(
                 summaryService,
-                new CoursewareThemePageDesignAdapter()));
+                new CoursewareThemePageDesignAdapter()),
+            snapshotStore);
+    }
+
+    private static CoursewareThemeAnalysisSnapshotStore CreateSnapshotStore()
+    {
+        var outputRoot = Directory.CreateDirectory(Path.Join(
+            Path.GetTempPath(),
+            $"CoursewareThemeSnapshotTests_{Guid.NewGuid():N}"));
+        return new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName);
     }
 
     private static void SetSlideState(
@@ -449,6 +627,27 @@ public sealed class CoursewareWorkspaceViewModelTests
             cancellationToken.ThrowIfCancellationRequested();
             yield return new ChatResponseUpdate(ChatRole.Assistant, text);
             await Task.CompletedTask;
+        }
+    }
+
+    private sealed class FailingCoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnalysisSnapshotStore
+    {
+        public string ManifestFileName => CoursewareThemeAnalysisSnapshotManifest.FileName;
+
+        public Task<DirectoryInfo> SaveAsync(
+            CoursewareInputPackage inputPackage,
+            CoursewareThemeAnalysisResult analysisResult,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromException<DirectoryInfo>(new IOException("测试快照保存失败"));
+        }
+
+        public Task<CoursewareThemeAnalysisSnapshot> LoadAsync(
+            string folderPath,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
         }
     }
 }
