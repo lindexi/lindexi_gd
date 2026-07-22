@@ -353,7 +353,6 @@
                                     <TextBlock
                                         Grid.Column="1"
                                         VerticalAlignment="Center"
-                                        FontFamily="Cascadia Mono, Consolas"
                                         FontSize="18"
                                         Foreground="{StaticResource TextSecondaryBrush}"
                                         Text="{Binding RenderedFrameCount, StringFormat={}{0:N0}}" />
@@ -417,7 +416,7 @@
                                     </Border.RenderTransform>
                                     <StackPanel>
                                         <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="10" Text="TARGET FORMAT" />
-                                        <TextBlock Margin="0,3,0,0" FontFamily="Cascadia Mono, Consolas" FontSize="13" Text="X8 → A8" />
+                                        <TextBlock Margin="0,3,0,0" FontSize="13" Text="X8 → A8" />
                                     </StackPanel>
                                 </Border>
 
@@ -437,7 +436,7 @@
                                     </Border.RenderTransform>
                                     <StackPanel>
                                         <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="10" Text="ALPHA PATH" />
-                                        <TextBlock Margin="0,3,0,0" FontFamily="Cascadia Mono, Consolas" FontSize="13" Text="PER-PIXEL" />
+                                        <TextBlock Margin="0,3,0,0" FontSize="13" Text="PER-PIXEL" />
                                     </StackPanel>
                                 </Border>
 
@@ -606,7 +605,6 @@
                                     <TextBlock
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        FontFamily="Cascadia Mono, Consolas"
                                         FontSize="18"
                                         FontWeight="Bold"
                                         Text="WPF" />
@@ -622,7 +620,7 @@
 
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Foreground="{StaticResource TextMutedBrush}" FontSize="10" Text="ANIMATION LOAD" />
-                                    <TextBlock Margin="0,3,0,0" FontFamily="Cascadia Mono, Consolas" FontSize="13" Text="ACTIVE" />
+                                    <TextBlock Margin="0,3,0,0" FontSize="13" Text="ACTIVE" />
                                 </StackPanel>
 
                                 <Grid Grid.Column="2" Height="42" VerticalAlignment="Bottom">
