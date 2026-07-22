@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:SimpleWrite.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="520"
+             d:DesignHeight="280"
+             x:Class="SimpleWrite.Views.Components.ExternalFileChangeDialog"
+             x:DataType="viewModels:SimpleWriteMainViewModel">
+    <Design.DataContext>
+        <viewModels:SimpleWriteMainViewModel />
+    </Design.DataContext>
+    <Design.DesignStyle>
+        <StyleInclude Source="avares://SimpleWrite/Styles/MainStyles.axaml" />
+    </Design.DesignStyle>
+
+    <Grid IsVisible="{Binding ExternalFileChangeConfirmationViewModel.IsVisible}">
+        <Border Classes="DialogOverlay" />
+        <Border Classes="DialogPanel"
+                Width="520"
+                MaxWidth="520"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+            <StackPanel Spacing="16">
+                <Border Classes="DialogBadge">
+                    <TextBlock Classes="DialogBadgeText" Text="磁盘文件变更" />
+                </Border>
+
+                <TextBlock Classes="DialogTitle"
+                           Text="{Binding ExternalFileChangeConfirmationViewModel.Title}" />
+                <TextBlock Classes="DialogBody"
+                           Text="{Binding ExternalFileChangeConfirmationViewModel.Description}" />
+
+                <Border Classes="DialogHintCard">
+                    <TextBlock Classes="DialogBody"
+                               Text="{Binding ExternalFileChangeConfirmationViewModel.FileHint}" />
+                </Border>
+
+                <StackPanel Orientation="Horizontal"
+                            Spacing="12"
+                            HorizontalAlignment="Right">
+                    <Button Classes="SecondaryButton InteractiveButton"
+                            Click="IgnoreExternalFileChangeButton_OnClick"
+                            Content="忽略磁盘更改" />
+                    <Button Classes="PrimaryButton InteractiveButton"
+                            Click="ReloadFromDiskButton_OnClick"
+                            Content="采用本地磁盘内容" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
