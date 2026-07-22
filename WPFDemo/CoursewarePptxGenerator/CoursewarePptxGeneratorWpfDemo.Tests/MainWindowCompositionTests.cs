@@ -3,7 +3,10 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using System.Xml.Linq;
+using CoursewarePptxGenerator.Core.Analysis;
 using CoursewarePptxGeneratorWpfDemo.Models;
+using CoursewarePptxGeneratorWpfDemo.Services;
+using CoursewarePptxGeneratorWpfDemo.Tests.Fakes;
 using CoursewarePptxGeneratorWpfDemo.ViewModels;
 using CoursewarePptxGeneratorWpfDemo.Views;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,9 +16,9 @@ namespace CoursewarePptxGeneratorWpfDemo.Tests;
 [TestClass]
 public sealed class MainWindowCompositionTests
 {
-    [TestMethod(DisplayName = "主窗口应直接承载全课件分析页和单页工作台")]
+    [TestMethod(DisplayName = "主窗口应直接承载全课件分析页和真实单页工作台")]
     [Timeout(60_000)]
-    public void MainWindowShouldHostBothPrototypePages()
+    public void MainWindowShouldHostAnalysisAndWorkspacePages()
     {
         var mainWindowXaml = XDocument.Load(Path.Join(GetApplicationProjectDirectory(), "MainWindow.xaml"));
         XNamespace presentation = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
@@ -44,9 +47,31 @@ public sealed class MainWindowCompositionTests
         Assert.IsNull(openButton.Attribute("Command"), "首页按钮不应直接执行缺少文件夹路径的命令。");
     }
 
-    [TestMethod(DisplayName = "分析结果与工作台应明确标记当前原型能力边界")]
+    [TestMethod(DisplayName = "已加载课件后应删除第二次打开入口并保留失败或取消后的工作台入口")]
     [Timeout(60_000)]
-    public void AnalysisAndWorkspaceViewsShouldDescribePrototypeCapabilityBoundary()
+    public void LoadedCoursewareViewsShouldRemoveReplacementAndPreserveWorkspaceActions()
+    {
+        var analysisViewXaml = XDocument.Load(Path.Join(GetApplicationProjectDirectory(), "Views", "CoursewareAnalysisView.xaml"));
+        XNamespace presentation = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+
+        var folderPickerButtons = analysisViewXaml
+            .Descendants(presentation + "Button")
+            .Where(element => string.Equals((string?) element.Attribute("Click"), "OpenCoursewareButton_OnClick", StringComparison.Ordinal))
+            .ToArray();
+        Assert.HasCount(2, folderPickerButtons, "文件夹选择入口只应存在于欢迎页和加载失败页。");
+
+        var preservedWorkspaceButtons = analysisViewXaml
+            .Descendants(presentation + "Button")
+            .Where(element => string.Equals((string?) element.Attribute("Command"), "{Binding EnterWorkspaceCommand}", StringComparison.Ordinal))
+            .ToArray();
+        Assert.IsGreaterThanOrEqualTo(3, preservedWorkspaceButtons.Length);
+        Assert.IsFalse(preservedWorkspaceButtons.Any(button => button.Attribute("IsEnabled") is not null),
+            "进入工作台按钮应由命令 CanExecute 决定，避免重新分析失败或取消后错误禁用。");
+    }
+
+    [TestMethod(DisplayName = "分析结果与工作台应明确标记当前能力边界")]
+    [Timeout(60_000)]
+    public void AnalysisAndWorkspaceViewsShouldDescribeCapabilityBoundary()
     {
         var projectDirectory = GetApplicationProjectDirectory();
         var analysisView = XDocument.Load(Path.Join(projectDirectory, "Views", "CoursewareAnalysisView.xaml"));
@@ -57,13 +82,43 @@ public sealed class MainWindowCompositionTests
             themeView.ToString(SaveOptions.DisableFormatting),
             workspaceView.ToString(SaveOptions.DisableFormatting));
 
-        StringAssert.Contains(combinedXaml, "PrototypeWorkspaceButtonText");
+        StringAssert.Contains(combinedXaml, "WorkspaceButtonText");
         StringAssert.Contains(combinedXaml, "ThemeSuggestionWarningText");
         StringAssert.Contains(combinedXaml, "DesignSystemCapabilityText");
         StringAssert.Contains(combinedXaml, "TemplateValidationCapabilityText");
         StringAssert.Contains(combinedXaml, "VisualAnalysisCapabilityText");
         StringAssert.Contains(combinedXaml, "PageGenerationCapabilityText");
-        StringAssert.Contains(combinedXaml, "PrototypeWorkspaceDescriptionText");
+        Assert.IsFalse(combinedXaml.Contains("演示数据", StringComparison.Ordinal));
+        Assert.IsFalse(combinedXaml.Contains("工作台原型", StringComparison.Ordinal));
+    }
+
+    [TestMethod(DisplayName = "真实工作台应由左中右三个面板绑定统一页面工作台")]
+    [Timeout(60_000)]
+    public void SlideWorkspaceShouldComposeRealThreeColumnPanels()
+    {
+        var projectDirectory = GetApplicationProjectDirectory();
+        var workspaceXaml = XDocument.Load(Path.Join(projectDirectory, "Views", "SlideWorkspaceView.xaml"));
+        var sidebarXaml = XDocument.Load(Path.Join(projectDirectory, "Views", "LeftSidebarPanel.xaml"));
+        var contentXaml = XDocument.Load(Path.Join(projectDirectory, "Views", "MainContentPanel.xaml"));
+        var copilotXaml = XDocument.Load(Path.Join(projectDirectory, "Views", "CopilotPanel.xaml"));
+        XNamespace presentation = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+        XNamespace views = "clr-namespace:CoursewarePptxGeneratorWpfDemo.Views";
+
+        Assert.IsNotNull(workspaceXaml.Descendants(views + "LeftSidebarPanel").SingleOrDefault());
+        Assert.IsNotNull(workspaceXaml.Descendants(views + "MainContentPanel").SingleOrDefault());
+        Assert.IsNotNull(workspaceXaml.Descendants(views + "CopilotPanel").SingleOrDefault());
+        StringAssert.Contains(sidebarXaml.ToString(SaveOptions.DisableFormatting), "CoursewareSlideItemViewModel");
+        StringAssert.Contains(sidebarXaml.ToString(SaveOptions.DisableFormatting), "PreviewImage");
+        StringAssert.Contains(contentXaml.ToString(SaveOptions.DisableFormatting), "SelectedSlide.CanvasWidth");
+        StringAssert.Contains(contentXaml.ToString(SaveOptions.DisableFormatting), "SelectedSlide.CanvasHeight");
+        StringAssert.Contains(contentXaml.ToString(SaveOptions.DisableFormatting), "SelectedSlide.EditableSlideXml");
+        StringAssert.Contains(contentXaml.ToString(SaveOptions.DisableFormatting), "IsReadOnly=\"{Binding SelectedSlide.IsBusy}\"");
+        StringAssert.Contains(copilotXaml.ToString(SaveOptions.DisableFormatting), "SelectedSlide.CopilotChatManager.ChatMessages");
+        StringAssert.Contains(copilotXaml.ToString(SaveOptions.DisableFormatting), "GenerateSelectedSlideCommand");
+        StringAssert.Contains(copilotXaml.ToString(SaveOptions.DisableFormatting), "CommandParameter=\"{Binding SelectedSlide}\"");
+        Assert.IsFalse(contentXaml.Descendants(presentation + "Button")
+            .Any(button => string.Equals((string?) button.Attribute("Content"), "打开课件文件夹", StringComparison.Ordinal)));
+        Assert.IsFalse(sidebarXaml.ToString(SaveOptions.DisableFormatting).Contains("添加空页面", StringComparison.Ordinal));
     }
 
     [TestMethod(DisplayName = "主题分析失败页应绑定真实错误和技术详情")]
@@ -90,17 +145,28 @@ public sealed class MainWindowCompositionTests
         Assert.IsFalse(analysisViewXaml.ToString(SaveOptions.DisableFormatting).Contains("THEME_VALIDATION_FAILED", StringComparison.Ordinal));
     }
 
-    [TestMethod(DisplayName = "双页原型往返导航应保留工作台界面状态")]
+    [TestMethod(DisplayName = "双页真实工作台往返导航应保留页面状态")]
     [Timeout(60_000)]
-    public void PrototypeNavigationShouldPreserveWorkspaceState()
+    public void WorkspaceNavigationShouldPreserveWorkspaceState()
     {
-        RunOnStaThreadAsync(PrototypeNavigationShouldPreserveWorkspaceStateAsync).GetAwaiter().GetResult();
+        RunOnStaThreadAsync(WorkspaceNavigationShouldPreserveWorkspaceStateAsync).GetAwaiter().GetResult();
     }
 
-    private static async Task PrototypeNavigationShouldPreserveWorkspaceStateAsync()
+    private static async Task WorkspaceNavigationShouldPreserveWorkspaceStateAsync()
     {
         EnsureApplicationResources();
-        var viewModel = new CoursewareWorkspaceViewModel();
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页", "第一页正文"))
+            .AddSlide("slide-second", CreateSlideMarkdown("第二页", "第二页正文"))
+            .Build();
+        var summaryService = new CoursewareSlideSummaryService();
+        var viewModel = new CoursewareWorkspaceViewModel(
+            new CoursewareFolderLoader(),
+            new ImmediateViewModelDispatcher(),
+            new FakeCoursewareThemeAnalysisService(),
+            new FakeSlideChatManagerFactory(),
+            summaryService,
+            new CoursewareSlidePromptBuilder(summaryService, new CoursewareThemePageDesignAdapter()));
         var window = new MainWindow
         {
             DataContext = viewModel,
@@ -119,24 +185,31 @@ public sealed class MainWindowCompositionTests
             Assert.AreEqual(Visibility.Visible, analysisView.Visibility, "应用启动时应显示分析页。");
             Assert.AreEqual(Visibility.Collapsed, workspaceView.Visibility, "应用启动时不应显示单页工作台。");
 
-            viewModel.ShowDemoStageCommand.Execute(nameof(CoursewareWorkspaceState.AnalysisReady));
-            viewModel.SelectedSlide = viewModel.Slides[8];
-            viewModel.EnterWorkspaceCommand.Execute(null);
+            await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
+            viewModel.SlideWorkspace!.SelectedSlide = viewModel.SlideWorkspace.Slides[1];
+            viewModel.SlideWorkspace.SelectedSlide.InputText = "保留输入";
+            await viewModel.EnterWorkspaceCommand.ExecuteAsync();
             await PumpDispatcherAsync(window);
 
             Assert.AreEqual(Visibility.Collapsed, analysisView.Visibility, "进入工作台后应隐藏分析页。");
             Assert.AreEqual(Visibility.Visible, workspaceView.Visibility, "分析完成后应能进入单页工作台。");
 
             viewModel.BackToAnalysisCommand.Execute(null);
-            viewModel.EnterWorkspaceCommand.Execute(null);
+            await viewModel.EnterWorkspaceCommand.ExecuteAsync();
             await PumpDispatcherAsync(window);
 
-            Assert.AreSame(viewModel.Slides[8], viewModel.SelectedSlide, "往返导航不应重置工作台当前页面选择。");
+            Assert.AreSame(viewModel.SlideWorkspace.Slides[1], viewModel.SlideWorkspace.SelectedSlide, "往返导航不应重置真实工作台当前页面选择。");
+            Assert.AreEqual("保留输入", viewModel.SlideWorkspace.SelectedSlide.InputText);
         }
         finally
         {
             window.Close();
         }
+    }
+
+    private static string CreateSlideMarkdown(string title, string content)
+    {
+        return $"## 元素细节\n\n### 文本.1\n#### 内容\n```\n{title}\n{content}\n```";
     }
 
     private static string GetApplicationProjectDirectory()

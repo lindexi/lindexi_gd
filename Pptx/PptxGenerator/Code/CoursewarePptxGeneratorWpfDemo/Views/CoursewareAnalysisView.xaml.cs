@@ -12,7 +12,7 @@ using CoursewarePptxGeneratorWpfDemo.ViewModels;
 namespace CoursewarePptxGeneratorWpfDemo.Views;
 
 /// <summary>
-/// Displays the presentation-only whole-courseware analysis prototype.
+/// Displays the whole-courseware analysis workspace.
 /// </summary>
 public partial class CoursewareAnalysisView : UserControl
 {
@@ -31,7 +31,6 @@ public partial class CoursewareAnalysisView : UserControl
     private ObservableCollection<CoursewareThumbnailItemViewModel>? _coursewareThumbnails;
     private DispatcherOperation? _pendingThumbnailProbe;
     private long _thumbnailProbeGeneration;
-    private bool _hasCompletedThumbnailProbe;
     private bool _isListeningForThumbnailChanges;
 
     /// <summary>
@@ -40,6 +39,7 @@ public partial class CoursewareAnalysisView : UserControl
     public CoursewareAnalysisView()
     {
         InitializeComponent();
+        _isListeningForThumbnailChanges = true;
         Loaded += CoursewareAnalysisView_OnLoaded;
         Unloaded += CoursewareAnalysisView_OnUnloaded;
         DataContextChanged += CoursewareAnalysisView_OnDataContextChanged;
@@ -69,7 +69,7 @@ public partial class CoursewareAnalysisView : UserControl
         var folderPath = _coursewareFolderPicker.PickCoursewareFolder();
         if (!string.IsNullOrWhiteSpace(folderPath) && DataContext is CoursewareWorkspaceViewModel viewModel)
         {
-            viewModel.OpenDemoCommand.Execute(folderPath);
+            _ = viewModel.OpenCoursewareFolderAsync(folderPath);
         }
     }
 
@@ -139,23 +139,26 @@ public partial class CoursewareAnalysisView : UserControl
         _pendingThumbnailProbe?.Abort();
         _pendingThumbnailProbe = null;
         _thumbnailProbeGeneration++;
-        _hasCompletedThumbnailProbe = false;
         SetValue(ThumbnailAspectRatioPropertyKey, ThumbnailAspectRatio.Widescreen);
     }
 
     private void CoursewareThumbnails_OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.Action == NotifyCollectionChangedAction.Reset || _hasCompletedThumbnailProbe)
-        {
-            BeginThumbnailProbeRound();
-        }
+        BeginThumbnailProbeRound();
     }
 
     private void BeginThumbnailProbeRound()
     {
         _thumbnailProbeGeneration++;
-        _hasCompletedThumbnailProbe = false;
         SetValue(ThumbnailAspectRatioPropertyKey, ThumbnailAspectRatio.Widescreen);
+        if (Dispatcher.CheckAccess())
+        {
+            _pendingThumbnailProbe?.Abort();
+            _pendingThumbnailProbe = null;
+            ProbeThumbnailAspectRatio(_thumbnailProbeGeneration);
+            return;
+        }
+
         ScheduleThumbnailProbe();
     }
 
@@ -196,7 +199,6 @@ public partial class CoursewareAnalysisView : UserControl
         }
 
         SetValue(ThumbnailAspectRatioPropertyKey, aspectRatio);
-        _hasCompletedThumbnailProbe = true;
     }
 
     private static bool TryGetThumbnailAspectRatio(string? filePath, out ThumbnailAspectRatio aspectRatio)

@@ -8,12 +8,13 @@
              xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
              xmlns:views="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views"
              Background="{StaticResource LightBackgroundBrush}"
-             d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=False}"
+             d:DataContext="{d:DesignInstance Type=viewModels:CoursewareSlideWorkspaceViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="760"
              d:DesignWidth="420"
              mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -27,23 +28,45 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Copilot" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <StackPanel>
+                    <TextBlock Text="页面 Copilot" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="{Binding SelectedSlide.Title}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
                 <ComboBox Grid.Column="1"
                           Width="220"
-                          ItemsSource="{Binding AvailableModelItems}"
-                          SelectedItem="{Binding SelectedModelItem, Mode=TwoWay}"
+                          ItemsSource="{Binding SelectedSlide.AvailableModelItems}"
+                          SelectedItem="{Binding SelectedSlide.SelectedModelItem, Mode=TwoWay}"
+                          IsEnabled="{Binding SelectedSlide.IsAiGenerationAvailable}"
                           DisplayMemberPath="DisplayName" />
             </Grid>
         </Border>
 
-        <views:CopilotMessageStream Grid.Row="1"
-                                    ItemsSource="{Binding CopilotChatManager.ChatMessages}"
+        <Border Grid.Row="1" Background="#F8FAFC" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="12,8">
+            <StackPanel>
+                <TextBlock Text="{Binding SelectedSlide.ScreenshotAttachmentStatusText}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="11"
+                           FontWeight="SemiBold" />
+                <TextBlock Text="手工附件仅作为视觉参考，不会自动成为 SlideML 可引用资源。"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="10"
+                           TextWrapping="Wrap"
+                           Margin="0,3,0,0" />
+                <TextBlock Text="{Binding SelectedSlide.RuntimeStatusText}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="10"
+                           Margin="0,3,0,0" />
+            </StackPanel>
+        </Border>
+
+        <views:CopilotMessageStream Grid.Row="2"
+                                    ItemsSource="{Binding SelectedSlide.CopilotChatManager.ChatMessages}"
                                     ListBackground="White" />
 
-        <Border Grid.Row="2" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12,8">
+        <Border Grid.Row="3" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12,8">
             <DockPanel>
                 <ItemsControl x:Name="AttachedImageFilesItemsControl"
-                              ItemsSource="{Binding AttachedImageFiles}" DockPanel.Dock="Left">
+                              ItemsSource="{Binding SelectedSlide.AttachedImageFiles}" DockPanel.Dock="Left">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal" />
@@ -72,7 +95,7 @@
             </DockPanel>
         </Border>
 
-        <Border Grid.Row="3" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12,8">
+        <Border Grid.Row="4" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12,8">
             <Expander FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
                 <Expander.Header>
                     <StackPanel Orientation="Horizontal">
@@ -115,7 +138,7 @@
             </Expander>
         </Border>
 
-        <Border Grid.Row="4" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12">
+        <Border Grid.Row="5" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="12">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -128,7 +151,7 @@
                 <TextBox x:Name="ChatInputTextBox"
                          Grid.Row="0"
                          Grid.ColumnSpan="2"
-                         Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
+                         Text="{Binding SelectedSlide.InputText, UpdateSourceTrigger=PropertyChanged}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto"
@@ -136,22 +159,18 @@
                          MinHeight="42"
                          MaxHeight="120"
                          Style="{StaticResource InputTextBoxStyle}" />
-                <Button Grid.Row="1"
-                        Grid.Column="1"
-                        Content="发送"
-                        Command="{Binding SendMessageCommand}"
-                        MinWidth="88"
-                        Height="20"
-                        Margin="10,0,0,0"
-                        Style="{StaticResource PrimaryButtonStyle}"
-                        Padding="12,2" />
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="10,6,0,0">
+                    <Button Content="首次生成" Command="{Binding GenerateSelectedSlideCommand}" CommandParameter="{Binding SelectedSlide}" MinWidth="88" Height="28" Style="{StaticResource PrimaryButtonStyle}" Padding="12,2" />
+                    <Button Content="发送追问" Command="{Binding SendMessageCommand}" CommandParameter="{Binding SelectedSlide}" MinWidth="88" Height="28" Margin="8,0,0,0" Style="{StaticResource PrimaryButtonStyle}" Padding="12,2" />
+                    <Button Content="取消" Command="{Binding CancelSelectedSlideCommand}" MinWidth="64" Height="28" Margin="8,0,0,0" Style="{StaticResource SecondaryButtonStyle}" Padding="10,2" />
+                </StackPanel>
                 <CheckBox Grid.Row="1"
                           Grid.Column="0"
-                          IsChecked="{Binding AttachPreview}"
+                          IsChecked="{Binding SelectedSlide.AttachPreview}"
                           Margin="0,6,0,0"
                           FontSize="12"
                           Foreground="{StaticResource TextSecondaryBrush}">
-                    <TextBlock Text="附带当前预览截图" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="追问时附带当前渲染预览" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
                 </CheckBox>
             </Grid>
         </Border>

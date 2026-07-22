@@ -16,7 +16,8 @@ public partial class CopilotPanel : UserControl
         InitializeComponent();
     }
 
-    private MainWindowViewModel ViewModel => DataContext as MainWindowViewModel ?? throw new InvalidOperationException("DataContext must be MainWindowViewModel.");
+    private CoursewareSlideWorkspaceViewModel ViewModel => DataContext as CoursewareSlideWorkspaceViewModel
+        ?? throw new InvalidOperationException("DataContext must be CoursewareSlideWorkspaceViewModel.");
 
     private void AttachImageButton_OnClick(object sender, RoutedEventArgs e)
     {
@@ -37,7 +38,7 @@ public partial class CopilotPanel : UserControl
     {
         if (sender is Button { DataContext: FileInfo fileInfo })
         {
-            ViewModel.AttachedImageFiles.Remove(fileInfo);
+            ViewModel.SelectedSlide?.AttachedImageFiles.Remove(fileInfo);
         }
     }
 

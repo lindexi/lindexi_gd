@@ -37,7 +37,7 @@ public sealed class CoursewareThumbnailOverviewTests
                 window.Show();
                 viewModel.CoursewareThumbnails.Add(CreateThumbnail(1, null));
                 viewModel.CoursewareThumbnails.Add(CreateThumbnail(2, screenshotPath));
-                await PumpDispatcherAsync(window);
+                await WaitForThumbnailAspectRatioAsync(view, ThumbnailAspectRatio.Standard, window);
 
                 Assert.AreEqual(ThumbnailAspectRatio.Standard, view.ThumbnailAspectRatio);
             }
@@ -178,6 +178,19 @@ public sealed class CoursewareThumbnailOverviewTests
     private static async Task PumpDispatcherAsync(Window window)
     {
         await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle).Task;
+    }
+
+    private static async Task WaitForThumbnailAspectRatioAsync(
+        CoursewareAnalysisView view,
+        ThumbnailAspectRatio expected,
+        Window window)
+    {
+        var timeoutAt = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+        while (view.ThumbnailAspectRatio != expected && DateTime.UtcNow < timeoutAt)
+        {
+            await PumpDispatcherAsync(window);
+            await Task.Delay(10);
+        }
     }
 
     private static Task RunOnStaThreadAsync(Func<Task> action)

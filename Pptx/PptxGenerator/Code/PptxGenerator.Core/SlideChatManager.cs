@@ -126,9 +126,9 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         await SendMessageAsync(userPrompt, isFirstMessage: true, attachPreview: false, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task SendMessageAsync(string userMessage, bool isFirstMessage, bool attachPreview, IReadOnlyList<string>? attachedImageFiles = null, bool createNewSession = false, bool skipAutoEvaluation = false, bool useStreaming = false, CancellationToken cancellationToken = default)
+    public async Task SendMessageAsync(string userMessage, bool isFirstMessage, bool attachPreview, IReadOnlyList<string>? attachedImageFiles = null, bool createNewSession = false, bool skipAutoEvaluation = false, bool useStreaming = false, CancellationToken cancellationToken = default, IReadOnlyCollection<string>? requiredAttachedImageFiles = null)
     {
-        await Pipeline.SendMessageAsync(userMessage, isFirstMessage, attachPreview, attachedImageFiles, createNewSession: createNewSession, skipAutoEvaluation: skipAutoEvaluation, useStreaming: useStreaming, cancellationToken: cancellationToken).ConfigureAwait(false);
+        await Pipeline.SendMessageAsync(userMessage, isFirstMessage, attachPreview, attachedImageFiles, requiredAttachedImageFiles: requiredAttachedImageFiles, createNewSession: createNewSession, skipAutoEvaluation: skipAutoEvaluation, useStreaming: useStreaming, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

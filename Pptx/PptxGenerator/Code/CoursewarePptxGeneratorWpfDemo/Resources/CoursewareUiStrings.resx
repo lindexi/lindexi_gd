@@ -16,13 +16,13 @@
     <value>课件文本分析完成</value>
   </data>
   <data name="AnalysisCompletedMessageFormat" xml:space="preserve">
-    <value>已形成“{0}”主题建议；设计系统、模板、视觉分析和真实页面生成尚未完成。</value>
+    <value>已形成“{0}”主题建议，可进入页面美化工作台；设计系统、模板与视觉分析尚未接入。</value>
   </data>
   <data name="AnalysisReadyStatus" xml:space="preserve">
     <value>课件文本分析完成</value>
   </data>
   <data name="AnalysisReadyCaptionFormat" xml:space="preserve">
-    <value>已分析 {0} 页并生成主题建议；后续执行能力尚未完成</value>
+    <value>已分析 {0} 页并生成主题建议，可进入页面美化工作台</value>
   </data>
   <data name="CapabilityPassed" xml:space="preserve">
     <value>已通过</value>
@@ -39,10 +39,73 @@
   <data name="UnknownCapabilityStatus" xml:space="preserve">
     <value>未知的课件能力状态。</value>
   </data>
-  <data name="PrototypeRenderingLog" xml:space="preserve">
-    <value>当前工作台仍为演示数据，尚未执行真实 SlideML 生成或渲染。</value>
+  <data name="SlideInitialRenderingLog" xml:space="preserve">
+    <value>尚未执行页面美化。</value>
   </data>
-  <data name="PrototypeSlideSummaryFormat" xml:space="preserve">
-    <value>{0} · 工作台演示页面，尚未消费真实课件或可执行设计系统</value>
+  <data name="SlideRuntimeNotCreated" xml:space="preserve">
+    <value>页面运行时尚未创建</value>
+  </data>
+  <data name="SlideRuntimeCreating" xml:space="preserve">
+    <value>正在创建页面运行时</value>
+  </data>
+  <data name="SlideRuntimeReady" xml:space="preserve">
+    <value>页面运行时已就绪</value>
+  </data>
+  <data name="SlideRuntimeModelUnavailable" xml:space="preserve">
+    <value>语言模型不可用，可本地重新渲染</value>
+  </data>
+  <data name="SlideRuntimeFailed" xml:space="preserve">
+    <value>页面运行时创建失败</value>
+  </data>
+  <data name="SlideRuntimeCanceled" xml:space="preserve">
+    <value>页面运行时初始化已取消</value>
+  </data>
+  <data name="SlideStatusNotStarted" xml:space="preserve">
+    <value>未开始</value>
+  </data>
+  <data name="SlideStatusInitializing" xml:space="preserve">
+    <value>正在初始化</value>
+  </data>
+  <data name="SlideStatusReady" xml:space="preserve">
+    <value>等待生成</value>
+  </data>
+  <data name="SlideStatusGenerating" xml:space="preserve">
+    <value>正在生成</value>
+  </data>
+  <data name="SlideStatusRendering" xml:space="preserve">
+    <value>正在渲染</value>
+  </data>
+  <data name="SlideStatusCompleted" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="SlideStatusFailed" xml:space="preserve">
+    <value>失败</value>
+  </data>
+  <data name="SlideStatusCanceled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="ScreenshotNotPrepared" xml:space="preserve">
+    <value>原始截图将在首次生成时附带</value>
+  </data>
+  <data name="ScreenshotAttached" xml:space="preserve">
+    <value>已附带原始截图</value>
+  </data>
+  <data name="ScreenshotFileMissing" xml:space="preserve">
+    <value>未找到原始截图</value>
+  </data>
+  <data name="ScreenshotSendFailed" xml:space="preserve">
+    <value>原始截图发送失败</value>
+  </data>
+  <data name="SlideGenerationCompleted" xml:space="preserve">
+    <value>页面生成与渲染完成，未报告警告。</value>
+  </data>
+  <data name="SlideGenerationCanceled" xml:space="preserve">
+    <value>页面操作已取消，可以在当前页面重试。</value>
+  </data>
+  <data name="SlideRerenderCompleted" xml:space="preserve">
+    <value>页面重新渲染完成，未报告警告。</value>
+  </data>
+  <data name="SlideRerenderCanceled" xml:space="preserve">
+    <value>页面重新渲染已取消。</value>
   </data>
 </root>

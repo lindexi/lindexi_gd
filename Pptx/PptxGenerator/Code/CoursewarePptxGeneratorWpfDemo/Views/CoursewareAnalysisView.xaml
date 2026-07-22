@@ -34,11 +34,10 @@
             </Border.Style>
             <DockPanel LastChildFill="True">
                 <Button DockPanel.Dock="Right"
-                        Content="{StaticResource PrototypeWorkspaceButtonText}"
+                        Content="{StaticResource WorkspaceButtonText}"
                         Command="{Binding EnterWorkspaceCommand}"
-                        IsEnabled="{Binding IsAnalysisReady}"
                         Style="{StaticResource AnalysisPrimaryButtonStyle}"
-                        AutomationProperties.Name="{StaticResource PrototypeWorkspaceButtonAutomationText}" />
+                        AutomationProperties.Name="{StaticResource WorkspaceButtonAutomationText}" />
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Width="40" Height="40" Background="#E7F8F6" CornerRadius="10" Margin="0,0,12,0">
                         <TextBlock Text="▱" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="23" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -264,7 +263,7 @@
                             </Style>
                         </Grid.Style>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="{StaticResource PrototypeWorkspaceButtonText}" Command="{Binding EnterWorkspaceCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" MinWidth="205" AutomationProperties.Name="{StaticResource PrototypeWorkspaceButtonAutomationText}" />
+                            <Button Content="{StaticResource WorkspaceButtonText}" Command="{Binding EnterWorkspaceCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" MinWidth="205" AutomationProperties.Name="{StaticResource WorkspaceButtonAutomationText}" />
                             <Button Content="重新分析" Command="{Binding ReanalyzeCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" Margin="10,0,0,0" AutomationProperties.Name="重新分析" />
                         </StackPanel>
                     </Grid>
@@ -312,8 +311,8 @@
                                          Margin="0,8,0,0" />
                             </Expander>
                             <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
-                                <Button Content="重试主题分析" Command="{Binding RetryDemoCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" />
-                                <Button Content="{StaticResource PrototypeWorkspaceButtonText}" Command="{Binding EnterWorkspaceCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" IsEnabled="False" Margin="10,0,0,0" AutomationProperties.Name="{StaticResource PrototypeWorkspaceButtonAutomationText}" />
+                                <Button Content="重试主题分析" Command="{Binding RetryAnalysisCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" />
+                                <Button Content="{StaticResource WorkspaceButtonText}" Command="{Binding EnterWorkspaceCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" Margin="10,0,0,0" AutomationProperties.Name="{StaticResource WorkspaceButtonAutomationText}" />
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -351,7 +350,7 @@
                             </ItemsControl>
                             <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
                                 <Button Content="重新分析" Command="{Binding ReanalyzeCommand}" Style="{StaticResource AnalysisPrimaryButtonStyle}" />
-                                <Button Content="{StaticResource PrototypeWorkspaceButtonText}" Command="{Binding EnterWorkspaceCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" IsEnabled="False" Margin="10,0,0,0" AutomationProperties.Name="{StaticResource PrototypeWorkspaceButtonAutomationText}" />
+                                <Button Content="{StaticResource WorkspaceButtonText}" Command="{Binding EnterWorkspaceCommand}" Style="{StaticResource AnalysisSecondaryButtonStyle}" Margin="10,0,0,0" AutomationProperties.Name="{StaticResource WorkspaceButtonAutomationText}" />
                             </StackPanel>
                         </StackPanel>
                     </Border>

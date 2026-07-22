@@ -4,14 +4,15 @@
              xmlns:converters="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:models="clr-namespace:CoursewarePptxGeneratorWpfDemo.Models"
              xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
              Background="White"
-             d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=False}"
+             d:DataContext="{d:DesignInstance Type=viewModels:CoursewareSlideWorkspaceViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="760"
              d:DesignWidth="240"
              mc:Ignorable="d">
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+
         <Style x:Key="SlideListBoxItemStyle" TargetType="ListBoxItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Padding" Value="0" />
@@ -25,80 +26,70 @@
             </Setter>
         </Style>
 
-        <DataTemplate DataType="{x:Type models:CoursewareSlideItem}">
+        <DataTemplate DataType="{x:Type viewModels:CoursewareSlideItemViewModel}">
             <StackPanel HorizontalAlignment="Center">
                 <Border x:Name="ThumbnailBorder"
-                        Width="170"
-                        Height="110"
+                        Width="184"
+                        Height="118"
                         Background="White"
                         BorderBrush="Transparent"
                         BorderThickness="2"
                         CornerRadius="6"
                         ClipToBounds="True">
-                    <Grid Background="#f8fafc">
-                        <Image Source="{Binding SourceScreenshotFilePath, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}"
-                               Stretch="UniformToFill" />
-                        <Image Source="{Binding SlideChatManager.PreviewImage, Converter={x:Static converters:PreviewImageToImageSourceConverter.Instance}}"
-                               Stretch="UniformToFill" />
-                        <Border Width="76"
-                                Height="48"
-                                BorderBrush="#CBD5E1"
-                                BorderThickness="1"
-                                CornerRadius="4"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center">
+                    <Grid Background="#F1F5F9">
+                        <Viewbox Stretch="Uniform">
+                            <Grid Width="{Binding CanvasWidth}" Height="{Binding CanvasHeight}" Background="White">
+                                <Image Source="{Binding SourceScreenshotFilePath, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}"
+                                       Stretch="Uniform" />
+                                <Image Source="{Binding PreviewImage, Converter={x:Static converters:PreviewImageToImageSourceConverter.Instance}}"
+                                       Stretch="Uniform" />
+                                <TextBlock Text="等待页面内容"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           FontSize="48"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Visibility="{Binding HasAnyPreviewImage, Converter={x:Static converters:InverseBooleanToVisibilityConverter.Instance}}" />
+                            </Grid>
+                        </Viewbox>
+                        <Border Width="20"
+                                Height="20"
+                                Margin="0,5,5,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Background="#FFF3D6"
+                                 CornerRadius="10"
+                                 ToolTip="{Binding WarningSummary}">
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
-                                        <MultiDataTrigger>
-                                            <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding HasSourceScreenshot}" Value="False" />
-                                                <Condition Binding="{Binding SlideChatManager.PreviewImage}" Value="{x:Null}" />
-                                            </MultiDataTrigger.Conditions>
+                                        <DataTrigger Binding="{Binding HasWarning}" Value="True">
                                             <Setter Property="Visibility" Value="Visible" />
-                                        </MultiDataTrigger>
+                                        </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
+                            <TextBlock Text="!" Foreground="#C57900" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
-                        <TextBlock Text="Empty"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
-                                   FontSize="11"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <MultiDataTrigger>
-                                            <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding HasSourceScreenshot}" Value="False" />
-                                                <Condition Binding="{Binding SlideChatManager.PreviewImage}" Value="{x:Null}" />
-                                            </MultiDataTrigger.Conditions>
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </MultiDataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                        <Border Width="20"
+                                Height="20"
+                                Margin="0,5,5,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Bottom"
+                                Background="#FDE8E8"
+                                CornerRadius="10"
+                                Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibility}}"
+                                ToolTip="{Binding ErrorMessage}">
+                            <TextBlock Text="×" Foreground="#B42318" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
                     </Grid>
                 </Border>
-                <TextBlock Text="{Binding Title}"
-                           Foreground="{StaticResource TextSecondaryBrush}"
-                           FontSize="11"
-                           HorizontalAlignment="Center"
-                           Margin="0,4,0,0" />
-                <TextBlock Text="{Binding SlideId, StringFormat=Id: {0}}"
-                           Foreground="{StaticResource TextSecondaryBrush}"
-                           FontSize="10"
-                           HorizontalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"
-                           MaxWidth="170" />
-                <TextBlock Text="{Binding Status}"
-                           Foreground="{StaticResource PrimaryBlueBrush}"
-                           FontSize="10"
-                           HorizontalAlignment="Center" />
+                <DockPanel Width="184" Margin="0,5,0,0">
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding NumberText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" />
+                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                </DockPanel>
+                <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource PrimaryBlueBrush}" FontSize="10" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding SlideId}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="184" />
             </StackPanel>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
@@ -110,26 +101,9 @@
 
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Margin="16,16,16,12">
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                <Ellipse Width="28" Height="28">
-                    <Ellipse.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#6366F1" Offset="0" />
-                            <GradientStop Color="#8B5CF6" Offset="1" />
-                        </LinearGradientBrush>
-                    </Ellipse.Fill>
-                </Ellipse>
-                <TextBlock Text="SlideML Lab"
-                           Foreground="{StaticResource TextPrimaryBrush}"
-                           FontWeight="Bold"
-                           FontSize="16"
-                           VerticalAlignment="Center"
-                           Margin="8,0,0,0" />
-            </StackPanel>
-
-            <Button Command="{Binding AddPageCommand}" Style="{StaticResource SecondaryButtonStyle}" Padding="0,8">
-                <TextBlock Text="+ 添加空页面" Foreground="{StaticResource TextPrimaryBrush}" FontSize="13" />
-            </Button>
+            <TextBlock Text="课件页面" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Bold" FontSize="16" />
+            <TextBlock Text="{Binding CoursewareTitle}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,4,0,0" />
+            <TextBlock Text="{Binding SummaryText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" TextWrapping="Wrap" Margin="0,5,0,0" />
         </StackPanel>
 
         <ListBox x:Name="SlideListBox"

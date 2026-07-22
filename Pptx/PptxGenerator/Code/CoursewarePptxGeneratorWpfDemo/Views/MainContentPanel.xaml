@@ -6,7 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
              Background="{StaticResource LightBackgroundBrush}"
-             d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=False}"
+             d:DataContext="{d:DesignInstance Type=viewModels:CoursewareSlideWorkspaceViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="760"
              d:DesignWidth="1060"
              mc:Ignorable="d">
@@ -17,61 +17,75 @@
     <Grid Background="{StaticResource LightBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="270" />
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="24,12">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="OpenCoursewareFolderButton"
-                            Content="打开课件文件夹"
+                    <Button Content="生成当前页"
+                            Command="{Binding GenerateSelectedSlideCommand}"
+                            CommandParameter="{Binding SelectedSlide}"
                             Style="{StaticResource PrimaryButtonStyle}"
                             Padding="12,6"
-                            Margin="0,0,12,0"
-                            IsEnabled="{Binding IsNotBusy}"
-                            Click="OpenCoursewareFolderButton_OnClick" />
-                    <TextBlock Text="{Binding SelectedSlide.Status, TargetNullValue=No Courseware}"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               FontSize="13"
-                               VerticalAlignment="Center" />
-                    <Ellipse Width="10" Height="10" Margin="8,0,0,0" Fill="{StaticResource SuccessGreenBrush}" />
+                            Margin="0,0,8,0" />
+                    <Button Content="取消" Command="{Binding CancelSelectedSlideCommand}" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" Margin="0,0,12,0" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding SelectedSlide.StatusText, TargetNullValue=未选择页面}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" HorizontalAlignment="Right" />
+                        <TextBlock Text="{Binding SelectedSlide.CanvasSizeText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" HorizontalAlignment="Right" />
+                    </StackPanel>
                 </StackPanel>
 
                 <StackPanel>
-                    <TextBlock Text="课件美化工作台"
+                    <TextBlock Text="{Binding SelectedSlide.Title, TargetNullValue=请选择课件页面}"
                                FontWeight="Bold"
                                FontSize="20"
                                Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="{Binding SelectedSlide.Summary}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,3,0,0" />
                 </StackPanel>
             </DockPanel>
         </Border>
 
         <Border Grid.Row="1" Background="{StaticResource PreviewBackgroundBrush}" Padding="24,16">
             <Border Style="{StaticResource WorkspaceCardStyle}" Padding="18">
-                <Viewbox Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Grid Width="1280"
-                          Height="720">
+                <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Grid Width="{Binding SelectedSlide.CanvasWidth}"
+                          Height="{Binding SelectedSlide.CanvasHeight}">
                         <Border BorderBrush="{StaticResource BorderBrush}"
                                 BorderThickness="1"
                                 Background="#f8fafc">
                             <Image Source="{Binding SelectedSlide.SourceScreenshotFilePath, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}"
-                                   Visibility="{Binding ShowSourceScreenshot, Converter={StaticResource BooleanToVisibility}}"
+                                   Visibility="{Binding SelectedSlide.ShowSourceScreenshot, Converter={StaticResource BooleanToVisibility}}"
                                    Stretch="Uniform" />
                         </Border>
-                        <Image Source="{Binding SlideChatManager.PreviewImage, Converter={x:Static converters:PreviewImageToImageSourceConverter.Instance}}"
-                               Visibility="{Binding HasRenderedPreviewImage, Converter={StaticResource BooleanToVisibility}}"
+                        <Image Source="{Binding SelectedSlide.PreviewImage, Converter={x:Static converters:PreviewImageToImageSourceConverter.Instance}}"
+                               Visibility="{Binding SelectedSlide.HasRenderedPreviewImage, Converter={StaticResource BooleanToVisibility}}"
                                Stretch="Uniform" />
+                        <Border HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Margin="18"
+                                Padding="12,6"
+                                Background="#DFFFFFFF"
+                                CornerRadius="8"
+                                Visibility="{Binding SelectedSlide.HasError, Converter={StaticResource BooleanToVisibility}}">
+                            <TextBlock Text="{Binding SelectedSlide.ErrorMessage}"
+                                       Foreground="#B42318"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"
+                                       MaxWidth="600" />
+                        </Border>
                         <StackPanel HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    Visibility="{Binding HasAnyPreviewImage, Converter={x:Static converters:InverseBooleanToVisibilityConverter.Instance}}"
+                                    Visibility="{Binding SelectedSlide.HasAnyPreviewImage, Converter={x:Static converters:InverseBooleanToVisibilityConverter.Instance}}"
                                     IsHitTestVisible="False">
-                            <TextBlock Text="未加载课件页面"
+                            <TextBlock Text="当前页面没有可显示的截图或渲染预览"
                                        FontSize="28"
                                        FontWeight="SemiBold"
                                        Foreground="{StaticResource TextPrimaryBrush}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock Text="选择课件文件夹后优先显示原始截图，生成 SlideML 后显示渲染预览。"
+                            <TextBlock Text="仍可依据页面 Markdown 生成 SlideML，或粘贴 SlideML 后重新渲染。"
                                        FontSize="18"
                                        Foreground="{StaticResource TextSecondaryBrush}"
                                        TextAlignment="Center"
@@ -87,15 +101,21 @@
                 <Border DockPanel.Dock="Top" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="16,10">
                     <DockPanel>
                         <Button DockPanel.Dock="Right"
-                                Content="重新加载"
+                                Content="重新渲染"
                                 Command="{Binding RerenderCommand}"
+                                CommandParameter="{Binding SelectedSlide}"
                                 Style="{StaticResource SecondaryButtonStyle}"
                                 Padding="12,6" />
-                        <TextBlock Text="Current SlideML Content"
-                                   FontWeight="SemiBold"
-                                   FontSize="14"
-                                   Foreground="{StaticResource TextPrimaryBrush}"
-                                   VerticalAlignment="Center" />
+                        <StackPanel>
+                            <TextBlock Text="当前页面 SlideML"
+                                       FontWeight="SemiBold"
+                                       FontSize="14"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                            <TextBlock Text="存在未重新渲染的手工修改"
+                                       FontSize="10"
+                                       Foreground="#B54708"
+                                       Visibility="{Binding SelectedSlide.HasUnsavedChanges, Converter={StaticResource BooleanToVisibility}}" />
+                        </StackPanel>
                     </DockPanel>
                 </Border>
 
@@ -106,14 +126,15 @@
                     </Grid.ColumnDefinitions>
 
                     <Border Grid.Column="0" Background="White" CornerRadius="0,0,0,12" Margin="0,0,1,0">
-                        <TextBox Text="{Binding EditableSlideXml, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBox Text="{Binding SelectedSlide.EditableSlideXml, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 IsReadOnly="{Binding SelectedSlide.IsBusy}"
                                  Style="{StaticResource CodeTextBoxStyle}" />
                     </Border>
 
                     <Border Grid.Column="1" CornerRadius="0,0,12,0" ClipToBounds="True">
                         <TabControl Style="{StaticResource ModernTabControl}">
-                            <TabItem Header="Rendering Log" Style="{StaticResource ModernTabItem}">
-                                <TextBox Text="{Binding RenderingLog, Mode=OneWay, TargetNullValue=尚未执行渲染。}"
+                            <TabItem Header="渲染日志" Style="{StaticResource ModernTabItem}">
+                                <TextBox Text="{Binding SelectedSlide.RenderingLog, Mode=OneWay, TargetNullValue=尚未执行渲染。}"
                                          BorderThickness="0"
                                          IsReadOnly="True"
                                          FontFamily="Consolas"
@@ -123,8 +144,19 @@
                                          TextWrapping="Wrap"
                                          VerticalScrollBarVisibility="Auto" />
                             </TabItem>
-                            <TabItem Header="Callback XML" Style="{StaticResource ModernTabItem}">
-                                <TextBox Text="{Binding CallbackXml, Mode=OneWay, TargetNullValue=''}"
+                            <TabItem Header="输入诊断" Style="{StaticResource ModernTabItem}">
+                                <TextBox Text="{Binding SelectedSlide.InputDiagnosticText, Mode=OneWay}"
+                                         BorderThickness="0"
+                                         IsReadOnly="True"
+                                         FontFamily="Consolas"
+                                         FontSize="12"
+                                         Foreground="{StaticResource TextSecondaryBrush}"
+                                         Padding="16"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto" />
+                            </TabItem>
+                            <TabItem Header="回填 XML" Style="{StaticResource ModernTabItem}">
+                                <TextBox Text="{Binding SelectedSlide.CallbackXml, Mode=OneWay, TargetNullValue=''}"
                                          BorderThickness="0"
                                          IsReadOnly="True"
                                          FontFamily="Consolas"

@@ -82,6 +82,7 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
         try
         {
             var dimensions = GetDominantDimensions(inputPackage);
+            var referenceCanvas = CoursewareCanvasAdapter.CreateDocumentContext(dimensions.Width, dimensions.Height);
             var agent = _themeAgent ?? CreateDefaultAgent();
             var theme = await agent.AnalyzeAsync(
                 analysisInput,
@@ -117,6 +118,7 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
             return new CoursewareThemeAnalysisResult
             {
                 Theme = theme,
+                ReferenceCanvas = referenceCanvas,
                 CapabilityStates = new CoursewareAnalysisCapabilityStates
                 {
                     TextAnalysis = CoursewareCapabilityStatus.Passed,
@@ -124,7 +126,7 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
                     DesignSystem = CoursewareCapabilityStatus.NotSupported,
                     TemplateValidation = CoursewareCapabilityStatus.NotSupported,
                     VisualAnalysis = CoursewareCapabilityStatus.NotRequested,
-                    PageGeneration = CoursewareCapabilityStatus.NotSupported,
+                    PageGeneration = CoursewareCapabilityStatus.NotRequested,
                 },
                 AnalyzedAt = completedAt,
                 TotalSlideCount = inputPackage.SlideCount,

@@ -15,6 +15,95 @@ namespace PptxGenerator.Tests.Streaming;
 [TestClass]
 public sealed class StreamingSlideGeneratorTests
 {
+    [TestMethod(DisplayName = "SendMessageAsync 流式链路：图片附件仅进入首次请求且工具白名单保持不变")]
+    [Timeout(60_000)]
+    public async Task SendMessageAsync_AttachedImageShouldOnlyBeSentOnFirstAttemptAndKeepToolWhitelist()
+    {
+        var imageFilePath = Path.Join(Path.GetTempPath(), $"slide-streaming-{Guid.NewGuid():N}.png");
+        await File.WriteAllBytesAsync(
+            imageFilePath,
+            Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="));
+        try
+        {
+            var invalidOutput = "<Page><Rect Id=\"broken\"></Page>";
+            var validOutput = "<Page/>";
+            var (chatManager, fakeChatClient, recorder) =
+                SlideStreamingTestHelper.CreateChatManagerWithSequentialTextsAndRecorder(
+                    invalidOutput,
+                    validOutput);
+            var capturedMessages = new List<IReadOnlyList<ChatMessage>>();
+            var capturedToolNames = new List<IReadOnlyList<string>>();
+            var originalCallback = fakeChatClient.OnGetStreamingResponseAsync!;
+            fakeChatClient.OnGetStreamingResponseAsync = (messages, options, cancellationToken) =>
+            {
+                capturedMessages.Add(messages.ToList());
+                capturedToolNames.Add(options?.Tools?.Select(tool => tool.Name).ToArray() ?? []);
+                return originalCallback(messages, options, cancellationToken);
+            };
+
+            await chatManager.SendMessageAsync(
+                "生成页面",
+                isFirstMessage: true,
+                attachPreview: false,
+                attachedImageFiles: [imageFilePath, imageFilePath + ".missing"],
+                useStreaming: true);
+
+            Assert.AreEqual(2, recorder.StreamingCallCount, "无效首轮输出应触发一次重试。");
+            Assert.HasCount(2, capturedMessages);
+            Assert.HasCount(1, capturedMessages[0].SelectMany(message => message.Contents).OfType<DataContent>());
+            var retryUserMessage = capturedMessages[1].Last(message => message.Role == ChatRole.User);
+            Assert.IsEmpty(retryUserMessage.Contents.OfType<DataContent>(),
+                "错误重试新增的用户消息不应重复附加页面截图；历史首轮消息可继续保留附件。");
+            foreach (var toolNames in capturedToolNames)
+            {
+                CollectionAssert.AreEquivalent(
+                    new[] { "get_slide_state", "get_slide_preview" },
+                    toolNames.ToArray(),
+                    "流式工具白名单不得因附件支持发生变化。");
+            }
+        }
+        finally
+        {
+            File.Delete(imageFilePath);
+        }
+    }
+
+    [TestMethod(DisplayName = "流式附件加载：预取消应抛出取消异常")]
+    [Timeout(60_000)]
+    public async Task AppendAttachedImageContentsAsync_PreCanceledTokenShouldThrow()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+        var userMessage = new ChatMessage(ChatRole.User, "生成页面");
+
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(() =>
+            StreamingSlideGenerator.AppendAttachedImageContentsAsync(
+                userMessage,
+                ["missing.png"],
+                cancellationTokenSource.Token));
+    }
+
+    [TestMethod(DisplayName = "SendMessageAsync 流式链路：必需附件缺失时不得污染会话或调用模型")]
+    [Timeout(60_000)]
+    public async Task SendMessageAsync_MissingRequiredAttachmentShouldNotAppendSessionMessages()
+    {
+        var missingImageFilePath = Path.Join(Path.GetTempPath(), $"missing-slide-{Guid.NewGuid():N}.png");
+        var (chatManager, _, recorder) =
+            SlideStreamingTestHelper.CreateChatManagerWithSequentialTextsAndRecorder("<Page/>");
+
+        await Assert.ThrowsExactlyAsync<FileNotFoundException>(() => chatManager.SendMessageAsync(
+            "生成页面",
+            isFirstMessage: true,
+            attachPreview: false,
+            attachedImageFiles: [missingImageFilePath],
+            useStreaming: true,
+            requiredAttachedImageFiles: [missingImageFilePath]));
+
+        Assert.AreEqual(0, recorder.StreamingCallCount);
+        Assert.IsEmpty(SlideStreamingTestHelper.GetNormalUserMessages(chatManager));
+        Assert.IsEmpty(SlideStreamingTestHelper.GetNormalAssistantMessages(chatManager));
+    }
+
     /// <summary>
     /// 验证模型输出中先给出 Page 骨架，随后输出错误闭合标签片段时，
     /// 第一轮应检测错误并触发重试，第二轮继续合并修正后的内容。

@@ -3,19 +3,24 @@ using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using Microsoft.Extensions.AI;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using PptxGenerator;
+using PptxGenerator.Models;
 using PptxGenerator.Pipeline;
 
 namespace CoursewarePptxGeneratorWpfDemo.Tests.Fakes;
 
 internal sealed class FakeSlideChatManagerFactory : ISlideChatManagerFactory
 {
-    public Task<SlideChatManager> CreateAsync()
+    public Task<SlideChatManager> CreateAsync(
+        SlideChatManagerFactoryOptions? options = null,
+        CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(CreateFallback());
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult(CreateFallback(options));
     }
 
-    public SlideChatManager CreateFallback()
+    public SlideChatManager CreateFallback(SlideChatManagerFactoryOptions? options = null)
     {
+        var documentContext = options?.DocumentContext ?? new SlideDocumentContext();
         var fakeChatClient = new FakeChatClient
         {
             OnGetStreamingResponseAsync = (_, _, _) => StreamResponseAsync(),
@@ -27,7 +32,7 @@ internal sealed class FakeSlideChatManagerFactory : ISlideChatManagerFactory
 
         var dispatcher = new FakeMainThreadDispatcher();
         var renderTool = new SlideMlRenderTool(new FakeSlideMlRenderPipeline(), dispatcher);
-        return new SlideChatManager(copilotChatManager, renderTool);
+        return new SlideChatManager(copilotChatManager, renderTool, slideDocumentContext: documentContext);
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> StreamResponseAsync()

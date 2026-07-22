@@ -47,7 +47,7 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.AreEqual("暂不支持", viewModel.DesignSystemCapabilityText);
         Assert.AreEqual("暂不支持", viewModel.TemplateValidationCapabilityText);
         Assert.AreEqual("未请求", viewModel.VisualAnalysisCapabilityText);
-        Assert.AreEqual("暂不支持", viewModel.PageGenerationCapabilityText);
+        Assert.AreEqual("尚未生成", viewModel.PageGenerationCapabilityText);
         Assert.HasCount(2, viewModel.CoursewareThumbnails);
         Assert.AreEqual("slide-first", viewModel.CoursewareThumbnails[0].SlideId);
         Assert.AreEqual("第 1 页", viewModel.CoursewareThumbnails[0].AccessibleName);
@@ -55,6 +55,126 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.AreEqual("slide-second", viewModel.CoursewareThumbnails[1].SlideId);
         Assert.IsFalse(viewModel.CoursewareThumbnails[1].HasScreenshot);
         Assert.IsTrue(viewModel.CoursewareThumbnails[1].HasWarning);
+        Assert.IsNotNull(viewModel.SlideWorkspace);
+        Assert.HasCount(2, viewModel.SlideWorkspace.Slides);
+        Assert.AreEqual("slide-first", viewModel.SlideWorkspace.Slides[0].SlideId);
+        Assert.IsTrue(viewModel.SlideWorkspace.Slides.All(slide => slide.Runtime is null));
+    }
+
+    [TestMethod(DisplayName = "进入真实工作台应只初始化选中页且往返导航保留页面状态")]
+    [Timeout(60_000)]
+    public async Task WorkspaceNavigationShouldInitializeSelectedRealSlideAndPreserveState()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
+            .AddSlide("slide-second", CreateSlideMarkdown("第二页标题", "第二页内容"))
+            .Build();
+        var viewModel = CreateViewModel(
+            new FakeCoursewareThemeAnalysisService(),
+            new FakeSlideChatManagerFactory());
+        await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
+        var workspace = viewModel.SlideWorkspace!;
+        workspace.SelectedSlide = workspace.Slides[1];
+        workspace.SelectedSlide.InputText = "保留的页面输入";
+
+        await viewModel.EnterWorkspaceCommand.ExecuteAsync();
+
+        Assert.IsTrue(viewModel.IsWorkspacePage);
+        Assert.IsNull(workspace.Slides[0].Runtime);
+        Assert.IsNotNull(workspace.Slides[1].Runtime);
+        viewModel.BackToAnalysisCommand.Execute(null);
+        Assert.IsTrue(viewModel.IsAnalysisPage);
+
+        await viewModel.EnterWorkspaceCommand.ExecuteAsync();
+
+        Assert.AreSame(workspace, viewModel.SlideWorkspace);
+        Assert.AreSame(workspace.Slides[1], workspace.SelectedSlide);
+        Assert.AreEqual("保留的页面输入", workspace.SelectedSlide.InputText);
+    }
+
+    [TestMethod(DisplayName = "打开新课件后应替换旧真实工作台且不复用页面运行时")]
+    [Timeout(60_000)]
+    public async Task OpeningAnotherCoursewareShouldReplaceSlideWorkspace()
+    {
+        var firstDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
+            .Build();
+        var secondDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-new", CreateSlideMarkdown("新课件标题", "新课件内容"))
+            .Build();
+        var viewModel = CreateViewModel(
+            new FakeCoursewareThemeAnalysisService(),
+            new FakeSlideChatManagerFactory());
+        await viewModel.OpenCoursewareFolderAsync(firstDirectory.FullName);
+        var firstWorkspace = viewModel.SlideWorkspace!;
+        await viewModel.EnterWorkspaceCommand.ExecuteAsync();
+        Assert.IsNotNull(firstWorkspace.SelectedSlide?.Runtime);
+
+        await viewModel.OpenCoursewareFolderAsync(secondDirectory.FullName);
+
+        Assert.IsNotNull(viewModel.SlideWorkspace);
+        Assert.AreNotSame(firstWorkspace, viewModel.SlideWorkspace);
+        Assert.AreEqual("slide-new", viewModel.SlideWorkspace.Slides[0].SlideId);
+        Assert.IsNull(viewModel.SlideWorkspace.Slides[0].Runtime);
+        Assert.IsTrue(viewModel.IsAnalysisPage);
+    }
+
+    [TestMethod(DisplayName = "重新分析主题应保留既有工作台页面状态并更新未来生成主题")]
+    [Timeout(60_000)]
+    public async Task ReanalyzeShouldPreserveWorkspaceStateAndUpdateThemeSource()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
+            .Build();
+        var analysisCount = 0;
+        var analysisService = new FakeCoursewareThemeAnalysisService((inputPackage, _, _, cancellationToken) =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            analysisCount++;
+            var result = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(inputPackage);
+            return Task.FromResult(analysisCount == 1
+                ? result
+                : result with
+                {
+                    Theme = result.Theme with
+                    {
+                        Title = "更新主题",
+                        Summary = "重新分析后的主题",
+                    },
+                });
+        });
+        var viewModel = CreateViewModel(analysisService, new FakeSlideChatManagerFactory());
+        await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
+        var workspace = viewModel.SlideWorkspace!;
+        workspace.SelectedSlide!.InputText = "保留页面输入";
+
+        await viewModel.ReanalyzeCommand.ExecuteAsync();
+
+        Assert.AreSame(workspace, viewModel.SlideWorkspace);
+        Assert.AreEqual("保留页面输入", workspace.SelectedSlide.InputText);
+        Assert.AreEqual("更新主题", workspace.ThemeTitle);
+        Assert.AreEqual("更新主题", viewModel.ThemeTitle);
+        Assert.AreEqual(CoursewareWorkspaceState.AnalysisReady, viewModel.WorkspaceState);
+    }
+
+    [TestMethod(DisplayName = "课件级页面生成状态应优先显示进行中和全部取消")]
+    [Timeout(60_000)]
+    public async Task PageGenerationCapabilityTextShouldReflectInProgressAndCanceledStates()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
+            .Build();
+        var viewModel = CreateViewModel(
+            new FakeCoursewareThemeAnalysisService(),
+            new FakeSlideChatManagerFactory());
+        await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
+        var slide = viewModel.SlideWorkspace!.SelectedSlide!;
+
+        SetSlideState(slide, CoursewareSlideState.Generating);
+        Assert.AreEqual("正在处理 1 页", viewModel.PageGenerationCapabilityText);
+
+        SetSlideState(slide, CoursewareSlideState.Canceled);
+        Assert.AreEqual("已取消 1 页", viewModel.PageGenerationCapabilityText);
     }
 
     [TestMethod(DisplayName = "主题分析期间应固定显示分析对话并拒绝选择结果")]
@@ -248,12 +368,28 @@ public sealed class CoursewareWorkspaceViewModelTests
     }
 
     private static CoursewareWorkspaceViewModel CreateViewModel(
-        ICoursewareThemeAnalysisService? themeAnalysisService = null)
+        ICoursewareThemeAnalysisService? themeAnalysisService = null,
+        ISlideChatManagerFactory? slideChatManagerFactory = null)
     {
+        var summaryService = new CoursewareSlideSummaryService();
         return new CoursewareWorkspaceViewModel(
             new CoursewareFolderLoader(),
             new ImmediateViewModelDispatcher(),
-            themeAnalysisService);
+            themeAnalysisService,
+            slideChatManagerFactory,
+            summaryService,
+            new CoursewareSlidePromptBuilder(
+                summaryService,
+                new CoursewareThemePageDesignAdapter()));
+    }
+
+    private static void SetSlideState(
+        CoursewareSlideItemViewModel slide,
+        CoursewareSlideState state)
+    {
+        typeof(CoursewareSlideItemViewModel)
+            .GetProperty(nameof(CoursewareSlideItemViewModel.State))!
+            .SetValue(slide, state);
     }
 
     private static string CreateSlideMarkdown(string title, string content)

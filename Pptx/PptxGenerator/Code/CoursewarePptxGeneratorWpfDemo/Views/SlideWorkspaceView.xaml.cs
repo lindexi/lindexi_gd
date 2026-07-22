@@ -3,7 +3,7 @@ using System.Windows.Controls;
 namespace CoursewarePptxGeneratorWpfDemo.Views;
 
 /// <summary>
-/// Displays the presentation-only single-slide workspace.
+/// Displays the real single-slide beautification workspace.
 /// </summary>
 public partial class SlideWorkspaceView : UserControl
 {

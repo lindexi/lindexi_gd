@@ -17,19 +17,24 @@ internal sealed class TestCoursewareExportBuilder
         RootDirectory = Directory.CreateDirectory(Path.Join(Path.GetTempPath(), $"CoursewareExportTests_{Guid.NewGuid():N}"));
     }
 
-    public TestCoursewareExportBuilder AddSlide(string slideId, string markdownText, bool hasScreenshot = true)
+    public TestCoursewareExportBuilder AddSlide(
+        string slideId,
+        string markdownText,
+        bool hasScreenshot = true,
+        double width = 1280,
+        double height = 720)
     {
         var slideIndex = _slides.Count;
         var markdownFile = $"Slides/Slide{slideIndex:D3}.md";
         var screenshotFile = $"Slides/Slide{slideIndex:D3}.jpg";
 
-        WriteText(markdownFile, NormalizeMarkdownIdentity(markdownText, slideId, slideIndex + 1));
+        WriteText(markdownFile, NormalizeMarkdownIdentity(markdownText, slideId, slideIndex + 1, width, height));
         if (hasScreenshot)
         {
             WriteBytes(screenshotFile, Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="));
         }
 
-        _slides.Add(new TestSlideEntry(slideIndex, slideId, markdownFile, screenshotFile));
+        _slides.Add(new TestSlideEntry(slideIndex, slideId, markdownFile, screenshotFile, width, height));
         return this;
     }
 
@@ -63,8 +68,8 @@ internal sealed class TestCoursewareExportBuilder
             {
                 SlideIndex = slide.SlideIndex,
                 SlideId = slide.SlideId,
-                Width = 1280,
-                Height = 720,
+                Width = slide.Width,
+                Height = slide.Height,
                 MarkdownFile = slide.MarkdownFile,
                 ScreenshotFile = slide.ScreenshotFile,
             }).ToArray(),
@@ -90,15 +95,24 @@ internal sealed class TestCoursewareExportBuilder
         File.WriteAllBytes(filePath, data);
     }
 
-    private static string NormalizeMarkdownIdentity(string markdownText, string slideId, int pageNumber)
+    private static string NormalizeMarkdownIdentity(
+        string markdownText,
+        string slideId,
+        int pageNumber,
+        double width,
+        double height)
     {
         var normalized = markdownText;
         var idPattern = new Regex(@"(?im)^\s*-\s*Id\s*:\s*[^\r\n]*$", RegexOptions.CultureInvariant);
         var pageNumberPattern = new Regex(
             @"(?im)^\s*-\s*序号\s*\(\s*1-base\s*\)\s*:\s*[^\r\n]*$",
             RegexOptions.CultureInvariant);
+        var dimensionsPattern = new Regex(
+            @"(?im)^\s*-\s*尺寸\s*:\s*[^\r\n]*$",
+            RegexOptions.CultureInvariant);
         var hasId = idPattern.IsMatch(normalized);
         var hasPageNumber = pageNumberPattern.IsMatch(normalized);
+        var hasDimensions = dimensionsPattern.IsMatch(normalized);
         if (hasId)
         {
             normalized = idPattern.Replace(normalized, $"- Id: {slideId}", 1);
@@ -109,12 +123,18 @@ internal sealed class TestCoursewareExportBuilder
             normalized = pageNumberPattern.Replace(normalized, $"- 序号(1-base): {pageNumber}", 1);
         }
 
-        if (hasId && hasPageNumber)
+        var dimensions = $"{width:0.####}×{height:0.####}";
+        if (hasDimensions)
+        {
+            normalized = dimensionsPattern.Replace(normalized, $"- 尺寸: {dimensions}", 1);
+        }
+
+        if (hasId && hasPageNumber && hasDimensions)
         {
             return normalized;
         }
 
-        var metadata = $"## 页面信息\n\n- Id: {slideId}\n- 尺寸: 1280×720\n- 序号(1-base): {pageNumber}\n\n---\n\n";
+        var metadata = $"## 页面信息\n\n- Id: {slideId}\n- 尺寸: {dimensions}\n- 序号(1-base): {pageNumber}\n\n---\n\n";
         return metadata + normalized;
     }
 
@@ -125,5 +145,11 @@ internal sealed class TestCoursewareExportBuilder
         File.WriteAllText(filePath, JsonSerializer.Serialize(value, jsonTypeInfo));
     }
 
-    private sealed record TestSlideEntry(int SlideIndex, string SlideId, string MarkdownFile, string ScreenshotFile);
+    private sealed record TestSlideEntry(
+        int SlideIndex,
+        string SlideId,
+        string MarkdownFile,
+        string ScreenshotFile,
+        double Width,
+        double Height);
 }

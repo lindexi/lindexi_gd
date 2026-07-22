@@ -2,21 +2,16 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=mscorlib">
     <system:String x:Key="OpenCoursewarePromptText">打开课件后将先完成全文本分析并生成主题建议。</system:String>
-    <system:String x:Key="AnalysisReadyTitleText">课件文本分析完成</system:String>
-    <system:String x:Key="AnalysisReadyDescriptionText">主题建议已生成；可执行设计系统、模板编译、视觉分析和真实页面生成尚未完成。</system:String>
+    <system:String x:Key="AnalysisReadyTitleText">课件主题分析完成</system:String>
+    <system:String x:Key="AnalysisReadyDescriptionText">主题建议已生成，可以进入页面美化工作台；设计系统、模板编译与视觉分析仍未接入。</system:String>
     <system:String x:Key="ThemeSuggestionTabText">主题建议</system:String>
-    <system:String x:Key="ThemeSuggestionPanelTitleText">主题建议（原型）</system:String>
-    <system:String x:Key="PrototypeWorkspaceButtonText">查看工作台原型</system:String>
-    <system:String x:Key="PrototypeWorkspaceButtonAutomationText">查看尚未接入真实页面生成的工作台原型</system:String>
-    <system:String x:Key="PrototypeWorkspaceTitleText">单页工作台原型</system:String>
-    <system:String x:Key="PrototypeWorkspaceDescriptionText">当前页面、SlideML、预览和聊天仍为演示数据，尚未接入真实课件生成。</system:String>
+    <system:String x:Key="ThemeSuggestionPanelTitleText">主题建议</system:String>
+    <system:String x:Key="WorkspaceButtonText">进入页面美化工作台</system:String>
+    <system:String x:Key="WorkspaceButtonAutomationText">进入真实课件页面美化工作台</system:String>
     <system:String x:Key="BackToThemeSuggestionText">← 返回主题建议</system:String>
     <system:String x:Key="BackToThemeSuggestionAutomationText">返回主题建议</system:String>
     <system:String x:Key="ThemeSuggestionWarningText">当前结果仅为文本驱动的主题建议，不能视为设计系统、模板或视觉分析已通过。</system:String>
     <system:String x:Key="InputWarningsFootnoteText">输入提示仅描述当前分析；后续执行能力由上方状态单独判定。</system:String>
-    <system:String x:Key="PrototypeSlideListTitleText">课件页面（演示）</system:String>
-    <system:String x:Key="PrototypeSlideMlTitleText">SlideML（演示）</system:String>
-    <system:String x:Key="PrototypeRenderingLogTitleText">渲染日志（演示）</system:String>
     <system:String x:Key="CapabilityStatusPassedText">已通过</system:String>
     <system:String x:Key="CapabilityStatusNotRequestedText">未请求</system:String>
     <system:String x:Key="CapabilityStatusNotSupportedText">暂不支持</system:String>

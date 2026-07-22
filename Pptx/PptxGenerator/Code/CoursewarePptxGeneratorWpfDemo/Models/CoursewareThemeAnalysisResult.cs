@@ -1,4 +1,5 @@
 using CoursewarePptxGenerator.Core.Models;
+using PptxGenerator.Models;
 
 namespace CoursewarePptxGeneratorWpfDemo.Models;
 
@@ -11,6 +12,11 @@ public sealed record CoursewareThemeAnalysisResult
     /// Gets the validated whole-courseware theme.
     /// </summary>
     public required CoursewareTheme Theme { get; init; }
+
+    /// <summary>
+    /// Gets the reference canvas used when the theme coordinates were produced.
+    /// </summary>
+    public required SlideDocumentContext ReferenceCanvas { get; init; }
 
     /// <summary>
     /// Gets the independently verifiable capability states for this result.

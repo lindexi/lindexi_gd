@@ -15,12 +15,20 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        var slideSummaryService = new CoursewareSlideSummaryService();
+        var slidePromptBuilder = new CoursewareSlidePromptBuilder(
+            slideSummaryService,
+            new CoursewareThemePageDesignAdapter());
+
         var mainWindow = new MainWindow
         {
             DataContext = new CoursewareWorkspaceViewModel(
                 new CoursewareFolderLoader(),
                 WpfViewModelDispatcher.Instance,
-                themeAnalysisService: new CoursewareThemeAnalysisService()),
+                themeAnalysisService: new CoursewareThemeAnalysisService(),
+                slideChatManagerFactory: new SlideChatManagerFactory(),
+                slideSummaryService,
+                slidePromptBuilder),
         };
         mainWindow.Show();
     }

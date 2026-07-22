@@ -29,16 +29,19 @@ public sealed class CoursewareThemeAnalysisServiceTests
 
         Assert.AreEqual("清晰课堂", result.Theme.Title);
         Assert.AreEqual(1, result.AnalyzedSlideCount);
+        Assert.AreEqual(1280, result.ReferenceCanvas.CanvasWidth);
+        Assert.AreEqual(720, result.ReferenceCanvas.CanvasHeight);
         Assert.AreEqual(CoursewareCapabilityStatus.Passed, result.CapabilityStates.TextAnalysis);
         Assert.AreEqual(CoursewareCapabilityStatus.Passed, result.CapabilityStates.ThemeSuggestion);
         Assert.AreEqual(CoursewareCapabilityStatus.NotSupported, result.CapabilityStates.DesignSystem);
         Assert.AreEqual(CoursewareCapabilityStatus.NotSupported, result.CapabilityStates.TemplateValidation);
         Assert.AreEqual(CoursewareCapabilityStatus.NotRequested, result.CapabilityStates.VisualAnalysis);
-        Assert.AreEqual(CoursewareCapabilityStatus.NotSupported, result.CapabilityStates.PageGeneration);
+        Assert.AreEqual(CoursewareCapabilityStatus.NotRequested, result.CapabilityStates.PageGeneration);
         Assert.IsTrue(events.Any(item => item.Stage == CoursewareAnalysisStage.PreparingInput));
         var completedEvent = events.Single(item => item.Stage == CoursewareAnalysisStage.Completed);
         Assert.AreEqual("课件文本分析完成", completedEvent.Title);
-        StringAssert.Contains(completedEvent.Message, "设计系统、模板、视觉分析和真实页面生成尚未完成");
+        StringAssert.Contains(completedEvent.Message, "可进入页面美化工作台");
+        StringAssert.Contains(completedEvent.Message, "设计系统、模板与视觉分析尚未接入");
     }
 
     private sealed class FakeThemeAgent : ICoursewareThemeAgent

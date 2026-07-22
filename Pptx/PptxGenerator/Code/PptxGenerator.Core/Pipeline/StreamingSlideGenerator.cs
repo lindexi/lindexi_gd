@@ -60,12 +60,15 @@ internal sealed class StreamingSlideGenerator
     /// <param name="isFirstMessage">是否为首次消息。</param>
     /// <param name="streamingState">跨轮复用的流式生成状态，包含合并器和渲染上下文。</param>
     /// <param name="attachPreview">是否将当前预览图附带给 LLM。</param>
+    /// <param name="attachedImageFiles">附加到本次首轮请求的本地图片文件。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>表示异步操作的任务。</returns>
     public async Task GenerateAsync(
         string userMessage, bool isFirstMessage, SlideStreamingState streamingState,
         CancellationToken cancellationToken,
         bool attachPreview = false,
+        IReadOnlyList<string>? attachedImageFiles = null,
+        IReadOnlyCollection<string>? requiredAttachedImageFiles = null,
         IChatClient? chatClientOverride = null)
     {
         ArgumentNullException.ThrowIfNull(streamingState);
@@ -88,6 +91,8 @@ internal sealed class StreamingSlideGenerator
                 linkedCancellationTokenSource, cancellationToken,
                 streamingState.Pipeline, streamingState.Context,
                 attachPreview && attempt == 0,
+                attempt == 0 ? attachedImageFiles : null,
+                attempt == 0 ? requiredAttachedImageFiles : null,
                 chatClientOverride).ConfigureAwait(false);
 
             if (!hasErrors || attempt == MaxRetries)
@@ -112,6 +117,7 @@ internal sealed class StreamingSlideGenerator
     /// <param name="streamingPipeline">流式渲染管道（跨轮复用，保留合并器状态）。</param>
     /// <param name="context">渲染上下文（跨轮复用，诊断信息已由调用方重置）。</param>
     /// <param name="attachPreview">是否将当前预览图附带给 LLM。</param>
+    /// <param name="attachedImageFiles">附加到本轮请求的本地图片文件。</param>
     /// <returns>是否检测到异常，以及错误反馈文本（无异常时为空字符串）。</returns>
     private async Task<(bool HasErrors, string ErrorFeedback)> RunStreamingLoopAsync
     (
@@ -119,6 +125,8 @@ internal sealed class StreamingSlideGenerator
         CancellationTokenSource errorCancellationTokenSource, CancellationToken externalCancellationToken,
         SlideStreamingPipeline streamingPipeline, SlideMlPipelineContext context,
         bool attachPreview = false,
+        IReadOnlyList<string>? attachedImageFiles = null,
+        IReadOnlyCollection<string>? requiredAttachedImageFiles = null,
         IChatClient? chatClientOverride = null
     )
     {
@@ -153,11 +161,6 @@ internal sealed class StreamingSlideGenerator
                 ? _promptProvider.BuildStreamingSystemPrompt()
                 : null;
 
-            // 追加消息到会话
-            await manualContext.AppendMessagesToSessionAsync().ConfigureAwait(false);
-
-            using var _ = manualContext.StartChatting();
-
             ChatOptions chatOptions = CreateStreamingChatOptions();
             ChatClientAgent agent;
             if (chatClientOverride is null)
@@ -179,6 +182,11 @@ internal sealed class StreamingSlideGenerator
             AgentSession session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
 
             ChatMessage userChatMessage = manualContext.UserChatMessage.ToChatMessage();
+            await AppendAttachedImageContentsAsync(
+                userChatMessage,
+                attachedImageFiles,
+                externalCancellationToken,
+                requiredAttachedImageFiles).ConfigureAwait(false);
 
             // 附带当前预览图供 LLM 参考（仅在用户勾选且存在预览图时）
             if (attachPreview)
@@ -193,6 +201,10 @@ internal sealed class StreamingSlideGenerator
             var inputMessages = systemPrompt is not null
                 ? new[] { new ChatMessage(ChatRole.System, systemPrompt), userChatMessage }
                 : new[] { userChatMessage };
+
+            await manualContext.AppendMessagesToSessionAsync().ConfigureAwait(false);
+
+            using var _ = manualContext.StartChatting();
 
             var loopToken = errorCancellationTokenSource.Token;
 
@@ -306,6 +318,56 @@ internal sealed class StreamingSlideGenerator
                 _renderTool.CreatePreviewTool()
             ],
         };
+    }
+
+    internal static async Task AppendAttachedImageContentsAsync(
+        ChatMessage userChatMessage,
+        IReadOnlyList<string>? attachedImageFiles,
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<string>? requiredAttachedImageFiles = null)
+    {
+        ArgumentNullException.ThrowIfNull(userChatMessage);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var requiredFiles = requiredAttachedImageFiles?.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (attachedImageFiles is not { Count: > 0 })
+        {
+            if (requiredFiles is { Count: > 0 })
+            {
+                throw new FileNotFoundException("必需的图片附件未能加入请求。");
+            }
+
+            return;
+        }
+
+        var loadedFiles = requiredFiles is { Count: > 0 }
+            ? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            : null;
+        foreach (var imageFile in attachedImageFiles)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (string.IsNullOrWhiteSpace(imageFile) || !File.Exists(imageFile))
+            {
+                if (imageFile is not null && requiredFiles?.Contains(imageFile) == true)
+                {
+                    throw new FileNotFoundException("必需的图片附件不存在。", imageFile);
+                }
+
+                continue;
+            }
+
+            var imageContent = await DataContent.LoadFromAsync(
+                imageFile,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+            userChatMessage.Contents.Add(imageContent);
+            loadedFiles?.Add(imageFile);
+        }
+
+        if (requiredFiles is { Count: > 0 }
+            && requiredFiles.Any(file => loadedFiles?.Contains(file) != true))
+        {
+            throw new FileNotFoundException("必需的图片附件未能加入请求。");
+        }
     }
 
 }

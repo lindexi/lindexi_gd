@@ -455,6 +455,17 @@ public sealed class CoursewareAnalysisInputBuilder : ICoursewareAnalysisInputBui
     {
         PathPrivacyTransformer.ThrowIfAbsolutePathRemains(prompt);
     }
+
+    /// <summary>
+    /// Validates that model-facing text contains no unhandled local absolute path.
+    /// </summary>
+    /// <param name="text">The model-facing text to validate.</param>
+    /// <exception cref="CoursewarePathPrivacyException">The text contains an unhandled local absolute path.</exception>
+    public static void ValidateNoAbsolutePaths(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        PathPrivacyTransformer.ThrowIfAbsolutePathRemains(text);
+    }
 }
 
 public static class CoursewareTokenEstimator

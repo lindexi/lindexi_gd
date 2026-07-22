@@ -16,6 +16,23 @@ public partial class MainWindow : Window
         DataContextChanged += OnDataContextChanged;
     }
 
+    /// <inheritdoc />
+    protected override void OnClosed(EventArgs e)
+    {
+        DataContextChanged -= OnDataContextChanged;
+        if (DataContext is INotifyPropertyChanged viewModel)
+        {
+            viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        }
+
+        if (DataContext is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+
+        base.OnClosed(e);
+    }
+
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (e.OldValue is INotifyPropertyChanged oldViewModel)

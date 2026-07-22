@@ -42,6 +42,9 @@ internal sealed class FakeCoursewareThemeAnalysisService : ICoursewareThemeAnaly
         return new CoursewareThemeAnalysisResult
         {
             Theme = CreateTheme(),
+            ReferenceCanvas = CoursewareCanvasAdapter.CreateDocumentContext(
+                inputPackage.Slides[0].Width,
+                inputPackage.Slides[0].Height),
             CapabilityStates = new CoursewareAnalysisCapabilityStates
             {
                 TextAnalysis = CoursewareCapabilityStatus.Passed,
@@ -49,7 +52,7 @@ internal sealed class FakeCoursewareThemeAnalysisService : ICoursewareThemeAnaly
                 DesignSystem = CoursewareCapabilityStatus.NotSupported,
                 TemplateValidation = CoursewareCapabilityStatus.NotSupported,
                 VisualAnalysis = CoursewareCapabilityStatus.NotRequested,
-                PageGeneration = CoursewareCapabilityStatus.NotSupported,
+                PageGeneration = CoursewareCapabilityStatus.NotRequested,
             },
             AnalyzedAt = DateTimeOffset.UtcNow,
             TotalSlideCount = inputPackage.SlideCount,

@@ -146,7 +146,8 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         bool skipAutoEvaluation = false,
         bool useStreaming = false,
         CancellationToken cancellationToken = default,
-        IChatClient? chatClientOverride = null
+        IChatClient? chatClientOverride = null,
+        IReadOnlyCollection<string>? requiredAttachedImageFiles = null
     )
     {
         if (string.IsNullOrWhiteSpace(userMessage))
@@ -171,6 +172,8 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             await generator.GenerateAsync(
                 userMessage, isFirstMessage, _streamingState, cancellationToken,
                 attachPreview: attachPreview,
+                attachedImageFiles: attachedImageFiles,
+                requiredAttachedImageFiles: requiredAttachedImageFiles,
                 chatClientOverride: chatClientOverride).ConfigureAwait(false);
 
             _ = _dispatcher.InvokeAsync(() =>
@@ -198,17 +201,39 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
         var initialCapacity = 1 + (attachedImageFiles?.Count ?? 0) + (attachPreview ? 1 : 0);
         var contents = new List<AIContent>(initialCapacity) { new TextContent(processedText) };
+        var requiredFiles = requiredAttachedImageFiles?.ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         if (attachedImageFiles is { Count: > 0 })
         {
+            var loadedFiles = requiredFiles is { Count: > 0 }
+                ? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                : null;
             foreach (var imageFile in attachedImageFiles)
             {
-                if (!string.IsNullOrWhiteSpace(imageFile) && File.Exists(imageFile))
+                if (string.IsNullOrWhiteSpace(imageFile) || !File.Exists(imageFile))
                 {
-                    var dataContent = await DataContent.LoadFromAsync(imageFile, cancellationToken: cancellationToken);
-                    contents.Add(dataContent);
+                    if (imageFile is not null && requiredFiles?.Contains(imageFile) == true)
+                    {
+                        throw new FileNotFoundException("必需的图片附件不存在。", imageFile);
+                    }
+
+                    continue;
                 }
+
+                var dataContent = await DataContent.LoadFromAsync(imageFile, cancellationToken: cancellationToken);
+                contents.Add(dataContent);
+                loadedFiles?.Add(imageFile);
             }
+
+            if (requiredFiles is { Count: > 0 }
+                && requiredFiles.Any(file => loadedFiles?.Contains(file) != true))
+            {
+                throw new FileNotFoundException("必需的图片附件未能加入请求。");
+            }
+        }
+        else if (requiredFiles is { Count: > 0 })
+        {
+            throw new FileNotFoundException("必需的图片附件未能加入请求。");
         }
 
         if (attachPreview)
