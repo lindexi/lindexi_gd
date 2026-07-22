@@ -13,7 +13,6 @@ internal sealed class CodingChatRoomRoleExecutor : IChatRoomRoleExecutor
     private readonly object _disposeSync = new();
     private string? _workspacePath;
     private Task? _disposeTask;
-    private long _workspaceChangeVersion;
     private int _isDisposed;
 
     internal CodingChatRoomRoleExecutor(CodingAgent codingAgent)
@@ -64,50 +63,64 @@ internal sealed class CodingChatRoomRoleExecutor : IChatRoomRoleExecutor
         ArgumentNullException.ThrowIfNull(chatManager);
         ThrowIfDisposed();
 
-        long workspaceChangeVersion = Interlocked.Increment(ref _workspaceChangeVersion);
-        await using CodingWorkspaceToolCandidate candidate = await _codingAgent
-            .CreateWorkspaceCandidateAsync(workspacePath, cancellationToken)
+        await using IWorkspaceChangeTransaction transaction = await _codingAgent
+            .PrepareWorkspaceChangeAsync(workspacePath, cancellationToken)
             .ConfigureAwait(false);
 
         await _lifecycleLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             ThrowIfDisposed();
-            if (workspaceChangeVersion != Volatile.Read(ref _workspaceChangeVersion))
-            {
-                return;
-            }
-
             string? oldChatManagerWorkspacePath = chatManager.WorkspacePath;
             string? oldWorkspacePath = _workspacePath;
-            await _codingAgent.PublishWorkspaceCandidateAsync(
-                candidate,
-                () =>
+            transaction.Apply();
+            try
+            {
+                chatManager.WorkspacePath = transaction.WorkspacePath;
+                _workspacePath = transaction.WorkspacePath;
+            }
+            catch (Exception publishException)
+            {
+                _workspacePath = oldWorkspacePath;
+                Exception? chatManagerRollbackException = null;
+                try
                 {
-                    try
-                    {
-                        chatManager.WorkspacePath = candidate.WorkspacePath;
-                        _workspacePath = candidate.WorkspacePath;
-                    }
-                    catch (Exception commitException)
-                    {
-                        _workspacePath = oldWorkspacePath;
-                        try
-                        {
-                            chatManager.WorkspacePath = oldChatManagerWorkspacePath;
-                        }
-                        catch (Exception rollbackException)
-                        {
-                            throw new AggregateException(
-                                "提交 Coding 工作区失败，且恢复 ChatManager 工作区路径失败。",
-                                commitException,
-                                rollbackException);
-                        }
+                    chatManager.WorkspacePath = oldChatManagerWorkspacePath;
+                }
+                catch (Exception rollbackException)
+                {
+                    chatManagerRollbackException = rollbackException;
+                }
 
-                        throw;
+                Exception? transactionRollbackException = null;
+                try
+                {
+                    await transaction.RollbackAsync().ConfigureAwait(false);
+                }
+                catch (Exception rollbackException)
+                {
+                    transactionRollbackException = rollbackException;
+                }
+
+                if (chatManagerRollbackException is not null || transactionRollbackException is not null)
+                {
+                    var exceptions = new List<Exception> { publishException };
+                    if (chatManagerRollbackException is not null)
+                    {
+                        exceptions.Add(chatManagerRollbackException);
                     }
-                },
-                cancellationToken).ConfigureAwait(false);
+                    if (transactionRollbackException is not null)
+                    {
+                        exceptions.Add(transactionRollbackException);
+                    }
+
+                    throw new AggregateException("发布 Coding 工作区失败，且恢复发布前状态时发生错误。", exceptions);
+                }
+
+                throw;
+            }
+
+            transaction.CommitAfterPublish();
         }
         finally
         {

@@ -4,6 +4,8 @@ namespace AgentLib.Coding;
 
 /// <summary>
 /// 固定一次编程运行所使用的工作区路径、工具集合和底层资源生命周期。
+/// 工作区切换不能立即释放旧 Language Server，否则仍在运行的模型工具调用会访问已释放资源；
+/// 此类型通过显式租约让旧 Session 延迟到最后一次运行结束后再释放。
 /// </summary>
 public sealed class CodingWorkspaceToolLease : IDisposable, IAsyncDisposable
 {

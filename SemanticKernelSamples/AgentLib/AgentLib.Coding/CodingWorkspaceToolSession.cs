@@ -33,30 +33,6 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
 
     public IReadOnlyList<AITool> Tools { get; }
 
-    internal int LeaseCount
-    {
-        get
-        {
-            lock (_lifecycleLock)
-            {
-                return _leaseCount;
-            }
-        }
-    }
-
-    internal bool IsRetired
-    {
-        get
-        {
-            lock (_lifecycleLock)
-            {
-                return _isRetired;
-            }
-        }
-    }
-
-    internal Task DisposalTask => _disposalCompletion.Task;
-
     public static async Task<CodingWorkspaceToolSession> CreateAsync(
         string workspacePath,
         string languageServerCommand,

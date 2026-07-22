@@ -95,7 +95,7 @@ public sealed class ChatRoomSession : NotifyBase
     /// <param name="message">要添加的消息。</param>
     public async Task AddMessageAsync(ChatRoomMessage message)
     {
-        if (_mainThreadDispatcher is not null)
+        if (_mainThreadDispatcher is not null && !_mainThreadDispatcher.CheckAccess())
         {
             await _mainThreadDispatcher.InvokeAsync(() =>
             {
@@ -111,7 +111,7 @@ public sealed class ChatRoomSession : NotifyBase
     internal async Task RemoveMessageAsync(ChatRoomMessage message)
     {
         ArgumentNullException.ThrowIfNull(message);
-        if (_mainThreadDispatcher is not null)
+        if (_mainThreadDispatcher is not null && !_mainThreadDispatcher.CheckAccess())
         {
             await _mainThreadDispatcher.InvokeAsync(() =>
             {

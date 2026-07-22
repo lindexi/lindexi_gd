@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="AgentLib.Coding.Tests" />
-    <InternalsVisibleTo Include="AgentLib.ChatRoom" />
   </ItemGroup>
 
   <ItemGroup>

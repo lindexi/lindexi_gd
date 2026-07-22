@@ -74,6 +74,7 @@ public sealed class CodingAgentTests
         Assert.IsTrue(chatManager.SelectedSession.ChatMessages[0].IsPresetInfo);
         Assert.AreSame(context.UserChatMessage, chatManager.SelectedSession.ChatMessages[1]);
         Assert.AreSame(context.AssistantChatMessage, chatManager.SelectedSession.ChatMessages[2]);
+        Assert.AreEqual("前后", context.UserChatMessage.Content);
     }
 
     [TestMethod(DisplayName = "连续运行应复用同一个 AgentSession")]
@@ -106,9 +107,9 @@ public sealed class CodingAgentTests
         Assert.IsGreaterThan(observedMessageCounts[0], observedMessageCounts[1]);
     }
 
-    [TestMethod(DisplayName = "同一 CodingAgent 不允许重叠运行")]
+    [TestMethod(DisplayName = "同一 CodingAgent 允许重叠运行")]
     [Timeout(10000)]
-    public async Task RunAsyncShouldRejectOverlappingRun()
+    public async Task RunAsyncShouldAllowOverlappingRuns()
     {
         var streamStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseStream = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -132,13 +133,14 @@ public sealed class CodingAgentTests
         await streamStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
         IManualSendMessageContext secondContext = await chatManager.CreateManualSendMessageContextAsync();
 
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => agent.RunAsync(
+        CodingAgentRunResult second = await agent.RunAsync(
             secondContext,
             "第二轮",
-            "workspace"));
+            "workspace");
 
         releaseStream.TrySetResult();
         await first.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2));
+        await second.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2));
     }
 
     [TestMethod(DisplayName = "输入快照失败后应允许再次运行")]
@@ -207,8 +209,7 @@ public sealed class CodingAgentTests
                 cancellationToken),
         };
         CopilotChatManager chatManager = CreateChatManager(client);
-        var provider = new CodingWorkspaceToolProvider(
-            "test-server",
+        var provider = CreateProvider(
             (path, _, _) => Task.FromResult(new CodingWorkspaceToolSession(
                 path,
                 [AIFunctionFactory.Create(() => path, $"tool_{path}")],
@@ -385,13 +386,16 @@ public sealed class CodingAgentTests
         IReadOnlyList<AITool> tools,
         IAsyncDisposable? asyncDisposable = null)
     {
-        return new CodingWorkspaceToolProvider(
-            "test-server",
+        return CreateProvider(
             (path, _, _) => Task.FromResult(new CodingWorkspaceToolSession(
                 path,
                 tools,
                 path == workspacePath ? asyncDisposable : null)));
     }
+
+    private static CodingWorkspaceToolProvider CreateProvider(
+        Func<string, string, CancellationToken, Task<CodingWorkspaceToolSession>> createSession) =>
+        new(new TestSessionProvider(createSession));
 
     private static CopilotChatManager CreateChatManager(FakeChatClient client)
     {
@@ -407,6 +411,16 @@ public sealed class CodingAgentTests
         };
         chatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([model]));
         return chatManager;
+    }
+
+    private sealed class TestSessionProvider(
+        Func<string, string, CancellationToken, Task<CodingWorkspaceToolSession>> createSession)
+        : ICodingWorkspaceToolSessionProvider
+    {
+        public Task<CodingWorkspaceToolSession> CreateAsync(
+            string workspacePath,
+            CancellationToken cancellationToken) =>
+            createSession(workspacePath, "test-server", cancellationToken);
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> StreamAsync(

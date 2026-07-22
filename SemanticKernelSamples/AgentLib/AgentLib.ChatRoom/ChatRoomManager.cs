@@ -570,14 +570,10 @@ public sealed partial class ChatRoomManager : NotifyBase, IAsyncDisposable
                 $"模型提供商尚未注册。请先调用 {nameof(RegisterRoleModelProviders)} 注册模型提供商字典。");
         }
 
-        // 无论 ModelProviderId 为何值，都注册所有可用提供商
-        foreach (ILanguageModelProvider provider in _languageModelProviders.Values)
-        {
-            role.RegisterLanguageModelProvider(provider);
-        }
-
-        // 根据角色定义的 ModelProviderId 和 ModelId 设置首选模型
-        TrySetPrimaryModel(role);
+        ChatRoomRoleModelBinder.RegisterProvidersAndSelectPrimary(
+            role,
+            _languageModelProviders,
+            DefaultPrimaryModelId);
     }
 
     private async Task RaiseRoleUpdatedAsync(ChatRoomRole role)
@@ -604,40 +600,7 @@ public sealed partial class ChatRoomManager : NotifyBase, IAsyncDisposable
     /// </summary>
     private void TrySetPrimaryModel(ChatRoomRole role)
     {
-        string? providerId = role.Definition.ModelProviderId;
-        string? modelId = role.Definition.ModelId;
-
-        // 角色定义未指定模型时，回退到全局默认首选模型
-        if (string.IsNullOrWhiteSpace(providerId) && string.IsNullOrWhiteSpace(modelId))
-        {
-            modelId = DefaultPrimaryModelId;
-            if (string.IsNullOrWhiteSpace(modelId))
-            {
-                // 全局也未配置，由 EndpointManager 自动选择
-                return;
-            }
-        }
-
-        IReadOnlyList<ILanguageModel> availableModels = role.EndpointManager.GetSupportedModels();
-
-        // 有 modelId 时复用 ResolveModel 进行匹配（支持 "Provider/ModelName" 格式和 provider 过滤）；
-        // 仅有 providerId 时取该提供商的第一个模型
-        ILanguageModel? matched = !string.IsNullOrWhiteSpace(modelId)
-            ? role.EndpointManager.ResolveModel(modelId)
-            : availableModels.FirstOrDefault(m => m.ModelDefinition.Provider == providerId);
-
-        // 当角色定义同时指定了 providerId 和 modelId 时，用 GetModel 精确匹配
-        if (matched is null && !string.IsNullOrWhiteSpace(modelId) && !string.IsNullOrWhiteSpace(providerId))
-        {
-            matched = role.EndpointManager.GetModel(modelId, providerId);
-        }
-
-        if (matched is null)
-        {
-            throw new PrimaryModelNotFoundException(providerId, modelId, availableModels);
-        }
-
-        role.EndpointManager.PrimaryModel = matched;
+        ChatRoomRoleModelBinder.SelectPrimary(role, DefaultPrimaryModelId);
     }
 
     /// <summary>
