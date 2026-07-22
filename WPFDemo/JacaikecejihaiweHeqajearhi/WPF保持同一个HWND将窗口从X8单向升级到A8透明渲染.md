@@ -516,26 +516,493 @@ HwndSource.UsesPerPixelOpacity=false
 
 如果需要验证真实渲染目标格式，可以在自编译 WPF 中观察 `NeedDestinationAlpha` 和目标重建过程，或者使用图形诊断工具确认目标从 `D3DFMT_X8R8G8B8` 变成 `D3DFMT_A8R8G8B8`。
 
-## 代码实现
+## 代码实现（可直接抄）
 
-本文代码放在 [github](https://github.com/lindexi/lindexi_gd/tree/6a0a196819cd1ade5d5ae4aaff2a6b0c374cb5a7/WPFDemo/JacaikecejihaiweHeqajearhi) 和 [gitee](https://gitee.com/lindexi/lindexi_gd/tree/6a0a196819cd1ade5d5ae4aaff2a6b0c374cb5a7/WPFDemo/JacaikecejihaiweHeqajearhi) 上，可以使用如下命令行拉取代码。我整个代码仓库比较庞大，使用以下命令行可以进行部分拉取，拉取速度比较快
+本节给出可直接复制的核心代码（基于当前仓库）。你可以先只抄三段：控制器、窗口调用方、窗口 XAML。
 
-先创建一个空文件夹，接着使用命令行 cd 命令进入此空文件夹，在命令行里面输入以下代码，即可获取到本文的代码
+> 说明：为了便于落地，文中包含了完整的兜底保护。若你更追求最短路径，后续可以在你自己的工程里按需裁剪这些保护分支。
 
-```text
-git init
-git remote add origin https://gitee.com/lindexi/lindexi_gd.git
-git pull origin 6a0a196819cd1ade5d5ae4aaff2a6b0c374cb5a7
+### OneWayAlphaWindowController.cs
+
+```csharp
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Shell;
+using System.Windows.Threading;
+
+namespace JacaikecejihaiweHeqajearhi;
+
+internal enum AlphaUpgradeState
+{
+    OpaqueX8,
+    Upgrading,
+    AlphaModeApplied,
+    Faulted,
+    Closed,
+}
+
+internal sealed class OneWayAlphaWindowController : IDisposable
+{
+    private const int GwlExStyle = -20;
+    private const int WmStyleChanging = 0x007C;
+    private const uint WsExLayered = 0x00080000U;
+
+    private readonly Window _window;
+    private readonly HwndSourceHook _windowMessageHook;
+    private readonly CancellationTokenSource _lifetimeCancellationTokenSource = new();
+
+    private HwndSource? _source;
+    private Task? _upgradeTask;
+    private IntPtr _hwnd;
+    private bool _keepLayeredStyle;
+    private bool _hookInstalled;
+    private bool _disposed;
+
+    internal OneWayAlphaWindowController(Window window)
+    {
+        ArgumentNullException.ThrowIfNull(window);
+
+        _window = window;
+        _windowMessageHook = WindowMessageHook;
+        State = AlphaUpgradeState.OpaqueX8;
+
+        _window.SourceInitialized += OnSourceInitialized;
+        _window.Closed += OnWindowClosed;
+
+        if (new WindowInteropHelper(_window).Handle != IntPtr.Zero)
+        {
+            InitializeHwnd();
+        }
+    }
+
+    internal AlphaUpgradeState State { get; private set; }
+
+    internal Task UpgradeToTransparentAsync(Action prepareTransparentContent)
+    {
+        ArgumentNullException.ThrowIfNull(prepareTransparentContent);
+
+        ThrowIfDisposed();
+        _window.Dispatcher.VerifyAccess();
+
+        if (State == AlphaUpgradeState.AlphaModeApplied)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (_upgradeTask is not null)
+        {
+            return _upgradeTask;
+        }
+
+        if (State != AlphaUpgradeState.OpaqueX8)
+        {
+            throw new InvalidOperationException(
+                $"Cannot upgrade the window while its state is {State}.");
+        }
+
+        _upgradeTask = UpgradeCoreAsync(prepareTransparentContent);
+        return _upgradeTask;
+    }
+
+    internal void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        _keepLayeredStyle = false;
+        _lifetimeCancellationTokenSource.Cancel();
+
+        _window.SourceInitialized -= OnSourceInitialized;
+        _window.Closed -= OnWindowClosed;
+        RemoveHook();
+
+        _lifetimeCancellationTokenSource.Dispose();
+        State = AlphaUpgradeState.Closed;
+    }
+
+    void IDisposable.Dispose()
+    {
+        Dispose();
+    }
+
+    private async Task UpgradeCoreAsync(Action prepareTransparentContent)
+    {
+        CancellationToken cancellationToken = _lifetimeCancellationTokenSource.Token;
+
+        EnsureHwndInitialized();
+        State = AlphaUpgradeState.Upgrading;
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            InstallHook();
+
+            prepareTransparentContent();
+            cancellationToken.ThrowIfCancellationRequested();
+            InstallFullGlassWindowChrome();
+
+            await WaitForRenderAsync(cancellationToken);
+            ThrowIfDisposed();
+            VerifyHwnd();
+            VerifyTransparentClearColor();
+
+            cancellationToken.ThrowIfCancellationRequested();
+            _keepLayeredStyle = true;
+            SetExtendedStyle(GetExtendedStyle() | WsExLayered);
+            VerifyLayeredStyle();
+
+            State = AlphaUpgradeState.AlphaModeApplied;
+        }
+        catch
+        {
+            if (!_disposed)
+            {
+                if ((GetExtendedStyleSafely() & WsExLayered) == 0)
+                {
+                    _keepLayeredStyle = false;
+                    RemoveHook();
+                }
+
+                State = AlphaUpgradeState.Faulted;
+            }
+
+            throw;
+        }
+    }
+
+    private void OnSourceInitialized(object? sender, EventArgs e)
+    {
+        InitializeHwnd();
+    }
+
+    private void OnWindowClosed(object? sender, EventArgs e)
+    {
+        Dispose();
+    }
+
+    private void InitializeHwnd()
+    {
+        _window.Dispatcher.VerifyAccess();
+
+        IntPtr hwnd = new WindowInteropHelper(_window).Handle;
+        if (hwnd == IntPtr.Zero)
+        {
+            throw new InvalidOperationException("The Window does not have an HWND yet.");
+        }
+
+        HwndSource source = HwndSource.FromHwnd(hwnd)
+            ?? throw new InvalidOperationException("Cannot obtain the HwndSource for the Window.");
+
+        if (_hwnd != IntPtr.Zero && _hwnd != hwnd)
+        {
+            throw new InvalidOperationException("The Window HWND changed during its lifetime.");
+        }
+
+        _hwnd = hwnd;
+        _source = source;
+    }
+
+    private void EnsureHwndInitialized()
+    {
+        if (_hwnd == IntPtr.Zero || _source is null)
+        {
+            InitializeHwnd();
+        }
+    }
+
+    private void InstallHook()
+    {
+        if (_hookInstalled)
+        {
+            return;
+        }
+
+        HwndSource source = _source
+            ?? throw new InvalidOperationException("The Window HwndSource is not initialized.");
+
+        source.AddHook(_windowMessageHook);
+        _hookInstalled = true;
+    }
+
+    private void RemoveHook()
+    {
+        if (!_hookInstalled || _source is null)
+        {
+            return;
+        }
+
+        if (!_source.IsDisposed)
+        {
+            _source.RemoveHook(_windowMessageHook);
+        }
+
+        _hookInstalled = false;
+    }
+
+    private IntPtr WindowMessageHook(
+        IntPtr hwnd,
+        int message,
+        IntPtr wParam,
+        IntPtr lParam,
+        ref bool handled)
+    {
+        if (_keepLayeredStyle &&
+            message == WmStyleChanging &&
+            wParam.ToInt64() == GwlExStyle)
+        {
+            StyleStruct style = Marshal.PtrToStructure<StyleStruct>(lParam);
+            style.StyleNew |= WsExLayered;
+            Marshal.StructureToPtr(style, lParam, false);
+            handled = true;
+        }
+
+        return IntPtr.Zero;
+    }
+
+    private void InstallFullGlassWindowChrome()
+    {
+        WindowChrome.SetWindowChrome(
+            _window,
+            new WindowChrome
+            {
+                GlassFrameThickness = WindowChrome.GlassFrameCompleteThickness,
+                CaptionHeight = 0,
+                CornerRadius = new CornerRadius(),
+                ResizeBorderThickness = new Thickness(),
+                UseAeroCaptionButtons = false,
+            });
+    }
+
+    private async Task WaitForRenderAsync(CancellationToken cancellationToken)
+    {
+        await _window.Dispatcher.InvokeAsync(
+            static () => { },
+            DispatcherPriority.Render,
+            cancellationToken);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        _window.InvalidateVisual();
+
+        await _window.Dispatcher.InvokeAsync(
+            static () => { },
+            DispatcherPriority.ContextIdle,
+            cancellationToken);
+    }
+
+    private uint GetExtendedStyle()
+    {
+        SetLastError(0);
+        IntPtr value = GetWindowLongPtr(_hwnd, GwlExStyle);
+        int error = Marshal.GetLastWin32Error();
+
+        if (value == IntPtr.Zero && error != 0)
+        {
+            throw new Win32Exception(error);
+        }
+
+        return unchecked((uint)value.ToInt64());
+    }
+
+    private void SetExtendedStyle(uint style)
+    {
+        SetLastError(0);
+        IntPtr previous = SetWindowLongPtr(
+            _hwnd,
+            GwlExStyle,
+            new IntPtr(unchecked((int)style)));
+
+        int error = Marshal.GetLastWin32Error();
+        if (previous == IntPtr.Zero && error != 0)
+        {
+            throw new Win32Exception(error);
+        }
+    }
+
+    private void VerifyHwnd()
+    {
+        IntPtr currentHwnd = new WindowInteropHelper(_window).Handle;
+        if (_hwnd == IntPtr.Zero ||
+            currentHwnd != _hwnd ||
+            _source is null ||
+            _source.IsDisposed ||
+            !IsWindow(_hwnd))
+        {
+            throw new InvalidOperationException("The Window HWND is no longer valid.");
+        }
+    }
+
+    private void VerifyTransparentClearColor()
+    {
+        HwndTarget? target = _source?.CompositionTarget;
+        if (target is null || target.BackgroundColor.A != 0)
+        {
+            throw new NotSupportedException(
+                "WindowChrome did not establish a transparent clear color.");
+        }
+    }
+
+    private uint GetExtendedStyleSafely()
+    {
+        if (_hwnd == IntPtr.Zero || !IsWindow(_hwnd))
+        {
+            return 0;
+        }
+
+        try
+        {
+            return GetExtendedStyle();
+        }
+        catch (Win32Exception)
+        {
+            return WsExLayered;
+        }
+    }
+
+    private void VerifyLayeredStyle()
+    {
+        if ((GetExtendedStyle() & WsExLayered) == 0)
+        {
+            throw new InvalidOperationException("WPF or the operating system removed WS_EX_LAYERED.");
+        }
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(OneWayAlphaWindowController));
+        }
+    }
+
+    private static IntPtr GetWindowLongPtr(IntPtr hwnd, int index)
+    {
+        return IntPtr.Size == 8
+            ? GetWindowLongPtr64(hwnd, index)
+            : new IntPtr(GetWindowLong32(hwnd, index));
+    }
+
+    private static IntPtr SetWindowLongPtr(IntPtr hwnd, int index, IntPtr value)
+    {
+        return IntPtr.Size == 8
+            ? SetWindowLongPtr64(hwnd, index, value)
+            : new IntPtr(SetWindowLong32(hwnd, index, value.ToInt32()));
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct StyleStruct
+    {
+        public uint StyleOld;
+        public uint StyleNew;
+    }
+
+    [DllImport("kernel32.dll")]
+    private static extern void SetLastError(uint errorCode);
+
+    [DllImport("user32.dll", EntryPoint = "GetWindowLong", SetLastError = true)]
+    private static extern int GetWindowLong32(IntPtr hwnd, int index);
+
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr", SetLastError = true)]
+    private static extern IntPtr GetWindowLongPtr64(IntPtr hwnd, int index);
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLong", SetLastError = true)]
+    private static extern int SetWindowLong32(IntPtr hwnd, int index, int value);
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr", SetLastError = true)]
+    private static extern IntPtr SetWindowLongPtr64(IntPtr hwnd, int index, IntPtr value);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindow(IntPtr hwnd);
+}
 ```
 
-以上使用的是国内的 gitee 的源，如果 gitee 不能访问，请替换为 github 的源。请在命令行继续输入以下代码，将 gitee 源换成 github 源进行拉取代码。如果依然拉取不到代码，可以发邮件向我要代码
+### MainWindow.xaml.cs（触发升级与异常处理）
 
-```text
-git remote remove origin
-git remote add origin https://github.com/lindexi/lindexi_gd.git
-git pull origin 6a0a196819cd1ade5d5ae4aaff2a6b0c374cb5a7
+```csharp
+private readonly OneWayAlphaWindowController _alphaController;
+
+public MainWindow()
+{
+    InitializeComponent();
+
+    DataContext = _viewModel;
+    _alphaController = new OneWayAlphaWindowController(this);
+
+    CompositionTarget.Rendering += OnCompositionTargetRendering;
+    Closed += OnWindowClosed;
+}
+
+private async void UpgradeToTransparentButtonClick(object sender, RoutedEventArgs e)
+{
+    if (!_viewModel.IsUpgradeEnabled)
+    {
+        return;
+    }
+
+    TransitionShield.Visibility = Visibility.Visible;
+    _viewModel.MarkUpgrading();
+    WindowShell.Background = Brushes.Transparent;
+
+    try
+    {
+        await _alphaController.UpgradeToTransparentAsync(PrepareTransparentContent);
+        _viewModel.MarkAlphaModeApplied();
+
+        await Dispatcher.InvokeAsync(
+            static () => { },
+            DispatcherPriority.ContextIdle);
+
+        if (!_closed)
+        {
+            TransitionShield.Visibility = Visibility.Collapsed;
+        }
+    }
+    catch (OperationCanceledException) when (_closed)
+    {
+    }
+    catch (Exception ex) when (ex is Win32Exception || ex is NotSupportedException || ex is InvalidOperationException)
+    {
+        HandleUpgradeFailure(ex.Message);
+    }
+}
+
+private void PrepareTransparentContent()
+{
+    Background = Brushes.Transparent;
+    RootSurface.Background = Brushes.Transparent;
+}
 ```
 
-获取代码之后，进入 `WPFDemo/JacaikecejihaiweHeqajearhi` 文件夹，即可获取到源代码
+### MainWindow.xaml（关键属性与按钮）
 
-更多技术博客，请参阅 [博客导航](https://blog.lindexi.com/post/%E5%8D%9A%E5%AE%A2%E5%AF%BC%E8%88%AA.html )
+```xml
+<Window
+    x:Class="JacaikecejihaiweHeqajearhi.MainWindow"
+    AllowsTransparency="False"
+    WindowStyle="None"
+    ResizeMode="CanMinimize"
+    Style="{StaticResource PerformanceWindowStyle}">
+
+<!-- 其余内容略 -->
+
+<Button
+    Click="UpgradeToTransparentButtonClick"
+    Content="开启透明"
+    IsEnabled="{Binding IsUpgradeEnabled}" />
+```
+
+## 与源码仓库同步获取
+
+本文代码可与仓库中的完整工程对齐：
+
+- GitHub：`https://github.com/lindexi/lindexi_gd`
+- Gitee：`https://gitee.com/lindexi/lindexi_gd`
+
+建议先检出 `WPFDemo/JacaikecejihaiweHeqajearhi` 文件夹后，对照上述三段代码逐段运行验证。
+
+更多技术博客，请参阅 [博客导航](https://blog.lindexi.com/post/%E5%8D%9A%E5%AE%A2%E5%AF%BC%E8%88%AA.html)
