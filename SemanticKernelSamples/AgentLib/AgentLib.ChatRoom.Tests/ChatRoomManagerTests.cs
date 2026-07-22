@@ -351,6 +351,152 @@ public sealed class ChatRoomManagerTests
         Assert.IsNotNull(eventArgs);
         Assert.AreSame(role, eventArgs.Role);
         Assert.IsNotNull(eventArgs.Exception);
+        Assert.AreSame(result, manager.Session.Messages.Last());
+    }
+
+    [TestMethod(DisplayName = "Standard 完成失败时应移除流式消息并发布系统错误")]
+    [Timeout(5000)]
+    public async Task StepAsyncWhenStandardCompletionFailsShouldRemoveStreamingMessage()
+    {
+        var client = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (_, _, _) => ThrowingStreamAsync(
+                new InvalidOperationException("模型失败")),
+        };
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            ModelProviderId = "test-provider",
+        };
+        var role = new ChatRoomRole(definition);
+        await using var manager = new ChatRoomManager();
+        RegisterFakeModel(manager, client);
+        await manager.AddRoleAsync(role);
+        await manager.HumanInterjectAsync("测试消息", "human", "Human");
+        RoleSpeakFailedEventArgs? eventArgs = null;
+        manager.OnRoleSpeakFailed += (_, args) => eventArgs = args;
+
+        ChatRoomMessage? result = await manager.StepAsync(role);
+
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result.IsSystemMessage);
+        Assert.AreSame(result, manager.Session.Messages.Last());
+        Assert.IsFalse(manager.Session.Messages.Any(message => message.IsStreaming));
+        Assert.IsFalse(manager.Session.Messages.Any(message => message.SenderRoleId == definition.RoleId));
+        Assert.IsNotNull(eventArgs);
+        Assert.IsInstanceOfType<InvalidOperationException>(eventArgs.Exception);
+    }
+
+    [TestMethod(DisplayName = "状态保存失败时应保留已完成的公开消息")]
+    [Timeout(5000)]
+    public async Task StepAsyncWhenAgentSessionPersistenceFailsShouldKeepCompletedMessage()
+    {
+        string persistencePath = CreateWorkspacePath();
+        var client = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (_, _, cancellationToken) => ImmediateStreamAsync(
+                "完成内容",
+                cancellationToken),
+        };
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            ModelProviderId = "test-provider",
+        };
+        var role = new ChatRoomRole(definition);
+        await using var manager = new ChatRoomManager
+        {
+            Persistence = new ChatRoomPersistence(persistencePath),
+        };
+        RegisterFakeModel(manager, client);
+        await manager.AddRoleAsync(role);
+        await manager.HumanInterjectAsync("测试消息", "human", "Human");
+        string roleHistoryPath = Path.Join(
+            persistencePath,
+            manager.Session.SessionId.ToString("N"),
+            definition.RoleId);
+        Directory.CreateDirectory(Path.GetDirectoryName(roleHistoryPath)!);
+        File.WriteAllText(roleHistoryPath, "阻止创建角色历史目录");
+
+        ChatRoomMessage? result = await manager.StepAsync(role);
+
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result.IsSystemMessage);
+        ChatRoomMessage completedMessage = manager.Session.Messages
+            .Single(message => message.SenderRoleId == definition.RoleId);
+        Assert.IsFalse(completedMessage.IsStreaming);
+        Assert.AreEqual("完成内容", completedMessage.Content);
+    }
+
+    [TestMethod(DisplayName = "完成任务内部取消应作为失败处理并移除流式消息")]
+    [Timeout(5000)]
+    public async Task StepAsyncWhenCompletionThrowsUnrelatedCancellationShouldReportFailure()
+    {
+        var executor = new TestChatRoomRoleExecutor
+        {
+            CompletionException = new OperationCanceledException("内部超时"),
+        };
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            ModelProviderId = "test-provider",
+        };
+        var role = new ChatRoomRole(definition, null, executor);
+        await using var manager = new ChatRoomManager();
+        RegisterFakeModel(manager, new FakeChatClient());
+        await manager.AddRoleAsync(role);
+        await manager.HumanInterjectAsync("测试消息", "human", "Human");
+        RoleSpeakFailedEventArgs? eventArgs = null;
+        manager.OnRoleSpeakFailed += (_, args) => eventArgs = args;
+
+        ChatRoomMessage? result = await manager.StepAsync(role);
+
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result.IsSystemMessage);
+        Assert.AreSame(result, manager.Session.Messages.Last());
+        Assert.IsFalse(manager.Session.Messages.Any(message => message.IsStreaming));
+        Assert.IsNotNull(eventArgs);
+        Assert.IsInstanceOfType<OperationCanceledException>(eventArgs.Exception);
+    }
+
+    [TestMethod(DisplayName = "调用方取消时应移除公开流式消息且不报告失败")]
+    [Timeout(5000)]
+    public async Task StepAsyncWhenCallerCancelsShouldRemoveStreamingMessage()
+    {
+        var runStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var executor = new TestChatRoomRoleExecutor
+        {
+            RunStarted = runStarted,
+            WaitForCancellation = true,
+        };
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "role-1",
+            RoleName = "Test Role",
+            ModelProviderId = "test-provider",
+        };
+        var role = new ChatRoomRole(definition, null, executor);
+        await using var manager = new ChatRoomManager();
+        RegisterFakeModel(manager, new FakeChatClient());
+        await manager.AddRoleAsync(role);
+        await manager.HumanInterjectAsync("测试消息", "human", "Human");
+        using var cancellationTokenSource = new CancellationTokenSource();
+        int failureCount = 0;
+        manager.OnRoleSpeakFailed += (_, _) => failureCount++;
+
+        Task<ChatRoomMessage?> stepTask = manager.StepAsync(role, cancellationTokenSource.Token);
+        await runStarted.Task.WaitAsync(TimeSpan.FromSeconds(1));
+        await WaitUntilAsync(
+            () => manager.Session.Messages.Any(message => message.IsStreaming),
+            TimeSpan.FromSeconds(1));
+        cancellationTokenSource.Cancel();
+
+        Assert.IsNull(await stepTask.WaitAsync(TimeSpan.FromSeconds(1)));
+        Assert.IsFalse(manager.Session.Messages.Any(message => message.IsStreaming));
+        Assert.AreEqual(0, failureCount);
     }
 
     [TestMethod]
@@ -1377,6 +1523,10 @@ public sealed class ChatRoomManagerTests
 
         public TaskCompletionSource? ReleaseRun { get; init; }
 
+        public Exception? CompletionException { get; init; }
+
+        public bool WaitForCancellation { get; init; }
+
         public string? WorkspacePath { get; private set; }
 
         public int SetWorkspacePathCount { get; private set; }
@@ -1391,7 +1541,7 @@ public sealed class ChatRoomManagerTests
             CopilotChatMessage assistantMessage = CopilotChatMessage.CreateAssistant("...", isPresetInfo: false);
             return Task.FromResult(new ChatRoomRoleExecutionResult(
                 assistantMessage,
-                CompleteRunAsync(assistantMessage)));
+                CompleteRunAsync(assistantMessage, cancellationToken)));
         }
 
         public async Task SetWorkspacePathAsync(
@@ -1425,12 +1575,24 @@ public sealed class ChatRoomManagerTests
             return ValueTask.CompletedTask;
         }
 
-        private async Task<ChatRoomRoleExecutionCompletion> CompleteRunAsync(CopilotChatMessage assistantMessage)
+        private async Task<ChatRoomRoleExecutionCompletion> CompleteRunAsync(
+            CopilotChatMessage assistantMessage,
+            CancellationToken cancellationToken)
         {
             RunStarted?.TrySetResult();
+            if (WaitForCancellation)
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            }
+
             if (ReleaseRun is not null)
             {
                 await ReleaseRun.Task;
+            }
+
+            if (CompletionException is not null)
+            {
+                throw CompletionException;
             }
 
             assistantMessage.ClearMessageItems();
@@ -1442,6 +1604,24 @@ public sealed class ChatRoomManagerTests
             left,
             right,
             OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> ThrowingStreamAsync(Exception exception)
+    {
+        await Task.Yield();
+        throw exception;
+#pragma warning disable CS0162
+        yield break;
+#pragma warning restore CS0162
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> ImmediateStreamAsync(
+        string content,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return new ChatResponseUpdate(ChatRole.Assistant, [new TextContent(content)]);
+        await Task.CompletedTask;
     }
 
     #endregion

@@ -1,5 +1,6 @@
 ﻿using AgentLib.ChatRoom;
 using AgentLib.ChatRoom.Model;
+using AgentLib.Coding;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
@@ -9,6 +10,8 @@ using AgentLib.Model;
 using Microsoft.Extensions.AI;
 
 using Moq;
+
+using System.Runtime.CompilerServices;
 
 namespace AgentLib.ChatRoom.Tests;
 
@@ -80,6 +83,79 @@ public sealed class ChatRoomRoleTests
         await result.FinalContentTask;
     }
 
+    [TestMethod(DisplayName = "SpeakAsync 不应把执行器内部取消误判为调用方取消")]
+    [Timeout(5000)]
+    public async Task SpeakAsyncShouldPropagateUnrelatedOperationCanceledException()
+    {
+        await using var role = new ChatRoomRole(
+            CreateDefinition("test-provider"),
+            null,
+            new ThrowingExecutor(new OperationCanceledException("内部超时")));
+        RegisterFakeModel(role, "test-provider");
+
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(() => role.SpeakAsync(["开始"]));
+    }
+
+    [TestMethod(DisplayName = "Coding 角色编辑和工作区切换不应替换 AgentSession")]
+    [Timeout(15000)]
+    public async Task CodingRoleEditAndWorkspaceChangeShouldPreserveAgentSession()
+    {
+        var client = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (_, _, cancellationToken) => ImmediateStreamAsync(cancellationToken),
+        };
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "coding-role",
+            ExecutionKind = ChatRoomRoleExecutionKind.Coding,
+            RoleName = "编程角色",
+            ModelProviderId = "test-provider",
+        };
+        var model = new FakeLanguageModel(client)
+        {
+            ModelDefinition = new ModelDefinition
+            {
+                Provider = "test-provider",
+                ModelName = "Fake",
+                ModelId = "Fake",
+            },
+        };
+        var provider = new FakeLanguageModelProvider([model]);
+        await using var role = new ChatRoomRole(
+            definition,
+            null,
+            new CodingChatRoomRoleExecutor(new CodingAgent($"missing-roslyn-{Guid.NewGuid():N}")));
+        await using var manager = new ChatRoomManager();
+        manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+        {
+            ["test-provider"] = provider,
+        });
+        await manager.AddRoleAsync(role);
+        ChatRoomSpeakResult firstRun = (await role.SpeakAsync(["初始任务"]))!;
+        await firstRun.FinalContentTask;
+        string stateBeforeChanges = (await role.SerializeAgentSessionStateAsync())!.Value.GetRawText();
+
+        await manager.SetWorkspacePathAsync(CreateWorkspacePath());
+        string stateAfterWorkspaceChange = (await role.SerializeAgentSessionStateAsync())!.Value.GetRawText();
+        await manager.UpdateRoleAsync(
+            definition.RoleId,
+            "高级编程角色",
+            definition.SystemPrompt,
+            isHuman: false,
+            definition.ModelProviderId,
+            definition.ModelId,
+            definition.MemoryContent,
+            definition.ParticipationMode);
+        string stateAfterEdit = (await role.SerializeAgentSessionStateAsync())!.Value.GetRawText();
+
+        Assert.AreEqual(stateBeforeChanges, stateAfterWorkspaceChange);
+        Assert.AreEqual(stateBeforeChanges, stateAfterEdit);
+        StringAssert.Contains(stateAfterEdit, "初始任务");
+        StringAssert.Contains(stateAfterEdit, "完成");
+        Assert.AreSame(role, manager.Roles.Single());
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, role.Definition.ExecutionKind);
+    }
+
     [TestMethod(DisplayName = "异步释放重复调用应只释放统一执行器一次")]
     public async Task DisposeAsyncShouldBeIdempotent()
     {
@@ -112,9 +188,12 @@ public sealed class ChatRoomRoleTests
         return workspacePath;
     }
 
-    private static void RegisterFakeModel(ChatRoomRole role, string providerName)
+    private static void RegisterFakeModel(
+        ChatRoomRole role,
+        string providerName,
+        FakeChatClient? client = null)
     {
-        var model = new FakeLanguageModel(new FakeChatClient())
+        var model = new FakeLanguageModel(client ?? new FakeChatClient())
         {
             ModelDefinition = new ModelDefinition
             {
@@ -124,6 +203,14 @@ public sealed class ChatRoomRoleTests
             },
         };
         role.EndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([model]));
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> ImmediateStreamAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return new ChatResponseUpdate(ChatRole.Assistant, [new TextContent("完成")]);
+        await Task.CompletedTask;
     }
 
     private sealed class RecordingExecutor(ChatRoomRoleExecutionKind executionKind) : IChatRoomRoleExecutor
@@ -169,6 +256,23 @@ public sealed class ChatRoomRoleTests
             DisposeCount++;
             return default;
         }
+    }
+
+    private sealed class ThrowingExecutor(Exception exception) : IChatRoomRoleExecutor
+    {
+        public ChatRoomRoleExecutionKind ExecutionKind => ChatRoomRoleExecutionKind.Standard;
+
+        public Task<ChatRoomRoleExecutionResult> RunAsync(
+            ChatRoomRoleExecutionContext context,
+            IReadOnlyList<AIContent> contents,
+            CancellationToken cancellationToken) => Task.FromException<ChatRoomRoleExecutionResult>(exception);
+
+        public Task SetWorkspacePathAsync(
+            CopilotChatManager chatManager,
+            string? workspacePath,
+            CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public ValueTask DisposeAsync() => default;
     }
 
     [TestMethod]

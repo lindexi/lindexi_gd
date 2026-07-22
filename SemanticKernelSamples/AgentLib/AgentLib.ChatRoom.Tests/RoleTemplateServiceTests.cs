@@ -1,6 +1,8 @@
 using AgentLib.ChatRoom.Model;
 using AgentLib.ChatRoom.Services;
 
+using System.Text.Json;
+
 namespace AgentLib.ChatRoom.Tests;
 
 [TestClass]
@@ -91,6 +93,7 @@ public sealed class RoleTemplateServiceTests
     }
 
     [TestMethod(DisplayName = "角色模板转换为定义时应复制执行种类")]
+    [Timeout(5000)]
     public void ToDefinitionShouldCopyExecutionKind()
     {
         string folder = CreateTestFolder();
@@ -106,6 +109,77 @@ public sealed class RoleTemplateServiceTests
         ChatRoomRoleDefinition definition = service.ToDefinition(template);
 
         Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, definition.ExecutionKind);
+    }
+
+    [TestMethod(DisplayName = "从定义创建模板时应复制执行种类")]
+    [Timeout(5000)]
+    public void FromDefinitionShouldCopyExecutionKind()
+    {
+        var service = new RoleTemplateService(CreateTestFolder());
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "coding-role",
+            ExecutionKind = ChatRoomRoleExecutionKind.Coding,
+            RoleName = "编程角色",
+        };
+
+        RoleTemplate template = service.FromDefinition(definition, "编程模板", "描述");
+
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, template.Definition.ExecutionKind);
+    }
+
+    [TestMethod(DisplayName = "更新模板时应复制执行种类")]
+    [Timeout(5000)]
+    public void UpdateFromDefinitionShouldCopyExecutionKind()
+    {
+        var service = new RoleTemplateService(CreateTestFolder());
+        RoleTemplate template = CreateTemplate("template", "普通模板");
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "coding-role",
+            ExecutionKind = ChatRoomRoleExecutionKind.Coding,
+            RoleName = "编程角色",
+        };
+
+        service.UpdateFromDefinition(template, definition, "编程模板", "描述");
+
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, template.Definition.ExecutionKind);
+    }
+
+    [TestMethod(DisplayName = "加载模板时应跳过未知执行种类")]
+    [Timeout(5000)]
+    public async Task LoadAllShouldSkipUnknownExecutionKind()
+    {
+        string folder = CreateTestFolder();
+        var service = new RoleTemplateService(folder);
+        RoleTemplate invalidTemplate = CreateTemplate("invalid", "无效模板");
+        invalidTemplate.Definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "invalid",
+            ExecutionKind = (ChatRoomRoleExecutionKind)99,
+        };
+        string json = JsonSerializer.Serialize(
+            invalidTemplate,
+            RoleTemplateJsonSerializerContext.Default.RoleTemplate);
+        await File.WriteAllTextAsync(Path.Join(folder, "invalid.json"), json);
+
+        Assert.IsEmpty(service.LoadAll());
+    }
+
+    [TestMethod(DisplayName = "保存模板时应拒绝人类 Coding 定义")]
+    [Timeout(5000)]
+    public async Task SaveAsyncShouldRejectHumanCodingDefinition()
+    {
+        var service = new RoleTemplateService(CreateTestFolder());
+        RoleTemplate template = CreateTemplate("invalid", "无效模板");
+        template.Definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "invalid",
+            ExecutionKind = ChatRoomRoleExecutionKind.Coding,
+            IsHuman = true,
+        };
+
+        await Assert.ThrowsExactlyAsync<ArgumentException>(() => service.SaveAsync(template));
     }
 
     [TestMethod(DisplayName = "补齐预置模板时不应覆盖用户保存的同标识模板")]

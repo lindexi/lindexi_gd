@@ -16,6 +16,7 @@ public sealed class ChatRoomRoleFactory : IChatRoomRoleFactory
     /// 创建通用角色工厂。
     /// </summary>
     /// <param name="mainThreadDispatcher">可选的主线程调度器。</param>
+    /// <param name="roslynLanguageServerCommand">Roslyn Language Server 启动命令。</param>
     public ChatRoomRoleFactory(
         IMainThreadDispatcher? mainThreadDispatcher = null,
         string roslynLanguageServerCommand = "roslyn-language-server")

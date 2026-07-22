@@ -95,7 +95,7 @@ public sealed class ChatRoomSession : NotifyBase
     /// <param name="message">要添加的消息。</param>
     public async Task AddMessageAsync(ChatRoomMessage message)
     {
-        if (_mainThreadDispatcher is not null)
+        if (_mainThreadDispatcher is not null && !_mainThreadDispatcher.CheckAccess())
         {
             await _mainThreadDispatcher.InvokeAsync(() =>
             {
@@ -106,6 +106,22 @@ public sealed class ChatRoomSession : NotifyBase
         }
 
         AddMessageCore(message);
+    }
+
+    internal async Task RemoveMessageAsync(ChatRoomMessage message)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+        if (_mainThreadDispatcher is not null && !_mainThreadDispatcher.CheckAccess())
+        {
+            await _mainThreadDispatcher.InvokeAsync(() =>
+            {
+                RemoveMessageCore(message);
+                return Task.CompletedTask;
+            });
+            return;
+        }
+
+        RemoveMessageCore(message);
     }
 
     /// <summary>
@@ -132,6 +148,25 @@ public sealed class ChatRoomSession : NotifyBase
         if (!string.IsNullOrEmpty(message.SenderRoleId))
         {
             _lastSpeakTimeByRole[message.SenderRoleId] = message.Timestamp;
+        }
+    }
+
+    private void RemoveMessageCore(ChatRoomMessage message)
+    {
+        if (!Messages.Remove(message) || string.IsNullOrEmpty(message.SenderRoleId))
+        {
+            return;
+        }
+
+        ChatRoomMessage? previousMessage = Messages
+            .LastOrDefault(candidate => candidate.SenderRoleId == message.SenderRoleId);
+        if (previousMessage is null)
+        {
+            _lastSpeakTimeByRole.Remove(message.SenderRoleId);
+        }
+        else
+        {
+            _lastSpeakTimeByRole[message.SenderRoleId] = previousMessage.Timestamp;
         }
     }
 

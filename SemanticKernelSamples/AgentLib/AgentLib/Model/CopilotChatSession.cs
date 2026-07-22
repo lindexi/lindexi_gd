@@ -106,7 +106,7 @@ public sealed class CopilotChatSession : NotifyBase
     /// <param name="chatMessage">要添加的聊天消息。</param>
     public async Task AddMessageAsync(CopilotChatMessage chatMessage)
     {
-        if (_mainThreadDispatcher is not null)
+        if (_mainThreadDispatcher is not null && !_mainThreadDispatcher.CheckAccess())
         {
             await _mainThreadDispatcher.InvokeAsync(() =>
             {

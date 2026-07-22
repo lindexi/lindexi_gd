@@ -58,6 +58,7 @@ public sealed class RoleTemplateService
 #endif
                 if (template is not null
                     && !string.IsNullOrEmpty(template.TemplateId)
+                    && IsValidDefinition(template.Definition)
                     && !_runtimeTemplates.ContainsKey(template.TemplateId)
                     && !_hiddenRuntimeTemplateIds.Contains(template.TemplateId))
                 {
@@ -92,6 +93,7 @@ public sealed class RoleTemplateService
         {
             throw new ArgumentException("模板 ID 不能为空。", nameof(template));
         }
+        ValidateDefinition(template.Definition, nameof(template));
 
         _runtimeTemplates[template.TemplateId] = template;
         _hiddenRuntimeTemplateIds.Remove(template.TemplateId);
@@ -109,6 +111,7 @@ public sealed class RoleTemplateService
         {
             throw new ArgumentException("模板 ID 不能为空。", nameof(template.TemplateId));
         }
+        ValidateDefinition(template.Definition, nameof(template));
 
         if (_runtimeTemplates.ContainsKey(template.TemplateId))
         {
@@ -176,6 +179,7 @@ public sealed class RoleTemplateService
         ArgumentNullException.ThrowIfNull(template);
 
         var source = template.Definition;
+        ValidateDefinition(source, nameof(template));
         return new ChatRoomRoleDefinition
         {
             RoleId = Guid.NewGuid().ToString("N"),
@@ -210,6 +214,7 @@ public sealed class RoleTemplateService
         List<string>? tags = null)
     {
         ArgumentNullException.ThrowIfNull(definition);
+        ValidateDefinition(definition, nameof(definition));
 
         var now = DateTimeOffset.Now;
         return new RoleTemplate
@@ -258,6 +263,7 @@ public sealed class RoleTemplateService
     {
         ArgumentNullException.ThrowIfNull(template);
         ArgumentNullException.ThrowIfNull(definition);
+        ValidateDefinition(definition, nameof(definition));
 
         template.Name = name;
         template.Description = description;
@@ -295,6 +301,28 @@ public sealed class RoleTemplateService
             {
                 await SaveAsync(preset, cancellationToken).ConfigureAwait(false);
             }
+        }
+    }
+
+    private static bool IsValidDefinition(ChatRoomRoleDefinition? definition) =>
+        definition is not null
+        && Enum.IsDefined(typeof(ChatRoomRoleExecutionKind), definition.ExecutionKind)
+        && (!definition.IsHuman || definition.ExecutionKind == ChatRoomRoleExecutionKind.Standard);
+
+    private static void ValidateDefinition(ChatRoomRoleDefinition definition, string parameterName)
+    {
+        ArgumentNullException.ThrowIfNull(definition);
+        if (!Enum.IsDefined(typeof(ChatRoomRoleExecutionKind), definition.ExecutionKind))
+        {
+            throw new ArgumentOutOfRangeException(
+                parameterName,
+                definition.ExecutionKind,
+                "角色定义包含未知执行种类。");
+        }
+
+        if (definition.IsHuman && definition.ExecutionKind != ChatRoomRoleExecutionKind.Standard)
+        {
+            throw new ArgumentException("人类角色只能使用 Standard 执行种类。", parameterName);
         }
     }
 

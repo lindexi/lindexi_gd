@@ -289,7 +289,16 @@ public sealed partial class ChatRoomManager
         public async Task<ChatRoomMessage?> StepAsync(ChatRoomRole role,
             CancellationToken cancellationToken = default)
         {
-            return await StepAsync(role, additionalUserMessages: null, cancellationToken).ConfigureAwait(false);
+            ChatRoomMessage? message = await StepAsync(
+                role,
+                additionalUserMessages: null,
+                cancellationToken).ConfigureAwait(false);
+            if (message is not null)
+            {
+                await HandleAutoLoopMessageAsync(message).ConfigureAwait(false);
+            }
+
+            return message;
         }
 
         private async Task<ChatRoomMessage?> StepAsync(ChatRoomRole role,
@@ -305,6 +314,7 @@ public sealed partial class ChatRoomManager
             }
 
             _manager.CurrentSpeaker = role;
+            ChatRoomMessage? streamingMessage = null;
 
             try
             {
@@ -342,7 +352,7 @@ public sealed partial class ChatRoomManager
                 }
 
                 // 创建流式消息并立即追加到 Messages 集合，UI 通过绑定感知实时更新
-                var streamingMessage = new ChatRoomMessage
+                streamingMessage = new ChatRoomMessage
                 {
                     SenderRoleId = role.Definition.RoleId,
                     SenderRoleName = role.Definition.RoleName,
@@ -358,7 +368,8 @@ public sealed partial class ChatRoomManager
                 if (string.IsNullOrWhiteSpace(assistantContent))
                 {
                     // 空回复，从 Messages 移除流式消息
-                    _manager.Session.Messages.Remove(streamingMessage);
+                    await _manager.Session.RemoveMessageAsync(streamingMessage).ConfigureAwait(false);
+                    streamingMessage = null;
                     return null;
                 }
 
@@ -366,15 +377,27 @@ public sealed partial class ChatRoomManager
                 streamingMessage.IsStreaming = false;
                 // 将最终内容回写到 StaticContent，确保持久化序列化时消息内容不丢失
                 streamingMessage.StaticContent = assistantContent;
+                ChatRoomMessage completedMessage = streamingMessage;
+                streamingMessage = null;
                 await _manager.SaveRoleAgentSessionStateAsync(role, cancellationToken).ConfigureAwait(false);
-                return streamingMessage;
+                return completedMessage;
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
+                if (streamingMessage is { IsStreaming: true })
+                {
+                    await _manager.Session.RemoveMessageAsync(streamingMessage).ConfigureAwait(false);
+                }
+
                 return null;
             }
             catch (Exception ex)
             {
+                if (streamingMessage is { IsStreaming: true })
+                {
+                    await _manager.Session.RemoveMessageAsync(streamingMessage).ConfigureAwait(false);
+                }
+
                 // 角色发言失败，引发事件
                 _manager.OnRoleSpeakFailed?.Invoke(_manager, new RoleSpeakFailedEventArgs(role, ex));
 

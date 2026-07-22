@@ -7,117 +7,195 @@ namespace AgentLib.Coding;
 /// </summary>
 public sealed class CodingWorkspaceToolProvider : IAsyncDisposable
 {
-    private readonly string _languageServerCommand;
-    private readonly Func<string, string, CancellationToken, Task<CodingWorkspaceToolSession>> _sessionFactory;
-    private readonly SemaphoreSlim _lifecycleLock = new(1, 1);
-    private readonly object _disposeSync = new();
+    private readonly ICodingWorkspaceToolSessionProvider _sessionProvider;
+    private readonly object _sync = new();
     private readonly List<Task> _retiredSessionDisposals = [];
+    private readonly HashSet<CodingWorkspaceTransaction> _transactions = [];
     private CodingWorkspaceToolSession? _session;
+    private CodingWorkspaceTransaction? _appliedTransaction;
     private Task? _disposeTask;
-    private int _isDisposed;
-    private long _workspaceChangeVersion;
+    private bool _isDisposed;
 
     /// <summary>
     /// 创建代码工作区工具提供器。
     /// </summary>
     /// <param name="languageServerCommand">Roslyn Language Server 启动命令。</param>
     public CodingWorkspaceToolProvider(string languageServerCommand = "roslyn-language-server")
-        : this(languageServerCommand, CodingWorkspaceToolSession.CreateAsync)
+        : this(new CodingWorkspaceToolSessionProvider(languageServerCommand))
     {
     }
 
-    internal CodingWorkspaceToolProvider(
-        string languageServerCommand,
-        Func<string, string, CancellationToken, Task<CodingWorkspaceToolSession>> sessionFactory)
+    internal CodingWorkspaceToolProvider(ICodingWorkspaceToolSessionProvider sessionProvider)
     {
-        if (string.IsNullOrWhiteSpace(languageServerCommand))
-        {
-            throw new ArgumentException("Roslyn Language Server 命令不能为空。", nameof(languageServerCommand));
-        }
-        ArgumentNullException.ThrowIfNull(sessionFactory);
-
-        _languageServerCommand = languageServerCommand;
-        _sessionFactory = sessionFactory;
+        ArgumentNullException.ThrowIfNull(sessionProvider);
+        _sessionProvider = sessionProvider;
     }
-
-    /// <summary>
-    /// 获取当前工作区已发布的 AI 工具。
-    /// </summary>
-    public IReadOnlyList<AITool> AITools => Volatile.Read(ref _session)?.Tools ?? [];
 
     /// <summary>
     /// 获取当前已发布的工作区路径。
     /// </summary>
-    public string? WorkspacePath => Volatile.Read(ref _session)?.WorkspacePath;
+    public string? WorkspacePath
+    {
+        get
+        {
+            lock (_sync)
+            {
+                return _session?.WorkspacePath;
+            }
+        }
+    }
 
     /// <summary>
     /// 获取当前工作区的稳定工具租约。租约释放前，即使切换工作区，其底层资源也不会被释放。
     /// </summary>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>绑定当前工作区状态的工具租约；未设置工作区时返回空工具租约。</returns>
-    public async Task<CodingWorkspaceToolLease> AcquireLeaseAsync(CancellationToken cancellationToken = default)
+    public Task<CodingWorkspaceToolLease> AcquireLeaseAsync(CancellationToken cancellationToken = default)
     {
-        await _lifecycleLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
+        cancellationToken.ThrowIfCancellationRequested();
+        lock (_sync)
         {
             ThrowIfDisposed();
-            return _session?.AcquireLease() ?? new CodingWorkspaceToolLease(null);
-        }
-        finally
-        {
-            _lifecycleLock.Release();
+            return Task.FromResult(_session?.AcquireLease() ?? new CodingWorkspaceToolLease(null));
         }
     }
 
-    internal async Task<CodingWorkspaceToolCandidate> CreateCandidateAsync(
+    /// <summary>
+    /// 准备一次工作区切换事务。准备完成不会改变当前已提交工作区。
+    /// </summary>
+    /// <param name="workspacePath">候选工作区路径；为空时准备清除当前工作区。</param>
+    /// <param name="cancellationToken">取消令牌，仅影响候选资源准备。</param>
+    /// <returns>独占候选资源的工作区切换事务。</returns>
+    public async Task<IWorkspaceChangeTransaction> PrepareWorkspaceChangeAsync(
         string? workspacePath,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
         CodingWorkspaceToolSession? candidateSession = string.IsNullOrWhiteSpace(workspacePath)
             ? null
-            : await _sessionFactory(
-                workspacePath,
-                _languageServerCommand,
-                cancellationToken).ConfigureAwait(false);
-        return new CodingWorkspaceToolCandidate(candidateSession);
-    }
-
-    internal async Task PublishCandidateAsync(
-        CodingWorkspaceToolCandidate candidate,
-        Action? commit = null,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(candidate);
-
-        await _lifecycleLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
+            : await _sessionProvider.CreateAsync(workspacePath, cancellationToken).ConfigureAwait(false);
+        lock (_sync)
         {
-            ThrowIfDisposed();
-            CodingWorkspaceToolSession? candidateSession = candidate.TakeSession();
-            CodingWorkspaceToolSession? sessionToRetire = _session;
-            try
+            if (!_isDisposed)
             {
-                commit?.Invoke();
-                _session = candidateSession;
-                candidateSession = null;
-            }
-            finally
-            {
-                if (candidateSession is not null)
-                {
-                    await candidateSession.DisposeAsync().ConfigureAwait(false);
-                }
-            }
-
-            if (sessionToRetire is not null)
-            {
-                TrackRetiredSession(sessionToRetire);
+                var transaction = new CodingWorkspaceTransaction(
+                    this,
+                    candidateSession,
+                    candidateSession?.WorkspacePath);
+                _transactions.Add(transaction);
+                return transaction;
             }
         }
-        finally
+
+        if (candidateSession is not null)
         {
-            _lifecycleLock.Release();
+            await candidateSession.DisposeAsync().ConfigureAwait(false);
+        }
+
+        ThrowIfDisposed();
+        throw new InvalidOperationException("工作区工具提供器释放状态异常。");
+    }
+
+    internal void ApplyTransaction(CodingWorkspaceTransaction transaction)
+    {
+        ArgumentNullException.ThrowIfNull(transaction);
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            if (transaction.State != CodingWorkspaceTransactionState.Prepared)
+            {
+                throw new InvalidOperationException($"工作区事务不能从 {transaction.State} 状态进入 Applied。 ");
+            }
+            if (_appliedTransaction is not null)
+            {
+                throw new InvalidOperationException("已有工作区事务处于 Applied 状态。");
+            }
+
+            transaction.State = CodingWorkspaceTransactionState.Applied;
+            _appliedTransaction = transaction;
+        }
+    }
+
+    internal Task RollbackTransactionAsync(
+        CodingWorkspaceTransaction transaction,
+        bool disposing)
+    {
+        ArgumentNullException.ThrowIfNull(transaction);
+        CodingWorkspaceToolSession? candidateSession;
+        lock (_sync)
+        {
+            switch (transaction.State)
+            {
+                case CodingWorkspaceTransactionState.Prepared:
+                    break;
+                case CodingWorkspaceTransactionState.Applied:
+                    if (!ReferenceEquals(_appliedTransaction, transaction))
+                    {
+                        throw new InvalidOperationException("Applied 工作区事务与 provider 屏障不一致。");
+                    }
+
+                    _appliedTransaction = null;
+                    break;
+                case CodingWorkspaceTransactionState.RolledBack:
+                    return transaction.Completion.Task;
+                case CodingWorkspaceTransactionState.Committed when disposing:
+                    return Task.CompletedTask;
+                case CodingWorkspaceTransactionState.Committed:
+                    throw new InvalidOperationException("已发布的工作区事务不能回滚。");
+                default:
+                    throw new InvalidOperationException($"未知工作区事务状态：{transaction.State}。");
+            }
+
+            candidateSession = transaction.CandidateSession;
+            transaction.CandidateSession = null;
+            transaction.State = CodingWorkspaceTransactionState.RolledBack;
+            _transactions.Remove(transaction);
+        }
+
+        return DisposeRolledBackCandidateAsync(transaction, candidateSession);
+    }
+
+    internal void CommitTransactionAfterPublish(CodingWorkspaceTransaction transaction)
+    {
+        ArgumentNullException.ThrowIfNull(transaction);
+        lock (_sync)
+        {
+            if (transaction.State == CodingWorkspaceTransactionState.Committed)
+            {
+                return;
+            }
+            if (transaction.State != CodingWorkspaceTransactionState.Applied
+                || !ReferenceEquals(_appliedTransaction, transaction))
+            {
+                throw new InvalidOperationException("只有当前 Applied 工作区事务可以在发布后提交。");
+            }
+
+            CodingWorkspaceToolSession? previousSession = _session;
+            CodingWorkspaceToolSession? candidateSession = transaction.CandidateSession;
+            transaction.CandidateSession = null;
+            transaction.State = CodingWorkspaceTransactionState.Committed;
+            _appliedTransaction = null;
+            _transactions.Remove(transaction);
+
+            if (_isDisposed)
+            {
+                _session = null;
+                if (candidateSession is not null)
+                {
+                    TrackRetiredSession(candidateSession);
+                }
+            }
+            else
+            {
+                _session = candidateSession;
+            }
+
+            if (previousSession is not null)
+            {
+                TrackRetiredSession(previousSession);
+            }
+
+            transaction.Completion.TrySetResult();
         }
     }
 
@@ -128,32 +206,11 @@ public sealed class CodingWorkspaceToolProvider : IAsyncDisposable
     /// <param name="cancellationToken">取消令牌。</param>
     public async Task SetWorkspacePathAsync(string? workspacePath, CancellationToken cancellationToken)
     {
-        ThrowIfDisposed();
-        long workspaceChangeVersion = Interlocked.Increment(ref _workspaceChangeVersion);
-        await using CodingWorkspaceToolCandidate candidate = await CreateCandidateAsync(
+        await using IWorkspaceChangeTransaction transaction = await PrepareWorkspaceChangeAsync(
             workspacePath,
             cancellationToken).ConfigureAwait(false);
-
-        await _lifecycleLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            ThrowIfDisposed();
-            if (workspaceChangeVersion != Volatile.Read(ref _workspaceChangeVersion))
-            {
-                return;
-            }
-
-            CodingWorkspaceToolSession? sessionToRetire = _session;
-            _session = candidate.TakeSession();
-            if (sessionToRetire is not null)
-            {
-                TrackRetiredSession(sessionToRetire);
-            }
-        }
-        finally
-        {
-            _lifecycleLock.Release();
-        }
+        transaction.Apply();
+        transaction.CommitAfterPublish();
     }
 
     /// <summary>
@@ -161,36 +218,38 @@ public sealed class CodingWorkspaceToolProvider : IAsyncDisposable
     /// </summary>
     public ValueTask DisposeAsync()
     {
-        lock (_disposeSync)
+        lock (_sync)
         {
-            _disposeTask ??= DisposeCoreAsync();
-            return new ValueTask(_disposeTask);
-        }
-    }
-
-    private async Task DisposeCoreAsync()
-    {
-        Volatile.Write(ref _isDisposed, 1);
-        Task[] disposalTasks;
-        await _lifecycleLock.WaitAsync().ConfigureAwait(false);
-        try
-        {
-
-            CodingWorkspaceToolSession? session = _session;
-            _session = null;
-            if (session is not null)
+            if (_disposeTask is null)
             {
-                TrackRetiredSession(session);
+                _isDisposed = true;
+                var preparedTransactions = new List<(
+                    CodingWorkspaceTransaction Transaction,
+                    CodingWorkspaceToolSession? CandidateSession)>();
+                foreach (CodingWorkspaceTransaction transaction in _transactions
+                             .Where(transaction => transaction.State == CodingWorkspaceTransactionState.Prepared)
+                             .ToArray())
+                {
+                    preparedTransactions.Add((transaction, transaction.CandidateSession));
+                    transaction.CandidateSession = null;
+                    transaction.State = CodingWorkspaceTransactionState.RolledBack;
+                    _transactions.Remove(transaction);
+                }
+
+                CodingWorkspaceToolSession? session = _session;
+                _session = null;
+                if (session is not null)
+                {
+                    TrackRetiredSession(session);
+                }
+
+                Task activeTransactionCompletion = _appliedTransaction?.Completion.Task
+                    ?? Task.CompletedTask;
+                _disposeTask = DisposeCoreAsync(activeTransactionCompletion, preparedTransactions);
             }
 
-            disposalTasks = [.. _retiredSessionDisposals];
+            return new ValueTask(_disposeTask);
         }
-        finally
-        {
-            _lifecycleLock.Release();
-        }
-
-        await Task.WhenAll(disposalTasks).ConfigureAwait(false);
     }
 
     private void TrackRetiredSession(CodingWorkspaceToolSession session)
@@ -199,11 +258,112 @@ public sealed class CodingWorkspaceToolProvider : IAsyncDisposable
         _retiredSessionDisposals.Add(session.Retire());
     }
 
+    private static async Task DisposeRolledBackCandidateAsync(
+        CodingWorkspaceTransaction transaction,
+        CodingWorkspaceToolSession? candidateSession)
+    {
+        try
+        {
+            if (candidateSession is not null)
+            {
+                await candidateSession.DisposeAsync().ConfigureAwait(false);
+            }
+
+            transaction.Completion.TrySetResult();
+        }
+        catch (Exception ex)
+        {
+            transaction.Completion.TrySetException(ex);
+            throw;
+        }
+    }
+
+    private async Task DisposeCoreAsync(
+        Task activeTransactionCompletion,
+        IReadOnlyList<(
+            CodingWorkspaceTransaction Transaction,
+            CodingWorkspaceToolSession? CandidateSession)> preparedTransactions)
+    {
+        Task[] initialCleanupTasks =
+        [
+            activeTransactionCompletion,
+            .. preparedTransactions.Select(item => DisposeRolledBackCandidateAsync(
+                item.Transaction,
+                item.CandidateSession)),
+        ];
+        Exception? initialCleanupException = null;
+        try
+        {
+            await Task.WhenAll(initialCleanupTasks).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            initialCleanupException = ex;
+        }
+
+        Task[] retiredSessionDisposals;
+        lock (_sync)
+        {
+            retiredSessionDisposals = _retiredSessionDisposals.ToArray();
+        }
+
+        Exception? retiredSessionException = null;
+        try
+        {
+            await Task.WhenAll(retiredSessionDisposals).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            retiredSessionException = ex;
+        }
+
+        if (initialCleanupException is not null && retiredSessionException is not null)
+        {
+            throw new AggregateException(
+                "释放工作区事务和已退休 Session 时均发生错误。",
+                initialCleanupException,
+                retiredSessionException);
+        }
+        if (initialCleanupException is not null)
+        {
+            throw initialCleanupException;
+        }
+        if (retiredSessionException is not null)
+        {
+            throw retiredSessionException;
+        }
+    }
+
     private void ThrowIfDisposed()
     {
-        if (Volatile.Read(ref _isDisposed) != 0)
+        if (_isDisposed)
         {
             throw new ObjectDisposedException(nameof(CodingWorkspaceToolProvider));
         }
     }
+}
+
+internal interface ICodingWorkspaceToolSessionProvider
+{
+    Task<CodingWorkspaceToolSession> CreateAsync(string workspacePath, CancellationToken cancellationToken);
+}
+
+internal sealed class CodingWorkspaceToolSessionProvider : ICodingWorkspaceToolSessionProvider
+{
+    private readonly string _languageServerCommand;
+
+    internal CodingWorkspaceToolSessionProvider(string languageServerCommand)
+    {
+        if (string.IsNullOrWhiteSpace(languageServerCommand))
+        {
+            throw new ArgumentException("Roslyn Language Server 命令不能为空。", nameof(languageServerCommand));
+        }
+
+        _languageServerCommand = languageServerCommand;
+    }
+
+    public Task<CodingWorkspaceToolSession> CreateAsync(
+        string workspacePath,
+        CancellationToken cancellationToken) =>
+        CodingWorkspaceToolSession.CreateAsync(workspacePath, _languageServerCommand, cancellationToken);
 }

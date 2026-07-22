@@ -10,6 +10,8 @@ using AgentLib.ChatRoom.Configuration;
 using AgentLib.ChatRoom.Model;
 using AgentLib.ChatRoom.Services;
 
+using ChatRoom.AvaloniaShell.ViewModels;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ChatRoom.Shell.Tests;
@@ -251,6 +253,40 @@ public class ChatRoomServiceTests
         Assert.IsTrue(updatedRole.Definition.IsManagerRole);
         Assert.AreEqual("新名称", updatedRole.Definition.RoleName);
         Assert.AreEqual("新记忆", updatedRole.Definition.MemoryContent);
+    }
+
+    [TestMethod(DisplayName = "角色编辑页保存 Coding 角色时应保留运行时身份")]
+    [Timeout(10000)]
+    public async Task RoleEditViewModelShouldPreserveCodingRoleIdentity()
+    {
+        await _chatRoomService.CreateNewSessionAsync();
+        var definition = new ChatRoomRoleDefinition
+        {
+            RoleId = "coding-role",
+            ExecutionKind = ChatRoomRoleExecutionKind.Coding,
+            RoleName = "编程助手",
+            IsHuman = false,
+        };
+        await _chatRoomService.AddRoleAsync(definition);
+        ChatRoomRole originalRole = _chatRoomService.CurrentManager!.Roles.Single();
+        var viewModel = new RoleEditViewModel(_chatRoomService, definition.RoleId)
+        {
+            RoleName = "高级编程助手",
+            MemoryContent = "保留会话",
+        };
+        var saved = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        viewModel.SaveCompleted += (_, _) => saved.TrySetResult();
+
+        Assert.IsFalse(viewModel.CanEditIsHuman);
+        viewModel.SaveCommand.Execute(null);
+        await saved.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+        ChatRoomRole updatedRole = _chatRoomService.CurrentManager.Roles.Single();
+        Assert.AreSame(originalRole, updatedRole);
+        Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, updatedRole.Definition.ExecutionKind);
+        Assert.IsFalse(updatedRole.Definition.IsHuman);
+        Assert.AreEqual("高级编程助手", updatedRole.Definition.RoleName);
+        Assert.AreEqual("保留会话", updatedRole.Definition.MemoryContent);
     }
 
     /// <summary>

@@ -169,6 +169,79 @@ public sealed class ChatRoomManagerIntegrationTests
         }
     }
 
+    [TestMethod(DisplayName = "加载 Coding 角色后应恢复执行器和原 AgentSession 历史")]
+    [Timeout(15000)]
+    public async Task LoadAsync_RestoredCodingRoleContinuesPreviousAgentSession()
+    {
+        string tempFolder = Path.Join(Path.GetTempPath(), "ChatRoomManagerIntegrationTests", Path.GetRandomFileName());
+        ChatRoomManager? firstManager = null;
+        ChatRoomManager? secondManager = null;
+        try
+        {
+            var persistence = new ChatRoomPersistence(tempFolder);
+            firstManager = CreateManager();
+            firstManager.Persistence = persistence;
+            firstManager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+            {
+                ["coding-provider"] = CreateProvider("coding-provider", CreateFakeClient("历史编程回答")),
+            });
+            await firstManager.AddRoleAsync(new ChatRoomRoleDefinition
+            {
+                RoleId = "coding-role",
+                ExecutionKind = ChatRoomRoleExecutionKind.Coding,
+                RoleName = "编程助手",
+                ModelProviderId = "coding-provider",
+            });
+            await firstManager.HumanInterjectAsync("历史编程问题", "human", "Human");
+            ChatRoomRole firstRole = firstManager.Roles.Single();
+            ChatRoomMessage? firstAnswer = await firstManager.StepAsync(firstRole);
+            Assert.AreEqual("历史编程回答", firstAnswer?.Content);
+            await firstManager.HumanInterjectAsync("继续编程追问", "human", "Human");
+            string sessionId = firstManager.Session.SessionId.ToString("N");
+            await firstManager.CloseAsync();
+            firstManager = null;
+
+            var secondClient = CreateFakeClient("新的编程回答");
+            secondManager = CreateManager();
+            secondManager.Persistence = persistence;
+            secondManager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
+            {
+                ["coding-provider"] = CreateProvider("coding-provider", secondClient),
+            });
+
+            await secondManager.LoadAsync(sessionId);
+
+            ChatRoomRole restoredRole = secondManager.Roles.Single();
+            Assert.AreEqual(ChatRoomRoleExecutionKind.Coding, restoredRole.Definition.ExecutionKind);
+            Assert.IsInstanceOfType<CodingChatRoomRoleExecutor>(restoredRole.Executor);
+            string restoredState = (await restoredRole.SerializeAgentSessionStateAsync())!.Value.GetRawText();
+            StringAssert.Contains(restoredState, "历史编程问题");
+            StringAssert.Contains(restoredState, "历史编程回答");
+
+            ChatRoomMessage? nextAnswer = await secondManager.StepAsync(restoredRole);
+
+            Assert.AreEqual("新的编程回答", nextAnswer?.Content);
+            string extendedState = (await restoredRole.SerializeAgentSessionStateAsync())!.Value.GetRawText();
+            StringAssert.Contains(extendedState, "继续编程追问");
+            StringAssert.Contains(extendedState, "新的编程回答");
+        }
+        finally
+        {
+            if (firstManager is not null)
+            {
+                await firstManager.CloseAsync();
+            }
+            if (secondManager is not null)
+            {
+                await secondManager.CloseAsync();
+            }
+            if (Directory.Exists(tempFolder))
+            {
+                Directory.Delete(tempFolder, recursive: true);
+            }
+        }
+    }
+
     /// <summary>
     /// 人类消息显式 @ 多个角色时，应按消息中的 @ 顺序优先发言，且不启动默认队列。
     /// </summary>

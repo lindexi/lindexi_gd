@@ -26,36 +26,12 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
 
         WorkspacePath = workspacePath;
         _asyncDisposable = asyncDisposable;
-        Tools = tools;
+        Tools = Array.AsReadOnly(tools.ToArray());
     }
 
     public string WorkspacePath { get; }
 
     public IReadOnlyList<AITool> Tools { get; }
-
-    internal int LeaseCount
-    {
-        get
-        {
-            lock (_lifecycleLock)
-            {
-                return _leaseCount;
-            }
-        }
-    }
-
-    internal bool IsRetired
-    {
-        get
-        {
-            lock (_lifecycleLock)
-            {
-                return _isRetired;
-            }
-        }
-    }
-
-    internal Task DisposalTask => _disposalCompletion.Task;
 
     public static async Task<CodingWorkspaceToolSession> CreateAsync(
         string workspacePath,

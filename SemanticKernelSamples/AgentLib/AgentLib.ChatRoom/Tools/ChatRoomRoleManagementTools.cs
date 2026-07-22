@@ -41,8 +41,8 @@ public static class ChatRoomRoleManagementTools
                 name: "create_character",
                 description: "创建一个新角色并立即加入当前聊天室。参数：roleName（必填，角色显示名）、systemPrompt（必填，角色人设）、modelId（可选）、modelProviderId（可选）、memoryContent（可选，长期记忆）。"),
             AIFunctionFactory.Create(
-                (string roleId, string? roleName, string? systemPrompt, string? modelId, string? modelProviderId, string? memoryContent, CancellationToken _) =>
-                    EditCharacter(chatRoomManager, roleId, roleName, systemPrompt, modelId, modelProviderId, memoryContent),
+                (string roleId, string? roleName, string? systemPrompt, string? modelId, string? modelProviderId, string? memoryContent, CancellationToken cancellationToken) =>
+                    EditCharacterAsync(chatRoomManager, roleId, roleName, systemPrompt, modelId, modelProviderId, memoryContent, cancellationToken),
                 name: "edit_character",
                 description: "修改已有角色的属性，只更新传入的非空字段。参数：roleId（必填，目标角色的唯一标识）、roleName（可选）、systemPrompt（可选）、modelId（可选）、modelProviderId（可选）、memoryContent（可选）。"),
         };
@@ -191,14 +191,15 @@ public static class ChatRoomRoleManagementTools
         }
     }
 
-    private static string EditCharacter(
+    private static async Task<string> EditCharacterAsync(
         ChatRoomManager chatRoomManager,
         string roleId,
         string? roleName,
         string? systemPrompt,
         string? modelId,
         string? modelProviderId,
-        string? memoryContent)
+        string? memoryContent,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(roleId))
         {
@@ -218,6 +219,11 @@ public static class ChatRoomRoleManagementTools
         string oldModelId = targetRole.Definition.ModelId ?? string.Empty;
         string oldModelProviderId = targetRole.Definition.ModelProviderId ?? string.Empty;
         string oldMemoryContent = targetRole.Definition.MemoryContent ?? "(空)";
+        string newRoleName = oldRoleName;
+        string newSystemPrompt = oldSystemPrompt;
+        string? newModelId = targetRole.Definition.ModelId;
+        string? newModelProviderId = targetRole.Definition.ModelProviderId;
+        string? newMemoryContent = targetRole.Definition.MemoryContent;
 
         bool hasChanges = false;
         var changes = new StringBuilder();
@@ -236,7 +242,7 @@ public static class ChatRoomRoleManagementTools
                 }
 
                 changes.AppendLine($"| RoleName | {EscapeTableValue(oldRoleName)} | {EscapeTableValue(newName)} |");
-                targetRole.Definition.RoleName = newName;
+                newRoleName = newName;
                 hasChanges = true;
             }
         }
@@ -247,7 +253,7 @@ public static class ChatRoomRoleManagementTools
             if (!string.Equals(oldSystemPrompt, newPrompt, StringComparison.Ordinal))
             {
                 changes.AppendLine($"| SystemPrompt | {EscapeTableValue(GetPromptSummary(oldSystemPrompt))} | {EscapeTableValue(GetPromptSummary(newPrompt))} |");
-                targetRole.Definition.SystemPrompt = newPrompt;
+                newSystemPrompt = newPrompt;
                 hasChanges = true;
             }
         }
@@ -258,8 +264,8 @@ public static class ChatRoomRoleManagementTools
             string newProvider = modelProviderId.Trim();
             if (!string.Equals(oldModelProviderId, newProvider, StringComparison.Ordinal))
             {
-                changes.AppendLine($"| ModelProviderId | {EscapeTableValue(oldModelProviderId ?? "(默认)")} | {EscapeTableValue(newProvider)} |");
-                targetRole.Definition.ModelProviderId = newProvider;
+                changes.AppendLine($"| ModelProviderId | {EscapeTableValue(string.IsNullOrEmpty(oldModelProviderId) ? "(默认)" : oldModelProviderId)} | {EscapeTableValue(newProvider)} |");
+                newModelProviderId = newProvider;
                 hasChanges = true;
             }
         }
@@ -269,8 +275,8 @@ public static class ChatRoomRoleManagementTools
             string newModel = modelId.Trim();
             if (!string.Equals(oldModelId, newModel, StringComparison.Ordinal))
             {
-                changes.AppendLine($"| ModelId | {EscapeTableValue(oldModelId ?? "(默认)")} | {EscapeTableValue(newModel)} |");
-                targetRole.Definition.ModelId = newModel;
+                changes.AppendLine($"| ModelId | {EscapeTableValue(string.IsNullOrEmpty(oldModelId) ? "(默认)" : oldModelId)} | {EscapeTableValue(newModel)} |");
+                newModelId = newModel;
                 hasChanges = true;
             }
         }
@@ -281,7 +287,7 @@ public static class ChatRoomRoleManagementTools
             if (!string.Equals(targetRole.Definition.MemoryContent, newMemory, StringComparison.Ordinal))
             {
                 changes.AppendLine($"| MemoryContent | {EscapeTableValue(oldMemoryContent)} | {EscapeTableValue(GetPromptSummary(newMemory))} |");
-                targetRole.Definition.MemoryContent = newMemory;
+                newMemoryContent = newMemory;
                 hasChanges = true;
             }
         }
@@ -289,6 +295,28 @@ public static class ChatRoomRoleManagementTools
         if (!hasChanges)
         {
             return $"角色 \"{targetRole.Definition.RoleName}\" ({roleId}) 没有需要更新的字段。";
+        }
+
+        try
+        {
+            await chatRoomManager.UpdateRoleAsync(
+                roleId,
+                newRoleName,
+                newSystemPrompt,
+                targetRole.Definition.IsHuman,
+                newModelProviderId,
+                newModelId,
+                newMemoryContent,
+                targetRole.Definition.ParticipationMode,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return $"编辑角色失败：{ex.Message}";
         }
 
         var sb = new StringBuilder();
