@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace ChatRoomAvaloniaDemo;
+namespace CodingChatRoom.AvaloniaShell;
 
 public partial class MainWindow : Window
 {

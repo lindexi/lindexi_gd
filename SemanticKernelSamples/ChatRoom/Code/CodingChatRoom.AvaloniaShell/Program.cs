@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using System;
 
-namespace ChatRoomAvaloniaDemo;
+namespace CodingChatRoom.AvaloniaShell;
 
 class Program
 {
