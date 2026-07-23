@@ -28,7 +28,7 @@ public sealed class CoursewareExecutableDesignSystemTests
         CollectionAssert.Contains(report.Slides[0].ResourceIds.ToArray(), "img-1");
         Assert.IsNotNull(report.Slides[0].ContentBounds);
         Assert.IsNotEmpty(report.LayoutClusters);
-        Assert.IsTrue(samples.Count <= CoursewareVisualSampleSelector.DefaultMaximumSampleCount);
+        Assert.IsLessThanOrEqualTo(CoursewareVisualSampleSelector.DefaultMaximumSampleCount, samples.Count);
         Assert.AreEqual(samples.Count, samples.Select(sample => sample.SlideId).Distinct(StringComparer.Ordinal).Count());
     }
 

@@ -36,4 +36,11 @@ namespace CoursewarePptxGenerator.Core.Serialization;
 [JsonSerializable(typeof(CoursewareTemplateValidationReport))]
 [JsonSerializable(typeof(CoursewareTemplateStressSampleResult[]))]
 [JsonSerializable(typeof(CoursewareValidationDiagnostic[]))]
+[JsonSerializable(typeof(CoursewareDraftEntityIdentity[]), TypeInfoPropertyName = "CoursewareDraftEntityIdentities")]
+[JsonSerializable(typeof(CoursewareDraftEntityPayload))]
+[JsonSerializable(typeof(CoursewareDraftOperation[]))]
+[JsonSerializable(typeof(CoursewareDraftMutationRequest))]
+[JsonSerializable(typeof(CoursewareDraftManifest))]
+[JsonSerializable(typeof(CoursewareDraftSectionSnapshot))]
+[JsonSerializable(typeof(CoursewareDraftMutationResult))]
 public sealed partial class CoursewareDesignJsonSerializerContext : JsonSerializerContext;
