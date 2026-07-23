@@ -82,6 +82,11 @@ public class SimpleWriteMainViewModel : ViewModelBase
     public FindReplaceViewModel FindReplaceViewModel { get; }
 
     /// <summary>
+    /// 获取外部文件变更确认面板 ViewModel。
+    /// </summary>
+    public ExternalFileChangeConfirmationViewModel ExternalFileChangeConfirmationViewModel { get; } = new();
+
+    /// <summary>
     /// 打开文件
     /// </summary>
     /// <param name="file"></param>
@@ -219,4 +224,5 @@ public class SimpleWriteMainViewModel : ViewModelBase
         DiscardAndClose,
         Cancel,
     }
+
 }

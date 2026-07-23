@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LightTextEditorPlus;
 using LightTextEditorPlus.Core.Carets;
+using SimpleWrite.Business.FileHandlers;
 
 namespace SimpleWrite.Models;
 
@@ -42,11 +43,14 @@ public class EditorModel : INotifyPropertyChanged
         {
             if (Equals(value, _fileInfo)) return;
             _fileInfo = value;
+            LoadedFileDiskState = null;
             Title = value.Name;
             OnPropertyChanged();
         }
     }
     private FileInfo? _fileInfo;
+
+    internal FileDiskState? LoadedFileDiskState { get; set; }
 
     public TextEditor? TextEditor { get; set; }
 

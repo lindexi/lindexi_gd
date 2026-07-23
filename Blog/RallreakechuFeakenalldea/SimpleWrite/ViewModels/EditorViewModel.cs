@@ -18,8 +18,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,6 +27,8 @@ public class EditorViewModel : ViewModelBase
 {
     public EditorViewModel()
     {
+        _activeDocumentFileChangeService = new ActiveDocumentFileChangeService(HandleExternalFileChangeAsync);
+
         if (Design.IsDesignMode)
         {
             EditorModelList.Add(new EditorModel()
@@ -111,20 +111,23 @@ public class EditorViewModel : ViewModelBase
         {
             if (Equals(value, _currentEditorModel)) return;
 
+            _activeDocumentFileChangeService.Deactivate();
             UpdateLastLocalDocumentDirectory(_currentEditorModel);
             _currentEditorModel = value;
 
+            var shouldLoadFile = false;
             if (value.TextEditor is null)
             {
                 EnsureTextEditor(value);
                 if (value.FileInfo is not null)
                 {
-                    _ = LoadFileToTextEditorAsync(value);
+                    shouldLoadFile = true;
                 }
             }
 
             OnPropertyChanged();
             EditorModelChanged?.Invoke(this, EventArgs.Empty);
+            _ = ActivateEditorModelAsync(value, shouldLoadFile);
         }
     }
 
@@ -207,6 +210,7 @@ public class EditorViewModel : ViewModelBase
         var textFileReader = new TextFileReader();
         await textFileReader.ReadToTextEditor(fileInfo, textEditor);
         editorModel.SaveStatus = SaveStatus.Saved;
+        _activeDocumentFileChangeService.MarkSynchronized(editorModel);
     }
 
     public TextEditor EnsureTextEditor(EditorModel editorModel)
@@ -580,9 +584,21 @@ public class EditorViewModel : ViewModelBase
 
             var allText = await Dispatcher.UIThread.InvokeAsync(() => textEditor.Text);
 
-            await using var fileStream = saveFile.Open(FileMode.Create, FileAccess.Write, FileShare.Read);
-            await using var streamWriter = new StreamWriter(fileStream, Encoding.UTF8, leaveOpen: true);
-            await streamWriter.WriteAsync(allText);
+            using (_activeDocumentFileChangeService.BeginLocalSave(editorModel))
+            {
+                await using var fileStream = saveFile.Open(FileMode.Create, FileAccess.Write, FileShare.Read);
+                await using var streamWriter = new StreamWriter(fileStream, Encoding.UTF8, leaveOpen: true);
+                await streamWriter.WriteAsync(allText);
+                await streamWriter.FlushAsync();
+                await fileStream.FlushAsync();
+
+                _activeDocumentFileChangeService.MarkSynchronized(editorModel);
+            }
+
+            if (ReferenceEquals(editorModel, CurrentEditorModel))
+            {
+                _activeDocumentFileChangeService.RefreshMonitoring(editorModel);
+            }
         }
         else
         {
@@ -610,8 +626,91 @@ public class EditorViewModel : ViewModelBase
         }
     }
 
+    private async Task ActivateEditorModelAsync(EditorModel editorModel, bool shouldLoadFile)
+    {
+        try
+        {
+            if (!ReferenceEquals(editorModel, CurrentEditorModel))
+            {
+                return;
+            }
+
+            if (shouldLoadFile)
+            {
+                await LoadFileToTextEditorAsync(editorModel).ConfigureAwait(true);
+            }
+
+            if (ReferenceEquals(editorModel, CurrentEditorModel))
+            {
+                await _activeDocumentFileChangeService.ActivateAsync(
+                    editorModel,
+                    checkDiskState: !shouldLoadFile).ConfigureAwait(true);
+            }
+        }
+        catch (IOException exception)
+        {
+            Debug.WriteLine($"激活标签时读取文件失败：{exception}");
+            if (ReferenceEquals(editorModel, CurrentEditorModel))
+            {
+                await _activeDocumentFileChangeService.ActivateAsync(
+                    editorModel,
+                    checkDiskState: false).ConfigureAwait(true);
+            }
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            Debug.WriteLine($"激活标签时读取文件失败：{exception}");
+            if (ReferenceEquals(editorModel, CurrentEditorModel))
+            {
+                await _activeDocumentFileChangeService.ActivateAsync(
+                    editorModel,
+                    checkDiskState: false).ConfigureAwait(true);
+            }
+        }
+    }
+
+    private async Task HandleExternalFileChangeAsync(EditorModel editorModel)
+    {
+        if (!ReferenceEquals(editorModel, CurrentEditorModel))
+        {
+            return;
+        }
+
+        if (editorModel.SaveStatus == SaveStatus.Saved)
+        {
+            await LoadFileToTextEditorAsync(editorModel).ConfigureAwait(true);
+            return;
+        }
+
+        await PromptExternalFileChangeAsync(editorModel).ConfigureAwait(true);
+    }
+
+    private async Task PromptExternalFileChangeAsync(EditorModel editorModel)
+    {
+        var decision = await MainViewModel.ExternalFileChangeConfirmationViewModel.ShowAsync(editorModel)
+            .ConfigureAwait(true);
+
+        if (!ReferenceEquals(editorModel, CurrentEditorModel))
+        {
+            return;
+        }
+
+        switch (decision)
+        {
+            case ExternalFileChangeConfirmationViewModel.Decision.ReloadFromDisk:
+                await LoadFileToTextEditorAsync(editorModel).ConfigureAwait(true);
+                break;
+            case ExternalFileChangeConfirmationViewModel.Decision.Ignore:
+                _activeDocumentFileChangeService.Suppress(editorModel);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
     private TempDocumentAutoSaveService TempDocumentAutoSaveService =>
         _tempDocumentAutoSaveService ??= new TempDocumentAutoSaveService(MainViewModel.AppPathManager);
 
     private TempDocumentAutoSaveService? _tempDocumentAutoSaveService;
+    private readonly ActiveDocumentFileChangeService _activeDocumentFileChangeService;
 }
