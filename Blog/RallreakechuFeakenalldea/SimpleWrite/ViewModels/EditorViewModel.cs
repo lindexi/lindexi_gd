@@ -27,6 +27,8 @@ public class EditorViewModel : ViewModelBase
 {
     public EditorViewModel()
     {
+        _activeDocumentFileChangeService = new ActiveDocumentFileChangeService(HandleExternalFileChangeAsync);
+
         if (Design.IsDesignMode)
         {
             EditorModelList.Add(new EditorModel()
@@ -82,8 +84,6 @@ public class EditorViewModel : ViewModelBase
         EditorModelList.Add(_currentEditorModel);
 
         ShortcutManagerHelper.AddDefaultShortcut(this);
-
-        _activeFileChangeMonitor.FileChanged += ActiveFileChangeMonitorOnFileChanged;
     }
 
     public required SimpleWriteMainViewModel MainViewModel { get; init; }
@@ -111,8 +111,7 @@ public class EditorViewModel : ViewModelBase
         {
             if (Equals(value, _currentEditorModel)) return;
 
-            StopActiveFileMonitoring();
-            _isActiveFileMonitoringSuppressed = false;
+            _activeDocumentFileChangeService.Deactivate();
             UpdateLastLocalDocumentDirectory(_currentEditorModel);
             _currentEditorModel = value;
 
@@ -128,7 +127,7 @@ public class EditorViewModel : ViewModelBase
 
             OnPropertyChanged();
             EditorModelChanged?.Invoke(this, EventArgs.Empty);
-            _ = ActivateEditorModelSafelyAsync(value, shouldLoadFile);
+            _ = ActivateEditorModelAsync(value, shouldLoadFile);
         }
     }
 
@@ -211,7 +210,7 @@ public class EditorViewModel : ViewModelBase
         var textFileReader = new TextFileReader();
         await textFileReader.ReadToTextEditor(fileInfo, textEditor);
         editorModel.SaveStatus = SaveStatus.Saved;
-        UpdateLoadedFileDiskState(editorModel);
+        _activeDocumentFileChangeService.MarkSynchronized(editorModel);
     }
 
     public TextEditor EnsureTextEditor(EditorModel editorModel)
@@ -585,8 +584,7 @@ public class EditorViewModel : ViewModelBase
 
             var allText = await Dispatcher.UIThread.InvokeAsync(() => textEditor.Text);
 
-            _editorModelBeingSaved = editorModel;
-            try
+            using (_activeDocumentFileChangeService.BeginLocalSave(editorModel))
             {
                 await using var fileStream = saveFile.Open(FileMode.Create, FileAccess.Write, FileShare.Read);
                 await using var streamWriter = new StreamWriter(fileStream, Encoding.UTF8, leaveOpen: true);
@@ -594,14 +592,13 @@ public class EditorViewModel : ViewModelBase
                 await streamWriter.FlushAsync();
                 await fileStream.FlushAsync();
 
-                UpdateLoadedFileDiskState(editorModel);
-            }
-            finally
-            {
-                _editorModelBeingSaved = null;
+                _activeDocumentFileChangeService.MarkSynchronized(editorModel);
             }
 
-            StartActiveFileMonitoring(editorModel);
+            if (ReferenceEquals(editorModel, CurrentEditorModel))
+            {
+                _activeDocumentFileChangeService.RefreshMonitoring(editorModel);
+            }
         }
         else
         {
@@ -629,121 +626,63 @@ public class EditorViewModel : ViewModelBase
         }
     }
 
-    private async Task ActivateEditorModelSafelyAsync(EditorModel editorModel, bool shouldLoadFile)
+    private async Task ActivateEditorModelAsync(EditorModel editorModel, bool shouldLoadFile)
     {
         try
         {
-            await ActivateEditorModelAsync(editorModel, shouldLoadFile);
+            if (!ReferenceEquals(editorModel, CurrentEditorModel))
+            {
+                return;
+            }
+
+            if (shouldLoadFile)
+            {
+                await LoadFileToTextEditorAsync(editorModel).ConfigureAwait(true);
+            }
+
+            if (ReferenceEquals(editorModel, CurrentEditorModel))
+            {
+                await _activeDocumentFileChangeService.ActivateAsync(
+                    editorModel,
+                    checkDiskState: !shouldLoadFile).ConfigureAwait(true);
+            }
         }
         catch (IOException exception)
         {
             Debug.WriteLine($"激活标签时读取文件失败：{exception}");
-            StartActiveFileMonitoring(editorModel);
+            if (ReferenceEquals(editorModel, CurrentEditorModel))
+            {
+                await _activeDocumentFileChangeService.ActivateAsync(
+                    editorModel,
+                    checkDiskState: false).ConfigureAwait(true);
+            }
         }
         catch (UnauthorizedAccessException exception)
         {
             Debug.WriteLine($"激活标签时读取文件失败：{exception}");
-            StartActiveFileMonitoring(editorModel);
+            if (ReferenceEquals(editorModel, CurrentEditorModel))
+            {
+                await _activeDocumentFileChangeService.ActivateAsync(
+                    editorModel,
+                    checkDiskState: false).ConfigureAwait(true);
+            }
         }
     }
 
-    private async Task ActivateEditorModelAsync(EditorModel editorModel, bool shouldLoadFile)
+    private async Task HandleExternalFileChangeAsync(EditorModel editorModel)
     {
         if (!ReferenceEquals(editorModel, CurrentEditorModel))
         {
             return;
         }
 
-        if (shouldLoadFile)
+        if (editorModel.SaveStatus == SaveStatus.Saved)
         {
             await LoadFileToTextEditorAsync(editorModel).ConfigureAwait(true);
-        }
-        else
-        {
-            await CheckFileChangeOnActivationAsync(editorModel).ConfigureAwait(true);
-        }
-
-        if (ReferenceEquals(editorModel, CurrentEditorModel))
-        {
-            StartActiveFileMonitoring(editorModel);
-        }
-    }
-
-    private async Task CheckFileChangeOnActivationAsync(EditorModel editorModel)
-    {
-        if (!HasFileChangedOnDisk(editorModel))
-        {
             return;
         }
 
         await PromptExternalFileChangeAsync(editorModel).ConfigureAwait(true);
-    }
-
-    private void StartActiveFileMonitoring(EditorModel editorModel)
-    {
-        if (!ReferenceEquals(editorModel, CurrentEditorModel)
-            || _isActiveFileMonitoringSuppressed
-            || editorModel.FileInfo is not { } fileInfo)
-        {
-            return;
-        }
-
-        _activeFileChangeMonitor.Start(fileInfo);
-        _monitoredEditorModel = editorModel;
-    }
-
-    private void StopActiveFileMonitoring()
-    {
-        _monitoredEditorModel = null;
-        _activeFileChangeMonitor.Stop();
-    }
-
-    private void ActiveFileChangeMonitorOnFileChanged(object? sender, ActiveFileChangedEventArgs e)
-    {
-        var editorModel = _monitoredEditorModel;
-        if (editorModel is null
-            || ReferenceEquals(editorModel, _editorModelBeingSaved)
-            || !ReferenceEquals(editorModel, CurrentEditorModel)
-            || editorModel.FileInfo is not { } fileInfo
-            || !PathEquals(fileInfo.FullName, e.FilePath))
-        {
-            return;
-        }
-
-        _ = HandleActiveFileChangeSafelyAsync(editorModel);
-    }
-
-    private async Task HandleActiveFileChangeSafelyAsync(EditorModel editorModel)
-    {
-        if (_isHandlingActiveFileChange)
-        {
-            return;
-        }
-
-        _isHandlingActiveFileChange = true;
-        try
-        {
-            await Task.Yield();
-
-            if (!ReferenceEquals(editorModel, _monitoredEditorModel)
-                || !ReferenceEquals(editorModel, CurrentEditorModel)
-                || !HasFileChangedOnDisk(editorModel))
-            {
-                return;
-            }
-
-            if (editorModel.SaveStatus == SaveStatus.Saved)
-            {
-                await LoadFileToTextEditorAsync(editorModel).ConfigureAwait(true);
-                return;
-            }
-
-            await PromptExternalFileChangeAsync(editorModel).ConfigureAwait(true);
-        }
-        finally
-        {
-            _isHandlingActiveFileChange = false;
-        }
     }
 
     private async Task PromptExternalFileChangeAsync(EditorModel editorModel)
@@ -762,47 +701,16 @@ public class EditorViewModel : ViewModelBase
                 await LoadFileToTextEditorAsync(editorModel).ConfigureAwait(true);
                 break;
             case ExternalFileChangeConfirmationViewModel.Decision.Ignore:
-                _isActiveFileMonitoringSuppressed = true;
-                StopActiveFileMonitoring();
-
+                _activeDocumentFileChangeService.Suppress(editorModel);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
     }
 
-    private static bool HasFileChangedOnDisk(EditorModel editorModel)
-    {
-        return editorModel.FileInfo is { } fileInfo
-               && editorModel.LoadedFileDiskState is { } loadedFileDiskState
-               && FileDiskState.TryRead(fileInfo, out var currentFileDiskState)
-               && currentFileDiskState != loadedFileDiskState;
-    }
-
-    private static void UpdateLoadedFileDiskState(EditorModel editorModel)
-    {
-        if (editorModel.FileInfo is { } fileInfo
-            && FileDiskState.TryRead(fileInfo, out var fileDiskState))
-        {
-            editorModel.LoadedFileDiskState = fileDiskState;
-        }
-    }
-
-    private static bool PathEquals(string firstPath, string secondPath)
-    {
-        var comparison = OperatingSystem.IsWindows()
-            ? StringComparison.OrdinalIgnoreCase
-            : StringComparison.Ordinal;
-        return string.Equals(Path.GetFullPath(firstPath), Path.GetFullPath(secondPath), comparison);
-    }
-
     private TempDocumentAutoSaveService TempDocumentAutoSaveService =>
         _tempDocumentAutoSaveService ??= new TempDocumentAutoSaveService(MainViewModel.AppPathManager);
 
     private TempDocumentAutoSaveService? _tempDocumentAutoSaveService;
-    private readonly ActiveFileChangeMonitor _activeFileChangeMonitor = new();
-    private EditorModel? _monitoredEditorModel;
-    private EditorModel? _editorModelBeingSaved;
-    private bool _isActiveFileMonitoringSuppressed;
-    private bool _isHandlingActiveFileChange;
+    private readonly ActiveDocumentFileChangeService _activeDocumentFileChangeService;
 }
