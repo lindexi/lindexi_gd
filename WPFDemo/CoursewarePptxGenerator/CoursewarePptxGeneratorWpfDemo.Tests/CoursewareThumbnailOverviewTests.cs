@@ -105,7 +105,7 @@ public sealed class CoursewareThumbnailOverviewTests
 
         Assert.AreEqual("Uniform", (string?) image.Attribute("Stretch"));
         Assert.AreEqual("{x:Static views:ThumbnailAspectRatio.Standard}", (string?) aspectRatioTrigger.Attribute("Value"));
-        Assert.AreEqual(3, overviews.Count);
+        Assert.HasCount(3, overviews);
         Assert.IsTrue(overviews.All(element => ((string?) element.Attribute("ThumbnailAspectRatio"))?.Contains("CoursewareAnalysisView", StringComparison.Ordinal) == true));
         CollectionAssert.IsSubsetOf(
             new[]

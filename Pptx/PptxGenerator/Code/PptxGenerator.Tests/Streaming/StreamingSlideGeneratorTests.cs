@@ -16,7 +16,7 @@ namespace PptxGenerator.Tests.Streaming;
 public sealed class StreamingSlideGeneratorTests
 {
     [TestMethod(DisplayName = "SendMessageAsync 流式链路：图片附件仅进入首次请求且工具白名单保持不变")]
-    [Timeout(60_000)]
+    [Timeout(60_000, CooperativeCancellation = true)]
     public async Task SendMessageAsync_AttachedImageShouldOnlyBeSentOnFirstAttemptAndKeepToolWhitelist()
     {
         var imageFilePath = Path.Join(Path.GetTempPath(), $"slide-streaming-{Guid.NewGuid():N}.png");
@@ -69,7 +69,7 @@ public sealed class StreamingSlideGeneratorTests
     }
 
     [TestMethod(DisplayName = "流式附件加载：预取消应抛出取消异常")]
-    [Timeout(60_000)]
+    [Timeout(60_000, CooperativeCancellation = true)]
     public async Task AppendAttachedImageContentsAsync_PreCanceledTokenShouldThrow()
     {
         using var cancellationTokenSource = new CancellationTokenSource();
@@ -84,7 +84,7 @@ public sealed class StreamingSlideGeneratorTests
     }
 
     [TestMethod(DisplayName = "SendMessageAsync 流式链路：必需附件缺失时不得污染会话或调用模型")]
-    [Timeout(60_000)]
+    [Timeout(60_000, CooperativeCancellation = true)]
     public async Task SendMessageAsync_MissingRequiredAttachmentShouldNotAppendSessionMessages()
     {
         var missingImageFilePath = Path.Join(Path.GetTempPath(), $"missing-slide-{Guid.NewGuid():N}.png");
