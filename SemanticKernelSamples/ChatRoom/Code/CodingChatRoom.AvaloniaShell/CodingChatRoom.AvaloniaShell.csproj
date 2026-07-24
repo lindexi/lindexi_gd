@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,5 +20,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\AgentLib\AgentLib.Coding\AgentLib.Coding.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CodingChatRoom.AvaloniaShell.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Styles\Strings.axaml" />
+    <AvaloniaResource Include="Styles\Colors.axaml" />
+    <AvaloniaResource Include="Styles\Controls.axaml" />
+    <AvaloniaResource Include="Styles\MessageBubble.axaml" />
   </ItemGroup>
 </Project>

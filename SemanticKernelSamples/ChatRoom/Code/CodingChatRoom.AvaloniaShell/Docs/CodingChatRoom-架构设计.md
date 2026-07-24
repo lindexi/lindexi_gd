@@ -6,7 +6,7 @@
 
 本项目不是 `ChatRoom.AvaloniaShell` 的精简皮肤，也不是只保留一个角色的聊天室。它是一个面向单个编程助手的桌面聊天宿主：直接承载 `AgentLib.Coding.CodingAgent`，围绕代码工作区、流式消息、工具调用、人工审批和会话历史提供最小但完整的交互。
 
-本文只输出设计，不实现代码。
+本文同时记录当前已实现的职责边界，作为后续维护基线。
 
 ## 已确认的现状
 
@@ -82,11 +82,12 @@
 - 流式返回同一个 `CopilotChatMessage`
 - 取消、异常和异步释放
 
-当前缺口：
+当前持久化边界：
 
-1. `FileCopilotChatLogger` 能写日志和历史 XML，但没有公开的历史枚举、加载、恢复和删除能力。
-2. `CodingAgent` 当前只向模型提供工作区 Lease 工具，不接收 Shell 提供的“设置工作路径”工具。
-3. `HumanApprovalTool` 的运行时绑定发生在 `CopilotChatManager` 标准发送路径中；`CodingAgent` 使用手动发送上下文，不能直接把配置态审批工具加入工具列表，否则可能绕过审批。
+1. `FileCopilotChatSessionStore` 独占 XML 编解码、版本兼容、原子保存、列表、纯数据加载和删除。
+2. `FileCodingChatSessionStore` 是 Shell 的完整会话仓储：负责把纯持久化数据恢复为 `CopilotChatSession`，并序列化/反序列化 `AgentSession`。
+3. `CopilotChatManager` 只管理进程内会话集合、选择和聊天状态，不承担恢复、检查点或文件格式职责。
+4. `FileCopilotChatLogger` 只追加人类可读文本日志，不接触 XML 或 AgentSession 状态。
 
 ## 产品目标
 
@@ -141,7 +142,9 @@ CodingChatRoom.AvaloniaShell
 
 AgentLib
 ├── CopilotChatManager / CopilotChatSession / CopilotChatMessage
-├── 文件日志与会话历史编解码
+├── CopilotChatSessionPersistenceData
+├── FileCopilotChatSessionStore / XML 编解码与纯数据存取
+├── FileCopilotChatLogger（仅文本日志）
 └── 手动发送运行时审批工具绑定能力
 
 AgentLib.Coding
@@ -172,7 +175,7 @@ AgentLib.Coding → AgentLib.ChatRoom
 ```text
 Environment.SpecialFolder.LocalApplicationData
 └── CodingChatRoom
-    ├── AgentApiManagerConfiguration.json
+    ├── AgentConfiguration.json
     ├── Logs
     │   └── yyyyMMdd
     │       └── yyyyMMdd_HHmmss_{SessionId}.log
@@ -183,7 +186,7 @@ Environment.SpecialFolder.LocalApplicationData
 路径规则：
 
 - `CodingChatRoomPaths` 只根据 `LocalApplicationData` 计算一次绝对路径。
-- Shell 必须把显式的 `Logs` 和 `Sessions` 路径传给日志/历史组件。
+- Shell 必须把显式的 `Logs` 路径传给 Logger，把 `Sessions` 与 `Logs` 路径传给 SessionStore。
 - 不调用 `new FileCopilotChatLogger()` 的默认构造函数，避免写入 `LocalApplicationData/AgentLib/CopilotChatLogs`。
 - 不探测解决方案目录、可执行文件目录或当前工作目录。
 - 不读取 `CHATROOM_PERSISTENCE_PATH` 等 ChatRoom 环境变量。
@@ -194,7 +197,7 @@ Environment.SpecialFolder.LocalApplicationData
 配置文件固定为：
 
 ```text
-%LOCALAPPDATA%/CodingChatRoom/AgentApiManagerConfiguration.json
+%LOCALAPPDATA%/CodingChatRoom/AgentConfiguration.json
 ```
 
 启动流程只允许：
@@ -237,14 +240,18 @@ Shell 不再创建平行的聊天消息领域模型。`MessageItemViewModel` 直
 历史仓储负责：
 
 - 列出 `Sessions` 目录中的会话摘要
-- 加载消息片段、会话 ID、创建时间和 AgentSession 状态
+- 由文件 Store 加载消息片段、会话 ID、创建时间和 AgentSession 状态的纯数据
+- 由 Shell 仓储将纯数据装配为完整 `CopilotChatSession`
 - 删除会话历史文件和对应文本日志
-- 把恢复结果装入 `CopilotChatManager`
-- 保存时保持日志和可恢复历史的一致格式
+- 把 XML 解码为 `CopilotChatSessionPersistenceData`
+- 校验格式版本并兼容无版本的版本 1 历史
+- 通过同目录临时文件完整写入后原子覆盖
 
 不应只恢复公开文本而丢弃 `AgentSessionState`，否则界面显示“历史已恢复”，模型却无法延续工具调用和上下文。
 
-建议把现有 `FileCopilotChatLogger` 的 XML 编解码提取为 AgentLib 中可复用的文件会话存储能力，避免 Shell 复制 `CopilotChatMessageItem` 序列化细节。日志写入和历史恢复必须共享同一格式实现。
+加载时，Shell 仓储先读取纯数据，再创建会话、恢复消息和反序列化 `AgentSession`；完整会话准备成功后才调用 `CopilotChatManager.AddSession`。保存时，Shell 仓储序列化当前会话的 `AgentSession`，再调用文件 Store 的 `SaveSessionAsync(session, state)`。磁盘格式版本只存在于 Store/Codec 内部，不进入 Manager。
+
+Logger 与 Store 不共享写入路径：Logger 只负责诊断日志，Store 是结构化会话文件的唯一写入者，从根源上消除同一 XML 的增量追加与全量覆盖竞争。
 
 ### 新建与空会话
 
@@ -273,9 +280,9 @@ ChatViewModel.SendAsync
   → 立即获得 CodingAgentRunResult.AssistantChatMessage
   → UI 通过 SelectedSession.ChatMessages 自动显示用户消息和流式助手消息
   → 等待 CompletionTask
-  → 生成/更新标题
+  → FileCodingChatSessionStore.SaveSessionAsync(session)
+  → 序列化 AgentSession 并调用 FileCopilotChatSessionStore.SaveSessionAsync(session, state)
   → 刷新左侧摘要
-  → 确认历史已持久化
 ```
 
 发送规则：
@@ -285,6 +292,7 @@ ChatViewModel.SendAsync
 - 输入框是否继续可编辑可按现有交互决定，但不能启动第二个发送。
 - “停止”只取消当前发送，不关闭会话、不清空输入历史。
 - 取消、异常和空回复必须可见且不能留下永久的 `...` 占位符。
+- 运行失败或取消时，最终持久化失败不得覆盖原始异常；运行成功时持久化失败必须向上抛出。
 - 不调用 `ChatRoomService.HumanInterjectAsync`、`StartAutoLoopAsync` 或任何角色发言 API。
 
 ## 工作区设计
@@ -478,7 +486,7 @@ RunAsync(context, contents, workspacePath, hostControlTools, cancellationToken)
   → 创建显式 FileCopilotChatLogger(Logs, Sessions)
   → 创建 CopilotChatManager
   → 创建 CodingAgent
-  → 创建 WorkspaceController 和 SessionRepository
+  → 创建 WorkspaceController 和 Shell 完整会话仓储
   → 加载会话历史
   → 选择最近会话或创建空会话
   → 创建 MainViewModel/MainView/MainWindow
@@ -558,7 +566,7 @@ RunAsync(context, contents, workspacePath, hostControlTools, cancellationToken)
 1. 应用启动后只有历史会话和编程助手聊天两列。
 2. 代码和 UI 中不存在角色大厅、角色管理、角色编辑和设置页入口。
 3. Shell 不引用 `AgentLib.ChatRoom`。
-4. 配置只从 `%LOCALAPPDATA%/CodingChatRoom/AgentApiManagerConfiguration.json` 加载。
+4. 配置只从 `%LOCALAPPDATA%/CodingChatRoom/AgentConfiguration.json` 加载。
 5. 配置缺失或无效时明确失败，不使用任何回退路径。
 6. 日志和历史只写入 `%LOCALAPPDATA%/CodingChatRoom` 下的固定子目录。
 7. 用户发送后直接进入 `CodingAgent`，消息可流式展示。

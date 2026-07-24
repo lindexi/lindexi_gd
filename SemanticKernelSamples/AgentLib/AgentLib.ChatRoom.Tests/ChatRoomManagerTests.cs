@@ -485,9 +485,9 @@ public sealed class ChatRoomManagerTests
         await singleManager.HumanInterjectAsync("问题", "human", "用户");
         _ = await singleManager.StepAsync(singleRole);
 
-        Assert.Contains("人类消息会直接作为 User 消息输入", singleExecutor.LastSystemPrompt);
-        Assert.Contains("历史中出现其他角色消息", singleExecutor.LastSystemPrompt);
-        Assert.DoesNotContain("人类和其他角色消息会通过", singleExecutor.LastSystemPrompt);
+        Assert.Contains("只有你自己在 LLM 对话历史中是 Assistant 角色", singleExecutor.LastSystemPrompt);
+        Assert.Contains("所有人类和非人类角色在 LLM 对话历史中都会作为 User 角色输入", singleExecutor.LastSystemPrompt);
+        Assert.Contains("通过消息文本说明", singleExecutor.LastSystemPrompt);
 
         var multiExecutor = new TestChatRoomRoleExecutor();
         var multiRole = new ChatRoomRole(new ChatRoomRoleDefinition
@@ -508,7 +508,7 @@ public sealed class ChatRoomManagerTests
         await multiManager.HumanInterjectAsync("问题", "human", "用户");
         _ = await multiManager.StepAsync(multiRole);
 
-        Assert.Contains("人类和其他角色消息会通过“用户说：...”或“角色名说：...”标明来源", multiExecutor.LastSystemPrompt);
+        Assert.Contains("当你看到“用户说：...”或“角色名说：...”时", multiExecutor.LastSystemPrompt);
         Assert.Contains("@机制：", multiExecutor.LastSystemPrompt);
         Assert.Contains("协作原则：", multiExecutor.LastSystemPrompt);
     }

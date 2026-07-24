@@ -4,8 +4,7 @@ namespace AgentLib.Logging;
 
 class EmptyCopilotChatLogger : ICopilotChatLogger
 {
-    public Task LogMessageAsync(Guid sessionId, CopilotChatMessage chatMessage,
-        ICopilotChatSessionStateProvider? agentSessionStateProvider = null)
+    public Task LogMessageAsync(Guid sessionId, CopilotChatMessage chatMessage)
     {
         return Task.CompletedTask;
     }

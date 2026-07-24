@@ -5,6 +5,9 @@
   </Folder>
   <Folder Name="/Lib/">
     <Project Path="../AgentLib/AgentLib.Coding/AgentLib.Coding.csproj" />
+    <Project Path="../AgentLib/AgentLib.Tests/AgentLib.Tests.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="../AgentLib/AgentLib/AgentLib.csproj" />
     <Project Path="../Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
     <Project Path="../Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />

@@ -225,6 +225,55 @@ public class CopilotChatManager : NotifyBase
     }
 
     /// <summary>
+    /// 将已有会话加入管理器；相同会话 ID 已存在时复用现有实例。
+    /// </summary>
+    /// <param name="session">要加入的会话。</param>
+    /// <param name="select">是否将该会话设为当前会话。</param>
+    /// <returns>集合中的会话实例。</returns>
+    public CopilotChatSession AddSession(CopilotChatSession session, bool select = false)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        CopilotChatSession? existingSession = ChatSessions.FirstOrDefault(item => item.SessionId == session.SessionId);
+        CopilotChatSession result = existingSession ?? session;
+        if (existingSession is null)
+        {
+            ChatSessions.Insert(0, session);
+            OnSessionCreated(session);
+        }
+
+        if (select)
+        {
+            SelectedSession = result;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 移除指定会话实例，并在需要时选择剩余会话或创建空会话。
+    /// </summary>
+    /// <param name="session">要移除的会话实例。</param>
+    /// <returns>找到并移除会话时返回 <see langword="true"/>。</returns>
+    public bool RemoveSession(CopilotChatSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        if (!ChatSessions.Contains(session))
+        {
+            return false;
+        }
+
+        bool wasSelected = ReferenceEquals(SelectedSession, session);
+        ChatSessions.Remove(session);
+
+        if (wasSelected)
+        {
+            SelectedSession = ChatSessions.FirstOrDefault() ?? CreateSession();
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// 从指定消息创建新会话。新会话包含从最早消息到 <paramref name="fromMessage"/>（含）之间的所有消息的深拷贝。
     /// 原会话保持不变，创建后自动切换到新会话。
     /// </summary>
@@ -387,17 +436,16 @@ public class CopilotChatManager : NotifyBase
             throw new ArgumentException("Contents 不能为空。", nameof(request));
         }
 
-        CancellationTokenSource currentChatCancellationTokenSource = CreateCurrentChatCancellationTokenSource(request.CancellationToken);
-        CancellationToken currentChatCancellationToken = currentChatCancellationTokenSource.Token;
-        _currentChatCancellationTokenSource = currentChatCancellationTokenSource;
-        WasLastChatCanceled = false;
-
         if (request.CreateNewSession)
         {
             CreateNewSession();
         }
 
         CopilotChatSession currentSession = SelectedSession;
+        CancellationTokenSource currentChatCancellationTokenSource = CreateCurrentChatCancellationTokenSource(request.CancellationToken);
+        CancellationToken currentChatCancellationToken = currentChatCancellationTokenSource.Token;
+        _currentChatCancellationTokenSource = currentChatCancellationTokenSource;
+        WasLastChatCanceled = false;
         IsChatting = true;
 
         CopilotChatMessage userChatMessage = CopilotChatMessage.CreateUser(request.Contents);
@@ -423,7 +471,7 @@ public class CopilotChatManager : NotifyBase
                 {
                     Tools = [.. toolList],
                     ToolMode = toolList.Count > 0 ? request.ToolMode : null,
-                }
+                },
             };
 
             if (request.ChatReducer is not null)
@@ -475,7 +523,7 @@ public class CopilotChatManager : NotifyBase
                 await AppendMessageAsync(currentSession, userChatMessage, currentChatCancellationToken);
 
                 ChatClientAgentCreatedResult chatClientAgentCreatedResult = await createChatClientAgentTask;
-                await AppendMessageAsync(currentSession, assistantChatMessage, currentChatCancellationToken);
+                await currentSession.AddMessageAsync(assistantChatMessage);
 
                 bool isFirst = true;
                 ChatMessage userChatMessageContent = userChatMessage.ToChatMessage();
@@ -496,8 +544,7 @@ public class CopilotChatManager : NotifyBase
                     AppendAssistantResponseUpdate(assistantChatMessage, agentRunResponseUpdate);
                 }
 
-                await ChatLogger.LogMessageAsync(currentSession.SessionId, assistantChatMessage,
-                    CreateAgentSessionStateProvider(chatClientAgentCreatedResult.ChatClientAgent, chatClientAgentCreatedResult.AgentSession));
+                await ChatLogger.LogMessageAsync(currentSession.SessionId, assistantChatMessage);
                 return new SendMessageRunState(IsSuccess: true, WasCanceled: false);
             }
             catch (OperationCanceledException) when (currentChatCancellationToken.IsCancellationRequested)
@@ -545,8 +592,6 @@ public class CopilotChatManager : NotifyBase
     /// <returns>手动发送消息的上下文。</returns>
     public async Task<IManualSendMessageContext> CreateManualSendMessageContextAsync(CancellationToken cancellationToken = default)
     {
-        CopilotChatSession currentSession = SelectedSession;
-
         // 默认工具不经过 HumanApprovalTool 包装，调用方自行决定是否包装
         IReadOnlyList<AITool> defaultTools = _toolManager.CreateDefaultTools(chatContext: null);
 
@@ -559,7 +604,7 @@ public class CopilotChatManager : NotifyBase
         {
             ChatManager = this,
             AIContextProviders = AIContextProviders,
-            Session = currentSession,
+            Session = SelectedSession,
             DefaultTools = defaultTools,
             ChatClient = chatClient,
             UserChatMessage = userChatMessage,
@@ -679,13 +724,6 @@ public class CopilotChatManager : NotifyBase
         }
 
         return toolList;
-    }
-
-    private static ICopilotChatSessionStateProvider? CreateAgentSessionStateProvider(ChatClientAgent chatClientAgent, AgentSession? agentSession)
-    {
-        ArgumentNullException.ThrowIfNull(chatClientAgent);
-
-        return agentSession is null ? null : new AgentSessionStateProvider(chatClientAgent, agentSession);
     }
 
     internal void AppendAssistantResponseUpdate(CopilotChatMessage copilotChatMessage, AgentResponseUpdate responseUpdate)
@@ -875,4 +913,5 @@ public class CopilotChatManager : NotifyBase
             _manager.IsChatting = false;
         }
     }
+
 }

@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
+             x:Class="CodingChatRoom.AvaloniaShell.Views.SessionListView"
+             x:DataType="vm:SessionListViewModel">
+    <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="12,10">
+            <TextBlock Text="{StaticResource SessionListTitle}" Classes="Title" />
+            <Button Grid.Column="1"
+                    Classes="Primary"
+                    Content="{StaticResource NewSessionText}"
+                    Command="{Binding CreateNewSessionCommand}" />
+        </Grid>
+
+        <Grid Grid.Row="1" Background="{StaticResource BackgroundBrush}">
+            <TextBlock Text="{StaticResource EmptySessionListText}"
+                       Classes="Subtitle"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding IsEmpty}" />
+            <ListBox ItemsSource="{Binding Sessions}"
+                     SelectedItem="{Binding SelectedSession, Mode=OneWay}"
+                     SelectionChanged="OnSelectionChanged"
+                     Background="Transparent"
+                     Margin="4">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SessionItemViewModel">
+                        <Border Classes="Card" Padding="10,8" Margin="2">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{Binding Title}"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock Text="{Binding Subtitle}" Classes="Subtitle" />
+                                </StackPanel>
+                                <Button Grid.Column="1"
+                                        Content="删除"
+                                        Command="{Binding $parent[UserControl].DataContext.DeleteSessionCommand}"
+                                        CommandParameter="{Binding}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+    </Grid>
+</UserControl>

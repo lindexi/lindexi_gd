@@ -71,6 +71,27 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         MessageItems.CollectionChanged += MessageItems_CollectionChanged;
     }
 
+    internal static CopilotChatMessage Restore(
+        ChatRole role,
+        DateTimeOffset createdTime,
+        bool isPresetInfo,
+        IEnumerable<ICopilotChatMessageItem> messageItems,
+        UsageDetails? totalUsageDetails)
+    {
+        ArgumentNullException.ThrowIfNull(messageItems);
+
+        var message = new CopilotChatMessage(role, createdTime, createdTime.ToString("HH:mm"), isPresetInfo)
+        {
+            TotalUsageDetails = totalUsageDetails,
+        };
+        foreach (ICopilotChatMessageItem messageItem in messageItems)
+        {
+            message.MessageItems.Add(messageItem);
+        }
+
+        return message;
+    }
+
     internal static ICopilotChatMessageItem CreateDataItem(DataContent dataContent)
     {
         ReadOnlyMemory<byte> data = dataContent.Data;
@@ -399,7 +420,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 
     /// <summary>
     /// 创建当前消息的深拷贝，包含所有 MessageItems 的递归深拷贝。
-    /// 如果存在 <see cref="TotalUsageDetails"/> 或 <see cref="CurrentUsageDetails"/>，则将其引用复制到新实例。
+    /// 如果存在 <see cref="TotalUsageDetails"/> 或 <see cref="CurrentUsageDetails"/>，则复制其值到新实例。
     /// </summary>
     /// <returns>深拷贝后的新消息实例。</returns>
     public CopilotChatMessage Clone()
@@ -407,12 +428,12 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         var clone = new CopilotChatMessage(Role, CreatedTime, TimeText, IsPresetInfo);
         if (TotalUsageDetails is { } totalUsageDetails)
         {
-            clone.TotalUsageDetails = totalUsageDetails;
+            clone.TotalUsageDetails = CloneUsageDetails(totalUsageDetails);
         }
 
         if (CurrentUsageDetails is { } currentUsageDetails)
         {
-            clone.CurrentUsageDetails = currentUsageDetails;
+            clone.CurrentUsageDetails = CloneUsageDetails(currentUsageDetails);
         }
 
         foreach (ICopilotChatMessageItem item in MessageItems)
@@ -421,6 +442,18 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         }
 
         return clone;
+    }
+
+    private static UsageDetails CloneUsageDetails(UsageDetails usageDetails)
+    {
+        return new UsageDetails
+        {
+            TotalTokenCount = usageDetails.TotalTokenCount,
+            InputTokenCount = usageDetails.InputTokenCount,
+            OutputTokenCount = usageDetails.OutputTokenCount,
+            ReasoningTokenCount = usageDetails.ReasoningTokenCount,
+            CachedInputTokenCount = usageDetails.CachedInputTokenCount,
+        };
     }
 
     /// <summary>

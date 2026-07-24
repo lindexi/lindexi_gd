@@ -2,8 +2,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="760"
         x:Class="CodingChatRoom.AvaloniaShell.MainWindow"
-        Title="CodingChatRoom.AvaloniaShell">
-    Welcome to Avalonia!
+        Title="{StaticResource ApplicationTitle}"
+        MinWidth="800"
+        MinHeight="520"
+        Background="{StaticResource BackgroundBrush}">
+    <views:MainView />
 </Window>

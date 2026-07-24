@@ -383,12 +383,12 @@ public class CopilotChatManagerSendMessageTests
             flashCallCount++;
             if (flashCallCount == 1)
             {
-                return CreateToolInvocationAsyncEnumerable(options, "nested-sub-agent-call-1", "InvokeSubAgent", new Dictionary<string, object?>
-                {
-                    ["prompt"] = "随便调用一个非返回工具",
-                    ["systemPrompt"] = null,
-                    ["subAgentType"] = "Flash"
-                }, cancellationToken);
+                return CreateToolInvocationAsyncEnumerable(
+                    options,
+                    "workspace-tool-call-1",
+                    CopilotChatManagerTestContext.GetWorkspaceToolName(nameof(WorkspaceToolProvider.ListDirectory)),
+                    null,
+                    cancellationToken);
             }
 
             retryMessages = messages.ToArray();

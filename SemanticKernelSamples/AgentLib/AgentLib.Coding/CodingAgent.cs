@@ -190,8 +190,8 @@ public sealed class CodingAgent : IAsyncDisposable
                 userChatMessage.AppendText(textContent.Text);
             }
 
-            await context.AppendMessagesToSessionAsync().ConfigureAwait(false);
             using IDisposable chatting = context.StartChatting();
+            await context.AppendMessagesToSessionAsync().ConfigureAwait(false);
             ChatClientAgent chatClientAgent = await context.GetChatClientAgentAsync(options =>
             {
                 options.ChatOptions ??= new ChatOptions();

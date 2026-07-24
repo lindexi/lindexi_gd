@@ -1,0 +1,15 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <Styles.Resources>
+        <sys:String x:Key="ApplicationTitle">CodingChatRoom 编程助手</sys:String>
+        <sys:String x:Key="SessionListTitle">历史会话</sys:String>
+        <sys:String x:Key="NewSessionText">+ 新建</sys:String>
+        <sys:String x:Key="EmptySessionListText">暂无历史会话</sys:String>
+        <sys:String x:Key="ChatTitle">编程助手</sys:String>
+        <sys:String x:Key="ChatDescription">会话、工作区和模型发送能力将在后续阶段接入。</sys:String>
+        <sys:String x:Key="MessageInputPlaceholder">输入编程问题（Ctrl+Enter 发送）</sys:String>
+        <sys:String x:Key="SendText">发送</sys:String>
+        <sys:String x:Key="StopText">停止</sys:String>
+    </Styles.Resources>
+</Styles>
