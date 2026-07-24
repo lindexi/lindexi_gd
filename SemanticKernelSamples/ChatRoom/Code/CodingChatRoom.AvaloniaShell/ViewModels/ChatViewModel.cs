@@ -11,6 +11,8 @@ using AgentLib.Model;
 
 using CodingChatRoom.AvaloniaShell.Services;
 
+using Microsoft.Extensions.AI;
+
 namespace CodingChatRoom.AvaloniaShell.ViewModels;
 
 /// <summary>
@@ -235,17 +237,21 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
             return;
         }
 
+        CopilotChatSession? session = _subscribedSession;
         try
         {
             await _workspaceController.ChangeWorkspaceAsync(WorkspaceInput).ConfigureAwait(true);
         }
         catch (OperationCanceledException)
         {
-            Trace.TraceInformation("工作路径切换已取消。");
+            const string message = "工作路径切换已取消。";
+            Trace.TraceInformation(message);
+            await AddSystemMessageAsync(session, message).ConfigureAwait(true);
         }
         catch (Exception exception)
         {
             Trace.TraceError($"工作路径切换失败：{exception}");
+            await AddSystemMessageAsync(session, $"工作路径切换失败：{exception.Message}").ConfigureAwait(true);
         }
     }
 
@@ -292,6 +298,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         }
 
         string prompt = InputText;
+        CopilotChatSession? session = _subscribedSession;
         InputText = string.Empty;
         _runStatusText = "正在运行";
         OnPropertyChanged(nameof(StatusText));
@@ -303,10 +310,12 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         catch (OperationCanceledException)
         {
             _runStatusText = "已停止";
+            await AddSystemMessageAsync(session, "运行已停止。").ConfigureAwait(true);
         }
         catch (Exception exception)
         {
             _runStatusText = $"运行失败：{exception.Message}";
+            await AddSystemMessageAsync(session, _runStatusText).ConfigureAwait(true);
         }
         finally
         {
@@ -419,5 +428,19 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         }
 
         Messages.Clear();
+    }
+
+    private static Task AddSystemMessageAsync(CopilotChatSession? session, string content)
+    {
+        if (session is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        var message = new CopilotChatMessage(ChatRole.System, content)
+        {
+            IsPresetInfo = true,
+        };
+        return session.AddMessageAsync(message);
     }
 }
