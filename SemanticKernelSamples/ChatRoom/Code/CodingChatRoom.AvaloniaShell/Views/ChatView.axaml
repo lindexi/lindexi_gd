@@ -123,19 +123,8 @@
                                                SubAgentItemTemplate="{StaticResource AssistantSubAgentItemTemplate}" />
     </UserControl.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,*,Auto">
         <Border Grid.Row="0"
-                Padding="16,12"
-                Background="{StaticResource SurfaceBrush}"
-                BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="0,0,0,1">
-            <StackPanel Spacing="3">
-                <TextBlock Text="{Binding CurrentSessionTitle}" Classes="Title" />
-                <TextBlock Text="{Binding StatusText}" Classes="Subtitle" />
-            </StackPanel>
-        </Border>
-
-        <Border Grid.Row="1"
                 Padding="12,8"
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
@@ -174,7 +163,7 @@
         </Border>
 
         <ScrollViewer x:Name="MessagesScrollViewer"
-                      Grid.Row="2"
+                      Grid.Row="1"
                       Background="{StaticResource BackgroundBrush}"
                       Padding="8"
                       VerticalScrollBarVisibility="Auto">
@@ -265,7 +254,7 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <Border Grid.Row="3"
+        <Border Grid.Row="2"
                 Padding="12,8"
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
