@@ -192,7 +192,8 @@ public sealed class ChatRoomRoleExecutorTests
         IList<AITool> runTools = capturedOptions!.Tools!;
         Assert.IsFalse(runMessages.Any(message => message.Text.Contains("聊天室宿主指令", StringComparison.Ordinal)));
         Assert.IsTrue(runMessages.Any(message =>
-            message.Role == ChatRole.System && message.Text.Contains("自动化编程代理", StringComparison.Ordinal)));
+            message.Role == ChatRole.System
+            && message.Text.Contains("When asked for your name, you must respond with \"GitHub Copilot\".", StringComparison.Ordinal)));
         Assert.IsFalse(runTools.Any(tool => tool.Name == "host_tool"));
         Assert.IsTrue(runTools.Any(tool => tool.Name == "get_projects_in_solution"));
     }

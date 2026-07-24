@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
+        x:Class="CodingChatRoom.AvaloniaShell.StartupFailureWindow"
+        x:DataType="vm:StartupFailureViewModel"
+        Title="CodingChatRoom 启动失败"
+        Width="760"
+        Height="520"
+        MinWidth="560"
+        MinHeight="360"
+        WindowStartupLocation="CenterScreen">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="20" RowSpacing="12">
+        <TextBlock Grid.Row="0"
+                   Text="CodingChatRoom 启动失败"
+                   FontSize="22"
+                   FontWeight="Bold"
+                   Foreground="{StaticResource ErrorBrush}" />
+
+        <StackPanel Grid.Row="1" Spacing="4">
+            <TextBlock Text="固定配置文件" Classes="Subtitle" />
+            <TextBlock Text="{Binding ConfigurationFilePath}"
+                       TextWrapping="Wrap"
+                       FontFamily="Consolas" />
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Margin="0,8,0,0"
+                       TextWrapping="Wrap"
+                       Foreground="{StaticResource ErrorBrush}" />
+        </StackPanel>
+
+        <TextBox Grid.Row="2"
+                 Text="{Binding ErrorDetails}"
+                 IsReadOnly="True"
+                 AcceptsReturn="True"
+                 TextWrapping="NoWrap"
+                 FontFamily="Consolas"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
+
+        <Button Grid.Row="3"
+                Classes="Danger"
+                Content="退出"
+                Command="{Binding ExitCommand}"
+                HorizontalAlignment="Right" />
+    </Grid>
+</Window>

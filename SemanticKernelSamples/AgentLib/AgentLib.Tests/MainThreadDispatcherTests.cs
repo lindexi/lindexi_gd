@@ -202,10 +202,8 @@ public class MainThreadDispatcherTests
 
         foreach (var record in dispatcher.InvokeHistory)
         {
-            Assert.AreEqual(dispatcher.MainThreadId, record.CallbackThreadId,
-                "工具调用后回调执行时的线程 ID 应与捕获的主线程 ID 一致");
-            Assert.AreSame(dispatcher.MainThread, record.CallbackThread,
-                "工具调用后回调执行时的 Thread 实例应与捕获的主线程实例相同");
+            Assert.IsTrue(record.CheckAccessDuringCallback,
+                "工具调用后回调执行期间调度器应报告主线程访问权限");
         }
     }
 
@@ -235,10 +233,8 @@ public class MainThreadDispatcherTests
 
         foreach (var record in dispatcher.InvokeHistory)
         {
-            Assert.AreEqual(dispatcher.MainThreadId, record.CallbackThreadId,
-                "多轮工具调用后回调执行时的线程 ID 应与捕获的主线程 ID 一致");
-            Assert.AreSame(dispatcher.MainThread, record.CallbackThread,
-                "多轮工具调用后回调执行时的 Thread 实例应与捕获的主线程实例相同");
+            Assert.IsTrue(record.CheckAccessDuringCallback,
+                "多轮工具调用后回调执行期间调度器应报告主线程访问权限");
         }
 
         foreach (var snapshot in dispatcher.SynchronizationContextSnapshots)
@@ -280,8 +276,8 @@ public class MainThreadDispatcherTests
 
         foreach (var record in dispatcher.InvokeHistory)
         {
-            Assert.AreEqual(dispatcher.MainThreadId, record.CallbackThreadId,
-                "所有回调（包括工具调用后的）执行时的线程 ID 应与捕获的主线程 ID 一致");
+            Assert.IsTrue(record.CheckAccessDuringCallback,
+                "所有回调（包括工具调用后的）执行期间调度器应报告主线程访问权限");
         }
     }
 

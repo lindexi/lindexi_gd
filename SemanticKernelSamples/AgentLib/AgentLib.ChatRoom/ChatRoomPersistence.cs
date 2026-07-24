@@ -21,14 +21,13 @@ namespace AgentLib.ChatRoom;
 /// 聊天室持久化管理器。使用多文件结构：
 /// - <c>room.config.json</c>：聊天室配置 + 角色定义
 /// - <c>public_logs/{sessionId}.txt</c>：公开聊天记录（复用 <see cref="FileCopilotChatLogger"/> 的文本日志格式）
-/// - <c>{sessionId}/{RoleId}/chat_history.xml</c>：每个角色的私有完整记录
+/// - <c>{sessionId}/{RoleId}/agent-session-state.json</c>：每个角色的 AgentSession 状态
 /// </summary>
 public sealed class ChatRoomPersistence
 {
     private static readonly char[] InvalidStorageIdentifierCharacters = ['/', '\\', ':', '*', '?', '"', '<', '>', '|'];
     private readonly string _baseFolder;
     private readonly FileCopilotChatLogger _publicLogger;
-    private readonly Dictionary<string, FileCopilotChatLogger> _roleLoggers = [];
     private readonly SemaphoreSlim _writeLock = new(1, 1);
 
     /// <summary>
@@ -71,23 +70,6 @@ public sealed class ChatRoomPersistence
     /// </summary>
     private static string GetRoleAgentSessionStateFilePath(string sessionFolder, string roleId) =>
         Path.Join(GetRoleHistoryFolder(sessionFolder, roleId), "agent-session-state.json");
-
-    /// <summary>
-    /// 获取或创建指定角色在指定会话中的日志记录器。
-    /// </summary>
-    private FileCopilotChatLogger GetRoleLogger(string sessionFolder, string roleId)
-    {
-        string key = $"{sessionFolder}:{roleId}";
-        if (_roleLoggers.TryGetValue(key, out FileCopilotChatLogger? logger))
-        {
-            return logger;
-        }
-
-        string roleFolder = GetRoleHistoryFolder(sessionFolder, roleId);
-        logger = new FileCopilotChatLogger(roleFolder, roleFolder);
-        _roleLoggers[key] = logger;
-        return logger;
-    }
 
     /// <summary>
     /// 序列化配置为 JSON 并保存到聊天室文件夹。
@@ -172,25 +154,6 @@ public sealed class ChatRoomPersistence
             message.Content);
 
         await _publicLogger.LogMessageAsync(sessionId, copilotMessage).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// 持久化角色的私有消息（完整记录，含工具调用和思考内容）。
-    /// </summary>
-    /// <param name="sessionId">会话 ID（聊天室会话 ID）。</param>
-    /// <param name="roleId">角色 ID。</param>
-    /// <param name="copilotMessage">角色的完整 <see cref="CopilotChatMessage"/>。</param>
-    public async Task SaveRoleMessageAsync(Guid sessionId, string roleId, CopilotChatMessage copilotMessage)
-    {
-        ArgumentNullException.ThrowIfNull(roleId);
-        ArgumentNullException.ThrowIfNull(copilotMessage);
-
-        string sessionFolder = GetSessionFolder(sessionId.ToString());
-        FileCopilotChatLogger logger = GetRoleLogger(sessionFolder, roleId);
-
-        // 使用 roleId 派生一个稳定的 Guid 作为角色日志的 sessionId
-        var roleSessionId = DeriveGuidFromString($"{sessionId}:{roleId}");
-        await logger.LogMessageAsync(roleSessionId, copilotMessage).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -324,16 +287,6 @@ public sealed class ChatRoomPersistence
         {
             Directory.Delete(sessionFolder, recursive: true);
         }
-    }
-
-    private static Guid DeriveGuidFromString(string input)
-    {
-        // 使用 SHA256 哈希从字符串派生稳定的 Guid
-        byte[] hash = System.Security.Cryptography.SHA256.HashData(
-            System.Text.Encoding.UTF8.GetBytes(input));
-        byte[] guidBytes = new byte[16];
-        Array.Copy(hash, guidBytes, 16);
-        return new Guid(guidBytes);
     }
 
     private static void ValidateRoleDefinitions(IEnumerable<ChatRoomRoleDefinition> definitions)

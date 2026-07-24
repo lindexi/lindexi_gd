@@ -295,10 +295,14 @@ public sealed class ChatRoomSessionTests
         var mockDispatcher = new Mock<IMainThreadDispatcher>();
         mockDispatcher
             .Setup(d => d.CheckAccess())
-            .Returns(true);
+            .Returns(() => false);
         mockDispatcher
             .Setup(d => d.InvokeAsync(It.IsAny<Func<Task>>()))
-            .Returns<Func<Task>>(func => func());
+            .Returns<Func<Task>>(async func =>
+            {
+                mockDispatcher.Setup(d => d.CheckAccess()).Returns(true);
+                await func();
+            });
         var session = new ChatRoomSession(Guid.NewGuid(), DateTimeOffset.Now)
         {
             MainThreadDispatcher = mockDispatcher.Object,

@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
+             xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
+             x:Class="CodingChatRoom.AvaloniaShell.Views.MainView"
+             x:DataType="vm:MainViewModel">
+    <Grid ColumnDefinitions="260,4,*">
+        <Border Grid.Column="0"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,1,0">
+            <views:SessionListView DataContext="{Binding SessionListViewModel}" />
+        </Border>
+
+        <GridSplitter Grid.Column="1"
+                      Width="4"
+                      Background="{StaticResource BorderBrush}"
+                      ResizeDirection="Columns" />
+
+        <views:ChatView Grid.Column="2"
+                        DataContext="{Binding ChatViewModel}" />
+    </Grid>
+</UserControl>

@@ -58,11 +58,12 @@ public sealed class CodingAgentTests
             new[] { "coding_only" },
             capturedOptions!.Tools!.Select(tool => tool.Name).ToArray());
         IReadOnlyList<ChatMessage> runMessages = capturedMessages!;
-        Assert.HasCount(2, runMessages);
+        Assert.HasCount(4, runMessages);
         Assert.AreEqual(ChatRole.System, runMessages[0].Role);
-        StringAssert.Contains(runMessages[0].Text, "自动化编程代理");
-        Assert.AreEqual(ChatRole.User, runMessages[1].Role);
-        ChatMessage userMessage = runMessages[1];
+        StringAssert.Contains(runMessages[0].Text, "When asked for your name, you must respond with \"GitHub Copilot\".");
+        Assert.IsTrue(runMessages.Take(3).All(message => message.Role == ChatRole.System));
+        Assert.AreEqual(ChatRole.User, runMessages[3].Role);
+        ChatMessage userMessage = runMessages[3];
         Assert.IsInstanceOfType<TextContent>(userMessage.Contents[0]);
         Assert.IsInstanceOfType<DataContent>(userMessage.Contents[1]);
         Assert.IsInstanceOfType<TextContent>(userMessage.Contents[2]);
@@ -136,7 +137,7 @@ public sealed class CodingAgentTests
         int systemPromptCount = agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? messages)
             ? messages.Count(message => message.Role == ChatRole.System)
             : 0;
-        Assert.AreEqual(1, systemPromptCount);
+        Assert.AreEqual(3, systemPromptCount);
     }
 
     [TestMethod(DisplayName = "同一 CodingAgent 允许重叠运行")]
@@ -156,14 +157,15 @@ public sealed class CodingAgentTests
                 _ => { },
                 cancellationToken),
         };
-        CopilotChatManager chatManager = CreateChatManager(client);
+        CopilotChatManager firstChatManager = CreateChatManager(client);
+        CopilotChatManager secondChatManager = CreateChatManager(client);
         await using var agent = new CodingAgent(CreateProvider("workspace", []));
         CodingAgentRunResult first = await agent.RunAsync(
-            await chatManager.CreateManualSendMessageContextAsync(),
+            await firstChatManager.CreateManualSendMessageContextAsync(),
             "第一轮",
             "workspace");
         await streamStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
-        IManualSendMessageContext secondContext = await chatManager.CreateManualSendMessageContextAsync();
+        IManualSendMessageContext secondContext = await secondChatManager.CreateManualSendMessageContextAsync();
 
         CodingAgentRunResult second = await agent.RunAsync(
             secondContext,

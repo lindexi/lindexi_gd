@@ -127,7 +127,7 @@ Create(rootDirectory)
 5. 创建 `AgentApiEndpointManager` 并调用 `LoadConfiguration`。
 6. 读取一次 `PrimaryModel`，提前验证可用模型。
 7. 创建 `AvaloniaMainThreadDispatcher`。
-8. 创建显式日志器：`new FileCopilotChatLogger(paths.LogDirectory, paths.SessionDirectory)` 或后续统一存储实现。
+8. 创建纯文本日志器：`new FileCopilotChatLogger(paths.LogDirectory)`；另行创建 `FileCopilotChatSessionStore(paths.SessionDirectory, paths.LogDirectory)`。
 9. 创建 `CopilotChatManager`，设置 `MainThreadDispatcher` 和 `AgentApiEndpointManager`。
 10. 创建 `CodingAgent`。
 11. 创建 `CodingWorkspaceController`。
@@ -224,7 +224,7 @@ SemaphoreSlim SessionOperationGate
 保存 CompletionTask 为 ActiveRunTask
 返回 AssistantChatMessage/运行句柄给 ViewModel
 门外等待 CompletionTask
-完成后刷新标题和摘要
+完成后由会话仓储保存启动运行时捕获的 CopilotChatSession，并刷新标题和摘要
 finally 清理 ActiveRunTask、CTS 和状态
 ```
 
@@ -446,9 +446,9 @@ AIContextProviders = []
 
 ## 十、历史存储与恢复
 
-### 当前格式问题
+### 当前持久化职责
 
-`FileCopilotChatLogger` 的 XML 当前保存：
+当前结构化历史由 `FileCopilotChatSessionStore` 独占 XML 存取，XML 格式版本保持为 2：
 
 - SessionId
 - CreatedTime
@@ -457,34 +457,26 @@ AIContextProviders = []
 - 文本、思考、图片、音频、工具、审批和子代理片段
 - Token 用量
 
-但它没有：
+文件 Store 加载返回 `CopilotChatSessionPersistenceData`，只表达格式版本、会话元数据、公开消息与可选 `JsonElement` 状态，不依赖 Manager，也不创建运行时会话。
 
-- 公共列表 API
-- 加载为 `CopilotChatSession` 的 API
-- 删除 API
-- 标题字段
-- 明确的损坏文件结果模型
+### 已实现的职责边界
 
-### 推荐的 AgentLib 能力
+职责规则：
 
-建议增加 `FileCopilotChatSessionStore`，或把 `FileCopilotChatLogger` 扩展为组合式存储。推荐契约：
+- `CopilotChatManager` 只提供 `AddSession`、对象实例语义的 `RemoveSession`、选择和全局聊天状态。
+- `FileCopilotChatSessionStore` 负责 XML 版本 1/2 读取、纯数据返回、未来版本拒绝和原子覆盖。
+- `FileCodingChatSessionStore` 负责把纯数据装配成完整会话，以及序列化/反序列化 `AgentSession`。
+- `FileCopilotChatLogger` 只写 `.log`，不创建或修改 `.xml`。
+- 单个最近历史损坏或恢复失败时，启动继续尝试下一份摘要。
+- 恢复失败时，只有完全构造成功的会话才加入 Manager，失败对象不会污染会话集合或当前选择。
+- 运行异常/取消优先于 finally 中的保存异常；仅运行成功时保存异常作为主异常。
 
 ```text
-IReadOnlyList<CopilotChatSessionSummary> ListSessions()
-Task<CopilotChatSessionSnapshot> LoadSessionAsync(filePath, token)
-Task DeleteSessionAsync(sessionId, token)
+FileCopilotChatSessionStore.LoadSessionAsync(id) -> CopilotChatSessionPersistenceData
+FileCopilotChatSessionStore.SaveSessionAsync(session, agentSessionState, token)
+ICodingChatSessionStore.LoadSessionAsync(id) -> CopilotChatSession
+ICodingChatSessionStore.SaveSessionAsync(session, token)
 ```
-
-`CopilotChatSessionSnapshot` 至少包含：
-
-- `SessionId`
-- `StartedTime`
-- `Title`
-- `IReadOnlyList<CopilotChatMessage>`
-- `JsonElement? AgentSessionState`
-- `HistoryFilePath`
-- `MessageCount`
-- `LastActivityTime`
 
 ### 格式升级
 
@@ -504,16 +496,6 @@ LastUpdatedTime="..."
 
 ### 恢复到 CopilotChatManager
 
-当前 `ChatSessions` 是可写集合，可以在 UI 线程装入恢复会话；但应优先为 `CopilotChatManager` 增加明确方法，而不是 Shell 直接操作内部顺序：
-
-```text
-AddOrReplaceSession(CopilotChatSession session)
-RemoveSession(CopilotChatSession session)
-SelectSession(CopilotChatSession session)
-```
-
-若不增加 API，Shell 直接修改集合必须集中在一个仓储适配器中。
-
 恢复步骤：
 
 1. 创建指定 ID 和 StartedTime 的 `CopilotChatSession`。
@@ -523,7 +505,7 @@ SelectSession(CopilotChatSession session)
 5. 创建手动上下文和 `ChatClientAgent`。
 6. 调用 `DeserializeSessionAsync` 恢复 `AgentSessionState`。
 7. `session.SetAgentSession(agentSession)`。
-8. 加入 Manager 并选中。
+8. 完整恢复成功后调用 `AddSession(session, select: true)`。
 
 恢复消息时不能触发新的日志追加，也不能重复生成欢迎消息。
 

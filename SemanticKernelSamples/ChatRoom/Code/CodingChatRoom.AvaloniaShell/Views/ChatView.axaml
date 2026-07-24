@@ -1,0 +1,298 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
+             xmlns:model="using:AgentLib.Model"
+             xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
+             x:Class="CodingChatRoom.AvaloniaShell.Views.ChatView"
+             x:DataType="vm:ChatViewModel">
+    <UserControl.Resources>
+        <DataTemplate x:Key="AssistantTextItemTemplate" x:DataType="model:CopilotChatTextItem">
+            <TextBlock Margin="0,0,0,8"
+                       Text="{Binding Text}"
+                       TextWrapping="Wrap"
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       IsVisible="{Binding HasText}" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="AssistantReasoningItemTemplate" x:DataType="model:CopilotChatReasoningItem">
+            <Expander Classes="ReasoningExpander"
+                      Margin="0,0,0,8"
+                      IsExpanded="False"
+                      IsVisible="{Binding HasText}">
+                <Expander.Header>
+                    <TextBlock Text="思考过程"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="#FF546E7A" />
+                </Expander.Header>
+                <Border Classes="ReasoningPanel">
+                    <TextBlock Text="{Binding Text}"
+                               TextWrapping="Wrap"
+                               Foreground="#FF546E7A" />
+                </Border>
+            </Expander>
+        </DataTemplate>
+
+        <DataTemplate x:Key="AssistantToolItemTemplate" x:DataType="model:CopilotChatToolItem">
+            <Expander Margin="0,0,0,8">
+                <Expander.Header>
+                    <TextBlock Text="{Binding DisplayName}" />
+                </Expander.Header>
+                <Border Classes="ToolPanel">
+                    <StackPanel Spacing="6">
+                        <StackPanel IsVisible="{Binding HasInputText}">
+                            <TextBlock Classes="SecondaryLabel" Text="输入参数" />
+                            <TextBlock Text="{Binding InputText}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel IsVisible="{Binding HasOutputText}">
+                            <TextBlock Classes="SecondaryLabel" Text="工具输出" />
+                            <TextBlock Text="{Binding OutputText}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Expander>
+        </DataTemplate>
+
+        <DataTemplate x:Key="AssistantApprovalToolItemTemplate" x:DataType="model:CopilotChatApprovalToolItem">
+            <Border Classes="ApprovalPanel" Margin="0,0,0,8">
+                <StackPanel Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                        <TextBlock Classes="SecondaryLabel" Text="{Binding ApprovalStateText}" />
+                    </StackPanel>
+                    <StackPanel IsVisible="{Binding HasApprovalDescription}">
+                        <TextBlock Classes="SecondaryLabel" Text="审批说明" />
+                        <TextBlock Text="{Binding ApprovalDescription}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel IsVisible="{Binding HasInputText}">
+                        <TextBlock Classes="SecondaryLabel" Text="输入参数" />
+                        <TextBlock Text="{Binding InputText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel IsVisible="{Binding HasOutputText}">
+                        <TextBlock Classes="SecondaryLabel" Text="工具输出" />
+                        <TextBlock Text="{Binding OutputText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel IsVisible="{Binding HasDecisionReason}">
+                        <TextBlock Classes="SecondaryLabel" Text="拒绝原因" />
+                        <TextBlock Text="{Binding DecisionReason}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding CanRespondToApproval}">
+                        <Button Classes="Primary"
+                                Content="同意"
+                                Click="ApproveToolButton_OnClick"
+                                CommandParameter="{Binding}" />
+                        <Button Classes="Danger"
+                                Content="拒绝"
+                                Click="RejectToolButton_OnClick"
+                                CommandParameter="{Binding}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate x:Key="AssistantSubAgentItemTemplate" x:DataType="model:CopilotChatSubAgentItem">
+            <Expander Margin="0,0,0,8" IsExpanded="True">
+                <Expander.Header>
+                    <TextBlock Text="{Binding DisplayName}" />
+                </Expander.Header>
+                <Border Classes="SubAgentPanel">
+                    <StackPanel Spacing="6">
+                        <StackPanel IsVisible="{Binding HasInputText}">
+                            <TextBlock Classes="SecondaryLabel" Text="任务输入" />
+                            <TextBlock Text="{Binding InputText}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding MessageItems}"
+                                      ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}"
+                                      IsVisible="{Binding HasMessageItems}" />
+                        <StackPanel IsVisible="{Binding HasOutputText}">
+                            <TextBlock Classes="SecondaryLabel" Text="返回上级代理的输出" />
+                            <TextBlock Text="{Binding OutputText}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Expander>
+        </DataTemplate>
+
+        <views:ChatMessageItemTemplateSelector x:Key="ChatMessageItemTemplateSelector"
+                                               TextItemTemplate="{StaticResource AssistantTextItemTemplate}"
+                                               ReasoningItemTemplate="{StaticResource AssistantReasoningItemTemplate}"
+                                               ToolItemTemplate="{StaticResource AssistantToolItemTemplate}"
+                                               ApprovalToolItemTemplate="{StaticResource AssistantApprovalToolItemTemplate}"
+                                               SubAgentItemTemplate="{StaticResource AssistantSubAgentItemTemplate}" />
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <Border Grid.Row="0"
+                Padding="16,12"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1">
+            <StackPanel Spacing="3">
+                <TextBlock Text="{Binding CurrentSessionTitle}" Classes="Title" />
+                <TextBlock Text="{Binding StatusText}" Classes="Subtitle" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1"
+                Padding="12,8"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                <TextBlock Grid.Row="0"
+                           Grid.Column="0"
+                           Margin="0,0,8,0"
+                           VerticalAlignment="Center"
+                           Text="工作路径"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBox Grid.Row="0"
+                         Grid.Column="1"
+                         Classes="Rounded"
+                         Text="{Binding WorkspaceInput, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="输入本地代码目录；留空后应用可清除工作区"
+                         IsEnabled="{Binding !IsChangingWorkspace}" />
+                <Button Grid.Row="0"
+                        Grid.Column="2"
+                        Classes="Primary"
+                        Margin="8,0,0,0"
+                        Content="应用"
+                        Command="{Binding ApplyWorkspaceCommand}"
+                        IsEnabled="{Binding CanApplyWorkspace}" />
+                <StackPanel Grid.Row="1"
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            Margin="0,4,0,0"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                    <TextBlock Classes="Subtitle" Text="{Binding WorkspaceStatusText}" />
+                    <TextBlock Classes="Subtitle"
+                               Text="{Binding CommittedWorkspacePath, StringFormat='当前：{0}'}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer x:Name="MessagesScrollViewer"
+                      Grid.Row="2"
+                      Background="{StaticResource BackgroundBrush}"
+                      Padding="8"
+                      VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="MessagesItemsControl" ItemsSource="{Binding Messages}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MessageItemViewModel">
+                        <Grid Margin="8,4">
+                            <StackPanel HorizontalAlignment="Left"
+                                        MaxWidth="720"
+                                        Spacing="2"
+                                        IsVisible="{Binding IsAssistantMessage}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding Author}" Classes="AuthorName" />
+                                    <TextBlock Text="{Binding TimeText}" Classes="Timestamp" />
+                                </StackPanel>
+                                <Border Classes="MessageBubbleAssistant" HorizontalAlignment="Left">
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="复制正文"
+                                                      Click="CopyContentMenuItem_OnClick"
+                                                      CommandParameter="{Binding}" />
+                                            <MenuItem Header="复制整条"
+                                                      Click="CopyFullMessageMenuItem_OnClick"
+                                                      CommandParameter="{Binding}" />
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+                                    <ItemsControl ItemsSource="{Binding MessageItems}"
+                                                  ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}" />
+                                </Border>
+                                <Border Classes="UsageSummaryBorder"
+                                        HorizontalAlignment="Right"
+                                        IsVisible="{Binding HasUsageDetails}">
+                                    <TextBlock Classes="UsageSummaryText"
+                                               Text="{Binding UsageSummaryText}"
+                                               TextWrapping="Wrap" />
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel HorizontalAlignment="Right"
+                                        MaxWidth="720"
+                                        Spacing="2"
+                                        IsVisible="{Binding IsUserMessage}">
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Right"
+                                            Spacing="8">
+                                    <TextBlock Text="{Binding TimeText}" Classes="Timestamp" />
+                                    <TextBlock Text="{Binding Author}" Classes="AuthorName" />
+                                </StackPanel>
+                                <Border Classes="MessageBubbleUser" HorizontalAlignment="Right">
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="复制正文"
+                                                      Click="CopyContentMenuItem_OnClick"
+                                                      CommandParameter="{Binding}" />
+                                            <MenuItem Header="复制整条"
+                                                      Click="CopyFullMessageMenuItem_OnClick"
+                                                      CommandParameter="{Binding}" />
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+                                    <TextBlock Text="{Binding Content}"
+                                               TextWrapping="Wrap"
+                                               Foreground="{StaticResource TextOnPrimaryBrush}" />
+                                </Border>
+                            </StackPanel>
+
+                            <Border Classes="MessageBubbleSystem"
+                                    HorizontalAlignment="Center"
+                                    MaxWidth="520"
+                                    IsVisible="{Binding IsSystemMessage}">
+                                <Border.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="复制正文"
+                                                  Click="CopyContentMenuItem_OnClick"
+                                                  CommandParameter="{Binding}" />
+                                        <MenuItem Header="复制整条"
+                                                  Click="CopyFullMessageMenuItem_OnClick"
+                                                  CommandParameter="{Binding}" />
+                                    </ContextMenu>
+                                </Border.ContextMenu>
+                                <TextBlock Text="{Binding Content}"
+                                           FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap" />
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="3"
+                Padding="12,8"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBox Grid.Column="0"
+                          x:Name="MessageInputTextBox"
+                         Classes="Rounded"
+                         Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="{StaticResource MessageInputPlaceholder}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                          KeyDown="MessageInputTextBox_OnKeyDown"
+                         MaxHeight="120" />
+                <Button Grid.Column="1"
+                        Classes="Primary"
+                        Content="{StaticResource SendText}"
+                        Margin="8,0,0,0"
+                        Command="{Binding SendCommand}"
+                        IsEnabled="{Binding CanSend}" />
+                <Button Grid.Column="2"
+                        Classes="Danger"
+                        Content="{StaticResource StopText}"
+                        Margin="8,0,0,0"
+                        Command="{Binding StopCommand}"
+                        IsVisible="{Binding IsRunning}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
