@@ -18,7 +18,7 @@ namespace CoursewarePptxGeneratorWpfDemo.Tests;
 [TestClass]
 public sealed class CoursewareSlideWorkspaceViewModelTests
 {
-    [TestMethod(DisplayName = "真实工作台激活和切页应按需创建对应页面运行时")]
+    [TestMethod(DisplayName = "真实工作台激活和切页应按需准备页面草稿附件并创建运行时")]
     [Timeout(60_000)]
     public async Task ActivateAndSelectShouldInitializeOnlyVisitedSlides()
     {
@@ -34,6 +34,11 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         Assert.AreEqual(1, factory.CreateCount);
         Assert.IsNotNull(workspace.Slides[0].Runtime);
         Assert.IsNull(workspace.Slides[1].Runtime);
+        Assert.IsTrue(workspace.Slides[0].IsInitialPromptPrepared);
+        Assert.IsFalse(workspace.Slides[1].IsInitialPromptPrepared);
+        StringAssert.Contains(workspace.Slides[0].InputText, CoursewareSlideGenerationEnvelope.CurrentSchemaVersion);
+        Assert.HasCount(1, workspace.Slides[0].AttachedImageFiles);
+        Assert.AreEqual(CoursewareChatImageAttachmentKind.SourceScreenshot, workspace.Slides[0].AttachedImageFiles[0].Kind);
         Assert.AreEqual(1, workspace.Summary.ReadyCount);
         Assert.AreEqual(1, workspace.Summary.NotStartedCount);
 
@@ -42,10 +47,12 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
 
         Assert.AreEqual(2, factory.CreateCount);
         Assert.IsNotNull(workspace.Slides[1].Runtime);
+        Assert.IsTrue(workspace.Slides[1].IsInitialPromptPrepared);
+        Assert.HasCount(1, workspace.Slides[1].AttachedImageFiles);
         Assert.AreEqual(2, workspace.Summary.ReadyCount);
     }
 
-    [TestMethod(DisplayName = "首次生成应发送结构化真实页面 Prompt，后续追问应复用同一页面会话")]
+    [TestMethod(DisplayName = "统一发送应使用可见结构化首轮 Prompt 并复用同一页面会话")]
     [Timeout(60_000)]
     public async Task GenerateAndFollowUpShouldUseStructuredInitialPromptAndSamePageConversation()
     {
@@ -57,21 +64,23 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         using var workspace = CreateWorkspace(session, factory);
         await workspace.ActivateAsync();
         var slide = workspace.SelectedSlide!;
-        slide.InputText = "突出核心结论";
+        var visibleInitialPrompt = slide.InputText;
 
-        await workspace.GenerateSelectedSlideCommand.ExecuteAsync();
+        await workspace.SendMessageCommand.ExecuteAsync();
 
         Assert.AreEqual(CoursewareSlideState.Completed, slide.State);
         Assert.AreEqual(CoursewareSlideGenerationState.Completed, slide.GenerationState);
-        Assert.AreEqual(CoursewareScreenshotAttachmentState.Attached, slide.ScreenshotAttachmentState);
         Assert.IsTrue(slide.HasStartedGenerationConversation);
+        Assert.AreEqual(string.Empty, slide.InputText);
+        Assert.IsEmpty(slide.AttachedImageFiles);
         StringAssert.Contains(slide.EditableSlideXml, "首次生成");
         Assert.HasCount(1, factory.CapturedRequests);
         var initialRequest = factory.CapturedRequests[0];
         StringAssert.Contains(initialRequest.UserMessage, CoursewareSlideGenerationEnvelope.CurrentSchemaVersion);
         StringAssert.Contains(initialRequest.UserMessage, "slide-first");
         var initialEnvelope = DeserializeWrappedEnvelope(initialRequest.UserMessage);
-        Assert.AreEqual("突出核心结论", initialEnvelope.Task.UserInstruction);
+        Assert.AreEqual("请根据当前页面完整 Markdown、可用的原始截图和全课件主题完成页面美化，保持教学语义准确。", initialEnvelope.Task.UserInstruction);
+        StringAssert.Contains(initialRequest.UserMessage, visibleInitialPrompt);
         Assert.AreEqual(1, initialRequest.DataContentCount);
         CollectionAssert.AreEquivalent(
             new[] { "get_slide_state", "get_slide_preview" },
@@ -90,7 +99,7 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         Assert.IsGreaterThanOrEqualTo(4, slide.CopilotChatManager?.ChatMessages.Count ?? 0);
     }
 
-    [TestMethod(DisplayName = "页面生成取消后应保留输入并允许同页重试")]
+    [TestMethod(DisplayName = "首轮发送取消后应保留可见草稿附件并允许同页重试")]
     [Timeout(60_000)]
     public async Task CancelGenerationShouldKeepInputAndAllowRetry()
     {
@@ -101,8 +110,8 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         using var workspace = CreateWorkspace(session, factory);
         await workspace.ActivateAsync();
         var slide = workspace.SelectedSlide!;
-        slide.InputText = "先执行再取消";
-        var generationTask = workspace.GenerateSelectedSlideCommand.ExecuteAsync();
+        var initialPrompt = slide.InputText;
+        var generationTask = workspace.SendMessageCommand.ExecuteAsync();
         await factory.FirstRequestStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
         workspace.CancelSelectedSlideCommand.Execute(null);
@@ -110,16 +119,40 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
 
         Assert.AreEqual(CoursewareSlideState.Canceled, slide.State);
         Assert.AreEqual(CoursewareSlideGenerationState.Canceled, slide.GenerationState);
-        Assert.AreEqual(CoursewareScreenshotAttachmentState.NotPrepared, slide.ScreenshotAttachmentState);
-        Assert.AreEqual("先执行再取消", slide.InputText);
+        Assert.AreEqual(CoursewareScreenshotAttachmentState.Attached, slide.ScreenshotAttachmentState);
+        Assert.AreEqual(initialPrompt, slide.InputText);
+        Assert.HasCount(1, slide.AttachedImageFiles);
         Assert.IsFalse(slide.HasStartedGenerationConversation);
-        Assert.IsTrue(workspace.GenerateSelectedSlideCommand.CanExecute(null));
+        Assert.IsTrue(workspace.SendMessageCommand.CanExecute(null));
 
-        await workspace.GenerateSelectedSlideCommand.ExecuteAsync();
+        await workspace.SendMessageCommand.ExecuteAsync();
 
         Assert.AreEqual(CoursewareSlideState.Completed, slide.State);
-        Assert.AreEqual(CoursewareScreenshotAttachmentState.Attached, slide.ScreenshotAttachmentState);
+        Assert.IsEmpty(slide.AttachedImageFiles);
         StringAssert.Contains(slide.EditableSlideXml, "重试成功");
+    }
+
+    [TestMethod(DisplayName = "发送期间修改输入时成功回调应保留新草稿")]
+    [Timeout(60_000)]
+    public async Task SuccessfulSendShouldPreserveInputEditedAfterRequestSnapshot()
+    {
+        var session = await CreateSessionAsync();
+        var factory = new RecordingSlideChatManagerFactory(
+            ["<Page><TextElement Id=\"done\" Text=\"完成\"/></Page>"],
+            blockFirstRequest: true);
+        using var workspace = CreateWorkspace(session, factory);
+        await workspace.ActivateAsync();
+        var slide = workspace.SelectedSlide!;
+        var sendTask = workspace.SendMessageCommand.ExecuteAsync();
+        await factory.FirstRequestStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        slide.InputText = "发送期间的新草稿";
+        factory.ReleaseFirstRequest();
+        await sendTask;
+
+        Assert.AreEqual(CoursewareSlideState.Completed, slide.State);
+        Assert.AreEqual("发送期间的新草稿", slide.InputText);
+        Assert.IsTrue(slide.HasStartedGenerationConversation);
     }
 
     [TestMethod(DisplayName = "切换页面不应取消仍在生成的原页面任务")]
@@ -133,8 +166,7 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         using var workspace = CreateWorkspace(session, factory);
         await workspace.ActivateAsync();
         var firstSlide = workspace.Slides[0];
-        firstSlide.InputText = "生成第一页";
-        var generationTask = workspace.GenerateSelectedSlideCommand.ExecuteAsync();
+        var generationTask = workspace.SendMessageCommand.ExecuteAsync();
         await factory.FirstRequestStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
         workspace.SelectedSlide = workspace.Slides[1];
@@ -160,16 +192,14 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         await workspace.ActivateAsync();
         var firstSlide = workspace.Slides[0];
         var secondSlide = workspace.Slides[1];
-        firstSlide.InputText = "生成第一页";
-        var firstGenerationTask = workspace.GenerateSelectedSlideCommand.ExecuteAsync(firstSlide);
+        var firstGenerationTask = workspace.SendMessageCommand.ExecuteAsync(firstSlide);
         await factory.FirstRequestStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
         workspace.SelectedSlide = secondSlide;
         await workspace.SelectedSlideInitializationTask;
-        secondSlide.InputText = "生成第二页";
-        Assert.IsTrue(workspace.GenerateSelectedSlideCommand.CanExecute(secondSlide));
+        Assert.IsTrue(workspace.SendMessageCommand.CanExecute(secondSlide));
 
-        await workspace.GenerateSelectedSlideCommand.ExecuteAsync(secondSlide);
+        await workspace.SendMessageCommand.ExecuteAsync(secondSlide);
 
         Assert.AreEqual(CoursewareSlideState.Completed, secondSlide.State);
         StringAssert.Contains(secondSlide.EditableSlideXml, "第二页完成");
@@ -184,7 +214,7 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         Assert.AreEqual(CoursewareSlideState.Canceled, firstSlide.State);
     }
 
-    [TestMethod(DisplayName = "未重新渲染的手工 SlideML 应阻止生成和追问")]
+    [TestMethod(DisplayName = "未重新渲染的手工 SlideML 应阻止统一发送")]
     [Timeout(60_000)]
     public async Task UnsavedSlideXmlShouldBlockGenerationAndFollowUp()
     {
@@ -196,7 +226,6 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         slide.EditableSlideXml = "<Page/>";
         slide.InputText = "继续美化";
 
-        Assert.IsFalse(workspace.GenerateSelectedSlideCommand.CanExecute(slide));
         Assert.IsFalse(workspace.SendMessageCommand.CanExecute(slide));
         Assert.IsTrue(workspace.RerenderCommand.CanExecute(slide));
     }
@@ -216,7 +245,7 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         using var workspace = CreateWorkspace(session, factory);
         await workspace.ActivateAsync();
 
-        await workspace.GenerateSelectedSlideCommand.ExecuteAsync();
+        await workspace.SendMessageCommand.ExecuteAsync();
 
         Assert.AreEqual(CoursewareSlideState.Completed, workspace.SelectedSlide!.State);
         Assert.AreEqual(CoursewareScreenshotAttachmentState.FileMissing, workspace.SelectedSlide.ScreenshotAttachmentState);
@@ -233,7 +262,7 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         var slide = workspace.SelectedSlide!;
 
         Assert.IsFalse(slide.IsAiGenerationAvailable);
-        Assert.IsFalse(workspace.GenerateSelectedSlideCommand.CanExecute(null));
+        Assert.IsFalse(workspace.SendMessageCommand.CanExecute(null));
         slide.EditableSlideXml = "<Page/>";
         Assert.IsTrue(workspace.RerenderCommand.CanExecute(null));
 
@@ -254,11 +283,10 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         ]);
         using var workspace = CreateWorkspace(session, factory);
         await workspace.ActivateAsync();
-        await workspace.GenerateSelectedSlideCommand.ExecuteAsync();
+        await workspace.SendMessageCommand.ExecuteAsync();
         workspace.SelectedSlide = workspace.Slides[1];
         await workspace.SelectedSlideInitializationTask;
-        workspace.SelectedSlide.InputText = "生成第二页";
-        await workspace.GenerateSelectedSlideCommand.ExecuteAsync();
+        await workspace.SendMessageCommand.ExecuteAsync();
 
         Assert.AreEqual(3, workspace.Summary.TotalCount);
         Assert.AreEqual(1, workspace.Summary.CompletedCount);
@@ -324,6 +352,7 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
     {
         private readonly Queue<string> _responses;
         private readonly bool _blockFirstRequest;
+        private readonly TaskCompletionSource _firstRequestRelease = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private int _requestIndex;
 
         public RecordingSlideChatManagerFactory(
@@ -339,6 +368,11 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         public List<CapturedRequest> CapturedRequests { get; } = [];
 
         public TaskCompletionSource FirstRequestStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public void ReleaseFirstRequest()
+        {
+            _firstRequestRelease.TrySetResult();
+        }
 
         public Task<SlideChatManager> CreateAsync(
             SlideChatManagerFactoryOptions? options = null,
@@ -397,7 +431,7 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
             if (_blockFirstRequest && requestIndex == 1)
             {
                 FirstRequestStarted.TrySetResult();
-                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                await _firstRequestRelease.Task.WaitAsync(cancellationToken);
             }
 
             var response = _responses.Count > 0 ? _responses.Dequeue() : "<Page/>";

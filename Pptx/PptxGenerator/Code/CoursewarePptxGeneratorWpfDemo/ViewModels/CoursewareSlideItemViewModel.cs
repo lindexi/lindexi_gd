@@ -30,6 +30,9 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     private CoursewareSlideGenerationState _generationState = CoursewareSlideGenerationState.NotStarted;
     private CoursewareScreenshotAttachmentState _screenshotAttachmentState;
     private string _inputText = string.Empty;
+    private long _draftRevision;
+    private bool _isInitialPromptPrepared;
+    private bool _isInitialPromptDirty;
     private string _editableSlideXml = string.Empty;
     private string _renderingLog = CoursewareUiStrings.SlideInitialRenderingLog;
     private string _callbackXml = string.Empty;
@@ -76,7 +79,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         DocumentContext = Canvas.DocumentContext;
         _slideChatManagerFactory = slideChatManagerFactory;
         _dispatcher = dispatcher;
-        AttachedImageFiles = new ObservableCollection<FileInfo>();
+        AttachedImageFiles = new ObservableCollection<CoursewareChatImageAttachmentViewModel>();
         AvailableModelItems = new ObservableCollection<CoursewareModelDisplayItem>();
         _screenshotAttachmentState = input.ScreenshotFile is null
             ? CoursewareScreenshotAttachmentState.FileMissing
@@ -210,9 +213,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Gets the accessible slide label.
     /// </summary>
-    public string AccessibleName => Warnings.Count == 0
-        ? $"第 {PageNumber} 页，{Title}"
-        : $"第 {PageNumber} 页，{Title}，存在输入警告";
+    public string AccessibleName => $"第 {PageNumber} 页，{Title}";
 
     /// <summary>
     /// Gets the short page number label.
@@ -345,7 +346,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Gets image files attached to the next page message.
     /// </summary>
-    public ObservableCollection<FileInfo> AttachedImageFiles { get; }
+    public ObservableCollection<CoursewareChatImageAttachmentViewModel> AttachedImageFiles { get; }
 
     /// <summary>
     /// Gets or sets the source screenshot attachment state for the initial request.
@@ -380,7 +381,41 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     public string InputText
     {
         get => _inputText;
-        set => SetProperty(ref _inputText, value);
+        set
+        {
+            if (SetProperty(ref _inputText, value))
+            {
+                _draftRevision++;
+                OnPropertyChanged(nameof(DraftRevision));
+                if (IsInitialPromptPrepared && !HasStartedGenerationConversation)
+                {
+                    IsInitialPromptDirty = true;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the current page draft revision used to protect edits made during an asynchronous send.
+    /// </summary>
+    public long DraftRevision => _draftRevision;
+
+    /// <summary>
+    /// Gets a value indicating whether the structured initial prompt has been prepared for this page.
+    /// </summary>
+    public bool IsInitialPromptPrepared
+    {
+        get => _isInitialPromptPrepared;
+        internal set => SetProperty(ref _isInitialPromptPrepared, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the user changed the prepared initial prompt.
+    /// </summary>
+    public bool IsInitialPromptDirty
+    {
+        get => _isInitialPromptDirty;
+        internal set => SetProperty(ref _isInitialPromptDirty, value);
     }
 
     /// <summary>
@@ -607,11 +642,122 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         ArgumentNullException.ThrowIfNull(filePaths);
         foreach (var filePath in filePaths)
         {
-            if (!string.IsNullOrWhiteSpace(filePath) && File.Exists(filePath))
+            if (!string.IsNullOrWhiteSpace(filePath)
+                && File.Exists(filePath)
+                && !ContainsAttachment(filePath))
             {
-                AttachedImageFiles.Add(new FileInfo(filePath));
+                AttachedImageFiles.Add(new CoursewareChatImageAttachmentViewModel(
+                    new FileInfo(filePath),
+                    CoursewareChatImageAttachmentKind.UserSelectedImage));
             }
         }
+    }
+
+    /// <summary>
+    /// Adds the source screenshot to the visible attachment collection when available.
+    /// </summary>
+    /// <returns><see langword="true" /> when the source screenshot is visible and available.</returns>
+    internal bool EnsureSourceScreenshotAttachment()
+    {
+        if (SourceScreenshotFilePath is null || !File.Exists(SourceScreenshotFilePath))
+        {
+            ScreenshotAttachmentState = CoursewareScreenshotAttachmentState.FileMissing;
+            return false;
+        }
+
+        if (!ContainsAttachment(SourceScreenshotFilePath))
+        {
+            AttachedImageFiles.Insert(0, new CoursewareChatImageAttachmentViewModel(
+                new FileInfo(SourceScreenshotFilePath),
+                CoursewareChatImageAttachmentKind.SourceScreenshot));
+        }
+
+        ScreenshotAttachmentState = CoursewareScreenshotAttachmentState.Attached;
+        return true;
+    }
+
+    /// <summary>
+    /// Removes one visible attachment from the next request.
+    /// </summary>
+    /// <param name="attachment">The attachment to remove.</param>
+    public void RemoveAttachedImageFile(CoursewareChatImageAttachmentViewModel attachment)
+    {
+        ArgumentNullException.ThrowIfNull(attachment);
+        AttachedImageFiles.Remove(attachment);
+        if (attachment.Kind == CoursewareChatImageAttachmentKind.SourceScreenshot)
+        {
+            ScreenshotAttachmentState = CoursewareScreenshotAttachmentState.NotPrepared;
+        }
+    }
+
+    /// <summary>
+    /// Replaces the visible draft with a generated initial prompt without marking it as a user edit.
+    /// </summary>
+    /// <param name="prompt">The complete initial prompt.</param>
+    internal void ApplyInitialPrompt(string prompt)
+    {
+        if (string.IsNullOrWhiteSpace(prompt))
+        {
+            throw new ArgumentException("首轮页面 Prompt 不能为空。", nameof(prompt));
+        }
+
+        if (SetProperty(ref _inputText, prompt, nameof(InputText)))
+        {
+            _draftRevision++;
+            OnPropertyChanged(nameof(DraftRevision));
+        }
+
+        IsInitialPromptPrepared = true;
+        IsInitialPromptDirty = false;
+    }
+
+    /// <summary>
+    /// Captures the visible text and available attachments used by the next send operation.
+    /// </summary>
+    /// <returns>The immutable send snapshot.</returns>
+    internal CoursewareSlideMessageSnapshot CreateMessageSnapshot()
+    {
+        return new CoursewareSlideMessageSnapshot(
+            InputText,
+            DraftRevision,
+            !HasStartedGenerationConversation,
+            AttachPreview,
+            AttachedImageFiles.ToArray());
+    }
+
+    /// <summary>
+    /// Consumes only the text and attachments that still match a successful send snapshot.
+    /// </summary>
+    /// <param name="snapshot">The successful send snapshot.</param>
+    internal void ApplySuccessfulSend(CoursewareSlideMessageSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        if (DraftRevision == snapshot.DraftRevision
+            && string.Equals(InputText, snapshot.Message, StringComparison.Ordinal))
+        {
+            if (SetProperty(ref _inputText, string.Empty, nameof(InputText)))
+            {
+                _draftRevision++;
+                OnPropertyChanged(nameof(DraftRevision));
+            }
+        }
+
+        foreach (var attachment in snapshot.Attachments)
+        {
+            AttachedImageFiles.Remove(attachment);
+        }
+
+        if (snapshot.IsFirstMessage)
+        {
+            HasStartedGenerationConversation = true;
+            IsInitialPromptDirty = false;
+        }
+    }
+
+    private bool ContainsAttachment(string filePath)
+    {
+        return AttachedImageFiles.Any(attachment =>
+            string.Equals(attachment.FullName, filePath, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

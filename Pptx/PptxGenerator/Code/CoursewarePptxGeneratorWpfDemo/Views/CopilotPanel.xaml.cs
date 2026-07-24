@@ -1,5 +1,4 @@
 using System.Windows.Controls;
-using System.IO;
 using System.Windows;
 using CoursewarePptxGeneratorWpfDemo.ViewModels;
 using Microsoft.Win32;
@@ -36,9 +35,9 @@ public partial class CopilotPanel : UserControl
 
     private void CloseAttachedImageButton_OnClick(object sender, RoutedEventArgs e)
     {
-        if (sender is Button { DataContext: FileInfo fileInfo })
+        if (sender is Button { DataContext: CoursewareChatImageAttachmentViewModel attachment })
         {
-            ViewModel.SelectedSlide?.AttachedImageFiles.Remove(fileInfo);
+            ViewModel.SelectedSlide?.RemoveAttachedImageFile(attachment);
         }
     }
 

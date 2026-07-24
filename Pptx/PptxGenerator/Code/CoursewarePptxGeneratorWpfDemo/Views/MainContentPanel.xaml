@@ -16,38 +16,11 @@
 
     <Grid Background="{StaticResource LightBackgroundBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="270" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="24,12">
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="生成当前页"
-                            Command="{Binding GenerateSelectedSlideCommand}"
-                            CommandParameter="{Binding SelectedSlide}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Padding="12,6"
-                            Margin="0,0,8,0" />
-                    <Button Content="取消" Command="{Binding CancelSelectedSlideCommand}" Style="{StaticResource SecondaryButtonStyle}" Padding="12,6" Margin="0,0,12,0" />
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="{Binding SelectedSlide.StatusText, TargetNullValue=未选择页面}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" HorizontalAlignment="Right" />
-                        <TextBlock Text="{Binding SelectedSlide.CanvasSizeText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" HorizontalAlignment="Right" />
-                    </StackPanel>
-                </StackPanel>
-
-                <StackPanel>
-                    <TextBlock Text="{Binding SelectedSlide.Title, TargetNullValue=请选择课件页面}"
-                               FontWeight="Bold"
-                               FontSize="20"
-                               Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="{Binding SelectedSlide.Summary}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,3,0,0" />
-                </StackPanel>
-            </DockPanel>
-        </Border>
-
-        <Border Grid.Row="1" Background="{StaticResource PreviewBackgroundBrush}" Padding="24,16">
+        <Border Grid.Row="0" Background="{StaticResource PreviewBackgroundBrush}" Padding="24,16">
             <Border Style="{StaticResource WorkspaceCardStyle}" Padding="18">
                 <Viewbox Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Grid Width="{Binding SelectedSlide.CanvasWidth}"
@@ -96,7 +69,7 @@
             </Border>
         </Border>
 
-        <Border Grid.Row="2" Margin="24,0,24,24" Style="{StaticResource WorkspaceCardStyle}">
+        <Border Grid.Row="1" Margin="24,0,24,24" Style="{StaticResource WorkspaceCardStyle}">
             <DockPanel>
                 <Border DockPanel.Dock="Top" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="16,10">
                     <DockPanel>

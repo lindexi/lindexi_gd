@@ -11,8 +11,6 @@
              d:DesignWidth="240"
              mc:Ignorable="d">
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
-
         <Style x:Key="SlideListBoxItemStyle" TargetType="ListBoxItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Padding" Value="0" />
@@ -27,9 +25,27 @@
         </Style>
 
         <DataTemplate DataType="{x:Type viewModels:CoursewareSlideItemViewModel}">
-            <StackPanel HorizontalAlignment="Center">
+            <Grid HorizontalAlignment="Center"
+                  AutomationProperties.Name="{Binding AccessibleName}">
+                <Grid.ToolTip>
+                    <StackPanel>
+                        <TextBlock Text="{Binding Title, StringFormat=标题：{0}}" />
+                        <TextBlock Text="{Binding SlideId, StringFormat=页面 Id：{0}}" />
+                    </StackPanel>
+                </Grid.ToolTip>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           Text="{Binding PageNumber}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="12"
+                           Margin="0,2,8,0"
+                           VerticalAlignment="Top" />
                 <Border x:Name="ThumbnailBorder"
-                        Width="184"
+                        Grid.Column="1"
+                        Width="166"
                         Height="118"
                         Background="White"
                         BorderBrush="Transparent"
@@ -51,46 +67,9 @@
                                            Visibility="{Binding HasAnyPreviewImage, Converter={x:Static converters:InverseBooleanToVisibilityConverter.Instance}}" />
                             </Grid>
                         </Viewbox>
-                        <Border Width="20"
-                                Height="20"
-                                Margin="0,5,5,0"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Top"
-                                Background="#FFF3D6"
-                                 CornerRadius="10"
-                                 ToolTip="{Binding WarningSummary}">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasWarning}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            <TextBlock Text="!" Foreground="#C57900" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <Border Width="20"
-                                Height="20"
-                                Margin="0,5,5,0"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Bottom"
-                                Background="#FDE8E8"
-                                CornerRadius="10"
-                                Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibility}}"
-                                ToolTip="{Binding ErrorMessage}">
-                            <TextBlock Text="×" Foreground="#B42318" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
                     </Grid>
                 </Border>
-                <DockPanel Width="184" Margin="0,5,0,0">
-                    <TextBlock DockPanel.Dock="Right" Text="{Binding NumberText}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" />
-                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource TextPrimaryBrush}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                </DockPanel>
-                <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource PrimaryBlueBrush}" FontSize="10" HorizontalAlignment="Center" />
-                <TextBlock Text="{Binding SlideId}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="9" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="184" />
-            </StackPanel>
+            </Grid>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
                     <Setter TargetName="ThumbnailBorder" Property="BorderBrush" Value="{StaticResource PrimaryBlueBrush}" />

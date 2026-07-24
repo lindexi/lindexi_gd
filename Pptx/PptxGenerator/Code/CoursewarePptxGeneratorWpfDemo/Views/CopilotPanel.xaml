@@ -4,7 +4,6 @@
              xmlns:converters="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views.Converters"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:sys="clr-namespace:System.IO;assembly=System.Runtime"
              xmlns:viewModels="clr-namespace:CoursewarePptxGeneratorWpfDemo.ViewModels"
              xmlns:views="clr-namespace:CoursewarePptxGeneratorWpfDemo.Views"
              Background="{StaticResource LightBackgroundBrush}"
@@ -73,7 +72,7 @@
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type sys:FileInfo}">
+                        <DataTemplate DataType="{x:Type viewModels:CoursewareChatImageAttachmentViewModel}">
                             <Border CornerRadius="8" Width="64" Height="64" Margin="0,0,8,0" Background="#FFF1F5F9" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" ClipToBounds="True">
                                 <Grid>
                                     <Image Source="{Binding FullName, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}" Stretch="UniformToFill" Width="64" Height="64" />
@@ -160,8 +159,7 @@
                          MaxHeight="120"
                          Style="{StaticResource InputTextBoxStyle}" />
                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="10,6,0,0">
-                    <Button Content="首次生成" Command="{Binding GenerateSelectedSlideCommand}" CommandParameter="{Binding SelectedSlide}" MinWidth="88" Height="28" Style="{StaticResource PrimaryButtonStyle}" Padding="12,2" />
-                    <Button Content="发送追问" Command="{Binding SendMessageCommand}" CommandParameter="{Binding SelectedSlide}" MinWidth="88" Height="28" Margin="8,0,0,0" Style="{StaticResource PrimaryButtonStyle}" Padding="12,2" />
+                    <Button Content="发送" Command="{Binding SendMessageCommand}" CommandParameter="{Binding SelectedSlide}" MinWidth="88" Height="28" Style="{StaticResource PrimaryButtonStyle}" Padding="12,2" />
                     <Button Content="取消" Command="{Binding CancelSelectedSlideCommand}" MinWidth="64" Height="28" Margin="8,0,0,0" Style="{StaticResource SecondaryButtonStyle}" Padding="10,2" />
                 </StackPanel>
                 <CheckBox Grid.Row="1"
@@ -170,7 +168,7 @@
                           Margin="0,6,0,0"
                           FontSize="12"
                           Foreground="{StaticResource TextSecondaryBrush}">
-                    <TextBlock Text="追问时附带当前渲染预览" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="发送时附带当前渲染预览" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
                 </CheckBox>
             </Grid>
         </Border>

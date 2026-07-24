@@ -62,6 +62,7 @@ public sealed class CoursewareSlidePromptBuilderTests
         Assert.AreEqual(64, envelope.DesignContext.Typography.PrimaryHeading.FontSize);
         Assert.AreEqual(120, envelope.DesignContext.SafeArea.Left);
         Assert.AreEqual("突出本页核心结论", envelope.Task.UserInstruction);
+        Assert.IsTrue(envelope.Task.Requirements.Any(requirement => requirement.Contains("已验证的设计系统令牌", StringComparison.Ordinal)));
         Assert.IsGreaterThan(0, result.EstimatedTokenCount);
         Assert.IsFalse(result.Prompt.Contains(exportDirectory.FullName, StringComparison.OrdinalIgnoreCase));
     }
