@@ -210,6 +210,50 @@ public sealed class FileCopilotChatSessionStoreTests
         Assert.IsFalse(Directory.GetFiles(temporaryDirectory.SessionPath, "*.tmp").Any());
     }
 
+    [TestMethod(DisplayName = "保存会话应完整保留中文和编程标点符号")]
+    [Timeout(10000, CooperativeCancellation = true)]
+    public async Task SaveAndLoadShouldPreserveChineseAndProgrammingPunctuation()
+    {
+        using var temporaryDirectory = new TemporaryDirectory();
+        var store = new FileCopilotChatSessionStore(temporaryDirectory.SessionPath);
+        const string value = "中文，。！？；：、“”‘’（）【】《》〈〉「」『』—…· C# <T> => { [()] }; += -= *= /= %= == != <= >= && || ?? ?. :: _ @ # $ % ^ & * ` ~ \\ / | ' \"";
+        CopilotChatSession session = CreateSession(DateTimeOffset.Now, "中文与编程标点", value);
+
+        await store.SaveSessionAsync(session, agentSessionState: null);
+        CopilotChatSessionPersistenceData persistenceData = await store.LoadSessionAsync(session.SessionId);
+
+        Assert.AreEqual(value, persistenceData.Messages.Single().Content);
+    }
+
+    [TestMethod(DisplayName = "保存 XML 时应替换非法字符并保留合法代理对")]
+    [Timeout(10000, CooperativeCancellation = true)]
+    public async Task SaveDocumentAsyncShouldReplaceInvalidXmlCharactersAndPreserveValidSurrogatePairs()
+    {
+        using var temporaryDirectory = new TemporaryDirectory();
+        Directory.CreateDirectory(temporaryDirectory.SessionPath);
+        string filePath = Path.Join(temporaryDirectory.SessionPath, "session.xml");
+        const string invalidValue = "前\0\u0001\uD800中\uDC00后😀";
+        var document = new XDocument(
+            new XElement("Root",
+                new XAttribute("Value", invalidValue),
+                new XElement("Text", invalidValue),
+                new XElement("CData", new XCData(invalidValue))));
+
+        await FileCopilotChatSessionStore.SaveDocumentAsync(filePath, document);
+        await using FileStream fileStream = File.OpenRead(filePath);
+        XDocument savedDocument = await XDocument.LoadAsync(
+            fileStream,
+            LoadOptions.None,
+            CancellationToken.None);
+
+        const string expectedValue = "前���中�后😀";
+        string actualValue = string.Join('|',
+            savedDocument.Root?.Attribute("Value")?.Value,
+            savedDocument.Root?.Element("Text")?.Value,
+            savedDocument.Root?.Element("CData")?.Value);
+        Assert.AreEqual($"{expectedValue}|{expectedValue}|{expectedValue}", actualValue);
+    }
+
     private static CopilotChatSession CreateSession(DateTimeOffset startedTime, string title, string content)
     {
         var session = new CopilotChatSession(Guid.NewGuid(), startedTime);
