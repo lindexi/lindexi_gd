@@ -138,6 +138,28 @@ public sealed class ChatViewModelTests
         Assert.AreEqual(1, runner.RunCount);
     }
 
+    [TestMethod(DisplayName = "发送失败应在聊天列表中显示系统消息")]
+    [Timeout(5000)]
+    public async Task SendFailureShouldAppendSystemMessage()
+    {
+        var manager = new CopilotChatManager();
+        var runner = new FailingRunner(new InvalidOperationException("模型失败"));
+        var application = new CodingChatApplication(manager, new EmptySessionStore(), runner);
+        await application.InitializeAsync();
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型")
+        {
+            InputText = "触发异常",
+        };
+
+        viewModel.SendCommand.Execute(null);
+        await WaitUntilAsync(() => viewModel.Messages[^1].Content == "运行失败：模型失败");
+
+        MessageItemViewModel failureMessage = viewModel.Messages[^1];
+        Assert.AreEqual(
+            (true, true, "运行失败：模型失败"),
+            (failureMessage.IsSystemMessage, failureMessage.Message.IsPresetInfo, failureMessage.Content));
+    }
+
     [TestMethod(DisplayName = "活动运行时停止命令应可用并触发取消")]
     [Timeout(5000)]
     public async Task StopCommandShouldCancelActiveRun()
@@ -157,8 +179,10 @@ public sealed class ChatViewModelTests
         Assert.IsTrue(viewModel.StopCommand.CanExecute(null));
         viewModel.StopCommand.Execute(null);
         await runner.Canceled.Task;
+        await WaitUntilAsync(() => viewModel.Messages[^1].Content == "运行已停止。");
 
         Assert.IsTrue(runner.CancellationToken.IsCancellationRequested);
+        Assert.IsTrue(viewModel.Messages[^1].IsSystemMessage);
     }
 
     [TestMethod(DisplayName = "应用工作路径命令应提交输入并刷新状态")]
@@ -187,6 +211,35 @@ public sealed class ChatViewModelTests
         Assert.AreEqual(Path.GetFullPath(workspacePath), viewModel.CommittedWorkspacePath);
         StringAssert.Contains(viewModel.WorkspaceStatusText, "已设置");
         Assert.IsTrue(viewModel.CanApplyWorkspace);
+    }
+
+    [TestMethod(DisplayName = "工作路径失败应在聊天列表中显示系统消息")]
+    [Timeout(5000)]
+    public async Task WorkspaceFailureShouldAppendSystemMessage()
+    {
+        string missingPath = Path.Join(Path.GetTempPath(), $"CodingChatRoom.MissingWorkspace.{Guid.NewGuid():N}");
+        var manager = new CopilotChatManager();
+        var application = new CodingChatApplication(manager, new EmptySessionStore());
+        await application.InitializeAsync();
+        var workspaceController = new CodingWorkspaceController(
+            new TestWorkspaceRuntime(),
+            new ImmediateMainThreadDispatcher());
+        using var viewModel = new ChatViewModel(
+            manager,
+            application,
+            workspaceController,
+            "当前模型：测试模型")
+        {
+            WorkspaceInput = missingPath,
+        };
+
+        viewModel.ApplyWorkspaceCommand.Execute(null);
+        await WaitUntilAsync(() => viewModel.Messages[^1].Content.StartsWith("工作路径切换失败：", StringComparison.Ordinal));
+
+        MessageItemViewModel failureMessage = viewModel.Messages[^1];
+        Assert.AreEqual(
+            (true, true),
+            (failureMessage.IsSystemMessage, failureMessage.Message.IsPresetInfo));
     }
 
     private sealed class TestDataTemplate : IDataTemplate
@@ -264,6 +317,15 @@ public sealed class ChatViewModelTests
             Completed.TrySetResult();
             return new CodingAgentRunResult(assistantMessage, Task.FromResult<string?>("完成"));
         }
+    }
+
+    private sealed class FailingRunner(Exception exception) : ICodingChatRunner
+    {
+        public Task<CodingAgentRunResult> RunAsync(
+            string prompt,
+            string? workspacePath,
+            CancellationToken cancellationToken) =>
+            Task.FromException<CodingAgentRunResult>(exception);
     }
 
     private sealed class CancelableRunner(CopilotChatManager manager) : ICodingChatRunner

@@ -53,7 +53,7 @@ public sealed class CopilotChatManagerSessionRestoreTests
         bool removed = manager.RemoveSession(removableSession);
 
         Assert.IsTrue(removed);
-        Assert.IsFalse(manager.ChatSessions.Contains(removableSession));
+        Assert.DoesNotContain(removableSession, manager.ChatSessions);
         Assert.AreSame(selectedSession, manager.SelectedSession);
     }
 
@@ -70,7 +70,7 @@ public sealed class CopilotChatManagerSessionRestoreTests
         bool removed = manager.RemoveSession(differentInstance);
 
         Assert.IsFalse(removed);
-        Assert.IsTrue(manager.ChatSessions.Contains(storedSession));
+        Assert.Contains(storedSession, manager.ChatSessions);
         Assert.AreSame(storedSession, manager.SelectedSession);
     }
 

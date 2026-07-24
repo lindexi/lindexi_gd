@@ -178,9 +178,11 @@ public sealed class FileCopilotChatSessionStore
 
     internal static async Task SaveDocumentAsync(string filePath, XDocument document, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(document);
         string directory = Path.GetDirectoryName(filePath)
                            ?? throw new InvalidOperationException($"无法确定会话文件 '{filePath}' 的目录。");
         string temporaryFilePath = Path.Join(directory, $".{Path.GetFileName(filePath)}.{Guid.NewGuid():N}.tmp");
+        XDocument sanitizedDocument = CreateSanitizedDocument(document);
         try
         {
             await using (var fileStream = new FileStream(temporaryFilePath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
@@ -195,7 +197,7 @@ public sealed class FileCopilotChatSessionStore
                 OmitXmlDeclaration = true,
             }))
             {
-                await document.SaveAsync(xmlWriter, cancellationToken).ConfigureAwait(false);
+                await sanitizedDocument.SaveAsync(xmlWriter, cancellationToken).ConfigureAwait(false);
                 await xmlWriter.FlushAsync().ConfigureAwait(false);
                 await fileStream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -210,4 +212,66 @@ public sealed class FileCopilotChatSessionStore
             }
         }
     }
+
+    private static XDocument CreateSanitizedDocument(XDocument document)
+    {
+        var sanitizedDocument = new XDocument(document);
+        if (sanitizedDocument.Root is not { } rootElement)
+        {
+            return sanitizedDocument;
+        }
+
+        foreach (XAttribute attribute in rootElement.DescendantsAndSelf().Attributes())
+        {
+            attribute.Value = ReplaceInvalidXmlCharacters(attribute.Value);
+        }
+
+        foreach (XText textNode in rootElement.DescendantNodesAndSelf().OfType<XText>())
+        {
+            textNode.Value = ReplaceInvalidXmlCharacters(textNode.Value);
+        }
+
+        return sanitizedDocument;
+    }
+
+    private static string ReplaceInvalidXmlCharacters(string value)
+    {
+        StringBuilder? builder = null;
+        for (int index = 0; index < value.Length; index++)
+        {
+            char character = value[index];
+            if (char.IsHighSurrogate(character)
+                && index + 1 < value.Length
+                && char.IsLowSurrogate(value[index + 1]))
+            {
+                if (builder is not null)
+                {
+                    builder.Append(character);
+                    builder.Append(value[++index]);
+                }
+                else
+                {
+                    index++;
+                }
+
+                continue;
+            }
+
+            if (IsValidXmlCharacter(character))
+            {
+                builder?.Append(character);
+                continue;
+            }
+
+            builder ??= new StringBuilder(value.Length).Append(value, 0, index);
+            builder.Append('\uFFFD');
+        }
+
+        return builder?.ToString() ?? value;
+    }
+
+    private static bool IsValidXmlCharacter(char character) =>
+        character is '\u0009' or '\u000A' or '\u000D'
+        || character is >= '\u0020' and <= '\uD7FF'
+        || character is >= '\uE000' and <= '\uFFFD';
 }
