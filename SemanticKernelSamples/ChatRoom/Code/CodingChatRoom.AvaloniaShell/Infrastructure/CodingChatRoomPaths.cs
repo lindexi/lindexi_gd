@@ -9,7 +9,7 @@ namespace CodingChatRoom.AvaloniaShell.Infrastructure;
 public sealed class CodingChatRoomPaths
 {
     private const string ApplicationFolderName = "CodingChatRoom";
-    private const string ConfigurationFileName = "AgentApiManagerConfiguration.json";
+    private const string ConfigurationFileName = "AgentConfiguration.json";
 
     private CodingChatRoomPaths(string rootDirectory)
     {

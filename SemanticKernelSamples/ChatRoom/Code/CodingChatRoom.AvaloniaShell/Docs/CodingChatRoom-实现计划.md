@@ -85,7 +85,7 @@
 
 1. 新增 `CodingChatRoomPaths`。
 2. 固定以下路径：
-   - `AgentApiManagerConfiguration.json`
+   - `AgentConfiguration.json`
    - `Logs`
    - `Sessions`
 3. 在 `App.InitializeAppCoreAsync` 中加载 `AgentApiManagerConfiguration`。
@@ -114,7 +114,7 @@
 
 - 状态：已完成。
 - `CodingChatRoomPaths` 将配置、日志和会话固定在显式根目录；生产根目录固定为 `LocalApplicationData/CodingChatRoom`。
-- 启动只读取固定的 `AgentApiManagerConfiguration.json`，配置缺失、JSON 损坏、无有效模型或未知 `PrimaryModel` 时直接失败。
+- 启动只读取固定的 `AgentConfiguration.json`，配置缺失、JSON 损坏、无有效模型或未知 `PrimaryModel` 时直接失败。
 - 初始化失败时只显示 `StartupFailureWindow`，不会进入聊天主界面，也不会生成或查找替代配置。
 - `FileCopilotChatLogger` 只使用显式 `Logs` 目录；`FileCopilotChatSessionStore` 使用显式 `Sessions` 与 `Logs` 目录。
 - 2026-04-13 验证：`CodingChatStartupTests` 7/7 通过，源码检查未发现当前目录、仓库目录或 ChatRoom 环境变量回退，完整解决方案构建成功。
@@ -289,8 +289,8 @@
 - 2026-04-13 已实现尊重用户浏览位置的自动滚动：新增可测试的 `ChatAutoScrollState`，用户接近底部时在新增消息或流式内容引起布局增长后继续滚到底部；用户向上浏览后暂停强制跟随，重新滚回底部后恢复。
 - `ChatView` 在 DataContext 或当前会话 ID 变化时重置到底部，通过 `ScrollViewer.ScrollChanged` 区分用户偏移变化与内容/视口布局变化，滚动动作延后到布局完成阶段执行。
 - 当前验证：自动滚动 3 个测试与消息投影 6 个测试合计 9/9 通过。
-- 2026-04-13 Shell 全量回归首次运行 25/26，通过项外发现 `CodingChatRoomPaths` 的生产配置文件名漂移为 `AgentConfiguration.json`，与阶段 2 已固定的 `AgentApiManagerConfiguration.json` 契约及现有测试不一致。
-- 已恢复生产常量为 `AgentApiManagerConfiguration.json`；`CodingChatRoom.AvaloniaShell.Tests` 全量回归现为 26/26 通过。
+- 生产配置文件名已统一为 `AgentConfiguration.json`，并同步更新路径契约、测试和架构文档。
+- `CodingChatRoom.AvaloniaShell.Tests` 全量回归现为 26/26 通过。
 - 2026-04-13 最终验证：完整解决方案构建成功，本地改动审查无新增意见，`git diff --check` 通过；生产 Views/ViewModels/Styles 源码未发现角色头像、角色颜色、@mention 或聊天室发言状态残留。
 - 阶段 5 完成，下一步进入阶段 6：实现直接 `CodingAgent` 发送、停止、`Ctrl+Enter` 与完整运行生命周期。
 

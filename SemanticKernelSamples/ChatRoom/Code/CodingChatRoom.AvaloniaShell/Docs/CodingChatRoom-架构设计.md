@@ -175,7 +175,7 @@ AgentLib.Coding → AgentLib.ChatRoom
 ```text
 Environment.SpecialFolder.LocalApplicationData
 └── CodingChatRoom
-    ├── AgentApiManagerConfiguration.json
+    ├── AgentConfiguration.json
     ├── Logs
     │   └── yyyyMMdd
     │       └── yyyyMMdd_HHmmss_{SessionId}.log
@@ -197,7 +197,7 @@ Environment.SpecialFolder.LocalApplicationData
 配置文件固定为：
 
 ```text
-%LOCALAPPDATA%/CodingChatRoom/AgentApiManagerConfiguration.json
+%LOCALAPPDATA%/CodingChatRoom/AgentConfiguration.json
 ```
 
 启动流程只允许：
@@ -566,7 +566,7 @@ RunAsync(context, contents, workspacePath, hostControlTools, cancellationToken)
 1. 应用启动后只有历史会话和编程助手聊天两列。
 2. 代码和 UI 中不存在角色大厅、角色管理、角色编辑和设置页入口。
 3. Shell 不引用 `AgentLib.ChatRoom`。
-4. 配置只从 `%LOCALAPPDATA%/CodingChatRoom/AgentApiManagerConfiguration.json` 加载。
+4. 配置只从 `%LOCALAPPDATA%/CodingChatRoom/AgentConfiguration.json` 加载。
 5. 配置缺失或无效时明确失败，不使用任何回退路径。
 6. 日志和历史只写入 `%LOCALAPPDATA%/CodingChatRoom` 下的固定子目录。
 7. 用户发送后直接进入 `CodingAgent`，消息可流式展示。

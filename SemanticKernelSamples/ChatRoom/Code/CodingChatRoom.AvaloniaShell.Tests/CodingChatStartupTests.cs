@@ -19,7 +19,7 @@ public sealed class CodingChatStartupTests
 
         Assert.AreEqual(Path.GetFullPath(temporaryDirectory.Path), paths.RootDirectory);
         Assert.AreEqual(
-            Path.Join(paths.RootDirectory, "AgentApiManagerConfiguration.json"),
+            Path.Join(paths.RootDirectory, "AgentConfiguration.json"),
             paths.ConfigurationFile.FullName);
         Assert.AreEqual(Path.Join(paths.RootDirectory, "Logs"), paths.LogDirectory);
         Assert.AreEqual(Path.Join(paths.RootDirectory, "Sessions"), paths.SessionDirectory);
