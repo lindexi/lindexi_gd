@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d">
-    <Grid Margin="16">
+    <Grid Margin="{StaticResource PageMargin}" KeyboardNavigation.TabNavigation="Continue">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="280" />
             <ColumnDefinition Width="*" />
@@ -13,18 +13,23 @@
         <Border Grid.Column="0"
                 Margin="0,0,16,0"
                 Padding="16"
-                Background="White"
-                BorderBrush="#FFE5E7EB"
-                BorderThickness="1"
-                CornerRadius="10">
+                Style="{StaticResource CardStyle}">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Top">
                     <TextBlock FontSize="20"
                                FontWeight="SemiBold"
                                Text="历史会话" />
                     <TextBlock Margin="0,6,0,12"
-                               Foreground="#FF6B7280"
-                               Text="异步加载历史对话，可继续之前的聊天。" />
+                               Text="搜索、整理并继续历史对话。"
+                               TextWrapping="Wrap" />
+
+                    <TextBox x:Name="SessionSearchBox"
+                             Margin="0,0,0,12"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="搜索会话标题和消息 (Ctrl+F)"
+                             AutomationProperties.Name="搜索会话"
+                             AutomationProperties.HelpText="输入关键词筛选会话标题和消息内容"
+                             TabIndex="0" />
 
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
@@ -35,19 +40,49 @@
                         <Button Grid.Column="0"
                                 Margin="0,0,6,0"
                                 Command="{Binding NewChatCommand}"
-                                Content="新建会话" />
+                                 Content="新建"
+                                 ToolTip="新建会话 (Ctrl+N)"
+                                 AutomationProperties.Name="新建会话"
+                                 TabIndex="1" />
                         <Button Grid.Column="1"
                                 Margin="6,0,0,0"
                                 Command="{Binding DeleteSelectedChatCommand}"
-                                Content="删除会话" />
+                                 Content="删除"
+                                 ToolTip="删除当前会话"
+                                 AutomationProperties.Name="删除当前会话"
+                                 TabIndex="2" />
                     </Grid>
 
-                    <Button Command="{Binding ReloadSessionsCommand}" Content="刷新会话列表" />
+                    <WrapPanel>
+                        <Button Margin="0,0,8,8"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding ReloadSessionsCommand}"
+                                Content="刷新"
+                                ToolTip="重新加载会话列表"
+                                AutomationProperties.Name="刷新会话列表"
+                                TabIndex="3" />
+                        <Button Margin="0,0,8,8"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding UndoDeleteCommand}"
+                                Content="撤销删除"
+                                ToolTip="恢复最近删除的会话"
+                                AutomationProperties.Name="撤销删除会话"
+                                TabIndex="4" />
+                        <Button Margin="0,0,0,8"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding ExportCurrentSessionCommand}"
+                                Content="导出"
+                                ToolTip="将当前会话导出为 Markdown"
+                                AutomationProperties.Name="导出当前会话"
+                                TabIndex="5" />
+                    </WrapPanel>
                 </StackPanel>
 
                 <ListBox Margin="0,16,0,0"
-                         ItemsSource="{Binding Sessions}"
-                         SelectedItem="{Binding SelectedSession}">
+                          ItemsSource="{Binding FilteredSessions}"
+                          SelectedItem="{Binding SelectedSession}"
+                          AutomationProperties.Name="会话列表"
+                          TabIndex="6">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Border Margin="0,0,0,8"
@@ -60,11 +95,9 @@
                                     <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
                                     <TextBlock Margin="0,4,0,0"
                                                FontSize="12"
-                                               Foreground="#FF6B7280"
                                                Text="{Binding UpdatedAt, StringFormat=更新时间：{0:yyyy-MM-dd HH:mm}}" />
                                     <TextBlock Margin="0,2,0,0"
                                                FontSize="12"
-                                               Foreground="#FF9CA3AF"
                                                Text="{Binding Messages.Count, StringFormat=消息数：{0}}" />
                                 </StackPanel>
                             </Border>
@@ -83,18 +116,71 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0">
-                <TextBlock FontSize="22"
-                           FontWeight="SemiBold"
-                           Text="{Binding CurrentSessionTitle}" />
-                <TextBlock Margin="0,6,0,12"
-                           Foreground="#FF6B7280"
-                           Text="{Binding StatusMessage}" />
+                <DockPanel>
+                    <Button DockPanel.Dock="Right"
+                            Margin="12,0,0,0"
+                            Command="{Binding RenameSessionCommand}"
+                            Content="保存标题"
+                            ToolTip="保存会话标题"
+                            AutomationProperties.Name="保存会话标题"
+                            TabIndex="8" />
+                    <TextBox Text="{Binding EditableSessionTitle, UpdateSourceTrigger=PropertyChanged}"
+                             FontSize="18"
+                             FontWeight="SemiBold"
+                             ToolTip="编辑当前会话标题，最多 80 个字符"
+                             AutomationProperties.Name="会话标题"
+                             TabIndex="7" />
+                </DockPanel>
+                <TextBlock Margin="0,6,0,8"
+                           Text="{Binding StatusMessage}"
+                           TextWrapping="Wrap"
+                           AutomationProperties.LiveSetting="Polite" />
+                <ProgressBar Height="4"
+                             Margin="0,0,0,8"
+                             IsIndeterminate="True"
+                             AutomationProperties.Name="正在处理">
+                    <ProgressBar.Style>
+                        <Style TargetType="ProgressBar">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ProgressBar.Style>
+                </ProgressBar>
+                <Border Margin="0,0,0,8" Padding="12" Background="#FFFFF1F2" BorderBrush="{StaticResource ErrorBrush}" BorderThickness="1" CornerRadius="8">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers><DataTrigger Binding="{Binding HasError}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Margin="12,0,0,0" Command="{Binding RetryCommand}" Content="重试" ToolTip="重试失败的请求" />
+                        <TextBlock Foreground="{StaticResource ErrorBrush}" Text="{Binding ErrorMessage}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Assertive" />
+                    </DockPanel>
+                </Border>
+                <Border Margin="0,0,0,8" Padding="12" Background="#FFFFFBEB" BorderBrush="#FFF59E0B" BorderThickness="1" CornerRadius="8">
+                    <Border.Style>
+                        <Style TargetType="Border"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding ConfigurationRequired}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style>
+                    </Border.Style>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Margin="12,0,0,0" Command="{Binding DataContext.ShowSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}" Content="打开设置" ToolTip="前往设置选择模型或打开 Agent 配置" />
+                        <TextBlock Text="尚未配置可用模型。请前往设置选择模型，或打开外部 Agent 配置文件。" TextWrapping="Wrap" />
+                    </DockPanel>
+                </Border>
             </StackPanel>
 
-            <ListBox Grid.Row="1"
+            <ListBox x:Name="MessagesList"
+                     Grid.Row="1"
                      Margin="0,0,0,12"
                      ItemsSource="{Binding CurrentMessages}"
-                     SelectedItem="{Binding SelectedMessage}">
+                     SelectedItem="{Binding SelectedMessage}"
+                     ScrollViewer.ScrollChanged="OnMessagesScrollChanged"
+                     AutomationProperties.Name="消息列表"
+                     TabIndex="9">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Border Margin="0,0,0,12"
@@ -162,12 +248,15 @@
                                             </Style>
                                         </Border.Style>
 
-                                        <StackPanel>
-                                            <TextBlock FontWeight="SemiBold" Text="思考内容" />
-                                            <TextBlock Margin="0,8,0,0"
-                                                       TextWrapping="Wrap"
-                                                       Text="{Binding ThoughtContent}" />
-                                        </StackPanel>
+                                        <Expander Header="思考内容（展开查看）"
+                                                  IsExpanded="False"
+                                                  AutomationProperties.Name="思考内容">
+                                            <FlowDocumentScrollViewer Margin="0,8,0,0"
+                                                                      MaxHeight="320"
+                                                                      IsToolBarVisible="False"
+                                                                      VerticalScrollBarVisibility="Auto"
+                                                                      Document="{Binding ThoughtContent, Converter={StaticResource MarkdownConverter}}" />
+                                        </Expander>
                                     </Border>
 
                                     <Border Padding="10"
@@ -177,9 +266,10 @@
                                             CornerRadius="8">
                                         <StackPanel>
                                             <TextBlock FontWeight="SemiBold" Text="消息内容" />
-                                            <TextBlock Margin="0,8,0,0"
-                                                       TextWrapping="Wrap"
-                                                       Text="{Binding Content}" />
+                                            <FlowDocumentScrollViewer Margin="0,8,0,0"
+                                                                      IsToolBarVisible="False"
+                                                                      VerticalScrollBarVisibility="Hidden"
+                                                                      Document="{Binding Content, Converter={StaticResource MarkdownConverter}}" />
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
@@ -241,13 +331,20 @@
                                     <StackPanel Margin="0,10,0,0"
                                                 HorizontalAlignment="Right"
                                                 Orientation="Horizontal">
+                                        <TextBlock Margin="0,0,12,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource ErrorBrush}"
+                                                   Text="保存将截断此消息后的上下文"
+                                                   TextWrapping="Wrap" />
                                         <Button Margin="0,0,12,0"
                                                 Command="{Binding DataContext.CancelInlineEditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                                 CommandParameter="{Binding}"
-                                                Content="取消" />
+                                                Content="取消"
+                                                ToolTip="放弃消息编辑" />
                                         <Button Command="{Binding DataContext.SaveInlineEditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                                 CommandParameter="{Binding}"
-                                                Content="保存" />
+                                                Content="保存并截断"
+                                                ToolTip="保存编辑并删除后续上下文" />
                                     </StackPanel>
                                 </StackPanel>
                             </StackPanel>
@@ -256,36 +353,66 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
+            <Border Grid.Row="1"
+                    Margin="0,0,0,12"
+                    Padding="24">
+                <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource CardStyle}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasMessages}" Value="False">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock HorizontalAlignment="Center" FontSize="18" FontWeight="SemiBold" Text="开始一段新对话" />
+                    <TextBlock Margin="0,8,0,0" Text="在下方输入问题；消息会安全地保存在本地会话中。" TextAlignment="Center" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
             <Border Grid.Row="2"
                     Padding="12"
-                    Background="White"
-                    BorderBrush="#FFE5E7EB"
-                    BorderThickness="1"
-                    CornerRadius="10">
+                     Style="{StaticResource CardStyle}">
                 <StackPanel>
                     <TextBlock FontWeight="SemiBold" Text="输入消息" />
-                    <TextBox MinHeight="120"
+                    <TextBox x:Name="MessageInputBox"
+                             MinHeight="96"
+                             MaxHeight="220"
                              Margin="0,8,0,0"
                              AcceptsReturn="True"
                              Text="{Binding PendingUserMessage, UpdateSourceTrigger=PropertyChanged}"
                              TextWrapping="Wrap"
-                             VerticalScrollBarVisibility="Auto" />
+                             VerticalScrollBarVisibility="Auto"
+                             PreviewKeyDown="OnMessageInputPreviewKeyDown"
+                             ToolTip="输入消息。发送按键可在设置中调整。"
+                             AutomationProperties.Name="消息输入框"
+                             AutomationProperties.HelpText="按 Enter 或 Ctrl+Enter 发送，具体取决于设置；Shift+Enter 始终换行"
+                             TabIndex="10" />
                 </StackPanel>
             </Border>
 
             <DockPanel Grid.Row="3" Margin="0,12,0,0">
                 <StackPanel>
-                    <TextBlock Foreground="#FF6B7280" Text="悬停消息卡片时显示编辑按钮，编辑后直接在原消息位置保存。" />
-                    <TextBlock Foreground="#FF9CA3AF" Text="AI 回复会分开显示思考内容和消息内容。" />
+                    <TextBlock Text="编辑历史消息会截断后续上下文。" TextWrapping="Wrap" />
+                    <TextBlock Text="思考内容默认折叠；Markdown 和代码块以只读文档显示。" TextWrapping="Wrap" />
                 </StackPanel>
 
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Margin="12,0,0,0"
                             Command="{Binding StopCommand}"
-                            Content="停止" />
+                            Content="停止"
+                            ToolTip="停止当前生成"
+                            AutomationProperties.Name="停止生成"
+                            TabIndex="11" />
                     <Button Margin="12,0,0,0"
                             Command="{Binding SendMessageCommand}"
-                            Content="发送" />
+                            Content="发送"
+                            Click="OnSendButtonClick"
+                            ToolTip="发送消息"
+                            AutomationProperties.Name="发送消息"
+                            TabIndex="12" />
                 </StackPanel>
             </DockPanel>
         </Grid>

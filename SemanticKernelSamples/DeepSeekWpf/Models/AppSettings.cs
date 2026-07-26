@@ -1,20 +1,41 @@
 using System.IO;
+using System.Text.Json.Serialization;
 
 namespace DeepSeekWpf.Models;
 
 public sealed record AppSettings
 {
+    private string _selectedModelSpecifier = string.Empty;
+
     public string CachePath { get; init; } = string.Empty;
 
     public string DataPath { get; init; } = string.Empty;
 
     public string LogPath { get; init; } = string.Empty;
 
-    public string ModelName { get; init; } = "Mock-DeepSeek-Chat";
+    public int ChatRequestTimeoutSeconds { get; init; } = 120;
 
-    public string ApiAddress { get; init; } = "https://api.example.com/v1/chat/completions";
+    public bool SendMessageWithEnter { get; init; } = true;
 
-    public string ApiKey { get; init; } = string.Empty;
+    public string SelectedModelSpecifier
+    {
+        get => _selectedModelSpecifier;
+        init => _selectedModelSpecifier = value ?? string.Empty;
+    }
+
+    [JsonPropertyName("ModelName")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? LegacyModelName
+    {
+        get => null;
+        init
+        {
+            if (string.IsNullOrWhiteSpace(_selectedModelSpecifier))
+            {
+                _selectedModelSpecifier = value ?? string.Empty;
+            }
+        }
+    }
 
     public static AppSettings CreateDefault()
     {
@@ -27,9 +48,9 @@ public sealed record AppSettings
             CachePath = Path.Combine(appDataPath, "Cache"),
             DataPath = Path.Combine(appDataPath, "Data"),
             LogPath = Path.Combine(appDataPath, "Logs"),
-            ModelName = "Mock-DeepSeek-Chat",
-            ApiAddress = "https://api.example.com/v1/chat/completions",
-            ApiKey = string.Empty,
+            ChatRequestTimeoutSeconds = 120,
+            SendMessageWithEnter = true,
+            SelectedModelSpecifier = string.Empty,
         };
     }
 }

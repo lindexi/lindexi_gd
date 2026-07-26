@@ -4,28 +4,36 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="DeepSeek WPF Bot"
-        Width="1500"
-        Height="900"
-        MinWidth="1200"
-        MinHeight="720"
-        Background="#FFF3F4F6">
+        Title="DeepSeek Workspace"
+        Width="1280"
+        Height="800"
+        MinWidth="900"
+        MinHeight="600"
+        Background="{StaticResource AppBackgroundBrush}"
+        KeyboardNavigation.TabNavigation="Cycle">
+    <Window.InputBindings>
+        <KeyBinding Key="N" Modifiers="Control" Command="{Binding NewChatCommand}" />
+        <KeyBinding Key="OemComma" Modifiers="Control" Command="{Binding ShowSettingsCommand}" />
+        <KeyBinding Key="F" Modifiers="Control" Command="{Binding FocusSearchCommand}" />
+    </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="#FF111827" Padding="20">
+        <Border Grid.Row="0"
+                Padding="16,12"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Left">
-                    <TextBlock FontSize="28"
+                    <TextBlock FontSize="24"
                                FontWeight="SemiBold"
-                               Foreground="White"
-                               Text="DeepSeek WPF Bot" />
-                    <TextBlock Margin="0,6,0,0"
-                               Foreground="#FFD1D5DB"
-                               Text="MVVM 聊天客户端骨架，包含主界面与设置界面。" />
+                               Text="DeepSeek Workspace" />
+                    <TextBlock Margin="0,4,0,0"
+                               Text="专注、安全的本地 AI 对话工作区" />
                 </StackPanel>
 
                 <StackPanel DockPanel.Dock="Right"
@@ -33,14 +41,20 @@
                             Orientation="Horizontal">
                     <Button Margin="12,0,0,0"
                             Command="{Binding ShowChatCommand}"
-                            Content="主界面" />
+                             Content="对话"
+                             ToolTip="返回对话工作区"
+                             AutomationProperties.Name="对话工作区"
+                             TabIndex="0" />
                     <Button Margin="12,0,0,0"
                             Command="{Binding ShowSettingsCommand}"
-                            Content="设置界面" />
+                             Content="设置"
+                             ToolTip="打开设置 (Ctrl+,)"
+                             AutomationProperties.Name="设置"
+                             TabIndex="1" />
                 </StackPanel>
             </DockPanel>
         </Border>
 
-        <ContentControl Grid.Row="1" Content="{Binding CurrentPage}" />
+        <ContentControl x:Name="PageContent" Grid.Row="1" Content="{Binding CurrentPage}" />
     </Grid>
 </Window>

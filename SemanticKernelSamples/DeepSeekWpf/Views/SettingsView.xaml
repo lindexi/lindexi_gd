@@ -4,7 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d">
-    <Grid Margin="24">
+    <Grid Margin="{StaticResource PageMargin}" KeyboardNavigation.TabNavigation="Continue">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -12,22 +12,58 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
-            <TextBlock FontSize="26"
+            <TextBlock FontSize="24"
                        FontWeight="SemiBold"
-                       Text="设置界面" />
+                       Text="设置" />
             <TextBlock Margin="0,8,0,20"
-                       Foreground="#FF6B7280"
-                       Text="配置缓存目录、数据目录、日志目录和模型接入信息。保存后将返回主界面。" />
+                       Text="模型凭据由外部 Agent 配置管理，本应用不会读取或回显密钥。"
+                       TextWrapping="Wrap" />
         </StackPanel>
 
         <Border Grid.Row="1"
                 Padding="20"
-                Background="White"
-                BorderBrush="#FFE5E7EB"
-                BorderThickness="1"
-                CornerRadius="12">
+                 Style="{StaticResource CardStyle}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="模型与连接" />
+                    <TextBlock Margin="0,12,0,0" FontWeight="SemiBold" Text="已注册模型" />
+                    <ComboBox Margin="0,8,0,12"
+                              DisplayMemberPath="Specifier"
+                              ItemsSource="{Binding RegisteredModels}"
+                              SelectedItem="{Binding SelectedModel, Mode=TwoWay}"
+                              ToolTip="选择外部 Agent 配置中已注册的模型"
+                              AutomationProperties.Name="模型"
+                              TabIndex="0" />
+                    <WrapPanel Margin="0,0,0,16">
+                        <Button Margin="0,0,8,8" Command="{Binding ReloadAgentConfigurationCommand}" Content="重新加载配置" ToolTip="重新读取外部 Agent 配置" AutomationProperties.Name="重新加载 Agent 配置" TabIndex="1" />
+                        <Button Margin="0,0,8,8" Command="{Binding TestConnectionCommand}" Content="测试连接" ToolTip="测试当前模型连接" AutomationProperties.Name="测试模型连接" TabIndex="2" />
+                        <Button Margin="0,0,0,8" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenAgentConfigurationCommand}" Content="打开配置" ToolTip="使用系统默认编辑器打开外部 Agent 配置文件" AutomationProperties.Name="打开 Agent 配置" TabIndex="3" />
+                    </WrapPanel>
+
+                    <TextBlock FontWeight="SemiBold" Text="Agent 配置文件" />
+                    <TextBox Margin="0,8,0,16"
+                             IsReadOnly="True"
+                             Text="{Binding AgentConfigurationFilePath, Mode=OneWay}"
+                             ToolTip="凭据由该外部文件管理且不会在应用中显示"
+                             AutomationProperties.Name="Agent 配置文件路径" />
+
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="对话行为" />
+                    <CheckBox Margin="0,12,0,8"
+                              IsChecked="{Binding SendMessageWithEnter}"
+                              Content="按 Enter 发送（Shift+Enter 换行）"
+                              ToolTip="关闭后使用 Ctrl+Enter 发送"
+                              AutomationProperties.Name="按 Enter 发送消息"
+                              TabIndex="4" />
+                    <TextBlock FontWeight="SemiBold" Text="请求超时（秒）" />
+                    <TextBox Width="160"
+                             Margin="0,8,0,16"
+                             HorizontalAlignment="Left"
+                             Text="{Binding ChatRequestTimeoutSeconds, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="允许范围 10 到 3600 秒"
+                             AutomationProperties.Name="请求超时秒数"
+                             TabIndex="5" />
+
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="存储路径" />
                     <TextBlock FontWeight="SemiBold" Text="缓存路径" />
                     <Grid Margin="0,8,0,16">
                         <Grid.ColumnDefinitions>
@@ -37,11 +73,15 @@
 
                         <TextBox Grid.Column="0"
                                  Margin="0,0,12,0"
-                                 Text="{Binding CachePath, UpdateSourceTrigger=PropertyChanged}" />
+                                  Text="{Binding CachePath, UpdateSourceTrigger=PropertyChanged}"
+                                  AutomationProperties.Name="缓存路径"
+                                  TabIndex="6" />
                         <Button Grid.Column="1"
                                 Command="{Binding OpenFolderCommand}"
                                 CommandParameter="{Binding CachePath}"
-                                Content="打开目录" />
+                                 Content="打开目录"
+                                 ToolTip="打开缓存目录"
+                                 TabIndex="7" />
                     </Grid>
 
                     <TextBlock FontWeight="SemiBold" Text="数据路径" />
@@ -53,11 +93,15 @@
 
                         <TextBox Grid.Column="0"
                                  Margin="0,0,12,0"
-                                 Text="{Binding DataPath, UpdateSourceTrigger=PropertyChanged}" />
+                                  Text="{Binding DataPath, UpdateSourceTrigger=PropertyChanged}"
+                                  AutomationProperties.Name="数据路径"
+                                  TabIndex="8" />
                         <Button Grid.Column="1"
                                 Command="{Binding OpenFolderCommand}"
                                 CommandParameter="{Binding DataPath}"
-                                Content="打开目录" />
+                                 Content="打开目录"
+                                 ToolTip="打开会话数据目录"
+                                 TabIndex="9" />
                     </Grid>
 
                     <TextBlock FontWeight="SemiBold" Text="日志路径" />
@@ -69,26 +113,30 @@
 
                         <TextBox Grid.Column="0"
                                  Margin="0,0,12,0"
-                                 Text="{Binding LogPath, UpdateSourceTrigger=PropertyChanged}" />
+                                  Text="{Binding LogPath, UpdateSourceTrigger=PropertyChanged}"
+                                  AutomationProperties.Name="日志路径"
+                                  TabIndex="10" />
                         <Button Grid.Column="1"
                                 Command="{Binding OpenFolderCommand}"
                                 CommandParameter="{Binding LogPath}"
-                                Content="打开目录" />
+                                 Content="打开目录"
+                                 ToolTip="打开设置中的日志路径"
+                                 TabIndex="11" />
                     </Grid>
 
-                    <TextBlock FontWeight="SemiBold" Text="模型名称" />
-                    <TextBox Margin="0,8,0,16"
-                             Text="{Binding ModelName, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="诊断与日志" />
+                    <WrapPanel Margin="0,12,0,8">
+                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding CopyDiagnosticsCommand}" Content="复制诊断" ToolTip="复制不包含凭据的诊断摘要" TabIndex="12" />
+                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding ClearLogsCommand}" Content="清理日志" ToolTip="清理应用日志文件" TabIndex="13" />
+                        <Button Margin="0,0,0,8" Style="{StaticResource SecondaryButtonStyle}" Command="{Binding OpenLogDirectoryCommand}" Content="打开日志目录" ToolTip="打开日志目录" TabIndex="14" />
+                    </WrapPanel>
 
-                    <TextBlock FontWeight="SemiBold" Text="API 地址" />
-                    <TextBox Margin="0,8,0,16"
-                             Text="{Binding ApiAddress, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <TextBlock FontWeight="SemiBold" Text="API Key" />
-                    <TextBox Margin="0,8,0,16"
-                             Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <TextBlock Foreground="#FF6B7280" Text="{Binding StatusMessage}" />
+                    <ProgressBar Height="4" Margin="0,4,0,8" IsIndeterminate="True">
+                        <ProgressBar.Style><Style TargetType="ProgressBar"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding IsBusy}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style></ProgressBar.Style>
+                    </ProgressBar>
+                    <TextBlock Text="{Binding StatusMessage}"
+                               TextWrapping="Wrap"
+                               AutomationProperties.LiveSetting="Polite" />
                 </StackPanel>
             </ScrollViewer>
         </Border>
@@ -98,9 +146,16 @@
                     HorizontalAlignment="Right"
                     Orientation="Horizontal">
             <Button Margin="0,0,12,0"
+                    Style="{StaticResource SecondaryButtonStyle}"
                     Command="{Binding RestoreDefaultsCommand}"
-                    Content="恢复默认" />
-            <Button Command="{Binding SaveSettingsCommand}" Content="保存设置" />
+                    Content="恢复默认"
+                    ToolTip="恢复默认产品设置"
+                    TabIndex="15" />
+            <Button Command="{Binding SaveSettingsCommand}"
+                    Content="保存设置"
+                    ToolTip="保存设置并返回对话"
+                    AutomationProperties.Name="保存设置"
+                    TabIndex="16" />
         </StackPanel>
     </Grid>
 </UserControl>
