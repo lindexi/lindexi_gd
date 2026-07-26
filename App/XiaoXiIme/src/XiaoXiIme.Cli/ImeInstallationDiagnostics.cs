@@ -58,10 +58,6 @@ internal sealed record ImeImportDiagnostic(
     string? ErrorMessage);
 
 internal sealed record ImeNativeProbeDiagnostic(
-    bool GetBinaryTypeSucceeded,
-    string? BinaryType,
-    int GetBinaryTypeErrorCode,
-    string? GetBinaryTypeErrorMessage,
     bool ImageMappingSucceeded,
     int ImageMappingErrorCode,
     string? ImageMappingErrorMessage);
@@ -291,11 +287,9 @@ internal static class ImeInstallationDiagnostics
     {
         if (!exists)
         {
-            return new ImeNativeProbeDiagnostic(false, null, 2, GetErrorMessage(2), false, 2, GetErrorMessage(2));
+            return new ImeNativeProbeDiagnostic(false, 2, GetErrorMessage(2));
         }
 
-        var binaryTypeSucceeded = GetBinaryType(fullPath, out var binaryType);
-        var binaryTypeError = binaryTypeSucceeded ? 0 : Marshal.GetLastPInvokeError();
         var handle = LoadLibraryEx(fullPath, 0, DontResolveDllReferences);
         var mappingError = handle == 0 ? Marshal.GetLastPInvokeError() : 0;
         if (handle != 0)
@@ -304,10 +298,6 @@ internal static class ImeInstallationDiagnostics
         }
 
         return new ImeNativeProbeDiagnostic(
-            binaryTypeSucceeded,
-            binaryTypeSucceeded ? DescribeBinaryType(binaryType) : null,
-            binaryTypeError,
-            binaryTypeSucceeded ? null : GetErrorMessage(binaryTypeError),
             handle != 0,
             mappingError,
             handle != 0 ? null : GetErrorMessage(mappingError));
@@ -378,18 +368,6 @@ internal static class ImeInstallationDiagnostics
         || (machine.Equals("I386", StringComparison.OrdinalIgnoreCase) && processArchitecture.Equals("X86", StringComparison.OrdinalIgnoreCase))
         || (machine.Equals("Arm64", StringComparison.OrdinalIgnoreCase) && processArchitecture.Equals("Arm64", StringComparison.OrdinalIgnoreCase));
 
-    private static string DescribeBinaryType(uint binaryType) => binaryType switch
-    {
-        0 => "SCS_32BIT_BINARY",
-        5 => "SCS_64BIT_BINARY",
-        6 => "SCS_DOS_BINARY",
-        1 => "SCS_DOS_BINARY",
-        2 => "SCS_WOW_BINARY",
-        3 => "SCS_PIF_BINARY",
-        4 => "SCS_POSIX_BINARY",
-        _ => $"Unknown ({binaryType})",
-    };
-
     private static int RvaToOffset(PEHeaders headers, int rva)
     {
         foreach (var section in headers.SectionHeaders)
@@ -423,9 +401,6 @@ internal static class ImeInstallationDiagnostics
     }
 
     private static string? GetErrorMessage(int errorCode) => errorCode == 0 ? null : new Win32Exception(errorCode).Message;
-
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern bool GetBinaryType(string applicationName, out uint binaryType);
 
     [DllImport("kernel32.dll", EntryPoint = "LoadLibraryExW", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern nint LoadLibraryEx(string fileName, nint file, uint flags);

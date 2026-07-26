@@ -46,7 +46,6 @@ VM 被视为纯净最终用户环境，不假设存在以下组件：
 - 源 IME 的绝对路径、文件长度、SHA-256、属性、版本和 Mark of the Web；
 - PE Machine、Magic、Subsystem、DLL 标志和导入表；
 - 导入模块是否为 API-set，以及普通系统 DLL 能否从系统目录解析；
-- Windows `GetBinaryType` 结果；
 - 使用 `DONT_RESOLVE_DLL_REFERENCES` 的安全映像映射结果；
 - `System32\XiaoXiIme.ime`、System32 临时写入能力和匹配键盘布局注册项的安装前状态；
 - 基于以上数据生成的 `Findings`。
@@ -83,7 +82,7 @@ VM 返回的数据进一步确认：
 - Windows 能使用 `DONT_RESOLVE_DLL_REFERENCES` 映射该映像；
 - 调用前后 System32 均没有 `XiaoXiIme.ime`，也没有匹配布局注册项。
 
-该轮唯一 finding 是 `GetBinaryType` 返回 error 193。此 API 面向可执行程序，不能用它对 DLL/IME 的失败结果判定镜像无效，因此后续版本不再将该结果视为 finding，但仍保留原始数据供参考。
+该轮唯一 finding 是 `GetBinaryType` 返回 error 193。此 API 面向可执行程序，不能用它对 DLL/IME 的失败结果判定镜像无效。后续版本先停止将该结果视为 finding；在完整安装闭环验证通过后，已从诊断模型中移除此项，避免继续输出“%1 不是有效的 Win32 应用程序”这一干扰信息。IME 映像有效性改由 PE 解析、安全映像映射和独立进程真实加载共同验证。
 
 下一轮判断方式：
 
