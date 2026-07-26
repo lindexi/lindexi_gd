@@ -50,7 +50,19 @@ internal static class IntegrationTestRunner
         try
         {
             var uninstall = installer.UninstallExisting("XiaoXi IME", "XiaoXiIme.ime");
-            results.Add(new IntegrationStageResult("uninstall-old", uninstall.Succeeded, uninstall.Succeeded ? 0 : 1, uninstall.Message, "", ""));
+            results.Add(new IntegrationStageResult(
+                "uninstall-old",
+                uninstall.Succeeded,
+                uninstall.Succeeded ? 0 : 1,
+                uninstall.Message,
+                "",
+                "",
+                new
+                {
+                    uninstall.RebootRequired,
+                    PendingDeletePaths = uninstall.PendingDeletePaths ?? [],
+                    RetiredFilePaths = uninstall.RetiredFilePaths ?? [],
+                }));
             LogResult(log, results[^1]);
             if (!uninstall.Succeeded)
             {
@@ -101,6 +113,7 @@ internal static class IntegrationTestRunner
                     install.CopiedToSystemDirectory,
                     install.RollbackSucceeded,
                     install.RollbackError,
+                    install.FailureKind,
                 }));
             LogResult(log, results[^1]);
             if (!install.Succeeded)
@@ -116,19 +129,22 @@ internal static class IntegrationTestRunner
                     postFailureDiagnostics));
                 LogResult(log, results[^1]);
 
-                var variantResults = WindowsImeInstallationVariantProbe.Run(imePath, "XiaoXi IME Probe");
-                var successfulVariants = variantResults.Where(result => result.InstallSucceeded).Select(result => result.Id).ToArray();
-                results.Add(new IntegrationStageResult(
-                    "imm-install-variant-probe",
-                    true,
-                    0,
-                    successfulVariants.Length == 0
-                        ? "All isolated ImmInstallIME path and filename variants failed."
-                        : $"ImmInstallIME succeeded for variant(s): {string.Join(", ", successfulVariants)}.",
-                    "",
-                    "",
-                    variantResults));
-                LogResult(log, results[^1]);
+                if (install.FailureKind == ImeInstallationFailureKind.ImmInstallImeFailure)
+                {
+                    var variantResults = WindowsImeInstallationVariantProbe.Run(imePath, "XiaoXi IME Probe");
+                    var successfulVariants = variantResults.Where(result => result.InstallSucceeded).Select(result => result.Id).ToArray();
+                    results.Add(new IntegrationStageResult(
+                        "imm-install-variant-probe",
+                        true,
+                        0,
+                        successfulVariants.Length == 0
+                            ? "All isolated ImmInstallIME path and filename variants failed."
+                            : $"ImmInstallIME succeeded for variant(s): {string.Join(", ", successfulVariants)}.",
+                        "",
+                        "",
+                        variantResults));
+                    LogResult(log, results[^1]);
+                }
                 return await CompleteAsync(13, reportPath, results, log, installer, installed, options.KeepInstalled);
             }
 
@@ -331,7 +347,19 @@ internal static class IntegrationTestRunner
         {
             var cleanup = installer.UninstallExisting("XiaoXi IME", "XiaoXiIme.ime");
             cleanupSucceeded = cleanup.Succeeded;
-            results.Add(new IntegrationStageResult("cleanup", cleanup.Succeeded, cleanup.Succeeded ? 0 : 1, cleanup.Message, "", ""));
+            results.Add(new IntegrationStageResult(
+                "cleanup",
+                cleanup.Succeeded,
+                cleanup.Succeeded ? 0 : 1,
+                cleanup.Message,
+                "",
+                "",
+                new
+                {
+                    cleanup.RebootRequired,
+                    PendingDeletePaths = cleanup.PendingDeletePaths ?? [],
+                    RetiredFilePaths = cleanup.RetiredFilePaths ?? [],
+                }));
             LogResult(log, results[^1]);
         }
 

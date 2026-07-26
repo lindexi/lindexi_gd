@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
 namespace XiaoXiIme.Cli;
@@ -17,6 +18,11 @@ internal interface IImeInstaller
 [SupportedOSPlatform("windows")]
 internal sealed class WindowsImeInstaller : IImeInstaller
 {
+    private const uint MoveFileDelayUntilReboot = 0x00000004;
+    private static readonly Regex RetiredImeFileNamePattern = new(
+        @"\AXiaoXiIme\.retired-\d{8}T\d{6}Z-[0-9a-f]{32}\.ime\z",
+        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
     public ImeInstallationResult Install(string imeFilePath, string displayName)
     {
         if (!OperatingSystem.IsWindows())
@@ -41,7 +47,10 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         {
             if (!FilesMatch(sourcePath, installedPath))
             {
-                return ImeInstallationResult.Failure($"Refusing to overwrite an existing different file: {installedPath}", installedPath: installedPath);
+                return ImeInstallationResult.Failure(
+                    $"Refusing to overwrite an existing different file: {installedPath}",
+                    installedPath: installedPath,
+                    failureKind: ImeInstallationFailureKind.ExistingFileConflict);
             }
         }
         else
@@ -103,7 +112,8 @@ internal sealed class WindowsImeInstaller : IImeInstaller
             installedPath,
             copied,
             rollbackSucceeded,
-            rollbackError);
+            rollbackError,
+            ImeInstallationFailureKind.ImmInstallImeFailure);
     }
 
     private static bool FilesMatch(string firstPath, string secondPath)
@@ -169,11 +179,17 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         RemovePreloadReferences(Registry.CurrentUser, removed);
         using var users = Registry.Users;
         RemovePreloadReferences(users, removed, @".DEFAULT\Keyboard Layout\Preload");
-        var cleanupMessages = CleanupUnreferencedSystemImeFiles(layouts, removedImeFiles, imeFileName);
+        var cleanup = CleanupUnreferencedSystemImeFiles(layouts, removedImeFiles, imeFileName);
         var layoutMessage = removed.Count == 0
             ? "No existing XiaoXi IME keyboard layout was found."
             : $"Removed XiaoXi IME keyboard layouts: {string.Join(", ", removed)}.";
-        return new ImeUninstallationResult(true, removed, string.Join(" ", new[] { layoutMessage }.Concat(cleanupMessages)));
+        return new ImeUninstallationResult(
+            cleanup.Succeeded,
+            removed,
+            string.Join(" ", new[] { layoutMessage }.Concat(cleanup.Messages)),
+            cleanup.RebootRequired,
+            cleanup.PendingDeletePaths,
+            cleanup.RetiredFilePaths);
     }
 
     internal static bool IsXiaoXiIme(string? layoutText, string? imeFile) =>
@@ -185,11 +201,20 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         string.Equals(imeFile, "XiaoXiIme.ime", StringComparison.OrdinalIgnoreCase)
         || string.Equals(imeFile, WindowsImeInstallationVariantProbe.ShortImeFileName, StringComparison.OrdinalIgnoreCase);
 
-    private static IReadOnlyList<string> CleanupUnreferencedSystemImeFiles(RegistryKey layouts, IReadOnlyCollection<string> removedImeFiles, string primaryImeFileName)
+    internal static bool IsRetiredXiaoXiImeFile(string? fileName) =>
+        fileName is not null && RetiredImeFileNamePattern.IsMatch(fileName);
+
+    internal static string CreateRetiredImeFileName(DateTimeOffset timestamp, Guid id) =>
+        $"XiaoXiIme.retired-{timestamp.UtcDateTime:yyyyMMdd'T'HHmmss'Z'}-{id:N}.ime";
+
+    private static ImeFileCleanupResult CleanupUnreferencedSystemImeFiles(RegistryKey layouts, IReadOnlyCollection<string> removedImeFiles, string primaryImeFileName)
     {
         var candidates = removedImeFiles
             .Append(primaryImeFileName)
             .Append(WindowsImeInstallationVariantProbe.ShortImeFileName)
+            .Concat(Directory.EnumerateFiles(Environment.SystemDirectory, "XiaoXiIme.retired-*.ime")
+                .Select(Path.GetFileName)
+                .Where(IsRetiredXiaoXiImeFile)!)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
         var referencedFiles = layouts.GetSubKeyNames()
@@ -201,6 +226,9 @@ internal sealed class WindowsImeInstaller : IImeInstaller
             .Where(value => value is not null)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var messages = new List<string>();
+        var pendingDeletePaths = new List<string>();
+        var retiredFilePaths = new List<string>();
+        var succeeded = true;
         foreach (var candidate in candidates)
         {
             if (referencedFiles.Contains(candidate))
@@ -217,16 +245,64 @@ internal sealed class WindowsImeInstaller : IImeInstaller
             try
             {
                 File.Delete(path);
-                messages.Add(File.Exists(path)
-                    ? $"System32 IME file still exists after deletion: {path}."
-                    : $"Removed unreferenced System32 IME file: {path}.");
+                if (File.Exists(path))
+                {
+                    succeeded = false;
+                    messages.Add($"System32 IME file still exists after deletion: {path}.");
+                }
+                else
+                {
+                    messages.Add($"Removed unreferenced System32 IME file: {path}.");
+                }
             }
             catch (Exception ex)
             {
-                messages.Add($"Unable to remove unreferenced System32 IME file '{path}': {ex.GetType().Name}: {ex.Message}");
+                var retiredPath = Path.Combine(
+                    Environment.SystemDirectory,
+                    CreateRetiredImeFileName(DateTimeOffset.UtcNow, Guid.NewGuid()));
+                if (TryMoveToRetiredPath(path, retiredPath, out var moveError))
+                {
+                    retiredFilePaths.Add(retiredPath);
+                    messages.Add($"Unable to remove unreferenced System32 IME file '{path}' immediately: {ex.GetType().Name}: {ex.Message} Moved it to isolated path '{retiredPath}' so the canonical IME path can be reused in this sandbox run.");
+                }
+                else if (TryScheduleDeleteOnReboot(path, out var scheduleError))
+                {
+                    succeeded = false;
+                    pendingDeletePaths.Add(path);
+                    messages.Add($"Unable to remove unreferenced System32 IME file '{path}' immediately: {ex.GetType().Name}: {ex.Message} Moving it to '{retiredPath}' failed with Win32 error {moveError}: {new Win32Exception(moveError).Message} Scheduled the original file for deletion at the next Windows restart.");
+                }
+                else
+                {
+                    succeeded = false;
+                    messages.Add($"Unable to remove unreferenced System32 IME file '{path}': {ex.GetType().Name}: {ex.Message} Moving it to '{retiredPath}' failed with Win32 error {moveError}: {new Win32Exception(moveError).Message} Scheduling deletion at restart also failed with Win32 error {scheduleError}: {new Win32Exception(scheduleError).Message}");
+                }
             }
         }
-        return messages;
+        return new ImeFileCleanupResult(succeeded, messages, pendingDeletePaths.Count > 0, pendingDeletePaths, retiredFilePaths);
+    }
+
+    internal static bool TryMoveToRetiredPath(string sourcePath, string retiredPath, out int errorCode)
+    {
+        if (MoveFileEx(sourcePath, retiredPath, 0))
+        {
+            errorCode = 0;
+            return true;
+        }
+
+        errorCode = Marshal.GetLastPInvokeError();
+        return false;
+    }
+
+    internal static bool TryScheduleDeleteOnReboot(string path, out int errorCode)
+    {
+        if (MoveFileEx(path, null, MoveFileDelayUntilReboot))
+        {
+            errorCode = 0;
+            return true;
+        }
+
+        errorCode = Marshal.GetLastPInvokeError();
+        return false;
     }
 
     private static void RemovePreloadReferences(RegistryKey root, IReadOnlyCollection<string> removedLayoutIds, string path = @"Keyboard Layout\Preload")
@@ -261,6 +337,18 @@ internal sealed class WindowsImeInstaller : IImeInstaller
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool UnloadKeyboardLayout(nint keyboardLayout);
+
+    [DllImport("kernel32.dll", EntryPoint = "MoveFileExW", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool MoveFileEx(string existingFileName, string? newFileName, uint flags);
+}
+
+internal enum ImeInstallationFailureKind
+{
+    None,
+    ExistingFileConflict,
+    ImmInstallImeFailure,
+    Other,
 }
 
 internal readonly record struct ImeInstallationResult(
@@ -271,7 +359,8 @@ internal readonly record struct ImeInstallationResult(
     string? InstalledPath,
     bool CopiedToSystemDirectory,
     bool? RollbackSucceeded,
-    string? RollbackError)
+    string? RollbackError,
+    ImeInstallationFailureKind FailureKind = ImeInstallationFailureKind.None)
 {
     public static ImeInstallationResult Failure(
         string message,
@@ -279,8 +368,22 @@ internal readonly record struct ImeInstallationResult(
         string? installedPath = null,
         bool copiedToSystemDirectory = false,
         bool? rollbackSucceeded = null,
-        string? rollbackError = null) =>
-        new(false, message, win32ErrorCode, null, installedPath, copiedToSystemDirectory, rollbackSucceeded, rollbackError);
+        string? rollbackError = null,
+        ImeInstallationFailureKind failureKind = ImeInstallationFailureKind.Other) =>
+        new(false, message, win32ErrorCode, null, installedPath, copiedToSystemDirectory, rollbackSucceeded, rollbackError, failureKind);
 }
 
-internal readonly record struct ImeUninstallationResult(bool Succeeded, IReadOnlyList<string> RemovedLayoutIds, string Message);
+internal readonly record struct ImeUninstallationResult(
+    bool Succeeded,
+    IReadOnlyList<string> RemovedLayoutIds,
+    string Message,
+    bool RebootRequired = false,
+    IReadOnlyList<string>? PendingDeletePaths = null,
+    IReadOnlyList<string>? RetiredFilePaths = null);
+
+internal readonly record struct ImeFileCleanupResult(
+    bool Succeeded,
+    IReadOnlyList<string> Messages,
+    bool RebootRequired,
+    IReadOnlyList<string> PendingDeletePaths,
+    IReadOnlyList<string> RetiredFilePaths);

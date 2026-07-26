@@ -142,7 +142,7 @@ public class ImeExportsTests
     [Fact]
     public void BuildMessages_CommitText_ReturnsResultAndEndCompositionMessages()
     {
-        var result = new ImeToAsciiResult(true, "小", ImeSessionSnapshot.Empty);
+        var result = new ImeToAsciiResult(true, "小希", ImeSessionSnapshot.Empty);
 
         var messages = ImeTransMsgBuilder.BuildMessages(result);
 
@@ -251,15 +251,15 @@ public class ImeExportsTests
         var buffer = stackalloc byte[512];
         var compositionString = (CompositionString*)buffer;
 
-        var written = writer.TryWriteResultStringForTesting(compositionString, "小");
+        var written = writer.TryWriteResultStringForTesting(compositionString, "小希");
 
         Assert.True(written);
-        Assert.Equal(2u, compositionString->ResultStrLength);
+        Assert.Equal(4u, compositionString->ResultStrLength);
         Assert.Equal(8u, compositionString->ResultClauseLength);
-        Assert.Equal("小", new string((char*)(buffer + compositionString->ResultStrOffset), 0, 1));
+        Assert.Equal("小希", new string((char*)(buffer + compositionString->ResultStrOffset), 0, 2));
         var clauses = (uint*)(buffer + compositionString->ResultClauseOffset);
         Assert.Equal(0u, clauses[0]);
-        Assert.Equal(2u, clauses[1]);
+        Assert.Equal(4u, clauses[1]);
     }
 
     [Fact]

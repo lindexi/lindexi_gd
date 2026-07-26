@@ -86,6 +86,50 @@ public sealed class IntegrationTestRunnerTests
         Assert.Equal(expected, result);
     }
 
+    [Fact]
+    public void InstallationFailureCanIdentifyExistingFileConflict()
+    {
+        var result = ImeInstallationResult.Failure(
+            "Existing file differs.",
+            installedPath: @"C:\Windows\System32\XiaoXiIme.ime",
+            failureKind: ImeInstallationFailureKind.ExistingFileConflict);
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(ImeInstallationFailureKind.ExistingFileConflict, result.FailureKind);
+        Assert.Equal(@"C:\Windows\System32\XiaoXiIme.ime", result.InstalledPath);
+    }
+
+    [Fact]
+    public void UninstallationResultCanRequireRestartForPendingFileDeletion()
+    {
+        var pendingPath = @"C:\Windows\System32\XiaoXiIme.ime";
+        var result = new ImeUninstallationResult(
+            false,
+            [],
+            "Restart required.",
+            RebootRequired: true,
+            PendingDeletePaths: [pendingPath]);
+
+        Assert.False(result.Succeeded);
+        Assert.True(result.RebootRequired);
+        Assert.Equal([pendingPath], result.PendingDeletePaths);
+    }
+
+    [Fact]
+    public void UninstallationResultCanReportRetiredFileWithoutRequiringRestart()
+    {
+        var retiredPath = @"C:\Windows\System32\XiaoXiIme.retired-20260726T132255Z-0123456789abcdef0123456789abcdef.ime";
+        var result = new ImeUninstallationResult(
+            true,
+            [],
+            "Moved the loaded IME aside.",
+            RetiredFilePaths: [retiredPath]);
+
+        Assert.True(result.Succeeded);
+        Assert.False(result.RebootRequired);
+        Assert.Equal([retiredPath], result.RetiredFilePaths);
+    }
+
     private sealed class TemporaryDirectory : IDisposable
     {
         public TemporaryDirectory()

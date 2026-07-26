@@ -14,6 +14,7 @@ public sealed class ImeContext
     private int _pageSize;
     private const int CandidatePageSize = 9;
     private const int MaxCandidateCount = 100;
+    private const string AutoCommitReading = "xx";
 
     public ImeContext(IImeDictionary dictionary)
     {
@@ -57,6 +58,11 @@ public sealed class ImeContext
         _caretIndex++;
         _selection = 0;
         RefreshCandidates();
+
+        if (string.Equals(_reading, AutoCommitReading, StringComparison.Ordinal) && _candidates.Count > 0)
+        {
+            return CommitCandidate(0);
+        }
 
         return new ImeProcessResult(Snapshot, null, true);
     }

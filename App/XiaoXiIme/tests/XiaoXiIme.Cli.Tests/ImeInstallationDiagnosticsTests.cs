@@ -86,4 +86,27 @@ public sealed class ImeInstallationDiagnosticsTests
     {
         Assert.Equal(expected, WindowsImeInstaller.IsExpectedXiaoXiImeFile(imeFile));
     }
+
+    [Fact]
+    public void InstallerCreatesRecognizableRetiredImeFileName()
+    {
+        var timestamp = new DateTimeOffset(2026, 7, 26, 13, 22, 55, TimeSpan.Zero);
+        var id = Guid.Parse("01234567-89ab-cdef-0123-456789abcdef");
+
+        var fileName = WindowsImeInstaller.CreateRetiredImeFileName(timestamp, id);
+
+        Assert.Equal("XiaoXiIme.retired-20260726T132255Z-0123456789abcdef0123456789abcdef.ime", fileName);
+        Assert.True(WindowsImeInstaller.IsRetiredXiaoXiImeFile(fileName));
+    }
+
+    [Theory]
+    [InlineData("XiaoXiIme.retired-20260726T132255Z-0123456789abcdef0123456789abcdef.ime", true)]
+    [InlineData("xiaoxiime.RETIRED-20260726T132255Z-0123456789ABCDEF0123456789ABCDEF.ime", true)]
+    [InlineData("XiaoXiIme.retired.ime", false)]
+    [InlineData("OtherIme.retired-20260726T132255Z-0123456789abcdef0123456789abcdef.ime", false)]
+    [InlineData("XiaoXiIme.retired-20260726T132255Z-0123456789abcdef0123456789abcdef.dll", false)]
+    public void InstallerRecognizesOnlyStrictRetiredImeFileNames(string fileName, bool expected)
+    {
+        Assert.Equal(expected, WindowsImeInstaller.IsRetiredXiaoXiImeFile(fileName));
+    }
 }

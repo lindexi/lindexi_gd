@@ -42,6 +42,24 @@ public class ImeContextTests
     }
 
     [Fact]
+    public void ProcessKey_SecondXAutomaticallyCommitsXiaoXi()
+    {
+        var context = new ImeContext(InMemoryImeDictionary.CreateDefault());
+
+        var composingResult = context.ProcessKey(ImeKey.FromCharacter('x'));
+        var commitResult = context.ProcessKey(ImeKey.FromCharacter('x'));
+
+        Assert.True(composingResult.Handled);
+        Assert.Null(composingResult.CommitText);
+        Assert.True(composingResult.Snapshot.IsComposing);
+        Assert.Equal("x", composingResult.Snapshot.Composition.Reading);
+        Assert.True(commitResult.Handled);
+        Assert.Equal("小希", commitResult.CommitText);
+        Assert.False(commitResult.Snapshot.IsComposing);
+        Assert.Empty(commitResult.Snapshot.Candidates);
+    }
+
+    [Fact]
     public void ProcessKey_SelectCandidateCommitsCandidateInCurrentPage()
     {
         var context = CreatePagedContext();

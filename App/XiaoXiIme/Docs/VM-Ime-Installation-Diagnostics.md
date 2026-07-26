@@ -167,6 +167,55 @@ VM 返回结果确认纯净最终用户环境中的完整流程已经通过：
 
 至此，最初的 `ImmInstallIMEW` Win32 error 2、探测布局残留和纯净 VM 缺少测试平台三个问题均已完成根因修复与实机验证。当前输出还显示 `report` 控制台事件早于 `cleanup`；虽然报告文件随后会被重写并包含清理结果，但事件顺序容易造成误解，且清理失败不会改变原成功退出码。后续实现改为先执行并记录 `cleanup`，再写入和输出最终 `report`；当业务阶段全部成功但清理失败时，整体返回非零退出码。
 
+### 2026-07-26 第六轮真实按键注入结果
+
+VM 返回结果确认安装、x86/x64 TSF 验证以及前两个自包含集成场景继续通过，但 `real-ime-keystroke-commit` 在调用 `SendInput` 时失败：
+
+```text
+SendInput injected 0 of 4 keyboard events. Win32 error 87: 参数错误。
+```
+
+错误发生在四个键盘事件进入系统输入队列之前，因此本轮没有证据指向 `ImeProcessKey`、`ImeToAsciiEx`、HIMC 结果字符串或 `WM_IME_COMPOSITION` 链路。检查集成宿主发现其 `INPUT` P/Invoke 结构依赖运行时自动推导联合体对齐；`SendInput` 会严格校验 `cbSize == sizeof(INPUT)`，错误 87 与 x64 `INPUT` 大小或联合体偏移不匹配一致。
+
+后续版本已将自包含 `win-x64` 测试宿主的 `INPUT` 显式声明为 Windows x64 ABI：总大小 40 字节，输入联合体位于偏移 8；调用前还会验证实际大小和偏移。若 `SendInput` 仍失败，stderr 会额外记录进程架构、`INPUT` 大小、联合体偏移、前台窗口和焦点窗口句柄，以便区分 ABI、前台焦点和 UIPI 完整性级别限制。
+
+该轮 `cleanup` 已移除布局 `E0200804`，但删除 `C:\Windows\System32\XiaoXiIme.ime` 时收到拒绝访问。测试宿主在真实按键场景中已加载该 IME，文件可能在测试进程退出与系统卸载之间仍被映射；下一轮需同时观察 ABI 修复后真实按键提交是否通过，以及清理阶段能否删除 System32 文件。若按键场景通过但文件仍无法删除，应单独修复测试宿主退出、布局卸载与清理重试之间的生命周期，而不能静默忽略残留。
+
+开发机验证结果：`XiaoXiIme.IntegrationTestHost` 和完整解决方案生成成功，`XiaoXiIme.ImeModule.Tests` 的 59 个测试全部通过。当前 Visual Studio Test Explorer 使用项目筛选时未发现 `XiaoXiIme.IntegrationTests`，这是开发机测试发现问题，不改变 VM 必须执行自包含宿主的验收要求。
+
+### 2026-07-26 第七轮旧 System32 映像阻塞结果
+
+VM 在新 payload 启动时仍存在上一轮留下的 `C:\Windows\System32\XiaoXiIme.ime`。该文件没有布局引用，但无法立即删除；其长度与新源文件相同，SHA-256 不同，因此正式安装按安全约束拒绝覆盖。该轮没有进入 TSF 或集成测试，不能用于判断上一版 `SendInput` ABI 修复是否有效。
+
+本轮输出还确认旧清理逻辑存在两个控制流问题：
+
+- `uninstall-old` 将 System32 文件删除失败仅写入消息，仍返回成功，导致流程继续到必然失败的安装；
+- 正式安装因“既有文件内容不同”而失败后仍运行 `imm-install-variant-probe`，短文件名变体成功并不能解决正式文件的版本冲突，属于无关诊断。
+
+后续版本已增加确定性的重启恢复路径：当目标 IME 已无任何布局引用但因仍被系统映射而无法立即删除时，CLI 使用 `MoveFileExW(..., MOVEFILE_DELAY_UNTIL_REBOOT)` 安排下次 Windows 重启时删除。`uninstall-old` 会返回失败，并在结构化 `Data` 中输出 `RebootRequired: true` 和 `PendingDeletePaths`；本轮随即写报告并停止，不再继续安装。文件冲突也已与真正的 `ImmInstallIMEW` API 失败分类，只有后者才会运行变体探测。
+
+下一轮需要分两次操作：
+
+1. 使用包含此修复的新 payload 运行一次 `integration-run`。预期 `uninstall-old` 报告已安排删除并要求重启，进程非零退出；确认 `PendingDeletePaths` 包含 `C:\Windows\System32\XiaoXiIme.ime`。
+2. 完整重启 Windows VM，不只是关闭 PowerShell或注销。重启后确认旧文件已消失，再使用同一 payload 重新运行 `integration-run`。第二次运行才用于验证 `PASS real-ime-keystroke-commit` 和最终清理。
+
+如果第一次运行连延迟删除也无法安排，必须回传其中的原始 Win32 错误码；不要手工取得文件所有权、修改 ACL 或强制覆盖。开发机验证为 `XiaoXiIme.Cli.Tests` 22 个测试全部通过，完整解决方案生成成功。
+
+### 2026-07-26 沙盒约束修正：被加载文件优先移动
+
+实际实验环境在 Windows 重启后会丢失整个沙盒内容，因此上一版“安排重启删除并停止，重启后再运行”的恢复路径不适用于当前验证。后续清理策略调整为：
+
+1. 确认目标 IME 文件已无任何键盘布局引用；
+2. 先尝试立即删除；
+3. 删除因映像仍被加载而失败时，优先使用 `MoveFileExW` 在 System32 同卷重命名为严格格式的隔离文件：`XiaoXiIme.retired-<UTC>-<GUID>.ime`；
+4. 移动成功后，正式 `XiaoXiIme.ime` 路径已经释放，`uninstall-old` 保持成功并继续当前 `integration-run`；隔离路径进入 `Data.RetiredFilePaths`，不能描述成已删除；
+5. 后续运行只扫描并清理严格匹配上述格式的隔离文件，不处理其他文件；
+6. 只有移动也失败时才尝试安排重启删除并返回 `RebootRequired: true`。在当前沙盒中这只是最后诊断，不能作为正常恢复步骤。
+
+下一版 payload 的预期行为是：`uninstall-old` 报告旧正式文件已移动到 `RetiredFilePaths`，随后安装新 `XiaoXiIme.ime` 并继续执行 TSF、IPC 和真实按键场景。若移动失败，必须回传移动操作的 Win32 错误码；不得要求操作者重启后继续同一沙盒实验。
+
+开发机验证结果更新为：`XiaoXiIme.Cli.Tests` 29 个测试全部通过，完整解决方案生成成功。
+
 ## 后续回归验证必须回传的信息
 
 安装问题已闭环，后续仅在修改安装、TSF、IPC、payload 或集成运行流程后执行回归。回归输出至少应包含以下 stage，并保持 `cleanup` 早于 `report`：
@@ -177,13 +226,15 @@ VM 返回结果确认纯净最终用户环境中的完整流程已经通过：
 - `install-x64`；
 - `tsf-abi-x64`、`tsf-com-activation-x64`；
 - `tsf-abi-x86`、`tsf-com-activation-x86`；
-- `integration-tests`，其 stdout 应包含 `PASS candidate-window-state` 和 `PASS ime-host-ipc`；
+- `integration-tests`，其 stdout 应包含 `PASS candidate-window-state`、`PASS ime-host-ipc` 和 `PASS real-ime-keystroke-commit`；
 - `cleanup`；
 - 若安装失败，`diagnostics-post-install-failure`；
 - 若安装失败，`imm-install-variant-probe`；
 - `report`。
 
 成功回归应满足进程退出码为 0、`cleanup` 成功，并且最终报告中的 `results` 包含 `cleanup`。如果 `--keep-installed` 被显式启用，则可以不包含 `cleanup`，但必须由操作者负责后续卸载。
+
+真实按键上屏回归必须在已登录的交互式 Windows 桌面会话中执行。运行命令前应关闭可能抢占前台焦点的程序，不得通过计划任务的非交互会话、断开桌面的服务会话或远程后台执行器启动。测试宿主会短暂创建并聚焦一个标题为 `XiaoXiIme Integration Test` 的窗口；若无法取得前台窗口、焦点或 `SendInput` 被完整性级别阻止，`integration-tests` 必须失败并在 stderr 中给出原因。
 
 如果控制台粘贴受长度限制，应优先回传完整的 `results\integration.json`，不得只回传错误消息摘要。
 
@@ -199,3 +250,40 @@ VM 返回结果确认纯净最终用户环境中的完整流程已经通过：
 ## 新对话接续提示
 
 在新的对话中，先阅读本文档和用户回传的最新 `integration.json`，再检查当前 `ImeInstallationDiagnostics.cs`、`WindowsImeInstaller.cs` 与 `IntegrationTestRunner.cs`。不要从最初的 Win32 错误 2 重新猜测，也不要要求 VM 安装开发工具；应从最新一轮结构化字段继续缩小问题范围。
+
+## `xx` 输入“小希”的真实输入闭环实施计划
+
+安装排障已经闭环，下一阶段转为验证真实 Windows 编辑控件中的按键、组合和结果字符串上屏链路。最小目标是：激活已安装的 XiaoXiIme 后，在 Win32 `EDIT` 控件中连续输入两次 `x`，第二个 `x` 到达后由 IME 直接提交“小希”，最终控件文本必须严格等于“小希”。本阶段暂不要求显示可交互候选窗口，也不要求再按空格确认。
+
+实施步骤：
+
+1. 在默认内存词典中增加 `xx -> 小希` 的确定性词条。
+2. 在 IME 核心中保留第一个 `x` 的组合状态，并在第二个 `x` 后自动提交唯一候选“小希”、清空组合状态。
+3. 增加核心回归测试，验证第一个 `x` 只建立组合，第二个 `x` 返回完整的双字符结果字符串。
+4. 增加 IME 消息层回归测试，验证提交结果继续通过 HIMC 的 `GCS_RESULTSTR` 和 `WM_IME_COMPOSITION` 传递，而不是绕过输入法协议直接写宿主文本。
+5. 扩展自包含 `XiaoXiIme.IntegrationTestHost.exe`：创建真实 Win32 `EDIT` 控件，查找并激活 XiaoXiIme 布局，将窗口置于前台，使用系统输入注入发送 `xx`，泵送窗口消息，并在有限超时内读取控件文本。
+6. 集成场景成功时输出 `PASS real-ime-keystroke-commit`；无法取得交互式前台窗口、无法激活布局、输入注入失败、超时或最终文本不匹配时必须输出明确失败原因并返回非零退出码。
+7. 在开发机运行核心、IME 模块和集成宿主测试，并构建完整解决方案与 payload，随后复制到纯净 VM 做实机回归。
+
+实现约束：
+
+- 必须经过现有 `ImeProcessKey` → `ImeToAsciiEx` → composition/result string → `WM_IME_*` 链路；测试代码不得直接把“小希”设置到编辑框。
+- VM 仍不得依赖 .NET SDK、系统级 Runtime、Visual Studio 或额外诊断工具。
+- 真实按键场景要求交互式桌面会话；`SendInput` 的前台窗口和完整性级别限制必须作为可诊断前置条件处理。
+- 测试必须使用有限超时和消息泵，不得无限等待。
+- 若真实宿主测试暴露消息顺序、HIMC 缓冲区或多字符结果字符串问题，应修复协议实现，不能降低断言或伪造通过。
+
+验收标准：
+
+- 核心层：第一个 `x` 返回正在组合且 reading 为 `x`；第二个 `x` 返回 `CommitText == "小希"` 且组合结束。
+- 消息层：提交结果包含 `GCS_RESULTSTR`，HIMC 中保存的结果字符串为完整的“小希”。
+- VM 端：`integration-tests` 的 stdout 在原有两个 PASS 之外包含 `PASS real-ime-keystroke-commit`。
+- 完整集成流程仍保持 `cleanup` 早于 `report`，最终进程退出码为 0，报告包含成功的 `cleanup` 与 `integration-tests`。
+
+开发机完成实现后重新构建 payload：
+
+```powershell
+dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- payload-build --output .\artifacts\integration-payload
+```
+
+复制到 VM 后仍执行文档开头的 `integration-run` 命令。新的成功输出必须同时证明安装、x86/x64 TSF 验证、IPC 测试、真实 `xx` 按键提交“小希”和最终清理均通过。
