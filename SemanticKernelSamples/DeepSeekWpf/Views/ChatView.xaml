@@ -190,34 +190,100 @@
                                 BorderThickness="1"
                                 CornerRadius="10">
                             <StackPanel>
-                                <DockPanel>
-                                    <StackPanel Orientation="Horizontal">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
                                         <TextBlock FontWeight="SemiBold" Text="{Binding Role}" />
                                         <TextBlock Margin="12,0,0,0"
                                                    Foreground="#FF9CA3AF"
                                                    Text="{Binding CreatedAt, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" />
                                     </StackPanel>
 
-                                    <Button DockPanel.Dock="Right"
+                                    <Button Grid.Column="1"
+                                            Margin="12,0,0,0"
                                             Command="{Binding DataContext.BeginInlineEditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                             CommandParameter="{Binding}"
-                                            Content="编辑">
+                                            ToolTip="编辑这条消息"
+                                            AutomationProperties.Name="编辑消息">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                                <Setter Property="Padding" Value="10,4" />
-                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Setter Property="MinWidth" Value="0" />
+                                                <Setter Property="MinHeight" Value="30" />
+                                                <Setter Property="Padding" Value="9,4" />
+                                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                                <Setter Property="Background" Value="#FFF8FAFF" />
+                                                <Setter Property="BorderBrush" Value="#FFD8E2FF" />
+                                                <Setter Property="BorderThickness" Value="1" />
+                                                <Setter Property="Cursor" Value="Hand" />
+                                                <Setter Property="Opacity" Value="0" />
+                                                <Setter Property="IsHitTestVisible" Value="False" />
+                                                <Setter Property="Focusable" Value="False" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="ButtonBorder"
+                                                                    Padding="{TemplateBinding Padding}"
+                                                                    Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                                    CornerRadius="7">
+                                                                <StackPanel HorizontalAlignment="Center"
+                                                                            VerticalAlignment="Center"
+                                                                            Orientation="Horizontal">
+                                                                    <Path Width="13"
+                                                                          Height="13"
+                                                                          Margin="0,0,6,0"
+                                                                          Data="M2,11 L4.5,10.5 11,4 8,1 1.5,7.5 1,10 Z M7.25,1.75 L10.25,4.75"
+                                                                          Fill="Transparent"
+                                                                          Stroke="{TemplateBinding Foreground}"
+                                                                          StrokeEndLineCap="Round"
+                                                                          StrokeLineJoin="Round"
+                                                                          StrokeStartLineCap="Round"
+                                                                          StrokeThickness="1.4"
+                                                                          Stretch="Uniform" />
+                                                                    <TextBlock VerticalAlignment="Center"
+                                                                               FontSize="12"
+                                                                               FontWeight="SemiBold"
+                                                                               Text="编辑" />
+                                                                </StackPanel>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="ButtonBorder" Property="Background" Value="#FFEEF2FF" />
+                                                                    <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#FFA5B4FC" />
+                                                                </Trigger>
+                                                                <Trigger Property="IsPressed" Value="True">
+                                                                    <Setter TargetName="ButtonBorder" Property="Background" Value="#FFE0E7FF" />
+                                                                </Trigger>
+                                                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                                                    <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsEditing}" Value="True">
-                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Setter Property="Opacity" Value="1" />
+                                                        <Setter Property="IsHitTestVisible" Value="True" />
+                                                        <Setter Property="Focusable" Value="True" />
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}" Value="True">
-                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Setter Property="Opacity" Value="1" />
+                                                        <Setter Property="IsHitTestVisible" Value="True" />
+                                                        <Setter Property="Focusable" Value="True" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Button.Style>
                                     </Button>
-                                </DockPanel>
+                                </Grid>
 
                                 <StackPanel Margin="0,10,0,0">
                                     <StackPanel.Style>
