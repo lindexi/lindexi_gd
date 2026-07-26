@@ -23,34 +23,52 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-                Padding="16,12"
+                Padding="14,8"
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,0,0,1">
             <DockPanel>
-                <StackPanel DockPanel.Dock="Left">
-                    <TextBlock FontSize="24"
-                               FontWeight="SemiBold"
-                               Text="DeepSeek Workspace" />
-                    <TextBlock Margin="0,4,0,0"
-                               Text="专注、安全的本地 AI 对话工作区" />
-                </StackPanel>
-
                 <StackPanel DockPanel.Dock="Right"
                             HorizontalAlignment="Right"
                             Orientation="Horizontal">
-                    <Button Margin="12,0,0,0"
+                    <Button Style="{StaticResource GhostButtonStyle}"
                             Command="{Binding ShowChatCommand}"
                              Content="对话"
                              ToolTip="返回对话工作区"
                              AutomationProperties.Name="对话工作区"
                              TabIndex="0" />
-                    <Button Margin="12,0,0,0"
+                    <Button Margin="4,0,0,0"
+                             Style="{StaticResource GhostButtonStyle}"
                             Command="{Binding ShowSettingsCommand}"
                              Content="设置"
                              ToolTip="打开设置 (Ctrl+,)"
                              AutomationProperties.Name="设置"
                              TabIndex="1" />
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Left"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                    <Border Width="30"
+                            Height="30"
+                            Background="{StaticResource PrimaryBrush}"
+                            CornerRadius="9">
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Foreground="White"
+                                   FontSize="15"
+                                   FontWeight="Bold"
+                                   Text="D" />
+                    </Border>
+                    <TextBlock Margin="10,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               Text="DeepSeek Workspace" />
+                    <TextBlock Margin="12,0,0,0"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource TextMutedBrush}"
+                               Text="本地 AI 工作区" />
                 </StackPanel>
             </DockPanel>
         </Border>

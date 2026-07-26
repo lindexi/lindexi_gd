@@ -5,23 +5,27 @@
              xmlns:viewModels="clr-namespace:DeepSeekWpf.ViewModels"
              xmlns:views="clr-namespace:DeepSeekWpf.Views">
     <Application.Resources>
-        <Color x:Key="AppBackgroundColor">#FFF3F4F6</Color>
+        <Color x:Key="AppBackgroundColor">#FFF6F7FB</Color>
         <Color x:Key="SurfaceColor">#FFFFFFFF</Color>
-        <Color x:Key="SurfaceMutedColor">#FFF9FAFB</Color>
-        <Color x:Key="PrimaryColor">#FF1D4ED8</Color>
-        <Color x:Key="PrimaryHoverColor">#FF1E40AF</Color>
-        <Color x:Key="BorderColor">#FFD1D5DB</Color>
+        <Color x:Key="SurfaceMutedColor">#FFF7F8FC</Color>
+        <Color x:Key="PrimaryColor">#FF4F46E5</Color>
+        <Color x:Key="PrimaryHoverColor">#FF4338CA</Color>
+        <Color x:Key="PrimarySoftColor">#FFEEF2FF</Color>
+        <Color x:Key="TextMutedColor">#FF667085</Color>
+        <Color x:Key="BorderColor">#FFE1E5EC</Color>
         <Color x:Key="ErrorColor">#FFB91C1C</Color>
         <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackgroundColor}" />
         <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
         <SolidColorBrush x:Key="SurfaceMutedBrush" Color="{StaticResource SurfaceMutedColor}" />
         <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
         <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}" />
+        <SolidColorBrush x:Key="PrimarySoftBrush" Color="{StaticResource PrimarySoftColor}" />
+        <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
         <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
         <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
-        <Thickness x:Key="PageMargin">16</Thickness>
-        <Thickness x:Key="ControlPadding">12,8</Thickness>
-        <CornerRadius x:Key="CardCornerRadius">10</CornerRadius>
+        <Thickness x:Key="PageMargin">12</Thickness>
+        <Thickness x:Key="ControlPadding">12,7</Thickness>
+        <CornerRadius x:Key="CardCornerRadius">12</CornerRadius>
 
         <infrastructure:MarkdownToFlowDocumentConverter x:Key="MarkdownConverter" />
 
@@ -48,13 +52,14 @@
 
         <Style TargetType="Button">
             <Setter Property="MinWidth" Value="44" />
-            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="MinHeight" Value="34" />
             <Setter Property="Padding" Value="{StaticResource ControlPadding}" />
             <Setter Property="Margin" Value="0" />
             <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
             <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
             <Setter Property="FocusVisualStyle" Value="{StaticResource DefaultFocusVisual}" />
             <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
             <Style.Triggers>
@@ -68,7 +73,7 @@
         </Style>
 
         <Style TargetType="TextBox">
-            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="MinHeight" Value="34" />
             <Setter Property="Padding" Value="{StaticResource ControlPadding}" />
             <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
@@ -86,7 +91,7 @@
         </Style>
 
         <Style TargetType="ComboBox">
-            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="MinHeight" Value="34" />
             <Setter Property="MinWidth" Value="120" />
             <Setter Property="Padding" Value="10,6" />
             <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
@@ -100,6 +105,20 @@
             <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
             <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        </Style>
+
+        <Style x:Key="GhostButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+            <Setter Property="Padding" Value="10,6" />
+        </Style>
+
+        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+            <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
+            <Setter Property="Background" Value="#FFFFF7F7" />
+            <Setter Property="BorderBrush" Value="#FFFECACA" />
         </Style>
 
         <Style x:Key="CardStyle" TargetType="Border">

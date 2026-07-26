@@ -28,6 +28,8 @@ public sealed class ChatMessageViewModel : ObservableObject
 
     public ChatRole Role => Message.Role;
 
+    public string RoleDisplayName => Role == ChatRole.Assistant ? "助手" : "你";
+
     public string Content => Message.Content;
 
     public string ThoughtContent => Message.Reason;
