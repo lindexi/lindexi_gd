@@ -4,7 +4,7 @@ namespace XiaoXiIme.ImeModule;
 
 public static class ImeTransMsgBuilder
 {
-    public static TransMsg[] BuildMessages(ImeToAsciiResult result, HWnd hwnd = default)
+    public static TransMsg[] BuildMessages(ImeToAsciiResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
 
@@ -19,14 +19,12 @@ public static class ImeTransMsgBuilder
             [
                 new TransMsg
                 {
-                    Hwnd = hwnd,
                     Message = ImeConstants.WmImeComposition,
                     WParam = result.CommitText[0],
                     LParam = (nint)ImeConstants.GcsResultStr,
                 },
                 new TransMsg
                 {
-                    Hwnd = hwnd,
                     Message = ImeConstants.WmImeEndComposition,
                 },
             ];
@@ -38,12 +36,10 @@ public static class ImeTransMsgBuilder
             [
                 new TransMsg
                 {
-                    Hwnd = hwnd,
                     Message = ImeConstants.WmImeStartComposition,
                 },
                 new TransMsg
                 {
-                    Hwnd = hwnd,
                     Message = ImeConstants.WmImeComposition,
                     LParam = (nint)(ImeConstants.GcsCompStr
                         | ImeConstants.GcsCompReadStr
@@ -59,7 +55,6 @@ public static class ImeTransMsgBuilder
         [
             new TransMsg
             {
-                Hwnd = hwnd,
                 Message = ImeConstants.WmImeEndComposition,
             },
         ];

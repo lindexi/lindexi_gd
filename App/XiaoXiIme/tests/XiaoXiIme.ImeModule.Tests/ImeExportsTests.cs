@@ -13,6 +13,54 @@ public class ImeExportsTests
     }
 
     [Fact]
+    public void TransMsgTypes_MatchNativeLayout()
+    {
+        Assert.Equal(IntPtr.Size == 8 ? 24 : 12, Marshal.SizeOf<TransMsg>());
+        Assert.Equal(0, Marshal.OffsetOf<TransMsg>(nameof(TransMsg.Message)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 8 : 4, Marshal.OffsetOf<TransMsg>(nameof(TransMsg.WParam)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 16 : 8, Marshal.OffsetOf<TransMsg>(nameof(TransMsg.LParam)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 8 : 4, Marshal.OffsetOf<TransMsgList>(nameof(TransMsgList.Message)).ToInt32());
+    }
+
+    [Fact]
+    public void KeystrokeDiagnosticSnapshot_MatchesExportContract()
+    {
+        Assert.Equal(40, Marshal.SizeOf<ImeKeystrokeDiagnosticSnapshot>());
+        Assert.Equal(0, Marshal.OffsetOf<ImeKeystrokeDiagnosticSnapshot>(nameof(ImeKeystrokeDiagnosticSnapshot.Version)).ToInt32());
+        Assert.Equal(36, Marshal.OffsetOf<ImeKeystrokeDiagnosticSnapshot>(nameof(ImeKeystrokeDiagnosticSnapshot.LastReturnValue)).ToInt32());
+    }
+
+    [Fact]
+    public void KeystrokeDiagnostics_ResetAndRecord_ReturnsLatestTrace()
+    {
+        const uint vkX = 0x58;
+        ImeKeystrokeDiagnostics.Reset();
+
+        ImeKeystrokeDiagnostics.RecordImeProcessKey(ImeConstants.VkA, true);
+        ImeKeystrokeDiagnostics.RecordImeProcessKey(vkX, true);
+        ImeKeystrokeDiagnostics.RecordImeToAsciiEx(ImeConstants.VkA, true, false, 2, 2);
+        ImeKeystrokeDiagnostics.RecordImeToAsciiEx(vkX, true, true, 2, 2);
+
+        var snapshot = ImeKeystrokeDiagnostics.GetSnapshot();
+
+        Assert.Equal(ImeKeystrokeDiagnosticSnapshot.CurrentVersion, snapshot.Version);
+        Assert.Equal(2u, snapshot.ImeProcessKeyCallCount);
+        Assert.Equal(2u, snapshot.ImeToAsciiExCallCount);
+        Assert.Equal(vkX, snapshot.LastProcessVirtualKey);
+        Assert.Equal(1u, snapshot.LastProcessHandled);
+        Assert.Equal(vkX, snapshot.LastToAsciiVirtualKey);
+        Assert.Equal(1u, snapshot.LastToAsciiHandled);
+        Assert.Equal(1u, snapshot.LastCompositionWriteSucceeded);
+        Assert.Equal(2u, snapshot.LastMessageCount);
+        Assert.Equal(2u, snapshot.LastReturnValue);
+
+        ImeKeystrokeDiagnostics.Reset();
+        snapshot = ImeKeystrokeDiagnostics.GetSnapshot();
+        Assert.Equal(0u, snapshot.ImeProcessKeyCallCount);
+        Assert.Equal(0u, snapshot.ImeToAsciiExCallCount);
+    }
+
+    [Fact]
     public void CreateInquireInfoForTesting_ReturnsMinimalImeMetadata()
     {
         var info = ImeExports.CreateInquireInfoForTesting();
@@ -101,7 +149,7 @@ public class ImeExportsTests
                 Guideline: new ImeGuideline(ImeGuidelineLevel.NoCandidate, "无候选：x")),
             CommitText: null,
             Handled: true));
-        var buffer = stackalloc byte[sizeof(uint) + (sizeof(TransMsg) * 2)];
+        var buffer = stackalloc byte[sizeof(TransMsgList) + sizeof(TransMsg)];
         var list = (TransMsgList*)buffer;
 
         try
@@ -186,7 +234,7 @@ public class ImeExportsTests
             new TransMsg { Message = ImeConstants.WmImeStartComposition },
             new TransMsg { Message = ImeConstants.WmImeComposition, LParam = (nint)ImeConstants.GcsCompStr },
         };
-        var buffer = stackalloc byte[sizeof(uint) + (sizeof(TransMsg) * 2)];
+        var buffer = stackalloc byte[sizeof(TransMsgList) + sizeof(TransMsg)];
         var list = (TransMsgList*)buffer;
 
         var written = ImeTransMsgWriter.Write((nint)list, messages);

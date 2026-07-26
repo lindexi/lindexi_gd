@@ -59,10 +59,13 @@ public static unsafe class ImeExports
     {
         try
         {
-            return ImeModuleRuntime.ShouldProcessVirtualKey((ushort)virtualKey, unchecked((uint)keyData), new HImc(inputContext));
+            var handled = ImeModuleRuntime.ShouldProcessVirtualKey((ushort)virtualKey, unchecked((uint)keyData), new HImc(inputContext));
+            ImeKeystrokeDiagnostics.RecordImeProcessKey(virtualKey, handled);
+            return handled;
         }
         catch
         {
+            ImeKeystrokeDiagnostics.RecordImeProcessKey(virtualKey, false);
             return false;
         }
     }
@@ -87,13 +90,16 @@ public static unsafe class ImeExports
         try
         {
             var result = ImeModuleRuntime.ConvertVirtualKey((ushort)virtualKey, scanCode);
-            s_compositionContextWriter.TryWrite(new HImc(inputContext), result);
+            var compositionWriteSucceeded = s_compositionContextWriter.TryWrite(new HImc(inputContext), result);
             var messages = ImeTransMsgBuilder.BuildMessages(result);
             var written = ImeTransMsgWriter.Write(transKey, messages);
-            return written != 0 ? written : result.Handled ? 1u : 0u;
+            var returnValue = written != 0 ? written : result.Handled ? 1u : 0u;
+            ImeKeystrokeDiagnostics.RecordImeToAsciiEx(virtualKey, result.Handled, compositionWriteSucceeded, written, returnValue);
+            return returnValue;
         }
         catch
         {
+            ImeKeystrokeDiagnostics.RecordImeToAsciiEx(virtualKey, false, false, 0, 0);
             return 0;
         }
     }

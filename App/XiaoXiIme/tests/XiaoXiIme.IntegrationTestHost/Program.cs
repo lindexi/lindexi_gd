@@ -120,6 +120,9 @@ internal static class Win32ImeEditScenario
     private const uint InputKeyboard = 1;
     private const uint KeyEventFKeyUp = 0x0002;
     private const ushort VkX = 0x58;
+    private const uint LoadLibrarySearchSystem32 = 0x00000800;
+    private const string ResetDiagnosticsExport = "XiaoXiImeResetKeystrokeDiagnostics";
+    private const string GetDiagnosticsExport = "XiaoXiImeGetKeystrokeDiagnostics";
 
     public static async Task RunAsync()
     {
@@ -144,6 +147,7 @@ internal static class Win32ImeEditScenario
     {
         nint window = 0;
         nint keyboardLayout = 0;
+        nint imeModule = 0;
         try
         {
             var layoutId = FindInstalledLayoutId();
@@ -191,10 +195,10 @@ internal static class Win32ImeEditScenario
 
             ShowWindow(window, SwShow);
             UpdateWindow(window);
-            ActivateKeyboardLayout(keyboardLayout, 0);
             SetForegroundWindow(window);
             SetActiveWindow(window);
             SetFocus(edit);
+            ActivateAndOpenIme(edit, keyboardLayout);
             PumpMessages();
 
             if (GetForegroundWindow() != window || GetFocus() != edit)
@@ -202,6 +206,14 @@ internal static class Win32ImeEditScenario
                 throw new InvalidOperationException("The integration test could not acquire the foreground window and EDIT focus required by SendInput.");
             }
 
+            imeModule = LoadLibraryEx(ExpectedImeFile, 0, LoadLibrarySearchSystem32);
+            if (imeModule == 0)
+            {
+                throw new Win32Exception(Marshal.GetLastPInvokeError(), $"Unable to load {ExpectedImeFile} from System32 for keystroke diagnostics.");
+            }
+
+            var diagnostics = ImeDiagnosticsExports.Load(imeModule);
+            diagnostics.Reset();
             SendXx();
 
             var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
@@ -212,6 +224,12 @@ internal static class Win32ImeEditScenario
                 text = GetWindowText(edit);
                 if (text == "小希")
                 {
+                    var snapshot = diagnostics.GetSnapshot();
+                    if (snapshot.ImeProcessKeyCallCount < 2 || snapshot.ImeToAsciiExCallCount < 2)
+                    {
+                        throw new InvalidOperationException($"The text committed, but the IME call trace was incomplete. {snapshot}");
+                    }
+
                     completion.SetResult();
                     return;
                 }
@@ -220,8 +238,10 @@ internal static class Win32ImeEditScenario
             }
             while (DateTime.UtcNow < deadline);
 
-            throw new InvalidOperationException($"Expected the EDIT control text to be '小希' after typing 'xx', but it was '{text}'.");
+            throw new InvalidOperationException(
+                $"Expected the EDIT control text to be '小希' after typing 'xx', but it was '{text}'. {GetImeState(edit, keyboardLayout)} {diagnostics.GetSnapshot()}");
         }
+
         catch (Exception exception)
         {
             completion.TrySetException(exception);
@@ -237,6 +257,70 @@ internal static class Win32ImeEditScenario
             {
                 UnloadKeyboardLayout(keyboardLayout);
             }
+
+            if (imeModule != 0)
+            {
+                FreeLibrary(imeModule);
+            }
+        }
+    }
+
+    private static void ActivateAndOpenIme(nint edit, nint keyboardLayout)
+    {
+        ActivateKeyboardLayout(keyboardLayout, 0);
+        PumpMessages();
+
+        var activeKeyboardLayout = GetKeyboardLayout(0);
+        if (activeKeyboardLayout != keyboardLayout)
+        {
+            throw new InvalidOperationException(
+                $"XiaoXi IME keyboard layout activation did not take effect. ExpectedHkl=0x{keyboardLayout:X}, ActiveHkl=0x{activeKeyboardLayout:X}.");
+        }
+
+        var inputContext = ImmGetContext(edit);
+        if (inputContext == 0)
+        {
+            throw new InvalidOperationException(
+                $"The integration test EDIT control has no IMM input context. ActiveHkl=0x{activeKeyboardLayout:X}.");
+        }
+
+        try
+        {
+            if (!ImmGetOpenStatus(inputContext) && !ImmSetOpenStatus(inputContext, true))
+            {
+                throw new Win32Exception(
+                    Marshal.GetLastPInvokeError(),
+                    $"Unable to open the XiaoXi IME input context. Hkl=0x{activeKeyboardLayout:X}, Himc=0x{inputContext:X}.");
+            }
+
+            if (!ImmGetOpenStatus(inputContext))
+            {
+                throw new InvalidOperationException(
+                    $"The XiaoXi IME input context remained closed after ImmSetOpenStatus. Hkl=0x{activeKeyboardLayout:X}, Himc=0x{inputContext:X}.");
+            }
+        }
+        finally
+        {
+            ImmReleaseContext(edit, inputContext);
+        }
+    }
+
+    private static string GetImeState(nint edit, nint expectedKeyboardLayout)
+    {
+        var activeKeyboardLayout = GetKeyboardLayout(0);
+        var inputContext = ImmGetContext(edit);
+        if (inputContext == 0)
+        {
+            return $"ExpectedHkl=0x{expectedKeyboardLayout:X}, ActiveHkl=0x{activeKeyboardLayout:X}, Himc=0x0.";
+        }
+
+        try
+        {
+            return $"ExpectedHkl=0x{expectedKeyboardLayout:X}, ActiveHkl=0x{activeKeyboardLayout:X}, Himc=0x{inputContext:X}, ImeOpen={ImmGetOpenStatus(inputContext)}.";
+        }
+        finally
+        {
+            ImmReleaseContext(edit, inputContext);
         }
     }
 
@@ -369,11 +453,91 @@ internal static class Win32ImeEditScenario
         public int Y;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ImeKeystrokeDiagnosticSnapshot
+    {
+        public uint Version;
+        public uint ImeProcessKeyCallCount;
+        public uint ImeToAsciiExCallCount;
+        public uint LastProcessVirtualKey;
+        public uint LastProcessHandled;
+        public uint LastToAsciiVirtualKey;
+        public uint LastToAsciiHandled;
+        public uint LastCompositionWriteSucceeded;
+        public uint LastMessageCount;
+        public uint LastReturnValue;
+
+        public override readonly string ToString()
+        {
+            return $"ImeTraceVersion={Version}, ImeProcessKeyCalls={ImeProcessKeyCallCount}, ImeToAsciiExCalls={ImeToAsciiExCallCount}, LastProcessVk=0x{LastProcessVirtualKey:X}, LastProcessHandled={LastProcessHandled != 0}, LastToAsciiVk=0x{LastToAsciiVirtualKey:X}, LastToAsciiHandled={LastToAsciiHandled != 0}, CompositionWriteSucceeded={LastCompositionWriteSucceeded != 0}, MessageCount={LastMessageCount}, ReturnValue={LastReturnValue}.";
+        }
+    }
+
+    private sealed class ImeDiagnosticsExports
+    {
+        private readonly ResetDiagnosticsDelegate _reset;
+        private readonly GetDiagnosticsDelegate _getSnapshot;
+
+        private ImeDiagnosticsExports(ResetDiagnosticsDelegate reset, GetDiagnosticsDelegate getSnapshot)
+        {
+            _reset = reset;
+            _getSnapshot = getSnapshot;
+        }
+
+        public static ImeDiagnosticsExports Load(nint module)
+        {
+            var resetAddress = GetProcAddress(module, ResetDiagnosticsExport);
+            var getAddress = GetProcAddress(module, GetDiagnosticsExport);
+            if (resetAddress == 0 || getAddress == 0)
+            {
+                throw new InvalidOperationException(
+                    $"The installed IME does not expose the current keystroke diagnostics contract. ResetExport=0x{resetAddress:X}, GetExport=0x{getAddress:X}. Rebuild the payload without --no-build and copy the complete new payload to the VM.");
+            }
+
+            return new ImeDiagnosticsExports(
+                Marshal.GetDelegateForFunctionPointer<ResetDiagnosticsDelegate>(resetAddress),
+                Marshal.GetDelegateForFunctionPointer<GetDiagnosticsDelegate>(getAddress));
+        }
+
+        public void Reset() => _reset();
+
+        public ImeKeystrokeDiagnosticSnapshot GetSnapshot()
+        {
+            var snapshot = new ImeKeystrokeDiagnosticSnapshot();
+            if (!_getSnapshot(ref snapshot, (uint)Marshal.SizeOf<ImeKeystrokeDiagnosticSnapshot>()))
+            {
+                throw new InvalidOperationException("The installed IME rejected the keystroke diagnostic snapshot request.");
+            }
+
+            return snapshot;
+        }
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate void ResetDiagnosticsDelegate();
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private delegate bool GetDiagnosticsDelegate(ref ImeKeystrokeDiagnosticSnapshot snapshot, uint snapshotSize);
+    }
+
     [DllImport("user32.dll", EntryPoint = "LoadKeyboardLayoutW", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern nint LoadKeyboardLayout(string keyboardLayoutId, uint flags);
 
+    [DllImport("kernel32.dll", EntryPoint = "LoadLibraryExW", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern nint LoadLibraryEx(string fileName, nint file, uint flags);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true)]
+    private static extern nint GetProcAddress(nint module, string procedureName);
+
+    [DllImport("kernel32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool FreeLibrary(nint module);
+
     [DllImport("user32.dll")]
     private static extern nint ActivateKeyboardLayout(nint keyboardLayout, uint flags);
+
+    [DllImport("user32.dll")]
+    private static extern nint GetKeyboardLayout(uint threadId);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -409,6 +573,21 @@ internal static class Win32ImeEditScenario
 
     [DllImport("user32.dll")]
     private static extern nint GetFocus();
+
+    [DllImport("imm32.dll")]
+    private static extern nint ImmGetContext(nint window);
+
+    [DllImport("imm32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ImmReleaseContext(nint window, nint inputContext);
+
+    [DllImport("imm32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ImmGetOpenStatus(nint inputContext);
+
+    [DllImport("imm32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ImmSetOpenStatus(nint inputContext, [MarshalAs(UnmanagedType.Bool)] bool open);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern uint SendInput(uint inputCount, Input[] inputs, int inputSize);

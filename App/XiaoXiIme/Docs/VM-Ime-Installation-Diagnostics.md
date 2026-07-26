@@ -216,6 +216,64 @@ VM 在新 payload 启动时仍存在上一轮留下的 `C:\Windows\System32\Xiao
 
 开发机验证结果更新为：`XiaoXiIme.Cli.Tests` 29 个测试全部通过，完整解决方案生成成功。
 
+### 2026-07-26 第八轮真实 IME 未激活结果
+
+VM 返回结果确认上一版 `INPUT` x64 ABI 修复有效：`SendInput` 已成功注入全部四个键盘事件，不再返回 Win32 error 87。安装、x86/x64 TSF 验证、候选窗口状态和 IPC 场景也继续通过，但真实 EDIT 控件的最终文本为 `xxxx`，而不是“小希”。
+
+`xxxx` 说明按下与抬起事件都进入了目标窗口并被普通键盘翻译为字符，但该轮宿主只调用了 `LoadKeyboardLayout`/`ActivateKeyboardLayout`，没有验证窗口线程实际 HKL，也没有获取、打开和复核 EDIT 控件的 IMM 输入上下文。因此该结果不能证明按键已经进入 XiaoXiIme 的 `ImeProcessKey`/`ImeToAsciiEx`，当前证据优先指向测试宿主没有确定性地启用目标 IME，而不是核心 `xx -> 小希` 或 HIMC 结果字符串逻辑失败。
+
+后续版本在发送按键前增加以下严格前置条件：
+
+- 设置前台窗口与 EDIT 焦点后激活 XiaoXiIme HKL，并用 `GetKeyboardLayout(0)` 验证当前窗口线程的实际 HKL 与预期一致；
+- 使用 `ImmGetContext` 获取 EDIT 的 HIMC；
+- 若输入上下文尚未打开，调用 `ImmSetOpenStatus(TRUE)`，随后再次用 `ImmGetOpenStatus` 验证；
+- 最终文本仍不匹配时，在 stderr 中输出预期 HKL、实际 HKL、HIMC 和 IME 打开状态，区分布局回退、无输入上下文、IME 关闭和已经进入 IME 但提交失败。
+
+下一轮若在注入前因 HKL 或 HIMC 前置条件失败，应直接分析新增状态，不再把普通字符上屏归因于结果字符串实现。只有实际 HKL 等于 XiaoXiIme、HIMC 非零且 `ImeOpen=true`，最终文本仍不是“小希”时，才继续向 `ImeProcessKey`/`ImeToAsciiEx` 调用可见性和 IMM32 消息生成方向增加诊断。
+
+本轮还观察到 retired 映像仍可能因加载生命周期无法立即删除，并被再次移动到新的 retired 路径。该问题不影响正式路径复用，但在真实按键链路通过后仍需继续验证测试宿主退出与清理之间是否能最终释放所有 retired 文件，不能把 `RetiredFilePaths` 描述成已删除。
+
+开发机验证结果：核心 `ProcessKey_SecondXAutomaticallyCommitsXiaoXi` 测试通过，`XiaoXiIme.ImeModule.Tests` 59 个测试全部通过，`XiaoXiIme.IntegrationTestHost` 和完整解决方案生成成功。
+
+### 2026-07-26 第九轮 `TRANSMSG` ABI 根因
+
+VM 返回结果确认真实按键场景的全部激活前置条件均成立：预期 HKL 与实际 HKL 都是 `E0200804`，EDIT 的 HIMC 非零，且 `ImeOpen=True`。最终文本从上一轮的 `xxxx` 变为 `xxx`，说明至少部分按键已经进入 IME 路径，但 IMM32 返回消息没有被 Windows 按预期解释。
+
+检查发现项目将 Windows 原生 `TRANSMSG` 错误声明为包含 `HWND` 的结构。真实 `TRANSMSG` 仅包含 `message`、`wParam`、`lParam`；多出的首字段会导致 Windows 从 `TRANSMSGLIST` 读取时把后续所有字段错位。在 x64 下错误结构大小为 32 字节，而正确大小为 24 字节。原测试只使用同一错误托管声明写入和读取，因此无法发现与 Windows ABI 的偏差；测试缓冲区还按 `sizeof(uint)` 计算首消息偏移，没有考虑 x64 下 `TRANSMSGLIST.TransMsg` 位于偏移 8。
+
+后续版本已做以下修复：
+
+- 从 `TransMsg` 删除不存在的 `Hwnd` 字段；
+- 消息构造器不再接受或写入窗口句柄；
+- 测试按 `sizeof(TRANSMSGLIST) + sizeof(TRANSMSG)` 为两条消息分配缓冲区；
+- 新增原生 ABI 断言：x64 下 `TRANSMSG` 大小为 24，字段偏移依次为 0、8、16，`TRANSMSGLIST` 首消息偏移为 8；x86 下对应为 12 和 0、4、8，首消息偏移为 4。
+
+下一轮预期 Windows 能正确解释 `WM_IME_STARTCOMPOSITION`、带 `GCS_RESULTSTR` 的 `WM_IME_COMPOSITION` 和 `WM_IME_ENDCOMPOSITION`。若最终仍不是“小希”，新增诊断应转向实际 `ImeProcessKey`/`ImeToAsciiEx` 调用次数和每次返回消息，不再继续修改 HKL 或 HIMC 激活逻辑。
+
+开发机清理旧增量输出后，`XiaoXiIme.ImeModule.Tests` 60 个测试全部通过。
+
+### 2026-07-26 第十轮 payload 版本可辨识与按键调用轨迹
+
+最新回传再次得到 `xxxx`，同时严格前置状态为 `ExpectedHkl=ActiveHkl=E0200804`、HIMC 非零且 `ImeOpen=True`。该输出与第八轮完全一致，不能单独证明第九轮 `TRANSMSG` ABI 修复后的二进制仍然失败：当前工作区已经包含正确的三字段 `TRANSMSG` 和 x86/x64 ABI 断言，而回传材料没有包含 payload 的生成日志、manifest 生成时间或可识别该修复版本的导出。
+
+默认 `payload-build` 会重新执行 Release build 和每个 RID 的 NativeAOT publish；只有显式使用 `--no-build` 才会复用 `artifacts\integration-publish` 中的既有产物。后续构建和复制 payload 时不得使用 `--no-build`，并应保留控制台中的 payload 创建时间与 manifest SHA-256，以排除新测试宿主搭配旧 IME 的情况。
+
+为使下一轮证据不再依赖行为推断，IME 新增两个只读诊断导出：
+
+- `XiaoXiImeResetKeystrokeDiagnostics`：发送按键前清零调用轨迹；
+- `XiaoXiImeGetKeystrokeDiagnostics`：返回固定 40 字节、版本为 1 的快照，包含 `ImeProcessKey`/`ImeToAsciiEx` 调用次数、最后虚拟键、Handled、HIMC 写入是否成功、写入的 `TRANSMSG` 数量和最终返回值。
+
+自包含集成宿主会从 System32 加载已安装的同一 IME 并解析这两个导出。若导出不存在，场景会明确报告 payload 版本不匹配，要求不带 `--no-build` 重新构建并复制整个 payload。若最终文本仍不是“小希”，stderr 中的 `ImeTraceVersion=1` 按以下方式判断：
+
+- `ImeProcessKeyCalls=0`：尽管 HKL/HIMC 状态成立，IMM32 没有调用项目导出，继续调查线程布局切换或系统 IME 选择；
+- `ImeProcessKeyCalls>=2` 但 `ImeToAsciiExCalls=0`：`ImeProcessKey` 返回语义或 Windows 后续转换调度异常；
+- `LastProcessHandled=False`：虚拟键或 key data 被错误翻译，先检查实际 VK 和修饰键；
+- `ImeToAsciiExCalls>=2` 且 `LastToAsciiHandled=True`，但 `CompositionWriteSucceeded=False`：HIMC 内部锁定、扩容或 `ImmGenerateMessage` 失败；
+- `MessageCount=2`、`ReturnValue=2` 且仍为普通字符：Windows 已收到成功返回但未正确消费 `TRANSMSGLIST`，继续核对实际 payload 中的原生布局与消息内容；
+- 文本为“小希”且两个调用次数均至少为 2：第九轮 ABI 修复完成实机闭环。
+
+本轮清理仍显示已加载的 retired 映像无法立即删除，只能再次移动到新的 retired 路径。新增测试宿主会显式 `FreeLibrary` 其诊断加载引用，但 Windows/IMM32 自身可能继续持有映像；下一轮同时观察 `cleanup` 是否停止产生新的 `RetiredFilePaths`。该残留问题与真实按键提交分开判定，不得用移动成功代替实际删除成功。
+
 ## 后续回归验证必须回传的信息
 
 安装问题已闭环，后续仅在修改安装、TSF、IPC、payload 或集成运行流程后执行回归。回归输出至少应包含以下 stage，并保持 `cleanup` 早于 `report`：

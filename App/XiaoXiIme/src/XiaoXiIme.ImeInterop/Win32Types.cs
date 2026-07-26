@@ -121,7 +121,6 @@ public struct ImePrivateData
 
 public struct TransMsg
 {
-    public HWnd Hwnd;
     public uint Message;
     public nuint WParam;
     public nint LParam;
