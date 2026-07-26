@@ -48,13 +48,7 @@
                              AutomationProperties.Name="Agent 配置文件路径" />
 
                     <TextBlock FontSize="18" FontWeight="SemiBold" Text="对话行为" />
-                    <CheckBox Margin="0,12,0,8"
-                              IsChecked="{Binding SendMessageWithEnter}"
-                              Content="按 Enter 发送（Shift+Enter 换行）"
-                              ToolTip="关闭后使用 Ctrl+Enter 发送"
-                              AutomationProperties.Name="按 Enter 发送消息"
-                              TabIndex="4" />
-                    <TextBlock FontWeight="SemiBold" Text="请求超时（秒）" />
+                    <TextBlock Margin="0,12,0,0" FontWeight="SemiBold" Text="请求超时（秒）" />
                     <TextBox Width="160"
                              Margin="0,8,0,16"
                              HorizontalAlignment="Left"

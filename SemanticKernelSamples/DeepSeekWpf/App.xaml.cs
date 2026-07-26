@@ -100,7 +100,6 @@ public partial class App : Application
         services.AddSingleton<IDiagnosticsService, DiagnosticsService>();
         services.AddSingleton<IChatRepository, FileChatRepository>();
         services.AddSingleton<IUserInteractionService, WpfUserInteractionService>();
-        services.AddSingleton<IChatExportService, MarkdownChatExportService>();
         services.AddSingleton<IModelConnectionTestService, ModelConnectionTestService>();
         services.AddSingleton<IAgentApiEndpointManagerFactory, AgentApiEndpointManagerFactory>();
         services.AddSingleton<IAgentModelService, AgentModelService>();

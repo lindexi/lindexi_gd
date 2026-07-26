@@ -91,7 +91,7 @@ public sealed class ChatWorkspaceViewModelTests
     });
 
     [TestMethod]
-    public Task DeleteCommand_RejectAcceptAndUndo_FollowsConfirmation() => StaTest.RunAsync(async () =>
+    public Task DeleteCommand_RejectsOrPermanentlyDeletesBasedOnConfirmation() => StaTest.RunAsync(async () =>
     {
         using var temp = new TempDirectory();
         var session = CreateSession("delete", "value");
@@ -105,10 +105,9 @@ public sealed class ChatWorkspaceViewModelTests
 
         interaction.ConfirmationResult = true;
         await viewModel.DeleteSelectedChatCommand.ExecuteAsync();
-        Assert.IsTrue(viewModel.UndoDeleteCommand.CanExecute(null));
-        await viewModel.UndoDeleteCommand.ExecuteAsync();
 
-        Assert.IsTrue(repository.SavedSessions.Any(item => item.Id == session.Id));
+        CollectionAssert.Contains(repository.DeletedSessionIds, session.Id);
+        Assert.IsFalse(viewModel.Sessions.Any(item => item.Id == session.Id));
     });
 
     [TestMethod]
@@ -163,7 +162,6 @@ public sealed class ChatWorkspaceViewModelTests
             new FakeSettingsService(temp.Path),
             new FakeAgentModelService { RegisteredModels = [model], SelectedModel = model },
             interaction ?? new FakeUserInteractionService(),
-            new FakeChatExportService(),
             new FakeAppLogger());
     }
 

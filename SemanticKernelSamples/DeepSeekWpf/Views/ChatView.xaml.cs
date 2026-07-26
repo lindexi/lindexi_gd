@@ -150,15 +150,14 @@ public partial class ChatView : UserControl
 
     private void OnMessageInputPreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (_viewModel is null || e.Key != Key.Enter || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+        if (_viewModel is null ||
+            e.Key != Key.Enter ||
+            !Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
         {
             return;
         }
 
-        var shouldSend = _viewModel.SendMessageWithEnter
-            ? !Keyboard.Modifiers.HasFlag(ModifierKeys.Control)
-            : Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-        if (!shouldSend || !_viewModel.SendMessageCommand.CanExecute(null))
+        if (!_viewModel.SendMessageCommand.CanExecute(null))
         {
             return;
         }

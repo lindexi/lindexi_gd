@@ -101,7 +101,6 @@ public sealed class SettingsServiceTests
         DataPath = temp.GetPath("data"),
         LogPath = temp.GetPath("logs"),
         ChatRequestTimeoutSeconds = 15,
-        SendMessageWithEnter = true,
         SelectedModelSpecifier = selectedModel,
     };
 }

@@ -15,8 +15,6 @@ public sealed record AppSettings
 
     public int ChatRequestTimeoutSeconds { get; init; } = 120;
 
-    public bool SendMessageWithEnter { get; init; } = true;
-
     public string SelectedModelSpecifier
     {
         get => _selectedModelSpecifier;
@@ -49,7 +47,6 @@ public sealed record AppSettings
             DataPath = Path.Combine(appDataPath, "Data"),
             LogPath = Path.Combine(appDataPath, "Logs"),
             ChatRequestTimeoutSeconds = 120,
-            SendMessageWithEnter = true,
             SelectedModelSpecifier = string.Empty,
         };
     }

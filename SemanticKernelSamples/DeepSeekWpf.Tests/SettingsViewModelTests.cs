@@ -94,7 +94,6 @@ public sealed class SettingsViewModelTests
             new FakeSettingsService(temp.Path),
             modelService,
             new FakeUserInteractionService(),
-            new FakeChatExportService(),
             new FakeAppLogger());
 
     private static AgentModelDescriptor CreateModel(string specifier) =>

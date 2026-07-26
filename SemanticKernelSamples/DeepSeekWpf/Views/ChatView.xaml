@@ -46,18 +46,6 @@
                                 AutomationProperties.Name="刷新会话列表"
                                 TabIndex="3" />
                         <Button Style="{StaticResource GhostButtonStyle}"
-                                Command="{Binding UndoDeleteCommand}"
-                                Content="撤销"
-                                ToolTip="恢复最近删除的会话"
-                                AutomationProperties.Name="撤销删除会话"
-                                TabIndex="4" />
-                        <Button Style="{StaticResource GhostButtonStyle}"
-                                Command="{Binding ExportCurrentSessionCommand}"
-                                Content="导出"
-                                ToolTip="将当前会话导出为 Markdown"
-                                AutomationProperties.Name="导出当前会话"
-                                TabIndex="5" />
-                        <Button Style="{StaticResource GhostButtonStyle}"
                                 Command="{Binding DeleteSelectedChatCommand}"
                                 Content="删除"
                                 Foreground="{StaticResource ErrorBrush}"
@@ -70,29 +58,23 @@
                 <ListBox Margin="0,6,0,0"
                           ItemsSource="{Binding FilteredSessions}"
                           SelectedItem="{Binding SelectedSession}"
+                          ItemContainerStyle="{StaticResource SessionListItemStyle}"
                           AutomationProperties.Name="会话列表"
                           TabIndex="6">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Border Margin="0,0,0,6"
-                                    Padding="10,9"
-                                    Background="{StaticResource SurfaceMutedBrush}"
-                                    BorderBrush="{StaticResource BorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="9">
-                                <StackPanel>
-                                    <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
-                                    <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
-                                        <TextBlock Foreground="{StaticResource TextMutedBrush}"
-                                                   FontSize="11"
-                                                   Text="{Binding UpdatedAt, StringFormat={}{0:MM-dd HH:mm}}" />
-                                        <TextBlock Margin="8,0,0,0"
-                                                   Foreground="{StaticResource TextMutedBrush}"
-                                                   FontSize="11"
-                                                   Text="{Binding Messages.Count, StringFormat={}{0} 条消息}" />
-                                    </StackPanel>
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
+                                <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                                    <TextBlock Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11"
+                                               Text="{Binding UpdatedAt, StringFormat={}{0:MM-dd HH:mm}}" />
+                                    <TextBlock Margin="8,0,0,0"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11"
+                                               Text="{Binding Messages.Count, StringFormat={}{0} 条消息}" />
                                 </StackPanel>
-                            </Border>
+                            </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
@@ -119,17 +101,32 @@
                             TabIndex="8" />
                     <TextBox Text="{Binding EditableSessionTitle, UpdateSourceTrigger=PropertyChanged}"
                               FontSize="17"
-                             FontWeight="SemiBold"
-                             ToolTip="编辑当前会话标题，最多 80 个字符"
-                             AutomationProperties.Name="会话标题"
-                             TabIndex="7" />
+                              FontWeight="SemiBold"
+                              MinHeight="30"
+                              Padding="4,2"
+                              Background="Transparent"
+                              BorderThickness="0,0,0,1"
+                              ToolTip="编辑当前会话标题，最多 80 个字符"
+                              AutomationProperties.Name="会话标题"
+                              TabIndex="7" />
                 </DockPanel>
-                <TextBlock Margin="2,5,0,0"
+                <TextBlock Margin="2,4,0,0"
                            Foreground="{StaticResource TextMutedBrush}"
-                           FontSize="12"
+                           FontSize="11"
                            Text="{Binding StatusMessage}"
                            TextWrapping="Wrap"
-                           AutomationProperties.LiveSetting="Polite" />
+                           AutomationProperties.LiveSetting="Polite">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ShouldShowStatus}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
                 <ProgressBar Height="4"
                               Margin="0,6,0,0"
                              IsIndeterminate="True"
@@ -173,13 +170,14 @@
                       Margin="0,0,0,8"
                      ItemsSource="{Binding CurrentMessages}"
                      SelectedItem="{Binding SelectedMessage}"
+                      HorizontalContentAlignment="Stretch"
                      ScrollViewer.ScrollChanged="OnMessagesScrollChanged"
                      AutomationProperties.Name="消息列表"
                      TabIndex="9">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border Margin="0,0,0,8"
-                                Padding="14,12"
+                        <Border Margin="0,0,4,8"
+                                Padding="14,10"
                                 Background="White"
                                 BorderBrush="{StaticResource BorderBrush}"
                                 BorderThickness="1"
@@ -203,7 +201,7 @@
                                                        Foreground="{StaticResource PrimaryBrush}"
                                                        FontSize="12"
                                                        FontWeight="Bold"
-                                                       Text="{Binding RoleDisplayName}" />
+                                                       Text="{Binding RoleAvatarText}" />
                                         </Border>
                                         <TextBlock Margin="9,0,0,0"
                                                    VerticalAlignment="Center"
@@ -296,7 +294,7 @@
                                     </Button>
                                 </Grid>
 
-                                <StackPanel Margin="0,10,0,0">
+                                <StackPanel Margin="37,6,0,0">
                                     <StackPanel.Style>
                                         <Style TargetType="StackPanel">
                                             <Setter Property="Visibility" Value="Visible" />
@@ -308,12 +306,10 @@
                                         </Style>
                                     </StackPanel.Style>
 
-                                    <Border Margin="0,0,0,10"
-                                            Padding="10"
-                                            Background="#FFEEF2FF"
-                                            BorderBrush="#FFC7D2FE"
-                                            BorderThickness="1"
-                                            CornerRadius="8">
+                                    <Border Margin="0,0,0,6"
+                                            Padding="0,4"
+                                            Background="Transparent"
+                                            BorderThickness="0">
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -325,11 +321,16 @@
                                             </Style>
                                         </Border.Style>
 
-                                        <Expander Header="思考内容（展开查看）"
+                                        <Expander Foreground="{StaticResource TextMutedBrush}"
+                                                  FontSize="12"
+                                                  Header="查看思考过程"
                                                   IsExpanded="False"
                                                   AutomationProperties.Name="思考内容">
-                                            <FlowDocumentScrollViewer Margin="0,8,0,0"
+                                            <FlowDocumentScrollViewer Margin="0,6,0,0"
                                                                       MaxHeight="320"
+                                                                      Background="{StaticResource SurfaceMutedBrush}"
+                                                                      BorderBrush="{StaticResource BorderBrush}"
+                                                                      BorderThickness="1"
                                                                       IsToolBarVisible="False"
                                                                       VerticalScrollBarVisibility="Auto"
                                                                       Document="{Binding ThoughtContent, Converter={StaticResource MarkdownConverter}}" />
@@ -443,7 +444,7 @@
             </Border>
 
             <Border Grid.Row="2"
-                    Padding="12,10"
+                    Padding="10,8"
                     Style="{StaticResource CardStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -451,8 +452,8 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBox x:Name="MessageInputBox"
-                              MinHeight="72"
-                              MaxHeight="180"
+                              MinHeight="48"
+                              MaxHeight="132"
                               Padding="4"
                               Background="Transparent"
                               BorderThickness="0"
@@ -461,24 +462,25 @@
                              TextWrapping="Wrap"
                              VerticalScrollBarVisibility="Auto"
                              PreviewKeyDown="OnMessageInputPreviewKeyDown"
-                             ToolTip="输入消息。发送按键可在设置中调整。"
+                              ToolTip="输入消息。Ctrl+Enter 发送，Enter 换行。"
                              AutomationProperties.Name="消息输入框"
-                             AutomationProperties.HelpText="按 Enter 或 Ctrl+Enter 发送，具体取决于设置；Shift+Enter 始终换行"
+                              AutomationProperties.HelpText="按 Ctrl+Enter 发送，按 Enter 换行"
                              TabIndex="10" />
-                    <DockPanel Grid.Row="1" Margin="0,8,0,0">
+                    <DockPanel Grid.Row="1" Margin="0,6,0,0">
                         <TextBlock VerticalAlignment="Center"
                                    Foreground="{StaticResource TextMutedBrush}"
                                    FontSize="11"
-                                   Text="Enter 发送 · Shift+Enter 换行" />
+                                   Text="Ctrl+Enter 发送 · Enter 换行" />
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                             <Button Margin="0,0,8,0"
-                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Style="{StaticResource CompactSecondaryButtonStyle}"
                                     Command="{Binding StopCommand}"
                                     Content="停止"
                                     ToolTip="停止当前生成"
                                     AutomationProperties.Name="停止生成"
                                     TabIndex="11" />
-                            <Button Command="{Binding SendMessageCommand}"
+                            <Button Style="{StaticResource CompactButtonStyle}"
+                                    Command="{Binding SendMessageCommand}"
                                     Content="发送"
                                     Click="OnSendButtonClick"
                                     ToolTip="发送消息"

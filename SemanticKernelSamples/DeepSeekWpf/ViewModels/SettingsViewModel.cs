@@ -28,7 +28,6 @@ public sealed class SettingsViewModel : ViewModelBase
     private string _logPath = string.Empty;
     private AgentModelDescriptor? _selectedModel;
     private string _statusMessage = "就绪";
-    private bool _sendMessageWithEnter = true;
     private int _chatRequestTimeoutSeconds = 120;
     private bool _isBusy;
 
@@ -130,18 +129,6 @@ public sealed class SettingsViewModel : ViewModelBase
         }
     }
 
-    public bool SendMessageWithEnter
-    {
-        get => _sendMessageWithEnter;
-        set
-        {
-            if (SetProperty(ref _sendMessageWithEnter, value))
-            {
-                _saveSettingsCommand.NotifyCanExecuteChanged();
-            }
-        }
-    }
-
     public bool IsBusy
     {
         get => _isBusy;
@@ -186,7 +173,6 @@ public sealed class SettingsViewModel : ViewModelBase
         CachePath = settings.CachePath;
         DataPath = settings.DataPath;
         LogPath = settings.LogPath;
-        SendMessageWithEnter = settings.SendMessageWithEnter;
         ChatRequestTimeoutSeconds = settings.ChatRequestTimeoutSeconds;
         RefreshRegisteredModels(settings.SelectedModelSpecifier);
         StatusMessage = "已加载当前设置";
@@ -200,7 +186,6 @@ public sealed class SettingsViewModel : ViewModelBase
             CachePath = CachePath.Trim(),
             DataPath = DataPath.Trim(),
             LogPath = LogPath.Trim(),
-            SendMessageWithEnter = SendMessageWithEnter,
             ChatRequestTimeoutSeconds = ChatRequestTimeoutSeconds,
             SelectedModelSpecifier = selectedSpecifier,
         };

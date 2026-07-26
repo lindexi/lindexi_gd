@@ -19,7 +19,6 @@ internal sealed class FakeSettingsService : ISettingsService
             DataPath = Path.Combine(rootPath, "data"),
             LogPath = Path.Combine(rootPath, "logs"),
             ChatRequestTimeoutSeconds = 30,
-            SendMessageWithEnter = true,
         };
     }
 
@@ -206,17 +205,6 @@ internal sealed class FakeAgentModelService : IAgentModelService
 
     public Task<IChatClient> GetSelectedChatClientAsync() =>
         Task.FromResult(ChatClient ?? throw new InvalidOperationException("未设置测试 ChatClient。"));
-}
-
-internal sealed class FakeChatExportService : IChatExportService
-{
-    public int ExportCount { get; private set; }
-
-    public Task ExportMarkdownAsync(ChatSession session, string filePath, CancellationToken cancellationToken = default)
-    {
-        ExportCount++;
-        return Task.CompletedTask;
-    }
 }
 
 internal sealed class FakeModelConnectionTestService : IModelConnectionTestService

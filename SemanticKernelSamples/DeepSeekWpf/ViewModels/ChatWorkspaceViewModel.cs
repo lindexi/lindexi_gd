@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Windows.Data;
 using AgentLib.Model;
@@ -17,7 +16,6 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
     private readonly ISettingsService _settingsService;
     private readonly IAgentModelService _agentModelService;
     private readonly IUserInteractionService _userInteractionService;
-    private readonly IChatExportService _chatExportService;
     private readonly IAppLogger _logger;
     private readonly ObservableCollection<ChatMessageViewModel> _emptyMessages = [];
     private readonly AsyncRelayCommand _sendMessageCommand;
@@ -29,9 +27,7 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
     private readonly AsyncRelayCommand _saveInlineEditCommand;
     private readonly RelayCommand _cancelInlineEditCommand;
     private readonly AsyncRelayCommand _renameSessionCommand;
-    private readonly AsyncRelayCommand _undoDeleteCommand;
     private readonly AsyncRelayCommand _retryCommand;
-    private readonly AsyncRelayCommand _exportCurrentSessionCommand;
     private Task _activeResponseTask = Task.CompletedTask;
     private ChatSession? _selectedSession;
     private ChatMessageViewModel? _selectedMessage;
@@ -43,7 +39,6 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
     private string _searchText = string.Empty;
     private string _editableSessionTitle = string.Empty;
     private string _errorMessage = string.Empty;
-    private DeletedSessionSnapshot? _deletedSessionSnapshot;
     private FailedSendContext? _failedSendContext;
 
     public ChatWorkspaceViewModel(
@@ -52,7 +47,6 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
         ISettingsService settingsService,
         IAgentModelService agentModelService,
         IUserInteractionService userInteractionService,
-        IChatExportService chatExportService,
         IAppLogger logger)
     {
         _aiChatService = aiChatService;
@@ -60,7 +54,6 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
         _settingsService = settingsService;
         _agentModelService = agentModelService;
         _userInteractionService = userInteractionService;
-        _chatExportService = chatExportService;
         _logger = logger;
 
         Sessions = [];
@@ -76,9 +69,7 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
         _saveInlineEditCommand = new AsyncRelayCommand(SaveInlineEditAsync, CanSaveInlineEdit);
         _cancelInlineEditCommand = new RelayCommand(CancelInlineEdit, CanCancelInlineEdit);
         _renameSessionCommand = new AsyncRelayCommand(RenameSessionAsync, CanRenameSession);
-        _undoDeleteCommand = new AsyncRelayCommand(UndoDeleteAsync, CanUndoDelete);
         _retryCommand = new AsyncRelayCommand(RetryAsync, () => CanRetry);
-        _exportCurrentSessionCommand = new AsyncRelayCommand(ExportCurrentSessionAsync, CanExportCurrentSession);
     }
 
     private async Task GenerateReplyAsync(ChatSession session, ChatMessageViewModel userMessage)
@@ -221,61 +212,6 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
         EditableSessionTitle.Trim().Length <= 80 &&
         !string.Equals(SelectedSession.Title, EditableSessionTitle.Trim(), StringComparison.Ordinal);
 
-    private async Task UndoDeleteAsync()
-    {
-        var snapshot = _deletedSessionSnapshot;
-        if (snapshot is null)
-        {
-            return;
-        }
-
-        _deletedSessionSnapshot = null;
-        SubscribeSession(snapshot.Session);
-        Sessions.Insert(Math.Clamp(snapshot.Index, 0, Sessions.Count), snapshot.Session);
-        SelectedSession = snapshot.Session;
-        await PersistSessionAsync(snapshot.Session);
-        StatusMessage = "已撤销删除";
-        NotifySessionStateChanged();
-        await _logger.InformationAsync($"撤销删除会话：{snapshot.Session.Id}");
-    }
-
-    private bool CanUndoDelete() => _deletedSessionSnapshot is not null && !IsBusy;
-
-    private async Task ExportCurrentSessionAsync()
-    {
-        if (SelectedSession is null)
-        {
-            return;
-        }
-
-        var invalidChars = Path.GetInvalidFileNameChars();
-        var safeTitle = new string(SelectedSession.Title.Select(character => invalidChars.Contains(character) ? '_' : character).ToArray());
-        var filePath = await _userInteractionService.SelectSaveFileAsync(
-            "导出当前会话",
-            $"{safeTitle}.md",
-            "Markdown 文件 (*.md)|*.md");
-        if (string.IsNullOrWhiteSpace(filePath))
-        {
-            return;
-        }
-
-        try
-        {
-            await _chatExportService.ExportMarkdownAsync(SelectedSession, filePath);
-            StatusMessage = "会话已导出";
-            await _logger.InformationAsync($"导出会话：{SelectedSession.Id}");
-        }
-        catch (Exception exception)
-        {
-            SetError("导出会话失败");
-            StatusMessage = ErrorMessage;
-            await _logger.ErrorAsync(
-                $"导出会话失败，会话：{SelectedSession.Id}，异常类型：{exception.GetType().Name}");
-        }
-    }
-
-    private bool CanExportCurrentSession() => SelectedSession is not null && !IsBusy;
-
     public ObservableCollection<ChatSession> Sessions { get; }
 
     public ICollectionView FilteredSessions { get; }
@@ -367,6 +303,7 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
             if (SetProperty(ref _errorMessage, value))
             {
                 OnPropertyChanged(nameof(HasError));
+                OnPropertyChanged(nameof(ShouldShowStatus));
             }
         }
     }
@@ -381,15 +318,21 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
 
     public bool ConfigurationRequired => _agentModelService.SelectedModel is null;
 
-    public bool SendMessageWithEnter => _settingsService.CurrentSettings.SendMessageWithEnter;
-
     public bool CanRetry => _failedSendContext is not null && !IsBusy;
 
     public string StatusMessage
     {
         get => _statusMessage;
-        set => SetProperty(ref _statusMessage, value);
+        set
+        {
+            if (SetProperty(ref _statusMessage, value))
+            {
+                OnPropertyChanged(nameof(ShouldShowStatus));
+            }
+        }
     }
+
+    public bool ShouldShowStatus => IsBusy || HasError;
 
     public bool IsResponding
     {
@@ -400,6 +343,7 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
             {
                 OnPropertyChanged(nameof(IsBusy));
                 OnPropertyChanged(nameof(CanRetry));
+                OnPropertyChanged(nameof(ShouldShowStatus));
                 NotifyCommandStates();
             }
         }
@@ -414,6 +358,7 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
             {
                 OnPropertyChanged(nameof(IsBusy));
                 OnPropertyChanged(nameof(CanRetry));
+                OnPropertyChanged(nameof(ShouldShowStatus));
                 NotifyCommandStates();
             }
         }
@@ -437,11 +382,7 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
 
     public AsyncRelayCommand RenameSessionCommand => _renameSessionCommand;
 
-    public AsyncRelayCommand UndoDeleteCommand => _undoDeleteCommand;
-
     public AsyncRelayCommand RetryCommand => _retryCommand;
-
-    public AsyncRelayCommand ExportCurrentSessionCommand => _exportCurrentSessionCommand;
 
     public Task InitializeAsync()
     {
@@ -461,7 +402,6 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
 
     public void RefreshSettings()
     {
-        OnPropertyChanged(nameof(SendMessageWithEnter));
         RefreshConfigurationState();
     }
 
@@ -566,8 +506,6 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
         }
 
         var deletedSessionId = selectedSession.Id;
-        var deletedIndex = Sessions.IndexOf(selectedSession);
-        _deletedSessionSnapshot = new DeletedSessionSnapshot(selectedSession, deletedIndex);
         await _chatRepository.DeleteSessionAsync(deletedSessionId);
         UnsubscribeSession(selectedSession);
         Sessions.Remove(selectedSession);
@@ -872,12 +810,8 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
         _saveInlineEditCommand.NotifyCanExecuteChanged();
         _cancelInlineEditCommand.NotifyCanExecuteChanged();
         _renameSessionCommand.NotifyCanExecuteChanged();
-        _undoDeleteCommand.NotifyCanExecuteChanged();
         _retryCommand.NotifyCanExecuteChanged();
-        _exportCurrentSessionCommand.NotifyCanExecuteChanged();
     }
-
-    private sealed record DeletedSessionSnapshot(ChatSession Session, int Index);
 
     private sealed record FailedSendContext(Guid SessionId, Guid UserMessageId, Guid AssistantMessageId);
 }
