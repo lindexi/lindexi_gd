@@ -436,7 +436,18 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
             }
 
             Sessions.Clear();
-            foreach (var session in loadResult.Sessions)
+            var emptySessions = loadResult.Sessions
+                .Where(session => session.IsEmpty)
+                .OrderByDescending(session => session.UpdatedAt)
+                .ToList();
+            var emptySessionToKeep = emptySessions.FirstOrDefault();
+            foreach (var duplicateEmptySession in emptySessions.Skip(1))
+            {
+                await _chatRepository.DeleteSessionAsync(duplicateEmptySession.Id);
+                await _logger.InformationAsync($"清理重复空会话：{duplicateEmptySession.Id}");
+            }
+
+            foreach (var session in loadResult.Sessions.Where(session => !session.IsEmpty || ReferenceEquals(session, emptySessionToKeep)))
             {
                 SubscribeSession(session);
                 Sessions.Add(session);
@@ -474,12 +485,21 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
 
     private async Task CreateNewChatAsync()
     {
+        var existingEmptySession = Sessions.FirstOrDefault(session => session.IsEmpty);
+        if (existingEmptySession is not null)
+        {
+            MoveSessionToTop(existingEmptySession);
+            SelectedSession = existingEmptySession;
+            NotifySessionStateChanged();
+            StatusMessage = "已切换到空会话";
+            return;
+        }
+
         var session = new ChatSession();
         session.Touch();
         SubscribeSession(session);
         Sessions.Insert(0, session);
         SelectedSession = session;
-        await PersistSessionAsync(session);
         NotifySessionStateChanged();
         StatusMessage = "已创建新会话";
         await _logger.InformationAsync($"创建新会话：{session.Id}");
@@ -487,7 +507,9 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
 
     private bool CanCreateNewChat()
     {
-        return !IsResponding && !IsLoadingSessions;
+        return !IsResponding &&
+               !IsLoadingSessions &&
+               (SelectedSession is null || !SelectedSession.IsEmpty);
     }
 
     private async Task DeleteSelectedChatAsync()

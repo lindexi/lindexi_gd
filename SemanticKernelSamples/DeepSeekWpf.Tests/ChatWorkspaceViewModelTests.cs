@@ -29,6 +29,83 @@ public sealed class ChatWorkspaceViewModelTests
     });
 
     [TestMethod]
+    public Task InitializeAsync_WithoutHistory_CreatesSingleUnpersistedEmptySession() => StaTest.RunAsync(async () =>
+    {
+        using var temp = new TempDirectory();
+        var repository = new FakeChatRepository();
+        var viewModel = CreateViewModel(temp, repository: repository);
+
+        await viewModel.InitializeAsync();
+
+        Assert.AreEqual(1, viewModel.Sessions.Count);
+        Assert.AreEqual(0, viewModel.SelectedSession!.Messages.Count);
+        Assert.AreEqual(0, repository.SavedSessions.Count);
+        Assert.IsFalse(viewModel.NewChatCommand.CanExecute(null));
+    });
+
+    [TestMethod]
+    public Task NewChatCommand_FromPopulatedSession_CreatesOnlyOneEmptySession() => StaTest.RunAsync(async () =>
+    {
+        using var temp = new TempDirectory();
+        var repository = new FakeChatRepository
+        {
+            LoadResult = new ChatRepositoryLoadResult([CreateSession("existing", "message")], []),
+        };
+        var viewModel = CreateViewModel(temp, repository: repository);
+        await viewModel.InitializeAsync();
+
+        await viewModel.NewChatCommand.ExecuteAsync();
+
+        Assert.AreEqual(2, viewModel.Sessions.Count);
+        Assert.AreEqual(1, viewModel.Sessions.Count(session => session.Messages.Count == 0));
+        Assert.AreEqual(0, viewModel.SelectedSession!.Messages.Count);
+        Assert.IsFalse(viewModel.NewChatCommand.CanExecute(null));
+        Assert.AreEqual(0, repository.SavedSessions.Count);
+    });
+
+    [TestMethod]
+    public Task NewChatCommand_WhenAnotherEmptySessionExists_SelectsItWithoutCreatingSession() => StaTest.RunAsync(async () =>
+    {
+        using var temp = new TempDirectory();
+        var populatedSession = CreateSession("existing", "message");
+        var emptySession = CreateEmptySession(DateTime.Now.AddMinutes(-1));
+        var repository = new FakeChatRepository
+        {
+            LoadResult = new ChatRepositoryLoadResult([populatedSession, emptySession], []),
+        };
+        var viewModel = CreateViewModel(temp, repository: repository);
+        await viewModel.InitializeAsync();
+        viewModel.SelectedSession = populatedSession;
+
+        await viewModel.NewChatCommand.ExecuteAsync();
+
+        Assert.AreEqual(2, viewModel.Sessions.Count);
+        Assert.AreSame(emptySession, viewModel.SelectedSession);
+        Assert.IsFalse(viewModel.NewChatCommand.CanExecute(null));
+    });
+
+    [TestMethod]
+    public Task InitializeAsync_WithDuplicateEmptySessions_KeepsLatestAndDeletesOthers() => StaTest.RunAsync(async () =>
+    {
+        using var temp = new TempDirectory();
+        var olderEmptySession = CreateEmptySession(DateTime.Now.AddMinutes(-2));
+        var latestEmptySession = CreateEmptySession(DateTime.Now.AddMinutes(-1));
+        var populatedSession = CreateSession("existing", "message");
+        var repository = new FakeChatRepository
+        {
+            LoadResult = new ChatRepositoryLoadResult(
+                [olderEmptySession, populatedSession, latestEmptySession], []),
+        };
+        var viewModel = CreateViewModel(temp, repository: repository);
+
+        await viewModel.InitializeAsync();
+
+        Assert.AreEqual(2, viewModel.Sessions.Count);
+        Assert.AreSame(latestEmptySession, viewModel.Sessions.Single(session => session.Messages.Count == 0));
+        CollectionAssert.AreEqual(new[] { olderEmptySession.Id }, repository.DeletedSessionIds);
+    });
+
+    [TestMethod]
     public Task SendMessageCommand_PersistsUserAndAssistantMessages() => StaTest.RunAsync(async () =>
     {
         using var temp = new TempDirectory();
@@ -47,7 +124,7 @@ public sealed class ChatWorkspaceViewModelTests
         Assert.AreEqual("question", viewModel.SelectedSession!.Messages[0].Content);
         Assert.AreEqual("answer", viewModel.SelectedSession.Messages[1].Content);
         Assert.AreEqual("reason", viewModel.SelectedSession.Messages[1].ThoughtContent);
-        Assert.IsTrue(repository.SavedSessions.Count >= 3);
+        Assert.IsTrue(repository.SavedSessions.Count >= 2);
     });
 
     [TestMethod]
@@ -111,6 +188,24 @@ public sealed class ChatWorkspaceViewModelTests
     });
 
     [TestMethod]
+    public Task DeleteCommand_DeletingLastSession_CreatesUnpersistedEmptyPlaceholder() => StaTest.RunAsync(async () =>
+    {
+        using var temp = new TempDirectory();
+        var session = CreateSession("delete", "value");
+        var repository = new FakeChatRepository { LoadResult = new ChatRepositoryLoadResult([session], []) };
+        var interaction = new FakeUserInteractionService { ConfirmationResult = true };
+        var viewModel = CreateViewModel(temp, repository: repository, interaction: interaction);
+        await viewModel.InitializeAsync();
+
+        await viewModel.DeleteSelectedChatCommand.ExecuteAsync();
+
+        Assert.AreEqual(1, viewModel.Sessions.Count);
+        Assert.AreEqual(0, viewModel.SelectedSession!.Messages.Count);
+        Assert.AreEqual(0, repository.SavedSessions.Count);
+        Assert.IsFalse(viewModel.NewChatCommand.CanExecute(null));
+    });
+
+    [TestMethod]
     public Task SearchText_FiltersSessionsByTitleAndContent() => StaTest.RunAsync(async () =>
     {
         using var temp = new TempDirectory();
@@ -170,6 +265,14 @@ public sealed class ChatWorkspaceViewModelTests
         var session = new ChatSession { Title = title };
         session.Messages.Add(new ChatMessageViewModel(CopilotChatMessage.CreateUser(content)));
         return session;
+    }
+
+    private static ChatSession CreateEmptySession(DateTime updatedAt)
+    {
+        return new ChatSession
+        {
+            UpdatedAt = updatedAt,
+        };
     }
 
     private static async IAsyncEnumerable<AiResponseChunk> ThrowAi(

@@ -28,6 +28,8 @@ public sealed class ChatSession : ObservableObject
 
     public ObservableCollection<ChatMessageViewModel> Messages { get; } = [];
 
+    public bool IsEmpty => Messages.Count == 0;
+
     public void Touch()
     {
         UpdatedAt = DateTime.Now;
