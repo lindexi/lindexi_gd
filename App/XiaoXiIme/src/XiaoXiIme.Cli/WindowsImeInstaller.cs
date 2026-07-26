@@ -27,6 +27,12 @@ internal sealed class WindowsImeInstaller : IImeInstaller
             return new ImeInstallationResult(false, "IME installation requires an elevated administrator process.");
         }
 
+        var validationError = ImeBinaryValidator.Validate(imeFilePath);
+        if (validationError is not null)
+        {
+            return new ImeInstallationResult(false, validationError);
+        }
+
         var keyboardLayout = ImmInstallIME(imeFilePath, displayName);
         if (keyboardLayout == 0)
         {

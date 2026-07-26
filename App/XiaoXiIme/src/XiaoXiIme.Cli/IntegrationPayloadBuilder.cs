@@ -54,6 +54,20 @@ internal static class IntegrationPayloadBuilder
             File.Move(Path.Combine(nativeDirectory, "ime", "XiaoXiIme.ImeModule.dll"), Path.Combine(nativeDirectory, "ime", "XiaoXiIme.ime"), true);
         }
 
+        if (OperatingSystem.IsWindows())
+        {
+            foreach (var runtimeIdentifier in NativeRuntimeIdentifiers)
+            {
+                var imePath = Path.Combine(outputDirectory, "native", runtimeIdentifier, "ime", "XiaoXiIme.ime");
+                var validationError = ImeBinaryValidator.Validate(imePath);
+                if (validationError is not null)
+                {
+                    log.Error("payload", $"Invalid {runtimeIdentifier} IME binary: {validationError}");
+                    return 12;
+                }
+            }
+        }
+
         var files = Directory.EnumerateFiles(outputDirectory, "*", SearchOption.AllDirectories)
             .Select(path => CreatePayloadFile(outputDirectory, path))
             .OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase)

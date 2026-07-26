@@ -1,36 +1,40 @@
 using XiaoXiIme.ImeInterop;
 using XiaoXiIme.Foundation;
+using System.Runtime.InteropServices;
 
 namespace XiaoXiIme.ImeModule.Tests;
 
 public class ImeExportsTests
 {
     [Fact]
+    public void ImeInquireInfo_MatchesNativeImeInfoLayout()
+    {
+        Assert.Equal(7 * sizeof(uint), Marshal.SizeOf<ImeInquireInfo>());
+    }
+
+    [Fact]
     public void CreateInquireInfoForTesting_ReturnsMinimalImeMetadata()
     {
         var info = ImeExports.CreateInquireInfoForTesting();
 
-        Assert.NotEqual(0u, info.Size);
-        Assert.Equal(ImeConstants.ImeVersion0400, info.ImeVersion);
-        Assert.True((info.ImeProperty & ImeConstants.ImePropUnicode) != 0);
-        Assert.True((info.ImeProperty & ImeConstants.ImePropAtCaret) != 0);
-        Assert.True((info.ImeProperty & ImeConstants.ImePropCompleteOnUnselect) != 0);
+        Assert.Equal(0u, info.PrivateDataSize);
+        Assert.True((info.Property & ImeConstants.ImePropUnicode) != 0);
+        Assert.True((info.Property & ImeConstants.ImePropAtCaret) != 0);
+        Assert.True((info.Property & ImeConstants.ImePropCompleteOnUnselect) != 0);
         Assert.True((info.ConversionCaps & ImeConstants.ImeCmodeNative) != 0);
         Assert.True((info.SetCompositionStringCaps & ImeConstants.SCSCapsMakeRead) != 0);
         Assert.True((info.SelectCaps & ImeConstants.SelectCapsConversion) != 0);
     }
 
     [Fact]
-    public unsafe void ImeInquireManaged_WritesClassNamesAndReturnsSize()
+    public unsafe void ImeInquireManaged_WritesUiClassNameAndReturnsTrue()
     {
         var info = stackalloc ImeInquireInfo[1];
         var className = stackalloc char[80];
 
-        var size = ImeExports.ImeInquireManaged(info, className, 0);
+        var result = ImeExports.ImeInquireManaged(info, className, 0);
 
-        Assert.Equal(info->Size, size);
-        Assert.Equal(ImeExportsContract.ImeMenuClassName, new string(info->ImeMenuClassName));
-
+        Assert.Equal(1, result);
         Assert.Equal(ImeExportsContract.ImeUiClassName, new string(className));
     }
 
@@ -39,7 +43,7 @@ public class ImeExportsTests
     {
         var result = ImeExports.ImeInquireManaged(null, null, 0);
 
-        Assert.Equal(0u, result);
+        Assert.Equal(0, result);
     }
 
     [Fact]
@@ -58,7 +62,7 @@ public class ImeExportsTests
         {
             var result = ImeExports.ImeProcessKeyManaged(1, ImeConstants.VkTab, 0, null);
 
-            Assert.Equal(0u, result);
+            Assert.False(result);
         }
         finally
         {
