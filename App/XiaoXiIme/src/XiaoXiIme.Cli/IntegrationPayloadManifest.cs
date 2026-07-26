@@ -5,12 +5,9 @@ namespace XiaoXiIme.Cli;
 internal sealed record IntegrationPayloadManifest(
     int SchemaVersion,
     DateTimeOffset CreatedAtUtc,
-    string RuntimeIdentifier,
-    string ImeFile,
-    string TsfModule,
+    IReadOnlyDictionary<string, NativePayloadComponents> NativeComponents,
     string CliExecutable,
     string ImeHostExecutable,
-    string TsfAbiHostExecutable,
     IReadOnlyList<string> TestAssemblies,
     IReadOnlyList<PayloadFile> Files)
 {
@@ -31,5 +28,7 @@ internal sealed record IntegrationPayloadManifest(
         WriteIndented = true,
     };
 }
+
+internal sealed record NativePayloadComponents(string RuntimeIdentifier, string ImeFile, string TsfModule, string TsfAbiHostExecutable);
 
 internal sealed record PayloadFile(string Path, long Length, string Sha256);

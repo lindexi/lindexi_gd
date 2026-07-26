@@ -61,9 +61,6 @@ internal sealed class PayloadBuildOptions
     [Option("output", Description = "Payload output directory.", ValueName = "directory")]
     public string? Output { get; init; }
 
-    [Option("runtime", Description = "Windows runtime identifier.", ValueName = "rid")]
-    public string RuntimeIdentifier { get; init; } = "win-x64";
-
     [Option("no-build", Description = "Collect existing publish outputs without invoking dotnet build/publish.")]
     public bool NoBuild { get; init; }
 }

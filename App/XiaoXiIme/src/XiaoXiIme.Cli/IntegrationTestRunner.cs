@@ -20,18 +20,10 @@ internal static class IntegrationTestRunner
             log.Error("safety", $"Execution blocked. Pass --confirm {SystemTestRunner.VmConfirmation} only inside a disposable VM.");
             return 6;
         }
-        if (string.IsNullOrWhiteSpace(options.Payload))
+        var manifestPath = ResolveManifestPath(options.Payload, AppContext.BaseDirectory, Environment.CurrentDirectory);
+        if (manifestPath is null)
         {
-            log.Error("manifest", "integration-run requires a payload directory or manifest path.");
-            return 2;
-        }
-
-        var manifestPath = Directory.Exists(options.Payload)
-            ? Path.Combine(Path.GetFullPath(options.Payload), IntegrationPayloadManifest.FileName)
-            : Path.GetFullPath(options.Payload);
-        if (!File.Exists(manifestPath))
-        {
-            log.Error("manifest", "Payload manifest was not found.", new { manifestPath });
+            log.Error("manifest", "Payload manifest was not found. Pass a payload directory or manifest path, or run the CLI from inside a payload directory.");
             return 4;
         }
 
@@ -58,21 +50,30 @@ internal static class IntegrationTestRunner
                 return await CompleteAsync(12, reportPath, results, log);
             }
 
-            var imePath = Resolve(root, manifest.ImeFile);
+            if (!manifest.NativeComponents.TryGetValue("x64", out var x64Components))
+            {
+                results.Add(new IntegrationStageResult("install", false, 1, "The payload does not contain x64 native components.", "", ""));
+                LogResult(log, results[^1]);
+                return await CompleteAsync(13, reportPath, results, log);
+            }
+
+            var imePath = Resolve(root, x64Components.ImeFile);
             var install = installer.Install(imePath, "XiaoXi IME");
             installed = install.Succeeded;
-            results.Add(new IntegrationStageResult("install", install.Succeeded, install.Succeeded ? 0 : 1, install.Message, "", ""));
+            var installMessage = $"{install.Message} This stage registers the x64 IME only; x86 registration remains a separate VM validation requirement.";
+            results.Add(new IntegrationStageResult("install-x64", install.Succeeded, install.Succeeded ? 0 : 1, installMessage, "", ""));
             LogResult(log, results[^1]);
             if (!install.Succeeded)
             {
                 return await CompleteAsync(13, reportPath, results, log);
             }
 
-            var commands = new List<SystemTestCommand>
+            var commands = new List<SystemTestCommand>();
+            foreach (var (architecture, components) in manifest.NativeComponents.OrderBy(pair => pair.Key, StringComparer.Ordinal))
             {
-                new("tsf-abi", Resolve(root, manifest.TsfAbiHostExecutable), ["abi", Resolve(root, manifest.TsfModule)]),
-                new("tsf-com-activation", Resolve(root, manifest.TsfAbiHostExecutable), ["com-activation", Resolve(root, manifest.TsfModule)]),
-            };
+                commands.Add(new SystemTestCommand($"tsf-abi-{architecture}", Resolve(root, components.TsfAbiHostExecutable), ["abi", Resolve(root, components.TsfModule)]));
+                commands.Add(new SystemTestCommand($"tsf-com-activation-{architecture}", Resolve(root, components.TsfAbiHostExecutable), ["com-activation", Resolve(root, components.TsfModule)]));
+            }
             foreach (var assembly in manifest.TestAssemblies)
             {
                 commands.Add(new SystemTestCommand("integration-tests", "dotnet", ["vstest", Resolve(root, assembly), "--logger:Console;Verbosity=normal"]));
@@ -103,11 +104,42 @@ internal static class IntegrationTestRunner
         }
     }
 
+    internal static string? ResolveManifestPath(string? payload, params string[] searchStartDirectories)
+    {
+        if (!string.IsNullOrWhiteSpace(payload))
+        {
+            var explicitPath = Directory.Exists(payload)
+                ? Path.Combine(Path.GetFullPath(payload), IntegrationPayloadManifest.FileName)
+                : Path.GetFullPath(payload);
+            return File.Exists(explicitPath) ? explicitPath : null;
+        }
+
+        foreach (var searchStartDirectory in searchStartDirectories.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var directory = new DirectoryInfo(Path.GetFullPath(searchStartDirectory));
+            while (directory is not null)
+            {
+                var candidate = Path.Combine(directory.FullName, IntegrationPayloadManifest.FileName);
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+                directory = directory.Parent;
+            }
+        }
+
+        return null;
+    }
+
     private static string? VerifyPayload(string root, IntegrationPayloadManifest manifest)
     {
-        if (manifest.SchemaVersion != 1)
+        if (manifest.SchemaVersion != 2)
         {
             return $"Unsupported payload schema version: {manifest.SchemaVersion}.";
+        }
+        if (!manifest.NativeComponents.ContainsKey("x86") || !manifest.NativeComponents.ContainsKey("x64"))
+        {
+            return "Payload must contain both x86 and x64 native components.";
         }
         foreach (var file in manifest.Files)
         {
