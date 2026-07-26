@@ -140,17 +140,51 @@ VM 返回的变体矩阵为：
 
 下一版首次在同一 VM 运行时，`uninstall-old` 应先报告移除了第三轮残留的布局 ID，随后正式 `install-x64` 应从 `C:\Windows\System32\XiaoXiIme.ime` 注册成功。若 System32 文件因进程占用无法删除，日志会明确保留该残留，不应人工静默忽略。
 
-## 下一轮必须回传的信息
+### 2026-07-26 第四轮正式安装验证结果
 
-下一次运行至少应包含以下 stage：
+VM 返回结果确认根因修复有效：
+
+- `uninstall-old` 成功移除第三轮残留布局 `E0200804`、`E0210804`；
+- `diagnostics-pre-install` 和 `native-ime-load-probe` 均通过；
+- 正式 `install-x64` 从 `C:\Windows\System32\XiaoXiIme.ime` 注册成功，返回布局 `E0200804`；
+- x86/x64 的 TSF ABI 和隔离 COM 激活均通过；
+- `cleanup` 成功移除正式布局和不再被引用的 System32 IME 文件。
+
+安装、TSF 验证和清理均已成功。该轮最终未生成 `report`，原因不是 IME 安装失败，而是 payload 在纯净 VM 中硬编码执行 `dotnet vstest`；VM 按约束未安装 `dotnet`，因此 `IntegrationTestRunner` 抛出 Win32 error 2。
+
+后续版本将集成冒烟场景发布为 `win-x64` 自包含 `XiaoXiIme.IntegrationTestHost.exe`，由 CLI 直接执行，不再依赖 VM 的 SDK、Runtime 或测试平台。外部 stage 的进程启动失败也必须转为结构化失败结果并写入报告，不能再以未处理异常结束。
+
+### 2026-07-26 第五轮完整闭环验证结果
+
+VM 返回结果确认纯净最终用户环境中的完整流程已经通过：
+
+- `uninstall-old` 未发现上一轮残留；
+- 安装前诊断无 finding，原生加载与 11 个传统 IME 导出验证全部通过；
+- `install-x64` 从 `C:\Windows\System32\XiaoXiIme.ime` 成功注册布局 `E0200804`；
+- x86/x64 的 TSF ABI 和隔离 COM 激活全部通过；
+- 自包含 `XiaoXiIme.IntegrationTestHost.exe` 成功执行，输出 `PASS candidate-window-state` 和 `PASS ime-host-ipc`，不再依赖 VM 中的 `dotnet`；
+- `cleanup` 成功移除布局和不再被引用的 System32 IME 文件；
+- 生成了退出码为 0 的结构化集成报告。
+
+至此，最初的 `ImmInstallIMEW` Win32 error 2、探测布局残留和纯净 VM 缺少测试平台三个问题均已完成根因修复与实机验证。当前输出还显示 `report` 控制台事件早于 `cleanup`；虽然报告文件随后会被重写并包含清理结果，但事件顺序容易造成误解，且清理失败不会改变原成功退出码。后续实现改为先执行并记录 `cleanup`，再写入和输出最终 `report`；当业务阶段全部成功但清理失败时，整体返回非零退出码。
+
+## 后续回归验证必须回传的信息
+
+安装问题已闭环，后续仅在修改安装、TSF、IPC、payload 或集成运行流程后执行回归。回归输出至少应包含以下 stage，并保持 `cleanup` 早于 `report`：
 
 - `uninstall-old`；
 - `diagnostics-pre-install`；
 - `native-ime-load-probe`；
 - `install-x64`；
+- `tsf-abi-x64`、`tsf-com-activation-x64`；
+- `tsf-abi-x86`、`tsf-com-activation-x86`；
+- `integration-tests`，其 stdout 应包含 `PASS candidate-window-state` 和 `PASS ime-host-ipc`；
+- `cleanup`；
 - 若安装失败，`diagnostics-post-install-failure`；
 - 若安装失败，`imm-install-variant-probe`；
 - `report`。
+
+成功回归应满足进程退出码为 0、`cleanup` 成功，并且最终报告中的 `results` 包含 `cleanup`。如果 `--keep-installed` 被显式启用，则可以不包含 `cleanup`，但必须由操作者负责后续卸载。
 
 如果控制台粘贴受长度限制，应优先回传完整的 `results\integration.json`，不得只回传错误消息摘要。
 
