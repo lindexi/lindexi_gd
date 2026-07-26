@@ -4,7 +4,14 @@ using System.Text.Json;
 
 namespace XiaoXiIme.Cli;
 
-internal sealed record IntegrationStageResult(string Id, bool Succeeded, int ExitCode, string Message, string StandardOutput, string StandardError);
+internal sealed record IntegrationStageResult(
+    string Id,
+    bool Succeeded,
+    int ExitCode,
+    string Message,
+    string StandardOutput,
+    string StandardError,
+    object? Data = null);
 
 internal static class IntegrationTestRunner
 {
@@ -58,13 +65,70 @@ internal static class IntegrationTestRunner
             }
 
             var imePath = Resolve(root, x64Components.ImeFile);
+            var preInstallDiagnostics = ImeInstallationDiagnostics.Collect(imePath);
+            results.Add(new IntegrationStageResult(
+                "diagnostics-pre-install",
+                true,
+                0,
+                preInstallDiagnostics.Findings.Count == 0
+                    ? "IME installation preflight diagnostics completed without findings."
+                    : $"IME installation preflight diagnostics completed with {preInstallDiagnostics.Findings.Count} finding(s).",
+                "",
+                "",
+                preInstallDiagnostics));
+            LogResult(log, results[^1]);
+
+            var nativeLoadProbe = await RunNativeImeLoadProbeAsync(imePath);
+            results.Add(nativeLoadProbe);
+            LogResult(log, results[^1]);
+
             var install = installer.Install(imePath, "XiaoXi IME");
             installed = install.Succeeded;
             var installMessage = $"{install.Message} This stage registers the x64 IME only; x86 registration remains a separate VM validation requirement.";
-            results.Add(new IntegrationStageResult("install-x64", install.Succeeded, install.Succeeded ? 0 : 1, installMessage, "", ""));
+            results.Add(new IntegrationStageResult(
+                "install-x64",
+                install.Succeeded,
+                install.Succeeded ? 0 : 1,
+                installMessage,
+                "",
+                "",
+                new
+                {
+                    imePath,
+                    install.Win32ErrorCode,
+                    install.SourcePath,
+                    install.InstalledPath,
+                    install.CopiedToSystemDirectory,
+                    install.RollbackSucceeded,
+                    install.RollbackError,
+                }));
             LogResult(log, results[^1]);
             if (!install.Succeeded)
             {
+                var postFailureDiagnostics = ImeInstallationDiagnostics.Collect(imePath);
+                results.Add(new IntegrationStageResult(
+                    "diagnostics-post-install-failure",
+                    true,
+                    0,
+                    "IME installation state captured immediately after ImmInstallIME failed.",
+                    "",
+                    "",
+                    postFailureDiagnostics));
+                LogResult(log, results[^1]);
+
+                var variantResults = WindowsImeInstallationVariantProbe.Run(imePath, "XiaoXi IME Probe");
+                var successfulVariants = variantResults.Where(result => result.InstallSucceeded).Select(result => result.Id).ToArray();
+                results.Add(new IntegrationStageResult(
+                    "imm-install-variant-probe",
+                    true,
+                    0,
+                    successfulVariants.Length == 0
+                        ? "All isolated ImmInstallIME path and filename variants failed."
+                        : $"ImmInstallIME succeeded for variant(s): {string.Join(", ", successfulVariants)}.",
+                    "",
+                    "",
+                    variantResults));
+                LogResult(log, results[^1]);
                 return await CompleteAsync(13, reportPath, results, log);
             }
 
@@ -176,9 +240,65 @@ internal static class IntegrationTestRunner
         return new IntegrationStageResult(command.Id, process.ExitCode == 0, process.ExitCode, process.ExitCode == 0 ? "Stage passed." : "Stage failed.", standardOutput, standardError);
     }
 
+    private static async Task<IntegrationStageResult> RunNativeImeLoadProbeAsync(string imePath)
+    {
+        var executable = Environment.ProcessPath;
+        if (string.IsNullOrWhiteSpace(executable))
+        {
+            return new IntegrationStageResult("native-ime-load-probe", false, 1, "Unable to resolve the current CLI executable path.", "", "");
+        }
+
+        var startInfo = new ProcessStartInfo(executable)
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+        startInfo.ArgumentList.Add("native-ime-load-probe");
+        startInfo.ArgumentList.Add(imePath);
+
+        using var process = Process.Start(startInfo);
+        if (process is null)
+        {
+            return new IntegrationStageResult("native-ime-load-probe", false, 1, "Unable to start the isolated native IME loader probe.", "", "");
+        }
+
+        var standardOutputTask = process.StandardOutput.ReadToEndAsync();
+        var standardErrorTask = process.StandardError.ReadToEndAsync();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        try
+        {
+            await process.WaitForExitAsync(timeout.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync();
+            return new IntegrationStageResult(
+                "native-ime-load-probe",
+                false,
+                1460,
+                "The isolated native IME loader probe timed out after 30 seconds.",
+                await standardOutputTask,
+                await standardErrorTask);
+        }
+
+        var standardOutput = await standardOutputTask;
+        var standardError = await standardErrorTask;
+        return new IntegrationStageResult(
+            "native-ime-load-probe",
+            process.ExitCode == 0,
+            process.ExitCode,
+            process.ExitCode == 0
+                ? "The IME loaded in an isolated process and all required exports resolved."
+                : "The isolated process could not load the IME or resolve all required exports.",
+            standardOutput,
+            standardError);
+    }
+
     private static void LogResult(StructuredConsole log, IntegrationStageResult result)
     {
-        var data = new { result.ExitCode, result.StandardOutput, result.StandardError };
+        var data = new { result.ExitCode, result.StandardOutput, result.StandardError, result.Data };
         if (result.Succeeded)
         {
             log.Information(result.Id, result.Message, data);

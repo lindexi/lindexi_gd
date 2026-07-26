@@ -1,9 +1,27 @@
+using System.Text.Json;
 using XiaoXiIme.Cli;
 
 namespace XiaoXiIme.Cli.Tests;
 
 public sealed class IntegrationTestRunnerTests
 {
+    [Fact]
+    public void StructuredConsoleWritesChineseCharactersWithoutEscaping()
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        var console = new StructuredConsole(output, error);
+
+        console.Information("构建", "构建成功", new { 详情 = "中文日志" });
+
+        var json = output.ToString();
+        Assert.Contains("构建成功", json);
+        Assert.Contains("中文日志", json);
+        Assert.DoesNotContain("\\u", json, StringComparison.OrdinalIgnoreCase);
+        using var document = JsonDocument.Parse(json);
+        Assert.Equal("构建成功", document.RootElement.GetProperty("message").GetString());
+    }
+
     [Fact]
     public void ResolveManifestPathFindsManifestAboveExecutableDirectory()
     {

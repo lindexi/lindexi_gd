@@ -13,6 +13,7 @@ return await CommandLine.Parse(args)
     .AddHandler<SystemTestRunOptions>(RunSystemTests)
     .AddHandler<PayloadBuildOptions>(options => IntegrationPayloadBuilder.BuildAsync(options, Console.Out, Console.Error))
     .AddHandler<IntegrationRunOptions>(options => IntegrationTestRunner.RunAsync(options, Console.Out, Console.Error, static () => new WindowsImeInstaller()))
+    .AddHandler<NativeImeLoadProbeOptions>(options => NativeImeLoadProbe.Run(options, Console.Out, Console.Error))
     .RunAsync();
 
 static int Install(InstallOptions options)

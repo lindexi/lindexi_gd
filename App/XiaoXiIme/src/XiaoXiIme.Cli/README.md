@@ -89,6 +89,17 @@ $env:XIAOXIIME_ENVIRONMENT = "VirtualMachine"
 
 控制台每一行都是独立 JSON，包含 `timestampUtc`、`level`、`stage`、`message` 和 `data`，便于 LLM 或自动化脚本实时判断当前阶段、退出码、标准输出和错误输出。
 
+安装前会额外输出 `diagnostics-pre-install` 阶段。该阶段完全由 CLI 自身完成，不要求 VM 安装 .NET SDK、Visual Studio、dumpbin 或 Dependencies，内容包括：
+
+- Windows、操作系统架构和 CLI 进程架构；
+- IME 绝对路径、长度、SHA-256、文件属性和 Mark of the Web；
+- PE Machine、Magic、Subsystem、DLL 标志和导入模块；
+- API-set 与普通系统 DLL 的分类和解析结果；
+- `GetBinaryType` 与不执行 DLL 初始化代码的映像映射探测；
+- `System32` 目标文件和匹配键盘布局注册表状态。
+
+如果 `ImmInstallIME` 失败，还会输出 `diagnostics-post-install-failure`，立即记录调用后的文件和注册表状态。排障时应同时保留完整控制台输出和 `results\integration-*.json`；报告中的 `Data` 字段包含未被控制台摘要省略的诊断对象。
+
 ## 集成测试约束
 
 - CLI 不判断当前机器是否为开发机、测试机或最终用户机器。
