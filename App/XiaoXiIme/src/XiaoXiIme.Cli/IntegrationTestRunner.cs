@@ -54,14 +54,14 @@ internal static class IntegrationTestRunner
             LogResult(log, results[^1]);
             if (!uninstall.Succeeded)
             {
-                return await CompleteAsync(12, reportPath, results, log);
+                return await CompleteAsync(12, reportPath, results, log, installer, installed, options.KeepInstalled);
             }
 
             if (!manifest.NativeComponents.TryGetValue("x64", out var x64Components))
             {
                 results.Add(new IntegrationStageResult("install", false, 1, "The payload does not contain x64 native components.", "", ""));
                 LogResult(log, results[^1]);
-                return await CompleteAsync(13, reportPath, results, log);
+                return await CompleteAsync(13, reportPath, results, log, installer, installed, options.KeepInstalled);
             }
 
             var imePath = Resolve(root, x64Components.ImeFile);
@@ -129,7 +129,7 @@ internal static class IntegrationTestRunner
                     "",
                     variantResults));
                 LogResult(log, results[^1]);
-                return await CompleteAsync(13, reportPath, results, log);
+                return await CompleteAsync(13, reportPath, results, log, installer, installed, options.KeepInstalled);
             }
 
             var commands = new List<SystemTestCommand>();
@@ -138,9 +138,9 @@ internal static class IntegrationTestRunner
                 commands.Add(new SystemTestCommand($"tsf-abi-{architecture}", Resolve(root, components.TsfAbiHostExecutable), ["abi", Resolve(root, components.TsfModule)]));
                 commands.Add(new SystemTestCommand($"tsf-com-activation-{architecture}", Resolve(root, components.TsfAbiHostExecutable), ["com-activation", Resolve(root, components.TsfModule)]));
             }
-            foreach (var assembly in manifest.TestAssemblies)
+            foreach (var executable in manifest.TestHostExecutables)
             {
-                commands.Add(new SystemTestCommand("integration-tests", "dotnet", ["vstest", Resolve(root, assembly), "--logger:Console;Verbosity=normal"]));
+                commands.Add(new SystemTestCommand("integration-tests", Resolve(root, executable), []));
             }
 
             foreach (var command in commands)
@@ -150,21 +150,19 @@ internal static class IntegrationTestRunner
                 LogResult(log, result);
                 if (!result.Succeeded)
                 {
-                    return await CompleteAsync(14, reportPath, results, log);
+                    return await CompleteAsync(14, reportPath, results, log, installer, installed, options.KeepInstalled);
                 }
             }
 
-            return await CompleteAsync(0, reportPath, results, log);
+            return await CompleteAsync(0, reportPath, results, log, installer, installed, options.KeepInstalled);
         }
-        finally
+        catch
         {
             if (installed && !options.KeepInstalled)
             {
-                var cleanup = installer.UninstallExisting("XiaoXi IME", "XiaoXiIme.ime");
-                results.Add(new IntegrationStageResult("cleanup", cleanup.Succeeded, cleanup.Succeeded ? 0 : 1, cleanup.Message, "", ""));
-                LogResult(log, results[^1]);
-                await WriteReportAsync(reportPath, results);
+                installer.UninstallExisting("XiaoXi IME", "XiaoXiIme.ime");
             }
+            throw;
         }
     }
 
@@ -197,7 +195,7 @@ internal static class IntegrationTestRunner
 
     private static string? VerifyPayload(string root, IntegrationPayloadManifest manifest)
     {
-        if (manifest.SchemaVersion != 2)
+        if (manifest.SchemaVersion != 3)
         {
             return $"Unsupported payload schema version: {manifest.SchemaVersion}.";
         }
@@ -223,21 +221,28 @@ internal static class IntegrationTestRunner
 
     private static async Task<IntegrationStageResult> RunCommandAsync(SystemTestCommand command)
     {
-        var startInfo = new ProcessStartInfo(command.FileName)
+        try
         {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-        };
-        foreach (var argument in command.Arguments)
-        {
-            startInfo.ArgumentList.Add(argument);
+            var startInfo = new ProcessStartInfo(command.FileName)
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+            };
+            foreach (var argument in command.Arguments)
+            {
+                startInfo.ArgumentList.Add(argument);
+            }
+            using var process = Process.Start(startInfo) ?? throw new InvalidOperationException($"Unable to start {command.FileName}.");
+            var standardOutput = await process.StandardOutput.ReadToEndAsync();
+            var standardError = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+            return new IntegrationStageResult(command.Id, process.ExitCode == 0, process.ExitCode, process.ExitCode == 0 ? "Stage passed." : "Stage failed.", standardOutput, standardError);
         }
-        using var process = Process.Start(startInfo) ?? throw new InvalidOperationException($"Unable to start {command.FileName}.");
-        var standardOutput = await process.StandardOutput.ReadToEndAsync();
-        var standardError = await process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
-        return new IntegrationStageResult(command.Id, process.ExitCode == 0, process.ExitCode, process.ExitCode == 0 ? "Stage passed." : "Stage failed.", standardOutput, standardError);
+        catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            return new IntegrationStageResult(command.Id, false, 1, $"Unable to start stage executable '{command.FileName}'.", "", exception.ToString());
+        }
     }
 
     private static async Task<IntegrationStageResult> RunNativeImeLoadProbeAsync(string imePath)
@@ -309,11 +314,31 @@ internal static class IntegrationTestRunner
         }
     }
 
-    private static async Task<int> CompleteAsync(int exitCode, string reportPath, IReadOnlyList<IntegrationStageResult> results, StructuredConsole log)
+    internal static int GetFinalExitCode(int exitCode, bool cleanupSucceeded)
+        => exitCode == 0 && !cleanupSucceeded ? 15 : exitCode;
+
+    private static async Task<int> CompleteAsync(
+        int exitCode,
+        string reportPath,
+        List<IntegrationStageResult> results,
+        StructuredConsole log,
+        IImeInstaller installer,
+        bool installed,
+        bool keepInstalled)
     {
+        var cleanupSucceeded = true;
+        if (installed && !keepInstalled)
+        {
+            var cleanup = installer.UninstallExisting("XiaoXi IME", "XiaoXiIme.ime");
+            cleanupSucceeded = cleanup.Succeeded;
+            results.Add(new IntegrationStageResult("cleanup", cleanup.Succeeded, cleanup.Succeeded ? 0 : 1, cleanup.Message, "", ""));
+            LogResult(log, results[^1]);
+        }
+
+        var finalExitCode = GetFinalExitCode(exitCode, cleanupSucceeded);
         await WriteReportAsync(reportPath, results);
-        log.Information("report", "Integration report written.", new { reportPath, exitCode });
-        return exitCode;
+        log.Information("report", "Integration report written.", new { reportPath, exitCode = finalExitCode });
+        return finalExitCode;
     }
 
     private static async Task WriteReportAsync(string reportPath, IReadOnlyList<IntegrationStageResult> results)

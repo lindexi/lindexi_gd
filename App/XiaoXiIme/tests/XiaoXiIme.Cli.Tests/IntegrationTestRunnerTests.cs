@@ -74,6 +74,18 @@ public sealed class IntegrationTestRunnerTests
         Assert.Null(result);
     }
 
+    [Theory]
+    [InlineData(0, true, 0)]
+    [InlineData(0, false, 15)]
+    [InlineData(14, true, 14)]
+    [InlineData(14, false, 14)]
+    public void GetFinalExitCodePreservesStageFailureAndReportsCleanupFailure(int exitCode, bool cleanupSucceeded, int expected)
+    {
+        var result = IntegrationTestRunner.GetFinalExitCode(exitCode, cleanupSucceeded);
+
+        Assert.Equal(expected, result);
+    }
+
     private sealed class TemporaryDirectory : IDisposable
     {
         public TemporaryDirectory()

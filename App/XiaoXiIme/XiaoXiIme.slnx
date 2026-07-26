@@ -35,7 +35,10 @@
     <Project Path="tests/XiaoXiIme.Cli.Tests/XiaoXiIme.Cli.Tests.csproj">
       <Build Solution="Debug|*" Project="false" />
     </Project>
-    <Project Path="tests/XiaoXiIme.Dictionary.Tests/XiaoXiIme.Dictionary.Tests.csproj">
+        <Project Path="tests/XiaoXiIme.IntegrationTestHost/XiaoXiIme.IntegrationTestHost.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+<Project Path="tests/XiaoXiIme.Dictionary.Tests/XiaoXiIme.Dictionary.Tests.csproj">
       <Build Solution="Debug|*" Project="false" />
     </Project>
     <Project Path="tests/XiaoXiIme.ImeCore.Tests/XiaoXiIme.ImeCore.Tests.csproj">

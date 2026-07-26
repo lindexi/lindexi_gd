@@ -73,7 +73,7 @@ internal static class IntegrationPayloadBuilder
             .OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
             .ToArray();
         var manifest = new IntegrationPayloadManifest(
-            2,
+            3,
             DateTimeOffset.UtcNow,
             new Dictionary<string, NativePayloadComponents>
             {
@@ -82,7 +82,7 @@ internal static class IntegrationPayloadBuilder
             },
             "app/cli/XiaoXiIme.Cli.exe",
             "app/host/XiaoXiIme.ImeHost.exe",
-            ["app/tests/XiaoXiIme.IntegrationTests.dll"],
+            ["app/tests/XiaoXiIme.IntegrationTestHost.exe"],
             files);
         var manifestPath = Path.Combine(outputDirectory, IntegrationPayloadManifest.FileName);
         manifest.Save(manifestPath);
@@ -105,7 +105,7 @@ internal static class IntegrationPayloadBuilder
         }
         commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj", Path.Combine("app", "cli"), false));
         commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.ImeHost/XiaoXiIme.ImeHost.csproj", Path.Combine("app", "host"), false));
-        commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "tests/XiaoXiIme.IntegrationTests/XiaoXiIme.IntegrationTests.csproj", Path.Combine("app", "tests"), false));
+        commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "tests/XiaoXiIme.IntegrationTestHost/XiaoXiIme.IntegrationTestHost.csproj", Path.Combine("app", "tests"), false));
         return commands;
     }
 
@@ -133,7 +133,7 @@ internal static class IntegrationPayloadBuilder
         new(Path.Combine(stagingDirectory, "native", "win-x64", "tools", "XiaoXiIme.TsfAbiHost.exe"), Path.Combine("native", "win-x64", "tools")),
         new(Path.Combine(stagingDirectory, "app", "cli", "XiaoXiIme.Cli.exe"), Path.Combine("app", "cli")),
         new(Path.Combine(stagingDirectory, "app", "host", "XiaoXiIme.ImeHost.exe"), Path.Combine("app", "host")),
-        new(Path.Combine(stagingDirectory, "app", "tests", "XiaoXiIme.IntegrationTests.dll"), Path.Combine("app", "tests")),
+        new(Path.Combine(stagingDirectory, "app", "tests", "XiaoXiIme.IntegrationTestHost.exe"), Path.Combine("app", "tests")),
     ];
 
     private static async Task<int> RunProcessAsync(BuildCommand command, string workingDirectory, StructuredConsole log)

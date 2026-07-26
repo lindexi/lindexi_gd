@@ -8,7 +8,7 @@ internal sealed record IntegrationPayloadManifest(
     IReadOnlyDictionary<string, NativePayloadComponents> NativeComponents,
     string CliExecutable,
     string ImeHostExecutable,
-    IReadOnlyList<string> TestAssemblies,
+    IReadOnlyList<string> TestHostExecutables,
     IReadOnlyList<PayloadFile> Files)
 {
     public const string FileName = "xiaoxiime-payload.json";
