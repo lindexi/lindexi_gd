@@ -165,7 +165,7 @@
         <ScrollViewer x:Name="MessagesScrollViewer"
                       Grid.Row="1"
                       Background="{StaticResource BackgroundBrush}"
-                      Padding="8"
+                      Padding="10 0 10 0"
                       VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="MessagesItemsControl" ItemsSource="{Binding Messages}">
                 <ItemsControl.ItemTemplate>
