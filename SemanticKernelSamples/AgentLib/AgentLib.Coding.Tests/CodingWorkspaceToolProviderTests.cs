@@ -65,6 +65,35 @@ public sealed class CodingWorkspaceToolProviderTests
         StringAssert.Contains(result?.ToString(), "roslyn_language_server_unavailable");
     }
 
+    [TestMethod(DisplayName = "工作区文件工具默认应排除构建输出目录")]
+    [Timeout(15000)]
+    public async Task ListDirectory_WhenBuildOutputExists_ExcludesBuildOutputDirectories()
+    {
+        string workspacePath = CreateTestDirectory();
+        string invalidLanguageServerPath = CreateInvalidLanguageServerFile(workspacePath);
+        Directory.CreateDirectory(Path.Join(workspacePath, "bin"));
+        Directory.CreateDirectory(Path.Join(workspacePath, "obj"));
+        await File.WriteAllTextAsync(Path.Join(workspacePath, "bin", "binary.txt"), "bin-content");
+        await File.WriteAllTextAsync(Path.Join(workspacePath, "obj", "generated.txt"), "obj-content");
+        await File.WriteAllTextAsync(Path.Join(workspacePath, "source.txt"), "source-content");
+        await using var toolProvider = new CodingWorkspaceToolProvider(invalidLanguageServerPath);
+        await toolProvider.SetWorkspacePathAsync(workspacePath, CancellationToken.None);
+        await using CodingWorkspaceToolLease lease = await toolProvider.AcquireLeaseAsync();
+        AIFunction listDirectory = lease.Tools
+            .OfType<AIFunction>()
+            .Single(tool => tool.Name == "ListDirectory");
+
+        object? result = await listDirectory.InvokeAsync(new AIFunctionArguments
+        {
+            ["recursive"] = true,
+        });
+        string resultText = result?.ToString() ?? string.Empty;
+
+        StringAssert.Contains(resultText, "source.txt");
+        Assert.IsFalse(resultText.Contains("binary.txt", StringComparison.OrdinalIgnoreCase));
+        Assert.IsFalse(resultText.Contains("generated.txt", StringComparison.OrdinalIgnoreCase));
+    }
+
     [TestMethod(DisplayName = "清空工作区时应移除已发布工具")]
     [Timeout(15000)]
     public async Task SetWorkspacePathAsync_WhenWorkspaceIsCleared_RemovesTools()
