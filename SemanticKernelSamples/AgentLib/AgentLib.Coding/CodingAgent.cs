@@ -196,7 +196,7 @@ public sealed class CodingAgent : IAsyncDisposable
             {
                 options.ChatOptions ??= new ChatOptions();
                 options.ChatOptions.Tools = [.. lease.Tools];
-                options.AIContextProviders = [];
+                options.AIContextProviders = null;
             }, cancellationToken).ConfigureAwait(false);
             AgentSession agentSession = await context.GetAgentSessionAsync(cancellationToken).ConfigureAwait(false);
             EnsureSystemPromptInSession(agentSession);
