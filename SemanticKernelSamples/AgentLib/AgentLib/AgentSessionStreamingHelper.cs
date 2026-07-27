@@ -2,6 +2,7 @@ using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 
 namespace AgentLib;
 
@@ -11,6 +12,8 @@ namespace AgentLib;
 /// </summary>
 public static class AgentSessionStreamingHelper
 {
+    private const int MaxRetryCount = 3;
+
     /// <summary>
     /// 运行流式 Agent 调用。
     /// 每个 <see cref="AgentResponseUpdate"/> 逐一 yield 给调用方。
@@ -37,11 +40,55 @@ public static class AgentSessionStreamingHelper
         var collectedUpdates = new List<AgentResponseUpdate>();
         try
         {
-            await foreach (AgentResponseUpdate update in agent.RunStreamingAsync(
-                inputMessages, session, cancellationToken: cancellationToken).ConfigureAwait(false))
+            IReadOnlyList<ChatMessage> currentInputMessages = inputMessages;
+            var retryCount = 0;
+            while (true)
             {
-                collectedUpdates.Add(update);
-                yield return update;
+                IAsyncEnumerator<AgentResponseUpdate> enumerator = agent.RunStreamingAsync(
+                    currentInputMessages, session, cancellationToken: cancellationToken)
+                    .GetAsyncEnumerator(cancellationToken);
+                Exception? streamingException = null;
+                try
+                {
+                    while (true)
+                    {
+                        MoveNextResult moveNextResult = await TryMoveNextAsync(enumerator).ConfigureAwait(false);
+                        if (moveNextResult.Exception is not null)
+                        {
+                            streamingException = moveNextResult.Exception;
+                            break;
+                        }
+
+                        if (!moveNextResult.HasNext)
+                        {
+                            break;
+                        }
+
+                        AgentResponseUpdate update = enumerator.Current;
+                        collectedUpdates.Add(update);
+                        yield return update;
+                    }
+                }
+                finally
+                {
+                    await enumerator.DisposeAsync().ConfigureAwait(false);
+                }
+
+                if (streamingException is null)
+                {
+                    break;
+                }
+
+                if (!IsRetryableException(streamingException) || retryCount >= MaxRetryCount)
+                {
+                    ExceptionDispatchInfo.Capture(streamingException).Throw();
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+                CompleteRunHistory(session, inputMessages, collectedUpdates);
+                collectedUpdates.Clear();
+                currentInputMessages = [];
+                retryCount++;
             }
         }
         finally
@@ -49,6 +96,26 @@ public static class AgentSessionStreamingHelper
             CompleteRunHistory(session, inputMessages, collectedUpdates);
         }
     }
+
+    private static async Task<MoveNextResult> TryMoveNextAsync(IAsyncEnumerator<AgentResponseUpdate> enumerator)
+    {
+        try
+        {
+            bool hasNext = await enumerator.MoveNextAsync().ConfigureAwait(false);
+            return new MoveNextResult(hasNext, null);
+        }
+        catch (Exception exception)
+        {
+            return new MoveNextResult(false, exception);
+        }
+    }
+
+    private static bool IsRetryableException(Exception exception)
+    {
+        return exception is HttpRequestException or IOException or TimeoutException;
+    }
+
+    private readonly record struct MoveNextResult(bool HasNext, Exception? Exception);
 
     private static void CompleteRunHistory(
         AgentSession session,
