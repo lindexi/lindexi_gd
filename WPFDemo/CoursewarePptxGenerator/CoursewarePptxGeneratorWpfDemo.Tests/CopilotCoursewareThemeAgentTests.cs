@@ -88,6 +88,38 @@ public sealed class CopilotCoursewareThemeAgentTests
         CollectionAssert.AreEqual(new[] { "resource-1" }, slideValidator.LastResourceIds!.ToArray());
     }
 
+    [TestMethod(DisplayName = "主题Agent应在模型响应完成前发布可流式更新的助手消息")]
+    [Timeout(10_000)]
+    public async Task AnalyzeAsyncShouldPublishAssistantMessageBeforeResponseCompletesAsync()
+    {
+        var theme = CreateValidTheme();
+        var responseGate = new StreamingToolResponseGate(theme);
+        var chatClient = new FakeChatClient { OnGetStreamingResponseAsync = responseGate.StreamAsync };
+        var messages = new List<CopilotChatMessage>();
+        var agent = CreateAgent(new RecordingFactory(chatClient));
+
+        var analysisTask = agent.AnalyzeAsync(
+            OriginalPrompt,
+            CreateCanvas(),
+            EmptyResources,
+            messageProgress: new ImmediateProgress<CopilotChatMessage>(messages.Add));
+        await responseGate.TextEmitted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        try
+        {
+            Assert.HasCount(1, messages);
+            Assert.AreEqual("正在分析主题。", messages[0].Content);
+            Assert.IsFalse(analysisTask.IsCompleted);
+        }
+        finally
+        {
+            responseGate.Release.TrySetResult();
+        }
+
+        var result = await analysisTask;
+        AssertThemeMatches(theme, result);
+    }
+
     [TestMethod(DisplayName = "主题Agent字段校验失败时应仅发送问题列表和重新调用要求")]
     [Timeout(10_000)]
     public async Task AnalyzeAsyncShouldUseShortRepairPromptForFieldErrorsAsync()
@@ -284,6 +316,41 @@ public sealed class CopilotCoursewareThemeAgentTests
             cancellationToken.ThrowIfCancellationRequested();
             yield return new ChatResponseUpdate(ChatRole.Assistant, [new TextContent(text)]);
             await Task.CompletedTask;
+        }
+    }
+
+    private sealed class StreamingToolResponseGate(CoursewareTheme theme)
+    {
+        private bool _toolCallSent;
+
+        public TaskCompletionSource TextEmitted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public async IAsyncEnumerable<ChatResponseUpdate> StreamAsync(
+            IEnumerable<ChatMessage> messages,
+            ChatOptions? options,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (_toolCallSent)
+            {
+                yield return new ChatResponseUpdate(ChatRole.Assistant, [new TextContent("提交完成")]);
+                yield break;
+            }
+
+            _toolCallSent = true;
+            yield return new ChatResponseUpdate(ChatRole.Assistant, [new TextContent("正在分析主题。")]);
+            TextEmitted.TrySetResult();
+            await Release.Task.WaitAsync(cancellationToken);
+
+            var arguments = new Dictionary<string, object?>
+            {
+                ["theme"] = JsonSerializer.SerializeToElement(theme),
+            };
+            yield return new ChatResponseUpdate(
+                ChatRole.Assistant,
+                [new FunctionCallContent(Guid.NewGuid().ToString("N"), "submit_courseware_theme_analysis", arguments)]);
         }
     }
 

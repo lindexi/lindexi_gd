@@ -92,8 +92,8 @@ public sealed class CopilotCoursewareThemeAgent : ICoursewareThemeAgent
                 AppendDefaultTools = false,
                 CancellationToken = cancellationToken,
             });
-            var runState = await sendResult.RunTask.ConfigureAwait(false);
             messageProgress?.Report(sendResult.AssistantChatMessage);
+            var runState = await sendResult.RunTask.ConfigureAwait(false);
 
             if (!runState.IsSuccess)
             {
