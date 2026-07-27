@@ -76,6 +76,7 @@ public static class AgentSessionStreamingHelper
 
                 if (streamingException is null)
                 {
+                    // 无异常的情况， 直接退出循环
                     break;
                 }
 
@@ -95,24 +96,28 @@ public static class AgentSessionStreamingHelper
         {
             CompleteRunHistory(session, inputMessages, collectedUpdates);
         }
-    }
 
-    private static async Task<MoveNextResult> TryMoveNextAsync(IAsyncEnumerator<AgentResponseUpdate> enumerator)
-    {
-        try
+        static async Task<MoveNextResult> TryMoveNextAsync(IAsyncEnumerator<AgentResponseUpdate> enumerator)
         {
-            bool hasNext = await enumerator.MoveNextAsync().ConfigureAwait(false);
-            return new MoveNextResult(hasNext, null);
+            // 由于 C# 不允许在包含 yield return 的 try 中直接 catch，只用一个内部流式转发方法封装异常
+            try
+            {
+                bool hasNext = await enumerator.MoveNextAsync().ConfigureAwait(false);
+                return new MoveNextResult(hasNext, null);
+            }
+            catch (Exception exception)
+            {
+                return new MoveNextResult(false, exception);
+            }
         }
-        catch (Exception exception)
-        {
-            return new MoveNextResult(false, exception);
-        }
-    }
 
-    private static bool IsRetryableException(Exception exception)
-    {
-        return exception is HttpRequestException or IOException or TimeoutException;
+        static bool IsRetryableException(Exception exception)
+        {
+            // 是否可重试的异常类型判断逻辑
+            return exception is HttpRequestException 
+                or IOException 
+                or TimeoutException;
+        }
     }
 
     private readonly record struct MoveNextResult(bool HasNext, Exception? Exception);
