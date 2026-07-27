@@ -33,11 +33,11 @@
             Padding="16,13">
         <StackPanel>
             <TextBlock Text="{StaticResource ThemeSuggestionPanelTitleText}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="21" FontWeight="Bold" />
-            <TextBlock Margin="0,3,0,12" Text="Theme 2.0 完整结果" Style="{StaticResource ThemeContentTextStyle}" />
+            <TextBlock Margin="0,3,0,12" Text="{StaticResource ThemeSuggestionDescriptionText}" Style="{StaticResource ThemeContentTextStyle}" />
 
             <Border Style="{StaticResource ThemeColumnStyle}">
                 <StackPanel>
-                    <TextBlock Text="ColorSuggestions" Style="{StaticResource ThemeColumnTitleStyle}" />
+                    <TextBlock Text="{StaticResource ThemeColorsTitleText}" Style="{StaticResource ThemeColumnTitleStyle}" />
                     <ItemsControl ItemsSource="{Binding ThemeColors}">
                         <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
@@ -62,7 +62,7 @@
                 <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
                 <Border Style="{StaticResource ThemeColumnStyle}">
                     <StackPanel>
-                        <TextBlock Text="Fonts" Style="{StaticResource ThemeColumnTitleStyle}" />
+                        <TextBlock Text="{StaticResource ThemeTypographyTitleText}" Style="{StaticResource ThemeColumnTitleStyle}" />
                         <ItemsControl ItemsSource="{Binding TypographyLevels}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type viewModels:CoursewareTypographyLevelViewModel}">
@@ -78,27 +78,31 @@
                 </Border>
                 <Border Grid.Column="2" Style="{StaticResource ThemeColumnStyle}">
                     <StackPanel>
-                        <TextBlock Text="SafeArea" Style="{StaticResource ThemeColumnTitleStyle}" />
+                        <TextBlock Text="{StaticResource ThemeSafeAreaTitleText}" Style="{StaticResource ThemeColumnTitleStyle}" />
                         <TextBlock Text="{Binding SafeAreaText}" Style="{StaticResource ThemeContentTextStyle}" />
                     </StackPanel>
                 </Border>
             </Grid>
 
             <Border Style="{StaticResource ThemeColumnStyle}">
-                <StackPanel><TextBlock Text="Style" Style="{StaticResource ThemeColumnTitleStyle}" /><TextBlock Text="{Binding ThemeStyle}" Style="{StaticResource ThemeContentTextStyle}" /></StackPanel>
+                <StackPanel><TextBlock Text="{StaticResource ThemeStyleTitleText}" Style="{StaticResource ThemeColumnTitleStyle}" /><TextBlock Text="{Binding ThemeStyle}" Style="{StaticResource ThemeContentTextStyle}" /></StackPanel>
             </Border>
             <Border Style="{StaticResource ThemeColumnStyle}">
-                <StackPanel><TextBlock Text="SpacingAndVisualEffects" Style="{StaticResource ThemeColumnTitleStyle}" /><TextBlock Text="{Binding SpacingAndVisualEffects}" Style="{StaticResource ThemeContentTextStyle}" /></StackPanel>
+                <StackPanel><TextBlock Text="{StaticResource ThemeEffectsTitleText}" Style="{StaticResource ThemeColumnTitleStyle}" /><TextBlock Text="{Binding SpacingAndVisualEffects}" Style="{StaticResource ThemeContentTextStyle}" /></StackPanel>
             </Border>
             <Border Style="{StaticResource ThemeColumnStyle}">
-                <StackPanel><TextBlock Text="LayoutPrinciples" Style="{StaticResource ThemeColumnTitleStyle}" /><TextBlock Text="{Binding ThemeLayoutPrinciples}" Style="{StaticResource ThemeContentTextStyle}" /></StackPanel>
+                <StackPanel><TextBlock Text="{StaticResource ThemeLayoutTitleText}" Style="{StaticResource ThemeColumnTitleStyle}" /><TextBlock Text="{Binding ThemeLayoutPrinciples}" Style="{StaticResource ThemeContentTextStyle}" /></StackPanel>
             </Border>
 
-            <Expander Header="CoverPageSlideMl" IsExpanded="False" Margin="0,0,0,10">
-                <TextBox Text="{Binding CoverPageSlideMl, Mode=OneWay}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="320" Padding="10" />
-            </Expander>
-            <Expander Header="ContentPageSlideMl" IsExpanded="False">
-                <TextBox Text="{Binding ContentPageSlideMl, Mode=OneWay}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="320" Padding="10" />
+            <Expander Header="{StaticResource ThemeAdvancedDetailsTitleText}" IsExpanded="False">
+                <StackPanel Margin="0,8,0,0">
+                    <Expander Header="{StaticResource ThemeCoverTemplateTitleText}" IsExpanded="False" Margin="0,0,0,10">
+                        <TextBox Text="{Binding CoverPageSlideMl, Mode=OneWay}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="320" Padding="10" />
+                    </Expander>
+                    <Expander Header="{StaticResource ThemeContentTemplateTitleText}" IsExpanded="False">
+                        <TextBox Text="{Binding ContentPageSlideMl, Mode=OneWay}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="320" Padding="10" />
+                    </Expander>
+                </StackPanel>
             </Expander>
         </StackPanel>
     </Border>

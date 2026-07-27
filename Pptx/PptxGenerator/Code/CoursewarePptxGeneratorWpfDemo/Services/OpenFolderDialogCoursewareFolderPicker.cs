@@ -13,7 +13,7 @@ public sealed class OpenFolderDialogCoursewareFolderPicker : ICoursewareFolderPi
     {
         var dialog = new OpenFileDialog
         {
-            Title = "选择课件 Markdown 导出文件夹",
+            Title = "选择课件文件夹",
             CheckFileExists = false,
             ValidateNames = false,
             FileName = "选择文件夹",

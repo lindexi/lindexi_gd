@@ -498,13 +498,13 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
     /// </summary>
     public string AnalysisCaption => WorkspaceState switch
     {
-        CoursewareWorkspaceState.LoadingCourseware => "正在解析清单、Markdown、资源和截图",
+        CoursewareWorkspaceState.LoadingCourseware => "正在读取页面内容、资源和预览图",
         CoursewareWorkspaceState.AnalyzingCourseware => $"已读取 {CoursewareThumbnails.Count} 页，正在归纳内容层级、配色、字体与版式",
         CoursewareWorkspaceState.AnalysisReady => string.Format(
             System.Globalization.CultureInfo.CurrentCulture,
             CoursewareUiStrings.AnalysisReadyCaptionFormat,
             CoursewareThumbnails.Count),
-        CoursewareWorkspaceState.LoadFailed => "请选择有效的课件 Markdown 导出文件夹",
+        CoursewareWorkspaceState.LoadFailed => "请选择包含完整课件内容的文件夹",
         CoursewareWorkspaceState.AnalysisFailed => "课件和缩略图已保留，可以修复配置后重试",
         CoursewareWorkspaceState.Canceled => "已保留课件概览，可随时重新分析",
         _ => "打开课件后将自动形成统一视觉主题",

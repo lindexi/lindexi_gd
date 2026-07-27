@@ -16,7 +16,7 @@
     <value>课件文本分析完成</value>
   </data>
   <data name="AnalysisCompletedMessageFormat" xml:space="preserve">
-    <value>已形成“{0}”Theme 2.0 结果，可进入页面美化工作台。</value>
+    <value>已形成“{0}”主题建议，可进入页面美化工作台。</value>
   </data>
   <data name="AnalysisReadyStatus" xml:space="preserve">
     <value>课件文本分析完成</value>
@@ -43,22 +43,22 @@
     <value>尚未执行页面美化。</value>
   </data>
   <data name="SlideRuntimeNotCreated" xml:space="preserve">
-    <value>页面运行时尚未创建</value>
+    <value>页面美化服务尚未准备</value>
   </data>
   <data name="SlideRuntimeCreating" xml:space="preserve">
-    <value>正在创建页面运行时</value>
+    <value>正在准备页面美化服务</value>
   </data>
   <data name="SlideRuntimeReady" xml:space="preserve">
-    <value>页面运行时已就绪</value>
+    <value>页面美化服务已就绪</value>
   </data>
   <data name="SlideRuntimeModelUnavailable" xml:space="preserve">
-    <value>语言模型不可用，可本地重新渲染</value>
+    <value>智能生成功能不可用，仍可重新渲染页面</value>
   </data>
   <data name="SlideRuntimeFailed" xml:space="preserve">
-    <value>页面运行时创建失败</value>
+    <value>页面美化服务准备失败</value>
   </data>
   <data name="SlideRuntimeCanceled" xml:space="preserve">
-    <value>页面运行时初始化已取消</value>
+    <value>页面美化服务准备已取消</value>
   </data>
   <data name="SlideStatusNotStarted" xml:space="preserve">
     <value>未开始</value>

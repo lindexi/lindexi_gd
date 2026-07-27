@@ -56,7 +56,7 @@
                                 </Style>
                             </StackPanel.Style>
                             <TextBlock Text="无截图" Foreground="{StaticResource AnalysisMutedBrush}" FontWeight="SemiBold" HorizontalAlignment="Center" />
-                            <TextBlock Text="仍可读取页面 Markdown" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="10" Margin="0,3,0,0" />
+                            <TextBlock Text="仍可读取页面文字内容" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="10" Margin="0,3,0,0" />
                         </StackPanel>
                     </Grid>
                     <Border

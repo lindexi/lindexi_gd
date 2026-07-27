@@ -15,7 +15,7 @@ namespace CoursewarePptxGeneratorWpfDemo.ViewModels;
 /// </summary>
 public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDisposable
 {
-    private const string DefaultGenerationInstruction = "请根据当前页面完整 Markdown、可用的原始截图和全课件主题完成页面美化，保持教学语义准确。";
+    private const string DefaultGenerationInstruction = "请根据当前页面的完整内容、可用的原始截图和全课件主题完成页面美化，保持教学语义准确。";
     private readonly CoursewareWorkspaceSession _session;
     private readonly ICoursewareSlidePromptBuilder _promptBuilder;
     private CoursewareSlidePromptSource _promptSource;
@@ -31,7 +31,7 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
     private CoursewareSlideWorkspaceSummary _summary = CreateEmptySummary();
     private string _mcpServiceUrl = SlideChatManagerFactory.DefaultMcpServiceUrl;
     private string? _enabledMcpServiceUrl;
-    private string _mcpStatusText = "本地渲染";
+    private string _mcpStatusText = "当前使用本地渲染";
     private bool _isConnectingMcp;
     private bool _isActive;
     private bool _isDisposed;
@@ -455,8 +455,8 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
             {
                 await InvokeIfNotDisposedAsync(() =>
                 {
-                    slide.ErrorMessage = runtime.InitializationError ?? "当前页面的语言模型不可用。";
-                    slide.RenderingLog = "语言模型不可用，不能生成或追问；仍可编辑 SlideML 后使用重新渲染。";
+                    slide.ErrorMessage = runtime.InitializationError ?? "当前页面的智能生成功能不可用。";
+                    slide.RenderingLog = "智能生成功能不可用，暂时不能生成或继续调整；仍可在高级页面编辑中修改后重新渲染。";
                     slide.GenerationState = CoursewareSlideGenerationState.Failed;
                     slide.State = CoursewareSlideState.Failed;
                 }).ConfigureAwait(false);
@@ -511,8 +511,8 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
             {
                 await InvokeIfNotDisposedAsync(() =>
                 {
-                    slide.ErrorMessage = "模型未生成可渲染的 SlideML。";
-                    slide.RenderingLog = "本次对话已完成，但未获得可渲染的 SlideML，请修改要求后重试。";
+                    slide.ErrorMessage = "未生成可显示的页面结果。";
+                    slide.RenderingLog = "本次处理已完成，但没有获得可显示的页面结果，请调整要求后重试。";
                     slide.GenerationState = CoursewareSlideGenerationState.Failed;
                     slide.State = CoursewareSlideState.Failed;
                 }).ConfigureAwait(false);
@@ -643,7 +643,7 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
         }
 
         IsConnectingMcp = true;
-        McpStatusText = "正在连接 MCP...";
+        McpStatusText = "正在连接远程渲染服务...";
         try
         {
             var initializedPipelines = Slides
@@ -653,7 +653,7 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
                 .ToArray();
             if (initializedPipelines.Length == 0)
             {
-                McpStatusText = "尚无已初始化页面";
+                McpStatusText = "尚无已准备完成的页面";
                 return;
             }
 
@@ -665,15 +665,15 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
             await InvokeIfNotDisposedAsync(() =>
             {
                 McpStatusText = connectedCount == initializedPipelines.Length
-                    ? $"MCP 已连接：{connectedCount} 个已初始化页面"
+                    ? $"远程渲染服务已连接：{connectedCount} 个页面"
                     : connectedCount == 0
-                        ? "MCP 连接失败，继续使用本地渲染"
-                        : $"MCP 部分连接：{connectedCount}/{initializedPipelines.Length} 个已初始化页面";
+                        ? "远程渲染服务连接失败，继续使用本地渲染"
+                        : $"远程渲染服务已连接部分页面：{connectedCount}/{initializedPipelines.Length}";
             }).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (_workspaceCancellationTokenSource.IsCancellationRequested)
         {
-            await InvokeIfNotDisposedAsync(() => McpStatusText = "MCP 连接已取消").ConfigureAwait(false);
+            await InvokeIfNotDisposedAsync(() => McpStatusText = "远程渲染服务连接已取消").ConfigureAwait(false);
         }
         finally
         {
@@ -758,7 +758,7 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
     {
         McpStatusText = SelectedSlide?.Runtime?.SlideChatManager.SlideMlRenderTool.RenderPipeline
             is SwitchableSlideMlRenderPipeline { IsMcpEnabled: true }
-                ? "当前页面使用 MCP 渲染"
+                ? "当前页面使用远程渲染"
                 : "当前页面使用本地渲染";
     }
 
@@ -800,7 +800,7 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
     {
         _ = InvokeIfNotDisposedAsync(() =>
         {
-            McpStatusText = $"MCP 操作失败：{exception.Message}";
+            McpStatusText = $"远程渲染服务操作失败：{exception.Message}";
             IsConnectingMcp = false;
         });
     }

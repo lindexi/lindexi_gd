@@ -32,7 +32,7 @@ public sealed class CoursewareSlideSummaryService
     {
         if (string.IsNullOrWhiteSpace(markdownText))
         {
-            return "已加载页面 Markdown，等待美化。";
+            return "已读取页面文字内容，等待美化。";
         }
 
         var summaryLines = ExtractReadableLines(markdownText)
@@ -41,7 +41,7 @@ public sealed class CoursewareSlideSummaryService
 
         if (summaryLines.Length == 0)
         {
-            return "已加载页面 Markdown，等待美化。";
+            return "已读取页面文字内容，等待美化。";
         }
 
         var summary = string.Join(" ", summaryLines);

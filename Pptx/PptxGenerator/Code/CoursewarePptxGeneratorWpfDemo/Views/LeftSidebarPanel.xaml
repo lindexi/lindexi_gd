@@ -30,7 +30,7 @@
                 <Grid.ToolTip>
                     <StackPanel>
                         <TextBlock Text="{Binding Title, StringFormat=标题：{0}}" />
-                        <TextBlock Text="{Binding SlideId, StringFormat=页面 Id：{0}}" />
+                        <TextBlock Text="{Binding PageNumber, StringFormat=页码：第 {0} 页}" />
                     </StackPanel>
                 </Grid.ToolTip>
                 <Grid.ColumnDefinitions>

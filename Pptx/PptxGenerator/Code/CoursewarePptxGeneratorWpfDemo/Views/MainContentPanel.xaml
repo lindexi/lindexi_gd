@@ -58,7 +58,7 @@
                                        FontWeight="SemiBold"
                                        Foreground="{StaticResource TextPrimaryBrush}"
                                        HorizontalAlignment="Center" />
-                            <TextBlock Text="仍可依据页面 Markdown 生成 SlideML，或粘贴 SlideML 后重新渲染。"
+                             <TextBlock Text="仍可让页面美化助手重新生成，或在高级页面编辑中调整后重新渲染。"
                                        FontSize="18"
                                        Foreground="{StaticResource TextSecondaryBrush}"
                                        TextAlignment="Center"
@@ -70,79 +70,85 @@
         </Border>
 
         <Border Grid.Row="1" Margin="24,0,24,24" Style="{StaticResource WorkspaceCardStyle}">
-            <DockPanel>
-                <Border DockPanel.Dock="Top" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="16,10">
-                    <DockPanel>
-                        <Button DockPanel.Dock="Right"
-                                Content="重新渲染"
-                                Command="{Binding RerenderCommand}"
-                                CommandParameter="{Binding SelectedSlide}"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Padding="12,6" />
-                        <StackPanel>
-                            <TextBlock Text="当前页面 SlideML"
-                                       FontWeight="SemiBold"
-                                       FontSize="14"
-                                       Foreground="{StaticResource TextPrimaryBrush}" />
-                            <TextBlock Text="存在未重新渲染的手工修改"
-                                       FontSize="10"
-                                       Foreground="#B54708"
-                                       Visibility="{Binding SelectedSlide.HasUnsavedChanges, Converter={StaticResource BooleanToVisibility}}" />
-                        </StackPanel>
-                    </DockPanel>
-                </Border>
-
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Border Grid.Column="0" Background="White" CornerRadius="0,0,0,12" Margin="0,0,1,0">
-                        <TextBox Text="{Binding SelectedSlide.EditableSlideXml, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 IsReadOnly="{Binding SelectedSlide.IsBusy}"
-                                 Style="{StaticResource CodeTextBoxStyle}" />
+            <Expander Header="{StaticResource AdvancedPageEditingTitleText}" IsExpanded="False" Padding="16,10">
+                <DockPanel Margin="0,8,0,0">
+                    <Border DockPanel.Dock="Top" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,10">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right"
+                                    Content="应用修改并重新渲染"
+                                    Command="{Binding RerenderCommand}"
+                                    CommandParameter="{Binding SelectedSlide}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="12,6" />
+                            <StackPanel>
+                                <TextBlock Text="{StaticResource AdvancedPageEditingDescriptionText}"
+                                           FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="存在尚未应用的手工修改"
+                                           FontSize="10"
+                                           Foreground="#B54708"
+                                           Margin="0,4,0,0"
+                                           Visibility="{Binding SelectedSlide.HasUnsavedChanges, Converter={StaticResource BooleanToVisibility}}" />
+                            </StackPanel>
+                        </DockPanel>
                     </Border>
 
-                    <Border Grid.Column="1" CornerRadius="0,0,12,0" ClipToBounds="True">
-                        <TabControl Style="{StaticResource ModernTabControl}">
-                            <TabItem Header="渲染日志" Style="{StaticResource ModernTabItem}">
-                                <TextBox Text="{Binding SelectedSlide.RenderingLog, Mode=OneWay, TargetNullValue=尚未执行渲染。}"
-                                         BorderThickness="0"
-                                         IsReadOnly="True"
-                                         FontFamily="Consolas"
-                                         FontSize="12"
-                                         Foreground="{StaticResource TextSecondaryBrush}"
-                                         Padding="16"
-                                         TextWrapping="Wrap"
-                                         VerticalScrollBarVisibility="Auto" />
-                            </TabItem>
-                            <TabItem Header="输入诊断" Style="{StaticResource ModernTabItem}">
-                                <TextBox Text="{Binding SelectedSlide.InputDiagnosticText, Mode=OneWay}"
-                                         BorderThickness="0"
-                                         IsReadOnly="True"
-                                         FontFamily="Consolas"
-                                         FontSize="12"
-                                         Foreground="{StaticResource TextSecondaryBrush}"
-                                         Padding="16"
-                                         TextWrapping="Wrap"
-                                         VerticalScrollBarVisibility="Auto" />
-                            </TabItem>
-                            <TabItem Header="回填 XML" Style="{StaticResource ModernTabItem}">
-                                <TextBox Text="{Binding SelectedSlide.CallbackXml, Mode=OneWay, TargetNullValue=''}"
-                                         BorderThickness="0"
-                                         IsReadOnly="True"
-                                         FontFamily="Consolas"
-                                         FontSize="12"
-                                         Foreground="{StaticResource TextSecondaryBrush}"
-                                         Padding="16"
-                                         TextWrapping="Wrap"
-                                         VerticalScrollBarVisibility="Auto" />
-                            </TabItem>
-                        </TabControl>
-                    </Border>
-                </Grid>
-            </DockPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="White" Margin="0,10,1,0">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Text="{StaticResource PageSourceTitleText}" FontWeight="SemiBold" Margin="0,0,0,6" />
+                                <TextBox Text="{Binding SelectedSlide.EditableSlideXml, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         IsReadOnly="{Binding SelectedSlide.IsBusy}"
+                                         Style="{StaticResource CodeTextBoxStyle}" />
+                            </DockPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Margin="0,10,0,0" ClipToBounds="True">
+                            <TabControl Style="{StaticResource ModernTabControl}">
+                                <TabItem Header="{StaticResource RenderingLogTitleText}" Style="{StaticResource ModernTabItem}">
+                                    <TextBox Text="{Binding SelectedSlide.RenderingLog, Mode=OneWay, TargetNullValue=尚未执行渲染。}"
+                                             BorderThickness="0"
+                                             IsReadOnly="True"
+                                             FontFamily="Consolas"
+                                             FontSize="12"
+                                             Foreground="{StaticResource TextSecondaryBrush}"
+                                             Padding="16"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto" />
+                                </TabItem>
+                                <TabItem Header="{StaticResource InputDiagnosticTitleText}" Style="{StaticResource ModernTabItem}">
+                                    <TextBox Text="{Binding SelectedSlide.InputDiagnosticText, Mode=OneWay}"
+                                             BorderThickness="0"
+                                             IsReadOnly="True"
+                                             FontFamily="Consolas"
+                                             FontSize="12"
+                                             Foreground="{StaticResource TextSecondaryBrush}"
+                                             Padding="16"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto" />
+                                </TabItem>
+                                <TabItem Header="{StaticResource RenderedResultTitleText}" Style="{StaticResource ModernTabItem}">
+                                    <TextBox Text="{Binding SelectedSlide.CallbackXml, Mode=OneWay, TargetNullValue=''}"
+                                             BorderThickness="0"
+                                             IsReadOnly="True"
+                                             FontFamily="Consolas"
+                                             FontSize="12"
+                                             Foreground="{StaticResource TextSecondaryBrush}"
+                                             Padding="16"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto" />
+                                </TabItem>
+                            </TabControl>
+                        </Border>
+                    </Grid>
+                </DockPanel>
+            </Expander>
         </Border>
     </Grid>
 </UserControl>

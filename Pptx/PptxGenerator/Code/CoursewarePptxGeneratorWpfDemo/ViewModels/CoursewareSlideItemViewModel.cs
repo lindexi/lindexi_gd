@@ -193,7 +193,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
                 .Concat(CanvasDiagnostics)
                 .ToArray();
             return diagnostics.Length == 0
-                ? "未报告输入或画布诊断。"
+                ? "未发现页面内容或画布问题。"
                 : string.Join(Environment.NewLine, diagnostics);
         }
     }
@@ -202,7 +202,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     /// Gets a compact warning summary for tooltips.
     /// </summary>
     public string WarningSummary => Warnings.Count == 0
-        ? "当前页面没有输入警告。"
+        ? "当前页面内容完整。"
         : string.Join(Environment.NewLine, Warnings.Select(warning => warning.Message));
 
     /// <summary>
@@ -698,7 +698,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrWhiteSpace(prompt))
         {
-            throw new ArgumentException("首轮页面 Prompt 不能为空。", nameof(prompt));
+            throw new ArgumentException("首次页面美化要求不能为空。", nameof(prompt));
         }
 
         if (SetProperty(ref _inputText, prompt, nameof(InputText)))
@@ -846,7 +846,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
                     RenderingLog = fallbackException.ToString();
                     State = CoursewareSlideState.Failed;
                 });
-                throw new AggregateException("页面运行时和本地渲染 fallback 均初始化失败。", ex, fallbackException);
+                throw new AggregateException("页面美化服务和本地渲染均准备失败。", ex, fallbackException);
             }
         }
 
@@ -893,8 +893,8 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         State = CoursewareSlideState.Ready;
         ErrorMessage = runtime.InitializationError;
         RenderingLog = runtime.InitializationError is null
-            ? "页面运行时已就绪，等待生成。"
-            : $"语言模型初始化失败，已保留本地重新渲染：{runtime.InitializationError}";
+            ? "页面美化服务已就绪，等待生成。"
+            : $"智能生成功能准备失败，仍可使用本地重新渲染：{runtime.InitializationError}";
         OnPropertyChanged(nameof(Runtime));
         OnPropertyChanged(nameof(SlideChatManager));
         OnPropertyChanged(nameof(CopilotChatManager));

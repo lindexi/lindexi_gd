@@ -65,7 +65,7 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
             CoursewareAnalysisStage.PreparingInput,
             CoursewareAnalysisEventState.Running,
             "准备主题分析输入",
-            "正在汇总样式参考并拼接原始页面 Markdown。"));
+            "正在汇总整份课件的页面内容与样式参考。"));
 
         var styleUsageSummary = _styleUsageSummaryBuilder.Build(inputPackage, cancellationToken);
         var prompt = _promptBuilder.Build(inputPackage, styleUsageSummary);
@@ -79,7 +79,7 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
             CoursewareAnalysisStage.PreparingInput,
             CoursewareAnalysisEventState.Completed,
             "主题分析输入已准备",
-            "已完成样式参考汇总和页面 Markdown 拼接。"));
+            "已完成页面内容与样式参考汇总。"));
         progress?.Report(CreateProgressEvent(
             CoursewareAnalysisStage.DesigningTheme,
             CoursewareAnalysisEventState.Running,

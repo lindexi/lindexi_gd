@@ -113,7 +113,7 @@
                                 Style="{StaticResource AnalysisPrimaryButtonStyle}"
                                 MinWidth="210"
                                 AutomationProperties.Name="打开课件文件夹" />
-                        <TextBlock Text="请选择符合课件 Markdown 导出格式的本地文件夹。"
+                        <TextBlock Text="请选择包含课件页面、资源和预览图的本地文件夹。"
                                    Foreground="{StaticResource AnalysisMutedBrush}"
                                    FontSize="12"
                                    HorizontalAlignment="Center"
@@ -140,7 +140,7 @@
                                 <TextBlock Text="…" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <TextBlock Text="正在读取课件" Style="{StaticResource AnalysisTitleTextStyle}" FontSize="28" HorizontalAlignment="Center" Margin="0,20,0,0" />
-                            <TextBlock Text="正在解析课件清单、页面 Markdown、资源索引和页面截图。"
+                            <TextBlock Text="正在读取课件页面、资源信息和预览图。"
                                        Style="{StaticResource AnalysisBodyTextStyle}"
                                        TextAlignment="Center"
                                        HorizontalAlignment="Center"
@@ -237,7 +237,7 @@
                                         <views:CopilotMessageStream x:Name="AnalysisChatMessageStream"
                                                                     ItemsSource="{Binding AnalysisChatMessages}"
                                                                     ListBackground="Transparent"
-                                                                    AutomationProperties.Name="主题分析 Copilot 输出" />
+                                                                     AutomationProperties.Name="主题分析过程" />
                                     </TabItem>
                                     <TabItem x:Name="AnalysisThemeResultTab"
                                              Header="{StaticResource ThemeSuggestionTabText}"
@@ -294,13 +294,13 @@
                                 <TextBlock Text="!" Foreground="#B76C00" FontSize="26" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <TextBlock Text="课件主题分析未完成" Style="{StaticResource AnalysisTitleTextStyle}" FontSize="25" Margin="0,16,0,0" />
-                            <TextBlock Text="课件已经成功载入，但主题分析过程中发生了错误。请根据下面的信息检查模型服务或课件输入后重试。" Style="{StaticResource AnalysisBodyTextStyle}" Margin="0,8,0,0" />
+                            <TextBlock Text="课件已经成功载入，但生成主题建议时发生了错误。请检查课件内容或智能服务后重试。" Style="{StaticResource AnalysisBodyTextStyle}" Margin="0,8,0,0" />
                             <TextBlock Text="{Binding LoadErrorMessage, Mode=OneWay, TargetNullValue=主题分析未返回可用结果，请重试。}"
                                        Style="{StaticResource AnalysisBodyTextStyle}"
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"
                                        Margin="0,12,0,0" />
-                            <TextBlock Text="如果重试后仍然失败，请展开技术详情，并检查语言模型服务是否可用、模型是否支持工具调用，以及课件输入是否完整。"
+                            <TextBlock Text="如果重试后仍然失败，请展开技术详情，并检查智能服务是否可用以及课件内容是否完整。"
                                        Style="{StaticResource AnalysisBodyTextStyle}"
                                        TextWrapping="Wrap"
                                        Margin="0,8,0,0" />

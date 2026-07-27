@@ -28,7 +28,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock Text="页面 Copilot" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="{StaticResource PageAssistantTitleText}" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextPrimaryBrush}" />
                     <TextBlock Text="{Binding SelectedSlide.Title}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
                 <ComboBox Grid.Column="1"
@@ -46,7 +46,7 @@
                            Foreground="{StaticResource TextSecondaryBrush}"
                            FontSize="11"
                            FontWeight="SemiBold" />
-                <TextBlock Text="手工附件仅作为视觉参考，不会自动成为 SlideML 可引用资源。"
+                <TextBlock Text="添加的图片仅用于帮助理解视觉需求，不会自动加入课件资源。"
                            Foreground="{StaticResource TextSecondaryBrush}"
                            FontSize="10"
                            TextWrapping="Wrap"
@@ -98,12 +98,18 @@
             <Expander FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
                 <Expander.Header>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="高级渲染设置" />
+                        <TextBlock Text="{StaticResource AdvancedRenderingSettingsTitleText}" />
                         <TextBlock Text=" - " />
                         <TextBlock Text="{Binding McpStatusText}" FontWeight="SemiBold" />
                     </StackPanel>
                 </Expander.Header>
-                <Grid Margin="0,8,0,0">
+                <StackPanel Margin="0,8,0,0">
+                    <TextBlock Text="{StaticResource AdvancedRenderingSettingsDescriptionText}"
+                               FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,8" />
+                    <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -116,10 +122,10 @@
                              Grid.Column="0"
                              Text="{Binding McpServiceUrl, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource SingleLineInputTextBoxStyle}"
-                             ToolTip="MCP SlideML 渲染服务地址" />
+                             ToolTip="远程渲染服务地址" />
                     <Button Grid.Row="0"
                             Grid.Column="1"
-                            Content="连接 MCP"
+                            Content="连接服务"
                             Command="{Binding ConnectMcpCommand}"
                             MinWidth="88"
                             Height="34"
@@ -133,7 +139,8 @@
                                FontSize="12"
                                Foreground="{StaticResource TextSecondaryBrush}"
                                Margin="0,6,0,0" />
-                </Grid>
+                    </Grid>
+                </StackPanel>
             </Expander>
         </Border>
 

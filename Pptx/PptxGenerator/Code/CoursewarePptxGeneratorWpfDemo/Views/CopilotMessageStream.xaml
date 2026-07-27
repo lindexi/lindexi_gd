@@ -32,25 +32,25 @@
                             <Border Background="#FFF8FAFC" Padding="12,8">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🔧" FontSize="12" VerticalAlignment="Center" />
-                                    <TextBlock Text="{Binding ToolName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
+                                    <TextBlock Text="正在处理" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
                                 </StackPanel>
                             </Border>
-                            <Border Padding="12,8">
+                            <Expander Header="查看处理详情" IsExpanded="False" Padding="12,8">
                                 <StackPanel>
                                     <StackPanel Margin="0,0,0,6" Visibility="{Binding HasInputText, Converter={StaticResource BooleanToVisibility}}">
-                                        <TextBlock Text="输入" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium" />
+                                        <TextBlock Text="处理内容" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium" />
                                         <Border Background="#FFF8FAFC" Padding="8" CornerRadius="4" Margin="0,2,0,0">
                                             <TextBlock Text="{Binding InputText}" FontFamily="Consolas" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
                                         </Border>
                                     </StackPanel>
                                     <StackPanel Visibility="{Binding HasOutputText, Converter={StaticResource BooleanToVisibility}}">
-                                        <TextBlock Text="输出" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium" />
+                                        <TextBlock Text="处理结果" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" FontWeight="Medium" />
                                         <Border Background="#FFF8FAFC" Padding="8" CornerRadius="4" Margin="0,2,0,0">
                                             <TextBlock Text="{Binding OutputText}" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap" />
                                         </Border>
                                     </StackPanel>
                                 </StackPanel>
-                            </Border>
+                            </Expander>
                         </StackPanel>
                     </Border>
                 </DataTemplate>
@@ -62,7 +62,7 @@
                             <Border Background="#FFF8FAFC" Padding="12,8">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🔧" FontSize="12" VerticalAlignment="Center" />
-                                    <TextBlock Text="{Binding ToolName}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
+                                    <TextBlock Text="正在处理复杂任务" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="6,0,0,0" />
                                 </StackPanel>
                             </Border>
                             <Border Padding="12,8">
@@ -113,11 +113,6 @@
                             <ItemsControl ItemsSource="{Binding MessageItems}"
                                           ItemTemplateSelector="{StaticResource ChatMessageItemTemplateSelector}"
                                           Margin="0,6,0,0" />
-                            <TextBlock Text="{Binding UsageSummaryText}"
-                                       FontSize="10"
-                                       Foreground="#FF94A3B8"
-                                       Visibility="{Binding HasUsageDetails, Converter={StaticResource BooleanToVisibility}}"
-                                       Margin="0,4,0,0" />
                         </StackPanel>
                     </Border>
                 </DataTemplate>

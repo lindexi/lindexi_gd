@@ -72,8 +72,8 @@ public sealed class CopilotCoursewareThemeAgent : ICoursewareThemeAgent
             progress?.Report(CreateProgressEvent(
                 interaction == 1 ? CoursewareAnalysisStage.DesigningTheme : CoursewareAnalysisStage.RepairingTheme,
                 CoursewareAnalysisEventState.Running,
-                $"主题分析第 {interaction} 轮",
-                interaction == 1 ? "正在提交主题分析请求。" : $"正在修复 {latestProblems.Count} 个问题。"));
+                interaction == 1 ? "正在生成主题建议" : "正在完善主题建议",
+                interaction == 1 ? "正在整理统一的配色、字体与版式建议。" : $"正在调整 {latestProblems.Count} 项未通过检查的内容。"));
 
             CoursewareModelContextBudgetValidator.ValidateIfConfigured(
                 chatManager.AgentApiEndpointManager.PrimaryModel.ModelDefinition,
@@ -112,8 +112,8 @@ public sealed class CopilotCoursewareThemeAgent : ICoursewareThemeAgent
                 progress?.Report(CreateProgressEvent(
                     CoursewareAnalysisStage.ValidatingTheme,
                     CoursewareAnalysisEventState.Completed,
-                    $"主题分析第 {interaction} 轮通过",
-                    "主题字段和两份完整 SlideML 均已验证。"));
+                    "主题建议已通过检查",
+                    "配色、字体、版式与页面设计参考均已准备完成。"));
                 return submittedTheme;
             }
 
@@ -122,8 +122,8 @@ public sealed class CopilotCoursewareThemeAgent : ICoursewareThemeAgent
                 interaction == MaximumInteractionCount
                     ? CoursewareAnalysisEventState.Failed
                     : CoursewareAnalysisEventState.Warning,
-                $"主题分析第 {interaction} 轮未通过",
-                string.Join("；", latestProblems)));
+                "主题建议需要继续调整",
+                $"发现 {latestProblems.Count} 项需要修正的内容，正在继续处理。"));
 
             if (interaction < MaximumInteractionCount)
             {
