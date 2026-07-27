@@ -6,6 +6,16 @@ namespace AgentLib.Coding;
 
 internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
 {
+    private static readonly string[] DefaultExcludedDirectoryNames =
+    [
+        ".git",
+        ".vs",
+        "artifacts",
+        "bin",
+        "obj",
+        "TestResults",
+    ];
+
     private readonly IAsyncDisposable? _asyncDisposable;
     private readonly object _lifecycleLock = new();
     private readonly TaskCompletionSource _disposalCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -61,6 +71,11 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
             {
                 WorkspacePath = fullWorkspacePath,
             };
+            foreach (string directoryName in DefaultExcludedDirectoryNames)
+            {
+                workspaceTools.ExcludedDirectoryNames.Add(directoryName);
+            }
+
             var dotNetCliTools = new DotNetCliTools(fullWorkspacePath);
             IReadOnlyList<AITool> dotNetTools = dotNetCliTools.AsAITools();
             try

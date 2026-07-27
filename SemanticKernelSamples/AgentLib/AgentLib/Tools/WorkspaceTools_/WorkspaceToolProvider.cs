@@ -29,6 +29,11 @@ public sealed class WorkspaceToolProvider
     private readonly Dictionary<string, FileSnapshotInfo> _readFileSnapshots = new(GetPathComparer());
 
     /// <summary>
+    /// 获取在目录列举和查询中需要排除的目录名称集合。
+    /// </summary>
+    public ISet<string> ExcludedDirectoryNames { get; } = new HashSet<string>(GetPathComparer());
+
+    /// <summary>
     /// 工作路径
     /// </summary>
     public string? WorkspacePath
@@ -86,7 +91,7 @@ public sealed class WorkspaceToolProvider
 
         IEnumerable<FileSystemInfo> directoryEntries = recursive
             ? EnumerateEntriesRecursively(directory)
-            : directory.EnumerateFileSystemInfos();
+            : directory.EnumerateFileSystemInfos().Where(entry => !IsExcludedDirectory(entry));
 
         List<FileSystemInfo> entries = directoryEntries
             .OrderBy(static entry => entry is FileInfo)
@@ -520,7 +525,7 @@ public sealed class WorkspaceToolProvider
         return false;
     }
 
-    private static IEnumerable<FileSystemInfo> EnumerateEntriesRecursively(DirectoryInfo rootDirectory)
+    private IEnumerable<FileSystemInfo> EnumerateEntriesRecursively(DirectoryInfo rootDirectory)
     {
         var stack = new Stack<DirectoryInfo>();
         stack.Push(rootDirectory);
@@ -544,16 +549,27 @@ public sealed class WorkspaceToolProvider
 
             foreach (FileSystemInfo entry in entries)
             {
+                if (IsExcludedDirectory(entry))
+                {
+                    continue;
+                }
+
                 yield return entry;
             }
 
             foreach (DirectoryInfo childDirectory in entries
                          .OfType<DirectoryInfo>()
+                          .Where(directory => !IsExcludedDirectory(directory))
                          .OrderByDescending(directory => directory.FullName, StringComparer.OrdinalIgnoreCase))
             {
                 stack.Push(childDirectory);
             }
         }
+    }
+
+    private bool IsExcludedDirectory(FileSystemInfo entry)
+    {
+        return entry is DirectoryInfo && ExcludedDirectoryNames.Contains(entry.Name);
     }
 
     private string GetDisplayPath(string fullPath)

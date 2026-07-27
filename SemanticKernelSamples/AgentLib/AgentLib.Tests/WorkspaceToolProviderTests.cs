@@ -947,6 +947,89 @@ public class WorkspaceToolProviderTests
         StringAssert.Contains(result, "替换操作列表为空");
     }
 
+    [TestMethod(DisplayName = "非递归列举应排除已配置目录")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task ListDirectory_WhenDirectoryIsExcluded_DoesNotReturnDirectory()
+    {
+        string workspacePath = Path.Join(CreateTestDirectory(), "workspace");
+        Directory.CreateDirectory(Path.Join(workspacePath, "generated"));
+        var provider = CreateProviderWithExcludedDirectory(workspacePath, "generated");
+
+        string result = await provider.ListDirectory();
+
+        Assert.IsFalse(result.Contains("generated", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [TestMethod(DisplayName = "递归列举不应进入已配置排除目录")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task ListDirectory_WhenRecursive_DoesNotEnterExcludedDirectory()
+    {
+        string workspacePath = Path.Join(CreateTestDirectory(), "workspace");
+        string excludedDirectory = Path.Join(workspacePath, "generated");
+        Directory.CreateDirectory(excludedDirectory);
+        await File.WriteAllTextAsync(Path.Join(excludedDirectory, "nested.txt"), "content");
+        var provider = CreateProviderWithExcludedDirectory(workspacePath, "generated");
+
+        string result = await provider.ListDirectory(recursive: true);
+
+        Assert.IsFalse(result.Contains("nested.txt", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [TestMethod(DisplayName = "按名称查询不应返回排除目录中的条目")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task FindEntriesByName_WhenFileIsInExcludedDirectory_DoesNotReturnFile()
+    {
+        string workspacePath = Path.Join(CreateTestDirectory(), "workspace");
+        string excludedDirectory = Path.Join(workspacePath, "generated");
+        Directory.CreateDirectory(excludedDirectory);
+        await File.WriteAllTextAsync(Path.Join(excludedDirectory, "UniqueGeneratedFile.txt"), "content");
+        var provider = CreateProviderWithExcludedDirectory(workspacePath, "generated");
+
+        string result = await provider.FindEntriesByName("UniqueGeneratedFile");
+
+        StringAssert.Contains(result, "没有找到匹配项");
+    }
+
+    [TestMethod(DisplayName = "内容查询不应扫描排除目录中的文件")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task FindFilesMatchingPattern_WhenFileIsInExcludedDirectory_DoesNotSearchFile()
+    {
+        string workspacePath = Path.Join(CreateTestDirectory(), "workspace");
+        string excludedDirectory = Path.Join(workspacePath, "generated");
+        Directory.CreateDirectory(excludedDirectory);
+        await File.WriteAllTextAsync(Path.Join(excludedDirectory, "generated.txt"), "UniqueGeneratedContent");
+        var provider = CreateProviderWithExcludedDirectory(workspacePath, "generated");
+
+        string result = await provider.FindFilesMatchingPattern("UniqueGeneratedContent");
+
+        StringAssert.Contains(result, "没有找到匹配该模式的文件");
+    }
+
+    [TestMethod(DisplayName = "显式读取仍应允许访问排除目录中的文件")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task ReadFileLines_WhenFileIsInExcludedDirectory_ReadsFile()
+    {
+        string workspacePath = Path.Join(CreateTestDirectory(), "workspace");
+        string excludedDirectory = Path.Join(workspacePath, "generated");
+        Directory.CreateDirectory(excludedDirectory);
+        await File.WriteAllTextAsync(Path.Join(excludedDirectory, "generated.txt"), "explicit-content");
+        var provider = CreateProviderWithExcludedDirectory(workspacePath, "generated");
+
+        string result = await provider.ReadFileLines(Path.Join("generated", "generated.txt"), 1, 1);
+
+        StringAssert.Contains(result, "explicit-content");
+    }
+
+    private static WorkspaceToolProvider CreateProviderWithExcludedDirectory(string workspacePath, string directoryName)
+    {
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath,
+        };
+        provider.ExcludedDirectoryNames.Add(directoryName);
+        return provider;
+    }
+
     private static string CreateTestDirectory()
     {
         string testRoot = Path.Join(AppContext.BaseDirectory, "AgentLib.Tests", nameof(WorkspaceToolProviderTests), Guid.NewGuid().ToString("N"));
