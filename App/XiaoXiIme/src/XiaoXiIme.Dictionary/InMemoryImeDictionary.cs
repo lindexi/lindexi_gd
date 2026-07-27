@@ -28,6 +28,7 @@ public sealed class InMemoryImeDictionary : IImeDictionary
         new("呢", "ni", 60),
         new("好", "hao", 100),
         new("号", "hao", 60),
+        new("小希", "xx", 100),
         new("小希", "xiaoxi", 100),
         new("输入法", "shurufa", 100),
     ]);

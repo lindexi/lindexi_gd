@@ -10,6 +10,7 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <IsAotCompatible>true</IsAotCompatible>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Win32Resource>$(MSBuildProjectDirectory)\XiaoXiIme.res</Win32Resource>
   </PropertyGroup>
 
   <ItemGroup>

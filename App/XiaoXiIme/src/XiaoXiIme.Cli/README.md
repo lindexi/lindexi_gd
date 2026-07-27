@@ -8,8 +8,8 @@
 
 - `system-test-plan [--json]`：输出覆盖传统 IME、TSF、Host、IPC、UI、安装和回滚的全局系统测试计划。
 - `system-test-run <abi-host> <tsf-dll> --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：仅在可还原 VM 中执行隔离 ABI/COM 测试并生成 JSON 报告。
-- `payload-build [--output <directory>] [--runtime win-x64]`：在开发机上构建并收集完整集成测试负载，不修改 Windows 输入法配置。
-- `integration-run <payload-directory> --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：仅在可还原 VM 中执行旧版卸载、新版安装、TSF 验证、集成测试和清理。
+- `payload-build [--output <directory>]`：在开发机上同时构建 x86/x64 原生组件并收集完整集成测试负载，不修改 Windows 输入法配置。
+- `integration-run [payload-directory] --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：仅在可还原 VM 中执行旧版卸载、新版安装、TSF 验证、集成测试和清理；省略负载路径时会从 CLI 所在目录和当前目录逐级向上查找 manifest。
 - `install <ime-file> --allow-system-changes`：显式调用 Windows API 安装输入法；同时要求 `XIAOXIIME_ENVIRONMENT=Test` 或 `VirtualMachine`。
 
 真实安装和注册涉及管理员权限及系统注册表。执行 `install` 即表示调用方要求安装，CLI 会在基本参数检查通过后调用 `ImmInstallIME`。
@@ -39,27 +39,34 @@ dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- --help
 在开发机的 `App\XiaoXiIme` 目录执行：
 
 ```powershell
-dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- payload-build --output .\artifacts\integration-payload\win-x64 --runtime win-x64
+dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- payload-build --output .\artifacts\integration-payload
 ```
 
-该命令依次执行解决方案 Release 构建，并以 `win-x64` 自包含方式发布传统 IME NativeAOT 模块、TSF NativeAOT 模块、CLI、ImeHost、TSF ABI Host 和集成测试程序集。输出目录可以整体复制到 VM，也可以直接作为安装包负载。
+该命令依次执行解决方案 Release 构建。传统 IME、TSF InProc DLL 和 TSF ABI Host 分别发布 `win-x86` 与 `win-x64` 两套，因为这些组件必须匹配加载它们的目标进程架构。CLI、ImeHost、IPC 上层应用和集成测试是独立进程或托管逻辑，通过 IPC 通讯，只发布一套 `win-x64` 自包含共享应用负载。
 
 负载目录结构：
 
 ```text
-win-x64/
+integration-payload/
 ├── xiaoxiime-payload.json
-├── ime/       # XiaoXiIme.ime 及 NativeAOT 依赖
-├── tsf/       # XiaoXiIme.TsfModule.dll
-├── cli/       # VM 命令入口
-├── host/      # IPC 上层宿主应用
-├── tools/     # XiaoXiIme.TsfAbiHost
-└── tests/     # 已发布的集成测试程序集及运行依赖
+├── native/
+│   ├── win-x86/
+│   │   ├── ime/      # 32 位 XiaoXiIme.ime
+│   │   ├── tsf/      # 32 位 TSF InProc DLL
+│   │   └── tools/    # 32 位 TSF ABI Host
+│   └── win-x64/
+│       ├── ime/      # 64 位 XiaoXiIme.ime
+│       ├── tsf/      # 64 位 TSF InProc DLL
+│       └── tools/    # 64 位 TSF ABI Host
+└── app/
+	├── cli/          # VM 命令入口
+	├── host/         # IPC 上层宿主应用
+	└── tests/        # 集成测试程序集及运行依赖
 ```
 
 `xiaoxiime-payload.json` 仅保存相对路径，并记录每个文件的长度和 SHA-256。复制到 VM 后，`integration-run` 会在修改系统前验证全部文件。
 
-如果已提前生成 `artifacts\integration-publish\win-x64` 下的全部发布结果，可使用 `--no-build` 只重新组织负载。
+如果已提前生成 `artifacts\integration-publish` 下的全部发布结果，可使用 `--no-build` 只重新组织负载。
 
 ## 在 VM 中执行一键集成验证
 
@@ -67,20 +74,31 @@ win-x64/
 
 ```powershell
 $env:XIAOXIIME_ENVIRONMENT = "VirtualMachine"
-.\cli\XiaoXiIme.Cli.exe integration-run . --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS --report .\results\integration.json
+.\app\cli\XiaoXiIme.Cli.exe integration-run . --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS --report .\results\integration.json
 ```
 
 命令会依次完成：
 
 1. 校验 manifest、文件长度和 SHA-256。
 2. 仅卸载注册表中明确归属于 `XiaoXi IME` / `XiaoXiIme.ime` 的旧布局。
-3. 安装负载中的新 `XiaoXiIme.ime`。
-4. 执行 TSF ABI/vtable 和隔离 COM 激活验证。
+3. 当前使用 `native\win-x64\ime\XiaoXiIme.ime` 执行已实现的安装路径，并明确报告 x86 注册仍需单独验证。
+4. 分别使用 x86/x64 ABI Host 验证对应架构的 TSF ABI/vtable 和隔离 COM 激活。
 5. 执行负载中的集成测试程序集，覆盖 Host、IPC 和上层逻辑。
 6. 输出单行 JSON 控制台事件并写入完整 JSON 报告。
 7. 默认卸载测试输入法；传入 `--keep-installed` 才保留安装状态，以便继续人工输入测试。
 
 控制台每一行都是独立 JSON，包含 `timestampUtc`、`level`、`stage`、`message` 和 `data`，便于 LLM 或自动化脚本实时判断当前阶段、退出码、标准输出和错误输出。
+
+安装前会额外输出 `diagnostics-pre-install` 阶段。该阶段完全由 CLI 自身完成，不要求 VM 安装 .NET SDK、Visual Studio、dumpbin 或 Dependencies，内容包括：
+
+- Windows、操作系统架构和 CLI 进程架构；
+- IME 绝对路径、长度、SHA-256、文件属性和 Mark of the Web；
+- PE Machine、Magic、Subsystem、DLL 标志和导入模块；
+- API-set 与普通系统 DLL 的分类和解析结果；
+- `GetBinaryType` 与不执行 DLL 初始化代码的映像映射探测；
+- `System32` 目标文件和匹配键盘布局注册表状态。
+
+如果 `ImmInstallIME` 失败，还会输出 `diagnostics-post-install-failure`，立即记录调用后的文件和注册表状态。排障时应同时保留完整控制台输出和 `results\integration-*.json`；报告中的 `Data` 字段包含未被控制台摘要省略的诊断对象。
 
 ## 集成测试约束
 

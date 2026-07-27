@@ -4,69 +4,77 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d">
-    <Grid Margin="16">
+    <Grid Margin="{StaticResource PageMargin}" KeyboardNavigation.TabNavigation="Continue">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="280" />
+            <ColumnDefinition Width="248" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="0"
-                Margin="0,0,16,0"
-                Padding="16"
-                Background="White"
-                BorderBrush="#FFE5E7EB"
-                BorderThickness="1"
-                CornerRadius="10">
+                Margin="0,0,12,0"
+                Padding="12"
+                Style="{StaticResource CardStyle}">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Top">
-                    <TextBlock FontSize="20"
-                               FontWeight="SemiBold"
-                               Text="历史会话" />
-                    <TextBlock Margin="0,6,0,12"
-                               Foreground="#FF6B7280"
-                               Text="当前运行实例中的会话。聊天历史会同步写入数据目录。" />
-
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <Button Grid.Column="0"
-                                Margin="0,0,6,0"
+                    <DockPanel Margin="2,0,2,10">
+                        <Button DockPanel.Dock="Right"
+                                Style="{StaticResource GhostButtonStyle}"
                                 Command="{Binding NewChatCommand}"
-                                Content="新建会话" />
-                        <Button Grid.Column="1"
-                                Margin="6,0,0,0"
-                                Command="{Binding DeleteSelectedChatCommand}"
-                                Content="删除会话" />
-                    </Grid>
+                                Content="＋ 新建"
+                                ToolTip="新建会话 (Ctrl+N)"
+                                AutomationProperties.Name="新建会话"
+                                TabIndex="1" />
+                        <TextBlock VerticalAlignment="Center"
+                                   FontSize="17"
+                                   FontWeight="SemiBold"
+                                   Text="会话" />
+                    </DockPanel>
 
+                    <TextBox x:Name="SessionSearchBox"
+                              Margin="0,0,0,10"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="搜索会话标题和消息 (Ctrl+F)"
+                             AutomationProperties.Name="搜索会话"
+                             AutomationProperties.HelpText="输入关键词筛选会话标题和消息内容"
+                             TabIndex="0" />
+
+                    <WrapPanel Margin="0,0,0,4">
+                        <Button Style="{StaticResource GhostButtonStyle}"
+                                Command="{Binding ReloadSessionsCommand}"
+                                Content="刷新"
+                                ToolTip="重新加载会话列表"
+                                AutomationProperties.Name="刷新会话列表"
+                                TabIndex="3" />
+                        <Button Style="{StaticResource GhostButtonStyle}"
+                                Command="{Binding DeleteSelectedChatCommand}"
+                                Content="删除"
+                                Foreground="{StaticResource ErrorBrush}"
+                                ToolTip="删除当前会话"
+                                AutomationProperties.Name="删除当前会话"
+                                TabIndex="2" />
+                    </WrapPanel>
                 </StackPanel>
 
-                <ListBox Margin="0,16,0,0"
-                         ItemsSource="{Binding Sessions}"
-                         SelectedItem="{Binding SelectedSession}">
+                <ListBox Margin="0,6,0,0"
+                          ItemsSource="{Binding FilteredSessions}"
+                          SelectedItem="{Binding SelectedSession}"
+                          ItemContainerStyle="{StaticResource SessionListItemStyle}"
+                          AutomationProperties.Name="会话列表"
+                          TabIndex="6">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
-                            <Border Margin="0,0,0,8"
-                                    Padding="10"
-                                    Background="#FFF9FAFB"
-                                    BorderBrush="#FFE5E7EB"
-                                    BorderThickness="1"
-                                    CornerRadius="8">
-                                <StackPanel>
-                                    <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
-                                    <TextBlock Margin="0,4,0,0"
-                                               FontSize="12"
-                                               Foreground="#FF6B7280"
-                                               Text="{Binding StartedTime, StringFormat=开始时间：{0:yyyy-MM-dd HH:mm}}" />
-                                    <TextBlock Margin="0,2,0,0"
-                                               FontSize="12"
-                                               Foreground="#FF9CA3AF"
-                                               Text="{Binding ChatMessages.Count, StringFormat=消息数：{0}}" />
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
+                                <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                                    <TextBlock Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11"
+                                               Text="{Binding UpdatedAt, StringFormat={}{0:MM-dd HH:mm}}" />
+                                    <TextBlock Margin="8,0,0,0"
+                                               Foreground="{StaticResource TextMutedBrush}"
+                                               FontSize="11"
+                                               Text="{Binding Messages.Count, StringFormat={}{0} 条消息}" />
                                 </StackPanel>
-                            </Border>
+                            </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
@@ -81,37 +89,274 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0">
-                <TextBlock FontSize="22"
-                           FontWeight="SemiBold"
-                           Text="{Binding CurrentSessionTitle}" />
-                <TextBlock Margin="0,6,0,12"
-                           Foreground="#FF6B7280"
-                           Text="{Binding StatusMessage}" />
+            <StackPanel Grid.Row="0" Margin="0,0,0,8">
+                <DockPanel LastChildFill="True">
+                    <Button DockPanel.Dock="Right"
+                            Margin="8,0,0,0"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding RenameSessionCommand}"
+                            Content="保存"
+                            ToolTip="保存会话标题"
+                            AutomationProperties.Name="保存会话标题"
+                            TabIndex="8" />
+                    <TextBox Text="{Binding EditableSessionTitle, UpdateSourceTrigger=PropertyChanged}"
+                              FontSize="17"
+                              FontWeight="SemiBold"
+                              MinHeight="30"
+                              Padding="4,2"
+                              Background="Transparent"
+                              BorderThickness="0,0,0,1"
+                              ToolTip="编辑当前会话标题，最多 80 个字符"
+                              AutomationProperties.Name="会话标题"
+                              TabIndex="7" />
+                </DockPanel>
+                <TextBlock Margin="2,4,0,0"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           FontSize="11"
+                           Text="{Binding StatusMessage}"
+                           TextWrapping="Wrap"
+                           AutomationProperties.LiveSetting="Polite">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ShouldShowStatus}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <ProgressBar Height="4"
+                              Margin="0,6,0,0"
+                             IsIndeterminate="True"
+                             AutomationProperties.Name="正在处理">
+                    <ProgressBar.Style>
+                        <Style TargetType="ProgressBar">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ProgressBar.Style>
+                </ProgressBar>
+                <Border Margin="0,8,0,0" Padding="10" Background="#FFFFF1F2" BorderBrush="{StaticResource ErrorBrush}" BorderThickness="1" CornerRadius="8">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers><DataTrigger Binding="{Binding HasError}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Margin="12,0,0,0" Command="{Binding RetryCommand}" Content="重试" ToolTip="重试失败的请求" />
+                        <TextBlock Foreground="{StaticResource ErrorBrush}" Text="{Binding ErrorMessage}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Assertive" />
+                    </DockPanel>
+                </Border>
+                <Border Margin="0,8,0,0" Padding="10" Background="#FFFFFBEB" BorderBrush="#FFF59E0B" BorderThickness="1" CornerRadius="8">
+                    <Border.Style>
+                        <Style TargetType="Border"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding ConfigurationRequired}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style>
+                    </Border.Style>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Margin="12,0,0,0" Command="{Binding DataContext.ShowSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}" Content="打开设置" ToolTip="前往设置选择模型或打开 Agent 配置" />
+                        <TextBlock Text="尚未配置可用模型。请前往设置选择模型，或打开外部 Agent 配置文件。" TextWrapping="Wrap" />
+                    </DockPanel>
+                </Border>
             </StackPanel>
 
-            <ListBox Grid.Row="1"
-                     Margin="0,0,0,12"
-                     ItemsSource="{Binding CurrentMessages}">
+            <ListBox x:Name="MessagesList"
+                     Grid.Row="1"
+                      Margin="0,0,0,8"
+                     ItemsSource="{Binding CurrentMessages}"
+                     SelectedItem="{Binding SelectedMessage}"
+                      HorizontalContentAlignment="Stretch"
+                     ScrollViewer.ScrollChanged="OnMessagesScrollChanged"
+                     AutomationProperties.Name="消息列表"
+                     TabIndex="9">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border Margin="0,0,0,12"
-                                Padding="12"
+                        <Border Margin="0,0,4,8"
+                                Padding="14,10"
                                 Background="White"
-                                BorderBrush="#FFE5E7EB"
+                                BorderBrush="{StaticResource BorderBrush}"
                                 BorderThickness="1"
-                                CornerRadius="10">
+                                CornerRadius="12">
                             <StackPanel>
-                                <DockPanel>
-                                    <StackPanel Orientation="Horizontal">
-                                         <TextBlock FontWeight="SemiBold" Text="{Binding Author}" />
-                                        <TextBlock Margin="12,0,0,0"
-                                                   Foreground="#FF9CA3AF"
-                                                    Text="{Binding CreatedTime, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                        <Border Width="28"
+                                                Height="28"
+                                                Background="{StaticResource PrimarySoftBrush}"
+                                                CornerRadius="14">
+                                            <TextBlock HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource PrimaryBrush}"
+                                                       FontSize="12"
+                                                       FontWeight="Bold"
+                                                       Text="{Binding RoleAvatarText}" />
+                                        </Border>
+                                        <TextBlock Margin="9,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding RoleDisplayName}" />
+                                        <TextBlock Margin="10,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   FontSize="11"
+                                                   Text="{Binding CreatedAt, StringFormat={}{0:HH:mm}}" />
                                     </StackPanel>
-                                </DockPanel>
+
+                                    <Button Grid.Column="1"
+                                            Margin="12,0,0,0"
+                                            Command="{Binding DataContext.BeginInlineEditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="编辑这条消息"
+                                            AutomationProperties.Name="编辑消息">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                                <Setter Property="MinWidth" Value="0" />
+                                                <Setter Property="MinHeight" Value="30" />
+                                                <Setter Property="Padding" Value="9,4" />
+                                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                                <Setter Property="Background" Value="#FFF8FAFF" />
+                                                <Setter Property="BorderBrush" Value="#FFD8E2FF" />
+                                                <Setter Property="BorderThickness" Value="1" />
+                                                <Setter Property="Cursor" Value="Hand" />
+                                                <Setter Property="Opacity" Value="0" />
+                                                <Setter Property="IsHitTestVisible" Value="False" />
+                                                <Setter Property="Focusable" Value="False" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="ButtonBorder"
+                                                                    Padding="{TemplateBinding Padding}"
+                                                                    Background="{TemplateBinding Background}"
+                                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                                    CornerRadius="7">
+                                                                <StackPanel HorizontalAlignment="Center"
+                                                                            VerticalAlignment="Center"
+                                                                            Orientation="Horizontal">
+                                                                    <Path Width="13"
+                                                                          Height="13"
+                                                                          Margin="0,0,6,0"
+                                                                          Data="M2,11 L4.5,10.5 11,4 8,1 1.5,7.5 1,10 Z M7.25,1.75 L10.25,4.75"
+                                                                          Fill="Transparent"
+                                                                          Stroke="{TemplateBinding Foreground}"
+                                                                          StrokeEndLineCap="Round"
+                                                                          StrokeLineJoin="Round"
+                                                                          StrokeStartLineCap="Round"
+                                                                          StrokeThickness="1.4"
+                                                                          Stretch="Uniform" />
+                                                                    <TextBlock VerticalAlignment="Center"
+                                                                               FontSize="12"
+                                                                               FontWeight="SemiBold"
+                                                                               Text="编辑" />
+                                                                </StackPanel>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="ButtonBorder" Property="Background" Value="#FFEEF2FF" />
+                                                                    <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#FFA5B4FC" />
+                                                                </Trigger>
+                                                                <Trigger Property="IsPressed" Value="True">
+                                                                    <Setter TargetName="ButtonBorder" Property="Background" Value="#FFE0E7FF" />
+                                                                </Trigger>
+                                                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                                                    <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                        <Setter Property="Opacity" Value="1" />
+                                                        <Setter Property="IsHitTestVisible" Value="True" />
+                                                        <Setter Property="Focusable" Value="True" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsMouseOver}" Value="True">
+                                                        <Setter Property="Opacity" Value="1" />
+                                                        <Setter Property="IsHitTestVisible" Value="True" />
+                                                        <Setter Property="Focusable" Value="True" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </Grid>
+
+                                <StackPanel Margin="37,6,0,0">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <Border Margin="0,0,0,6"
+                                            Padding="0,4"
+                                            Background="Transparent"
+                                            BorderThickness="0">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasThoughtContent}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+
+                                        <Expander Foreground="{StaticResource TextMutedBrush}"
+                                                  FontSize="12"
+                                                  Header="查看思考过程"
+                                                  IsExpanded="False"
+                                                  AutomationProperties.Name="思考内容">
+                                            <FlowDocumentScrollViewer Margin="0,6,0,0"
+                                                                      MaxHeight="320"
+                                                                      Background="{StaticResource SurfaceMutedBrush}"
+                                                                      BorderBrush="{StaticResource BorderBrush}"
+                                                                      BorderThickness="1"
+                                                                      IsToolBarVisible="False"
+                                                                      VerticalScrollBarVisibility="Auto"
+                                                                      Document="{Binding ThoughtContent, Converter={StaticResource MarkdownConverter}}" />
+                                        </Expander>
+                                    </Border>
+
+                                    <FlowDocumentScrollViewer Margin="0,6,0,0"
+                                                              Background="Transparent"
+                                                              BorderThickness="0"
+                                                              IsToolBarVisible="False"
+                                                              VerticalScrollBarVisibility="Hidden"
+                                                              Document="{Binding Content, Converter={StaticResource MarkdownConverter}}" />
+                                </StackPanel>
 
                                 <StackPanel Margin="0,10,0,0">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
                                     <Border Margin="0,0,0,10"
                                             Padding="10"
                                             Background="#FFEEF2FF"
@@ -122,7 +367,7 @@
                                             <Style TargetType="Border">
                                                 <Setter Property="Visibility" Value="Collapsed" />
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasReason}" Value="True">
+                                                    <DataTrigger Binding="{Binding IsAssistant}" Value="True">
                                                         <Setter Property="Visibility" Value="Visible" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -131,9 +376,11 @@
 
                                         <StackPanel>
                                             <TextBlock FontWeight="SemiBold" Text="思考内容" />
-                                            <TextBlock Margin="0,8,0,0"
-                                                       TextWrapping="Wrap"
-                                                        Text="{Binding Reason}" />
+                                            <TextBox Margin="0,8,0,0"
+                                                     AcceptsReturn="True"
+                                                     Text="{Binding EditingThoughtContent, UpdateSourceTrigger=PropertyChanged}"
+                                                     TextWrapping="Wrap"
+                                                     VerticalScrollBarVisibility="Auto" />
                                         </StackPanel>
                                     </Border>
 
@@ -144,15 +391,32 @@
                                             CornerRadius="8">
                                         <StackPanel>
                                             <TextBlock FontWeight="SemiBold" Text="消息内容" />
-                                            <TextBlock Margin="0,8,0,0"
-                                                       TextWrapping="Wrap"
-                                                       Text="{Binding Content}" />
-                                            <TextBlock Margin="0,8,0,0"
-                                                       FontSize="12"
-                                                       Foreground="#FF6B7280"
-                                                       Text="{Binding UsageSummaryText}" />
+                                            <TextBox Margin="0,8,0,0"
+                                                     AcceptsReturn="True"
+                                                     Text="{Binding EditingContent, UpdateSourceTrigger=PropertyChanged}"
+                                                     TextWrapping="Wrap"
+                                                     VerticalScrollBarVisibility="Auto" />
                                         </StackPanel>
                                     </Border>
+
+                                    <StackPanel Margin="0,10,0,0"
+                                                HorizontalAlignment="Right"
+                                                Orientation="Horizontal">
+                                        <TextBlock Margin="0,0,12,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource ErrorBrush}"
+                                                   Text="保存将截断此消息后的上下文"
+                                                   TextWrapping="Wrap" />
+                                        <Button Margin="0,0,12,0"
+                                                Command="{Binding DataContext.CancelInlineEditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                CommandParameter="{Binding}"
+                                                Content="取消"
+                                                ToolTip="放弃消息编辑" />
+                                        <Button Command="{Binding DataContext.SaveInlineEditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                CommandParameter="{Binding}"
+                                                Content="保存并截断"
+                                                ToolTip="保存编辑并删除后续上下文" />
+                                    </StackPanel>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -160,38 +424,78 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <Border Grid.Row="2"
-                    Padding="12"
-                    Background="White"
-                    BorderBrush="#FFE5E7EB"
-                    BorderThickness="1"
-                    CornerRadius="10">
-                <StackPanel>
-                    <TextBlock FontWeight="SemiBold" Text="输入消息" />
-                    <TextBox MinHeight="120"
-                             Margin="0,8,0,0"
-                             AcceptsReturn="True"
-                             Text="{Binding PendingUserMessage, UpdateSourceTrigger=PropertyChanged}"
-                             TextWrapping="Wrap"
-                             VerticalScrollBarVisibility="Auto" />
+            <Border Grid.Row="1"
+                    Margin="0,0,0,12"
+                    Padding="24">
+                <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource CardStyle}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasMessages}" Value="False">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock HorizontalAlignment="Center" FontSize="18" FontWeight="SemiBold" Text="开始一段新对话" />
+                    <TextBlock Margin="0,8,0,0" Text="在下方输入问题；消息会安全地保存在本地会话中。" TextAlignment="Center" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
-            <DockPanel Grid.Row="3" Margin="0,12,0,0">
-                <StackPanel>
-                    <TextBlock Foreground="#FF6B7280" Text="会话由 AgentLib 管理，AI 回复会流式显示思考内容和正文。" />
-                    <TextBlock Foreground="#FF9CA3AF" Text="日志与历史快照保存在设置页所示目录。" />
-                </StackPanel>
+            <Border Grid.Row="2"
+                    Padding="10,8"
+                    Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBox x:Name="MessageInputBox"
+                              MinHeight="48"
+                              MaxHeight="132"
+                              Padding="4"
+                              Background="Transparent"
+                              BorderThickness="0"
+                             AcceptsReturn="True"
+                             Text="{Binding PendingUserMessage, UpdateSourceTrigger=PropertyChanged}"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             PreviewKeyDown="OnMessageInputPreviewKeyDown"
+                              ToolTip="输入消息。Ctrl+Enter 发送，Enter 换行。"
+                             AutomationProperties.Name="消息输入框"
+                              AutomationProperties.HelpText="按 Ctrl+Enter 发送，按 Enter 换行"
+                             TabIndex="10" />
+                    <DockPanel Grid.Row="1" Margin="0,6,0,0" LastChildFill="True">
+                        <Button DockPanel.Dock="Right"
+                                Margin="16,0,0,0"
+                                Click="OnSendButtonClick"
+                                TabIndex="11">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource CompactButtonStyle}">
+                                    <Setter Property="Command" Value="{Binding SendMessageCommand}" />
+                                    <Setter Property="Content" Value="发送" />
+                                    <Setter Property="ToolTip" Value="发送消息" />
+                                    <Setter Property="AutomationProperties.Name" Value="发送消息" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsResponding}" Value="True">
+                                            <Setter Property="Command" Value="{Binding StopCommand}" />
+                                            <Setter Property="Content" Value="停止" />
+                                            <Setter Property="ToolTip" Value="停止当前生成" />
+                                            <Setter Property="AutomationProperties.Name" Value="停止生成" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <TextBlock VerticalAlignment="Center"
+                                   Foreground="{StaticResource TextMutedBrush}"
+                                   FontSize="11"
+                                   Text="Ctrl+Enter 发送 · Enter 换行" />
+                    </DockPanel>
+                </Grid>
+            </Border>
 
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Margin="12,0,0,0"
-                            Command="{Binding StopCommand}"
-                            Content="停止" />
-                    <Button Margin="12,0,0,0"
-                            Command="{Binding SendMessageCommand}"
-                            Content="发送" />
-                </StackPanel>
-            </DockPanel>
         </Grid>
     </Grid>
 </UserControl>

@@ -1,36 +1,88 @@
 using XiaoXiIme.ImeInterop;
 using XiaoXiIme.Foundation;
+using System.Runtime.InteropServices;
 
 namespace XiaoXiIme.ImeModule.Tests;
 
 public class ImeExportsTests
 {
     [Fact]
+    public void ImeInquireInfo_MatchesNativeImeInfoLayout()
+    {
+        Assert.Equal(7 * sizeof(uint), Marshal.SizeOf<ImeInquireInfo>());
+    }
+
+    [Fact]
+    public void TransMsgTypes_MatchNativeLayout()
+    {
+        Assert.Equal(IntPtr.Size == 8 ? 24 : 12, Marshal.SizeOf<TransMsg>());
+        Assert.Equal(0, Marshal.OffsetOf<TransMsg>(nameof(TransMsg.Message)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 8 : 4, Marshal.OffsetOf<TransMsg>(nameof(TransMsg.WParam)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 16 : 8, Marshal.OffsetOf<TransMsg>(nameof(TransMsg.LParam)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 8 : 4, Marshal.OffsetOf<TransMsgList>(nameof(TransMsgList.Message)).ToInt32());
+    }
+
+    [Fact]
+    public void KeystrokeDiagnosticSnapshot_MatchesExportContract()
+    {
+        Assert.Equal(40, Marshal.SizeOf<ImeKeystrokeDiagnosticSnapshot>());
+        Assert.Equal(0, Marshal.OffsetOf<ImeKeystrokeDiagnosticSnapshot>(nameof(ImeKeystrokeDiagnosticSnapshot.Version)).ToInt32());
+        Assert.Equal(36, Marshal.OffsetOf<ImeKeystrokeDiagnosticSnapshot>(nameof(ImeKeystrokeDiagnosticSnapshot.LastReturnValue)).ToInt32());
+    }
+
+    [Fact]
+    public void KeystrokeDiagnostics_ResetAndRecord_ReturnsLatestTrace()
+    {
+        const uint vkX = 0x58;
+        ImeKeystrokeDiagnostics.Reset();
+
+        ImeKeystrokeDiagnostics.RecordImeProcessKey(ImeConstants.VkA, true);
+        ImeKeystrokeDiagnostics.RecordImeProcessKey(vkX, true);
+        ImeKeystrokeDiagnostics.RecordImeToAsciiEx(ImeConstants.VkA, true, false, 2, 2);
+        ImeKeystrokeDiagnostics.RecordImeToAsciiEx(vkX, true, true, 2, 2);
+
+        var snapshot = ImeKeystrokeDiagnostics.GetSnapshot();
+
+        Assert.Equal(ImeKeystrokeDiagnosticSnapshot.CurrentVersion, snapshot.Version);
+        Assert.Equal(2u, snapshot.ImeProcessKeyCallCount);
+        Assert.Equal(2u, snapshot.ImeToAsciiExCallCount);
+        Assert.Equal(vkX, snapshot.LastProcessVirtualKey);
+        Assert.Equal(1u, snapshot.LastProcessHandled);
+        Assert.Equal(vkX, snapshot.LastToAsciiVirtualKey);
+        Assert.Equal(1u, snapshot.LastToAsciiHandled);
+        Assert.Equal(1u, snapshot.LastCompositionWriteSucceeded);
+        Assert.Equal(2u, snapshot.LastMessageCount);
+        Assert.Equal(2u, snapshot.LastReturnValue);
+
+        ImeKeystrokeDiagnostics.Reset();
+        snapshot = ImeKeystrokeDiagnostics.GetSnapshot();
+        Assert.Equal(0u, snapshot.ImeProcessKeyCallCount);
+        Assert.Equal(0u, snapshot.ImeToAsciiExCallCount);
+    }
+
+    [Fact]
     public void CreateInquireInfoForTesting_ReturnsMinimalImeMetadata()
     {
         var info = ImeExports.CreateInquireInfoForTesting();
 
-        Assert.NotEqual(0u, info.Size);
-        Assert.Equal(ImeConstants.ImeVersion0400, info.ImeVersion);
-        Assert.True((info.ImeProperty & ImeConstants.ImePropUnicode) != 0);
-        Assert.True((info.ImeProperty & ImeConstants.ImePropAtCaret) != 0);
-        Assert.True((info.ImeProperty & ImeConstants.ImePropCompleteOnUnselect) != 0);
+        Assert.Equal(0u, info.PrivateDataSize);
+        Assert.True((info.Property & ImeConstants.ImePropUnicode) != 0);
+        Assert.True((info.Property & ImeConstants.ImePropAtCaret) != 0);
+        Assert.True((info.Property & ImeConstants.ImePropCompleteOnUnselect) != 0);
         Assert.True((info.ConversionCaps & ImeConstants.ImeCmodeNative) != 0);
         Assert.True((info.SetCompositionStringCaps & ImeConstants.SCSCapsMakeRead) != 0);
         Assert.True((info.SelectCaps & ImeConstants.SelectCapsConversion) != 0);
     }
 
     [Fact]
-    public unsafe void ImeInquireManaged_WritesClassNamesAndReturnsSize()
+    public unsafe void ImeInquireManaged_WritesUiClassNameAndReturnsTrue()
     {
         var info = stackalloc ImeInquireInfo[1];
         var className = stackalloc char[80];
 
-        var size = ImeExports.ImeInquireManaged(info, className, 0);
+        var result = ImeExports.ImeInquireManaged(info, className, 0);
 
-        Assert.Equal(info->Size, size);
-        Assert.Equal(ImeExportsContract.ImeMenuClassName, new string(info->ImeMenuClassName));
-
+        Assert.Equal(1, result);
         Assert.Equal(ImeExportsContract.ImeUiClassName, new string(className));
     }
 
@@ -39,7 +91,7 @@ public class ImeExportsTests
     {
         var result = ImeExports.ImeInquireManaged(null, null, 0);
 
-        Assert.Equal(0u, result);
+        Assert.Equal(0, result);
     }
 
     [Fact]
@@ -58,7 +110,7 @@ public class ImeExportsTests
         {
             var result = ImeExports.ImeProcessKeyManaged(1, ImeConstants.VkTab, 0, null);
 
-            Assert.Equal(0u, result);
+            Assert.False(result);
         }
         finally
         {
@@ -97,7 +149,7 @@ public class ImeExportsTests
                 Guideline: new ImeGuideline(ImeGuidelineLevel.NoCandidate, "无候选：x")),
             CommitText: null,
             Handled: true));
-        var buffer = stackalloc byte[sizeof(uint) + (sizeof(TransMsg) * 2)];
+        var buffer = stackalloc byte[sizeof(TransMsgList) + sizeof(TransMsg)];
         var list = (TransMsgList*)buffer;
 
         try
@@ -138,7 +190,7 @@ public class ImeExportsTests
     [Fact]
     public void BuildMessages_CommitText_ReturnsResultAndEndCompositionMessages()
     {
-        var result = new ImeToAsciiResult(true, "小", ImeSessionSnapshot.Empty);
+        var result = new ImeToAsciiResult(true, "小希", ImeSessionSnapshot.Empty);
 
         var messages = ImeTransMsgBuilder.BuildMessages(result);
 
@@ -182,7 +234,7 @@ public class ImeExportsTests
             new TransMsg { Message = ImeConstants.WmImeStartComposition },
             new TransMsg { Message = ImeConstants.WmImeComposition, LParam = (nint)ImeConstants.GcsCompStr },
         };
-        var buffer = stackalloc byte[sizeof(uint) + (sizeof(TransMsg) * 2)];
+        var buffer = stackalloc byte[sizeof(TransMsgList) + sizeof(TransMsg)];
         var list = (TransMsgList*)buffer;
 
         var written = ImeTransMsgWriter.Write((nint)list, messages);
@@ -247,15 +299,15 @@ public class ImeExportsTests
         var buffer = stackalloc byte[512];
         var compositionString = (CompositionString*)buffer;
 
-        var written = writer.TryWriteResultStringForTesting(compositionString, "小");
+        var written = writer.TryWriteResultStringForTesting(compositionString, "小希");
 
         Assert.True(written);
-        Assert.Equal(2u, compositionString->ResultStrLength);
+        Assert.Equal(4u, compositionString->ResultStrLength);
         Assert.Equal(8u, compositionString->ResultClauseLength);
-        Assert.Equal("小", new string((char*)(buffer + compositionString->ResultStrOffset), 0, 1));
+        Assert.Equal("小希", new string((char*)(buffer + compositionString->ResultStrOffset), 0, 2));
         var clauses = (uint*)(buffer + compositionString->ResultClauseOffset);
         Assert.Equal(0u, clauses[0]);
-        Assert.Equal(2u, clauses[1]);
+        Assert.Equal(4u, clauses[1]);
     }
 
     [Fact]

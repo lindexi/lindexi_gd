@@ -82,6 +82,8 @@ dotnet publish src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj -c Release -r 
 当前已有文档：
 
 - `src/XiaoXiIme.ImeIpc/Docs/JsonIpcDirectRouted.md`：直接路由 JSON IPC 通讯方式说明。
+- `Docs/Ime-Customization.md`：输入法名称、任务栏“简体”、TSF 和文件属性的客制化说明。
+- `Docs/VM-Ime-Installation-Diagnostics.md`：纯净 VM 安装排障工作模式与历史验证记录。
 
 ## 项目开发进度
 

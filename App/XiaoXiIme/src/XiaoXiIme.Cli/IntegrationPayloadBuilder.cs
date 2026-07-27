@@ -5,17 +5,20 @@ namespace XiaoXiIme.Cli;
 
 internal static class IntegrationPayloadBuilder
 {
+    private const string SharedRuntimeIdentifier = "win-x64";
+    private static readonly string[] NativeRuntimeIdentifiers = ["win-x86", "win-x64"];
+
     public static async Task<int> BuildAsync(PayloadBuildOptions options, TextWriter output, TextWriter error)
     {
         var log = new StructuredConsole(output, error);
         var solutionDirectory = FindSolutionDirectory(AppContext.BaseDirectory);
-        var outputDirectory = Path.GetFullPath(options.Output ?? Path.Combine(solutionDirectory, "artifacts", "integration-payload", options.RuntimeIdentifier));
-        var stagingDirectory = Path.Combine(solutionDirectory, "artifacts", "integration-publish", options.RuntimeIdentifier);
+        var outputDirectory = Path.GetFullPath(options.Output ?? Path.Combine(solutionDirectory, "artifacts", "integration-payload"));
+        var stagingDirectory = Path.Combine(solutionDirectory, "artifacts", "integration-publish");
 
         if (!options.NoBuild)
         {
             Directory.CreateDirectory(stagingDirectory);
-            var commands = CreateBuildCommands(solutionDirectory, stagingDirectory, options.RuntimeIdentifier);
+            var commands = CreateBuildCommands(solutionDirectory, stagingDirectory);
             foreach (var command in commands)
             {
                 var exitCode = await RunProcessAsync(command, solutionDirectory, log);
@@ -45,24 +48,41 @@ internal static class IntegrationPayloadBuilder
             CopyDirectory(Path.GetDirectoryName(source.SourcePath)!, Path.Combine(outputDirectory, source.TargetDirectory));
         }
 
-        var imeDll = Path.Combine(outputDirectory, "ime", "XiaoXiIme.ImeModule.dll");
-        var imeFile = Path.Combine(outputDirectory, "ime", "XiaoXiIme.ime");
-        File.Move(imeDll, imeFile, true);
+        foreach (var runtimeIdentifier in NativeRuntimeIdentifiers)
+        {
+            var nativeDirectory = Path.Combine(outputDirectory, "native", runtimeIdentifier);
+            File.Move(Path.Combine(nativeDirectory, "ime", "XiaoXiIme.ImeModule.dll"), Path.Combine(nativeDirectory, "ime", "XiaoXiIme.ime"), true);
+        }
+
+        if (OperatingSystem.IsWindows())
+        {
+            foreach (var runtimeIdentifier in NativeRuntimeIdentifiers)
+            {
+                var imePath = Path.Combine(outputDirectory, "native", runtimeIdentifier, "ime", "XiaoXiIme.ime");
+                var validationError = ImeBinaryValidator.Validate(imePath);
+                if (validationError is not null)
+                {
+                    log.Error("payload", $"Invalid {runtimeIdentifier} IME binary: {validationError}");
+                    return 12;
+                }
+            }
+        }
 
         var files = Directory.EnumerateFiles(outputDirectory, "*", SearchOption.AllDirectories)
             .Select(path => CreatePayloadFile(outputDirectory, path))
             .OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
             .ToArray();
         var manifest = new IntegrationPayloadManifest(
-            1,
+            3,
             DateTimeOffset.UtcNow,
-            options.RuntimeIdentifier,
-            "ime/XiaoXiIme.ime",
-            "tsf/XiaoXiIme.TsfModule.dll",
-            "cli/XiaoXiIme.Cli.exe",
-            "host/XiaoXiIme.ImeHost.exe",
-            "tools/XiaoXiIme.TsfAbiHost.exe",
-            ["tests/XiaoXiIme.IntegrationTests.dll"],
+            new Dictionary<string, NativePayloadComponents>
+            {
+                ["x86"] = new("win-x86", "native/win-x86/ime/XiaoXiIme.ime", "native/win-x86/tsf/XiaoXiIme.TsfModule.dll", "native/win-x86/tools/XiaoXiIme.TsfAbiHost.exe"),
+                ["x64"] = new("win-x64", "native/win-x64/ime/XiaoXiIme.ime", "native/win-x64/tsf/XiaoXiIme.TsfModule.dll", "native/win-x64/tools/XiaoXiIme.TsfAbiHost.exe"),
+            },
+            "app/cli/XiaoXiIme.Cli.exe",
+            "app/host/XiaoXiIme.ImeHost.exe",
+            ["app/tests/XiaoXiIme.IntegrationTestHost.exe"],
             files);
         var manifestPath = Path.Combine(outputDirectory, IntegrationPayloadManifest.FileName);
         manifest.Save(manifestPath);
@@ -70,16 +90,24 @@ internal static class IntegrationPayloadBuilder
         return 0;
     }
 
-    private static IReadOnlyList<BuildCommand> CreateBuildCommands(string solutionDirectory, string stagingDirectory, string runtimeIdentifier) =>
-    [
-        new("build", ["build", Path.Combine(solutionDirectory, "XiaoXiIme.slnx"), "-c", "Release"]),
-        Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj", "ime", true),
-        Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "src/XiaoXiIme.TsfModule/XiaoXiIme.TsfModule.csproj", "tsf", true),
-        Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj", "cli", false),
-        Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "src/XiaoXiIme.ImeHost/XiaoXiIme.ImeHost.csproj", "host", false),
-        Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "tests/XiaoXiIme.TsfAbiHost/XiaoXiIme.TsfAbiHost.csproj", "tools", false),
-        Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "tests/XiaoXiIme.IntegrationTests/XiaoXiIme.IntegrationTests.csproj", "tests", false),
-    ];
+    private static IReadOnlyList<BuildCommand> CreateBuildCommands(string solutionDirectory, string stagingDirectory)
+    {
+        var commands = new List<BuildCommand>
+        {
+            new("build", ["build", Path.Combine(solutionDirectory, "XiaoXiIme.slnx"), "-c", "Release"]),
+        };
+        foreach (var runtimeIdentifier in NativeRuntimeIdentifiers)
+        {
+            var nativeRoot = Path.Combine("native", runtimeIdentifier);
+            commands.Add(Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj", Path.Combine(nativeRoot, "ime"), true));
+            commands.Add(Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "src/XiaoXiIme.TsfModule/XiaoXiIme.TsfModule.csproj", Path.Combine(nativeRoot, "tsf"), true));
+            commands.Add(Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "tests/XiaoXiIme.TsfAbiHost/XiaoXiIme.TsfAbiHost.csproj", Path.Combine(nativeRoot, "tools"), false));
+        }
+        commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj", Path.Combine("app", "cli"), false));
+        commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.ImeHost/XiaoXiIme.ImeHost.csproj", Path.Combine("app", "host"), false));
+        commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "tests/XiaoXiIme.IntegrationTestHost/XiaoXiIme.IntegrationTestHost.csproj", Path.Combine("app", "tests"), false));
+        return commands;
+    }
 
     private static BuildCommand Publish(string solutionDirectory, string stagingDirectory, string runtimeIdentifier, string project, string folder, bool nativeAot)
     {
@@ -97,12 +125,15 @@ internal static class IntegrationPayloadBuilder
 
     private static PayloadSource[] CreateSources(string stagingDirectory) =>
     [
-        new(Path.Combine(stagingDirectory, "ime", "XiaoXiIme.ImeModule.dll"), "ime"),
-        new(Path.Combine(stagingDirectory, "tsf", "XiaoXiIme.TsfModule.dll"), "tsf"),
-        new(Path.Combine(stagingDirectory, "cli", "XiaoXiIme.Cli.exe"), "cli"),
-        new(Path.Combine(stagingDirectory, "host", "XiaoXiIme.ImeHost.exe"), "host"),
-        new(Path.Combine(stagingDirectory, "tools", "XiaoXiIme.TsfAbiHost.exe"), "tools"),
-        new(Path.Combine(stagingDirectory, "tests", "XiaoXiIme.IntegrationTests.dll"), "tests"),
+        new(Path.Combine(stagingDirectory, "native", "win-x86", "ime", "XiaoXiIme.ImeModule.dll"), Path.Combine("native", "win-x86", "ime")),
+        new(Path.Combine(stagingDirectory, "native", "win-x86", "tsf", "XiaoXiIme.TsfModule.dll"), Path.Combine("native", "win-x86", "tsf")),
+        new(Path.Combine(stagingDirectory, "native", "win-x86", "tools", "XiaoXiIme.TsfAbiHost.exe"), Path.Combine("native", "win-x86", "tools")),
+        new(Path.Combine(stagingDirectory, "native", "win-x64", "ime", "XiaoXiIme.ImeModule.dll"), Path.Combine("native", "win-x64", "ime")),
+        new(Path.Combine(stagingDirectory, "native", "win-x64", "tsf", "XiaoXiIme.TsfModule.dll"), Path.Combine("native", "win-x64", "tsf")),
+        new(Path.Combine(stagingDirectory, "native", "win-x64", "tools", "XiaoXiIme.TsfAbiHost.exe"), Path.Combine("native", "win-x64", "tools")),
+        new(Path.Combine(stagingDirectory, "app", "cli", "XiaoXiIme.Cli.exe"), Path.Combine("app", "cli")),
+        new(Path.Combine(stagingDirectory, "app", "host", "XiaoXiIme.ImeHost.exe"), Path.Combine("app", "host")),
+        new(Path.Combine(stagingDirectory, "app", "tests", "XiaoXiIme.IntegrationTestHost.exe"), Path.Combine("app", "tests")),
     ];
 
     private static async Task<int> RunProcessAsync(BuildCommand command, string workingDirectory, StructuredConsole log)
