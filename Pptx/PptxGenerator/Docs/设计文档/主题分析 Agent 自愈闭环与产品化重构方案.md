@@ -1,5 +1,7 @@
 # 主题分析 Agent 自愈闭环与产品化重构方案
 
+> 历史归档：本文方案已被 `Code/CoursewarePptxGeneratorWpfDemo/Docs/课件主题分析重构方案设计.md` 取代，不再代表当前实现。
+
 > 状态：实施中。已完成 Phase 1 领域基线和 Phase 2 第一批 Draft 工具领域协议，尚未接入 Agent Framework 或切换旧主题分析链路。
 >
 > 范围：重新设计 `CoursewarePptxGeneratorWpfDemo` 的主题分析编排、Agent 工具协议、草稿模型、质量门、失败体验、持久化和测试体系。

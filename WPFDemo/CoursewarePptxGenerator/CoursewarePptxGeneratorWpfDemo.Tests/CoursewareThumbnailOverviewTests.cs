@@ -189,7 +189,7 @@ public sealed class CoursewareThumbnailOverviewTests
         while (view.ThumbnailAspectRatio != expected && DateTime.UtcNow < timeoutAt)
         {
             await PumpDispatcherAsync(window);
-            await Task.Delay(10);
+            await System.Windows.Threading.Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
         }
     }
 

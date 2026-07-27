@@ -106,17 +106,12 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         _themeAnalysisService = themeAnalysisService ?? new CoursewareThemeAnalysisService();
         _slideChatManagerFactory = slideChatManagerFactory ?? new SlideChatManagerFactory();
         _slideSummaryService = slideSummaryService ?? new CoursewareSlideSummaryService();
-        _slidePromptBuilder = slidePromptBuilder ?? new CoursewareSlidePromptBuilder(
-            _slideSummaryService,
-            new CoursewareThemePageDesignAdapter());
+        _slidePromptBuilder = slidePromptBuilder ?? new CoursewareSlidePromptBuilder();
         _dispatcher = dispatcher ?? WpfViewModelDispatcher.Instance;
         CoursewareThumbnails = new ObservableCollection<CoursewareThumbnailItemViewModel>();
         ThemeColors = new ObservableCollection<CoursewareThemeColorViewModel>();
         TypographyLevels = new ObservableCollection<CoursewareTypographyLevelViewModel>();
         LayoutPrinciples = new ObservableCollection<string>();
-        PageTypeRecommendations = new ObservableCollection<CoursewarePageTypeRecommendationViewModel>();
-        ContentRules = new ObservableCollection<CoursewareThemeRuleViewModel>();
-        StyleKeywords = new ObservableCollection<string>();
         AnalysisEvents = new ObservableCollection<CoursewareAnalysisEvent>();
         AnalysisChatMessages = new ObservableCollection<CopilotChatMessage>();
         _enterWorkspaceCommand = new AsyncRelayCommand(
@@ -149,12 +144,12 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Gets the generated courseware theme name.
     /// </summary>
-    public string ThemeTitle => CoursewareSession?.ThemeAnalysisResult?.ThemeTitle ?? "正在形成课件主题";
+    public string ThemeTitle => CoursewareSession?.ThemeAnalysisResult?.Theme.Style ?? "正在形成课件主题";
 
     /// <summary>
     /// Gets the generated courseware theme summary.
     /// </summary>
-    public string ThemeDescription => CoursewareSession?.ThemeAnalysisResult?.ThemeDescription ?? "分析完成后将在这里展示整份课件的统一视觉主题。";
+    public string ThemeDescription => CoursewareSession?.ThemeAnalysisResult?.Theme.SpacingAndVisualEffects ?? "分析完成后将在这里展示整份课件的统一视觉主题。";
 
     /// <summary>
     /// Gets the slide count summary.
@@ -183,81 +178,8 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         {
             if (SetProperty(ref _slideWorkspace, value))
             {
-                OnPropertyChanged(nameof(PageGenerationCapabilityText));
                 _enterWorkspaceCommand.RaiseCanExecuteChanged();
             }
-        }
-    }
-
-    /// <summary>
-    /// Gets the full-text analysis capability status.
-    /// </summary>
-    public string TextAnalysisCapabilityText => FormatCapabilityStatus(
-        CoursewareSession?.ThemeAnalysisResult?.CapabilityStates.TextAnalysis ?? CoursewareCapabilityStatus.NotRequested);
-
-    /// <summary>
-    /// Gets the theme-suggestion capability status.
-    /// </summary>
-    public string ThemeSuggestionCapabilityText => FormatCapabilityStatus(
-        CoursewareSession?.ThemeAnalysisResult?.CapabilityStates.ThemeSuggestion ?? CoursewareCapabilityStatus.NotRequested);
-
-    /// <summary>
-    /// Gets the executable design-system capability status.
-    /// </summary>
-    public string DesignSystemCapabilityText => FormatCapabilityStatus(
-        CoursewareSession?.ThemeAnalysisResult?.CapabilityStates.DesignSystem ?? CoursewareCapabilityStatus.NotRequested);
-
-    /// <summary>
-    /// Gets the template-validation capability status.
-    /// </summary>
-    public string TemplateValidationCapabilityText => FormatCapabilityStatus(
-        CoursewareSession?.ThemeAnalysisResult?.CapabilityStates.TemplateValidation ?? CoursewareCapabilityStatus.NotRequested);
-
-    /// <summary>
-    /// Gets the visual-analysis capability status.
-    /// </summary>
-    public string VisualAnalysisCapabilityText => FormatCapabilityStatus(
-        CoursewareSession?.ThemeAnalysisResult?.CapabilityStates.VisualAnalysis ?? CoursewareCapabilityStatus.NotRequested);
-
-    /// <summary>
-    /// Gets the real page-generation capability status.
-    /// </summary>
-    public string PageGenerationCapabilityText
-    {
-        get
-        {
-            var summary = SlideWorkspace?.Summary;
-            if (summary is null || summary.TotalCount == 0)
-            {
-                return "尚未生成";
-            }
-
-            if (summary.InProgressCount > 0)
-            {
-                return $"正在处理 {summary.InProgressCount} 页";
-            }
-
-            if (summary.CompletedCount == summary.TotalCount)
-            {
-                return "全部页面已完成";
-            }
-
-            if (summary.FailedCount > 0)
-            {
-                return $"存在 {summary.FailedCount} 页失败";
-            }
-
-            if (summary.CanceledCount > 0 && summary.CompletedCount == 0)
-            {
-                return $"已取消 {summary.CanceledCount} 页";
-            }
-
-            if (summary.CompletedCount + summary.FailedCount + summary.CanceledCount == 0)
-            {
-                return "尚未生成";
-            }
-
-            return $"已完成 {summary.CompletedCount} / {summary.TotalCount} 页";
         }
     }
 
@@ -283,12 +205,6 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(ThemeDescription));
                 OnPropertyChanged(nameof(ShowsCoursewareContext));
                 OnPropertyChanged(nameof(ShowsThemeResult));
-                OnPropertyChanged(nameof(TextAnalysisCapabilityText));
-                OnPropertyChanged(nameof(ThemeSuggestionCapabilityText));
-                OnPropertyChanged(nameof(DesignSystemCapabilityText));
-                OnPropertyChanged(nameof(TemplateValidationCapabilityText));
-                OnPropertyChanged(nameof(VisualAnalysisCapabilityText));
-                OnPropertyChanged(nameof(PageGenerationCapabilityText));
             }
         }
     }
@@ -461,20 +377,6 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
     public ObservableCollection<string> LayoutPrinciples { get; }
 
     /// <summary>
-    /// Gets the recommendations for each slide type.
-    /// </summary>
-    public ObservableCollection<CoursewarePageTypeRecommendationViewModel> PageTypeRecommendations { get; }
-
-    /// <summary>
-    /// Gets the content presentation rules.
-    /// </summary>
-    public ObservableCollection<CoursewareThemeRuleViewModel> ContentRules { get; }
-
-    /// <summary>
-    /// Gets style keywords produced by the active theme analysis.
-    /// </summary>
-    public ObservableCollection<string> StyleKeywords { get; }
-
     /// <summary>
     /// Gets user-facing events produced by the active theme analysis.
     /// </summary>
@@ -495,7 +397,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
             var fonts = CoursewareSession?.ThemeAnalysisResult?.Theme.Fonts;
             return fonts is null
                 ? "分析完成后显示字体建议"
-                : $"中文标题：{fonts.EastAsianHeading} · 中文正文：{fonts.EastAsianBody} · 西文：{fonts.LatinHeading} / {fonts.LatinBody}";
+                : $"中文：{fonts.Chinese} · 西文：{fonts.Western}";
         }
     }
 
@@ -509,20 +411,46 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
             var safeArea = CoursewareSession?.ThemeAnalysisResult?.Theme.SafeArea;
             return safeArea is null
                 ? "分析完成后显示安全区"
-                : $"左 {safeArea.Left:0.#} · 上 {safeArea.Top:0.#} · 右 {safeArea.Right:0.#} · 下 {safeArea.Bottom:0.#}";
+                : $"左 {safeArea.LeftRatio:P0} · 上 {safeArea.TopRatio:P0} · 右 {safeArea.RightRatio:P0} · 下 {safeArea.BottomRatio:P0}";
         }
     }
 
     /// <summary>
     /// Gets the color-scheme rationale.
     /// </summary>
-    public string ColorRationale => CoursewareSession?.ThemeAnalysisResult?.Theme.Colors.Rationale ?? "分析完成后显示配色依据。";
+    public string ColorRationale => CoursewareSession?.ThemeAnalysisResult?.Theme.SpacingAndVisualEffects ?? "分析完成后显示间距与视觉效果建议。";
 
     /// <summary>
-    /// Gets combined input and analysis warnings.
+    /// Gets the Theme 2.0 style description.
     /// </summary>
-    public IReadOnlyList<string> AnalysisWarnings => CoursewareSession?.ThemeAnalysisResult?.Warnings
-        ?? CoursewareSession?.InputPackage.Warnings.Select(warning => warning.Message).ToArray()
+    public string ThemeStyle => CoursewareSession?.ThemeAnalysisResult?.Theme.Style ?? string.Empty;
+
+    /// <summary>
+    /// Gets the Theme 2.0 spacing and visual-effects guidance.
+    /// </summary>
+    public string SpacingAndVisualEffects => CoursewareSession?.ThemeAnalysisResult?.Theme.SpacingAndVisualEffects ?? string.Empty;
+
+    /// <summary>
+    /// Gets the Theme 2.0 layout principles.
+    /// </summary>
+    public string ThemeLayoutPrinciples => CoursewareSession?.ThemeAnalysisResult?.Theme.LayoutPrinciples ?? string.Empty;
+
+    /// <summary>
+    /// Gets the complete Theme 2.0 cover-page SlideML.
+    /// </summary>
+    public string CoverPageSlideMl => CoursewareSession?.ThemeAnalysisResult?.Theme.CoverPageSlideMl ?? string.Empty;
+
+    /// <summary>
+    /// Gets the complete Theme 2.0 content-page SlideML.
+    /// </summary>
+    public string ContentPageSlideMl => CoursewareSession?.ThemeAnalysisResult?.Theme.ContentPageSlideMl ?? string.Empty;
+
+    /// <summary>
+    /// Gets courseware input warnings.
+    /// </summary>
+    public IReadOnlyList<string> AnalysisWarnings => CoursewareSession?.InputPackage.Warnings
+        .Select(warning => warning.Message)
+        .ToArray()
         ?? [];
 
     /// <summary>
@@ -682,11 +610,10 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
                 progress,
                 CreateAnalysisMessageProgress(package, cancellationTokenSource),
                 cancellationTokenSource.Token).ConfigureAwait(false);
-            await _themeAnalysisSnapshotStore.SaveAsync(
-                    package,
-                    analysisResult,
-                    cancellationTokenSource.Token)
-                .ConfigureAwait(false);
+            await SaveThemeAnalysisSnapshotAsync(
+                package,
+                analysisResult,
+                cancellationTokenSource.Token).ConfigureAwait(false);
             await _dispatcher.InvokeAsync(() => PublishAnalysisResult(package, cancellationTokenSource, analysisResult));
         }
         catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
@@ -760,11 +687,10 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
                 progress,
                 CreateAnalysisMessageProgress(session.InputPackage, cancellationTokenSource),
                 cancellationTokenSource.Token).ConfigureAwait(false);
-            await _themeAnalysisSnapshotStore.SaveAsync(
-                    session.InputPackage,
-                    analysisResult,
-                    cancellationTokenSource.Token)
-                .ConfigureAwait(false);
+            await SaveThemeAnalysisSnapshotAsync(
+                session.InputPackage,
+                analysisResult,
+                cancellationTokenSource.Token).ConfigureAwait(false);
             await _dispatcher.InvokeAsync(() => PublishAnalysisResult(session.InputPackage, cancellationTokenSource, analysisResult));
         }
         catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
@@ -815,6 +741,17 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         CommitThemeAnalysisResult(CoursewareSession, analysisResult);
     }
 
+    private async Task SaveThemeAnalysisSnapshotAsync(
+        CoursewareInputPackage inputPackage,
+        CoursewareThemeAnalysisResult analysisResult,
+        CancellationToken cancellationToken)
+    {
+        _ = await _themeAnalysisSnapshotStore.SaveAsync(
+            inputPackage,
+            analysisResult,
+            cancellationToken).ConfigureAwait(false);
+    }
+
     private void PublishRestoredAnalysisResult(
         CoursewareInputPackage inputPackage,
         CancellationTokenSource workflowCancellationTokenSource,
@@ -859,13 +796,12 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(FontRecommendationText));
         OnPropertyChanged(nameof(SafeAreaText));
         OnPropertyChanged(nameof(ColorRationale));
+        OnPropertyChanged(nameof(ThemeStyle));
+        OnPropertyChanged(nameof(SpacingAndVisualEffects));
+        OnPropertyChanged(nameof(ThemeLayoutPrinciples));
+        OnPropertyChanged(nameof(CoverPageSlideMl));
+        OnPropertyChanged(nameof(ContentPageSlideMl));
         OnPropertyChanged(nameof(AnalysisWarnings));
-        OnPropertyChanged(nameof(TextAnalysisCapabilityText));
-        OnPropertyChanged(nameof(ThemeSuggestionCapabilityText));
-        OnPropertyChanged(nameof(DesignSystemCapabilityText));
-        OnPropertyChanged(nameof(TemplateValidationCapabilityText));
-        OnPropertyChanged(nameof(VisualAnalysisCapabilityText));
-        OnPropertyChanged(nameof(PageGenerationCapabilityText));
     }
 
     private IProgress<CoursewareAnalysisEvent> CreateAnalysisProgress(
@@ -918,18 +854,6 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         }
     }
 
-    private static string FormatCapabilityStatus(CoursewareCapabilityStatus status)
-    {
-        return status switch
-        {
-            CoursewareCapabilityStatus.Passed => CoursewareUiStrings.CapabilityPassed,
-            CoursewareCapabilityStatus.NotRequested => CoursewareUiStrings.CapabilityNotRequested,
-            CoursewareCapabilityStatus.NotSupported => CoursewareUiStrings.CapabilityNotSupported,
-            CoursewareCapabilityStatus.Failed => CoursewareUiStrings.CapabilityFailed,
-            _ => throw new ArgumentOutOfRangeException(nameof(status), status, CoursewareUiStrings.UnknownCapabilityStatus),
-        };
-    }
-
     private void UpdateAnalysisStage(CoursewareAnalysisEvent analysisEvent)
     {
         var existingIndex = -1;
@@ -960,61 +884,33 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
     private void ApplyThemePresentation(CoursewareTheme theme)
     {
         ThemeColors.Clear();
-        foreach (var color in theme.Colors.EnumerateColors())
+        foreach (var color in theme.ColorSuggestions)
         {
-            ThemeColors.Add(new CoursewareThemeColorViewModel(color.Usage, color.Name, color.HexValue));
+            ThemeColors.Add(new CoursewareThemeColorViewModel(color.Name, color.Usage, color.Hex));
         }
 
         TypographyLevels.Clear();
-        foreach (var level in theme.Typography.EnumerateLevels())
-        {
-            TypographyLevels.Add(new CoursewareTypographyLevelViewModel(
-                level.Name,
-                $"{level.FontSize:0.#} / {level.FontWeight}",
-                level.Purpose));
-        }
-
-        ReplaceItems(StyleKeywords, theme.StyleKeywords);
-        ReplaceItems(LayoutPrinciples, theme.LayoutPrinciples);
-
-        PageTypeRecommendations.Clear();
-        var recommendationNumber = 1;
-        foreach (var recommendation in theme.PageTypes.EnumerateRecommendations())
-        {
-            PageTypeRecommendations.Add(new CoursewarePageTypeRecommendationViewModel(
-                recommendation.Name,
-                recommendationNumber.ToString("00"),
-                recommendation.Description));
-            recommendationNumber++;
-        }
-
-        ContentRules.Clear();
-        foreach (var rule in theme.ContentPresentationRules)
-        {
-            ContentRules.Add(new CoursewareThemeRuleViewModel("内容呈现", rule));
-        }
+        TypographyLevels.Add(new CoursewareTypographyLevelViewModel("中文字体", theme.Fonts.Chinese));
+        TypographyLevels.Add(new CoursewareTypographyLevelViewModel("西文字体", theme.Fonts.Western));
+        ReplaceItems(LayoutPrinciples, [theme.LayoutPrinciples]);
     }
 
     private void ClearAnalysisPresentation()
     {
         AnalysisEvents.Clear();
         AnalysisChatMessages.Clear();
-        StyleKeywords.Clear();
         ThemeColors.Clear();
         TypographyLevels.Clear();
         LayoutPrinciples.Clear();
-        PageTypeRecommendations.Clear();
-        ContentRules.Clear();
         OnPropertyChanged(nameof(FontRecommendationText));
         OnPropertyChanged(nameof(SafeAreaText));
         OnPropertyChanged(nameof(ColorRationale));
+        OnPropertyChanged(nameof(ThemeStyle));
+        OnPropertyChanged(nameof(SpacingAndVisualEffects));
+        OnPropertyChanged(nameof(ThemeLayoutPrinciples));
+        OnPropertyChanged(nameof(CoverPageSlideMl));
+        OnPropertyChanged(nameof(ContentPageSlideMl));
         OnPropertyChanged(nameof(AnalysisWarnings));
-        OnPropertyChanged(nameof(TextAnalysisCapabilityText));
-        OnPropertyChanged(nameof(ThemeSuggestionCapabilityText));
-        OnPropertyChanged(nameof(DesignSystemCapabilityText));
-        OnPropertyChanged(nameof(TemplateValidationCapabilityText));
-        OnPropertyChanged(nameof(VisualAnalysisCapabilityText));
-        OnPropertyChanged(nameof(PageGenerationCapabilityText));
     }
 
     private static void ReplaceItems<T>(ObservableCollection<T> target, IEnumerable<T> source)
@@ -1071,28 +967,13 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         ArgumentNullException.ThrowIfNull(workspace);
         DisposeSlideWorkspace();
         SlideWorkspace = workspace;
-        workspace.PropertyChanged += OnSlideWorkspacePropertyChanged;
     }
 
     private void DisposeSlideWorkspace()
     {
         var workspace = SlideWorkspace;
-        if (workspace is not null)
-        {
-            workspace.PropertyChanged -= OnSlideWorkspacePropertyChanged;
-        }
-
         SlideWorkspace = null;
         workspace?.Dispose();
-    }
-
-    private void OnSlideWorkspacePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName is nameof(CoursewareSlideWorkspaceViewModel.Summary)
-            or nameof(CoursewareSlideWorkspaceViewModel.SummaryText))
-        {
-            OnPropertyChanged(nameof(PageGenerationCapabilityText));
-        }
     }
 
     private void HandleUnexpectedCommandException(Exception exception)
@@ -1112,20 +993,11 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
 /// <summary>
 /// Represents a color in the analyzed theme.
 /// </summary>
-public sealed record CoursewareThemeColorViewModel(string Usage, string Name, string HexValue);
+public sealed record CoursewareThemeColorViewModel(string Name, string Usage, string Hex);
 
 /// <summary>
 /// Represents one level in the analyzed typography hierarchy.
 /// </summary>
-public sealed record CoursewareTypographyLevelViewModel(string Name, string Specification, string Purpose);
+public sealed record CoursewareTypographyLevelViewModel(string Name, string Specification);
 
-/// <summary>
-/// Represents the recommendation for one slide type.
-/// </summary>
-public sealed record CoursewarePageTypeRecommendationViewModel(string Name, string Number, string Description);
-
-/// <summary>
-/// Represents one content presentation rule.
-/// </summary>
-public sealed record CoursewareThemeRuleViewModel(string Title, string Description);
 

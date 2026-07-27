@@ -16,7 +16,7 @@
     <value>课件文本分析完成</value>
   </data>
   <data name="AnalysisCompletedMessageFormat" xml:space="preserve">
-    <value>已形成“{0}”主题建议，可进入页面美化工作台；设计系统、模板与视觉分析尚未接入。</value>
+    <value>已形成“{0}”Theme 2.0 结果，可进入页面美化工作台。</value>
   </data>
   <data name="AnalysisReadyStatus" xml:space="preserve">
     <value>课件文本分析完成</value>

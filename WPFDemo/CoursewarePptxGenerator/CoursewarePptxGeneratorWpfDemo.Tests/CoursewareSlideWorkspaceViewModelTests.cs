@@ -99,6 +99,63 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         Assert.IsGreaterThanOrEqualTo(4, slide.CopilotChatManager?.ChatMessages.Count ?? 0);
     }
 
+    [TestMethod(DisplayName = "重分析应保留页面状态并只让未来首轮使用新主题")]
+    [Timeout(60_000)]
+    public async Task ThemeUpdateShouldPreserveStateAndOnlyAffectFutureInitialMessages()
+    {
+        var session = await CreateSessionAsync();
+        var oldTheme = session.ThemeAnalysisResult!.Theme with { Style = "旧主题标记" };
+        session.ThemeAnalysisResult = new CoursewareThemeAnalysisResult { Theme = oldTheme };
+        var factory = new RecordingSlideChatManagerFactory([
+            "<Page><TextElement Id=\"first\" Text=\"第一页完成\"/></Page>",
+            "<Page><TextElement Id=\"second\" Text=\"第二页完成\"/></Page>",
+            "<TextElement Id=\"first\" Text=\"第一页追问\"/>"
+        ]);
+        using var workspace = CreateWorkspace(session, factory);
+        await workspace.ActivateAsync();
+        var firstSlide = workspace.Slides[0];
+
+        await workspace.SendMessageCommand.ExecuteAsync(firstSlide);
+
+        workspace.SelectedSlide = workspace.Slides[1];
+        await workspace.SelectedSlideInitializationTask;
+        var secondSlide = workspace.Slides[1];
+        secondSlide.InputText = "第二页用户草稿";
+        var secondRuntime = secondSlide.Runtime;
+        var newTheme = oldTheme with
+        {
+            Style = "新主题标记",
+            CoverPageSlideMl = "<Page><TextElement Text=\"new-cover\" /></Page>",
+            ContentPageSlideMl = "<Page><TextElement Text=\"new-content\" /></Page>",
+        };
+
+        workspace.UpdateThemeAnalysisResult(new CoursewareThemeAnalysisResult { Theme = newTheme });
+
+        Assert.AreSame(secondRuntime, secondSlide.Runtime);
+        Assert.AreEqual("第二页用户草稿", secondSlide.InputText);
+        Assert.IsTrue(firstSlide.HasStartedGenerationConversation);
+        await workspace.SendMessageCommand.ExecuteAsync(secondSlide);
+
+        Assert.HasCount(2, factory.CapturedRequests);
+        StringAssert.Contains(factory.CapturedRequests[0].UserMessage, "旧主题标记");
+        Assert.IsFalse(factory.CapturedRequests[0].UserMessage.Contains("新主题标记", StringComparison.Ordinal));
+        StringAssert.Contains(factory.CapturedRequests[1].UserMessage, "新主题标记");
+        StringAssert.Contains(factory.CapturedRequests[1].UserMessage, "new-cover");
+        StringAssert.Contains(factory.CapturedRequests[1].UserMessage, "new-content");
+        var secondEnvelope = DeserializeWrappedEnvelope(factory.CapturedRequests[1].UserMessage);
+        Assert.AreEqual("第二页用户草稿", secondEnvelope.Task.UserInstruction);
+
+        workspace.SelectedSlide = firstSlide;
+        await workspace.SelectedSlideInitializationTask;
+        firstSlide.InputText = "第一页继续精简";
+        await workspace.SendMessageCommand.ExecuteAsync(firstSlide);
+
+        Assert.HasCount(3, factory.CapturedRequests);
+        Assert.AreEqual("第一页继续精简", factory.CapturedRequests[2].UserMessage);
+        Assert.IsFalse(factory.CapturedRequests[2].UserMessage.Contains("新主题标记", StringComparison.Ordinal));
+        Assert.AreEqual(2, factory.CreateCount);
+    }
+
     [TestMethod(DisplayName = "首轮发送取消后应保留可见草稿附件并允许同页重试")]
     [Timeout(60_000)]
     public async Task CancelGenerationShouldKeepInputAndAllowRetry()
@@ -302,9 +359,7 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         return new CoursewareSlideWorkspaceViewModel(
             session,
             factory,
-            new CoursewareSlidePromptBuilder(
-                new CoursewareSlideSummaryService(),
-                new CoursewareThemePageDesignAdapter()),
+            new CoursewareSlidePromptBuilder(),
             new CoursewareSlideSummaryService(),
             new ImmediateViewModelDispatcher());
     }

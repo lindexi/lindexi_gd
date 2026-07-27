@@ -1,56 +1,46 @@
 using System.IO;
+using System.Text.Json.Serialization;
 using CoursewarePptxGenerator.Core.Models;
 
 namespace CoursewarePptxGeneratorWpfDemo.Models;
 
 /// <summary>
-/// Defines the persisted manifest for a self-contained courseware theme-analysis snapshot.
+/// Identifies the files required to restore a self-contained theme-analysis snapshot.
 /// </summary>
 public sealed record CoursewareThemeAnalysisSnapshotManifest
 {
     /// <summary>
-    /// Gets the file name that identifies a theme-analysis snapshot directory.
+    /// Gets the supported snapshot schema version.
     /// </summary>
-    public const string FileName = "CoursewareThemeAnalysis.json";
-
-    /// <summary>
-    /// Gets the snapshot schema version supported by this application.
-    /// </summary>
-    public const string CurrentSchemaVersion = "courseware-theme-analysis-snapshot/v1";
+    public const int CurrentSchemaVersion = 2;
 
     /// <summary>
     /// Gets the snapshot schema version.
     /// </summary>
-    public required string SchemaVersion { get; init; }
+    [JsonPropertyName("Version")]
+    public int Version { get; init; } = CurrentSchemaVersion;
 
     /// <summary>
-    /// Gets the time when the snapshot was created.
+    /// Gets the snapshot creation time.
     /// </summary>
-    public required DateTimeOffset CreatedAt { get; init; }
+    [JsonPropertyName("CreatedAt")]
+    public DateTimeOffset CreatedAt { get; init; }
 
     /// <summary>
-    /// Gets the courseware display name captured by the snapshot.
+    /// Gets the relative path to the copied courseware manifest.
     /// </summary>
-    public required string CoursewareName { get; init; }
+    [JsonPropertyName("CoursewareManifestFile")]
+    public required string CoursewareManifestFile { get; init; }
 
     /// <summary>
-    /// Gets the number of slides captured by the snapshot.
+    /// Gets the relative path to the Theme 2.0 JSON file.
     /// </summary>
-    public required int SlideCount { get; init; }
-
-    /// <summary>
-    /// Gets the fingerprint of the logical courseware facts copied into the snapshot.
-    /// </summary>
-    public required string SourceFingerprint { get; init; }
-
-    /// <summary>
-    /// Gets the complete validated theme-analysis result.
-    /// </summary>
-    public required CoursewareThemeAnalysisResult AnalysisResult { get; init; }
+    [JsonPropertyName("ThemeFile")]
+    public required string ThemeFile { get; init; }
 }
 
 /// <summary>
-/// Represents a validated theme-analysis snapshot loaded from local storage.
+/// Represents a theme-analysis snapshot loaded from local storage.
 /// </summary>
 public sealed record CoursewareThemeAnalysisSnapshot
 {
@@ -60,17 +50,12 @@ public sealed record CoursewareThemeAnalysisSnapshot
     public required DirectoryInfo SnapshotDirectory { get; init; }
 
     /// <summary>
-    /// Gets the normalized courseware input package loaded from the snapshot.
+    /// Gets the courseware input package loaded from the snapshot.
     /// </summary>
     public required CoursewareInputPackage InputPackage { get; init; }
 
     /// <summary>
-    /// Gets the validated persisted manifest.
-    /// </summary>
-    public required CoursewareThemeAnalysisSnapshotManifest Manifest { get; init; }
-
-    /// <summary>
     /// Gets the restored theme-analysis result.
     /// </summary>
-    public CoursewareThemeAnalysisResult AnalysisResult => Manifest.AnalysisResult;
+    public required CoursewareThemeAnalysisResult AnalysisResult { get; init; }
 }

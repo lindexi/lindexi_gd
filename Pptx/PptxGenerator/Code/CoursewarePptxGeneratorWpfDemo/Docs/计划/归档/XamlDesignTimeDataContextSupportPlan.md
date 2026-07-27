@@ -1,5 +1,7 @@
 # XAML 设计时 DataContext 支持改造方案（审批稿）
 
+> 历史归档：本文仅保留历史背景，已被 `../../课件主题分析重构方案设计.md` 取代，不再代表当前实现。
+
 > 适用范围：`CoursewarePptxGeneratorWpfDemo`（现有可运行 MVVM 示例），目标是让 XAML 在 Blend/Visual Studio 设计器中具备完整的设计时上下文和可视化数据。
 
 ## 1. 结论

@@ -6,6 +6,11 @@
 public interface ISlideMlPromptProvider
 {
     /// <summary>
+    /// 构建完整 Page 文档使用的 SlideML 语法规范。
+    /// </summary>
+    string BuildCompleteDocumentSpecificationPrompt();
+
+    /// <summary>
     /// 构建 SlideML 排版引擎系统提示词。
     /// </summary>
     string BuildSystemPrompt();

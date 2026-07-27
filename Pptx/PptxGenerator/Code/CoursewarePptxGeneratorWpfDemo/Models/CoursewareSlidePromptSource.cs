@@ -3,21 +3,18 @@ using CoursewarePptxGenerator.Core.Models;
 namespace CoursewarePptxGeneratorWpfDemo.Models;
 
 /// <summary>
-/// Holds the immutable courseware facts and one prepared privacy-safe analysis view used by page prompts.
+/// Holds the immutable courseware input and validated theme result used by page prompts.
 /// </summary>
 public sealed class CoursewareSlidePromptSource
 {
     internal CoursewareSlidePromptSource(
         CoursewareInputPackage inputPackage,
-        CoursewareThemeAnalysisResult analysisResult,
-        CoursewareAnalysisEnvelope analysisEnvelope)
+        CoursewareTheme theme)
     {
         ArgumentNullException.ThrowIfNull(inputPackage);
-        ArgumentNullException.ThrowIfNull(analysisResult);
-        ArgumentNullException.ThrowIfNull(analysisEnvelope);
+        ArgumentNullException.ThrowIfNull(theme);
         InputPackage = inputPackage;
-        AnalysisResult = analysisResult;
-        AnalysisEnvelope = analysisEnvelope;
+        Theme = theme;
     }
 
     /// <summary>
@@ -26,9 +23,7 @@ public sealed class CoursewareSlidePromptSource
     public CoursewareInputPackage InputPackage { get; }
 
     /// <summary>
-    /// Gets the validated theme analysis result.
+    /// Gets the complete original Theme 2.0 result.
     /// </summary>
-    public CoursewareThemeAnalysisResult AnalysisResult { get; }
-
-    internal CoursewareAnalysisEnvelope AnalysisEnvelope { get; }
+    public CoursewareTheme Theme { get; }
 }

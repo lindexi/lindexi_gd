@@ -1,5 +1,7 @@
 # CoursewarePptxGeneratorWpfDemo 实施计划
 
+> 历史归档：本文仅保留历史背景，已被 `../../课件主题分析重构方案设计.md` 取代，不再代表当前实现。
+
 ## 目标
 
 完成 `CoursewarePptxGeneratorWpfDemo`，使其在视觉上承接视觉稿项目的三栏工作台设计，并在功能上复用现有单页美化 Demo 的 SlideML 生成、渲染、评估与聊天能力，逐步扩展为面向整个课件的美化处理程序。

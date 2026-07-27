@@ -1,4 +1,6 @@
 
+
+> 历史归档：本文仅保留历史背景，已被 `../../课件主题分析重构方案设计.md` 取代，不再代表当前实现。
 本文基于 `CoursewareFolderOpenWorkflowThinking.md`、`CoursewareMarkdownExportFormat.md` 和 `CoursewareOutputExportFormat.md`，细化 `CoursewarePptxGeneratorWpfDemo` 中“打开课件文件夹”功能的开发计划、设计细节和实现步骤。
 
 目标是把当前仅记录文件夹路径的入口，升级为课件 Markdown 导出目录的本地加载入口，为后续全局主题分析、逐页美化、资源引用解析和批量输出打好基础。

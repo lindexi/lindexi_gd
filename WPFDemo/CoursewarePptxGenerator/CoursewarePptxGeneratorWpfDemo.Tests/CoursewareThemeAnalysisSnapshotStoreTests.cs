@@ -5,264 +5,277 @@ using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.Tests.Fakes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PptxGenerator.Models;
 
 namespace CoursewarePptxGeneratorWpfDemo.Tests;
 
 [TestClass]
 public sealed class CoursewareThemeAnalysisSnapshotStoreTests
 {
-    [TestMethod(DisplayName = "保存主题分析快照应生成可独立恢复的完整目录")]
+    private static readonly DateTimeOffset FixedTimestamp = DateTimeOffset.Parse("2026-07-22T03:44:47.123+08:00");
+
+    [TestMethod(DisplayName = "快照 v2 应自包含恢复必要课件数据且不保存旧分析字段")]
     [Timeout(60_000)]
-    public async Task SaveAsyncShouldCreateSelfContainedRestorableDirectory()
+    public async Task Version2SnapshotShouldRestoreSelfContainedDataWithoutLegacyFields()
     {
         var exportDirectory = new TestCoursewareExportBuilder()
-            .AddSlide("slide-first", CreateSlideMarkdown("第一页", "第一页内容"))
-            .AddSlide("slide-second", CreateSlideMarkdown("第二页", "第二页内容"), hasScreenshot: false)
-            .AddResource("resource-existing", "image", "existing.png")
-            .AddResource("resource-missing", "audio", "missing.mp3", exists: false)
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容 resource-first"), width: 1600, height: 900)
+            .AddSlide("slide-second", CreateSlideMarkdown("第二页标题", "第二页内容"), hasScreenshot: false, width: 1600, height: 900)
+            .AddResource("resource-first", "image", "resource-first.png")
+            .AddResource("resource-missing", "image", "resource-missing.png", exists: false)
             .Build();
         var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
-        var analysisResult = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package);
+        var result = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package);
         var outputRoot = CreateOutputRoot();
-        var createdAt = DateTimeOffset.Parse("2026-07-22T03:44:47.123+08:00");
-        var store = new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName, () => createdAt);
+        var store = new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName, () => FixedTimestamp);
 
-        var snapshotDirectory = await store.SaveAsync(package, analysisResult);
+        var snapshotDirectory = await store.SaveAsync(package, result);
+        Directory.Delete(exportDirectory.FullName, recursive: true);
         var restored = await store.LoadAsync(snapshotDirectory.FullName);
+        var manifestText = await File.ReadAllTextAsync(Path.Join(snapshotDirectory.FullName, store.ManifestFileName));
 
-        Assert.AreEqual("CoursewareThemeAnalysis_20260722_034447_123", snapshotDirectory.Name);
-        Assert.IsTrue(File.Exists(Path.Join(snapshotDirectory.FullName, CoursewareThemeAnalysisSnapshotManifest.FileName)));
-        Assert.IsTrue(File.Exists(Path.Join(snapshotDirectory.FullName, "Courseware.json")));
-        Assert.IsTrue(File.Exists(Path.Join(snapshotDirectory.FullName, "Slides", "Slide000.md")));
-        Assert.IsTrue(File.Exists(Path.Join(snapshotDirectory.FullName, "Slides", "Slide000.jpg")));
-        Assert.IsTrue(File.Exists(Path.Join(snapshotDirectory.FullName, "Slides", "Slide001.md")));
-        Assert.IsFalse(File.Exists(Path.Join(snapshotDirectory.FullName, "Slides", "Slide001.jpg")));
-        Assert.IsTrue(File.Exists(Path.Join(snapshotDirectory.FullName, "Resources", "Resources.json")));
-        Assert.IsTrue(File.Exists(Path.Join(snapshotDirectory.FullName, "Resources", "existing.png")));
-        Assert.IsFalse(File.Exists(Path.Join(snapshotDirectory.FullName, "Resources", "missing.mp3")));
-        Assert.AreEqual(package.CoursewareName, restored.InputPackage.CoursewareName);
-        Assert.AreEqual(package.SlideCount, restored.InputPackage.SlideCount);
-        Assert.AreEqual(analysisResult.Theme.Title, restored.AnalysisResult.Theme.Title);
-        Assert.AreEqual(analysisResult.ReferenceCanvas.CanvasWidth, restored.AnalysisResult.ReferenceCanvas.CanvasWidth);
-        CollectionAssert.AreEquivalent(
-            new[] { "MissingScreenshotFile", "MissingResourceFile" },
-            restored.InputPackage.Warnings.Select(warning => warning.Code).ToArray());
-        var manifestText = await File.ReadAllTextAsync(Path.Join(
-            snapshotDirectory.FullName,
-            CoursewareThemeAnalysisSnapshotManifest.FileName));
-        Assert.IsFalse(manifestText.Contains(exportDirectory.FullName, StringComparison.OrdinalIgnoreCase));
+        Assert.AreEqual(snapshotDirectory.FullName, restored.InputPackage.RootDirectory.FullName);
+        Assert.HasCount(2, restored.InputPackage.Slides);
+        Assert.AreEqual(1600d, restored.InputPackage.Slides[0].Width);
+        Assert.AreEqual(900d, restored.InputPackage.Slides[0].Height);
+        Assert.IsTrue(restored.InputPackage.Slides[0].ScreenshotFile?.Exists);
+        Assert.IsNull(restored.InputPackage.Slides[1].ScreenshotFile);
+        Assert.IsTrue(restored.InputPackage.Resources.Single(resource => resource.ResourceId == "resource-first").Exists);
+        Assert.IsFalse(restored.InputPackage.Resources.Single(resource => resource.ResourceId == "resource-missing").Exists);
+        Assert.IsFalse(File.Exists(Path.Join(snapshotDirectory.FullName, "Resources", "resource-missing.png")));
+        Assert.AreEqual(result.Theme.Style, restored.AnalysisResult.Theme.Style);
+        CollectionAssert.AreEqual(
+            result.Theme.ColorSuggestions.ToArray(),
+            restored.AnalysisResult.Theme.ColorSuggestions.ToArray());
+        StringAssert.Contains(manifestText, "\"Version\":2");
+        Assert.IsFalse(manifestText.Contains("SourceFingerprint", StringComparison.Ordinal));
+        Assert.IsFalse(manifestText.Contains("AnalysisViewFingerprint", StringComparison.Ordinal));
+        Assert.IsFalse(manifestText.Contains("DesignSystem", StringComparison.Ordinal));
+        Assert.IsFalse(manifestText.Contains("StructuredFacts", StringComparison.Ordinal));
+        Assert.IsFalse(manifestText.Contains("ValidationReport", StringComparison.Ordinal));
+        Assert.IsFalse(manifestText.Contains("Token", StringComparison.Ordinal));
     }
 
-    [TestMethod(DisplayName = "同一毫秒连续保存主题分析应保留两个独立快照")]
+    [TestMethod(DisplayName = "快照加载应明确拒绝 v1 并在错误中包含版本")]
     [Timeout(60_000)]
-    public async Task SaveAsyncShouldAppendSuffixWhenTimestampDirectoryAlreadyExists()
+    public async Task LoadShouldRejectVersion1WithVersionInMessage()
+    {
+        var directory = CreateOutputRoot();
+        await File.WriteAllTextAsync(Path.Join(directory.FullName, "CoursewareThemeAnalysis.json"), "{\"Version\":1}");
+        var store = new CoursewareThemeAnalysisSnapshotStore(CreateOutputRoot().FullName);
+
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(() => store.LoadAsync(directory.FullName));
+
+        StringAssert.Contains(exception.Message, "1");
+    }
+
+    [TestMethod(DisplayName = "快照加载应明确拒绝未知版本并在错误中包含版本")]
+    [Timeout(60_000)]
+    public async Task LoadShouldRejectUnknownVersionWithVersionInMessage()
+    {
+        var directory = CreateOutputRoot();
+        await File.WriteAllTextAsync(Path.Join(directory.FullName, "CoursewareThemeAnalysis.json"), "{\"Version\":99}");
+        var store = new CoursewareThemeAnalysisSnapshotStore(CreateOutputRoot().FullName);
+
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(() => store.LoadAsync(directory.FullName));
+
+        StringAssert.Contains(exception.Message, "99");
+    }
+
+    [TestMethod(DisplayName = "快照缺少必要文件时应明确失败")]
+    [Timeout(60_000)]
+    public async Task LoadShouldFailWhenRequiredFileIsMissing()
+    {
+        var (store, snapshotDirectory) = await CreateSnapshotAsync();
+        File.Delete(Path.Join(snapshotDirectory.FullName, "Slides", "Slide000.md"));
+
+        var exception = await Assert.ThrowsAsync<FileNotFoundException>(() => store.LoadAsync(snapshotDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, "Markdown");
+    }
+
+    [TestMethod(DisplayName = "快照清单路径越界时应明确失败")]
+    [Timeout(60_000)]
+    public async Task LoadShouldRejectManifestPathTraversal()
+    {
+        var (store, snapshotDirectory) = await CreateSnapshotAsync();
+        await RewriteManifestAsync(snapshotDirectory, themeFile: "../Theme.json");
+
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(() => store.LoadAsync(snapshotDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, "路径");
+    }
+
+    [TestMethod(DisplayName = "快照 Theme 2.0 字段非法时应明确失败")]
+    [Timeout(60_000)]
+    public async Task LoadShouldRejectInvalidTheme()
+    {
+        var (store, snapshotDirectory) = await CreateSnapshotAsync();
+        var themePath = Path.Join(snapshotDirectory.FullName, "Theme", "Theme.json");
+        var theme = await ReadThemeAsync(themePath);
+        await WriteThemeAsync(themePath, theme with { ColorSuggestions = [] });
+
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(() => store.LoadAsync(snapshotDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, "ColorSuggestions");
+    }
+
+    [TestMethod(DisplayName = "快照 Theme 2.0 的 SlideML 非法时应明确失败")]
+    [Timeout(60_000)]
+    public async Task LoadShouldRejectInvalidSlideMl()
+    {
+        var (store, snapshotDirectory) = await CreateSnapshotAsync();
+        var themePath = Path.Join(snapshotDirectory.FullName, "Theme", "Theme.json");
+        var theme = await ReadThemeAsync(themePath);
+        await WriteThemeAsync(themePath, theme with { CoverPageSlideMl = "<?xml version=\"1.0\"?><Page>" });
+
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(() => store.LoadAsync(snapshotDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, "CoverPageSlideMl");
+    }
+
+    [TestMethod(DisplayName = "快照应使用首张页面的非标准画布校验 SlideML")]
+    [Timeout(60_000)]
+    public async Task LoadShouldValidateSlideMlAgainstFirstSlideNonStandardCanvas()
     {
         var exportDirectory = new TestCoursewareExportBuilder()
-            .AddSlide("slide-first", CreateSlideMarkdown("第一页", "第一页内容"))
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"), width: 800, height: 600)
             .Build();
         var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
-        var analysisResult = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package);
-        var outputRoot = CreateOutputRoot();
-        var createdAt = DateTimeOffset.Parse("2026-07-22T03:44:47.123+08:00");
-        var store = new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName, () => createdAt);
-
-        var first = await store.SaveAsync(package, analysisResult);
-        var second = await store.SaveAsync(package, analysisResult);
-
-        Assert.AreEqual("CoursewareThemeAnalysis_20260722_034447_123", first.Name);
-        Assert.AreEqual("CoursewareThemeAnalysis_20260722_034447_123_1", second.Name);
-        Assert.IsTrue(Directory.Exists(first.FullName));
-        Assert.IsTrue(Directory.Exists(second.FullName));
-    }
-
-    [TestMethod(DisplayName = "修改快照页面 Markdown 后恢复应因源事实指纹不一致而失败")]
-    [Timeout(60_000)]
-    public async Task LoadAsyncShouldRejectTamperedMarkdown()
-    {
-        var snapshotDirectory = await CreateSnapshotAsync();
-        await File.AppendAllTextAsync(
-            Path.Join(snapshotDirectory.FullName, "Slides", "Slide000.md"),
-            "\n\n已篡改内容");
-        var store = new CoursewareThemeAnalysisSnapshotStore(snapshotDirectory.Parent!.FullName);
-
-        var exception = await Assert.ThrowsExactlyAsync<InvalidDataException>(
-            () => store.LoadAsync(snapshotDirectory.FullName));
-
-        StringAssert.Contains(exception.Message, "源事实指纹");
-    }
-
-    [TestMethod(DisplayName = "修改快照参考画布后恢复应明确拒绝")]
-    [Timeout(60_000)]
-    public async Task LoadAsyncShouldRejectMismatchedReferenceCanvas()
-    {
-        var snapshotDirectory = await CreateSnapshotAsync();
-        var manifestPath = Path.Join(snapshotDirectory.FullName, CoursewareThemeAnalysisSnapshotManifest.FileName);
-        CoursewareThemeAnalysisSnapshotManifest manifest;
-        await using (var readStream = File.OpenRead(manifestPath))
+        var result = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package) with
         {
-            manifest = (await JsonSerializer.DeserializeAsync(
-                readStream,
-                CoursewareThemeAnalysisSnapshotJsonSerializerContext.Default.CoursewareThemeAnalysisSnapshotManifest))!;
-        }
-
-        var tamperedManifest = manifest with
-        {
-            AnalysisResult = manifest.AnalysisResult with
+            Theme = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package).Theme with
             {
-                ReferenceCanvas = new SlideDocumentContext(1024, 768),
+                CoverPageSlideMl = "<?xml version=\"1.0\"?><Page><Rect Id=\"r\" X=\"900\" Y=\"10\" Width=\"20\" Height=\"20\" Fill=\"#000000\" /></Page>",
             },
         };
-        await using (var writeStream = new FileStream(manifestPath, FileMode.Create, FileAccess.Write, FileShare.None))
-        {
-            await JsonSerializer.SerializeAsync(
-                writeStream,
-                tamperedManifest,
-                CoursewareThemeAnalysisSnapshotJsonSerializerContext.Default.CoursewareThemeAnalysisSnapshotManifest);
-        }
-        var store = new CoursewareThemeAnalysisSnapshotStore(snapshotDirectory.Parent!.FullName);
+        var store = new CoursewareThemeAnalysisSnapshotStore(CreateOutputRoot().FullName);
+        var snapshotDirectory = await store.SaveAsync(package, result);
 
-        var exception = await Assert.ThrowsExactlyAsync<InvalidDataException>(
-            () => store.LoadAsync(snapshotDirectory.FullName));
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(() => store.LoadAsync(snapshotDirectory.FullName));
 
-        StringAssert.Contains(exception.Message, "参考画布");
+        StringAssert.Contains(exception.Message, "超出画布");
     }
 
-    [TestMethod(DisplayName = "快照版本不受支持时恢复应明确拒绝")]
+    [TestMethod(DisplayName = "保存取消时不应创建快照目录")]
     [Timeout(60_000)]
-    public async Task LoadAsyncShouldRejectUnsupportedSchemaVersion()
-    {
-        var snapshotDirectory = await CreateSnapshotAsync();
-        var manifest = await ReadManifestAsync(snapshotDirectory);
-        await WriteManifestAsync(snapshotDirectory, manifest with { SchemaVersion = "unsupported/v99" });
-        var store = new CoursewareThemeAnalysisSnapshotStore(snapshotDirectory.Parent!.FullName);
-
-        var exception = await Assert.ThrowsExactlyAsync<InvalidDataException>(
-            () => store.LoadAsync(snapshotDirectory.FullName));
-
-        StringAssert.Contains(exception.Message, "不支持的主题分析快照版本");
-    }
-
-    [TestMethod(DisplayName = "快照主题不合法时恢复应明确拒绝")]
-    [Timeout(60_000)]
-    public async Task LoadAsyncShouldRejectInvalidTheme()
-    {
-        var snapshotDirectory = await CreateSnapshotAsync();
-        var manifest = await ReadManifestAsync(snapshotDirectory);
-        await WriteManifestAsync(snapshotDirectory, manifest with
-        {
-            AnalysisResult = manifest.AnalysisResult with
-            {
-                Theme = manifest.AnalysisResult.Theme with { Title = string.Empty },
-            },
-        });
-        var store = new CoursewareThemeAnalysisSnapshotStore(snapshotDirectory.Parent!.FullName);
-
-        var exception = await Assert.ThrowsExactlyAsync<InvalidDataException>(
-            () => store.LoadAsync(snapshotDirectory.FullName));
-
-        StringAssert.Contains(exception.Message, "主题未通过校验");
-    }
-
-    [TestMethod(DisplayName = "快照缺少页面输入文件时恢复应明确失败")]
-    [Timeout(60_000)]
-    public async Task LoadAsyncShouldRejectMissingCopiedInputFile()
-    {
-        var snapshotDirectory = await CreateSnapshotAsync();
-        File.Delete(Path.Join(snapshotDirectory.FullName, "Slides", "Slide000.md"));
-        var store = new CoursewareThemeAnalysisSnapshotStore(snapshotDirectory.Parent!.FullName);
-
-        var exception = await Assert.ThrowsExactlyAsync<FileNotFoundException>(
-            () => store.LoadAsync(snapshotDirectory.FullName));
-
-        StringAssert.Contains(exception.Message, "Markdown 文件不存在");
-    }
-
-    [TestMethod(DisplayName = "快照写入中途失败后不应遗留半成品目录")]
-    [Timeout(60_000)]
-    public async Task SaveAsyncShouldRemoveTemporaryDirectoryWhenCopyFails()
+    public async Task SaveCancellationShouldNotCreateSnapshotDirectory()
     {
         var exportDirectory = new TestCoursewareExportBuilder()
-            .AddSlide("slide-first", CreateSlideMarkdown("第一页", "第一页内容"))
-            .AddResource("resource-first", "image", "shared.png")
-            .AddResource("resource-second", "image", "shared.png")
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
             .Build();
         var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
-        var analysisResult = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package);
-        var outputRoot = CreateOutputRoot();
-        var store = new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName);
-
-        await Assert.ThrowsExactlyAsync<IOException>(() => store.SaveAsync(package, analysisResult));
-
-        Assert.IsEmpty(outputRoot.EnumerateDirectories());
-    }
-
-    [TestMethod(DisplayName = "取消快照保存不应创建主题分析目录")]
-    [Timeout(60_000)]
-    public async Task SaveAsyncShouldNotCreateDirectoryWhenCanceledBeforeStart()
-    {
-        var exportDirectory = new TestCoursewareExportBuilder()
-            .AddSlide("slide-first", CreateSlideMarkdown("第一页", "第一页内容"))
-            .Build();
-        var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
-        var analysisResult = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package);
         var outputRoot = CreateOutputRoot();
         var store = new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName);
         using var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.Cancel();
 
-        await Assert.ThrowsExactlyAsync<OperationCanceledException>(
-            () => store.SaveAsync(package, analysisResult, cancellationTokenSource.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => store.SaveAsync(
+            package,
+            FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package),
+            cancellationTokenSource.Token));
 
         Assert.IsEmpty(outputRoot.EnumerateDirectories());
     }
 
-    private static async Task<DirectoryInfo> CreateSnapshotAsync()
+    [TestMethod(DisplayName = "保存失败时应清理临时半成品")]
+    [Timeout(60_000)]
+    public async Task SaveFailureShouldCleanTemporaryDirectory()
     {
         var exportDirectory = new TestCoursewareExportBuilder()
-            .AddSlide("slide-first", CreateSlideMarkdown("第一页", "第一页内容"))
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
             .Build();
         var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
-        var analysisResult = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package);
+        File.Delete(Path.Join(exportDirectory.FullName, "Courseware.json"));
         var outputRoot = CreateOutputRoot();
         var store = new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName);
-        return await store.SaveAsync(package, analysisResult);
+
+        await Assert.ThrowsAsync<FileNotFoundException>(() => store.SaveAsync(
+            package,
+            FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package)));
+
+        Assert.IsEmpty(outputRoot.EnumerateDirectories());
     }
 
-    private static async Task<CoursewareThemeAnalysisSnapshotManifest> ReadManifestAsync(DirectoryInfo snapshotDirectory)
+    [TestMethod(DisplayName = "同毫秒保存应追加后缀且不覆盖旧快照")]
+    [Timeout(60_000)]
+    public async Task SameMillisecondSaveShouldAppendSuffix()
     {
-        await using var stream = File.OpenRead(Path.Join(
-            snapshotDirectory.FullName,
-            CoursewareThemeAnalysisSnapshotManifest.FileName));
-        return (await JsonSerializer.DeserializeAsync(
-            stream,
-            CoursewareThemeAnalysisSnapshotJsonSerializerContext.Default.CoursewareThemeAnalysisSnapshotManifest))!;
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
+            .Build();
+        var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
+        var outputRoot = CreateOutputRoot();
+        var store = new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName, () => FixedTimestamp);
+        var result = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package);
+
+        var first = await store.SaveAsync(package, result);
+        var second = await store.SaveAsync(package, result);
+
+        Assert.AreEqual("CoursewareThemeAnalysis_20260722_034447_123", first.Name);
+        Assert.AreEqual("CoursewareThemeAnalysis_20260722_034447_123_1", second.Name);
+        Assert.IsTrue(first.Exists);
+        Assert.IsTrue(second.Exists);
     }
 
-    private static async Task WriteManifestAsync(
-        DirectoryInfo snapshotDirectory,
-        CoursewareThemeAnalysisSnapshotManifest manifest)
+    [TestMethod(DisplayName = "快照 Markdown 被修改但仍符合导出格式时应按当前内容恢复")]
+    [Timeout(60_000)]
+    public async Task LoadShouldRestoreCurrentMarkdownWithoutFingerprintValidation()
     {
-        await using var stream = new FileStream(
-            Path.Join(snapshotDirectory.FullName, CoursewareThemeAnalysisSnapshotManifest.FileName),
-            FileMode.Create,
-            FileAccess.Write,
-            FileShare.None);
-        await JsonSerializer.SerializeAsync(
-            stream,
-            manifest,
-            CoursewareThemeAnalysisSnapshotJsonSerializerContext.Default.CoursewareThemeAnalysisSnapshotManifest);
+        var (store, snapshotDirectory) = await CreateSnapshotAsync();
+        var markdownPath = Path.Join(snapshotDirectory.FullName, "Slides", "Slide000.md");
+        var originalMarkdown = await File.ReadAllTextAsync(markdownPath);
+        var modifiedMarkdown = originalMarkdown.Replace("第一页内容", "修改后的当前内容", StringComparison.Ordinal);
+        await File.WriteAllTextAsync(markdownPath, modifiedMarkdown);
+
+        var restored = await store.LoadAsync(snapshotDirectory.FullName);
+
+        StringAssert.Contains(restored.InputPackage.Slides[0].MarkdownText, "修改后的当前内容");
+    }
+
+    private static async Task<(CoursewareThemeAnalysisSnapshotStore Store, DirectoryInfo SnapshotDirectory)> CreateSnapshotAsync()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
+            .Build();
+        var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
+        var store = new CoursewareThemeAnalysisSnapshotStore(CreateOutputRoot().FullName, () => FixedTimestamp);
+        var snapshotDirectory = await store.SaveAsync(package, FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package));
+        return (store, snapshotDirectory);
     }
 
     private static DirectoryInfo CreateOutputRoot()
     {
-        return Directory.CreateDirectory(Path.Join(
-            Path.GetTempPath(),
-            $"CoursewareThemeAnalysisSnapshotStoreTests_{Guid.NewGuid():N}"));
+        return Directory.CreateDirectory(Path.Join(Path.GetTempPath(), $"CoursewareSnapshotStoreTests_{Guid.NewGuid():N}"));
+    }
+
+    private static async Task RewriteManifestAsync(DirectoryInfo snapshotDirectory, string themeFile)
+    {
+        var manifest = new CoursewareThemeAnalysisSnapshotManifest
+        {
+            CreatedAt = FixedTimestamp,
+            CoursewareManifestFile = "Courseware.json",
+            ThemeFile = themeFile,
+        };
+        await File.WriteAllTextAsync(
+            Path.Join(snapshotDirectory.FullName, "CoursewareThemeAnalysis.json"),
+            JsonSerializer.Serialize(manifest, CoursewareExportJsonSerializerContext.Default.CoursewareThemeAnalysisSnapshotManifest));
+    }
+
+    private static async Task<CoursewareTheme> ReadThemeAsync(string themePath)
+    {
+        await using var stream = File.OpenRead(themePath);
+        return await JsonSerializer.DeserializeAsync(stream, CoursewareExportJsonSerializerContext.Default.CoursewareTheme)
+               ?? throw new InvalidDataException("测试 Theme 为空。");
+    }
+
+    private static async Task WriteThemeAsync(string themePath, CoursewareTheme theme)
+    {
+        await using var stream = new FileStream(themePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true);
+        await JsonSerializer.SerializeAsync(stream, theme, CoursewareExportJsonSerializerContext.Default.CoursewareTheme);
     }
 
     private static string CreateSlideMarkdown(string title, string content)
     {
-        return $"## 元素简要信息\n\n- 文本.1: (100, 80) 400×60\n\n---\n\n## 元素细节\n\n### 文本.1\n#### 内容\n```\n{title}\n{content}\n```";
+        return $"## 页面信息\n\n- Id: slide-id\n- 尺寸: 1280×720\n- 序号(1-base): 1\n\n---\n\n## 元素简要信息\n\n- 文本.1: (100, 80) 400×60\n\n---\n\n## 元素细节\n\n### 文本.1\n#### 内容\n```\n{title}\n{content}\n```";
     }
 }

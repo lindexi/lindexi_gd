@@ -33,7 +33,7 @@ public sealed record CoursewareSlideGenerationEnvelope
     /// <summary>
     /// Gets the structured design context derived from whole-courseware theme analysis.
     /// </summary>
-    public CoursewarePageDesignContext DesignContext { get; init; } = null!;
+    public CoursewareTheme Theme { get; init; } = null!;
 
     /// <summary>
     /// Gets the visual evidence supplied with this request.

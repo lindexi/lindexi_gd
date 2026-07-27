@@ -1,51 +1,38 @@
-using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using CoursewarePptxGenerator.Core.Analysis;
 using CoursewarePptxGenerator.Core.Models;
 using CoursewarePptxGeneratorWpfDemo.Models;
-using CoreCoursewareExportJsonSerializerContext = CoursewarePptxGenerator.Core.Serialization.CoursewareExportJsonSerializerContext;
 
 namespace CoursewarePptxGeneratorWpfDemo.Services;
 
 /// <summary>
-/// Persists and restores self-contained courseware theme-analysis snapshots.
+/// Saves and restores self-contained version 2 theme-analysis snapshots.
 /// </summary>
 public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnalysisSnapshotStore
 {
-    private const string SnapshotDirectoryPrefix = "CoursewareThemeAnalysis_";
-    private const string SlidesDirectoryName = "Slides";
-    private const string ResourcesDirectoryName = "Resources";
+    private const string SnapshotManifestFileName = "CoursewareThemeAnalysis.json";
     private const string CoursewareManifestFileName = "Courseware.json";
-    private const string ResourcesManifestFileName = "Resources.json";
-    private readonly DirectoryInfo _outputRootDirectory;
+    private const string ThemeFileRelativePath = "Theme/Theme.json";
+    private const string SnapshotDirectoryNamePrefix = "CoursewareThemeAnalysis_";
+    private readonly string _outputRootPath;
     private readonly Func<DateTimeOffset> _nowProvider;
     private readonly CoursewareFolderLoader _coursewareFolderLoader;
-    private readonly CoursewareAnalysisSourceSnapshotBuilder _sourceSnapshotBuilder;
     private readonly CoursewareThemeValidator _themeValidator;
 
     /// <summary>
     /// Initializes a snapshot store that writes to the current process directory.
     /// </summary>
     public CoursewareThemeAnalysisSnapshotStore()
-        : this(Directory.GetCurrentDirectory())
+        : this(Environment.CurrentDirectory)
     {
     }
 
     /// <summary>
     /// Initializes a snapshot store with an explicit output root and time source.
     /// </summary>
-    /// <param name="outputRootPath">The directory in which published snapshots are created.</param>
-    /// <param name="nowProvider">The optional clock used for deterministic snapshot names and metadata.</param>
-    public CoursewareThemeAnalysisSnapshotStore(
-        string outputRootPath,
-        Func<DateTimeOffset>? nowProvider = null)
-        : this(
-            outputRootPath,
-            nowProvider,
-            new CoursewareFolderLoader(),
-            new CoursewareAnalysisSourceSnapshotBuilder(),
-            new CoursewareThemeValidator())
+    public CoursewareThemeAnalysisSnapshotStore(string outputRootPath, Func<DateTimeOffset>? nowProvider = null)
+        : this(outputRootPath, nowProvider, new CoursewareFolderLoader(), new CoursewareThemeValidator())
     {
     }
 
@@ -53,26 +40,23 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
         string outputRootPath,
         Func<DateTimeOffset>? nowProvider,
         CoursewareFolderLoader coursewareFolderLoader,
-        CoursewareAnalysisSourceSnapshotBuilder sourceSnapshotBuilder,
         CoursewareThemeValidator themeValidator)
     {
         if (string.IsNullOrWhiteSpace(outputRootPath))
         {
-            throw new ArgumentException("快照输出根目录不能为空。", nameof(outputRootPath));
+            throw new ArgumentException("快照输出目录不能为空。", nameof(outputRootPath));
         }
-        ArgumentNullException.ThrowIfNull(coursewareFolderLoader);
-        ArgumentNullException.ThrowIfNull(sourceSnapshotBuilder);
-        ArgumentNullException.ThrowIfNull(themeValidator);
 
-        _outputRootDirectory = new DirectoryInfo(Path.GetFullPath(outputRootPath));
+        ArgumentNullException.ThrowIfNull(coursewareFolderLoader);
+        ArgumentNullException.ThrowIfNull(themeValidator);
+        _outputRootPath = Path.GetFullPath(outputRootPath);
         _nowProvider = nowProvider ?? (() => DateTimeOffset.Now);
         _coursewareFolderLoader = coursewareFolderLoader;
-        _sourceSnapshotBuilder = sourceSnapshotBuilder;
         _themeValidator = themeValidator;
     }
 
     /// <inheritdoc />
-    public string ManifestFileName => CoursewareThemeAnalysisSnapshotManifest.FileName;
+    public string ManifestFileName => SnapshotManifestFileName;
 
     /// <inheritdoc />
     public async Task<DirectoryInfo> SaveAsync(
@@ -84,52 +68,45 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
         ArgumentNullException.ThrowIfNull(analysisResult);
         cancellationToken.ThrowIfCancellationRequested();
 
-        _outputRootDirectory.Create();
-        var createdAt = _nowProvider();
-        var publishedDirectory = GetAvailablePublishedDirectory(createdAt);
-        var temporaryDirectory = new DirectoryInfo(Path.Join(
-            _outputRootDirectory.FullName,
-            $".{publishedDirectory.Name}.tmp_{Guid.NewGuid():N}"));
-        temporaryDirectory.Create();
+        Directory.CreateDirectory(_outputRootPath);
+        var temporaryDirectoryPath = Path.Join(
+            _outputRootPath,
+            $".{SnapshotDirectoryNamePrefix}tmp_{Guid.NewGuid():N}");
 
         try
         {
-            var sourceSnapshot = _sourceSnapshotBuilder.Build(inputPackage, cancellationToken);
-            await WriteNormalizedCoursewareAsync(
-                    temporaryDirectory,
-                    inputPackage,
-                    createdAt,
-                    cancellationToken)
-                .ConfigureAwait(false);
+            Directory.CreateDirectory(temporaryDirectoryPath);
+            await CopyCoursewareAsync(inputPackage, temporaryDirectoryPath, cancellationToken).ConfigureAwait(false);
+            await WriteJsonAsync(
+                ResolvePathUnderRoot(temporaryDirectoryPath, ThemeFileRelativePath),
+                analysisResult.Theme,
+                CoursewareExportJsonSerializerContext.Default.CoursewareTheme,
+                cancellationToken).ConfigureAwait(false);
 
+            var createdAt = _nowProvider();
             var manifest = new CoursewareThemeAnalysisSnapshotManifest
             {
-                SchemaVersion = CoursewareThemeAnalysisSnapshotManifest.CurrentSchemaVersion,
                 CreatedAt = createdAt,
-                CoursewareName = inputPackage.CoursewareName,
-                SlideCount = inputPackage.SlideCount,
-                SourceFingerprint = sourceSnapshot.SourceFingerprint,
-                AnalysisResult = analysisResult,
+                CoursewareManifestFile = CoursewareManifestFileName,
+                ThemeFile = ThemeFileRelativePath,
             };
             await WriteJsonAsync(
-                    Path.Join(temporaryDirectory.FullName, ManifestFileName),
-                    manifest,
-                    CoursewareThemeAnalysisSnapshotJsonSerializerContext.Default.CoursewareThemeAnalysisSnapshotManifest,
-                    cancellationToken)
-                .ConfigureAwait(false);
+                Path.Join(temporaryDirectoryPath, SnapshotManifestFileName),
+                manifest,
+                CoursewareExportJsonSerializerContext.Default.CoursewareThemeAnalysisSnapshotManifest,
+                cancellationToken).ConfigureAwait(false);
 
-            await LoadAsync(temporaryDirectory.FullName, cancellationToken).ConfigureAwait(false);
-            Directory.Move(temporaryDirectory.FullName, publishedDirectory.FullName);
-            return publishedDirectory;
+            cancellationToken.ThrowIfCancellationRequested();
+            var publishedPath = PublishTemporaryDirectory(temporaryDirectoryPath, createdAt);
+            temporaryDirectoryPath = string.Empty;
+            return new DirectoryInfo(publishedPath);
         }
-        catch
+        finally
         {
-            if (temporaryDirectory.Exists)
+            if (!string.IsNullOrEmpty(temporaryDirectoryPath) && Directory.Exists(temporaryDirectoryPath))
             {
-                temporaryDirectory.Delete(recursive: true);
+                Directory.Delete(temporaryDirectoryPath, recursive: true);
             }
-
-            throw;
         }
     }
 
@@ -140,265 +117,236 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
     {
         if (string.IsNullOrWhiteSpace(folderPath))
         {
-            throw new ArgumentException("主题分析快照目录不能为空。", nameof(folderPath));
+            throw new ArgumentException("快照目录不能为空。", nameof(folderPath));
         }
-        cancellationToken.ThrowIfCancellationRequested();
 
+        cancellationToken.ThrowIfCancellationRequested();
         var snapshotDirectory = new DirectoryInfo(folderPath);
         if (!snapshotDirectory.Exists)
         {
-            throw new DirectoryNotFoundException($"主题分析快照目录不存在：{folderPath}");
+            throw new DirectoryNotFoundException($"快照目录不存在：{folderPath}");
         }
 
-        var manifestPath = Path.Join(snapshotDirectory.FullName, ManifestFileName);
-        var manifestFile = new FileInfo(manifestPath);
-        if (!manifestFile.Exists)
+        var manifestPath = Path.Join(snapshotDirectory.FullName, SnapshotManifestFileName);
+        var manifest = await ReadAndValidateManifestAsync(manifestPath, cancellationToken).ConfigureAwait(false);
+        var coursewareManifestPath = ResolveExistingFileUnderRoot(
+            snapshotDirectory.FullName,
+            manifest.CoursewareManifestFile,
+            "课件清单");
+        if (!string.Equals(coursewareManifestPath, Path.Join(snapshotDirectory.FullName, CoursewareManifestFileName), StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidDataException($"缺少 {ManifestFileName}，无法识别主题分析快照目录。");
+            throw new InvalidDataException($"快照 v2 的课件清单必须位于 {CoursewareManifestFileName}。");
         }
 
-        CoursewareThemeAnalysisSnapshotManifest? manifest;
-        try
-        {
-            await using var stream = manifestFile.OpenRead();
-            manifest = await JsonSerializer.DeserializeAsync(
-                stream,
-                CoursewareThemeAnalysisSnapshotJsonSerializerContext.Default.CoursewareThemeAnalysisSnapshotManifest,
-                cancellationToken).ConfigureAwait(false);
-        }
-        catch (JsonException ex)
-        {
-            throw new InvalidDataException($"{ManifestFileName} 内容无法解析。", ex);
-        }
-
-        if (manifest is null)
-        {
-            throw new InvalidDataException($"{ManifestFileName} 内容为空或无法解析。");
-        }
-
+        var themePath = ResolveExistingFileUnderRoot(snapshotDirectory.FullName, manifest.ThemeFile, "Theme 2.0");
         var inputPackage = await _coursewareFolderLoader.LoadAsync(snapshotDirectory.FullName, cancellationToken)
             .ConfigureAwait(false);
-        return ValidateSnapshot(snapshotDirectory, inputPackage, manifest, cancellationToken);
-    }
-
-    private async Task WriteNormalizedCoursewareAsync(
-        DirectoryInfo snapshotDirectory,
-        CoursewareInputPackage inputPackage,
-        DateTimeOffset createdAt,
-        CancellationToken cancellationToken)
-    {
-        var slidesDirectory = snapshotDirectory.CreateSubdirectory(SlidesDirectoryName);
-        var resourcesDirectory = snapshotDirectory.CreateSubdirectory(ResourcesDirectoryName);
-        var slideEntries = new CoursewareExportSlideEntry[inputPackage.Slides.Count];
-
-        for (var position = 0; position < inputPackage.Slides.Count; position++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var slide = inputPackage.Slides[position];
-            var markdownFileName = $"Slide{position:D3}.md";
-            var screenshotFileName = $"Slide{position:D3}.jpg";
-            var markdownRelativePath = $"{SlidesDirectoryName}/{markdownFileName}";
-            var screenshotRelativePath = $"{SlidesDirectoryName}/{screenshotFileName}";
-
-            await File.WriteAllTextAsync(
-                    Path.Join(slidesDirectory.FullName, markdownFileName),
-                    slide.MarkdownText,
-                    cancellationToken)
-                .ConfigureAwait(false);
-            if (slide.ScreenshotFile is not null && slide.ScreenshotFile.Exists)
-            {
-                await CopyFileAsync(
-                        slide.ScreenshotFile.FullName,
-                        Path.Join(slidesDirectory.FullName, screenshotFileName),
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
-            slideEntries[position] = new CoursewareExportSlideEntry
-            {
-                SlideIndex = slide.SlideIndex,
-                SlideId = slide.SlideId,
-                Width = slide.Width,
-                Height = slide.Height,
-                MarkdownFile = markdownRelativePath,
-                ScreenshotFile = screenshotRelativePath,
-            };
-        }
-
-        var resourceEntries = new CoursewareResourceEntry[inputPackage.Resources.Count];
-        for (var position = 0; position < inputPackage.Resources.Count; position++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var resource = inputPackage.Resources[position];
-            resourceEntries[position] = new CoursewareResourceEntry
-            {
-                ResourceId = resource.ResourceId,
-                ResourceType = resource.ResourceType,
-                ExportFile = resource.ExportFile,
-            };
-
-            if (resource.Exists
-                && !string.IsNullOrWhiteSpace(resource.ResolvedFilePath)
-                && File.Exists(resource.ResolvedFilePath))
-            {
-                await CopyFileAsync(
-                        resource.ResolvedFilePath,
-                        Path.Join(resourcesDirectory.FullName, resource.ExportFile!),
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
-        }
-
-        var coursewareManifest = new CoursewareExportManifest
-        {
-            ExportVersion = 1,
-            CreatedAt = createdAt,
-            CoursewareName = inputPackage.CoursewareName,
-            SlideCount = slideEntries.Length,
-            Slides = slideEntries,
-            ResourcesFile = $"{ResourcesDirectoryName}/{ResourcesManifestFileName}",
-        };
-        await WriteJsonAsync(
-                Path.Join(snapshotDirectory.FullName, CoursewareManifestFileName),
-                coursewareManifest,
-                CoreCoursewareExportJsonSerializerContext.Default.CoursewareExportManifest,
+        var theme = await ReadJsonAsync(
+                themePath,
+                CoursewareExportJsonSerializerContext.Default.CoursewareTheme,
+                "Theme 2.0",
                 cancellationToken)
             .ConfigureAwait(false);
-        await WriteJsonAsync(
-                Path.Join(resourcesDirectory.FullName, ResourcesManifestFileName),
-                resourceEntries,
-                CoreCoursewareExportJsonSerializerContext.Default.CoursewareResourceEntryArray,
+
+        var firstSlide = inputPackage.Slides[0];
+        var documentContext = CoursewareCanvasAdapter.CreateDocumentContext(firstSlide);
+        var availableResourceIds = inputPackage.Resources
+            .Where(resource => resource.Exists && !string.IsNullOrWhiteSpace(resource.ResourceId))
+            .Select(resource => resource.ResourceId!)
+            .ToHashSet(StringComparer.Ordinal);
+        var validationResult = await _themeValidator.ValidateAsync(
+                theme,
+                documentContext,
+                availableResourceIds,
                 cancellationToken)
             .ConfigureAwait(false);
-    }
-
-    private CoursewareThemeAnalysisSnapshot ValidateSnapshot(
-        DirectoryInfo snapshotDirectory,
-        CoursewareInputPackage inputPackage,
-        CoursewareThemeAnalysisSnapshotManifest manifest,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        if (!string.Equals(
-                manifest.SchemaVersion,
-                CoursewareThemeAnalysisSnapshotManifest.CurrentSchemaVersion,
-                StringComparison.Ordinal))
-        {
-            throw new InvalidDataException(
-                $"不支持的主题分析快照版本：{manifest.SchemaVersion}，"
-                + $"当前仅支持 {CoursewareThemeAnalysisSnapshotManifest.CurrentSchemaVersion}。");
-        }
-
-        if (manifest.CreatedAt == default)
-        {
-            throw new InvalidDataException("主题分析快照缺少有效的创建时间。");
-        }
-
-        if (!string.Equals(manifest.CoursewareName, inputPackage.CoursewareName, StringComparison.Ordinal))
-        {
-            throw new InvalidDataException("主题分析快照中的课件名称与复制输入不一致。");
-        }
-
-        if (manifest.SlideCount <= 0 || manifest.SlideCount != inputPackage.SlideCount)
-        {
-            throw new InvalidDataException(
-                $"主题分析快照声明页数 {manifest.SlideCount} 与复制输入页数 {inputPackage.SlideCount} 不一致。");
-        }
-
-        if (string.IsNullOrWhiteSpace(manifest.SourceFingerprint))
-        {
-            throw new InvalidDataException("主题分析快照缺少源事实指纹。");
-        }
-
-        var sourceSnapshot = _sourceSnapshotBuilder.Build(inputPackage, cancellationToken);
-        if (!string.Equals(manifest.SourceFingerprint, sourceSnapshot.SourceFingerprint, StringComparison.Ordinal))
-        {
-            throw new InvalidDataException("主题分析快照的源事实指纹与复制输入不一致，文件可能已被修改。");
-        }
-
-        var analysisResult = manifest.AnalysisResult
-            ?? throw new InvalidDataException("主题分析快照缺少完整的分析结果。");
-        if (analysisResult.Theme is null
-            || analysisResult.ReferenceCanvas is null
-            || analysisResult.CapabilityStates is null)
-        {
-            throw new InvalidDataException("主题分析快照的分析结果对象图不完整。");
-        }
-
-        if (analysisResult.TotalSlideCount != inputPackage.SlideCount
-            || analysisResult.AnalyzedSlideCount != inputPackage.SlideCount)
-        {
-            throw new InvalidDataException(
-                $"主题分析快照的分析覆盖数 {analysisResult.AnalyzedSlideCount}/{analysisResult.TotalSlideCount} "
-                + $"与复制输入页数 {inputPackage.SlideCount} 不一致。");
-        }
-
-        if (analysisResult.AnalyzedAt == default || analysisResult.Duration < TimeSpan.Zero)
-        {
-            throw new InvalidDataException("主题分析快照包含无效的分析时间信息。");
-        }
-
-        if (!string.Equals(analysisResult.Theme.SchemaVersion, CoursewareTheme.CurrentSchemaVersion, StringComparison.Ordinal))
-        {
-            throw new InvalidDataException(
-                $"不支持的课件主题版本：{analysisResult.Theme.SchemaVersion}，"
-                + $"当前仅支持 {CoursewareTheme.CurrentSchemaVersion}。");
-        }
-
-        var dominantDimensions = inputPackage.Slides
-            .GroupBy(slide => (slide.Width, slide.Height))
-            .OrderByDescending(group => group.Count())
-            .First().Key;
-        var expectedReferenceCanvas = CoursewareCanvasAdapter.CreateDocumentContext(
-            dominantDimensions.Width,
-            dominantDimensions.Height);
-        if (analysisResult.ReferenceCanvas.CanvasWidth != expectedReferenceCanvas.CanvasWidth
-            || analysisResult.ReferenceCanvas.CanvasHeight != expectedReferenceCanvas.CanvasHeight)
-        {
-            throw new InvalidDataException(
-                $"主题分析快照的参考画布 {analysisResult.ReferenceCanvas.CanvasWidth}×"
-                + $"{analysisResult.ReferenceCanvas.CanvasHeight} 与复制输入主画布 "
-                + $"{expectedReferenceCanvas.CanvasWidth}×{expectedReferenceCanvas.CanvasHeight} 不一致。");
-        }
-
-        CoursewareThemeValidationResult validationResult;
-        try
-        {
-            validationResult = _themeValidator.Validate(
-                analysisResult.Theme,
-                dominantDimensions.Width,
-                dominantDimensions.Height);
-        }
-        catch (Exception ex) when (ex is NullReferenceException or ArgumentException)
-        {
-            throw new InvalidDataException("主题分析快照的主题对象图不完整。", ex);
-        }
-
         if (!validationResult.IsValid)
         {
-            throw new InvalidDataException(
-                "主题分析快照中的主题未通过校验：" + string.Join("；", validationResult.Errors));
+            throw new InvalidDataException($"快照 v2 的 Theme 2.0 无效：{string.Join("；", validationResult.Errors)}");
         }
 
         return new CoursewareThemeAnalysisSnapshot
         {
             SnapshotDirectory = snapshotDirectory,
             InputPackage = inputPackage,
-            Manifest = manifest,
+            AnalysisResult = new CoursewareThemeAnalysisResult { Theme = theme },
         };
     }
 
-    private DirectoryInfo GetAvailablePublishedDirectory(DateTimeOffset createdAt)
+    private static async Task CopyCoursewareAsync(
+        CoursewareInputPackage inputPackage,
+        string destinationRootPath,
+        CancellationToken cancellationToken)
     {
-        var baseName = SnapshotDirectoryPrefix + createdAt.ToString("yyyyMMdd_HHmmss_fff", CultureInfo.InvariantCulture);
+        var sourceManifestPath = Path.Join(inputPackage.RootDirectory.FullName, CoursewareManifestFileName);
+        var sourceManifest = await ReadJsonAsync(
+                sourceManifestPath,
+                CoursewareExportJsonSerializerContext.Default.CoursewareExportManifest,
+                "Courseware.json",
+                cancellationToken)
+            .ConfigureAwait(false);
+        await CopyFileAsync(sourceManifestPath, Path.Join(destinationRootPath, CoursewareManifestFileName), cancellationToken)
+            .ConfigureAwait(false);
+
+        foreach (var slide in inputPackage.Slides)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var markdownRelativePath = GetSafeRelativePath(inputPackage.RootDirectory.FullName, slide.MarkdownFile.FullName);
+            await CopyFileAsync(
+                    slide.MarkdownFile.FullName,
+                    ResolvePathUnderRoot(destinationRootPath, markdownRelativePath),
+                    cancellationToken)
+                .ConfigureAwait(false);
+            if (slide.ScreenshotFile is { Exists: true } screenshotFile)
+            {
+                var screenshotRelativePath = GetSafeRelativePath(inputPackage.RootDirectory.FullName, screenshotFile.FullName);
+                await CopyFileAsync(
+                        screenshotFile.FullName,
+                        ResolvePathUnderRoot(destinationRootPath, screenshotRelativePath),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(sourceManifest.ResourcesFile))
+        {
+            throw new InvalidDataException("Courseware.json 缺少 ResourcesFile。");
+        }
+
+        var resourcesIndexPath = ResolvePathUnderRoot(inputPackage.RootDirectory.FullName, sourceManifest.ResourcesFile);
+        await CopyFileAsync(
+                resourcesIndexPath,
+                ResolvePathUnderRoot(destinationRootPath, sourceManifest.ResourcesFile),
+                cancellationToken)
+            .ConfigureAwait(false);
+        foreach (var resource in inputPackage.Resources.Where(resource => resource.Exists))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (string.IsNullOrWhiteSpace(resource.ResolvedFilePath))
+            {
+                throw new InvalidDataException($"资源 {resource.ResourceId} 缺少可复制的本地路径。");
+            }
+
+            var resourceRelativePath = GetSafeRelativePath(inputPackage.RootDirectory.FullName, resource.ResolvedFilePath);
+            await CopyFileAsync(
+                    resource.ResolvedFilePath,
+                    ResolvePathUnderRoot(destinationRootPath, resourceRelativePath),
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
+
+    private string PublishTemporaryDirectory(string temporaryDirectoryPath, DateTimeOffset createdAt)
+    {
+        var baseName = SnapshotDirectoryNamePrefix + createdAt.ToString("yyyyMMdd_HHmmss_fff", System.Globalization.CultureInfo.InvariantCulture);
         for (var suffix = 0; ; suffix++)
         {
             var directoryName = suffix == 0 ? baseName : $"{baseName}_{suffix}";
-            var candidate = new DirectoryInfo(Path.Join(_outputRootDirectory.FullName, directoryName));
-            if (!candidate.Exists)
+            var destinationPath = Path.Join(_outputRootPath, directoryName);
+            try
             {
-                return candidate;
+                Directory.Move(temporaryDirectoryPath, destinationPath);
+                return destinationPath;
             }
+            catch (IOException) when (Directory.Exists(destinationPath))
+            {
+            }
+        }
+    }
+
+    private static async Task<CoursewareThemeAnalysisSnapshotManifest> ReadAndValidateManifestAsync(
+        string manifestPath,
+        CancellationToken cancellationToken)
+    {
+        if (!File.Exists(manifestPath))
+        {
+            throw new FileNotFoundException($"缺少快照清单 {SnapshotManifestFileName}。", manifestPath);
+        }
+
+        JsonDocument document;
+        try
+        {
+            await using var stream = File.OpenRead(manifestPath);
+            document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidDataException($"快照清单 {SnapshotManifestFileName} 无法解析。", exception);
+        }
+
+        using (document)
+        {
+            var version = ReadManifestVersion(document.RootElement);
+            if (version != CoursewareThemeAnalysisSnapshotManifest.CurrentSchemaVersion)
+            {
+                throw new InvalidDataException(
+                    $"不支持的主题分析快照版本：{version}，当前仅支持 v{CoursewareThemeAnalysisSnapshotManifest.CurrentSchemaVersion}。");
+            }
+
+            try
+            {
+                return document.RootElement.Deserialize(
+                           CoursewareExportJsonSerializerContext.Default.CoursewareThemeAnalysisSnapshotManifest)
+                       ?? throw new InvalidDataException($"快照清单 {SnapshotManifestFileName} 内容为空。");
+            }
+            catch (JsonException exception)
+            {
+                throw new InvalidDataException($"快照清单 {SnapshotManifestFileName} 不符合 v2 格式。", exception);
+            }
+        }
+    }
+
+    private static int ReadManifestVersion(JsonElement rootElement)
+    {
+        if (TryReadVersion(rootElement, "Version", out var version)
+            || TryReadVersion(rootElement, "SchemaVersion", out version))
+        {
+            return version;
+        }
+
+        return 1;
+    }
+
+    private static bool TryReadVersion(JsonElement rootElement, string propertyName, out int version)
+    {
+        version = default;
+        if (!rootElement.TryGetProperty(propertyName, out var versionElement))
+        {
+            return false;
+        }
+
+        if (versionElement.ValueKind == JsonValueKind.Number && versionElement.TryGetInt32(out version))
+        {
+            return true;
+        }
+
+        if (versionElement.ValueKind == JsonValueKind.String)
+        {
+            var text = versionElement.GetString();
+            if (text is not null && int.TryParse(text.TrimStart('v', 'V'), out version))
+            {
+                return true;
+            }
+        }
+
+        throw new InvalidDataException($"主题分析快照版本字段 {propertyName} 无效：{versionElement.GetRawText()}");
+    }
+
+    private static async Task<T> ReadJsonAsync<T>(
+        string filePath,
+        System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> jsonTypeInfo,
+        string displayName,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var stream = File.OpenRead(filePath);
+            return await JsonSerializer.DeserializeAsync(stream, jsonTypeInfo, cancellationToken).ConfigureAwait(false)
+                   ?? throw new InvalidDataException($"{displayName} 文件内容为空。");
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidDataException($"{displayName} 文件无法解析。", exception);
         }
     }
 
@@ -408,35 +356,69 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
         System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> jsonTypeInfo,
         CancellationToken cancellationToken)
     {
-        await using var stream = new FileStream(
-            filePath,
-            FileMode.CreateNew,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 4096,
-            useAsync: true);
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+        await using var stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true);
         await JsonSerializer.SerializeAsync(stream, value, jsonTypeInfo, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task CopyFileAsync(
-        string sourceFilePath,
-        string destinationFilePath,
-        CancellationToken cancellationToken)
+    private static async Task CopyFileAsync(string sourcePath, string destinationPath, CancellationToken cancellationToken)
     {
-        await using var sourceStream = new FileStream(
-            sourceFilePath,
-            FileMode.Open,
-            FileAccess.Read,
-            FileShare.Read,
-            bufferSize: 81920,
-            useAsync: true);
-        await using var destinationStream = new FileStream(
-            destinationFilePath,
-            FileMode.CreateNew,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 81920,
-            useAsync: true);
-        await sourceStream.CopyToAsync(destinationStream, 81920, cancellationToken).ConfigureAwait(false);
+        if (!File.Exists(sourcePath))
+        {
+            throw new FileNotFoundException($"快照源文件不存在：{Path.GetFileName(sourcePath)}", sourcePath);
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+        await using var source = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
+        await using var destination = new FileStream(destinationPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true);
+        await source.CopyToAsync(destination, 81920, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static string ResolveExistingFileUnderRoot(string rootPath, string relativePath, string displayName)
+    {
+        var resolvedPath = ResolvePathUnderRoot(rootPath, relativePath);
+        if (!File.Exists(resolvedPath))
+        {
+            throw new FileNotFoundException($"快照 v2 缺少{displayName}文件：{relativePath}", resolvedPath);
+        }
+
+        return resolvedPath;
+    }
+
+    private static string ResolvePathUnderRoot(string rootPath, string relativePath)
+    {
+        ValidateRelativePath(relativePath);
+        var fullRootPath = Path.GetFullPath(rootPath);
+        var resolvedPath = Path.GetFullPath(Path.Join(fullRootPath, relativePath.Replace('\\', Path.DirectorySeparatorChar)));
+        var rootPathWithSeparator = Path.EndsInDirectorySeparator(fullRootPath)
+            ? fullRootPath
+            : fullRootPath + Path.DirectorySeparatorChar;
+        if (!resolvedPath.StartsWith(rootPathWithSeparator, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException($"快照路径越界：{relativePath}");
+        }
+
+        return resolvedPath;
+    }
+
+    private static string GetSafeRelativePath(string rootPath, string filePath)
+    {
+        var relativePath = Path.GetRelativePath(rootPath, filePath);
+        _ = ResolvePathUnderRoot(rootPath, relativePath);
+        return relativePath;
+    }
+
+    private static void ValidateRelativePath(string relativePath)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath) || Path.IsPathRooted(relativePath))
+        {
+            throw new InvalidDataException($"快照路径必须是非空相对路径：{relativePath}");
+        }
+
+        var segments = relativePath.Split(['/', '\\'], StringSplitOptions.None);
+        if (segments.Any(segment => string.IsNullOrEmpty(segment) || segment is "." or ".."))
+        {
+            throw new InvalidDataException($"快照路径不能包含空、. 或 .. 路径片段：{relativePath}");
+        }
     }
 }

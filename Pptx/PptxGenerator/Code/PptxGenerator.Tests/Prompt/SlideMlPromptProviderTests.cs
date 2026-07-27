@@ -80,4 +80,43 @@ public sealed class SlideMlPromptProviderTests
         Assert.Contains("1920x1080", result, "用户提示词应包含自定义画布尺寸");
         Assert.DoesNotContain("1280x720", result, "用户提示词不应包含默认画布尺寸");
     }
+
+    [TestMethod(DisplayName = "完整文档规范应由共享 Schema 生成")]
+    public void BuildCompleteDocumentSpecificationPrompt_ShouldMatchSharedSchema()
+    {
+        var provider = new SlideMlPromptProvider();
+
+        var result = provider.BuildCompleteDocumentSpecificationPrompt();
+
+        foreach (var element in SlideMlCompleteDocumentSchema.Elements)
+        {
+            StringAssert.Contains(result, $"- {element.Name}:");
+            foreach (var attribute in element.AllowedAttributes)
+            {
+                StringAssert.Contains(result, attribute);
+            }
+        }
+    }
+
+    [TestMethod(DisplayName = "完整文档规范不应包含流式专用协议")]
+    public void BuildCompleteDocumentSpecificationPrompt_ShouldExcludeStreamingProtocol()
+    {
+        var result = new SlideMlPromptProvider().BuildCompleteDocumentSpecificationPrompt();
+
+        Assert.DoesNotContain("StyleFrom", result);
+        Assert.DoesNotContain("StyleId", result);
+        Assert.DoesNotContain("TargetId", result);
+        Assert.DoesNotContain("get_slide_state", result);
+    }
+
+    [TestMethod(DisplayName = "流式提示词应继续保留流式扩展")]
+    public void BuildStreamingSystemPrompt_ShouldKeepStreamingExtensions()
+    {
+        var result = new SlideMlPromptProvider().BuildStreamingSystemPrompt();
+
+        StringAssert.Contains(result, "StyleFrom");
+        StringAssert.Contains(result, "StyleId");
+        StringAssert.Contains(result, "<Remove TargetId=");
+        StringAssert.Contains(result, "get_slide_state");
+    }
 }

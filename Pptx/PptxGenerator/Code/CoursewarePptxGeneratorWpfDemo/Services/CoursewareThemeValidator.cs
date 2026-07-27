@@ -1,137 +1,141 @@
+using System.Text.RegularExpressions;
 using CoursewarePptxGeneratorWpfDemo.Models;
+using PptxGenerator.Models;
 
 namespace CoursewarePptxGeneratorWpfDemo.Services;
 
 /// <summary>
-/// Validates whole-courseware themes without invoking a language model.
+/// Validates lightweight whole-courseware themes without invoking a language model.
 /// </summary>
 public sealed class CoursewareThemeValidator
 {
+    private static readonly Regex ColorRegex = new(
+        "^#[0-9A-F]{6}(?:[0-9A-F]{2})?$",
+        RegexOptions.CultureInvariant);
+
+    private readonly ICoursewareThemeSlideMlValidator _slideMlValidator;
+
     /// <summary>
-    /// Validates the specified theme against the dominant slide dimensions.
+    /// Initializes a validator with the production SlideML validator.
     /// </summary>
-    /// <param name="theme">The theme to validate.</param>
-    /// <param name="slideWidth">The dominant slide width.</param>
-    /// <param name="slideHeight">The dominant slide height.</param>
-    /// <returns>The validation result.</returns>
-    public CoursewareThemeValidationResult Validate(CoursewareTheme theme, double slideWidth, double slideHeight)
+    public CoursewareThemeValidator()
+        : this(new CoursewareThemeSlideMlValidator())
+    {
+    }
+
+    /// <summary>
+    /// Initializes a validator with an injectable SlideML validator.
+    /// </summary>
+    /// <param name="slideMlValidator">The deep SlideML validator.</param>
+    public CoursewareThemeValidator(ICoursewareThemeSlideMlValidator slideMlValidator)
+    {
+        ArgumentNullException.ThrowIfNull(slideMlValidator);
+        _slideMlValidator = slideMlValidator;
+    }
+
+    /// <summary>
+    /// Validates the specified lightweight theme.
+    /// </summary>
+    public CoursewareThemeValidationResult Validate(CoursewareTheme theme)
     {
         ArgumentNullException.ThrowIfNull(theme);
-
         var errors = new List<string>();
-        ValidateRequiredText(theme, errors);
-        ValidateCollections(theme, errors);
-        ValidateColors(theme, errors);
-        ValidateTypography(theme, errors);
-        ValidateSafeArea(theme.SafeArea, slideWidth, slideHeight, errors);
-        ValidatePageTypes(theme.PageTypes, errors);
+        if (!string.Equals(theme.SchemaVersion, CoursewareTheme.CurrentSchemaVersion, StringComparison.Ordinal))
+        {
+            errors.Add($"SchemaVersion 必须为 {CoursewareTheme.CurrentSchemaVersion}。");
+        }
+
+        if (theme.ColorSuggestions is null || theme.ColorSuggestions.Count is < 3 or > 8)
+        {
+            errors.Add("ColorSuggestions 必须包含 3 到 8 项。");
+        }
+
+        AddRequiredError(theme.Style, "Style", errors);
+        if (theme.Fonts is null)
+        {
+            errors.Add("Fonts 不能为空。");
+        }
+        else
+        {
+            AddRequiredError(theme.Fonts.Chinese, "Fonts.Chinese", errors);
+            AddRequiredError(theme.Fonts.Western, "Fonts.Western", errors);
+        }
+
+        AddRequiredError(theme.SpacingAndVisualEffects, "SpacingAndVisualEffects", errors);
+        AddRequiredError(theme.LayoutPrinciples, "LayoutPrinciples", errors);
+        AddRequiredError(theme.CoverPageSlideMl, "CoverPageSlideMl", errors);
+        AddRequiredError(theme.ContentPageSlideMl, "ContentPageSlideMl", errors);
+        foreach (var color in theme.ColorSuggestions ?? [])
+        {
+            if (color is null)
+            {
+                errors.Add("ColorSuggestions 不能包含空项。");
+                continue;
+            }
+
+            AddRequiredError(color.Name, "ColorSuggestions.Name", errors);
+            AddRequiredError(color.Usage, "ColorSuggestions.Usage", errors);
+            if (!ColorRegex.IsMatch(color.Hex ?? string.Empty))
+            {
+                errors.Add("ColorSuggestions.Hex 必须使用大写 #RRGGBB 或 #AARRGGBB 格式。");
+            }
+        }
+
+        if (theme.SafeArea is null)
+        {
+            errors.Add("SafeArea 不能为空。");
+        }
+        else
+        {
+            ValidateRatio(theme.SafeArea.LeftRatio, "SafeArea.LeftRatio", errors);
+            ValidateRatio(theme.SafeArea.TopRatio, "SafeArea.TopRatio", errors);
+            ValidateRatio(theme.SafeArea.RightRatio, "SafeArea.RightRatio", errors);
+            ValidateRatio(theme.SafeArea.BottomRatio, "SafeArea.BottomRatio", errors);
+        }
+
         return new CoursewareThemeValidationResult { Errors = errors };
     }
 
-    private static void ValidateRequiredText(CoursewareTheme theme, List<string> errors)
+    /// <summary>
+    /// Validates theme fields and both complete SlideML documents.
+    /// </summary>
+    /// <param name="theme">The theme to validate.</param>
+    /// <param name="documentContext">The first slide document context.</param>
+    /// <param name="availableResourceIds">The resource identifiers available to the theme.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    public async Task<CoursewareThemeValidationResult> ValidateAsync(
+        CoursewareTheme theme,
+        SlideDocumentContext documentContext,
+        IReadOnlySet<string> availableResourceIds,
+        CancellationToken cancellationToken = default)
     {
-        AddRequiredError(theme.Title, "Title", errors);
-        AddRequiredError(theme.Summary, "Summary", errors);
-        AddRequiredError(theme.GenerationPromptSummary, "GenerationPromptSummary", errors);
-        AddRequiredError(theme.Colors.Rationale, "Colors.Rationale", errors);
-        AddRequiredError(theme.Fonts.EastAsianHeading, "Fonts.EastAsianHeading", errors);
-        AddRequiredError(theme.Fonts.EastAsianBody, "Fonts.EastAsianBody", errors);
-        AddRequiredError(theme.Fonts.LatinHeading, "Fonts.LatinHeading", errors);
-        AddRequiredError(theme.Fonts.LatinBody, "Fonts.LatinBody", errors);
+        ArgumentNullException.ThrowIfNull(theme);
+        ArgumentNullException.ThrowIfNull(documentContext);
+        ArgumentNullException.ThrowIfNull(availableResourceIds);
+
+        var fieldResult = Validate(theme);
+        var slideMlResult = await _slideMlValidator.ValidateAsync(theme, documentContext, availableResourceIds, cancellationToken).ConfigureAwait(false);
+        if (fieldResult.IsValid)
+        {
+            return slideMlResult;
+        }
+
+        if (slideMlResult.IsValid)
+        {
+            return fieldResult;
+        }
+
+        var errors = new List<string>(fieldResult.Errors.Count + slideMlResult.Errors.Count);
+        errors.AddRange(fieldResult.Errors);
+        errors.AddRange(slideMlResult.Errors);
+        return new CoursewareThemeValidationResult { Errors = errors };
     }
 
-    private static void ValidateCollections(CoursewareTheme theme, List<string> errors)
+    private static void ValidateRatio(double value, string fieldName, List<string> errors)
     {
-        if (theme.StyleKeywords.Count is < 3 or > 8)
+        if (!double.IsFinite(value) || value is < 0 or >= 0.5)
         {
-            errors.Add("StyleKeywords 必须包含 3 到 8 项。");
-        }
-
-        if (theme.LayoutPrinciples.Count is < 3 or > 8)
-        {
-            errors.Add("LayoutPrinciples 必须包含 3 到 8 项。");
-        }
-
-        if (theme.ContentPresentationRules.Count is < 2 or > 8)
-        {
-            errors.Add("ContentPresentationRules 必须包含 2 到 8 项。");
-        }
-
-        if (theme.StyleKeywords.Any(string.IsNullOrWhiteSpace))
-        {
-            errors.Add("StyleKeywords 不能包含空项。");
-        }
-    }
-
-    private static void ValidateColors(CoursewareTheme theme, List<string> errors)
-    {
-        var colorRegex = new System.Text.RegularExpressions.Regex(
-            "^#(?:[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$",
-            System.Text.RegularExpressions.RegexOptions.CultureInvariant);
-
-        foreach (var color in theme.Colors.EnumerateColors())
-        {
-            AddRequiredError(color.Usage, $"Colors.{color.Name}.Usage", errors);
-            AddRequiredError(color.Name, "Colors.Name", errors);
-            if (!colorRegex.IsMatch(color.HexValue ?? string.Empty))
-            {
-                errors.Add($"颜色 {color.Name} 必须使用 #RRGGBB 或 #AARRGGBB 格式。");
-            }
-        }
-    }
-
-    private static void ValidateTypography(CoursewareTheme theme, List<string> errors)
-    {
-        var levels = theme.Typography.EnumerateLevels().ToArray();
-        foreach (var level in levels)
-        {
-            AddRequiredError(level.Name, "Typography.Name", errors);
-            AddRequiredError(level.FontWeight, $"Typography.{level.Name}.FontWeight", errors);
-            AddRequiredError(level.Purpose, $"Typography.{level.Name}.Purpose", errors);
-            if (level.FontSize is < 10 or > 96)
-            {
-                errors.Add($"字号 {level.Name} 必须在 10 到 96 之间。");
-            }
-        }
-
-        if (levels[0].FontSize < levels[1].FontSize
-            || levels[1].FontSize < levels[2].FontSize
-            || levels[2].FontSize < levels[3].FontSize)
-        {
-            errors.Add("字体层级必须满足一级标题 >= 二级标题 >= 正文 >= 辅助文字。");
-        }
-    }
-
-    private static void ValidateSafeArea(CoursewareSafeArea safeArea, double slideWidth, double slideHeight, List<string> errors)
-    {
-        if (safeArea.Left < 0 || safeArea.Top < 0 || safeArea.Right < 0 || safeArea.Bottom < 0)
-        {
-            errors.Add("SafeArea 的四个边距不能为负数。");
-        }
-
-        if (slideWidth <= 0 || slideHeight <= 0)
-        {
-            errors.Add("无法使用无效的页面尺寸校验 SafeArea。");
-            return;
-        }
-
-        if (safeArea.Left + safeArea.Right >= slideWidth * 0.6)
-        {
-            errors.Add("SafeArea 左右边距之和不能超过页面宽度的 60%。");
-        }
-
-        if (safeArea.Top + safeArea.Bottom >= slideHeight * 0.6)
-        {
-            errors.Add("SafeArea 上下边距之和不能超过页面高度的 60%。");
-        }
-    }
-
-    private static void ValidatePageTypes(CoursewarePageTypeRecommendations pageTypes, List<string> errors)
-    {
-        foreach (var recommendation in pageTypes.EnumerateRecommendations())
-        {
-            AddRequiredError(recommendation.Name, "PageTypes.Name", errors);
-            AddRequiredError(recommendation.Description, $"PageTypes.{recommendation.Name}.Description", errors);
+            errors.Add($"{fieldName} 必须是 [0, 0.5) 范围内的有限值。");
         }
     }
 
@@ -142,5 +146,4 @@ public sealed class CoursewareThemeValidator
             errors.Add($"{fieldName} 不能为空。");
         }
     }
-
 }

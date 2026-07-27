@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             d:DesignHeight="390"
+             d:DesignHeight="760"
              d:DesignWidth="1500"
              mc:Ignorable="d">
     <UserControl.Resources>
@@ -20,6 +20,7 @@
             <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="Normal" />
             <Setter Property="LineHeight" Value="23" />
+            <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
     </UserControl.Resources>
 
@@ -30,185 +31,73 @@
             Padding="16,13">
         <StackPanel>
             <TextBlock Text="{StaticResource ThemeSuggestionPanelTitleText}" Foreground="{StaticResource AnalysisNavyBrush}" FontSize="21" FontWeight="Bold" />
-            <TextBlock Margin="0,3,0,12"
-                       Text="{Binding ThemeDescription}"
-                       Style="{StaticResource ThemeContentTextStyle}" />
-            <Border Style="{StaticResource AnalysisWarningBannerStyle}" Margin="0,0,0,12">
-                <TextBlock Text="{StaticResource ThemeSuggestionWarningText}"
-                           Style="{StaticResource ThemeContentTextStyle}"
-                           Foreground="#8A5A00" />
-            </Border>
+            <TextBlock Margin="0,3,0,12" Text="Theme 2.0 完整结果" Style="{StaticResource ThemeContentTextStyle}" />
 
             <Border Style="{StaticResource ThemeColumnStyle}">
                 <StackPanel>
-                    <TextBlock Text="能力状态" Style="{StaticResource ThemeColumnTitleStyle}" />
-                    <UniformGrid Columns="3">
-                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
-                            <StackPanel>
-                                <TextBlock Text="全文本分析" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
-                                <TextBlock Text="{Binding TextAnalysisCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
-                            <StackPanel>
-                                <TextBlock Text="主题建议" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
-                                <TextBlock Text="{Binding ThemeSuggestionCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
-                            <StackPanel>
-                                <TextBlock Text="可执行设计系统" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
-                                <TextBlock Text="{Binding DesignSystemCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
-                            <StackPanel>
-                                <TextBlock Text="模板编译验证" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
-                                <TextBlock Text="{Binding TemplateValidationCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
-                            <StackPanel>
-                                <TextBlock Text="视觉分析" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
-                                <TextBlock Text="{Binding VisualAnalysisCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
-                            </StackPanel>
-                        </Border>
-                        <Border Style="{StaticResource AnalysisCapabilityCardStyle}">
-                            <StackPanel>
-                                <TextBlock Text="真实页面生成" Style="{StaticResource AnalysisCapabilityNameTextStyle}" />
-                                <TextBlock Text="{Binding PageGenerationCapabilityText}" Style="{StaticResource AnalysisCapabilityStatusTextStyle}" />
-                            </StackPanel>
-                        </Border>
-                    </UniformGrid>
+                    <TextBlock Text="ColorSuggestions" Style="{StaticResource ThemeColumnTitleStyle}" />
+                    <ItemsControl ItemsSource="{Binding ThemeColors}">
+                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="210" Background="#F4F8FA" CornerRadius="8" Margin="0,0,10,10" Padding="10">
+                                    <StackPanel>
+                                        <Border Height="30" CornerRadius="6" BorderBrush="#D7E2E7" BorderThickness="1">
+                                            <Border.Background><SolidColorBrush Color="{Binding Hex}" /></Border.Background>
+                                        </Border>
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource ThemeContentTextStyle}" FontWeight="SemiBold" Margin="0,7,0,0" />
+                                        <TextBlock Text="{Binding Usage}" Style="{StaticResource ThemeContentTextStyle}" />
+                                        <TextBlock Text="{Binding Hex}" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </Border>
 
-            <StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="14" /><ColumnDefinition /></Grid.ColumnDefinitions>
                 <Border Style="{StaticResource ThemeColumnStyle}">
                     <StackPanel>
-                        <TextBlock Text="风格关键词" Style="{StaticResource ThemeColumnTitleStyle}" />
-                        <ItemsControl ItemsSource="{Binding StyleKeywords}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="#EAF8F7" CornerRadius="7" Margin="0,0,7,7" Padding="10,7">
-                                        <TextBlock Text="{Binding}"
-                                                   Style="{StaticResource ThemeContentTextStyle}"
-                                                   Foreground="{StaticResource AnalysisNavyBrush}" />
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
-
-                <Border Style="{StaticResource ThemeColumnStyle}">
-                    <StackPanel>
-                        <TextBlock Text="配色方案" Style="{StaticResource ThemeColumnTitleStyle}" />
-                        <ItemsControl ItemsSource="{Binding ThemeColors}">
-                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Margin="0,0,7,0">
-                                        <Border Height="32" CornerRadius="16" BorderBrush="#D7E2E7" BorderThickness="1">
-                                            <Border.Background><SolidColorBrush Color="{Binding HexValue}" /></Border.Background>
-                                        </Border>
-                                        <TextBlock Text="{Binding Usage}"
-                                                   Style="{StaticResource ThemeContentTextStyle}"
-                                                   Foreground="{StaticResource AnalysisNavyBrush}"
-                                                   HorizontalAlignment="Center"
-                                                   Margin="0,6,0,0" />
-                                        <TextBlock Text="{Binding HexValue}" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="12" HorizontalAlignment="Center" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <Border Background="#F4F8FA" CornerRadius="6" Margin="0,13,0,0" Padding="9">
-                            <TextBlock Text="{Binding ColorRationale}" Style="{StaticResource ThemeContentTextStyle}" />
-                        </Border>
-                    </StackPanel>
-                </Border>
-
-                <Border Style="{StaticResource ThemeColumnStyle}">
-                    <StackPanel>
-                        <TextBlock Text="字体层级" Style="{StaticResource ThemeColumnTitleStyle}" />
+                        <TextBlock Text="Fonts" Style="{StaticResource ThemeColumnTitleStyle}" />
                         <ItemsControl ItemsSource="{Binding TypographyLevels}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Margin="0,0,0,8">
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="76" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding Name}"
-                                                   Style="{StaticResource ThemeContentTextStyle}"
-                                                   Foreground="{StaticResource AnalysisNavyBrush}" />
-                                        <TextBlock Grid.Column="1"
-                                                   Text="{Binding Specification}"
-                                                   Style="{StaticResource ThemeContentTextStyle}"
-                                                   Foreground="#2563EB" />
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="90" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource ThemeContentTextStyle}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Specification}" Style="{StaticResource ThemeContentTextStyle}" Foreground="#2563EB" />
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBlock Text="{Binding FontRecommendationText}"
-                                   Style="{StaticResource ThemeContentTextStyle}"
-                                   Foreground="{StaticResource AnalysisMutedBrush}"
-                                   Margin="0,4,0,0" />
                     </StackPanel>
                 </Border>
-
-                <Border Style="{StaticResource ThemeColumnStyle}">
+                <Border Grid.Column="2" Style="{StaticResource ThemeColumnStyle}">
                     <StackPanel>
-                        <TextBlock Text="版式原则" Style="{StaticResource ThemeColumnTitleStyle}" />
-                        <ItemsControl ItemsSource="{Binding LayoutPrinciples}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="#F3F9F9" CornerRadius="6" Padding="7" Margin="0,0,0,7">
-                                        <TextBlock Text="{Binding}" Style="{StaticResource ThemeContentTextStyle}" />
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                        <TextBlock Text="SafeArea" Style="{StaticResource ThemeColumnTitleStyle}" />
+                        <TextBlock Text="{Binding SafeAreaText}" Style="{StaticResource ThemeContentTextStyle}" />
                     </StackPanel>
                 </Border>
+            </Grid>
 
-                <Border Style="{StaticResource ThemeColumnStyle}" Margin="0">
-                    <StackPanel>
-                        <StackPanel>
-                            <TextBlock Text="页面安全区" Style="{StaticResource ThemeColumnTitleStyle}" />
-                            <Border Height="105" Background="#EDF5F7" BorderBrush="#C8D8DE" BorderThickness="1" CornerRadius="7">
-                                <Grid Margin="10">
-                                    <Rectangle Fill="White" Stroke="#C2D3D9" StrokeThickness="1" />
-                                    <Rectangle Margin="12,9" Stroke="{StaticResource AnalysisTealBrush}" StrokeThickness="1.5" StrokeDashArray="4,3" />
-                                     <TextBlock Text="安全区" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource AnalysisTealDarkBrush}" FontSize="12" />
-                                </Grid>
-                            </Border>
-                             <TextBlock Text="{Binding SafeAreaText}"
-                                        Style="{StaticResource ThemeContentTextStyle}"
-                                        Foreground="{StaticResource AnalysisMutedBrush}"
-                                        Margin="0,7,0,0" />
-                        </StackPanel>
-                        <StackPanel Margin="0,14,0,0">
-                            <TextBlock Text="输入风险提示" Style="{StaticResource ThemeColumnTitleStyle}" />
-                            <ItemsControl ItemsSource="{Binding AnalysisWarnings}" Margin="0,1,0,0">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                         <TextBlock Text="{Binding StringFormat='▲ {0}'}"
-                                                    Style="{StaticResource ThemeContentTextStyle}"
-                                                    Foreground="#B76C00"
-                                                    Margin="0,0,0,8" />
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <Border Background="#EAF8F5" CornerRadius="6" Padding="7" Margin="0,12,0,0">
-                                 <TextBlock Text="{StaticResource InputWarningsFootnoteText}"
-                                            Style="{StaticResource ThemeContentTextStyle}"
-                                            Foreground="{StaticResource AnalysisTealDarkBrush}" />
-                            </Border>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
+            <Border Style="{StaticResource ThemeColumnStyle}">
+                <StackPanel><TextBlock Text="Style" Style="{StaticResource ThemeColumnTitleStyle}" /><TextBlock Text="{Binding ThemeStyle}" Style="{StaticResource ThemeContentTextStyle}" /></StackPanel>
+            </Border>
+            <Border Style="{StaticResource ThemeColumnStyle}">
+                <StackPanel><TextBlock Text="SpacingAndVisualEffects" Style="{StaticResource ThemeColumnTitleStyle}" /><TextBlock Text="{Binding SpacingAndVisualEffects}" Style="{StaticResource ThemeContentTextStyle}" /></StackPanel>
+            </Border>
+            <Border Style="{StaticResource ThemeColumnStyle}">
+                <StackPanel><TextBlock Text="LayoutPrinciples" Style="{StaticResource ThemeColumnTitleStyle}" /><TextBlock Text="{Binding ThemeLayoutPrinciples}" Style="{StaticResource ThemeContentTextStyle}" /></StackPanel>
+            </Border>
+
+            <Expander Header="CoverPageSlideMl" IsExpanded="False" Margin="0,0,0,10">
+                <TextBox Text="{Binding CoverPageSlideMl, Mode=OneWay}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="320" Padding="10" />
+            </Expander>
+            <Expander Header="ContentPageSlideMl" IsExpanded="False">
+                <TextBox Text="{Binding ContentPageSlideMl, Mode=OneWay}" IsReadOnly="True" TextWrapping="NoWrap" AcceptsReturn="True" FontFamily="Consolas" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" MaxHeight="320" Padding="10" />
+            </Expander>
         </StackPanel>
     </Border>
 </UserControl>

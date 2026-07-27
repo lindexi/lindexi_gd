@@ -77,33 +77,6 @@ public static class CoursewareCanvasAdapter
     }
 
     /// <summary>
-    /// Scales a theme safe area from the analysis reference canvas to the current slide canvas.
-    /// </summary>
-    /// <param name="safeArea">The theme safe area.</param>
-    /// <param name="referenceCanvas">The analysis reference canvas.</param>
-    /// <param name="slideCanvas">The current slide canvas.</param>
-    /// <returns>The scaled safe area.</returns>
-    public static CoursewareSafeArea ScaleSafeArea(
-        CoursewareSafeArea safeArea,
-        SlideDocumentContext referenceCanvas,
-        SlideDocumentContext slideCanvas)
-    {
-        ArgumentNullException.ThrowIfNull(safeArea);
-        ArgumentNullException.ThrowIfNull(referenceCanvas);
-        ArgumentNullException.ThrowIfNull(slideCanvas);
-
-        var horizontalScale = (double)slideCanvas.CanvasWidth / referenceCanvas.CanvasWidth;
-        var verticalScale = (double)slideCanvas.CanvasHeight / referenceCanvas.CanvasHeight;
-        return new CoursewareSafeArea
-        {
-            Left = safeArea.Left * horizontalScale,
-            Top = safeArea.Top * verticalScale,
-            Right = safeArea.Right * horizontalScale,
-            Bottom = safeArea.Bottom * verticalScale,
-        };
-    }
-
-    /// <summary>
     /// Scales one theme font size from the analysis reference canvas to the current slide canvas.
     /// </summary>
     /// <param name="fontSize">The reference font size.</param>

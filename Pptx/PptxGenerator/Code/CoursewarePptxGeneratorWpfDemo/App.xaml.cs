@@ -16,21 +16,25 @@ public partial class App : Application
         base.OnStartup(e);
 
         var slideSummaryService = new CoursewareSlideSummaryService();
-        var slidePromptBuilder = new CoursewareSlidePromptBuilder(
-            slideSummaryService,
-            new CoursewareThemePageDesignAdapter());
+        var slidePromptBuilder = new CoursewareSlidePromptBuilder();
         var coursewareFolderLoader = new CoursewareFolderLoader();
         var themeAnalysisSnapshotStore = new CoursewareThemeAnalysisSnapshotStore();
         var workspaceFolderLoader = new CoursewareWorkspaceFolderLoader(
             coursewareFolderLoader,
             themeAnalysisSnapshotStore);
+        var themeValidator = new CoursewareThemeValidator(new CoursewareThemeSlideMlValidator());
+        var themeAnalysisService = new CoursewareThemeAnalysisService(
+            new CoursewareStyleUsageSummaryBuilder(),
+            new CoursewareThemeAnalysisPromptBuilder(),
+            new CopilotCoursewareThemeAgent(new CopilotChatManagerFactory()),
+            themeValidator);
 
         var mainWindow = new MainWindow
         {
             DataContext = new CoursewareWorkspaceViewModel(
                 coursewareFolderLoader,
                 WpfViewModelDispatcher.Instance,
-                themeAnalysisService: new CoursewareThemeAnalysisService(),
+                themeAnalysisService,
                 slideChatManagerFactory: new SlideChatManagerFactory(),
                 slideSummaryService,
                 slidePromptBuilder,

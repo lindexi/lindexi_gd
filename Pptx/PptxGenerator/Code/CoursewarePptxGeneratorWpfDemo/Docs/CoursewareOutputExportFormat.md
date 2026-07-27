@@ -545,7 +545,7 @@ CoursewareOutput_20260101_121000/Slides/Slide_000/Preview.png
 
 ## 附录 A：主题分析快照直达工作台格式
 
-主题分析快照是独立于完整生成结果导出的调试协议，用于在主题分析完成后保存页面美化工作台所需的全部输入，并允许首页继续通过“打开课件文件夹”入口直接进入工作台。它不包含逐页生成后的 SlideML、预览图或页面对话状态。
+主题分析快照是独立于完整生成结果导出的自包含协议，用于在主题分析完成后保存页面美化工作台所需的课件输入和 Theme 2.0，并允许首页继续通过“打开课件文件夹”入口直接进入工作台。它不包含逐页生成后的 SlideML、预览图、页面对话状态或旧分析产物。
 
 ### A.1 输出时机和目录命名
 
@@ -561,6 +561,8 @@ CoursewareOutput_20260101_121000/Slides/Slide_000/Preview.png
 CoursewareThemeAnalysis_20260722_034447_123/
 ├── CoursewareThemeAnalysis.json
 ├── Courseware.json
+├── Theme/
+│   └── Theme.json
 ├── Slides/
 │   ├── Slide000.md
 │   ├── Slide000.jpg
@@ -574,30 +576,30 @@ CoursewareThemeAnalysis_20260722_034447_123/
 
 其中：
 
-- `CoursewareThemeAnalysis.json` 是固定识别标记和主题分析结果清单。
+- `CoursewareThemeAnalysis.json` 是固定识别标记和 v2 文件清单。
+- `Theme/Theme.json` 保存通过校验的 Theme 2.0。
 - `Courseware.json`、页面 Markdown、已有截图、`Resources.json` 和已有资源文件构成可独立加载的规范化课件输入副本。
 - 原输入缺失的截图或资源不创建占位文件；重新加载时继续产生现有 `MissingScreenshotFile` 或 `MissingResourceFile` Warning。
 - JSON 中不得写入原始课件目录或快照目录的绝对路径。
+- 快照不保存旧分析信封、旧主题对象、页面分类、分析报告或兼容字段。
 
 ### A.3 CoursewareThemeAnalysis.json 字段
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `schemaVersion` | `string` | 快照协议版本，当前为 `courseware-theme-analysis-snapshot/v1` |
-| `createdAt` | `string` | 快照创建时间，ISO 8601 格式 |
-| `coursewareName` | `string` | 课件名称，必须与复制后的 `Courseware.json` 一致 |
-| `slideCount` | `number` | 页面数量，必须与复制输入实际页数一致 |
-| `sourceFingerprint` | `string` | 规范化课件逻辑事实的 SHA-256 指纹 |
-| `analysisResult` | `object` | 完整 `CoursewareThemeAnalysisResult`，包含主题、参考画布、能力状态、分析时间、覆盖页数、耗时和 Warning |
+| `Version` | `number` | 快照协议版本，当前固定为 `2` |
+| `CreatedAt` | `string` | 快照创建时间，ISO 8601 格式 |
+| `CoursewareManifestFile` | `string` | 课件清单相对路径，v2 固定为根目录 `Courseware.json` |
+| `ThemeFile` | `string` | Theme 2.0 相对路径，当前为 `Theme/Theme.json` |
 
-`analysisResult.theme.schemaVersion` 当前为 `1.0`。`analysisResult.referenceCanvas` 必须与复制输入的主画布尺寸一致，`totalSlideCount` 和 `analyzedSlideCount` 必须覆盖全部复制页面。
+Theme 2.0 文件包含配色建议、中西文字体、风格、安全区比例、间距与视觉效果、版式原则，以及封面页和内容页两份完整参考 SlideML。
 
 ### A.4 打开和识别规则
 
 首页不增加格式切换界面，统一使用现有“打开课件文件夹”入口：
 
 1. 若根目录存在 `CoursewareThemeAnalysis.json`，按主题分析快照加载。
-2. 快照加载成功后跳过主题分析服务，提交持久化主题结果，并调用与正常主题分析相同的工作台创建和激活入口。
+2. 快照加载成功后跳过主题分析 Agent，提交持久化 Theme 2.0，并调用与正常主题分析相同的工作台创建和激活入口。
 3. 若根目录不存在快照标记，按普通课件目录加载并执行主题分析。
 4. 快照标记存在但内容损坏、版本不支持或一致性校验失败时，明确报告加载失败，不得回退普通课件分析。
 
@@ -605,12 +607,10 @@ CoursewareThemeAnalysis_20260722_034447_123/
 
 恢复快照时至少执行以下阻塞校验：
 
-- 快照协议版本受支持。
-- `Courseware.json`、页面 Markdown 和 `Resources.json` 可按普通课件格式加载。
-- 课件名称、页面数量和分析覆盖数一致。
-- 重新计算的源事实指纹与清单一致。
-- 主题对象图完整，主题 Schema 受支持并通过 `CoursewareThemeValidator`。
-- 参考画布与复制课件的主画布尺寸一致。
-- 分析时间和耗时有效。
+- 快照协议版本必须为 `2`；v1 和未知版本明确拒绝。
+- 清单引用路径必须位于快照根目录，课件清单必须位于根目录 `Courseware.json`。
+- `Courseware.json`、页面 Markdown 和 `Resources.json` 必须在加载阶段通过普通课件格式校验。
+- `Theme/Theme.json` 必须符合 Theme 2.0 字段契约。
+- 封面页和内容页 SlideML 必须使用快照第一张页面的实际画布，通过完整文档结构和真实 WPF 渲染校验。
 
-任何阻塞校验失败都不得创建页面美化工作台。恢复成功后的主题展示、页面顺序、Markdown、截图可用性、资源事实、Warning、画布适配和结构化页面生成 Prompt 应与正常主题分析完成后进入工作台保持等价。
+任何阻塞校验失败都不得创建页面美化工作台。快照内 Markdown 被修改后，只要仍符合导出格式，就按当前内容恢复，不执行内容哈希比对。恢复成功后的主题展示、页面顺序、Markdown、截图可用性、资源、Warning、画布适配和结构化页面生成 Prompt 应与正常主题分析完成后进入工作台保持等价。

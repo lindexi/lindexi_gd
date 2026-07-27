@@ -1,14 +1,14 @@
 namespace CoursewarePptxGeneratorWpfDemo.Models;
 
 /// <summary>
-/// Represents the validated visual theme shared by all slides in a courseware package.
+/// Represents the lightweight visual theme shared by all slides in a courseware package.
 /// </summary>
 public sealed record CoursewareTheme
 {
     /// <summary>
     /// Gets the current theme schema version.
     /// </summary>
-    public const string CurrentSchemaVersion = "1.0";
+    public const string CurrentSchemaVersion = "2.0";
 
     /// <summary>
     /// Gets the theme schema version.
@@ -16,297 +16,97 @@ public sealed record CoursewareTheme
     public string SchemaVersion { get; init; } = CurrentSchemaVersion;
 
     /// <summary>
-    /// Gets the user-facing theme title.
+    /// Gets the suggested colors and their intended uses.
     /// </summary>
-    public required string Title { get; init; }
+    public IReadOnlyList<CoursewareColorSuggestion> ColorSuggestions { get; init; } = [];
 
     /// <summary>
-    /// Gets the user-facing theme summary.
+    /// Gets the recommended Chinese and Western fonts.
     /// </summary>
-    public required string Summary { get; init; }
+    public required CoursewareFontSuggestions Fonts { get; init; }
 
     /// <summary>
-    /// Gets concise style keywords.
+    /// Gets the visual style description.
     /// </summary>
-    public IReadOnlyList<string> StyleKeywords { get; init; } = [];
+    public required string Style { get; init; }
 
     /// <summary>
-    /// Gets the theme color scheme.
+    /// Gets the content safe-area ratios.
     /// </summary>
-    public required CoursewareColorScheme Colors { get; init; }
+    public required CoursewareSafeAreaRatios SafeArea { get; init; }
 
     /// <summary>
-    /// Gets the theme typography hierarchy.
+    /// Gets the spacing and visual-effects guidance.
     /// </summary>
-    public required CoursewareTypography Typography { get; init; }
+    public required string SpacingAndVisualEffects { get; init; }
 
     /// <summary>
-    /// Gets font recommendations.
+    /// Gets the layout principles.
     /// </summary>
-    public required CoursewareFontRecommendation Fonts { get; init; }
+    public required string LayoutPrinciples { get; init; }
 
     /// <summary>
-    /// Gets the content safe area in slide coordinate units.
+    /// Gets the reference SlideML for a cover page.
     /// </summary>
-    public required CoursewareSafeArea SafeArea { get; init; }
+    public required string CoverPageSlideMl { get; init; }
 
     /// <summary>
-    /// Gets shared layout principles.
+    /// Gets the reference SlideML for a content page.
     /// </summary>
-    public IReadOnlyList<string> LayoutPrinciples { get; init; } = [];
-
-    /// <summary>
-    /// Gets layout recommendations for common page types.
-    /// </summary>
-    public required CoursewarePageTypeRecommendations PageTypes { get; init; }
-
-    /// <summary>
-    /// Gets rules for presenting subject content.
-    /// </summary>
-    public IReadOnlyList<string> ContentPresentationRules { get; init; } = [];
-
-    /// <summary>
-    /// Gets the compact theme instructions supplied to later slide generation.
-    /// </summary>
-    public required string GenerationPromptSummary { get; init; }
+    public required string ContentPageSlideMl { get; init; }
 }
 
 /// <summary>
-/// Represents a semantic color used by a courseware theme.
+/// Represents one suggested theme color.
 /// </summary>
-public sealed record CoursewareThemeColor
+public sealed record CoursewareColorSuggestion
 {
     /// <summary>
-    /// Gets the color usage label.
+    /// Gets the semantic color name.
+    /// </summary>
+    public required string Name { get; init; }
+
+    /// <summary>
+    /// Gets the intended usage.
     /// </summary>
     public required string Usage { get; init; }
 
     /// <summary>
-    /// Gets the descriptive color name.
-    /// </summary>
-    public required string Name { get; init; }
-
-    /// <summary>
     /// Gets the color value in hexadecimal notation.
     /// </summary>
-    public required string HexValue { get; init; }
+    public required string Hex { get; init; }
 }
 
 /// <summary>
-/// Represents the complete courseware color scheme.
+/// Represents recommended Chinese and Western fonts.
 /// </summary>
-public sealed record CoursewareColorScheme
+public sealed record CoursewareFontSuggestions
 {
     /// <summary>
-    /// Gets the primary color.
+    /// Gets the Chinese font recommendation.
     /// </summary>
-    public required CoursewareThemeColor Primary { get; init; }
+    public required string Chinese { get; init; }
 
     /// <summary>
-    /// Gets the accent color.
+    /// Gets the Western font recommendation.
     /// </summary>
-    public required CoursewareThemeColor Accent { get; init; }
-
-    /// <summary>
-    /// Gets the page background color.
-    /// </summary>
-    public required CoursewareThemeColor Background { get; init; }
-
-    /// <summary>
-    /// Gets the primary text color.
-    /// </summary>
-    public required CoursewareThemeColor PrimaryText { get; init; }
-
-    /// <summary>
-    /// Gets the secondary text color.
-    /// </summary>
-    public required CoursewareThemeColor SecondaryText { get; init; }
-
-    /// <summary>
-    /// Gets the rationale for the selected color scheme.
-    /// </summary>
-    public required string Rationale { get; init; }
-
-    /// <summary>
-    /// Enumerates colors in display order.
-    /// </summary>
-    /// <returns>The ordered theme colors.</returns>
-    public IEnumerable<CoursewareThemeColor> EnumerateColors()
-    {
-        yield return Primary;
-        yield return Accent;
-        yield return Background;
-        yield return PrimaryText;
-        yield return SecondaryText;
-    }
+    public required string Western { get; init; }
 }
 
 /// <summary>
-/// Represents one typography level.
+/// Represents safe-area ratios relative to the slide dimensions.
 /// </summary>
-public sealed record CoursewareTypographyLevel
+public sealed record CoursewareSafeAreaRatios
 {
-    /// <summary>
-    /// Gets the level name.
-    /// </summary>
-    public required string Name { get; init; }
+    /// <summary>Gets the left ratio.</summary>
+    public required double LeftRatio { get; init; }
 
-    /// <summary>
-    /// Gets the font size in slide coordinate units.
-    /// </summary>
-    public required double FontSize { get; init; }
+    /// <summary>Gets the top ratio.</summary>
+    public required double TopRatio { get; init; }
 
-    /// <summary>
-    /// Gets the font weight name.
-    /// </summary>
-    public required string FontWeight { get; init; }
+    /// <summary>Gets the right ratio.</summary>
+    public required double RightRatio { get; init; }
 
-    /// <summary>
-    /// Gets the intended purpose of this level.
-    /// </summary>
-    public required string Purpose { get; init; }
-}
-
-/// <summary>
-/// Represents the complete typography hierarchy.
-/// </summary>
-public sealed record CoursewareTypography
-{
-    /// <summary>
-    /// Gets the primary heading level.
-    /// </summary>
-    public required CoursewareTypographyLevel PrimaryHeading { get; init; }
-
-    /// <summary>
-    /// Gets the secondary heading level.
-    /// </summary>
-    public required CoursewareTypographyLevel SecondaryHeading { get; init; }
-
-    /// <summary>
-    /// Gets the body text level.
-    /// </summary>
-    public required CoursewareTypographyLevel Body { get; init; }
-
-    /// <summary>
-    /// Gets the supporting text level.
-    /// </summary>
-    public required CoursewareTypographyLevel Supporting { get; init; }
-
-    /// <summary>
-    /// Enumerates typography levels from strongest to weakest.
-    /// </summary>
-    /// <returns>The ordered typography levels.</returns>
-    public IEnumerable<CoursewareTypographyLevel> EnumerateLevels()
-    {
-        yield return PrimaryHeading;
-        yield return SecondaryHeading;
-        yield return Body;
-        yield return Supporting;
-    }
-}
-
-/// <summary>
-/// Represents recommended fonts for the theme.
-/// </summary>
-public sealed record CoursewareFontRecommendation
-{
-    /// <summary>
-    /// Gets the recommended East Asian heading font.
-    /// </summary>
-    public required string EastAsianHeading { get; init; }
-
-    /// <summary>
-    /// Gets the recommended East Asian body font.
-    /// </summary>
-    public required string EastAsianBody { get; init; }
-
-    /// <summary>
-    /// Gets the recommended Latin heading font.
-    /// </summary>
-    public required string LatinHeading { get; init; }
-
-    /// <summary>
-    /// Gets the recommended Latin body font.
-    /// </summary>
-    public required string LatinBody { get; init; }
-}
-
-/// <summary>
-/// Represents slide content safe-area margins.
-/// </summary>
-public sealed record CoursewareSafeArea
-{
-    /// <summary>
-    /// Gets the left margin.
-    /// </summary>
-    public required double Left { get; init; }
-
-    /// <summary>
-    /// Gets the top margin.
-    /// </summary>
-    public required double Top { get; init; }
-
-    /// <summary>
-    /// Gets the right margin.
-    /// </summary>
-    public required double Right { get; init; }
-
-    /// <summary>
-    /// Gets the bottom margin.
-    /// </summary>
-    public required double Bottom { get; init; }
-}
-
-/// <summary>
-/// Represents a layout recommendation for one page type.
-/// </summary>
-public sealed record CoursewarePageTypeRecommendation
-{
-    /// <summary>
-    /// Gets the page type name.
-    /// </summary>
-    public required string Name { get; init; }
-
-    /// <summary>
-    /// Gets the layout recommendation.
-    /// </summary>
-    public required string Description { get; init; }
-}
-
-/// <summary>
-/// Represents recommendations for common courseware page types.
-/// </summary>
-public sealed record CoursewarePageTypeRecommendations
-{
-    /// <summary>
-    /// Gets the cover-page recommendation.
-    /// </summary>
-    public required CoursewarePageTypeRecommendation Cover { get; init; }
-
-    /// <summary>
-    /// Gets the section-page recommendation.
-    /// </summary>
-    public required CoursewarePageTypeRecommendation Section { get; init; }
-
-    /// <summary>
-    /// Gets the regular content-page recommendation.
-    /// </summary>
-    public required CoursewarePageTypeRecommendation Content { get; init; }
-
-    /// <summary>
-    /// Gets the ending-page recommendation.
-    /// </summary>
-    public required CoursewarePageTypeRecommendation Ending { get; init; }
-
-    /// <summary>
-    /// Enumerates recommendations in display order.
-    /// </summary>
-    /// <returns>The ordered recommendations.</returns>
-    public IEnumerable<CoursewarePageTypeRecommendation> EnumerateRecommendations()
-    {
-        yield return Cover;
-        yield return Section;
-        yield return Content;
-        yield return Ending;
-    }
+    /// <summary>Gets the bottom ratio.</summary>
+    public required double BottomRatio { get; init; }
 }

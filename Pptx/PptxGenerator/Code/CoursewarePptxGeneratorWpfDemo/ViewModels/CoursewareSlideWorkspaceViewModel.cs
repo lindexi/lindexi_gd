@@ -106,7 +106,7 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
     /// <summary>
     /// Gets the validated theme title.
     /// </summary>
-    public string ThemeTitle => _session.ThemeAnalysisResult?.ThemeTitle ?? string.Empty;
+    public string ThemeTitle => _session.ThemeAnalysisResult?.Theme.Style ?? string.Empty;
 
     /// <summary>
     /// Gets the real slides displayed by the workspace.
@@ -264,13 +264,6 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
             _session.InputPackage,
             analysisResult,
             _workspaceCancellationTokenSource.Token);
-        foreach (var slide in Slides.Where(slide =>
-                     slide.IsInitialPromptPrepared
-                     && !slide.IsInitialPromptDirty
-                     && !slide.HasStartedGenerationConversation))
-        {
-            PrepareInitialDraft(slide, force: true);
-        }
 
         OnPropertyChanged(nameof(ThemeTitle));
     }
@@ -367,6 +360,7 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
         bool force = false)
     {
         if (slide.HasStartedGenerationConversation
+            || slide.IsInitialPromptDirty
             || (!force && slide.IsInitialPromptPrepared)
             || (force && slide.IsInitialPromptDirty))
         {
@@ -426,6 +420,20 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
         var isFirstMessage = snapshot.IsFirstMessage;
         var sourceScreenshotAttached = snapshot.Attachments.Any(attachment =>
             attachment.Kind == CoursewareChatImageAttachmentKind.SourceScreenshot);
+        if (isFirstMessage)
+        {
+            var userInstruction = slide.IsInitialPromptDirty || !slide.IsInitialPromptPrepared
+                ? snapshot.Message
+                : DefaultGenerationInstruction;
+            var promptResult = _promptBuilder.Build(
+                _promptSource,
+                slide.SlideIndex,
+                userInstruction,
+                sourceScreenshotAttached,
+                cancellationToken);
+            slide.ApplyInitialPrompt(promptResult.Prompt);
+            snapshot = slide.CreateMessageSnapshot();
+        }
         try
         {
             var unavailableAttachment = snapshot.Attachments.FirstOrDefault(attachment => !attachment.IsAvailable);

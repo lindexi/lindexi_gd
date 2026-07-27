@@ -387,7 +387,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
             {
                 _draftRevision++;
                 OnPropertyChanged(nameof(DraftRevision));
-                if (IsInitialPromptPrepared && !HasStartedGenerationConversation)
+                if (!HasStartedGenerationConversation)
                 {
                     IsInitialPromptDirty = true;
                 }

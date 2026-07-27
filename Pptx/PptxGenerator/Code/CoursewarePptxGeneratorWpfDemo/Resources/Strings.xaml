@@ -10,8 +10,6 @@
     <system:String x:Key="WorkspaceButtonAutomationText">进入真实课件页面美化工作台</system:String>
     <system:String x:Key="BackToThemeSuggestionText">← 返回主题建议</system:String>
     <system:String x:Key="BackToThemeSuggestionAutomationText">返回主题建议</system:String>
-    <system:String x:Key="ThemeSuggestionWarningText">当前结果仅为文本驱动的主题建议，不能视为设计系统、模板或视觉分析已通过。</system:String>
-    <system:String x:Key="InputWarningsFootnoteText">输入提示仅描述当前分析；后续执行能力由上方状态单独判定。</system:String>
     <system:String x:Key="CapabilityStatusPassedText">已通过</system:String>
     <system:String x:Key="CapabilityStatusNotRequestedText">未请求</system:String>
     <system:String x:Key="CapabilityStatusNotSupportedText">暂不支持</system:String>

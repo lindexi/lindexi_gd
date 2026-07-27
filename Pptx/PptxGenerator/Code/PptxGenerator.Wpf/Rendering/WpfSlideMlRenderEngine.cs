@@ -73,6 +73,7 @@ public sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         }
 
         bitmap.Render(visual);
+        bitmap.Freeze();
         return new WpfPreviewImage(bitmap);
     }
 
@@ -126,6 +127,7 @@ public sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
         }
 
         bitmap.Render(visual);
+        bitmap.Freeze();
         return new WpfPreviewImage(bitmap);
     }
 
@@ -576,7 +578,9 @@ public sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
 
             try
             {
-                return BitmapFrame.Create(new Uri(path, UriKind.Absolute), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                var bitmap = BitmapFrame.Create(new Uri(path, UriKind.Absolute), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                bitmap.Freeze();
+                return bitmap;
             }
             catch (IOException)
             {
@@ -650,7 +654,13 @@ public sealed class WpfSlideMlRenderEngine : ISlideMlRenderEngine
 
     private static double GetDpi()
     {
-        var visual = Application.Current?.MainWindow ?? Application.Current?.Windows.OfType<Window>().FirstOrDefault();
+        var application = Application.Current;
+        if (application is null || !application.Dispatcher.CheckAccess())
+        {
+            return 1.0;
+        }
+
+        var visual = application.MainWindow ?? application.Windows.OfType<Window>().FirstOrDefault();
         return visual is null ? 1.0 : VisualTreeHelper.GetDpi(visual).PixelsPerDip;
     }
 

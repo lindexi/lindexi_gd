@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.RegularExpressions;
 using CoursewarePptxGenerator.Core.Analysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -108,6 +109,82 @@ public sealed class CoursewareFolderLoaderTests
         var exception = await ThrowsAsync<InvalidDataException>(() => loader.LoadAsync(exportDirectory.FullName));
 
         StringAssert.Contains(exception.Message, "ResourceType 无效");
+    }
+
+    [TestMethod(DisplayName = "页面 SlideId 重复时应在加载阶段拒绝")]
+    [Timeout(60_000)]
+    public async Task LoadAsyncShouldRejectDuplicateSlideIds()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页"))
+            .AddSlide("slide-second", CreateSlideMarkdown("第二页"))
+            .Build();
+        var manifestPath = Path.Join(exportDirectory.FullName, "Courseware.json");
+        var manifestJson = await File.ReadAllTextAsync(manifestPath);
+        manifestJson = manifestJson.Replace("slide-second", "slide-first", StringComparison.Ordinal);
+        await File.WriteAllTextAsync(manifestPath, manifestJson);
+
+        var exception = await ThrowsAsync<InvalidDataException>(
+            () => new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, "重复的 SlideId");
+    }
+
+    [TestMethod(DisplayName = "页面顺序不连续时应在加载阶段拒绝")]
+    [Timeout(60_000)]
+    public async Task LoadAsyncShouldRejectNonSequentialSlideIndexes()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页"))
+            .AddSlide("slide-second", CreateSlideMarkdown("第二页"))
+            .Build();
+        var manifestPath = Path.Join(exportDirectory.FullName, "Courseware.json");
+        var manifestJson = await File.ReadAllTextAsync(manifestPath);
+        manifestJson = Regex.Replace(
+            manifestJson,
+            "\\\"SlideIndex\\\"\\s*:\\s*1",
+            "\"SlideIndex\":3",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        await File.WriteAllTextAsync(manifestPath, manifestJson);
+
+        var exception = await ThrowsAsync<InvalidDataException>(
+            () => new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, "必须连续并与页面列表顺序一致");
+    }
+
+    [TestMethod(DisplayName = "Markdown 页面身份与清单不一致时应在加载阶段拒绝")]
+    [Timeout(60_000)]
+    public async Task LoadAsyncShouldRejectMismatchedMarkdownIdentity()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页"))
+            .Build();
+        var markdownPath = Path.Join(exportDirectory.FullName, "Slides", "Slide000.md");
+        var markdown = await File.ReadAllTextAsync(markdownPath);
+        await File.WriteAllTextAsync(markdownPath, markdown.Replace("slide-first", "slide-other", StringComparison.Ordinal));
+
+        var exception = await ThrowsAsync<InvalidDataException>(
+            () => new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, "Markdown Id 与清单 SlideId 不一致");
+    }
+
+    [TestMethod(DisplayName = "Markdown 未以页面信息开始时应在加载阶段拒绝")]
+    [Timeout(60_000)]
+    public async Task LoadAsyncShouldRejectMissingLeadingPageInformation()
+    {
+        var exportDirectory = new TestCoursewareExportBuilder()
+            .AddSlide("slide-first", CreateSlideMarkdown("第一页"))
+            .Build();
+        var markdownPath = Path.Join(exportDirectory.FullName, "Slides", "Slide000.md");
+        var markdown = await File.ReadAllTextAsync(markdownPath);
+        await File.WriteAllTextAsync(markdownPath, "# 伪造标题\n\n" + markdown);
+
+        var exception = await ThrowsAsync<InvalidDataException>(
+            () => new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, "必须以“## 页面信息”章节开始");
     }
 
     private static string CreateSlideMarkdown(string content)

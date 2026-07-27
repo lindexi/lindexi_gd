@@ -1,156 +1,205 @@
-using System.Diagnostics;
-using System.Text.Json;
+using System.IO;
+using AgentLib;
 using AgentLib.Model;
-using CoursewarePptxGenerator.Core.Analysis;
-using CoursewarePptxGenerator.Core.Models;
-using CoursewarePptxGenerator.Core.Serialization;
 using CoursewarePptxGeneratorWpfDemo.Models;
 using Microsoft.Extensions.AI;
+using PptxGenerator.Models;
+using PptxGenerator.Prompt;
 
 namespace CoursewarePptxGeneratorWpfDemo.Services;
 
 /// <summary>
-/// Uses an independent AgentLib conversation to compile a validated executable courseware design system.
+/// Uses an independent AgentLib conversation to generate a lightweight courseware theme.
 /// </summary>
 public sealed class CopilotCoursewareThemeAgent : ICoursewareThemeAgent
 {
-    private const int MaximumRequestCount = 2;
-    private const string SystemPrompt = """
-        你是全课件设计系统编译器。用户消息包含经过本地校验的完整课件 Markdown、确定性结构化事实和可选视觉样本清单。最终产物必须是可执行、可验证的 CoursewareDesignSystem，而不是小型主题建议。
-        必须阅读全部 slides，依次使用设计系统草稿工具，并在每次成功写入后使用最新 DraftId 和 Revision。局部失败只修正对应分区。
-        必须提交画布与网格、字体、颜色、间距与效果、组件、素材策略、动态页面类型、全部 SlideId 唯一映射、可编译 SlideML 模板、无障碍与一致性规则、证据和假设。
-        模板只使用当前 SlideML 标签与属性；设计令牌使用 {{token:id}}，内容或素材槽位使用 {{slot:id}}。
-        只有用户消息确实附带截图时才允许提交 visualObservations；每条观察必须绑定 visualSamples 中的 SlideId、页码和 SampleRole。没有图片时不得声称看到了真实配色、Logo、阴影、渐变、素材内容或视觉质量。
-        不得输出本地路径、隐藏推理或未登记 ResourceId。最终必须调用 complete_courseware_design_system。
-        """;
+    private const int MaximumInteractionCount = 3;
 
     private readonly ICopilotChatManagerFactory _chatManagerFactory;
-    private readonly CoursewareDesignSystemValidator _validator;
+    private readonly ISlideMlPromptProvider? _promptProvider;
+    private readonly CoursewareThemeValidator _themeValidator;
 
-    public CopilotCoursewareThemeAgent(ICopilotChatManagerFactory chatManagerFactory, CoursewareDesignSystemValidator validator)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CopilotCoursewareThemeAgent" /> class.
+    /// </summary>
+    /// <param name="chatManagerFactory">Creates an independent chat manager for each analysis.</param>
+    /// <param name="promptProvider">Optional shared SlideML specification provider.</param>
+    /// <param name="themeValidator">Optional theme validator used for field and rendered SlideML validation.</param>
+    public CopilotCoursewareThemeAgent(
+        ICopilotChatManagerFactory chatManagerFactory,
+        ISlideMlPromptProvider? promptProvider = null,
+        CoursewareThemeValidator? themeValidator = null)
     {
         ArgumentNullException.ThrowIfNull(chatManagerFactory);
-        ArgumentNullException.ThrowIfNull(validator);
         _chatManagerFactory = chatManagerFactory;
-        _validator = validator;
+        _promptProvider = promptProvider;
+        _themeValidator = themeValidator ?? new CoursewareThemeValidator();
     }
 
-    public async Task<CoursewareDesignSystemAgentResult> AnalyzeAsync(
-        CoursewareAnalysisInput analysisInput,
-        CoursewareInputPackage inputPackage,
-        CoursewareStructuredFactReport structuredFacts,
-        IReadOnlyList<CoursewareVisualSample> visualSamples,
+    /// <inheritdoc />
+    public async Task<CoursewareTheme> AnalyzeAsync(
+        string prompt,
+        SlideDocumentContext validationCanvas,
+        IReadOnlySet<string> availableResourceIds,
         IProgress<CoursewareAnalysisEvent>? progress = null,
         IProgress<CopilotChatMessage>? messageProgress = null,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(analysisInput);
-        ArgumentNullException.ThrowIfNull(inputPackage);
-        ArgumentNullException.ThrowIfNull(structuredFacts);
-        ArgumentNullException.ThrowIfNull(visualSamples);
-        CoursewareAnalysisInputValidator.ValidateForTransmission(analysisInput, cancellationToken);
-
-        var chatManager = await _chatManagerFactory.CreateAsync(AgentWorkload.ThemeAnalysis, cancellationToken).ConfigureAwait(true);
-        var modelDefinition = chatManager.AgentApiEndpointManager.PrimaryModel.ModelDefinition;
-        var supportsImages = modelDefinition.Capabilities?.Attachment == true && modelDefinition.Capabilities.Input.Image;
-        var selectedSlideIds = visualSamples.Select(sample => sample.SlideId).ToHashSet(StringComparer.Ordinal);
-        var attachedSlides = supportsImages
-            ? inputPackage.Slides.Where(slide => selectedSlideIds.Contains(slide.SlideId) && slide.ScreenshotFile?.Exists == true).ToArray()
-            : [];
-        var attachedSlideIds = attachedSlides.Select(slide => slide.SlideId).ToHashSet(StringComparer.Ordinal);
-        var attachedSamples = visualSamples.Where(sample => attachedSlideIds.Contains(sample.SlideId)).ToArray();
-        var draft = new CoursewareDesignSystemDraftBuilder(
-            inputPackage.Slides.Select(slide => slide.SlideId),
-            inputPackage.Resources.Select(resource => resource.ResourceId ?? string.Empty),
-            attachedSamples.Length > 0);
-        var toolSet = new CoursewareDesignSystemToolSet(draft, _validator, attachedSamples);
-        var tools = toolSet.CreateTools();
-        var prompt = BuildPrompt(analysisInput.Prompt, structuredFacts, attachedSamples, supportsImages);
-        var initialContents = new List<AIContent> { new TextContent(prompt) };
-        foreach (var slide in attachedSlides)
+        if (string.IsNullOrWhiteSpace(prompt))
         {
-            initialContents.Add(await DataContent.LoadFromAsync(slide.ScreenshotFile!.FullName, cancellationToken: cancellationToken).ConfigureAwait(false));
+            throw new ArgumentException("主题分析 Prompt 不能为空。", nameof(prompt));
         }
+        ArgumentNullException.ThrowIfNull(validationCanvas);
+        ArgumentNullException.ThrowIfNull(availableResourceIds);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        for (var requestIndex = 0; requestIndex < MaximumRequestCount; requestIndex++)
+        var chatManager = await _chatManagerFactory.CreateAsync(
+            AgentWorkload.ThemeAnalysis,
+            cancellationToken).ConfigureAwait(false);
+        chatManager.CreateNewSession();
+
+        var promptProvider = _promptProvider ?? new SlideMlPromptProvider(validationCanvas);
+        var systemPrompt = BuildSystemPrompt(promptProvider.BuildCompleteDocumentSpecificationPrompt());
+        var submissionTool = new CoursewareThemeSubmissionTool(_themeValidator);
+        var aiFunction = submissionTool.CreateTool();
+        IReadOnlyList<AITool> tools = [aiFunction];
+        var currentPrompt = prompt;
+        IReadOnlyList<string> latestProblems = [];
+
+        for (var interaction = 1; interaction <= MaximumInteractionCount; interaction++)
         {
-            var isRepair = requestIndex > 0;
-            var requestPrompt = isRepair ? BuildRepairPrompt(prompt, draft, toolSet.Completion?.Validation) : prompt;
-            var requestContents = isRepair ? new List<AIContent> { new TextContent(requestPrompt) } : initialContents;
-            _ = CoursewareModelContextBudgetValidator.ValidateIfConfigured(modelDefinition, SystemPrompt, requestPrompt, tools, cancellationToken);
-            progress?.Report(CreateEvent(
-                isRepair ? CoursewareAnalysisStage.RepairingTheme : CoursewareAnalysisStage.DesigningTheme,
-                isRepair ? "正在修正可执行设计系统" : "正在编译可执行设计系统",
-                attachedSamples.Length > 0
-                    ? $"正在基于完整 Markdown、结构化事实和 {attachedSamples.Length} 张受控截图操作设计系统草稿。"
-                    : supportsImages ? "没有可附加的受控截图，正在使用完整 Markdown 和结构化事实。" : "模型不支持图片附件，正在使用完整 Markdown 和结构化事实。",
-                CoursewareAnalysisEventState.Running));
-            var request = new SendMessageRequest(requestContents)
+            cancellationToken.ThrowIfCancellationRequested();
+            progress?.Report(CreateProgressEvent(
+                interaction == 1 ? CoursewareAnalysisStage.DesigningTheme : CoursewareAnalysisStage.RepairingTheme,
+                CoursewareAnalysisEventState.Running,
+                $"主题分析第 {interaction} 轮",
+                interaction == 1 ? "正在提交主题分析请求。" : $"正在修复 {latestProblems.Count} 个问题。"));
+
+            CoursewareModelContextBudgetValidator.ValidateIfConfigured(
+                chatManager.AgentApiEndpointManager.PrimaryModel.ModelDefinition,
+                systemPrompt,
+                currentPrompt,
+                aiFunction,
+                cancellationToken);
+
+            var submissionCountBeforeRound = submissionTool.SubmissionCount;
+            var sendResult = chatManager.SendMessage(new SendMessageRequest(currentPrompt)
             {
-                WithHistory = false,
-                CreateNewSession = true,
-                AppendDefaultTools = false,
+                SystemPrompt = systemPrompt,
+                WithHistory = true,
+                CreateNewSession = false,
                 Tools = tools,
-                SystemPrompt = SystemPrompt,
+                AppendDefaultTools = false,
                 CancellationToken = cancellationToken,
-            };
-            var stopwatch = Stopwatch.StartNew();
-            var result = chatManager.SendMessage(request);
-            result.UserChatMessage.IsPresetInfo = true;
-            result.AssistantChatMessage.IsPresetInfo = true;
-            messageProgress?.Report(result.UserChatMessage);
-            messageProgress?.Report(result.AssistantChatMessage);
-            await result.RunTask.ConfigureAwait(true);
-            stopwatch.Stop();
-            if (toolSet.Completion is { Success: true, DesignSystem: not null } completion)
+            });
+            var runState = await sendResult.RunTask.ConfigureAwait(false);
+            messageProgress?.Report(sendResult.AssistantChatMessage);
+
+            if (!runState.IsSuccess)
             {
-                return new CoursewareDesignSystemAgentResult
-                {
-                    DesignSystem = completion.DesignSystem,
-                    Validation = completion.Validation,
-                    VisualAnalysis = new CoursewareVisualAnalysisReport
-                    {
-                        WasRequested = visualSamples.Count > 0,
-                        ModelSupportedImages = supportsImages,
-                        Samples = attachedSamples,
-                        Observations = toolSet.VisualObservations,
-                    },
-                };
+                cancellationToken.ThrowIfCancellationRequested();
+                throw new InvalidOperationException($"主题分析第 {interaction} 轮调用失败：{sendResult.AssistantChatMessage.Content}");
             }
 
-            progress?.Report(CreateEvent(CoursewareAnalysisStage.ValidatingTheme, "可执行设计系统校验", $"本轮耗时 {stopwatch.Elapsed.TotalSeconds:0.0} 秒，正在按字段级诊断修订。", CoursewareAnalysisEventState.Warning));
+            latestProblems = await GetValidationProblemsAsync(
+                submissionTool,
+                submissionCountBeforeRound,
+                validationCanvas,
+                availableResourceIds,
+                cancellationToken).ConfigureAwait(false);
+            if (latestProblems.Count == 0 && submissionTool.SubmittedTheme is { } submittedTheme)
+            {
+                progress?.Report(CreateProgressEvent(
+                    CoursewareAnalysisStage.ValidatingTheme,
+                    CoursewareAnalysisEventState.Completed,
+                    $"主题分析第 {interaction} 轮通过",
+                    "主题字段和两份完整 SlideML 均已验证。"));
+                return submittedTheme;
+            }
+
+            progress?.Report(CreateProgressEvent(
+                CoursewareAnalysisStage.RepairingTheme,
+                interaction == MaximumInteractionCount
+                    ? CoursewareAnalysisEventState.Failed
+                    : CoursewareAnalysisEventState.Warning,
+                $"主题分析第 {interaction} 轮未通过",
+                string.Join("；", latestProblems)));
+
+            if (interaction < MaximumInteractionCount)
+            {
+                currentPrompt = BuildRepairPrompt(latestProblems);
+            }
         }
 
-        var validation = toolSet.Completion?.Validation;
-        var details = validation is null || validation.Diagnostics.Count == 0
-            ? "模型未调用 complete_courseware_design_system。"
-            : string.Join("；", validation.Diagnostics.Select(item => $"{item.Path}: {item.Message}"));
-        throw new InvalidOperationException($"未能冻结有效的 CoursewareDesignSystem。{details}");
+        throw new InvalidDataException(
+            $"主题分析经过 {MaximumInteractionCount} 轮仍未通过：{string.Join("；", latestProblems)}");
     }
 
-    private static string BuildPrompt(string analysisPrompt, CoursewareStructuredFactReport structuredFacts, IReadOnlyList<CoursewareVisualSample> visualSamples, bool supportsImages)
+    private static string BuildSystemPrompt(string completeDocumentSpecification)
     {
-        var factsJson = JsonSerializer.Serialize(
-            structuredFacts,
-            typeof(CoursewareStructuredFactReport),
-            CoursewareDesignJsonSerializerContext.Default);
-        var visualJson = JsonSerializer.Serialize(
-            visualSamples.ToArray(),
-            typeof(CoursewareVisualSample[]),
-            CoursewareDesignJsonSerializerContext.Default);
-        return $"<analysis-envelope>\n{analysisPrompt}\n</analysis-envelope>\n<structured-facts>\n{factsJson}\n</structured-facts>\n<visual-capability supported=\"{supportsImages}\" attachedCount=\"{visualSamples.Count}\">\n{visualJson}\n</visual-capability>\n使用多工具完成并冻结设计系统。视觉附件顺序与 visualSamples 顺序一致。";
+        return $"""
+你是课件全局主题分析 Agent。必须遵守以下规则：
+- 只调用 submit_courseware_theme_analysis；不要调用、提及或模拟其他工具。
+- 必须通过该工具提交 Theme 2.0，SchemaVersion 必须精确为 2.0。
+- CoverPageSlideMl 与 ContentPageSlideMl 必须分别是完整、可渲染的 SlideML Page XML 文档。
+- 禁止输出流式 SlideML 协议、片段补丁、Remove、StyleFrom、StyleId、TargetId 或 get_slide_state。
+- 不要在工具调用之外输出主题结果；收到校验问题后修正全部问题并重新调用同一工具。
+
+{completeDocumentSpecification}
+""";
     }
 
-    private static string BuildRepairPrompt(string originalPrompt, CoursewareDesignSystemDraftBuilder draft, CoursewareDesignSystemValidationReport? validation)
+    private async Task<IReadOnlyList<string>> GetValidationProblemsAsync(
+        CoursewareThemeSubmissionTool submissionTool,
+        int submissionCountBeforeRound,
+        SlideDocumentContext validationCanvas,
+        IReadOnlySet<string> availableResourceIds,
+        CancellationToken cancellationToken)
     {
-        var diagnostics = validation?.Diagnostics.Count > 0
-            ? string.Join("\n", validation.Diagnostics.Select(item => $"- {item.Code} | {item.Path} | {item.Message}"))
-            : "- 尚未调用完成工具或草稿分区不完整。";
-        return $"继续修订现有草稿，不要重新 begin。当前 DraftId={draft.DraftId}，Revision={draft.Revision}。\n只修正以下问题后再次 complete：\n{diagnostics}\n原始完整输入：\n{originalPrompt}";
+        if (submissionTool.SubmissionCount == submissionCountBeforeRound)
+        {
+            return ["未调用 submit_courseware_theme_analysis。"];
+        }
+
+        if (submissionTool.ValidationErrors.Count > 0)
+        {
+            return submissionTool.ValidationErrors;
+        }
+
+        if (submissionTool.SubmittedTheme is not { } submittedTheme)
+        {
+            return ["工具未提交可用的 Theme 2.0。"];
+        }
+
+        var validationResult = await _themeValidator.ValidateAsync(
+            submittedTheme,
+            validationCanvas,
+            availableResourceIds,
+            cancellationToken).ConfigureAwait(false);
+        return validationResult.Errors;
     }
 
-    private static CoursewareAnalysisEvent CreateEvent(CoursewareAnalysisStage stage, string title, string message, CoursewareAnalysisEventState state)
+    private static string BuildRepairPrompt(IReadOnlyList<string> problems)
     {
-        return new CoursewareAnalysisEvent { Stage = stage, Kind = CoursewareAnalysisEventKind.Progress, Title = title, Message = message, State = state };
+        return "请修复以下问题并重新调用 submit_courseware_theme_analysis：\n- "
+            + string.Join("\n- ", problems);
+    }
+
+    private static CoursewareAnalysisEvent CreateProgressEvent(
+        CoursewareAnalysisStage stage,
+        CoursewareAnalysisEventState state,
+        string title,
+        string message)
+    {
+        return new CoursewareAnalysisEvent
+        {
+            Stage = stage,
+            Kind = state == CoursewareAnalysisEventState.Failed
+                ? CoursewareAnalysisEventKind.Error
+                : CoursewareAnalysisEventKind.Progress,
+            State = state,
+            Title = title,
+            Message = message,
+        };
     }
 }

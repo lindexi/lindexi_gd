@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using CoursewarePptxGenerator.Core.Models;
 
 namespace CoursewarePptxGeneratorWpfDemo.Models;
 
@@ -10,4 +11,11 @@ namespace CoursewarePptxGeneratorWpfDemo.Models;
     ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip)]
 [JsonSerializable(typeof(CoursewareTheme))]
 [JsonSerializable(typeof(CoursewareThemeAnalysisResult))]
+[JsonSerializable(typeof(CoursewareThemeAnalysisSnapshotManifest))]
+[JsonSerializable(typeof(CoursewareColorSuggestion))]
+[JsonSerializable(typeof(CoursewareFontSuggestions))]
+[JsonSerializable(typeof(CoursewareSafeAreaRatios))]
+[JsonSerializable(typeof(CoursewareExportManifest))]
+[JsonSerializable(typeof(CoursewareExportSlideEntry))]
+[JsonSerializable(typeof(CoursewareResourceEntry[]))]
 public sealed partial class CoursewareExportJsonSerializerContext : JsonSerializerContext;

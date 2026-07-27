@@ -25,20 +25,4 @@ public sealed class CoursewareCanvasAdapterTests
         Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => CoursewareCanvasAdapter.CreateDocumentContext((double)int.MaxValue + 1, 720));
     }
 
-    [TestMethod(DisplayName = "主题坐标应从分析参考画布缩放到当前页面画布")]
-    public void ScaleThemeCoordinatesShouldUseReferenceAndCurrentCanvas()
-    {
-        var referenceCanvas = new SlideDocumentContext(1280, 720);
-        var slideCanvas = new SlideDocumentContext(1920, 1080);
-        var safeArea = new CoursewareSafeArea { Left = 60, Top = 40, Right = 80, Bottom = 50 };
-
-        var scaledSafeArea = CoursewareCanvasAdapter.ScaleSafeArea(safeArea, referenceCanvas, slideCanvas);
-        var scaledFontSize = CoursewareCanvasAdapter.ScaleFontSize(32, referenceCanvas, slideCanvas);
-
-        Assert.AreEqual(90, scaledSafeArea.Left);
-        Assert.AreEqual(60, scaledSafeArea.Top);
-        Assert.AreEqual(120, scaledSafeArea.Right);
-        Assert.AreEqual(75, scaledSafeArea.Bottom);
-        Assert.AreEqual(48, scaledFontSize);
-    }
 }

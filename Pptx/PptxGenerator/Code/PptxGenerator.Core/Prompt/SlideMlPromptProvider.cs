@@ -96,6 +96,7 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
     public string BuildDefaultSystemPrompt()
     {
         var canvasSize = $"{_documentContext.CanvasWidth}×{_documentContext.CanvasHeight}";
+        var completeDocumentSpecification = BuildCompleteDocumentSpecificationPrompt();
         return $"""
 你是一个专业的幻灯片排版引擎。你的任务是根据用户的需求，生成一份 SlideML 格式的 XML 文档。
 
@@ -105,54 +106,45 @@ public sealed class SlideMlPromptProvider : ISlideMlPromptProvider
 - 如果收到渲染警告和回填后的 XML，请根据反馈修改并重新输出完整 XML，然后再次调用 render_slide。
 - 适可而止，最多调用 render_slide 工具 4 次。
 
-## SlideML 基本规则
-- 画布尺寸固定为 {canvasSize} 像素，坐标原点在左上角
-- 所有尺寸单位为 px（不写单位），颜色格式为 #RRGGBB 或 #AARRGGBB
-- 标签必须严格遵守定义，不要创造新标签或新属性
-- 元素 Id 可以不写，引擎会自动分配
+画布尺寸固定为 {canvasSize} 像素。
 
-## 标签与属性
-### Page
-属性: Background（背景色，可选，默认 #FFFFFF）
-### Panel
-属性: X, Y, Width, Height（均可选）, Padding（可选，默认 0）, Background（可选）, Layout（Absolute/Horizontal/Vertical，默认 Absolute）, Gap（流式布局间距，默认 0）, Margin（外边距，逗号分隔 1~4 个值）
-### Rect
-属性: X, Y, Width, Height（均可选）, Fill, Stroke, StrokeThickness, CornerRadius（圆角半径，支持 1~4 值逗号分隔，默认 0）, StrokeDashArray（虚线描边，逗号分隔数值）, Margin（外边距，逗号分隔 1~4 个值）, HorizontalAlignment（Left/Center/Right）, VerticalAlignment（Top/Center/Bottom）, Opacity（0.0~1.0）
-### TextElement
-属性: X, Y, Width, Height（均可选）, Text（必填）, FontName（默认 Microsoft YaHei）, FontSize（默认 16）, IsBold（True/False）, IsItalic（True/False）, Foreground（默认 #000000）, TextAlignment（Left/Center/Right/Justify，默认 Left）, HorizontalAlignment, VerticalAlignment, Opacity, Margin（外边距，逗号分隔 1~4 个值）
-### Image
-属性: X, Y, Width, Height（均可选）, Source（必填，图片资源ID）, Stretch（None/Fill/Uniform/UniformToFill，默认 Uniform）, HorizontalAlignment, VerticalAlignment, Opacity, Margin（外边距，逗号分隔 1~4 个值）
-### 子元素
-- `<Fill><LinearGradient X1 Y1 X2 Y2><Stop Offset Color/></LinearGradient></Fill>` — 渐变填充，可用于 Rect 和 Panel（Stop Offset 范围 0~1）
-- `<Stroke><LinearGradient>...</LinearGradient></Stroke>` — 渐变描边，可用于 Rect
-- `<Span Text FontSize FontName Foreground IsBold IsItalic TextDecoration/>` — 富文本片段，可用于 TextElement
-
-## 排版规则
-1. 所有子元素相对于直接父容器定位
-2. Z 序按文档出现顺序，后出现的在上层
-3. 文本设置 Width 后会自动换行，不设置则单行
-4. Panel 不设置 Width/Height 时自动包裹子元素
-5. 子元素超出父容器的部分会被裁剪
-6. Panel 设置 Layout="Horizontal"/"Vertical" 时子元素沿排列轴依次排列，排列轴上的 X/Y 被忽略，使用 Gap 和 Margin 控制间距
-7. 流式布局实际间距 = max(Gap, 前元素尾Margin + 后元素头Margin)
-8. 流式布局不支持 Wrap，子元素超出时产生 Warning
-9. CornerRadius 支持 1~4 个值逗号分隔（四角简写规则），如 "8" 四角统一，"8,0,8,0" 左上/右下圆角、右上/左下直角
-
-## 禁止事项
-- 不要写 RenderSize、RenderLocation、ActualLineCount 属性
-- 不要创造未定义的标签或属性
-- 不要使用 XAML、HTML 等其他语法
-
-## 输出格式
-- 直接输出 XML，不要使用 markdown 代码块包裹
-- 第一行必须是 <?xml version="1.0" encoding="UTF-8"?>
-- 根元素必须是 <Page>
-- 只输出最终 XML，不要追加解释
+{completeDocumentSpecification}
 
 ## 实验目标
 - 当前只需要生成单页
 - 优先让版面完整、层级清晰、留白充足
 - **重要：生成 SlideML 后必须调用 render_slide 工具，不可跳过此步骤**
+""";
+    }
+
+    /// <inheritdoc />
+    public string BuildCompleteDocumentSpecificationPrompt()
+    {
+        var elementLines = SlideMlCompleteDocumentSchema.Elements.Select(element =>
+        {
+            var attributes = element.AllowedAttributes.Count == 0
+                ? "无属性"
+                : $"属性: {string.Join(", ", element.AllowedAttributes)}";
+            var children = element.AllowedChildren.Count == 0
+                ? "无子元素"
+                : $"子元素: {string.Join(", ", element.AllowedChildren)}";
+            return $"- {element.Name}: {attributes}; {children}";
+        });
+
+        return $"""
+## 完整 SlideML Page 文档规范
+- 输出必须是格式正确的 XML 完整文档，第一行是 <?xml version="1.0" encoding="UTF-8"?>，根元素必须是 <Page>。
+- 坐标原点在左上角，所有数值默认单位为 px 且不写单位，颜色格式为 #RRGGBB 或 #AARRGGBB。
+- 标签名与属性名大小写必须严格匹配，禁止创造未定义标签或属性。
+- 所有子元素相对于直接父容器定位；同一父容器内后出现的元素显示在上层。
+- TextElement 设置 Width 后自动换行，不设置 Width 时按单行自适应宽度排版。
+- Panel 可使用 Absolute、Horizontal、Vertical 布局；流式布局通过 Gap 和 Margin 控制间距且不支持 Wrap。
+- CornerRadius 与 Margin 支持逗号分隔的 1 到 4 个数值。
+- Fill 和 Stroke 可包含 LinearGradient；Stop 的 Offset 范围为 0 到 1。
+- 禁止写入 RenderSize、RenderLocation、ActualLineCount；禁止使用 XAML、HTML、流式片段或 Remove。
+
+### 标签、属性与父子层级
+{string.Join(Environment.NewLine, elementLines)}
 """;
     }
 

@@ -117,6 +117,19 @@ public sealed class CoursewareFolderLoader
             throw new InvalidDataException("Courseware.json 中包含重复的 SlideIndex。");
         }
 
+        for (var position = 0; position < manifest.Slides.Count; position++)
+        {
+            if (manifest.Slides[position].SlideIndex != position)
+            {
+                throw new InvalidDataException("Courseware.json 中的 SlideIndex 必须连续并与页面列表顺序一致。");
+            }
+        }
+
+        if (manifest.Slides.Select(entry => entry.SlideId).Distinct(StringComparer.Ordinal).Count() != manifest.Slides.Count)
+        {
+            throw new InvalidDataException("Courseware.json 中包含重复的 SlideId。");
+        }
+
         if (string.IsNullOrWhiteSpace(manifest.ResourcesFile))
         {
             throw new InvalidDataException("Courseware.json 缺少 ResourcesFile。");
@@ -161,9 +174,12 @@ public sealed class CoursewareFolderLoader
 
             var markdownText = await File.ReadAllTextAsync(markdownFile.FullName, cancellationToken)
                 .ConfigureAwait(false);
-            if (entry.Width <= 0 || entry.Height <= 0)
+            if (!double.IsFinite(entry.Width)
+                || !double.IsFinite(entry.Height)
+                || entry.Width <= 0
+                || entry.Height <= 0)
             {
-                throw new InvalidDataException($"第 {pageNumber} 个页面条目的尺寸必须大于 0。");
+                throw new InvalidDataException($"第 {pageNumber} 个页面条目的尺寸必须为有限正数。");
             }
 
             FileInfo? screenshotFile = null;
@@ -190,7 +206,7 @@ public sealed class CoursewareFolderLoader
                     entry.SlideIndex);
             }
 
-            slides.Add(new CoursewareSlideInput
+            var slide = new CoursewareSlideInput
             {
                 SlideIndex = entry.SlideIndex,
                 PageNumber = pageNumber,
@@ -201,7 +217,9 @@ public sealed class CoursewareFolderLoader
                 ScreenshotFile = screenshotFile,
                 MarkdownText = markdownText,
                 Warnings = slideWarnings,
-            });
+            };
+            CoursewareMarkdownPageInfoValidator.Validate(slide, slidePosition);
+            slides.Add(slide);
         }
 
         return slides;

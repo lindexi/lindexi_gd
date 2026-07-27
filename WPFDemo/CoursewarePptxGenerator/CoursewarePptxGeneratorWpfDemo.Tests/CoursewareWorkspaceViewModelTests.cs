@@ -34,20 +34,17 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.AreEqual(1, analysisService.AnalysisCount);
         Assert.IsNotNull(viewModel.CoursewareSession);
         Assert.IsNotNull(viewModel.CoursewareSession.ThemeAnalysisResult);
-        Assert.AreEqual("测试主题", viewModel.ThemeTitle);
-        Assert.HasCount(5, viewModel.ThemeColors);
-        Assert.HasCount(4, viewModel.TypographyLevels);
-        Assert.HasCount(3, viewModel.StyleKeywords);
-        Assert.HasCount(4, viewModel.PageTypeRecommendations);
+        Assert.AreEqual("清晰、克制、现代", viewModel.ThemeTitle);
+        Assert.HasCount(3, viewModel.ThemeColors);
+        Assert.HasCount(2, viewModel.TypographyLevels);
+        Assert.AreEqual("清晰、克制、现代", viewModel.ThemeStyle);
+        Assert.AreEqual("保持充足留白，不使用阴影。", viewModel.SpacingAndVisualEffects);
+        Assert.AreEqual("保持对齐，突出重点，并控制留白。", viewModel.ThemeLayoutPrinciples);
+        Assert.AreEqual("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Page />", viewModel.CoverPageSlideMl);
+        Assert.AreEqual("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Page />", viewModel.ContentPageSlideMl);
         Assert.AreEqual("测试课件", viewModel.CoursewareTitle);
         Assert.AreEqual("课件文本分析完成", viewModel.AnalysisStatus);
         StringAssert.Contains(viewModel.AnalysisCaption, "主题建议");
-        Assert.AreEqual("已通过", viewModel.TextAnalysisCapabilityText);
-        Assert.AreEqual("已通过", viewModel.ThemeSuggestionCapabilityText);
-        Assert.AreEqual("已通过", viewModel.DesignSystemCapabilityText);
-        Assert.AreEqual("已通过", viewModel.TemplateValidationCapabilityText);
-        Assert.AreEqual("未请求", viewModel.VisualAnalysisCapabilityText);
-        Assert.AreEqual("尚未生成", viewModel.PageGenerationCapabilityText);
         Assert.HasCount(2, viewModel.CoursewareThumbnails);
         Assert.AreEqual("slide-first", viewModel.CoursewareThumbnails[0].SlideId);
         Assert.AreEqual("第 1 页", viewModel.CoursewareThumbnails[0].AccessibleName);
@@ -148,8 +145,12 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.AreEqual(normalViewModel.FontRecommendationText, restoredViewModel.FontRecommendationText);
         Assert.AreEqual(normalViewModel.SafeAreaText, restoredViewModel.SafeAreaText);
         Assert.AreEqual(normalViewModel.ColorRationale, restoredViewModel.ColorRationale);
-        CollectionAssert.AreEqual(normalViewModel.StyleKeywords.ToArray(), restoredViewModel.StyleKeywords.ToArray());
         CollectionAssert.AreEqual(normalViewModel.LayoutPrinciples.ToArray(), restoredViewModel.LayoutPrinciples.ToArray());
+        Assert.AreEqual(normalViewModel.ThemeStyle, restoredViewModel.ThemeStyle);
+        Assert.AreEqual(normalViewModel.SpacingAndVisualEffects, restoredViewModel.SpacingAndVisualEffects);
+        Assert.AreEqual(normalViewModel.ThemeLayoutPrinciples, restoredViewModel.ThemeLayoutPrinciples);
+        Assert.AreEqual(normalViewModel.CoverPageSlideMl, restoredViewModel.CoverPageSlideMl);
+        Assert.AreEqual(normalViewModel.ContentPageSlideMl, restoredViewModel.ContentPageSlideMl);
         CollectionAssert.AreEqual(normalViewModel.AnalysisWarnings.ToArray(), restoredViewModel.AnalysisWarnings.ToArray());
         Assert.AreEqual(normalSelectedSlide.SlideId, restoredSelectedSlide.SlideId);
         Assert.AreEqual(normalSelectedSlide.SourceMarkdownText, restoredSelectedSlide.SourceMarkdownText);
@@ -160,9 +161,7 @@ public sealed class CoursewareWorkspaceViewModelTests
             normalSelectedSlide.Runtime!.SlideChatManager.Pipeline.PromptProvider.BuildSystemPrompt(),
             restoredSelectedSlide.Runtime!.SlideChatManager.Pipeline.PromptProvider.BuildSystemPrompt());
 
-        var promptBuilder = new CoursewareSlidePromptBuilder(
-            new CoursewareSlideSummaryService(),
-            new CoursewareThemePageDesignAdapter());
+        var promptBuilder = new CoursewareSlidePromptBuilder();
         var normalPrompt = promptBuilder.Build(
             normalViewModel.CoursewareSession!.InputPackage,
             normalViewModel.CoursewareSession.ThemeAnalysisResult!,
@@ -178,8 +177,6 @@ public sealed class CoursewareWorkspaceViewModelTests
 
         Assert.AreEqual(normalPrompt.Prompt, restoredPrompt.Prompt);
         Assert.AreEqual(normalPrompt.EstimatedTokenCount, restoredPrompt.EstimatedTokenCount);
-        Assert.AreEqual(normalPrompt.Envelope.DesignContext.ReferenceCanvasWidth, restoredPrompt.Envelope.DesignContext.ReferenceCanvasWidth);
-        Assert.AreEqual(normalPrompt.Envelope.DesignContext.ReferenceCanvasHeight, restoredPrompt.Envelope.DesignContext.ReferenceCanvasHeight);
     }
 
     [TestMethod(DisplayName = "打开新课件后应替换旧真实工作台且不复用页面运行时")]
@@ -228,8 +225,8 @@ public sealed class CoursewareWorkspaceViewModelTests
                 {
                     Theme = result.Theme with
                     {
-                        Title = "更新主题",
-                        Summary = "重新分析后的主题",
+                        Style = "更新主题",
+                        SpacingAndVisualEffects = "重新分析后的主题",
                     },
                 });
         });
@@ -310,7 +307,7 @@ public sealed class CoursewareWorkspaceViewModelTests
             .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
             .Build();
         await File.WriteAllTextAsync(
-            Path.Join(exportDirectory.FullName, CoursewareThemeAnalysisSnapshotManifest.FileName),
+            Path.Join(exportDirectory.FullName, "CoursewareThemeAnalysis.json"),
             "{ invalid snapshot json");
         var analysisService = new FakeCoursewareThemeAnalysisService();
         var viewModel = CreateViewModel(analysisService);
@@ -321,27 +318,7 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.AreEqual(CoursewareWorkspaceState.LoadFailed, viewModel.WorkspaceState);
         Assert.IsNull(viewModel.CoursewareSession);
         Assert.IsNull(viewModel.SlideWorkspace);
-        StringAssert.Contains(viewModel.LoadErrorMessage, CoursewareThemeAnalysisSnapshotManifest.FileName);
-    }
-
-    [TestMethod(DisplayName = "课件级页面生成状态应优先显示进行中和全部取消")]
-    [Timeout(60_000)]
-    public async Task PageGenerationCapabilityTextShouldReflectInProgressAndCanceledStates()
-    {
-        var exportDirectory = new TestCoursewareExportBuilder()
-            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
-            .Build();
-        var viewModel = CreateViewModel(
-            new FakeCoursewareThemeAnalysisService(),
-            new FakeSlideChatManagerFactory());
-        await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
-        var slide = viewModel.SlideWorkspace!.SelectedSlide!;
-
-        SetSlideState(slide, CoursewareSlideState.Generating);
-        Assert.AreEqual("正在处理 1 页", viewModel.PageGenerationCapabilityText);
-
-        SetSlideState(slide, CoursewareSlideState.Canceled);
-        Assert.AreEqual("已取消 1 页", viewModel.PageGenerationCapabilityText);
+        StringAssert.Contains(viewModel.LoadErrorMessage, "CoursewareThemeAnalysis.json");
     }
 
     [TestMethod(DisplayName = "主题分析期间应固定显示分析对话并拒绝选择结果")]
@@ -472,36 +449,6 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.IsTrue(viewModel.EnterWorkspaceCommand.CanExecute(null));
     }
 
-    [TestMethod(DisplayName = "快速 Copilot 响应即使校验失败也应完整显示可读输出")]
-    [Timeout(60_000)]
-    public async Task FastCopilotResponseShouldRemainVisibleWhenThemeValidationFails()
-    {
-        const string assistantText = "推荐采用清晰、克制且适合课堂投影的视觉方向。";
-        var exportDirectory = new TestCoursewareExportBuilder()
-            .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
-            .Build();
-        var agent = new CopilotCoursewareThemeAgent(
-            new FastCopilotChatManagerFactory(assistantText),
-            new CoursewareDesignSystemValidator());
-        var analysisService = new CoursewareThemeAnalysisService(
-            new CoursewareAnalysisInputBuilder(),
-            agent);
-        var viewModel = CreateViewModel(analysisService);
-
-        await viewModel.OpenCoursewareFolderAsync(exportDirectory.FullName);
-
-        Assert.AreEqual(CoursewareWorkspaceState.AnalysisFailed, viewModel.WorkspaceState);
-        Assert.HasCount(4, viewModel.AnalysisChatMessages);
-        CollectionAssert.AreEqual(
-            new[] { ChatRole.User, ChatRole.Assistant, ChatRole.User, ChatRole.Assistant },
-            viewModel.AnalysisChatMessages.Select(message => message.Role).ToArray());
-        Assert.IsTrue(viewModel.AnalysisChatMessages.Where(message => message.Role == ChatRole.User).All(message => !string.IsNullOrWhiteSpace(message.Content)));
-        Assert.IsTrue(viewModel.AnalysisChatMessages.Where(message => message.Role == ChatRole.Assistant).All(message => message.Content == assistantText));
-        var validationEvent = viewModel.AnalysisEvents.Single(item => item.Stage == CoursewareAnalysisStage.ValidatingTheme);
-        Assert.AreEqual("可执行设计系统校验", validationEvent.Title);
-        Assert.AreEqual(CoursewareAnalysisEventState.Warning, validationEvent.State);
-    }
-
     [TestMethod(DisplayName = "打开无效课件文件夹后应清空缩略图并显示错误")]
     [Timeout(60_000)]
     public async Task OpenCoursewareFolderAsyncShouldClearThumbnailsAndShowErrorWhenLoadingFails()
@@ -547,9 +494,7 @@ public sealed class CoursewareWorkspaceViewModelTests
             themeAnalysisService,
             slideChatManagerFactory,
             summaryService,
-            new CoursewareSlidePromptBuilder(
-                summaryService,
-                new CoursewareThemePageDesignAdapter()),
+            new CoursewareSlidePromptBuilder(),
             snapshotStore);
     }
 
@@ -632,7 +577,7 @@ public sealed class CoursewareWorkspaceViewModelTests
 
     private sealed class FailingCoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnalysisSnapshotStore
     {
-        public string ManifestFileName => CoursewareThemeAnalysisSnapshotManifest.FileName;
+        public string ManifestFileName => "CoursewareThemeAnalysis.json";
 
         public Task<DirectoryInfo> SaveAsync(
             CoursewareInputPackage inputPackage,

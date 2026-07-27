@@ -70,9 +70,9 @@ public sealed class MainWindowCompositionTests
             "进入工作台按钮应由命令 CanExecute 决定，避免重新分析失败或取消后错误禁用。");
     }
 
-    [TestMethod(DisplayName = "分析结果与工作台应明确标记当前能力边界")]
+    [TestMethod(DisplayName = "分析结果应只展示 Theme 2.0 字段")]
     [Timeout(60_000)]
-    public void AnalysisAndWorkspaceViewsShouldDescribeCapabilityBoundary()
+    public void AnalysisResultShouldOnlyDisplayTheme20Fields()
     {
         var projectDirectory = GetApplicationProjectDirectory();
         var analysisView = XDocument.Load(Path.Join(projectDirectory, "Views", "CoursewareAnalysisView.xaml"));
@@ -84,11 +84,15 @@ public sealed class MainWindowCompositionTests
             workspaceView.ToString(SaveOptions.DisableFormatting));
 
         StringAssert.Contains(combinedXaml, "WorkspaceButtonText");
-        StringAssert.Contains(combinedXaml, "ThemeSuggestionWarningText");
-        StringAssert.Contains(combinedXaml, "DesignSystemCapabilityText");
-        StringAssert.Contains(combinedXaml, "TemplateValidationCapabilityText");
-        StringAssert.Contains(combinedXaml, "VisualAnalysisCapabilityText");
-        StringAssert.Contains(combinedXaml, "PageGenerationCapabilityText");
+        StringAssert.Contains(combinedXaml, "ColorSuggestions");
+        StringAssert.Contains(combinedXaml, "ThemeStyle");
+        StringAssert.Contains(combinedXaml, "SpacingAndVisualEffects");
+        StringAssert.Contains(combinedXaml, "ThemeLayoutPrinciples");
+        StringAssert.Contains(combinedXaml, "CoverPageSlideMl");
+        StringAssert.Contains(combinedXaml, "ContentPageSlideMl");
+        Assert.IsFalse(combinedXaml.Contains("CapabilityText", StringComparison.Ordinal));
+        Assert.IsFalse(combinedXaml.Contains("能力状态", StringComparison.Ordinal));
+        Assert.IsFalse(combinedXaml.Contains("DesignSystem", StringComparison.Ordinal));
         Assert.IsFalse(combinedXaml.Contains("演示数据", StringComparison.Ordinal));
         Assert.IsFalse(combinedXaml.Contains("工作台原型", StringComparison.Ordinal));
     }
@@ -184,7 +188,7 @@ public sealed class MainWindowCompositionTests
             new FakeCoursewareThemeAnalysisService(),
             new FakeSlideChatManagerFactory(),
             summaryService,
-            new CoursewareSlidePromptBuilder(summaryService, new CoursewareThemePageDesignAdapter()),
+            new CoursewareSlidePromptBuilder(),
             new CoursewareThemeAnalysisSnapshotStore(Directory.CreateDirectory(Path.Join(
                 Path.GetTempPath(),
                 $"CoursewareThemeSnapshotTests_{Guid.NewGuid():N}")).FullName));
@@ -271,7 +275,7 @@ public sealed class MainWindowCompositionTests
     private static async Task PumpDispatcherAsync(Window window)
     {
         await window.Dispatcher.InvokeAsync(() => { }).Task;
-        await Task.Delay(50);
+        await System.Windows.Threading.Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
         await window.Dispatcher.InvokeAsync(() => { }).Task;
     }
 

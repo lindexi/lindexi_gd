@@ -10,22 +10,16 @@ namespace CoursewarePptxGeneratorWpfDemo.Services;
 public sealed class CoursewareThemeSubmissionTool
 {
     private readonly CoursewareThemeValidator _validator;
-    private readonly double _slideWidth;
-    private readonly double _slideHeight;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursewareThemeSubmissionTool" /> class.
     /// </summary>
     /// <param name="validator">The deterministic theme validator.</param>
-    /// <param name="slideWidth">The dominant slide width.</param>
-    /// <param name="slideHeight">The dominant slide height.</param>
-    public CoursewareThemeSubmissionTool(CoursewareThemeValidator validator, double slideWidth, double slideHeight)
+    public CoursewareThemeSubmissionTool(CoursewareThemeValidator validator)
     {
         ArgumentNullException.ThrowIfNull(validator);
 
         _validator = validator;
-        _slideWidth = slideWidth;
-        _slideHeight = slideHeight;
     }
 
     /// <summary>Gets the latest valid submitted theme.</summary>
@@ -43,8 +37,8 @@ public sealed class CoursewareThemeSubmissionTool
     {
         return AIFunctionFactory.Create(
             SubmitTheme,
-            name: "submit_courseware_theme",
-            description: "提交完整的课件全局主题。系统会校验颜色、字号层级、安全区和必填内容；失败时请修正并重新提交。");
+            name: "submit_courseware_theme_analysis",
+            description: "提交完整的课件全局主题分析结果。系统当前执行字段级校验；失败时请修正并重新提交。");
     }
 
     [Description("提交完整且可用于后续页面生成的课件全局主题。")]
@@ -52,15 +46,15 @@ public sealed class CoursewareThemeSubmissionTool
     {
         ArgumentNullException.ThrowIfNull(theme);
         SubmissionCount++;
-        var validationResult = _validator.Validate(theme, _slideWidth, _slideHeight);
+        var validationResult = _validator.Validate(theme);
         ValidationErrors = validationResult.Errors;
         if (!validationResult.IsValid)
         {
             return "验证失败：\n- " + string.Join("\n- ", validationResult.Errors)
-                + "\n请修正全部问题后重新调用 submit_courseware_theme。";
+                + "\n请修正后重新提交。";
         }
 
         SubmittedTheme = theme;
-        return "主题已通过验证并记录。";
+        return "主题字段校验通过，已记录。";
     }
 }
