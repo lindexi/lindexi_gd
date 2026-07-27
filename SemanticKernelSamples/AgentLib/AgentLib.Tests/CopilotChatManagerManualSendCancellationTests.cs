@@ -114,6 +114,48 @@ public class CopilotChatManagerManualSendCancellationTests
         Assert.AreEqual("续跑响应，历史消息数：4", messagesAfterSecondLoop[4].Text);
     }
 
+    [TestMethod(DisplayName = "手动发送的工具调用未完成时不应触发压缩模型")]
+    [Timeout(10000)]
+    public async Task ManualSend_WhenToolCallIsPending_DoesNotInvokeReducerChatClient()
+    {
+        var fakeChatClient = new FakeChatClient();
+        int streamingCallCount = 0;
+        bool toolExecuted = false;
+        bool reducerCalledBeforeToolExecution = false;
+
+        fakeChatClient.OnGetStreamingResponseAsync = (_, options, cancellationToken) =>
+        {
+            int currentCall = Interlocked.Increment(ref streamingCallCount);
+            return currentCall == 1
+                ? CreateOversizedToolCallStreamAsync(options, cancellationToken)
+                : CreateTextStreamAsync(cancellationToken, "工具调用完成");
+        };
+        fakeChatClient.OnGetResponseAsync = (_, _, _) =>
+        {
+            reducerCalledBeforeToolExecution |= !toolExecuted;
+            return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "工具调用摘要")]));
+        };
+
+        string GetTrackedWeather()
+        {
+            toolExecuted = true;
+            return GetWeather();
+        }
+
+        var context = CopilotChatManagerTestContext.Create(fakeChatClient);
+        using var cancellationTokenSource = new CancellationTokenSource();
+
+        ManualSendLoopResult result = await RunManualSendLoopAsync(
+            context.ChatManager,
+            "请调用工具获取天气",
+            cancellationTokenSource,
+            tools: [AIFunctionFactory.Create(GetTrackedWeather)]).ConfigureAwait(false);
+
+        Assert.IsTrue(toolExecuted, "测试应实际执行工具，确保覆盖工具调用前后的归约时序。");
+        Assert.IsFalse(result.WasCancelled);
+        Assert.IsFalse(reducerCalledBeforeToolExecution, "工具调用请求尚无对应结果时，不应调用摘要模型。");
+    }
+
     [TestMethod(DisplayName = "系统用户助手流式工具返回后再次流式取消时续跑应保留完整历史且不重复")]
     public async Task RunWithHistoryCompletion_WhenCancelledAfterToolResultAndAssistantStreaming_CompletesHistoryForNextLoop()
     {
@@ -707,6 +749,21 @@ public class CopilotChatManagerManualSendCancellationTests
     {
         cancellationToken.ThrowIfCancellationRequested();
         yield return CopilotChatManagerTestContext.AssistantText(AssistantStreamingText);
+        await Task.Yield();
+
+        await foreach (ChatResponseUpdate update in CreateToolCallStreamAsync(options, cancellationToken).ConfigureAwait(false))
+        {
+            yield return update;
+        }
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> CreateOversizedToolCallStreamAsync(
+        ChatOptions? options,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return CopilotChatManagerTestContext.AssistantText(
+            new string('A', CopilotChatManagerToolCallChatReducer.DefaultCharacterThreshold));
         await Task.Yield();
 
         await foreach (ChatResponseUpdate update in CreateToolCallStreamAsync(options, cancellationToken).ConfigureAwait(false))
