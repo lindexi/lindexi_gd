@@ -86,9 +86,16 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="10" />
         <Setter Property="Padding" Value="16" />
-        <Setter Property="Effect">
+    </Style>
+
+    <Style x:Key="AnalysisOuterCardShadowStyle" TargetType="Border">
+        <Setter Property="Background" Value="#355361" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="Opacity" Value="0.10" />
+        <Setter Property="RenderTransform">
             <Setter.Value>
-                <DropShadowEffect BlurRadius="14" Direction="270" ShadowDepth="2" Opacity="0.08" Color="#355361" />
+                <TranslateTransform Y="2" />
             </Setter.Value>
         </Setter>
     </Style>

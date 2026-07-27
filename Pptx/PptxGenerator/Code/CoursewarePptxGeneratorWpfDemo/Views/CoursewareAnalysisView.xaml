@@ -224,32 +224,35 @@
                             <ColumnDefinition Width="1.75*" />
                         </Grid.ColumnDefinitions>
                         <views:CoursewareAnalysisProcessView ShowActions="{Binding IsAnalyzingTheme}" Margin="0,0,14,0" />
-                        <Border Grid.Column="1" Style="{StaticResource AnalysisCardStyle}">
-                            <TabControl x:Name="AnalysisTabControl"
-                                        Style="{StaticResource AnalysisTabControlStyle}"
-                                        SelectedIndex="{Binding SelectedAnalysisTabIndex, Mode=TwoWay}">
-                                <TabItem x:Name="AnalysisConversationTab"
-                                         Header="分析对话"
-                                         Style="{StaticResource AnalysisTabItemStyle}"
-                                         AutomationProperties.Name="分析对话">
-                                    <views:CopilotMessageStream x:Name="AnalysisChatMessageStream"
-                                                                ItemsSource="{Binding AnalysisChatMessages}"
-                                                                ListBackground="Transparent"
-                                                                AutomationProperties.Name="主题分析 Copilot 输出" />
-                                </TabItem>
-                                <TabItem x:Name="AnalysisThemeResultTab"
-                                         Header="{StaticResource ThemeSuggestionTabText}"
-                                         IsEnabled="{Binding IsAnalysisReady}"
-                                         Style="{StaticResource AnalysisTabItemStyle}"
-                                         AutomationProperties.Name="{StaticResource ThemeSuggestionTabText}">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                                  HorizontalScrollBarVisibility="Disabled"
-                                                  PanningMode="VerticalOnly">
-                                        <views:CoursewareThemeSummaryView />
-                                    </ScrollViewer>
-                                </TabItem>
-                            </TabControl>
-                        </Border>
+                        <Grid Grid.Column="1">
+                            <Border Style="{StaticResource AnalysisOuterCardShadowStyle}" />
+                            <Border Style="{StaticResource AnalysisCardStyle}">
+                                <TabControl x:Name="AnalysisTabControl"
+                                            Style="{StaticResource AnalysisTabControlStyle}"
+                                            SelectedIndex="{Binding SelectedAnalysisTabIndex, Mode=TwoWay}">
+                                    <TabItem x:Name="AnalysisConversationTab"
+                                             Header="分析对话"
+                                             Style="{StaticResource AnalysisTabItemStyle}"
+                                             AutomationProperties.Name="分析对话">
+                                        <views:CopilotMessageStream x:Name="AnalysisChatMessageStream"
+                                                                    ItemsSource="{Binding AnalysisChatMessages}"
+                                                                    ListBackground="Transparent"
+                                                                    AutomationProperties.Name="主题分析 Copilot 输出" />
+                                    </TabItem>
+                                    <TabItem x:Name="AnalysisThemeResultTab"
+                                             Header="{StaticResource ThemeSuggestionTabText}"
+                                             IsEnabled="{Binding IsAnalysisReady}"
+                                             Style="{StaticResource AnalysisTabItemStyle}"
+                                             AutomationProperties.Name="{StaticResource ThemeSuggestionTabText}">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                      HorizontalScrollBarVisibility="Disabled"
+                                                      PanningMode="VerticalOnly">
+                                            <views:CoursewareThemeSummaryView />
+                                        </ScrollViewer>
+                                    </TabItem>
+                                </TabControl>
+                            </Border>
+                        </Grid>
                     </Grid>
                     <Grid Grid.Row="2" Margin="0,13,0,0">
                         <Grid.Style>
