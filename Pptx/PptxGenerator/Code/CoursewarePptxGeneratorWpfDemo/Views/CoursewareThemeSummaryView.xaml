@@ -45,7 +45,7 @@
                                         <Border Height="30" CornerRadius="6" BorderBrush="#D7E2E7" BorderThickness="1">
                                             <Border.Background><SolidColorBrush Color="{Binding Hex}" /></Border.Background>
                                         </Border>
-                                        <TextBlock Text="{Binding Name}" Style="{StaticResource ThemeContentTextStyle}" FontWeight="SemiBold" Margin="0,7,0,0" />
+                                        <TextBlock Text="{Binding Name}" Style="{StaticResource ThemeContentTextStyle}" Margin="0,7,0,0" />
                                         <TextBlock Text="{Binding Usage}" Style="{StaticResource ThemeContentTextStyle}" />
                                         <TextBlock Text="{Binding Hex}" Foreground="{StaticResource AnalysisMutedBrush}" FontSize="12" />
                                     </StackPanel>
