@@ -10,15 +10,19 @@
 
 无论采用哪种角色建模方案，都必须满足：
 
-- 子代理不进入普通自动发言、普通 mention、管理者兜底和公开发言入口。
-- 用户直调使用独立的严格消息开头协议。
-- AI 角色通过专用工具调用。
-- 每次调用无状态，不读取聊天室历史或旧调用会话。
-- 最终结果必须通过返回工具提交。
-- AI 调用结果不写入公开聊天室消息。
-- 用户直调请求和结果可显示、可持久化，但不进入普通上下文。
+- 子代理不进入普通自动发言队列或管理者兜底。
+- 继续使用现有 Mention 语法；解析结果补充来源消息、匹配位置和是否位于消息开头。
+- 用户只有在子代理 Mention 位于消息开头时才能触发目标角色；AI 普通文本中的子代理 Mention 不触发。
+- Standard AI 角色通过 ChatRoom 自有 `InvokeChatRoomSubAgent` AITool 调用子代理，避免与 AgentLib 默认 `InvokeSubAgent` 重名。
+- 用户 Mention 与 AI 工具最终都复用现有 `StepAsync` / 普通角色 runtime、AgentSession 和 checkpoint。
+- Standard 子代理必须通过 `ReturnOutputToCaller` 提交结果；第一次未提交提醒一次，第二次失败。Coding 子代理沿用现有 Coding/AgentLib 结果并视为等价提交。
+- 子代理原始输出作为普通角色消息显示和持久化，并设置 `IsPresetInfo = true`。
+- 其他角色后续上下文和 Mention 调度跳过 preset 子代理消息；AI 调用时 Standard 返回工具值或 Coding 现有完成结果交给父 AI。
+- AgentLib 现有 `SubAgentToolProvider` 与 Coding 执行链路保持不变；ChatRoom 使用独立命名的 `ChatRoomSubAgentToolProvider`。
+- ChatRoom Standard 默认工具列表必须排除 AgentLib 的 `InvokeSubAgent`，只暴露 `InvokeChatRoomSubAgent`。
+- 不增加环路、深度、自调用或角色字段组合等专用硬约束。
 - legacy `ChatRoomManager` 与新 `ChatRoomCoordinator` 对同一角色定义保持一致解释。
-- 旧角色、模板和快照默认保持普通角色语义。
+- 产品尚未发布，持久化结构直接升级，不实现旧数据兼容迁移；legacy 会话、模板和 snapshot 使用显式格式版本拒绝旧数据。
 
 ## 3. 候选方案
 
@@ -31,7 +35,7 @@ Participant
 SubAgent
 ```
 
-调用模式只回答“角色通过普通聊天室入口执行，还是通过子代理协议执行”。参与时机、执行引擎和管理者身份继续由现有字段表达。
+调用模式只回答“调度器对该角色采用普通触发规则还是子代理触发规则”。角色仍通过现有执行入口运行；参与模式、执行引擎和管理者身份继续由现有字段表达。
 
 详见[方案一：独立 InvocationMode](方案一-独立InvocationMode.md)。
 
@@ -59,12 +63,12 @@ SubAgentOnly
 
 | 比较维度 | 独立 InvocationMode | 扩展 ParticipationMode | 独立子代理注册表 |
 |----------|---------------------|------------------------|------------------|
-| 满足调用协议独立性 | 好 | 弱 | 好 |
+| 保持触发语义独立 | 好 | 弱 | 好 |
 | 复用现有角色配置 | 好 | 好 | 需要复制或抽取 |
 | legacy 改造成本 | 中 | 低到中 | 高 |
 | Coordinator 长期边界 | 好 | 中 | 好 |
-| 旧数据兼容 | 简单，默认 Participant | 简单，旧值不变 | 较复杂，需要双集合迁移 |
-| 防止语义混淆 | 好 | 差 | 好 |
+| 当前数据结构调整 | 新增正交字段 | 扩展现有枚举 | 需要双集合和映射 |
+| 保持触发语义清晰 | 好 | 弱 | 好 |
 | UI 和模板传播成本 | 中 | 中 | 高 |
 | 未来扩展更多调用模式 | 好 | 容易继续膨胀 | 好 |
 | 两套架构一致落地 | 好 | 可行但易遗漏 | 难度较高 |
@@ -76,12 +80,13 @@ SubAgentOnly
 
 主要理由：
 
-1. 子代理身份描述的是调用协议，不是普通聊天室中的参与时机。
+1. 子代理身份描述的是触发方式，不是普通聊天室中的参与时机。
 2. Standard/Coding 是执行引擎，MentionOnly/AlwaysParticipate 是普通参与策略，Manager 是调度身份；四个维度应保持正交。
 3. legacy 与 Domain 角色已经承载稳定身份、人设、模型、技能和执行引擎，新增一个正交字段比复制整套角色模型更稳妥。
-4. 新字段可以使用 `Participant` 默认值兼容旧 JSON、旧模板和旧 snapshot。
-5. 调度、mention 和公开执行入口可以统一检查同一字段，容易形成防御性不变量。
-6. 未来若增加其他受控调用方式，可以在调用模式维度扩展，而不污染参与模式。
+4. Mention 解析只需补充结构化位置，调度器即可结合 `InvocationMode` 判断触发，不需要新协议。
+5. `StepAsync`、角色会话、checkpoint、普通消息和 UI 都可直接复用，避免创建第二套运行模型。
+6. 新字段只参与必要的调度判断，不需要通过跨字段不变量或多层入口保护进行过度防御。
+7. 未来若增加其他触发方式，可以在调用模式维度扩展，而不污染参与模式或执行引擎。
 
 ## 6. 按需阅读
 

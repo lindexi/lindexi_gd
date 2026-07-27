@@ -4,12 +4,12 @@
 
 ## 文档状态
 
-- 状态：方案设计，待实施
-- 交付类型：跨领域模型、调度、运行时、工具、持久化与 Avalonia UI 的改造方案
+- 状态：已按评审意见修订，待实施
+- 交付类型：角色模型、Mention 元数据、调度、Standard 工具、持久化与 Avalonia UI 的改造方案
 - 适用范围：`SemanticKernelSamples/ChatRoom/ChatRoom.slnx`
 - 当前生产入口：legacy `ChatRoomManager`
 - 并行演进入口：`Domain` + `ChatRoomCoordinator` + `Runtime`
-- 兼容策略：旧角色和旧消息默认保持普通聊天室语义；新 snapshot 必须兼容读取旧 schema
+- 数据策略：产品尚未发布，持久化结构直接升级，不增加旧 schema、旧模板或旧消息兼容分支
 
 ## 1. 背景
 
@@ -20,14 +20,12 @@
 - 管理者与非管理者
 - Standard 与 Coding 执行引擎
 
-这些维度都不能准确表达“子代理角色”：
+这些维度仍不能表达“角色平时不自动参与，但可以被任意非 preset 消息在开头 @，或被 Standard AI 通过工具同步调用”的触发语义。
 
-- `MentionOnly` 角色仍可被任意人类或 AI 消息中的普通 `@角色名` 触发。
-- `ExecutionKind` 只决定运行引擎，不决定角色如何被调用。
-- `IsManagerRole` 只决定自动循环的兜底和仲裁行为。
-- 普通 `StepAsync` / `StartRoleExecutionCommand` 仍可以绕过 mention 调度直接执行任意非人类角色。
+本方案保留独立 `InvocationMode`，但不把子代理建设成第二套 Agent。子代理仍是普通 `ChatRoomRole`，继续使用现有 `StepAsync`、执行器、`CopilotChatManager`、`AgentSession`、checkpoint、流式消息和 UI。差异集中在两处：
 
-本方案引入显式的子代理角色语义。子代理角色不是聊天室中的普通发言参与者，而是一个只能通过专用调用协议执行的受控任务代理。
+- 调度器根据 Mention 的位置和来源消息是否为 preset 决定是否触发子代理。
+- 子代理公开输出设置 `IsPresetInfo = true`，可见但不进入其他角色的后续上下文。
 
 ## 2. 需求定义
 
@@ -35,40 +33,51 @@
 
 1. 角色可以被定义为普通聊天室参与者或子代理。
 2. 子代理不能进入普通自动发言队列。
-3. 子代理不能被人类或非人类角色通过普通消息中的 `@角色名` 触发。
-4. 非人类角色只能通过专用子代理工具调用子代理。
-5. 用户可以直接调用子代理，但消息必须严格以 `@子代理角色名 ` 开头。
-6. `@子代理角色名 ` 出现在消息中段时无效。
-7. 子代理每次调用是独立任务，不读取整个聊天室历史，不复用上一次子代理调用的 AgentSession。
-8. 子代理普通文本输出不能直接成为调用结果；必须通过返回工具显式提交给调用方。
-9. 子代理输出不进入整个聊天室的后续上下文；用户直调产生的结果消息必须设置 `IsPresetInfo = true`。
-10. AI 调用子代理时，结果只作为工具结果返回给调用者自己的模型运行，不写入聊天室公开消息。
+3. 继续使用现有 Mention 解析逻辑和语法，不增加独立的用户子代理解析器。
+4. Mention 结果必须结构化记录来源消息、匹配位置和是否位于消息开头。
+5. 任意非 preset 消息中，只有位于索引 0 的子代理 Mention 才触发目标角色；消息中段 Mention 不触发子代理，不区分消息发送者是人类还是 AI。
+6. Standard AI 既可以在公开消息开头 Mention 子代理以触发后续角色执行，也可以在需要同步获得结果并于当前轮继续推理时使用聊天室提供的 AITool。
+7. Mention 与 AI 工具最终都调用现有 `StepAsync` / 普通角色 runtime，不增加子代理专用执行入口。
+8. 子代理复用并保存现有 `AgentSession`、checkpoint 和角色上下文，不创建临时会话。
+9. Standard 子代理被触发后必须通过 `ReturnOutputToCaller` 提交完成结果；第一次未提交时提醒一次，第二次仍未提交则失败。Coding 子代理沿用现有 Coding/AgentLib 完成结果，并将其视为等价提交。
+10. 子代理原始输出按普通角色消息写入聊天室并正常展示，同时设置 `IsPresetInfo = true`。
+11. AI 调用时，Standard 返回工具值或 Coding 现有完成结果作为 AITool 结果交给父 AI；父 AI 自行消化后继续生成公开回复。
+12. 普通角色后续上下文与 Mention 调度跳过子代理的 preset 输出。
+13. AgentLib 现有 `AgentLib.Tools.SubAgentToolProvider` 完全不改；ChatRoom 新建自己的工具机制。
+14. 当前只改 Standard 执行引擎的通用逻辑，Coding 执行链路保持现状。
+15. 不增加自调用、环路、嵌套深度、父子取消树或跨字段角色不变量等专用保护。
 
-### 2.2 严格触发示例
+### 2.2 Mention 触发示例
 
 假设存在名为“代码审查子代理”的子代理角色。
 
-| 输入 | 是否调用 | 原因 |
-|------|----------|------|
-| `@代码审查子代理 检查当前改动` | 是 | 严格位于消息开头，角色名后为 ASCII 空格，且任务非空 |
+下表对 Human 与 Assistant 来源消息采用相同判断，不再区分发送者类型。
+
+| 输入 | 是否触发子代理 | 原因 |
+|------|----------------|------|
+| `@代码审查子代理 检查当前改动` | 是 | 现有 Mention 匹配成功，且起始索引为 0 |
 | `Xxxx。@代码审查子代理 检查当前改动` | 否 | 不在消息开头 |
 | `Xxxx。 @代码审查子代理 检查当前改动` | 否 | 不在消息开头 |
 | ` @代码审查子代理 检查当前改动` | 否 | 存在前导空白 |
-| `@代码审查子代理	检查当前改动` | 否 | 分隔符不是 ASCII 空格 |
-| `@代码审查子代理` | 否 | 缺少固定空格和任务内容 |
-| `@[代码审查子代理] 检查当前改动` | 否 | 子代理首版不支持方括号语法 |
-| `@普通助手 检查当前改动` | 否 | 目标不是子代理，继续按普通 mention 规则处理 |
+| `@代码审查子代理	检查当前改动` | 按现有规则 | 不为子代理收紧 Mention 空白语法 |
+| `@[代码审查子代理] 检查当前改动` | 按现有规则 | 保留现有方括号 Mention 语法 |
+| `@普通助手 检查当前改动` | 否 | 目标不是子代理，继续按普通角色规则调度 |
+
+是否触发由调度器判断；解析器只报告“匹配了谁、匹配发生在哪条消息的哪个位置”。
 
 ### 2.3 非目标
 
 本轮不包含以下能力：
 
-- 并行运行多个用户直调子代理。
 - 让子代理自动参与聊天室讨论。
-- 让子代理通过公开发言把结果广播给全部角色。
-- 每次调用保存和恢复子代理自己的 AgentSession。
 - 通过角色名称、提示词、模板名称或工具集合推断子代理身份。
 - 把子代理类别合并到 `ParticipationMode` 或 `ExecutionKind`。
+- 新建严格的用户子代理消息协议。
+- 新建 `IChatRoomSubAgentInvoker`、`IChatRoomSubAgentRuntime` 或临时运行上下文。
+- 修改或复用 AgentLib 中现有的 `SubAgentToolProvider`。
+- 修改 Coding 执行引擎或 `AgentLib.Coding` 的工具接口。
+- 为子代理增加环路、深度、自调用等嵌套限制。
+- 兼容读取当前开发阶段的旧持久化格式。
 
 ## 3. 当前实现事实
 
@@ -100,22 +109,32 @@ ChatRoomCoordinator
 
 legacy `MentionParser` 会扫描整条消息中的 `@角色名`，不区分发送者是人类还是 AI。新 Coordinator 的私有解析器语义更宽松，使用 `IndexOf("@" + RoleName)` 搜索整条消息。
 
-因此不能通过在现有 mention 解析器中增加一个分支实现子代理。普通 mention 和用户直调子代理必须是两个独立协议。
+现有问题不是 Mention 语法不足，而是解析结果只有 RoleId，调度器拿不到匹配位置和来源消息。因此应保留现有语法并把解析结果结构化，再由调度器区分：
 
-### 3.3 当前子代理工具已经具备的目标语义
+- 普通角色 Mention：保持现有行为。
+- 任意非 preset 消息开头的子代理 Mention：允许触发子代理。
+- 任意消息中段的子代理 Mention：保留解析信息，但不加入发言队列。
+- preset 消息中的 Mention：不加入发言队列。
 
-`AgentLib.Tools.SubAgentToolProvider` 已体现以下行为：
+### 3.3 AgentLib 子代理工具不是本方案的复用目标
 
-- 同步等待子代理完成。
-- 每次调用不传 AgentSession，任务相互独立。
-- 子代理可以使用受控工具。
-- 子代理必须通过 `ReturnOutputToParent` 显式返回结果。
-- 子代理内部文本、推理、工具和嵌套调用只作为调用过程展示。
-- 父代理只取得最终工具返回值并自行整合。
+`AgentLib.Tools.SubAgentToolProvider` 服务于 AgentLib 自身的子智能体机制，其运行模型和 ChatRoom 角色语义不同。无论当前实现是否存在 collector、重试或显示细节，本方案都不修改、不抽取也不复用该类型。
 
-聊天室子代理角色应复用这些语义，而不是另造一套“子角色公开发言”机制。
+ChatRoom 在 `AgentLib.ChatRoom` 内新增 `ChatRoomSubAgentToolProvider`，面向已有角色列表、`StepAsync`、公开消息和 `IsPresetInfo` 语义。使用独立类型名避免与 `AgentLib.Tools.SubAgentToolProvider` 产生引用歧义。
 
-### 3.4 `IsPresetInfo` 不是自动上下文过滤器
+### 3.4 现有角色执行链已经满足大部分需求
+
+legacy `StepAsync` 已经完成：
+
+- 构建角色增量输入。
+- 通过 `ChatRoomRole.SpeakAsync` 复用角色自己的会话。
+- 创建流式 `ChatRoomMessage` 并立即加入 `Session.Messages`。
+- 完成后持久化角色 AgentSession。
+- 让 Avalonia 使用普通角色消息模板展示输出。
+
+因此子代理不需要专用 invoker。真正需要补充的是调用来源信息、Standard 返回工具，以及让 `StepAsync` 可按本次调用附加任务、工具和 preset 标记。
+
+### 3.5 `IsPresetInfo` 不是自动上下文过滤器
 
 `IsPresetInfo` 当前只存在于 `CopilotChatMessage`，主要用于：
 
@@ -125,43 +144,42 @@ legacy `MentionParser` 会扫描整条消息中的 `@角色名`，不区分发�
 
 聊天室公开消息模型没有该字段。普通角色输入来自 `ChatRoomMessage` 和角色私有 AgentSession，所以只给底层 `CopilotChatMessage` 设置 `IsPresetInfo = true` 不能完成聊天室上下文隔离。
 
-本方案必须把 `IsPresetInfo` 提升到聊天室消息语义，并在上下文构造、mention 解析、自动调度和持久化恢复中真正执行过滤。
+本方案必须把 `IsPresetInfo` 提升到聊天室消息语义，并在上下文构造、Mention 调度和持久化中真正执行过滤。它不改变消息的 UI 类型，子代理输出仍是普通 Assistant 角色消息。
 
 ## 4. 术语
 
 ### 4.1 普通参与者
 
-可以通过普通自动循环、普通 mention 或显式公开发言入口参与聊天室的角色。
+按现有 `ParticipationMode`、普通 Mention、管理者兜底或显式 `StepAsync` 参与聊天室的角色。
 
 ### 4.2 子代理角色
 
-具有稳定角色定义、模型、人设、技能和执行引擎，但只能通过子代理调用协议执行的非人类角色。
+`InvocationMode == SubAgent` 的普通聊天室角色。它仍拥有长期角色实例、模型、人设、技能、执行引擎、AgentSession、checkpoint 和普通消息展示；调度器只允许任意非 preset 消息开头的 Mention 或 Standard AITool 触发它。
 
 ### 4.3 调用者
 
 发起子代理调用的一方：
 
-- 人类用户
-- 当前正在执行的普通 AI 角色
-- 未来允许的上级子代理
+- 写出消息开头 Mention 的 Human 或 Assistant 角色
+- 通过 AITool 同步调用的 Standard AI 角色，包括 Standard 子代理角色
 
-### 4.4 子代理调用
+### 4.4 结构化 Mention
 
-一次自包含、无状态、有唯一 InvocationId 的任务执行。其最终结果必须由返回工具提交。
+现有 Mention 语法的解析结果。除目标 RoleId 外，还记录来源 MessageId、起始位置、匹配长度和 `IsAtMessageStart`，供调度器决定是否触发子代理。
 
-### 4.5 公开消息
+### 4.5 子代理调用
 
-聊天室全部参与者可能看到的普通消息。
+一次通过现有角色执行链完成的任务。Mention 路径由任意非 preset 消息开头的结构化 Mention 触发，AITool 路径由 Standard AI 同步调用；两者最终都在 `StepAsync` 中执行目标角色。
 
 ### 4.6 预置信息消息
 
-可以显示和持久化，但不进入普通角色后续模型输入、不参与 mention 调度的消息。使用 `IsPresetInfo = true` 标识。
+与普通角色消息使用相同数据与 UI 模板、可以显示和持久化，但不进入其他角色后续模型输入，也不参与 Mention 调度。子代理输出使用 `IsPresetInfo = true` 标识。
 
 ## 5. 核心设计决策
 
-### 决策一：新增独立的角色调用模式
+### 决策一：保留独立角色调用模式
 
-建议新增：
+角色定义新增：
 
 ```text
 ChatRoomRoleInvocationMode
@@ -169,236 +187,155 @@ ChatRoomRoleInvocationMode
   - SubAgent
 ```
 
-角色定义新增：
+`InvocationMode` 只回答“该角色按普通聊天室规则触发，还是按子代理规则触发”。它不切换角色实现，也不改变模型、人设、技能、`ExecutionKind`、AgentSession 或 UI。
+
+- `ParticipationMode`：普通参与者何时进入自动队列。
+- `ExecutionKind`：Standard 或 Coding 执行引擎。
+- `IsManagerRole`：普通自动循环中的管理者身份。
+- `InvocationMode`：调度器采用普通触发规则还是子代理触发规则。
+
+除自动调度必须跳过 `SubAgent` 外，不为这些字段建立额外组合不变量。角色编辑器可以给出合理默认值，但不以防御性校验强制改写其他字段。
+
+`InvocationMode` 是纯调度配置：仅修改该字段时不递增 `RuntimeVersion`、不替换角色 runtime、不删除 checkpoint，也不重置 `ConsumedThroughSequenceByRole`。只有模型、执行引擎、人设、技能、工作区等真正影响运行时的字段变化才沿用现有 runtime replacement 规则。
+
+### 决策二：扩展现有 Mention 结果，不新增解析器
+
+legacy 与 Coordinator 都统一返回类似以下的结构：
 
 ```text
-InvocationMode
+ChatRoomMention
+  - string TargetRoleId
+  - string SourceMessageId
+  - int StartIndex
+  - int Length
+  - bool IsAtMessageStart
 ```
 
-该字段只决定角色允许通过哪类入口执行，不改变运行引擎、模型、人设或工具配置。
+要求：
 
-选择独立字段的理由：
+1. 保持现有 `@角色名`、`@[角色名]`、大小写和空白匹配行为。
+2. 按文本出现顺序返回，保留同一角色首次匹配的现有去重语义。
+3. `IsAtMessageStart` 等价于 `StartIndex == 0`，不在解析前 Trim 输入。
+4. `ChatRoomMessage` 保存结构化 Mention，而不是只保存无法追溯位置的 RoleId。
+5. 如现有调用点只需要 RoleId，可从结构化结果投影，不再二次解析文本。
 
-- `ParticipationMode` 决定普通聊天室参与时机。
-- `ExecutionKind` 决定 Standard/Coding 运行引擎。
-- `IsManagerRole` 决定调度仲裁身份。
-- `InvocationMode` 决定普通公开发言还是子代理调用。
+### 决策三：角色匹配与触发由调度器处理
 
-四者职责不能混合。
+调度规则如下：
 
-### 决策二：子代理使用防御性角色不变量
+| 来源消息 | 目标 InvocationMode | Mention 位置 | 调度行为 |
+|----------|---------------------|--------------|----------|
+| 任意非 preset 消息 | Participant | 任意有效位置 | 保持现有普通 Mention 行为 |
+| 任意非 preset 消息 | SubAgent | 消息开头 | 通过现有 `StepAsync` 执行目标角色 |
+| 任意非 preset 消息 | SubAgent | 非消息开头 | 不调度 |
+| preset 消息 | 任意 | 任意位置 | 不调度 |
 
-必须满足：
+子代理仍然保留在结构化 Mention 结果中，过滤发生在“Mention 与角色匹配并入队”的阶段，而不是解析阶段。调度器不读取发送者类型，只检查来源消息是否为 preset 以及 `IsAtMessageStart`。
 
-| 条件 | 要求 |
-|------|------|
-| 人类角色 | `InvocationMode == Participant` |
-| 子代理 | `IsHuman == false` |
-| 子代理 | `IsManagerRole == false` |
-| 子代理 | `ParticipationMode == MentionOnly` |
-| 子代理 | 不进入默认自动队列 |
-| 子代理 | 不进入普通 mention 目标集合 |
-| 子代理 | 不能通过普通公开 Step 执行 |
-| 未知 InvocationMode | 创建或恢复时立即拒绝 |
+### 决策四：所有目标角色都走现有执行入口
 
-对子代理强制保存 `MentionOnly` 不是把两种语义合并，而是防御性保证：即使某个旧调度入口遗漏新的 `InvocationMode` 检查，也不会把子代理加入默认 AlwaysParticipate 队列。
-
-### 决策三：用户直调使用独立严格解析器
-
-新增独立解析器，例如：
+不新增 `IChatRoomSubAgentInvoker`、`InvokeUserSubAgentCommand` 或子代理 runtime。legacy 最终调用：
 
 ```text
-UserSubAgentInvocationParser
+ChatRoomManager.StepAsync(targetRole, executionOptions, ct)
 ```
 
-它只接收：
-
-- 原始、未 Trim 的用户输入
-- 当前子代理角色定义快照
-
-返回三态结果：
+Coordinator 最终仍使用现有普通角色 execution/runtime 契约。为了传递调用差异，可以给现有执行请求增加少量通用选项，例如：
 
 ```text
-NoMatch
-Matched(targetRoleId, prompt)
-Invalid(targetRoleId?, error)
+ChatRoomRoleStepOptions
+  - IReadOnlyList<string> AdditionalUserMessages
+  - IReadOnlyList<AITool> AdditionalTools
+  - bool MarkOutputAsPresetInfo
+  - ChatRoomReturnOutputCollector? ReturnOutputCollector
 ```
 
-解析规则：
+普通角色和子代理共享同一条消息创建、流式更新、错误处理、会话保存和 UI 通知逻辑。
 
-1. 只检查字符串索引 0。
-2. 只匹配 `@{RoleName} `。
-3. 分隔符只接受 U+0020 ASCII 空格。
-4. 不接受前导空白。
-5. 不接受方括号格式。
-6. 角色名按 `OrdinalIgnoreCase` 匹配，与现有 mention 用户体验保持一致。
-7. 角色名后的任务正文 Trim 后必须非空。
-8. 只在 `InvocationMode == SubAgent` 的角色集合中匹配。
-9. 角色名仍保持唯一，禁止依赖列表顺序解决歧义。
+`MarkOutputAsPresetInfo` 是通用覆盖项；当目标角色 `InvocationMode == SubAgent` 时，即使调用方未显式设置，该次角色公开输出也必须默认标记为 preset。这样手动 `StepAsync` / `StartRoleExecutionCommand` 执行子代理时仍保持相同上下文可见性，而不需要禁止入口。
 
-该解析器不能替换 `MentionParser`。
+### 决策五：复用角色长期上下文
 
-### 决策四：普通 mention 解析显式排除子代理
+子代理按普通角色处理：
 
-legacy `MentionParser` 和新 Coordinator 的普通 mention 解析都只能把以下角色写入 `MentionedRoleIds`：
+1. 使用聊天室中已有的 `ChatRoomRole` / runtime 实例。
+2. 读取现有增量聊天室输入。
+3. 复用角色自己的 `CopilotChatManager` 与 AgentSession。
+4. 完成后保存 AgentSession 或提交正常 checkpoint。
+5. 角色更新、工作区切换、压缩和清空记忆沿用现有角色机制。
+
+不创建临时上下文，不清空聊天记录，也不跳过 checkpoint。
+
+### 决策六：ChatRoom 自己实现 Standard 子代理工具
+
+在 `AgentLib.ChatRoom.Tools` 中新增 `ChatRoomSubAgentToolProvider`。它提供调用工具，例如：
 
 ```text
-InvocationMode == Participant
+InvokeChatRoomSubAgent(targetRoleId, prompt)
 ```
 
-即使非人类角色输出以下内容，也不能触发子代理：
+工具行为：
 
-```text
-@代码审查子代理 请检查
-```
+1. 从当前聊天室角色列表查找 `InvocationMode == SubAgent` 的目标。
+2. 调用现有 `StepAsync`，把 `prompt` 作为本次附加 User 输入。
+3. 若目标是 Standard，附加 `ReturnOutputToCaller`；若目标是 Coding，保持其现有工具和完成契约。
+4. 将目标角色产生的 `ChatRoomMessage` 及其关联 `CopilotChatMessage` 标为 `IsPresetInfo = true`。
+5. 将 Standard 提交值或 Coding 现有完成结果作为 AITool 返回值交给父 AI。
 
-该文本仍可以作为普通公开文本显示，但不会成为结构化 mention，也不会进入优先发言队列。
+AgentLib 中已有的 `AgentLib.Tools.SubAgentToolProvider` 不做任何修改，也不抽取公共 runner 或 collector。
 
-### 决策五：子代理调用不复用普通发言入口
+### 决策七：Standard 结果必须通过 `ReturnOutputToCaller` 提交
 
-禁止以下方式执行子代理：
-
-- `ChatRoomManager.StepAsync(subAgentRole)`
-- 普通自动循环从默认队列选择子代理
-- 普通 mention 优先栈选择子代理
-- 管理者兜底选择子代理
-- `StartRoleExecutionCommand` 对子代理启动普通角色执行
-
-新增独立入口，例如：
-
-```text
-IChatRoomSubAgentInvoker.InvokeAsync(request)
-```
-
-所有调用路径统一进入该入口：
-
-```text
-AI 角色工具调用 ─┐
-                 ├─→ IChatRoomSubAgentInvoker → 子代理运行时 → 返回工具 → 调用结果
-用户严格前缀 ────┘
-```
-
-### 决策六：子代理每次调用使用临时会话
-
-每次 invocation：
-
-1. 根据持久化角色定义选择模型和运行引擎。
-2. 创建临时角色运行上下文。
-3. 不恢复 committed checkpoint。
-4. 不读取聊天室公开消息历史。
-5. 不读取该子代理上次调用产生的 AgentSession。
-6. 只注入角色静态人设、静态 MemoryContent、调用任务和允许的工具。
-7. 调用结束后释放临时 AgentSession 和工具租约。
-8. 不保存子代理 checkpoint 或 legacy `agent-session-state.json`。
-
-`MemoryContent` 被视为角色静态配置，而不是跨调用学习到的会话记忆，因此每次调用仍可注入。
-
-### 决策七：最终结果必须通过返回工具提交
-
-抽取可复用的 invocation 作用域：
-
-```text
-SubAgentInvocationScope
-  - InvocationId
-  - OutputCollector
-  - CancellationToken
-  - ProgressSink
-  - InvocationStack
-```
-
-返回工具建议命名为：
-
-```text
-ReturnOutputToCaller
-```
+每次 Standard 子代理触发都创建一个仅服务于本次调用的轻量结果收集器，并将返回工具加入目标角色本轮 `AdditionalTools`；这同时适用于消息开头 Mention 和 AI AITool 两条路径。
 
 协议规则：
 
-1. 子代理可以输出普通文本和推理作为进度，但这些内容不被当作最终结果。
-2. 最终结果只能由 `ReturnOutputToCaller(output)` 提交。
-3. `output` 必须非空白。
-4. 第一次成功提交后即确定最终结果；重复提交应被拒绝。
-5. 提交后应尽快终止本次子代理运行。
-6. 第一次模型运行未提交结果时，追加一次强制提醒并重试。
-7. 第二次仍未提交时，调用以协议失败结束，不能静默返回空字符串。
-8. 取消、模型异常、工具异常和协议失败使用不同终态。
+1. Standard 子代理正常文本仍流式写入自己的普通聊天室消息，并在 UI 中展示。
+2. 正式工具返回值只接受 `ReturnOutputToCaller(output)` 的参数。
+3. `output` 不能为空白。
+4. 第一次执行结束仍未提交时，在同一角色会话中追加一次明确提醒并再次执行。
+5. 第二次仍未提交时，当前 Mention 调用或 AITool 调用明确失败。
+6. 普通文本不作为隐式工具返回值。
 
-### 决策八：先修正并抽取当前子代理回传基础设施
+通过消息开头 Mention 触发 Standard 子代理时也注入该工具并检查提交状态；返回值只表示本次任务已正式完成，不额外生成消息。AI 通过 AITool 调用时，同一个值还会作为工具结果交还父 AI。Coding 子代理不进入这套协议，直接采用现有 Coding/AgentLib 完成结果。
 
-当前 `SubAgentToolProvider` 每次 `CreateTools` 都会创建新的 executor。`InvokeSubAgentAsync` 所检查的 collector 与子代理实际 `ReturnOutputToParent` 工具所写入的 collector 可能不是同一个实例。
+### 决策八：子代理输出是普通角色消息
 
-实施聊天室子代理前，应先：
+无论由消息开头 Mention 还是 AI AITool 触发，目标角色产生的原始输出都：
 
-1. 把 collector 从 executor 私有字段提升为 invocation scope。
-2. 为同一次 invocation 创建的全部返回工具共享该 scope。
-3. 增加“最终函数结果等于返回工具参数”的测试。
-4. 把“第二次仍未返回”改为明确协议异常。
-5. 将通用调用循环抽取为可被 ChatRoom 复用的 runner。
+- 使用普通 `ChatRoomMessage` / Assistant 消息类型。
+- 使用现有角色头像、名称、模型信息、Token 信息和流式内容模板。
+- 正常加入聊天室消息列表并持久化。
+- 外层 `ChatRoomMessage` 与关联的 `CopilotChatMessage` 都设置 `IsPresetInfo = true`。
+- 不根据返回工具值额外生成“最终结果”气泡，也不嵌入父角色的专用子代理卡片。
 
-### 决策九：AI 调用结果只进入调用者私有运行上下文
+当本轮已有普通文本时保持模型原始文本，不用工具 output 覆盖；只有文本为空且已成功提交 output 时，才用 output 填充同一个普通消息。这样既保证工具提交是正式结果，也保证 Mention 直调不会得到空白 UI。
 
-普通 AI 角色调用子代理时：
+父 AI 同时得到 Standard 的 `ReturnOutputToCaller` 工具值或 Coding 的现有完成结果，可以在自己的同一轮模型运行中继续推理并输出普通公开回复。
 
-- 子代理结果作为专用工具的 function result 返回给调用者。
-- 调用者可以在同一轮继续推理并输出公开总结。
-- 子代理原始结果不生成顶层 `ChatRoomMessage`。
-- 其他角色只会看到调用者最终公开发布的普通文本。
-- 子代理工具调用详情可以显示在调用者助手消息的 `CopilotChatSubAgentItem` 中。
-- 子代理结果可以留在调用者自己的 AgentSession，符合当前子代理工具行为，但不进入整个聊天室共享上下文。
+### 决策九：仅 Standard 注入 ChatRoom 子代理工具
 
-### 决策十：用户直调请求和结果都作为预置信息隔离
-
-用户严格前缀调用时：
-
-1. 输入作为可显示的调用记录追加，设置 `IsPresetInfo = true`。
-2. 不写入普通 `MentionedRoleIds`。
-3. 不启动普通自动循环。
-4. 子代理完成后追加结果消息，设置 `IsPresetInfo = true`。
-5. 结果消息发送者显示为目标子代理角色。
-6. 普通角色构建上下文时跳过请求和结果。
-7. 恢复会话后仍显示这些消息，但继续不进入普通上下文。
-
-虽然原始需求只明确要求输出为 preset，同时隔离用户调用请求可以避免以下副作用：
-
-- 普通角色在下次发言时读取并重复处理该任务。
-- 没有普通 mention 后意外启动全部 AlwaysParticipate 角色。
-- 会话恢复后重新解释旧调用文本。
-
-### 决策十一：Standard 与 Coding 都通过受控 host tool 调用子代理
-
-Standard 执行器当前可以接收本轮额外工具；CodingAgent 当前只使用编程工作区工具并忽略 ChatRoom 工具。
-
-为了让普通非人类角色都具备子代理调用能力，建议：
-
-1. `ChatRoomRoleExecutionContext` 增加受控 host tools。
-2. Standard 执行器把 host tools 合并到 `SendMessageRequest.Tools`。
-3. `CodingAgent.RunAsync` 增加通用 `IReadOnlyList<AITool>` host tools 参数。
-4. Coding 运行工具集合为：
+Standard 执行器已经把 `ChatRoomRoleExecutionContext.AdditionalTools` 传入 `SendMessageRequest.Tools`。为了让 AgentLib 子代理调用机制在 ChatRoom 中完全不参与，同时保留工作区等其他 AgentLib 默认工具，给 `SendMessageRequest` / `CopilotChatManager.ResolveTools` 增加通用排除项，例如：
 
 ```text
-工作区编程工具 + ChatRoom 子代理调用工具
+ExcludedDefaultToolNames = ["InvokeSubAgent"]
 ```
 
-5. `AgentLib.Coding` 只依赖 `AITool`，不引用 ChatRoom 类型，保持依赖方向。
-6. host tool 名称冲突时立即失败，不允许覆盖文件、Roslyn 或 CLI 工具。
-7. 不把角色管理工具、工作区切换工具等全部重新注入 Coding；本轮只开放子代理调用工具。
+ChatRoom Standard 请求使用该选项排除 AgentLib 默认 `InvokeSubAgent`，再通过 `AdditionalTools` 加入 `ChatRoomRoleManagementTools`、`WorkspacePathTools`、`InvokeChatRoomSubAgent`，以及 Standard 子代理本轮的 `ReturnOutputToCaller`。
 
-### 决策十二：子代理嵌套调用必须有环路保护
+该通用接缝只按工具名过滤默认工具，不引用 ChatRoom 类型，也不修改 `AgentLib.Tools.SubAgentToolProvider`。最终工具列表仍按函数名检查重复并在配置错误时明确失败，不能静默覆盖。
 
-调用请求携带：
+Coding 执行器当前通过 `CodingAgent.RunAsync` 的独立接口运行，不消费这组 Standard 工具。本轮不改 `CodingChatRoomRoleExecutor`、`CodingAgent`、`CodingWorkspaceToolProvider` 或 AgentLib.Coding 测试。
 
-```text
-InvocationStack = [callerRoleId, ..., targetRoleId]
-Depth
-```
+Coding 子代理角色仍可按现有角色方式被任意非 preset 消息开头的 Mention 触发；若 Coding 内部已有 AgentLib 子代理机制，则继续保持其当前行为，与 ChatRoom 角色调用工具互不关联。
 
-规则：
+ChatRoom 的 `InvokeChatRoomSubAgent` 调用 Coding 子代理时同样走现有 `StepAsync` / runtime，但不注入 `ReturnOutputToCaller`。工具直接等待 Coding 执行器现有完成结果，并将该结果作为等价的 AITool 返回值交给父 AI。
 
-- 目标角色已经出现在 stack 中时拒绝调用。
-- 设置可配置的最大嵌套深度，建议默认 4。
-- 子调用继承父调用取消令牌。
-- 父调用失败或取消时，所有未完成子调用一起取消。
-- 子代理不能通过普通 `@` 绕过 stack 检查。
+### 决策十：不增加专用嵌套限制
+
+Standard 子代理拿到与其他 Standard 角色相同的 `InvokeChatRoomSubAgent` 工具，因此可以继续调用其他子代理，也不额外禁止调用自身或形成环路。本方案不引入 `InvocationStack`、`Depth`、最大层数或子代理专用取消树。Coding 子代理内部是否调用其他代理继续由其现有 Coding/AgentLib 机制决定。
+
+调用只沿用当前工具调用、`StepAsync` 和执行器已有的取消与异常行为，不增加过度防御逻辑。
 
 ## 6. 目标数据模型
 
@@ -407,366 +344,292 @@ Depth
 legacy 和 Domain 角色定义都增加：
 
 ```text
-ChatRoomRoleInvocationMode InvocationMode = Participant
+ChatRoomRoleInvocationMode InvocationMode
 ```
 
-默认 `Participant` 保证旧 JSON 和旧模板恢复后行为不变。
+创建新角色时由 UI、模板或调用方明确给值。当前产品尚未发布，不依赖缺省值兼容旧 JSON。
 
-### 6.2 聊天室消息
+### 6.2 结构化 Mention
+
+新增共享语义模型，legacy 可使用可序列化 class，Domain 使用不可变 record：
+
+```text
+ChatRoomMention
+  - string TargetRoleId
+  - string SourceMessageId / Guid SourceMessageId
+  - int StartIndex
+  - int Length
+  - bool IsAtMessageStart
+```
+
+`SourceMessageId` 使 Mention 与具体消息稳定关联；位置来自原始消息内容。`IsPresetInfo` 直接从来源消息读取，无需复制到 Mention 上；发送者类型不参与子代理 Mention 调度。
+
+### 6.3 当前格式版本
+
+legacy `room.config.json` 和单文件角色模板都增加显式 `FormatVersion`；Domain snapshot 继续使用并提升 `SchemaVersion`。加载时必须先验证版本，再反序列化/映射角色和消息。版本缺失、低于当前值或高于当前值都明确拒绝，不能依赖 enum/bool 的 CLR 默认值判断数据来源。
+
+### 6.4 聊天室消息
 
 legacy 和 Domain 消息增加：
 
 ```text
 bool IsPresetInfo = false
-Guid? SubAgentInvocationId
+IReadOnlyList<ChatRoomMention> Mentions
 ```
 
 语义：
 
-- `IsPresetInfo == true`：可以显示和持久化，但不进入普通角色模型输入，不参与普通 mention 和自动调度。
-- `SubAgentInvocationId`：关联用户直调请求和结果；普通消息为空。
+- `IsPresetInfo == true`：可以显示和持久化，但不进入其他角色模型输入，也不参与 Mention 调度。
+- `Mentions`：替代只有 RoleId 的 `MentionedRoleIds`；调度器可从中投影 RoleId。
 
-不建议新增“子代理消息角色”替代 Human/Assistant：
+不新增“子代理消息角色”或专用消息 kind：
 
-- 用户调用请求仍可按 Human 气泡显示。
-- 子代理结果仍可按 Assistant 气泡显示。
-- 调用语义由 preset 和 invocation id 表达。
+- 用户输入仍是 Human 消息。
+- 子代理输出仍是 Assistant 消息。
+- `IsPresetInfo` 只控制上下文与调度，不改变 UI 模板。
 
-### 6.3 调用请求
+### 6.5 通用 Step 选项
 
-建议新增不可变请求：
-
-```text
-ChatRoomSubAgentInvocationRequest
-  - Guid InvocationId
-  - string TargetRoleId
-  - string Prompt
-  - ChatRoomSubAgentCaller Caller
-  - Guid? ParentExecutionId
-  - IReadOnlyList<string> InvocationStack
-  - int Depth
-  - string? WorkspacePath
-```
-
-调用方：
+为复用 `StepAsync`，建议增加通用选项而非子代理专用 invoker：
 
 ```text
-ChatRoomSubAgentCaller
-  - Human(humanRoleId, humanRoleName)
-  - Role(roleId)
-  - SubAgent(roleId)
+ChatRoomRoleStepOptions
+  - IReadOnlyList<string> AdditionalUserMessages
+  - IReadOnlyList<AITool> AdditionalTools
+  - bool MarkOutputAsPresetInfo
+  - ChatRoomReturnOutputCollector? ReturnOutputCollector
 ```
 
-### 6.4 调用结果
+collector 由触发方创建，并被 `ReturnOutputToCaller` 工具闭包捕获；外层完成包装器最多调用两次无重试 core，并在两次之间加入提醒。不需要 Caller、Target、InvocationId、用于限制调用的 `InvocationStack`、`Depth`、临时 Workspace 或专用结果类型。AI AITool 路径成功时返回 collector 中的字符串；Mention 路径只检查完成状态。失败沿用现有异常/取消通道。
 
-```text
-ChatRoomSubAgentInvocationResult
-  - Guid InvocationId
-  - string TargetRoleId
-  - ChatRoomSubAgentInvocationOutcome Outcome
-  - string? Output
-  - string? FailureMessage
-  - string? ModelDisplayName
-```
+### 6.6 不新增子代理瞬态 UI 事件
 
-终态：
-
-```text
-Completed
-Canceled
-ModelFailed
-ToolFailed
-ProtocolFailed
-Rejected
-```
-
-### 6.5 瞬态执行事件
-
-新 Coordinator 不应把子代理过程写入 `ChatRoomState.Messages`。建议增加独立事件：
-
-```text
-SubAgentInvocationStarted
-SubAgentInvocationDelta
-SubAgentInvocationToolChanged
-SubAgentInvocationCompleted
-SubAgentInvocationFailed
-SubAgentInvocationCanceled
-```
-
-每个事件至少携带：
-
-- RoomId
-- RoomInstanceId
-- ParentExecutionId（AI 调用时）
-- InvocationId
-- CallerRoleId
-- TargetRoleId
-- 单调事件序号
-
-AI 调用时 UI 把事件投影到父消息的子代理卡片；用户直调时投影为独立调用卡片或 preset 消息。
+Coordinator 与 legacy 都继续发布普通角色消息和现有 execution 状态。子代理的流式内容通过普通消息更新进入 UI，不增加 `SubAgentInvocationStarted`、调用卡片或父消息内嵌事件。
 
 ## 7. 调用流程
 
-### 7.1 用户直接调用
+### 7.1 消息开头 Mention 直接调用
 
 ```text
-ChatViewModel.SendAsync(rawInput)
-  → ChatRoomService.SubmitHumanInputAsync(rawInput)
-      → UserSubAgentInvocationParser.Parse(rawInput, roles)
-          → NoMatch
-              → 普通 HumanInterject
-              → 按现有规则启动自动循环
-          → Invalid
-              → 返回输入错误，不追加普通消息
-          → Matched
-              → 追加 preset 人类调用记录
-              → 排队/启动用户子代理 invocation
-              → 子代理通过 ReturnOutputToCaller 提交结果
-              → 追加 preset 子代理结果消息
-              → 不启动普通自动循环
+Human 输入或普通 Assistant 输出写入 ChatRoomMessage
+  → MentionParser.ParseMentions(message, roles)
+  → 保存结构化 Mentions
+  → 现有自动循环读取最新消息
+      → 普通角色 Mention 按原逻辑入队
+      → 任意非 preset 消息中 IsAtMessageStart 的 SubAgent Mention 入队
+      → 其他 SubAgent Mention 不入队
+  → ChatRoomManager.StepAsync(
+        targetSubAgent,
+        AdditionalTools = [ReturnOutputToCaller],
+        MarkOutputAsPresetInfo = true,
+        ReturnOutputCollector = collector)
+      → 正常创建并流式更新一条角色消息
+      → 检查 ReturnOutputToCaller；未提交则提醒一次并继续当前逻辑调用
+      → 保存目标角色 AgentSession
 ```
 
-`SubmitHumanInputAsync` 返回结构化分流结果：
-
-```text
-HumanInputDispatchKind
-  - ChatMessageAppended
-  - SubAgentInvocationCompleted
-  - SubAgentInvocationQueued
-  - Rejected
-```
-
-UI 不再根据“发送成功”无条件启动自动循环。
+不增加 `SubmitHumanInputAsync`、独立 Mention 调用命令或按发送者分流的调度分支。Human 消息仍按现有发送流程提交，Assistant 消息仍按现有角色输出流程写入；调度器统一根据结构化 Mention 决定是否执行被点名的子代理。
 
 ### 7.2 普通 AI 角色调用
 
 ```text
-角色模型调用 invoke_chatroom_subagent(targetRoleId, prompt)
-  → 工具验证调用者是 Participant 非人类角色
+Standard 角色模型调用 InvokeChatRoomSubAgent(targetRoleId, prompt)
   → 验证目标是 SubAgent
-  → 验证 stack、深度、房间实例和取消状态
-  → IChatRoomSubAgentInvoker.InvokeAsync
-      → 获取目标 runtime lease
-      → 创建临时 AgentSession
-      → 注入目标人设 + prompt + 返回工具 + 授权工具
-      → 等待 ReturnOutputToCaller
-  → 结果作为 function result 返回父角色
+  → 创建本次 ReturnOutput collector
+  → ChatRoomManager.StepAsync(
+        targetRole,
+        AdditionalUserMessages = [prompt],
+        AdditionalTools = [ReturnOutputToCaller],
+        MarkOutputAsPresetInfo = true,
+        ReturnOutputCollector = collector)
+      → 复用目标角色现有 AgentSession
+      → 目标角色消息正常显示在聊天室
+      → 目标角色调用 ReturnOutputToCaller
+      → 保存目标角色 AgentSession
+  → collector 的 output 作为 function result 返回父角色
   → 父角色继续生成普通公开回复
 ```
 
 ### 7.3 子代理调用另一个子代理
 
-子代理内部可以获得同一个 `invoke_chatroom_subagent` 工具，但工具调用请求会继承 invocation stack 和 parent cancellation token。
+Standard 子代理与其他 Standard 角色获得相同的 `InvokeChatRoomSubAgent` 工具，可按同一流程调用另一个子代理。没有额外 stack、深度、自调用或环路检查。
 
-子代理不能通过公开 `@目标角色` 调用另一个子代理。
+子代理公开文本里的 `@目标子代理` 不会触发另一个子代理，因为子代理输出标记为 preset，整条消息不参与 Mention 调度。普通非 preset AI 角色若在消息开头 Mention 子代理，则会按统一规则触发目标角色。
 
-### 7.4 子代理未调用返回工具
+### 7.4 Standard 子代理未调用返回工具
 
 ```text
 第一次运行结束且 collector 无结果
-  → 追加“必须调用 ReturnOutputToCaller”提醒
-  → 第二次运行
+  → 通过同一目标角色的现有会话追加“必须调用 ReturnOutputToCaller”提醒
+  → 调用第二次无重试 StepAsyncCore，输出仍是普通 preset 角色消息
       → 有结果：Completed
-      → 仍无结果：ProtocolFailed
+      → 仍无结果：AITool 调用失败
 ```
 
 普通文本不能作为隐式回退结果。
 
 ## 8. legacy `ChatRoomManager` 改造
 
-### 8.1 新增统一人类输入入口
+### 8.1 保持现有人类输入入口
 
-在 `ChatRoomService` 和 `ChatRoomManager` 增加：
+继续使用：
 
 ```text
-SubmitHumanInputAsync(rawContent, humanRoleId, humanRoleName, ct)
+ChatViewModel.SendAsync
+  → ChatRoomService.HumanInterjectAsync
+  → ChatRoomManager.HumanInterjectAsync
 ```
 
-现有 `HumanInterjectAsync` 保持“明确追加普通人类聊天消息”的低层语义，不再作为 UI 直接入口。
+`HumanInterjectAsync` 创建消息后调用扩展后的 `MentionParser`，把结构化 Mention 写回消息。无需增加 `SubmitHumanInputAsync`、三态解析结果或 UI 发送分流。
 
-### 8.2 严格解析必须早于 Trim
+### 8.2 保留原始输入位置
 
-当前 `ChatViewModel.SendAsync` 执行：
+当前 `ChatViewModel.SendAsync` 会先执行 `InputText.Trim()`。为了准确判断 `StartIndex == 0`，应在 Mention 解析前保留原始输入，至少不能删除前导空白。
+
+可以继续按既有产品规则处理尾随空白，但结构化 Mention 的位置必须基于实际写入聊天室的消息内容计算。这里不增加对子代理专属的 ASCII 空格、Tab 或方括号限制。
+
+### 8.3 Mention 入队规则
+
+`MentionParser` 解析所有角色；`PushMentionedRoles` 或其上游匹配方法根据来源消息决定是否入队：
+
+- `Participant`：保持现有逻辑。
+- `SubAgent` + `IsAtMessageStart`：入优先队列，不区分 Human 或 Assistant 来源。
+- 其他 `SubAgent` Mention：不入队。
+- `IsPresetInfo == true`：整条消息不参与 Mention 调度。
+
+默认角色队列和管理者兜底只跳过 `InvocationMode == SubAgent`。不需要在 `TryDequeueNextSpeaker`、解析器、公开 `StepAsync` 等每层重复防御。
+
+### 8.4 扩展而非禁止 `StepAsync`
+
+保留现有公开重载，并增加可供自动循环和 AITool 使用的通用选项重载。子代理正是通过该入口运行，不得在 `StepAsync` 中拒绝 `InvocationMode == SubAgent`。
+
+选项负责：
+
+- 追加 AI 工具调用传入的任务文本。
+- 合并本轮附加工具。
+- 把本次创建的角色消息标记为 preset。
+- 关联 `ReturnOutputToCaller` collector。
+
+有效 preset 值为“选项显式要求”或“目标角色是 SubAgent”；不能依赖每个调用点都记得传标记。
+
+原有流式消息创建、错误处理、`SaveRoleAgentSessionStateAsync` 和 `CurrentSpeaker` 生命周期不分叉。
+
+由于 Standard AITool 可以在父角色 `StepAsync` 尚未结束时嵌套调用目标角色，`CurrentSpeaker` 不能再按单值直接覆盖后清空。实现可使用发言者栈，或在每次进入前保存 previous speaker、退出时恢复，确保子调用完成后 UI 回到父角色而不是错误显示为空。
+
+### 8.5 上下文过滤与角色自身会话
+
+`BuildIncrementalUserMessages` 必须跳过 `message.IsPresetInfo == true`，避免子代理输出进入其他角色的新输入。
+
+但子代理本人的回复已经由其 `CopilotChatManager` 写入自身 AgentSession，后续调用自然可以延续。`ChatRoomSession` 仍可把该消息视为目标角色已发言并更新时间水位；其他角色跨过该时间点时只需在最终输入构造中跳过 preset 消息即可。
+
+### 8.6 同一角色可重入执行
+
+现有 `CopilotChatManager` 使用单值聊天状态和 CTS，不能直接并发重入。为支持不受限制的 A → A、A → B → A 等自然调用，增加通用的角色执行栈，而不是把自调用排到父工具之后造成死锁：
+
+1. 外部同时到达的独立调用仍按 RoleId 串行，避免并发修改同一 AgentSession。
+2. 工具调用形成的嵌套调用携带当前执行链上下文，可以在同一异步调用链内压入新的角色 turn。
+3. 目标 RoleId 已经在执行链中时，复用该活动 `ChatRoomRole`、`CopilotChatManager` 和 AgentSession；父模型正等待工具结果，因此嵌套 turn 顺序执行而不是并发执行。
+4. `CopilotChatManager` 的当前 CTS、聊天状态和消息发送上下文改为栈/计数语义：嵌套 turn 退出后恢复父 turn，不能覆盖或清空父调用状态。
+5. 每个嵌套 turn 完成后先保存最新 AgentSession 状态，再把结果交还直接调用者；父 turn 恢复后继续在同一线性会话上运行。
+
+这不是自调用限制，也不拒绝环路；它是普通角色和会话通用的可重入能力，不创建临时 AgentSession 或分支会话。
+
+### 8.7 聊天室提示词
+
+Standard 角色提示词区分：
 
 ```text
-InputText.Trim()
+普通聊天室角色：可通过 @角色名 请求其接下来发言
+子代理角色：在公开消息开头 @角色名可触发其后续执行；若当前轮需要同步获得结果并继续推理，应使用 InvokeChatRoomSubAgent 工具
 ```
 
-这会把带前导空白的无效输入变为有效调用。应改为：
+Human 与 Assistant 消息都可以在开头使用现有 Mention 语法调用子代理。提示词列出可调用子代理的 RoleId、RoleName、简介和执行引擎，并说明 Mention 调用不会把结果作为当前模型轮次的 function result 返回。
 
-1. 只用 `IsNullOrWhiteSpace` 判断是否可发送。
-2. 保留原始输入交给 `SubmitHumanInputAsync` 路由。
-3. 普通聊天分支可在确认不是子代理调用后按现有产品规则规范化尾随空白。
+### 8.8 `ChatRoomSubAgentToolProvider`
 
-### 8.3 自动调度过滤
-
-以下位置都必须增加 `InvocationMode == Participant`：
-
-- `EnqueueInitialRoles`
-- `PushMentionedRoles`
-- `TryDequeueNextSpeaker`
-- `GetManagerRole`
-- 普通 mention 解析的角色索引
-- `BuildChatRoomContext` 的普通可 @ 角色列表
-
-### 8.4 公开 Step 保护
-
-`ChatRoomManager.StepAsync(ChatRoomRole)` 收到子代理时必须抛出明确异常：
+在 `AgentLib.ChatRoom.Tools` 新增：
 
 ```text
-子代理角色不能通过普通公开发言入口执行，请使用子代理调用接口。
-```
-
-不能静默返回 null，否则调用方难以发现错误入口。
-
-### 8.5 上下文过滤
-
-`BuildIncrementalUserMessages` 必须跳过：
-
-```text
-message.IsPresetInfo == true
-```
-
-`ChatRoomSession.GetMessagesSinceLastSpeak` 可以保留原始时间范围选择，但：
-
-- preset 消息不得更新角色的“上次公开发言时间”。
-- 最终输入构造必须再次过滤 preset。
-
-长期应使用消息序号替代时间戳，本轮不要求借该功能完成 legacy 水位重构。
-
-### 8.6 聊天室提示词
-
-普通角色提示词应把角色分成：
-
-```text
-普通聊天室角色：可以通过 @角色名 请求公开发言
-子代理角色：不能通过 @ 调用，只能使用 invoke_chatroom_subagent 工具
-```
-
-禁止继续向模型宣称“所有角色都可通过 @ 指定回复”。
-
-### 8.7 legacy 子代理 invoker
-
-建议新增：
-
-```text
-ChatRoomSubAgentInvoker
 ChatRoomSubAgentToolProvider
-ChatRoomSubAgentInvocationScope
+ChatRoomReturnOutputCollector
 ```
 
-invoker 使用角色定义和统一角色工厂创建临时执行对象，不直接调用聊天室中长期存在的 `ChatRoomRole.SpeakAsync`，避免复用其私有 AgentSession。
+Provider 直接持有或接收当前 `ChatRoomManager`，创建 `InvokeChatRoomSubAgent` AITool；调用时定位现有 `ChatRoomRole` 并调用 `StepAsync`。不创建 invoker、临时角色、临时 AgentSession 或公共 invocation runner。
 
-### 8.8 用户直调的显示消息
+### 8.9 Mention 直接调用的显示消息
 
-建议生成两条消息：
+触发 Mention 的来源消息仍保持原有 Human 或 Assistant 类型。子代理每次模型运行产生的 Assistant 消息都设置 `IsPresetInfo = true`，UI 与普通角色输出完全一致。
 
-1. 人类调用请求：Human + `IsPresetInfo = true`。
-2. 子代理结果：Assistant + `IsPresetInfo = true`。
-
-结果的底层 `CopilotChatMessage` 也设置 `IsPresetInfo = true`。
-
-若执行失败，追加 preset System 消息或带失败状态的子代理调用卡片；失败信息不触发普通自动循环。
+`ReturnOutputToCaller` 的值只用于确认完成；不因工具返回值追加专用结果消息，也不增加“子代理调用”卡片或视觉标识。协议提醒造成的再次模型运行仍按正常角色输出显示。失败继续走现有角色发言失败/系统消息机制。
 
 ## 9. 新 `ChatRoomCoordinator` 改造
 
-### 9.1 统一人类输入命令
+### 9.1 保持现有消息命令
 
-建议用：
+继续使用现有 `AppendHumanMessageCommand`、角色输出提交及自动循环命令。Human 或 Assistant 消息写入时都由统一 Mention 解析组件生成结构化 Mentions，Coordinator 不再维护语义不同的私有 RoleId-only 解析器。
 
-```text
-SubmitHumanInputCommand
-```
+不新增 `SubmitHumanInputCommand` 或 `InvokeUserSubAgentCommand`。
 
-替代应用层先调用 `AppendHumanMessageCommand` 再无条件启动自动循环的组合。
+### 9.2 调度现有 execution
 
-Coordinator 在单写者循环中根据当前角色快照执行严格解析，保证角色更新和输入路由使用同一个状态版本。
+Coordinator 的自动队列按与 legacy 相同的表格判断结构化 Mention。任意非 preset 消息开头的子代理 Mention 可以进入队列；默认队列与管理者兜底不主动加入子代理。
 
-### 9.2 独立子代理调用命令
+`StartExecutionCore` 不因 `InvocationMode == SubAgent` 拒绝执行。顶层执行继续使用 `CurrentExecution`；为支持工具内调用，领域状态把单个 execution 扩展为通用 execution stack，`CurrentExecution` 作为栈顶便捷视图，不承担旧数据兼容职责。
 
-用户直调：
+### 9.3 通用可重入角色执行栈
 
-```text
-InvokeUserSubAgentCommand
-```
+Standard runtime 中的 `InvokeChatRoomSubAgent` AITool 通过 Coordinator 的通用“执行角色并等待完成”能力压入一个子 execution frame：
 
-AI 工具调用不应尝试占用房间的第二个 `CurrentExecution`。它属于父 execution 内部的嵌套工具执行，由 `IChatRoomSubAgentInvoker` 在协调器外运行，并通过带 ParentExecutionId 的事件回投状态。
+1. 父 frame 保留 role identity、runtime version、workspace version、输入水位和待恢复的工具调用 continuation。
+2. 目标角色当前不在栈中时，子 frame 使用目标角色现有 runtime lease、`IChatRoomRoleRuntime.ExecuteAsync`、committed checkpoint 和 candidate 提交协议。
+3. 目标 RoleId 已经在栈中时，子 frame 复用该活动 runtime context 和 AgentSession，不从旧 committed checkpoint 创建第二个分支。
+4. 同一时刻只有栈顶 frame 推进模型；父模型任务在 AITool 中异步等待，不与子 turn 并发修改同一角色会话。
+5. 每个子 turn 完成后提交普通 preset Assistant 消息，并提交该角色下一版连续 checkpoint；活动父 frame 随即更新自己的基准 SessionRevision，最终不能再提交基于旧 revision 的 candidate。
+6. 将 Standard 返回工具值或 Coding 完成结果交给等待中的父工具，再弹栈恢复父 frame。
+7. 子 frame 失败时把异常交还父 AITool，并恢复父 frame；父模型自行决定继续、重试或公开说明。
 
-### 9.3 房间级并发规则
+该能力是普通角色执行机制的可重入扩展，不命名为 SubAgent invoker/runtime。它允许任意自然嵌套，不增加最大深度、环路或自调用检查。
 
-- 房间仍最多只有一个普通公开 execution。
-- 父角色调用子代理时，子代理作为父 execution 内的同步工具任务运行。
-- 用户直调子代理在没有普通 execution 时立即执行。
-- 用户在普通角色发言期间直调子代理时，记录 preset 调用请求并排队；当前普通角色完成后优先执行该用户调用。
-- 用户直调子代理不会启动或恢复普通自动循环。
-- 停止、关闭、房间替换会取消未完成用户调用和所有嵌套调用。
+### 9.4 命令与状态模型
 
-### 9.4 普通执行入口保护
+可新增通用内部请求，例如 `ExecuteRoleAndWaitAsync` 或同等命令/continuation，但名称和契约必须面向“角色执行”，不能成为子代理专用入口。`ChatRoomState` 在内存中暴露 execution stack；snapshot 仍只允许在没有活动 execution 时保存或恢复，因此不序列化半途调用 continuation。
 
-`StartExecutionCore` 必须拒绝：
-
-```text
-definition.InvocationMode == SubAgent
-```
-
-自动队列和管理者兜底同样只接受 Participant。
+停止、关闭、工作区切换、审批与流式事件都作用于栈顶 frame。整条可重入调用链复用房间现有执行取消作用域，栈展开时等待方自然收到取消；不另建子代理专用取消树或按深度遍历子调用。
 
 ### 9.5 可见输入与消费高水位
 
-Domain `ChatRoomMessage` 增加 `IsPresetInfo` 后，普通角色输入规则为：
+Domain `ChatRoomMessage` 增加 `IsPresetInfo` 后，角色输入规则为：
 
 ```text
 InputMessages = 消费水位之后且 IsPresetInfo == false 的消息
 InputThroughSequence = 执行开始时房间最新消息序号
 ```
 
-因此必须放宽 `ChatRoomRoleExecutionRequest` 当前约束：
-
-```text
-InputMessages 最后一条序号 == InputThroughSequence
-```
-
-改为：
+因此 `ChatRoomRoleExecutionRequest` 应允许最后一条可见输入早于 `InputThroughSequence`：
 
 1. 输入消息序号严格递增。
 2. 每条输入消息序号不大于 `InputThroughSequence`。
-3. 最后一条可见输入可以早于高水位。
-4. preset 消息不进入 `InputMessages`，但成功后会被消费水位跨过。
+3. preset 消息不进入 `InputMessages`，但消费水位可以跨过。
+4. 本次 AITool 传入的任务使用 execution request 的附加输入表达，不伪装成公开非 preset 消息。
 
-若水位之后只有 preset 消息，不需要启动模型；Coordinator 可以执行一次“不可见消息水位推进”，并在存在 checkpoint 时复制 checkpoint 载荷，只更新其 consumed watermark 和 checkpoint revision，不提升私有 SessionRevision。
+### 9.6 子代理正常提交 checkpoint
 
-### 9.6 子代理不产生 checkpoint
-
-子代理 invocation 不走普通 `ChatRoomRoleExecutionCandidate` 提交协议：
-
-- 不接收 committed checkpoint。
-- 不产生 candidate checkpoint。
-- 不更新 `ConsumedThroughSequenceByRole`。
-- 不加入 `ChatRoomSnapshot.RoleCheckpoints`。
-
-角色定义仍由 runtime registry 管理，invoker 通过 lease 固定其配置和资源生命周期。
+子代理与普通角色一样接收 committed checkpoint、产生 candidate checkpoint、更新消费水位并写入 `ChatRoomSnapshot.RoleCheckpoints`。`IsPresetInfo` 只过滤共享公开上下文，不清除目标角色自己的私有会话。
 
 ### 9.7 Runtime 接缝
 
-建议增加独立接口，而不是把普通执行请求塞入大量可空字段：
+继续使用 `IChatRoomRoleRuntime.ExecuteAsync`。如需承载工具调用任务和输出标记，只扩展通用 `ChatRoomRoleExecutionRequest` / candidate 字段，不增加 `IChatRoomSubAgentRuntime.InvokeAsync`。
 
-```text
-IChatRoomSubAgentRuntime
-  InvokeAsync(ChatRoomSubAgentRuntimeRequest, eventSink, ct)
-```
-
-`IsolatedChatRoomRoleRuntime` 可以同时实现普通角色 runtime 和子代理 runtime，但每个方法拥有不同的输入与提交契约。
-
-普通角色调用仍使用 `ExecuteAsync`；子代理调用只使用 `InvokeAsync`。
+`IsolatedChatRoomRoleRuntime` 仍负责所有角色的执行与 checkpoint 生命周期，子代理不获得独立 runtime 类型。
 
 ## 10. 工具设计
 
 ### 10.1 调用工具
 
-建议工具名：
+ChatRoom 自有 Provider 建议暴露：
 
 ```text
-invoke_chatroom_subagent
+InvokeChatRoomSubAgent
 ```
 
 参数：
@@ -774,14 +637,16 @@ invoke_chatroom_subagent
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `targetRoleId` | string | 是 | 子代理稳定 RoleId |
-| `prompt` | string | 是 | 自包含任务说明和期望输出 |
+| `prompt` | string | 是 | 本次任务说明和期望输出 |
 
 工具描述必须包含：
 
 - 只能选择当前列出的子代理 RoleId。
-- 任务必须自包含，子代理看不到聊天室历史。
-- 不要通过普通 `@` 调用子代理。
+- 子代理会延续自己的角色会话，并能获得现有增量聊天室上下文。
+- AI 可以通过消息开头的普通 `@` 文本触发子代理；只有需要同步获得结果并在当前轮继续推理时才应调用本工具。
 - 工具会同步等待并返回子代理提交结果。
+
+不能使用 `InvokeSubAgent` 作为工具名，因为该名称已由 AgentLib 默认 `SubAgentToolProvider` 占用；ChatRoom 工具必须保持独立名称，避免函数注册冲突和模型误选。
 
 ### 10.2 子代理列表
 
@@ -794,7 +659,7 @@ invoke_chatroom_subagent
 - ExecutionKind
 ```
 
-首版不需要单独 `list_subagents`，避免增加一次不必要工具调用。动态角色变化后，每次普通角色执行都应基于当前房间快照生成工具描述和目标列表。
+不需要单独 `list_subagents`。每次 Standard 角色执行都基于当前房间角色快照生成工具描述和目标列表。
 
 ### 10.3 返回工具
 
@@ -810,89 +675,73 @@ ReturnOutputToCaller
 |------|------|------|------|
 | `output` | string | 是 | 返回给直接调用方的最终结果 |
 
-该工具只存在于子代理运行中，普通参与者不能直接获得。
+该工具只在 Standard 子代理被执行的本轮工具集合中注入。消息开头 Mention 与 AI AITool 触发都使用它；普通参与者本轮没有完成回传需要时不获得该工具。
 
-### 10.4 权限边界
+### 10.4 工具集合
 
-子代理可使用的工具由执行引擎和宿主授权共同决定：
+Standard 子代理继续获得普通 Standard 角色已有的工具集合，并额外获得：
 
-- Standard：角色默认工具、技能工具、工作区工具、嵌套子代理工具、返回工具。
-- Coding：代码工作区工具、嵌套子代理工具、返回工具。
-- ChatRoom 角色管理工具默认不提供给子代理，避免子任务修改整个房间角色结构。
-- 用户直调和 AI 调用使用同一权限集合，不因调用者类型扩大权限。
+- `InvokeChatRoomSubAgent`：与其他 Standard 角色相同，可继续调用聊天室子代理。
+- `ReturnOutputToCaller`：只在 Standard 角色本轮被作为子代理触发时加入。
 
-## 11. 持久化与兼容
+不因为子代理身份移除角色管理工具、工作区工具或其他 ChatRoom 现有工具，也不建立额外权限白名单。AgentLib 默认 `InvokeSubAgent` 不属于 ChatRoom 工具集合。Coding 工具集合保持完全不变。
+
+## 11. 持久化
 
 ### 11.1 legacy JSON
 
-新增字段默认值：
+直接保存当前模型新增字段：
 
 ```text
-Role.InvocationMode = Participant
-Message.IsPresetInfo = false
-Message.SubAgentInvocationId = null
+Session.FormatVersion
+Role.InvocationMode
+Message.IsPresetInfo
+Message.Mentions[]
 ```
-
-旧 `room.config.json` 缺少字段时自然保持现有行为。
 
 必须更新：
 
 - legacy 角色定义
 - legacy 消息模型
+- Mention 模型
 - JSON 源生成上下文关联类型
 - `ChatRoomPersistence.ValidateRoleDefinitions`
 - 保存/加载测试
+
+加载时先检查 `FormatVersion == CurrentFormatVersion`。版本字段缺失会得到无效值并立即拒绝；不为缺少这些字段的旧 `room.config.json` 提供默认恢复或兼容分支。
 
 ### 11.2 角色模板
 
 必须更新：
 
+- `RoleTemplate.FormatVersion`
 - `RoleTemplateService.ToDefinition`
 - `RoleTemplateService.FromDefinition`
 - `RoleTemplateService.UpdateFromDefinition`
 - 模板校验
 - 模板测试
 
-旧模板默认 Participant。
+`RoleTemplateService.LoadAll` 只接受当前 `FormatVersion`。旧模板、缺少版本的模板或缺少 `InvocationMode` 的模板都不迁移、不补默认值；可按现有损坏模板策略跳过并记录诊断。
 
-### 11.3 新 snapshot schema
+### 11.3 snapshot schema
 
-建议从 schema 2 升到 schema 3。
+更新当前 schema，使角色、消息和 Mention 直接按新结构序列化。
 
-schema 2 → 3：
-
-- 所有角色 `InvocationMode = Participant`
-- 所有消息 `IsPresetInfo = false`
-- 所有消息 `SubAgentInvocationId = null`
-
-读取规则：
-
-- schema 2：兼容迁移。
-- schema 3：正常读取。
-- 高于当前版本：拒绝。
-- 低于支持范围：按明确错误拒绝。
-
-不能继续使用“只接受等于 CurrentSchemaVersion”的实现。
+读取器只接受当前 schema。无需实现 schema 2 → 新 schema 的迁移，也无需为缺失字段猜测默认值；版本缺失或不等于当前值时明确拒绝。
 
 ### 11.4 子代理调用记录
 
-AI 调用：
+用户输入按普通 Human 消息持久化。子代理原始输出按普通 Assistant 消息持久化，并保留 `IsPresetInfo = true`。AI 工具调用的 function call/result 继续存在于父角色自己的 AgentSession/checkpoint；目标角色的私有会话也按普通角色机制保存。
 
-- 不写入公开 snapshot。
-- 可以存在于调用者私有 AgentSession/checkpoint 的工具调用历史中。
-- UI 瞬态详情默认不跨重启恢复。
+不保存 `SubAgentInvocationId`，也不需要恢复专用调用卡片或把 Mention 来源消息与角色输出关联成特殊记录。
 
-用户直调：
-
-- preset 请求和结果作为稳定消息持久化。
-- 不持久化内部推理、工具流和嵌套过程。
-- 恢复后按 InvocationId 关联显示。
+execution stack 只描述运行中状态。沿用 Coordinator 当前约束：snapshot 仅在没有活动 execution 时作为可恢复状态；不序列化或恢复半途父子调用 continuation。
 
 ### 11.5 公开日志
 
-`SavePublicMessageAsync` 转换 `ChatRoomMessage` 时必须传播 `IsPresetInfo`。
+当前 `public_logs/{sessionId}.txt` 是只读回看的纯文本日志，不是会话恢复权威，因此保持与其他 Assistant 消息相同的文本格式即可，不承诺在该文本日志中编码 preset 或 Mentions。`room.config.json` / snapshot 才负责结构化恢复 `IsPresetInfo` 与 Mentions；无需新增 `subagent_calls` 日志。
 
-也可以把用户直调记录写入独立 `subagent_calls` 日志；首版为减少存储结构变化，建议继续写公开日志，但保留 preset 标记的结构化配置才是恢复权威。
+从结构化配置恢复 legacy Assistant 消息时，`RestoreCopilotChatMessage` 必须把外层 `ChatRoomMessage.IsPresetInfo` 传播到新建的 `CopilotChatMessage.IsPresetInfo`，保证恢复后的 UI 与上下文语义一致。
 
 ## 12. Avalonia UI 方案
 
@@ -905,18 +754,12 @@ AI 调用：
 子代理
 ```
 
-选为子代理时：
-
-- 自动取消人类角色。
-- 人类开关禁用。
-- 参与模式设为 MentionOnly 并禁用。
-- 管理者配置不可用。
-- 显示说明：
+选择子代理只保存 `InvocationMode`，不自动改写或禁用 `IsHuman`、`ParticipationMode`、`IsManagerRole`、`ExecutionKind` 等其他配置。界面可以显示说明：
 
 ```text
-子代理不会参与自动讨论，也不能被 AI 通过普通 @ 调用。
-其他角色只能使用子代理工具调用；用户只能在消息开头使用“@角色名 ”调用。
-每次调用互相独立，结果不会进入聊天室后续上下文。
+子代理不会被加入普通自动发言队列。
+任意非 preset 消息可在开头 @该角色；Standard AI 需要同步获得结果时应使用 InvokeChatRoomSubAgent 工具。
+角色仍保留自己的会话与记忆，输出正常显示，但不会进入其他角色的后续上下文。
 ```
 
 ### 12.2 角色列表
@@ -928,20 +771,9 @@ AI 调用：
 - 子代理
 - 管理者
 
-子代理上下文菜单：
+子代理沿用普通角色上下文菜单，包括“@ 提及角色”“编辑角色”“删除角色”“压缩对话”“清空记忆”等已有能力；其角色卡只需显示“子代理”类型标签。
 
-- “调用子代理”
-- “提升到角色大厅”
-- “编辑角色”
-- “删除角色”
-
-隐藏或禁用：
-
-- 普通“@ 提及角色”
-- 压缩对话
-- 清空记忆
-
-无状态子代理没有可压缩或清空的持久 AgentSession。
+点击“@ 提及角色”时，为满足触发规则，应把 Mention 插入到消息开头，而不是隐藏该操作或追加到消息尾部。
 
 ### 12.3 输入框插入
 
@@ -951,7 +783,7 @@ AI 调用：
 已有文本 + ` @普通角色 `
 ```
 
-子代理使用独立命令：
+子代理仍使用同一个 Mention 插入命令，只按角色调用模式选择插入位置：
 
 ```text
 InputText = `@子代理角色名 ` + 当前任务正文
@@ -963,114 +795,98 @@ InputText = `@子代理角色名 ` + 当前任务正文
 @子代理角色名 {原正文}
 ```
 
-不得把子代理前缀追加到消息尾部。
+不得把子代理 Mention 追加到消息尾部，否则结构化结果的 `IsAtMessageStart` 为 false，调度器不会触发。
 
-### 12.4 发送分流
+### 12.4 发送流程
 
-`ChatViewModel.SendAsync` 根据 `SubmitHumanInputAsync` 返回值决定：
+`ChatViewModel.SendAsync` 保持单一发送流程：
 
-- 普通聊天：按现有逻辑启动自动循环。
-- 子代理立即完成：不启动自动循环。
-- 子代理排队：显示等待状态，不启动普通自动循环。
-- 输入无效：显示错误并保留或恢复输入内容。
+- 保留前导空白后提交普通 Human 消息。
+- 按现有逻辑启动自动循环。
+- 自动循环依据结构化 Mention 选择普通角色或消息开头的子代理。
+
+普通 Assistant 消息写入后使用相同的结构化 Mention 调度规则，不增加发送者类型判断。
 
 ### 12.5 消息展示
 
-用户直调建议显示：
+子代理角色输出与普通角色完全相同：同一个 `MessageItemViewModel`、同一套 Assistant 消息模板、同样的角色名称、头像、模型、Token 和流式内容。
 
-```text
-用户气泡：@代码审查子代理 检查当前改动
-子代理气泡：最终返回结果
-```
-
-两条消息都可以有“子代理调用”视觉标识。结果可显示模型名和 Token 用量，但不提供普通“@ 提及角色”菜单。
-
-AI 调用继续显示在父助手消息内部的 `CopilotChatSubAgentItem`：
-
-- 任务输入
-- 进度
-- 工具
-- 返回给调用者的输出
+不增加“子代理调用”视觉标识，不把同一份输出拆成“原始输出 + 工具结果”两段气泡，也不在父助手消息内创建 `CopilotChatSubAgentItem`。AI 工具调用时，目标角色每次真实模型输出都独立出现在聊天室正常时间线上，父角色完成后再显示自己的正常回复。
 
 ## 13. 错误、取消与生命周期
 
 ### 13.1 目标角色不存在或类型错误
 
-返回 Rejected：
+`InvokeChatRoomSubAgent` 只验证 RoleId 存在且目标 `InvocationMode == SubAgent`。失败时由 AITool 抛出明确的参数/状态异常。
 
-- RoleId 不存在。
-- 目标是普通参与者。
-- 目标是人类。
-- 目标配置违反子代理不变量。
+不额外建立“子代理必须非人类/非管理者/MentionOnly”之类跨字段不变量。若目标本身是人类角色，现有 `StepAsync` / runtime 会按普通规则不启动模型执行；工具把该正常执行结果反馈给调用者，而不是在角色模型层新增一套子代理校验。
+
+这里的“无跨字段不变量”不等于把空执行当成功：`InvokeChatRoomSubAgent` 若最终没有获得 Standard 提交值或 Coding 完成结果，就按“目标没有可返回的执行结果”失败。人类 SubAgent 因不会启动模型，工具调用自然失败；Mention 调用仍按现有人类角色规则不产生 AI 回复。
 
 ### 13.2 模型不可用
 
-用户直调：追加 preset 失败消息。
+Mention 与 AI 工具调用都沿用 `StepAsync` / runtime 的现有角色失败处理。AI 工具调用还会把失败作为工具异常返回父模型，由父模型决定是否解释或重试。
 
-AI 调用：工具抛出可诊断异常，由父模型决定是否重试或向用户解释。
+### 13.3 Standard 子代理未调用返回工具
 
-### 13.3 未调用返回工具
-
-第二次提醒后仍无结果：ProtocolFailed。
+第二次提醒后仍无结果：当前 Mention 调用或 AITool 调用明确失败。
 
 不得使用最后一段普通文本作为结果。
 
 ### 13.4 取消
 
-- 父 execution 取消会取消全部嵌套子代理。
-- 用户停止房间会取消排队和执行中的用户直调。
-- 关闭或替换房间使 RoomInstanceId 失效，迟到结果全部丢弃。
-- 取消消息使用 preset，不触发普通自动循环。
+- 每次 `StepAsync` / runtime execution 继续使用其现有 cancellation token。
+- 停止房间、关闭会话或取消当前执行沿用现有行为。
+- 不建立额外父子取消树，也不为嵌套子代理增加专用传播规则。
 
 ### 13.5 角色更新和删除
 
-- 调用开始时通过 runtime lease 固定角色 identity、runtime version 和 workspace version。
-- 调用期间删除角色：拒绝立即删除或先取消并等待 invocation 终止。
-- 调用期间更新角色：当前调用使用启动快照，更新只影响后续调用。
-- 迟到结果必须校验 RoomInstanceId、InvocationId、RoleIdentity 和 RuntimeVersion。
+- legacy 继续使用当前 `ChatRoomRole` 实例和现有角色增删改生命周期。
+- Coordinator 继续使用既有 runtime lease、identity、runtime version 和 workspace version 规则。
+- 只修改 `InvocationMode` 时保留当前 runtime、AgentSession/checkpoint 和消费水位；不得把纯调度变更当成运行时替换。
+- 不增加 InvocationId 或子代理专用的删除、更新、迟到结果校验。
 
 ## 14. 需要修改的核心文件
 
-### 14.1 AgentLib
+### 14.1 明确不修改
 
-- `Tools/SubAgentToolProvider.cs`
-- 可新增共享 invocation scope、runner、collector 和返回工具模型
-- `Model/CopilotChatSubAgentItem.cs`（如需补充 InvocationId 或状态）
-- 相关 `AgentLib.Tests`
+- `AgentLib/Tools/SubAgentToolProvider.cs`
+- `AgentLib/Model/CopilotChatSubAgentItem.cs`
+- `AgentLib.Coding/CodingAgent.cs`
+- `AgentLib.ChatRoom/CodingChatRoomRoleExecutor.cs`
+- AgentLib 与 AgentLib.Coding 的现有子代理机制及测试
 
-### 14.2 AgentLib.ChatRoom legacy
+### 14.2 AgentLib.ChatRoom legacy / Standard
 
 - `Model/ChatRoomRoleDefinition.cs`
 - `Model/ChatRoomMessage.cs`
+- `Model/ChatRoomSessionData.cs`
+- `Model/RoleTemplate.cs`
+- 新增 `Model/ChatRoomMention.cs`
 - `MentionParser.cs`
-- 新增 `UserSubAgentInvocationParser.cs`
-- 新增 `ChatRoomSubAgentInvoker.cs`
-- 新增 `Tools/ChatRoomSubAgentTools.cs`
+- 新增 `Tools/ChatRoomSubAgentToolProvider.cs`
+- 新增轻量 `ChatRoomReturnOutputCollector` 或同等内部类型
 - `ChatRoomManager.cs`
 - `ChatRoomManager.ChatRoomAutoLoopRunner.cs`
 - `ChatRoomSession.cs`
 - `ChatRoomRole.cs`
 - `ChatRoomRoleExecutionContext.cs`
 - `StandardChatRoomRoleExecutor.cs`
-- `CodingChatRoomRoleExecutor.cs`
+- `AgentLib/Model/SendMessages_/SendMessageRequest.cs` 与 `AgentLib/CopilotChatManager.cs`：增加通用默认工具排除项；不修改 `AgentLib/Tools/SubAgentToolProvider.cs`
 - `ChatRoomPersistence.cs`
 - `Services/ChatRoomService.cs`
 - `Services/RoleTemplateService.cs`
 - `Tools/ChatRoomRoleManagementTools.cs`
 - `Services/CodingAssistantRoleFactory.cs`
 
-### 14.3 AgentLib.Coding
-
-- `CodingAgent.cs`
-- `CodingWorkspaceToolSession.cs` 或运行时工具合并位置
-- 对应测试
-
-### 14.4 Domain / Coordinator / Runtime
+### 14.3 Domain / Coordinator / Runtime
 
 - `Domain/ChatRoomEnums.cs`
 - `Domain/ChatRoomRoleDefinition.cs`
 - `Domain/ChatRoomMessage.cs`
+- 新增 `Domain/ChatRoomMention.cs`
 - `Domain/ChatRoomSnapshot.cs`
+- `Domain/ChatRoomState.cs`
 - `Coordination/ChatRoomCommand.cs`
 - `Coordination/ChatRoomChange.cs`
 - `Coordination/ChatRoomCoordinator.cs`
@@ -1080,7 +896,7 @@ AI 调用：工具抛出可诊断异常，由父模型决定是否重试或向�
 - `Persistence/StoredChatRoomSnapshot.cs`
 - `Persistence/ChatRoomSnapshotMapper.cs`
 
-### 14.5 Avalonia
+### 14.4 Avalonia
 
 - `ViewModels/RoleEditViewModel.cs`
 - `Views/RoleEditView.axaml`
@@ -1093,155 +909,150 @@ AI 调用：工具抛出可诊断异常，由父模型决定是否重试或向�
 
 ## 15. 测试计划
 
-### 15.1 严格用户前缀解析
+### 15.1 结构化 Mention
 
-1. 精确 `@子代理名 任务` 匹配。
-2. 消息中段不匹配。
-3. 前导空白不匹配。
-4. Tab、换行和全角空格不匹配。
-5. 方括号格式不匹配。
-6. 缺少任务返回 Invalid。
-7. 普通角色前缀返回 NoMatch。
-8. 未知角色返回 NoMatch。
-9. 大小写按 OrdinalIgnoreCase 匹配。
-10. 输入在解析前未被 Trim。
+1. 现有 `@角色名` 与 `@[角色名]` 语法继续匹配。
+2. 结果包含 TargetRoleId、SourceMessageId、StartIndex、Length 和 IsAtMessageStart。
+3. 消息开头匹配的 StartIndex 为 0。
+4. 消息中段与前导空白场景保留准确位置。
+5. Tab、换行、大小写和方括号行为与现有 Mention 测试保持一致。
+6. 多 Mention 按出现顺序返回，同一角色保持现有去重语义。
 
-### 15.2 普通 mention 隔离
+### 15.2 Mention 与角色匹配
 
-1. 人类消息中段 `@子代理 ` 不写入 MentionedRoleIds。
-2. AI 消息开头 `@子代理 ` 不写入 MentionedRoleIds。
-3. 普通 MentionOnly 角色仍可被 @。
-4. 多 mention 中只保留普通参与者。
-5. 角色改名后旧结构化 mention 不重新解释。
+1. Human 消息开头的 SubAgent Mention 进入优先队列。
+2. Assistant 消息开头的 SubAgent Mention 同样进入优先队列。
+3. Human 与 Assistant 消息中段的 SubAgent Mention 被解析但不入队。
+4. Participant Mention 保持现有调度行为。
+5. preset 消息中的所有 Mention 都不调度，即使 Mention 位于消息开头。
+6. 调度判断不读取消息发送者类型。
+7. 默认队列和管理者兜底不会主动选择 SubAgent。
 
-### 15.3 调度保护
+### 15.3 现有执行链复用
 
-1. 子代理不进入默认队列。
-2. 子代理不进入优先 mention 队列。
-3. 子代理不作为管理者兜底。
-4. legacy `StepAsync` 拒绝子代理。
-5. Coordinator 普通 `StartRoleExecutionCommand` 拒绝子代理。
-6. 用户子代理调用不启动普通自动循环。
-7. 子代理调用完成后默认角色不自动发言。
+1. legacy `StepAsync` 可以执行 SubAgent。
+2. 子代理流式消息正常加入 `Session.Messages`。
+3. 子代理完成后保存现有 AgentSession 状态。
+4. Coordinator 使用通用可重入 execution stack，并让每个 frame 走普通 runtime/candidate 流程。
+5. 子代理正常接收并提交 checkpoint。
+6. 附加任务、附加工具和 preset 输出标记能通过通用执行选项传递。
+7. AI 工具调用期间父 execution frame 挂起，子 frame 完成后恢复父 frame。
+8. ChatRoom Standard 最终工具列表保留其他 AgentLib 默认工具，但排除默认 `InvokeSubAgent`，且包含 `InvokeChatRoomSubAgent`。
+9. A → A 与 A → B → A 不被拒绝，且不会并发重入同一 AgentSession、产生重复 SessionRevision 或 stale checkpoint。
+10. 嵌套期间取消或关闭后，execution stack、活动 CTS、CurrentSpeaker、等待 collector 和 continuation 都被清理，不残留挂起任务。
+11. execution stack 非空时 snapshot 保存/恢复入口明确拒绝；栈清空后可正常保存并恢复。
 
-### 15.4 工具回传协议
+### 15.4 `ReturnOutputToCaller`
 
-1. 返回工具与调用 runner 共享同一个 collector。
+1. 消息开头 Mention 与 AI AITool 两条 Standard 路径都会注入返回工具。
 2. 返回值等于 `ReturnOutputToCaller` 的 output 参数。
-3. 普通文本不被当作结果。
-4. 第一次未返回时提醒并重试一次。
-5. 第二次未返回时 ProtocolFailed。
+3. 普通文本不被当作正式结果。
+4. 第一次未提交时在同一角色会话中提醒并重试一次。
+5. 第二次未提交时当前调用明确失败。
 6. 空白 output 被拒绝。
-7. 重复提交被拒绝。
-8. 模型异常、工具异常和取消分别映射正确终态。
+7. AI 调用成功后父角色在同一轮获得 function result 并继续回复。
+8. 第二次执行调用无重试 core，不会触发第三次模型运行。
+9. 仅调用 ReturnOutputToCaller 且无文本时，output 填入同一个普通 Assistant 消息；已有文本时不覆盖，也不新增消息。
 
-### 15.5 无状态与上下文隔离
+### 15.5 会话与上下文隔离
 
-1. 子代理只收到本次 prompt。
-2. 子代理不收到聊天室历史。
-3. 第二次调用看不到第一次调用。
-4. 子代理不恢复 checkpoint。
-5. 子代理不保存 checkpoint 或 legacy AgentSession 状态。
-6. 角色静态 MemoryContent 每次都可注入。
-7. 普通角色看不到用户直调请求和结果。
-8. preset 消息被普通消费水位跨过且以后不补发。
+1. 子代理第二次调用可以延续第一次调用的私有 AgentSession/checkpoint。
+2. 子代理可以收到按现有规则构建的非 preset 增量聊天室输入。
+3. 子代理输出的公开消息设置 `IsPresetInfo = true`。
+4. 其他角色构建输入时跳过子代理 preset 消息。
+5. preset 消息不参与 Mention 调度。
+6. 目标子代理自己的私有会话仍保留其上一轮输出。
 
-### 15.6 AI 调用
+### 15.6 Standard AI 调用与嵌套
 
 1. Standard 普通角色可以调用子代理。
-2. Coding 普通角色可以调用子代理。
-3. 调用结果只作为父角色 function result。
-4. 公开消息中没有子代理原始输出。
-5. UI 能显示父消息内的子代理调用项。
-6. 普通 AI 通过 `@子代理` 无效。
-7. 调用不存在或普通角色 RoleId 时被拒绝。
+2. Standard 子代理也可以获得 InvokeChatRoomSubAgent 工具。
+3. 子代理 A 可以调用子代理 B。
+4. 实现中不存在自调用、环路或最大深度的专用拒绝分支。
+5. AI 普通文本在消息开头 `@子代理` 时触发目标角色，在消息中段时不触发。
+6. 不存在或非 SubAgent 的 RoleId 被工具明确拒绝。
+7. Coding 执行器和 AgentLib.Coding 相关测试保持不变。
+8. Human + SubAgent 配置不增加保存校验，但 AI 工具调用因无模型完成结果而明确失败。
 
-### 15.7 嵌套与环路
-
-1. 子代理 A 可以工具调用子代理 B。
-2. A → A 被拒绝。
-3. A → B → A 被拒绝。
-4. 超过最大深度被拒绝。
-5. 父调用取消会取消子调用。
-
-### 15.8 持久化
+### 15.7 持久化
 
 1. legacy 角色 InvocationMode 往返。
-2. 旧 JSON 缕失字段默认为 Participant。
-3. preset 与 InvocationId 往返。
-4. 模板三种转换都保留 InvocationMode。
-5. snapshot schema 3 往返。
-6. schema 2 恢复为 Participant/非 preset。
-7. 未知高版本仍拒绝。
-8. 子代理没有 checkpoint。
-9. 用户直调恢复后仍显示但不进入上下文。
+2. Message.IsPresetInfo 与结构化 Mentions 往返。
+3. 模板三种转换都保留 InvocationMode。
+4. 当前 snapshot schema 往返。
+5. 子代理 checkpoint 正常保存和恢复。
+6. 恢复后的子代理消息仍按普通 Assistant 消息展示并继续被上下文过滤。
+7. legacy `FormatVersion` 缺失/旧值、模板 `FormatVersion` 缺失/旧值和旧 snapshot schema 都被明确拒绝，不执行兼容迁移。
+8. 新格式缺少必填的 InvocationMode、IsPresetInfo 或 Mentions 时按无效数据拒绝，而不是使用 CLR 默认值。
+9. legacy 恢复时外层 IsPresetInfo 会传播到重建的 CopilotChatMessage；纯文本 public log 不作为结构化恢复来源。
+10. 仅修改 InvocationMode 后，runtime identity/version、AgentSession/checkpoint 和消费水位保持不变。
 
-### 15.9 UI
+### 15.8 UI
 
-1. 角色编辑页正确加载和保存子代理类别。
-2. 子代理强制非人类、MentionOnly、非管理者。
-3. 子代理角色卡显示类型标签。
-4. 子代理菜单使用“调用子代理”。
-5. 插入前缀始终位于输入开头。
-6. 输入有前导空白时不会被 Trim 成有效调用。
-7. 普通发送和子代理发送正确分流。
-8. preset 结果可见。
-9. preset 结果不提供普通 mention 操作。
+1. 角色编辑页正确加载和保存子代理类别，不自动改写其他角色配置。
+2. 子代理角色卡显示类型标签。
+3. 子代理继续提供普通角色已有菜单。
+4. 从角色列表插入子代理 Mention 时位于输入开头。
+5. 发送前导空白消息时不会因 Trim 改变 Mention 起始位置。
+6. 子代理消息使用与普通角色完全相同的消息模板。
+7. Mention 直接调用和 AI 工具调用都只显示目标角色真实产生的普通输出，不根据工具结果增加重复气泡或调用卡片。
+8. preset 子代理消息仍可见模型名、Token 和普通角色操作。
+9. UI 修改 InvocationMode 后不会触发角色会话清空或 checkpoint 重建。
 
 所有新增 MSTest 测试应设置硬超时；新测试按项目现有规范使用中文 `DisplayName`。
 
 ## 16. 分步实施计划
 
-1. 修正 `SubAgentToolProvider` 的共享 collector 作用域，并补齐真正的返回值测试。
-2. 抽取可复用的子代理 invocation runner、返回工具和协议终态。
-3. 在 legacy 与 Domain 角色定义中增加 `ChatRoomRoleInvocationMode` 和不变量校验。
-4. 在 legacy 与 Domain 消息中增加 `IsPresetInfo` 和 `SubAgentInvocationId`。
-5. 实现严格 `UserSubAgentInvocationParser`，并让普通 mention 排除子代理。
-6. 实现共享 `IChatRoomSubAgentInvoker` 和无状态临时运行路径。
-7. 为 Standard 角色注入聊天室子代理调用工具。
-8. 为 CodingAgent 增加受控 host tool 接缝并注入子代理调用工具。
-9. 改造 legacy 自动队列、公开 Step、上下文构造和聊天室提示词。
-10. 增加 `SubmitHumanInputAsync`，改造 ChatRoomService 与 Avalonia 发送分流。
-11. 改造 Coordinator 命令、嵌套 invocation 事件、普通执行保护和 preset 输入过滤。
-12. 改造 legacy JSON、模板、snapshot schema 3 及 schema 2 兼容迁移。
-13. 改造角色编辑、角色列表、输入菜单和用户直调结果展示。
-14. 添加解析、调度、工具协议、无状态、嵌套、持久化和 UI 测试。
-15. 运行 AgentLib、AgentLib.Coding、AgentLib.ChatRoom、Shell 相关测试和完整构建。
-16. 更新 ChatRoom 需求文档与 README，明确普通角色和子代理的调用差异。
+1. 在 legacy 与 Domain 角色定义中增加 `ChatRoomRoleInvocationMode`，不添加跨字段不变量。
+2. 新增结构化 `ChatRoomMention`，让 legacy 与 Coordinator 共用现有 Mention 语法并保存匹配位置。
+3. 在 legacy 与 Domain 消息中加入 `IsPresetInfo` 和结构化 Mentions，替换 RoleId-only 数据。
+4. 改造 legacy 与 Coordinator 的 Mention 入队规则，只根据 preset 状态、消息开头和 InvocationMode 判断子代理触发，不区分发送者。
+5. 扩展 `StepAsync` 与通用 runtime request，使其可接收附加输入、附加工具和 preset 输出标记。
+6. 为 `SendMessageRequest` 增加通用默认工具排除项，让 ChatRoom Standard 排除 AgentLib `InvokeSubAgent`。
+7. 在 ChatRoom 内新增 `ChatRoomSubAgentToolProvider`、`InvokeChatRoomSubAgent`、`ReturnOutputToCaller` 和轻量 collector。
+8. 将 ChatRoom 子代理工具注入 Standard 执行链，并实现一次提醒后的失败协议。
+9. 让任意非 preset 消息开头的 Standard 子代理 Mention 同样注入返回工具并检查完成结果。
+10. 保持子代理 AgentSession/checkpoint 的正常保存恢复，并在其他角色输入中跳过 preset 消息。
+11. 将 Coordinator 的单 execution 扩展为通用可重入 execution stack，每个 frame 继续复用现有 runtime/candidate/checkpoint 流程。
+12. 为 legacy JSON 与角色模板增加 FormatVersion，更新当前 snapshot schema，并明确拒绝旧版本和缺失必填字段，不实现迁移。
+13. 改造角色编辑、角色列表和 Mention 插入位置；消息模板保持不变。
+14. 添加结构化 Mention、调度、StepAsync、工具回传、会话、持久化和 UI 测试。
+15. 运行 AgentLib.ChatRoom、ChatRoom Shell 相关测试和完整构建；确认 Coding 与 AgentLib 现有测试无回归。
+16. 更新 ChatRoom README，说明消息开头 Mention、Standard AITool、preset 可见性和长期会话语义。
 
 ## 17. 验收标准
 
-1. 子代理角色不能通过普通自动循环发言。
-2. 人类或 AI 消息中的普通 `@子代理名` 都不会触发子代理。
-3. 用户只有在消息严格以 `@子代理名 ` 开头时才能调用。
-4. 消息中段、前导空白、Tab 和方括号格式都不会误触发。
-5. 普通 AI 角色可以使用专用工具调用子代理。
-6. Standard 与 Coding 普通角色都支持该工具。
-7. 子代理每次调用只看到自包含任务，不读取聊天室历史或旧调用历史。
-8. 子代理必须通过返回工具提交最终结果；未提交时明确失败。
-9. AI 调用结果只返回调用者，不形成公开聊天室消息。
-10. 用户直调请求和结果可显示，结果 `IsPresetInfo = true`。
-11. 用户直调请求和结果不进入任何普通角色后续输入。
-12. 用户直调不会启动普通自动循环。
-13. 子代理不会生成或恢复角色 checkpoint/AgentSession 状态。
-14. 旧会话和旧模板默认恢复为普通角色。
-15. snapshot schema 2 可以升级读取，未知更高版本仍被拒绝。
-16. 调用取消、失败、角色更新、角色删除和房间关闭不会提交迟到结果。
-17. 嵌套调用有循环和深度保护。
-18. 现有 MentionOnly、管理者、Coding、角色管理和持久化回归测试保持通过。
+1. 子代理角色不能进入默认参与者队列或管理者兜底；只有消息开头 Mention、AITool 或显式执行才能让其发言。
+2. 现有 Mention 语法保持不变，解析结果包含来源消息和匹配位置。
+3. 任意非 preset 消息开头的子代理 Mention 可以触发目标角色，消息中段或前导空白不会触发。
+4. 子代理 Mention 调度不区分 Human 或 Assistant 发送者；preset 消息即使在开头 Mention 也不触发。
+5. Mention 与 AI 工具调用最终都复用现有 `StepAsync` / 普通 runtime。
+6. Standard 角色可以使用 ChatRoom 自有 `InvokeChatRoomSubAgent` 工具；AgentLib 现有 `InvokeSubAgent` Provider 不改且不出现在 ChatRoom Standard 工具列表中。
+7. Standard 子代理必须通过 `ReturnOutputToCaller` 提交结果；第一次未提交提醒一次，第二次失败。
+8. 子代理保留并恢复自己的 AgentSession/checkpoint，可延续旧调用上下文。
+9. 子代理原始输出作为普通 Assistant 角色消息显示和持久化，并设置 `IsPresetInfo = true`。
+10. UI 不增加第二段结果气泡、子代理卡片或特殊消息模板。
+11. 其他角色后续输入和 Mention 调度跳过 preset 子代理消息。
+12. AI 调用时，Standard 返回工具值或 Coding 现有完成结果作为 function result 交给父 AI，父 AI 继续生成公开回复。
+13. 子代理不受自调用、环路、最大深度或角色字段组合等专用限制。
+14. Coding 执行引擎、AgentLib.Coding 与 AgentLib 现有子代理机制保持不变。
+15. 当前持久化格式直接升级，不读取旧 schema、旧模板或缺失字段数据。
+16. legacy 与 Coordinator 对 InvocationMode、结构化 Mention、普通执行链和 preset 过滤保持一致；Coordinator 的嵌套调用通过通用 execution stack 完成。
+17. 现有 MentionOnly、管理者、角色管理、持久化和 Coding 回归测试保持通过。
 
 ## 18. 最终建议
 
-该功能不应实现为“第三种 ParticipationMode”，也不应只在 mention 正则中增加特例。正确边界是：
+该功能不应实现为“第三种 ParticipationMode”，也不应另造一套子代理运行时。正确边界是：
 
 ```text
 角色定义明确声明 InvocationMode
-  + 用户输入使用独立严格协议
-  + AI 使用专用子代理工具
-  + 子代理使用无状态独立运行
-  + 最终结果必须工具提交
-  + preset 消息由上下文构造真正过滤
-  + 普通调度和普通执行入口双重拒绝
+  + 现有 Mention 输出来源与位置元数据
+  + 调度器判断任意非 preset 消息开头的子代理 Mention
+  + Standard AI 可用开头 Mention 触发后续执行，或使用 ChatRoom 自有 AITool 同步获得结果
+  + 所有目标角色复用现有 StepAsync/runtime 与长期会话
+  + Standard 子代理通过 ReturnOutputToCaller 提交结果
+  + 原始输出按普通角色消息展示并标记 preset
+  + 上下文构造和 Mention 调度过滤 preset
 ```
 
-这样可以保持普通多角色聊天室、现有子代理工具和新 Coordinator 架构三者语义一致，并为未来增加搜索子代理、审查子代理、编程子代理等不同角色模板提供稳定扩展点。
+这样可以把变化限制在触发、工具回传和上下文可见性上，最大程度复用普通多角色聊天室的角色、会话、消息、UI、持久化和 Coordinator 机制，同时避免无状态临时上下文、专用入口和过度防御导致的复杂度。
