@@ -26,6 +26,8 @@
 - 使用 `git check-ignore --verbose --no-index` 对每个结果进行对照验证。
 - 当前实验包含 28 个候选路径，探索结果与真实 Git 的判断一致。
 
+// 注: 审核确认这里的“一致”只适用于 `Scenario.Create` 当前构造的 28 个用例，并不表示已经完整兼容标准 Git。补充前导空格加 `#`、尾随空格、根目录否定规则、`[!a]`、非 ASCII `?`、`abc/**`、大小写和符号链接 `.gitignore` 等用例后，当前实现可以观察到差异。
+
 ## 核心实现是什么
 
 核心实现不是简单地把一份 `.gitignore` 交给 `GitignoreParserNet`，而是由调用方补充分层规则管理。
@@ -42,6 +44,8 @@
 8. 调用真实 Git 对相同路径进行判断，输出两者差异。
 
 `GitignoreParserNet` 负责单条 gitignore 模式的解析和匹配，探索代码负责仓库发现、规则作用域、层级顺序、父目录阻断和实验验证。这两部分组合起来，才能得到更接近 Git 的行为。
+
+// 注: 标准 Git 的排除机制不只读取逐目录 `.gitignore`。其来源还包括命令行规则、`$GIT_DIR/info/exclude` 和 `core.excludesFile`，并且不同来源之间存在优先级。当前实现只覆盖逐目录 `.gitignore` 这一层，因此这里应理解为“接近 Git 的 `.gitignore` 分层行为”，不是完整 Git 排除引擎。
 
 ## 引用 GitignoreParserNet
 
@@ -89,6 +93,8 @@ private static string FindRepositoryRoot(string currentDirectory)
 
 当前代码只判断 `.git` 是否为目录。这适合普通仓库，但 Git worktree 或部分子模块中的 `.git` 可能是文件。如果后续需要支持这些场景，可以同时检查 `File.Exists`，并解析其中的 `gitdir:` 指向。
 
+// 注: 已使用 `git init --separate-git-dir` 实测，标准 Git 可以在工作树中的 `.git` 为文件时正常定位仓库，而当前 `FindRepositoryRoot` 会直接失败。除 worktree 和部分子模块外，Git 还可能通过环境变量等方式指定仓库与工作树，因此生产实现更适合调用 `git rev-parse --show-toplevel`，或完整实现仓库发现规则。
+
 ## 加载不同层级的 gitignore
 
 程序递归查找仓库中的 `.gitignore`：
@@ -113,6 +119,10 @@ Array.Sort(gitignoreFiles, static (left, right) =>
 ```
 
 同一深度可能存在多个兄弟目录，但兄弟目录的 `.gitignore` 不会同时作用于同一个候选路径。真正匹配时还会检查候选路径是否位于规则目录之下，因此兄弟目录之间不会互相影响。
+
+// 注: 标准 Git 按遍历路径逐级读取有关的 `.gitignore`，不会预先递归扫描整个仓库。当前做法不仅有性能和权限边界，还会读取符号链接形式的 `.gitignore`；Git 明确不会跟随这类符号链接。实测符号链接 `.gitignore` 时，当前实现会应用其中规则，而 Git 不会。
+
+// 注: `_rules` 只在 `LayeredGitignoreMatcher` 构造时加载一次。构造后新增、删除或修改 `.gitignore`，Git 会使用新内容，现有匹配器仍使用旧快照；若用于长期运行的扫描器，需要失效缓存或监听规则文件变化。
 
 ## 为什么要逐行构造解析器
 
@@ -164,6 +174,10 @@ internal sealed record IgnoreRule(
 ```
 
 这样既继续使用了 `GitignoreParserNet` 的通配符解析能力，又能由调用方按照 Git 的顺序逐条应用规则。输出差异时还可以直接显示决定结果的是哪一个文件的哪一行。
+
+// 注: 这里的预处理已经与 Git 存在确定差异。Git 只把第一个字符就是未转义 `#` 的行当注释；`pattern.TrimStart().StartsWith('#')` 会错误跳过例如 `  #literal.txt` 这类用于匹配前导空格文件名的合法规则。
+
+// 注: 当前依赖版本 `GitignoreParserNet` 0.2.0.15 对规则末尾空格的行为也未完全对齐 Git。实测未转义尾随空格会额外匹配名称末尾带空格的文件，而使用反斜杠保留尾随空格的规则反而没有命中；因此不能只把原始行直接交给单条解析器就视为完整保留了 Git 的规则文本语义。
 
 ## 规则只能作用于所在目录的后代
 
@@ -238,6 +252,10 @@ decidingRule = rule;
 
 规则按照祖先到后代、文件内从上到下的顺序执行。每次命中都覆盖 `isIgnored`，最后留下的自然就是 Git 所要求的最后匹配结果。
 
+// 注: “最后匹配规则优先”在当前 28 个用例中成立，但单条模式本身仍可能与 Git 不同。已实测的差异包括：`abc/**` 会被当前解析器用于排除 `abc` 目录本身，而 Git 只匹配目录内部；`[!a].txt` 在 Git 中可以匹配 `b.txt`，当前解析器未命中；Git 的 `?` 按路径字节匹配，当前解析器按 .NET 字符处理，所以中文、表情等非 ASCII 文件名会得到不同结果。
+
+// 注: 大小写也不是固定语义。Windows 上 `git init` 通常会设置 `core.ignoreCase=true`，实测规则 `Case.txt` 可以匹配 `case.txt`；当前 `GitignoreParserNet` 调用仍区分大小写。反过来，在 `core.ignoreCase=false` 的仓库中 Git 又会区分大小写，因此生产实现需要遵循仓库配置，而不是固定使用一种比较方式。
+
 ## 为什么还要检查父目录
 
 下面的规则看起来像是希望保留 `shared/keep.txt`：
@@ -268,6 +286,8 @@ while (ancestor is not null && IsUnderOrEqual(ancestor.FullName, _rootDirectory)
 ```
 
 只有所有父目录都允许遍历时，才继续判断文件自身的规则。
+
+// 注: 当前循环还会检查仓库根目录本身，而且 `MatchDirect` 会让根 `.gitignore` 的规则作用到相对路径 `./`。例如根规则为 `*`、`!foo.txt` 时，Git 会重新包含顶层 `foo.txt`，当前实现却先把仓库根目录判为已排除，最终仍排除该文件。子目录 `.gitignore` 的基准目录也有同类问题；父目录阻断检查应停在规则作用域根之前，不能把 `.gitignore` 所在目录本身当成其可排除后代。
 
 如果确实希望重新包含目录中的某个文件，需要先逐级重新包含目录。例如：
 
@@ -314,7 +334,11 @@ git check-ignore --verbose --no-index -- <path>
 - `--no-index`：即使路径已经被 Git 索引，也继续检查忽略规则。
 - `--`：结束选项解析，避免特殊文件名被解释成命令参数。
 
+// 注: `--no-index` 使这个实验比较的是“排除规则是否匹配路径”，而不是 Git 对工作树的最终忽略状态。标准 Git 的 ignore 机制只影响未跟踪文件；已跟踪文件即使命中 `.gitignore`，仍由 Git 管理。实测同一路径在当前匹配器和 `--no-index` 下为忽略，但普通 `git check-ignore` 不会把已跟踪文件报告为忽略。
+
 程序使用 `ProcessStartInfo.ArgumentList` 分别添加参数，避免手工拼接命令行时出现空格和转义问题。
+
+// 注: `GitCheckIgnore.Match` 没有接收 `isDirectory`。当前场景先在磁盘上创建了所有目录，Git 可以根据文件系统识别目录；如果以后验证尚不存在的候选目录，应给传入 Git 的路径显式追加 `/`，否则 `folder/` 一类规则在解析器侧按目录判断、在 Git 侧却可能按文件路径判断。
 
 需要注意，`git check-ignore` 命中否定规则时，退出码仍可能是 `0`。因此不能只看退出码，还要检查详细输出中的规则是否以 `!` 开头：
 
@@ -327,6 +351,8 @@ return process.ExitCode switch
         $"git check-ignore 失败，退出码 {process.ExitCode}: {error}"),
 };
 ```
+
+// 注: 当前 `IsNegatedMatch` 通过查找前两个冒号解析 `--verbose` 文本，在规则来源是 Windows 绝对路径时不可靠，因为盘符本身包含冒号。实测将 `core.excludesFile` 配置为绝对路径并命中 `!kept.txt` 时，Git 表示“不排除”，当前验证代码却会误报为“排除”。机器解析建议改用 `git check-ignore --stdin -z --verbose`，按 NUL 分隔字段读取来源、行号、规则和路径。
 
 每个候选项都会同时打印解析器结果和 Git 结果：
 
@@ -393,6 +419,8 @@ dotnet run
 完成: 28 个候选项，0 个差异。
 ```
 
+// 注: 该结果已在 Git 2.53.0.windows.3 与当前依赖版本 0.2.0.15 下复现，但只能作为这 28 个固定样本的回归基线，不能作为“与标准 Git 等价”的证明。
+
 添加新规则时，建议同时添加命中和不命中的候选路径。例如测试 `temp?.dat` 时，不仅测试 `temp1.dat`，还测试 `temp10.dat`，避免只验证正常路径而遗漏边界。
 
 ## 如何继续扩充实验
@@ -412,6 +440,8 @@ dotnet run
 
 每添加一类规则，都应让 `GitCheckIgnore` 同时参与判断。不要根据对 Git 文档的记忆直接填写预期结果，让真实 Git 提供基准更适合探索项目。
 
+// 注: 上述待扩充项中的若干项已经能复现差异，不再只是潜在边界：规则末尾空格及转义空格、大小写差异、`.git` 文件、符号链接 `.gitignore`、`[!a]` 字符类、非 ASCII `?`、`abc/**` 与根目录否定规则均需要加入正式回归用例。
+
 ## 当前实现的边界
 
 这份代码用于探索 `GitignoreParserNet`，还不是完整的 Git 排除规则引擎。目前主要边界如下：
@@ -424,6 +454,8 @@ dotnet run
 - 当前路径相等比较使用 `OrdinalIgnoreCase`，主要面向 Windows 环境。
 - 对注释行、空白和转义的预处理还应增加更多与 Git 对照的实验。
 - 没有处理 Git 命令行临时传入的排除规则来源。
+
+// 注: 还应补充以下已确认边界：不读取 Git 索引，因此无法区分已跟踪与未跟踪文件；不读取 `core.ignoreCase`；单条模式对尾随空格、`[!a]`、非 ASCII `?` 和 `abc/**` 存在差异；父目录检查会错误包含仓库根及 `.gitignore` 基准目录；规则快照不会随文件变化刷新；验证器对 Windows 绝对规则源中的冒号解析不安全。
 
 如果要将探索代码用于生产，应按实际需求补齐这些规则来源，并将当前的一次性全仓库扫描改造成可缓存、可增量更新的规则树。
 
