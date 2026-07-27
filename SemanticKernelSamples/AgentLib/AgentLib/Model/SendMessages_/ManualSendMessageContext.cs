@@ -75,7 +75,7 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
             },
             ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
             {
-                ChatReducer = new CopilotChatManagerToolCallChatReducer(reducerChatClient)
+                ChatReducer = new ToolCallAwareChatReducer(new CopilotChatManagerToolCallChatReducer(reducerChatClient))
             }),
             RequirePerServiceCallChatHistoryPersistence = true,
         };
