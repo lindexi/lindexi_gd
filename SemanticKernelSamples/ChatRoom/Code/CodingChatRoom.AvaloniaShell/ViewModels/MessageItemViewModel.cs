@@ -80,7 +80,22 @@ public sealed class MessageItemViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 获取 Token 用量摘要。
     /// </summary>
-    public string UsageSummaryText => _message.UsageSummaryText;
+    public string UsageSummaryText
+    {
+        get
+        {
+            string totalUsageSummaryText = _message.UsageSummaryText;
+            if (_message.CurrentUsageDetails?.TotalTokenCount is not { } currentTotalTokenCount)
+            {
+                return totalUsageSummaryText;
+            }
+
+            string currentUsageSummaryText = $"当前用量总计 {currentTotalTokenCount:N0}";
+            return string.IsNullOrWhiteSpace(totalUsageSummaryText)
+                ? currentUsageSummaryText
+                : $"{currentUsageSummaryText} {totalUsageSummaryText}";
+        }
+    }
 
     /// <inheritdoc />
     public void Dispose()
@@ -106,6 +121,9 @@ public sealed class MessageItemViewModel : ViewModelBase, IDisposable
                 break;
             case nameof(CopilotChatMessage.HasUsageDetails):
                 OnPropertyChanged(nameof(HasUsageDetails));
+                break;
+            case nameof(CopilotChatMessage.CurrentUsageDetails):
+                OnPropertyChanged(nameof(UsageSummaryText));
                 break;
             case nameof(CopilotChatMessage.UsageSummaryText):
                 OnPropertyChanged(nameof(UsageSummaryText));
