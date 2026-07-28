@@ -56,15 +56,28 @@ public sealed class DotNetCliTools
     /// 使用 <c>dotnet build</c> 构建工作区或指定目标。
     /// </summary>
     /// <param name="targetPath">可选的解决方案或项目路径。</param>
+    /// <param name="configuration">可选的构建配置，例如 <c>Debug</c> 或 <c>Release</c>。</param>
+    /// <param name="runtimeIdentifier">可选的目标运行时标识符，例如 <c>linux-x64</c> 或 <c>win-x64</c>。</param>
+    /// <param name="targetFramework">可选的目标框架，例如 <c>net8.0</c> 或 <c>net9.0</c>。</param>
     /// <param name="cancellationToken">用于取消构建的令牌。</param>
     /// <returns>构建输出、退出码和执行结果。</returns>
-    [Description("使用 dotnet build 构建代码工作区或指定目标，并返回构建输出和退出码。")]
+    [Description("使用 dotnet build 构建代码工作区或指定目标，可设置构建配置、运行时标识符和目标框架，并返回构建输出和退出码。")]
     public Task<string> RunBuildAsync(
         [Description("可选的构建目标路径。可以传绝对路径；相对路径则相对于代码工作区。留空表示构建整个工作区。")]
         string? targetPath = null,
+        [Description("可选的构建配置，例如 Debug 或 Release。留空时使用项目默认值。")]
+        string? configuration = null,
+        [Description("可选的目标运行时标识符，例如 linux-x64 或 win-x64。留空时不指定运行时。")]
+        string? runtimeIdentifier = null,
+        [Description("可选的目标框架，例如 net8.0 或 net9.0。留空时不指定目标框架。")]
+        string? targetFramework = null,
         CancellationToken cancellationToken = default)
     {
-        return RunDotNetCommandAsync("build", targetPath, cancellationToken);
+        var arguments = new List<string>(6);
+        AddOption(arguments, "--configuration", configuration);
+        AddOption(arguments, "--runtime", runtimeIdentifier);
+        AddOption(arguments, "--framework", targetFramework);
+        return RunDotNetCommandAsync("build", targetPath, cancellationToken, arguments);
     }
 
     /// <summary>
@@ -87,7 +100,9 @@ public sealed class DotNetCliTools
 
         try
         {
-            return await RunDotNetCommandAsync("test", targetPath, timeoutCancellationTokenSource.Token, filter).ConfigureAwait(false);
+            var arguments = new List<string>(2);
+            AddOption(arguments, "--filter", filter);
+            return await RunDotNetCommandAsync("test", targetPath, timeoutCancellationTokenSource.Token, arguments).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && timeoutCancellationTokenSource.IsCancellationRequested)
         {
@@ -224,7 +239,7 @@ public sealed class DotNetCliTools
         string command,
         string? targetPath,
         CancellationToken cancellationToken,
-        string? testFilter = null)
+        IReadOnlyList<string>? arguments = null)
     {
         if (!TryResolveTarget(targetPath, out string? resolvedTargetPath, out string errorMessage))
         {
@@ -247,10 +262,12 @@ public sealed class DotNetCliTools
         {
             startInfo.ArgumentList.Add(resolvedTargetPath);
         }
-        if (!string.IsNullOrWhiteSpace(testFilter))
+        if (arguments is not null)
         {
-            startInfo.ArgumentList.Add("--filter");
-            startInfo.ArgumentList.Add(testFilter);
+            foreach (string argument in arguments)
+            {
+                startInfo.ArgumentList.Add(argument);
+            }
         }
 
         startInfo.Environment["DOTNET_NOLOGO"] = "1";
@@ -272,7 +289,7 @@ public sealed class DotNetCliTools
             string standardError = await standardErrorTask.ConfigureAwait(false);
 
             // 将完整日志保存到实例内存
-            string full = FormatResult(command, resolvedTargetPath, testFilter, process.ExitCode, standardOutput, standardError);
+            string full = FormatResult(command, resolvedTargetPath, arguments, process.ExitCode, standardOutput, standardError);
             string[] lines = full.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             var snapshot = new LogSnapshot(command, resolvedTargetPath, process.ExitCode, standardOutput, standardError, lines);
             _lastLogSnapshot = snapshot;
@@ -322,6 +339,17 @@ public sealed class DotNetCliTools
         return $"{line[..MaxLineCharacters]}…【该行过长，后续 {omittedCharacters} 个字符未显示】";
     }
 
+    private static void AddOption(List<string> arguments, string option, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        arguments.Add(option);
+        arguments.Add(value);
+    }
+
     private bool TryResolveTarget(string? targetPath, out string? resolvedTargetPath, out string errorMessage)
     {
         resolvedTargetPath = null;
@@ -348,7 +376,7 @@ public sealed class DotNetCliTools
     private string FormatResult(
         string command,
         string? targetPath,
-        string? testFilter,
+        IReadOnlyList<string>? arguments,
         int exitCode,
         string standardOutput,
         string standardError)
@@ -356,9 +384,9 @@ public sealed class DotNetCliTools
         var builder = new StringBuilder();
         builder.AppendLine($"命令: dotnet {command}");
         builder.AppendLine($"目标: {(targetPath is null ? "." : ToDisplayPath(targetPath))}");
-        if (!string.IsNullOrWhiteSpace(testFilter))
+        if (arguments is { Count: > 0 })
         {
-            builder.AppendLine($"测试筛选器: {testFilter}");
+            builder.AppendLine($"附加参数: {string.Join(' ', arguments)}");
         }
         builder.AppendLine($"退出码: {exitCode}");
         builder.AppendLine($"结果: {(exitCode == 0 ? "成功" : "失败")}");

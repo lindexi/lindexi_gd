@@ -62,6 +62,19 @@ public sealed class DotNetCliToolsTests
         StringAssert.Contains(result, "可使用 read_last_log_lines 按行读取");
     }
 
+    [TestMethod(DisplayName = "构建工具应将常用构建参数传递给 dotnet build")]
+    [Timeout(30000)]
+    public async Task RunBuildAsync_WhenBuildOptionsAreSpecified_RecordsOptionsInLog()
+    {
+        string workspacePath = await CreateMinimalProjectAsync();
+        var tools = new DotNetCliTools(workspacePath);
+
+        await tools.RunBuildAsync("Sample.csproj", "Release", "linux-x64", "net6.0");
+        string result = tools.ReadLastLogLines(1, 10);
+
+        StringAssert.Contains(result, "附加参数: --configuration Release --runtime linux-x64 --framework net6.0");
+    }
+
     [TestMethod(DisplayName = "测试工具应使用 dotnet test 测试指定项目")]
     [Timeout(30000)]
     public async Task RunTestsAsync_WhenProjectIsValid_ReturnsSuccessfulResult()
@@ -86,7 +99,7 @@ public sealed class DotNetCliToolsTests
         await tools.RunTestsAsync("Sample.csproj", filter);
         string result = tools.ReadLastLogLines(1, 10);
 
-        StringAssert.Contains(result, $"测试筛选器: {filter}");
+        StringAssert.Contains(result, $"附加参数: --filter {filter}");
     }
 
     [TestMethod(DisplayName = "读取构建日志应返回元数据和实际行范围")]
