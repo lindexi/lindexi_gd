@@ -2,7 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:converters="using:CodingChatRoom.AvaloniaShell.Converters"
         xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
         xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="760"
@@ -12,8 +11,5 @@
         MinWidth="800"
         MinHeight="520"
         Background="{StaticResource BackgroundBrush}">
-    <Window.Resources>
-        <converters:WorkspaceTitleConverter x:Key="WorkspaceTitleConverter" />
-    </Window.Resources>
     <views:MainView />
 </Window>
