@@ -9,6 +9,8 @@
         <sys:String x:Key="ChatTitle">编程助手</sys:String>
         <sys:String x:Key="ChatDescription">会话、工作区和模型发送能力将在后续阶段接入。</sys:String>
         <sys:String x:Key="MessageInputPlaceholder">输入编程问题（Ctrl+Enter 发送）</sys:String>
+        <sys:String x:Key="AddImageText">添加图片</sys:String>
+        <sys:String x:Key="RemoveImageText">移除图片</sys:String>
         <sys:String x:Key="SendText">发送</sys:String>
         <sys:String x:Key="StopText">停止</sys:String>
     </Styles.Resources>

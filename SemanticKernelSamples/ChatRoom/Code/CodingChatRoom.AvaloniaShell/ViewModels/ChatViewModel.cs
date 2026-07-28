@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -38,6 +39,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         SendCommand = new SimpleCommand(static () => { }, static () => false);
         StopCommand = new SimpleCommand(static () => { }, static () => false);
         ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
+        PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
     }
 
     internal ChatViewModel(CopilotChatManager chatManager, string statusText)
@@ -49,6 +51,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         StopCommand = new SimpleCommand(static () => { }, static () => false);
         ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
+        PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
         AttachSession(_chatManager.SelectedSession);
     }
 
@@ -67,6 +70,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
         _application.StateChanged += OnApplicationStateChanged;
+        PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
         AttachSession(_chatManager.SelectedSession);
     }
 
@@ -89,6 +93,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
         _application.StateChanged += OnApplicationStateChanged;
         _workspaceController.PropertyChanged += OnWorkspaceControllerPropertyChanged;
+        PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
         AttachSession(_chatManager.SelectedSession);
     }
 
@@ -111,6 +116,11 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// 获取消息投影集合。
     /// </summary>
     public ObservableCollection<MessageItemViewModel> Messages { get; } = [];
+
+    /// <summary>
+    /// 获取待随下一条消息发送的图片附件。
+    /// </summary>
+    public ObservableCollection<ImageAttachmentViewModel> PendingImages { get; } = [];
 
     /// <summary>
     /// 获取或设置输入文本。
@@ -146,7 +156,13 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 获取是否可发送消息。
     /// </summary>
-    public bool CanSend => _application?.CanSend == true && !string.IsNullOrWhiteSpace(InputText);
+    public bool CanSend => _application?.CanSend == true
+        && (!string.IsNullOrWhiteSpace(InputText) || PendingImages.Count > 0);
+
+    /// <summary>
+    /// 获取是否存在待发送图片。
+    /// </summary>
+    public bool HasPendingImages => PendingImages.Count > 0;
 
     /// <summary>
     /// 获取是否正在运行。
@@ -187,6 +203,39 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// 获取当前是否可以应用工作路径。
     /// </summary>
     public bool CanApplyWorkspace => _workspaceController is not null && !IsChangingWorkspace;
+
+    /// <summary>
+    /// 尝试添加一张待发送图片。
+    /// </summary>
+    /// <param name="fileName">图片文件名。</param>
+    /// <param name="data">图片二进制数据。</param>
+    /// <returns>图片格式受支持且数据非空时返回 <see langword="true"/>。</returns>
+    public bool TryAddImageAttachment(string fileName, ReadOnlyMemory<byte> data)
+    {
+        if (!ImageAttachmentViewModel.TryCreate(fileName, data, out ImageAttachmentViewModel? attachment))
+        {
+            return false;
+        }
+
+        PendingImages.Add(attachment);
+        return true;
+    }
+
+    /// <summary>
+    /// 移除一张待发送图片。
+    /// </summary>
+    /// <param name="attachment">要移除的图片附件。</param>
+    public void RemoveImageAttachment(ImageAttachmentViewModel attachment)
+    {
+        ArgumentNullException.ThrowIfNull(attachment);
+        PendingImages.Remove(attachment);
+    }
+
+    internal Task AddSystemNoticeAsync(string content)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(content);
+        return AddSystemMessageAsync(_subscribedSession, content);
+    }
 
     /// <summary>
     /// 同意指定审批工具继续执行。
@@ -280,6 +329,8 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
 
         DetachSession();
         ClearMessages();
+        PendingImages.CollectionChanged -= OnPendingImagesCollectionChanged;
+        PendingImages.Clear();
         _isDisposed = true;
     }
 
@@ -297,14 +348,25 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        string prompt = InputText;
+        var contents = new List<AIContent>(PendingImages.Count + 1);
+        if (!string.IsNullOrWhiteSpace(InputText))
+        {
+            contents.Add(new TextContent(InputText));
+        }
+
+        foreach (ImageAttachmentViewModel attachment in PendingImages)
+        {
+            contents.Add(new DataContent(attachment.Data.ToMemory(), attachment.MimeType));
+        }
+
         CopilotChatSession? session = _subscribedSession;
         InputText = string.Empty;
+        PendingImages.Clear();
         _runStatusText = "正在运行";
         OnPropertyChanged(nameof(StatusText));
         try
         {
-            await _application.SendMessageAsync(prompt).ConfigureAwait(true);
+            await _application.SendMessageAsync(contents).ConfigureAwait(true);
             _runStatusText = null;
         }
         catch (OperationCanceledException)
@@ -321,6 +383,13 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         {
             OnPropertyChanged(nameof(StatusText));
         }
+    }
+
+    private void OnPendingImagesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(HasPendingImages));
+        OnPropertyChanged(nameof(CanSend));
+        RaiseCommandCanExecuteChanged();
     }
 
     private void RaiseCommandCanExecuteChanged()

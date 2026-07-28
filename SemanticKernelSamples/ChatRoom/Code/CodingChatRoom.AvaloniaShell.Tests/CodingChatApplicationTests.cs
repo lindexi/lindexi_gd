@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using AgentLib;
 using AgentLib.Coding;
 using AgentLib.Logging;
@@ -206,7 +208,10 @@ public sealed class CodingChatApplicationTests
 
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public Task<CodingAgentRunResult> RunAsync(string prompt, string? workspacePath, CancellationToken cancellationToken)
+        public Task<CodingAgentRunResult> RunAsync(
+            IReadOnlyList<AIContent> contents,
+            string? workspacePath,
+            CancellationToken cancellationToken)
         {
             Started.TrySetResult();
             return Task.FromResult(new CodingAgentRunResult(

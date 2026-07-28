@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Threading.Tasks;
 
 using AgentLib.Model;
@@ -7,6 +8,8 @@ using AgentLib.Model;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 
 using CodingChatRoom.AvaloniaShell.ViewModels;
@@ -18,6 +21,12 @@ namespace CodingChatRoom.AvaloniaShell.Views;
 /// </summary>
 public partial class ChatView : UserControl
 {
+    private static readonly FilePickerFileType ImageFileType = new("图片")
+    {
+        Patterns = ["*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp"],
+        MimeTypes = ["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"],
+    };
+
     private readonly ChatAutoScrollState _autoScrollState = new();
     private ChatViewModel? _subscribedViewModel;
 
@@ -115,6 +124,54 @@ public partial class ChatView : UserControl
             && DataContext is ChatViewModel viewModel)
         {
             viewModel.RejectTool(approvalToolItem);
+        }
+    }
+
+    private async void AddImageButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not ChatViewModel viewModel
+            || TopLevel.GetTopLevel(this)?.StorageProvider is not { } storageProvider)
+        {
+            return;
+        }
+
+        var files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "选择要附加的图片",
+            AllowMultiple = true,
+            FileTypeFilter = [ImageFileType],
+        });
+        foreach (IStorageFile file in files)
+        {
+            try
+            {
+                await using Stream stream = await file.OpenReadAsync();
+                using var buffer = new MemoryStream();
+                await stream.CopyToAsync(buffer);
+                byte[] data = buffer.ToArray();
+                using var validationStream = new MemoryStream(data, writable: false);
+                using var bitmap = new Bitmap(validationStream);
+                if (!viewModel.TryAddImageAttachment(file.Name, data))
+                {
+                    await viewModel.AddSystemNoticeAsync($"不支持图片文件：{file.Name}");
+                }
+            }
+            catch (Exception exception) when (exception is IOException
+                                              or UnauthorizedAccessException
+                                              or InvalidOperationException
+                                              or ArgumentException)
+            {
+                await viewModel.AddSystemNoticeAsync($"无法附加图片 {file.Name}：{exception.Message}");
+            }
+        }
+    }
+
+    private void RemoveImageButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { CommandParameter: ImageAttachmentViewModel attachment }
+            && DataContext is ChatViewModel viewModel)
+        {
+            viewModel.RemoveImageAttachment(attachment);
         }
     }
 

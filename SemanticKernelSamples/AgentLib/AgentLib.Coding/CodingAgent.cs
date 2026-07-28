@@ -185,9 +185,17 @@ public sealed class CodingAgent : IAsyncDisposable
             CancellationToken cancellationToken = runCancellationTokenSource.Token;
             CopilotChatMessage userChatMessage = context.UserChatMessage;
             userChatMessage.ClearMessageItems();
-            foreach (TextContent textContent in contents.OfType<TextContent>())
+            foreach (AIContent item in contents)
             {
-                userChatMessage.AppendText(textContent.Text);
+                switch (item)
+                {
+                    case TextContent textContent:
+                        userChatMessage.AppendText(textContent.Text);
+                        break;
+                    case DataContent dataContent when dataContent.Data is { Length: > 0 }:
+                        userChatMessage.MessageItems.Add(CreateDataMessageItem(dataContent));
+                        break;
+                }
             }
 
             using IDisposable chatting = context.StartChatting();
@@ -244,6 +252,20 @@ public sealed class CodingAgent : IAsyncDisposable
                 }
             }
         }
+    }
+
+    private static ICopilotChatMessageItem CreateDataMessageItem(DataContent dataContent)
+    {
+        ReadOnlyMemory<byte> data = dataContent.Data;
+        string mimeType = dataContent.MediaType ?? string.Empty;
+        if (mimeType.StartsWith("audio/", StringComparison.OrdinalIgnoreCase))
+        {
+            return new CopilotChatAudioItem(BinaryData.FromBytes(data), mimeType);
+        }
+
+        return new CopilotChatImageItem(
+            BinaryData.FromBytes(data),
+            string.IsNullOrWhiteSpace(mimeType) ? "application/octet-stream" : mimeType);
     }
 
     private static void EnsureSystemPromptInSession(AgentSession agentSession)
