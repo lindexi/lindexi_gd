@@ -59,6 +59,7 @@ public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
         var renderPipeline = CreateRenderPipeline(documentContext);
         if (options?.TryEnableDefaultMcp != false)
         {
+            // MCP is an optional enhancement and may be slow or unavailable, so it must not block manager creation.
             _ = TryEnableDefaultMcpAsync(renderPipeline, cancellationToken);
         }
 
