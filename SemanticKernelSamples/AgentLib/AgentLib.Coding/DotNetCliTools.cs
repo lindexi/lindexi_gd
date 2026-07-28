@@ -13,6 +13,7 @@ namespace AgentLib.Coding;
 public sealed class DotNetCliTools
 {
     private const int DefaultMaxOutputCharacters = 20000;
+    private static readonly TimeSpan DefaultTestTimeout = TimeSpan.FromMinutes(5);
     private const int MaxErrorPreviewCharacters = 500;
     private const int MaxLineCharacters = 2000;
     private const int MaxQueryLinesReturn = 200;
@@ -70,15 +71,28 @@ public sealed class DotNetCliTools
     /// 使用 <c>dotnet test</c> 测试工作区或指定目标。
     /// </summary>
     /// <param name="targetPath">可选的解决方案或项目路径。</param>
+    /// <param name="filter">可选的测试筛选表达式，语法与 <c>dotnet test --filter</c> 一致。</param>
     /// <param name="cancellationToken">用于取消测试的令牌。</param>
     /// <returns>测试输出、退出码和执行结果。</returns>
-    [Description("使用 dotnet test 测试代码工作区或指定目标，并返回测试输出和退出码。")]
-    public Task<string> RunTestsAsync(
+    [Description("使用 dotnet test 测试代码工作区或指定目标，可通过筛选表达式只运行部分测试，并返回测试输出和退出码。")]
+    public async Task<string> RunTestsAsync(
         [Description("可选的测试目标路径。可以传绝对路径；相对路径则相对于代码工作区。留空表示测试整个工作区。")]
         string? targetPath = null,
+        [Description("可选的测试筛选表达式，语法与 dotnet test --filter 一致。留空表示运行全部测试。")]
+        string? filter = null,
         CancellationToken cancellationToken = default)
     {
-        return RunDotNetCommandAsync("test", targetPath, cancellationToken);
+        using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCancellationTokenSource.CancelAfter(DefaultTestTimeout);
+
+        try
+        {
+            return await RunDotNetCommandAsync("test", targetPath, timeoutCancellationTokenSource.Token, filter).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && timeoutCancellationTokenSource.IsCancellationRequested)
+        {
+            return "测试执行已超过默认的 5 分钟超时时间，测试进程已终止。";
+        }
     }
 
     [Description("按行读取最后一次构建/测试日志，行号从 1 开始，闭区间 [startLine, endLine]。返回带行号的日志片段或错误信息。")]
@@ -206,7 +220,11 @@ public sealed class DotNetCliTools
         return builder.ToString().TrimEnd();
     }
 
-    private async Task<string> RunDotNetCommandAsync(string command, string? targetPath, CancellationToken cancellationToken)
+    private async Task<string> RunDotNetCommandAsync(
+        string command,
+        string? targetPath,
+        CancellationToken cancellationToken,
+        string? testFilter = null)
     {
         if (!TryResolveTarget(targetPath, out string? resolvedTargetPath, out string errorMessage))
         {
@@ -229,6 +247,11 @@ public sealed class DotNetCliTools
         {
             startInfo.ArgumentList.Add(resolvedTargetPath);
         }
+        if (!string.IsNullOrWhiteSpace(testFilter))
+        {
+            startInfo.ArgumentList.Add("--filter");
+            startInfo.ArgumentList.Add(testFilter);
+        }
 
         startInfo.Environment["DOTNET_NOLOGO"] = "1";
         startInfo.Environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
@@ -249,7 +272,7 @@ public sealed class DotNetCliTools
             string standardError = await standardErrorTask.ConfigureAwait(false);
 
             // 将完整日志保存到实例内存
-            string full = FormatResult(command, resolvedTargetPath, process.ExitCode, standardOutput, standardError);
+            string full = FormatResult(command, resolvedTargetPath, testFilter, process.ExitCode, standardOutput, standardError);
             string[] lines = full.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             var snapshot = new LogSnapshot(command, resolvedTargetPath, process.ExitCode, standardOutput, standardError, lines);
             _lastLogSnapshot = snapshot;
@@ -322,11 +345,21 @@ public sealed class DotNetCliTools
         return true;
     }
 
-    private string FormatResult(string command, string? targetPath, int exitCode, string standardOutput, string standardError)
+    private string FormatResult(
+        string command,
+        string? targetPath,
+        string? testFilter,
+        int exitCode,
+        string standardOutput,
+        string standardError)
     {
         var builder = new StringBuilder();
         builder.AppendLine($"命令: dotnet {command}");
         builder.AppendLine($"目标: {(targetPath is null ? "." : ToDisplayPath(targetPath))}");
+        if (!string.IsNullOrWhiteSpace(testFilter))
+        {
+            builder.AppendLine($"测试筛选器: {testFilter}");
+        }
         builder.AppendLine($"退出码: {exitCode}");
         builder.AppendLine($"结果: {(exitCode == 0 ? "成功" : "失败")}");
 
