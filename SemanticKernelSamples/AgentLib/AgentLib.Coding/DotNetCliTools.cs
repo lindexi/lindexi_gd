@@ -13,6 +13,7 @@ namespace AgentLib.Coding;
 public sealed class DotNetCliTools
 {
     private const int DefaultMaxOutputCharacters = 20000;
+    private static readonly TimeSpan DefaultTestTimeout = TimeSpan.FromMinutes(5);
     private const int MaxErrorPreviewCharacters = 500;
     private const int MaxLineCharacters = 2000;
     private const int MaxQueryLinesReturn = 200;
@@ -73,12 +74,22 @@ public sealed class DotNetCliTools
     /// <param name="cancellationToken">用于取消测试的令牌。</param>
     /// <returns>测试输出、退出码和执行结果。</returns>
     [Description("使用 dotnet test 测试代码工作区或指定目标，并返回测试输出和退出码。")]
-    public Task<string> RunTestsAsync(
+    public async Task<string> RunTestsAsync(
         [Description("可选的测试目标路径。可以传绝对路径；相对路径则相对于代码工作区。留空表示测试整个工作区。")]
         string? targetPath = null,
         CancellationToken cancellationToken = default)
     {
-        return RunDotNetCommandAsync("test", targetPath, cancellationToken);
+        using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCancellationTokenSource.CancelAfter(DefaultTestTimeout);
+
+        try
+        {
+            return await RunDotNetCommandAsync("test", targetPath, timeoutCancellationTokenSource.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && timeoutCancellationTokenSource.IsCancellationRequested)
+        {
+            return "测试执行已超过默认的 5 分钟超时时间，测试进程已终止。";
+        }
     }
 
     [Description("按行读取最后一次构建/测试日志，行号从 1 开始，闭区间 [startLine, endLine]。返回带行号的日志片段或错误信息。")]
