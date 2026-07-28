@@ -1,6 +1,7 @@
 using AgentLib.Tests.Fakes;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Model;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 using System.Runtime.CompilerServices;
@@ -347,6 +348,56 @@ public class MainThreadDispatcherTests
             "发生异常后，用户消息和异常消息应被添加到会话中");
     }
 
+    [TestMethod(DisplayName = "流式消息提交未完成时发送任务不会提前结束")]
+    [Timeout(10_000)]
+    public async Task SendMessage_WhenDispatcherIsPaused_RunTaskWaitsForStreamingUpdate()
+    {
+        var dispatcher = new PausableMainThreadDispatcher();
+        var streamEntered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseUpdates = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var primaryChatClient = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (_, _, cancellationToken) => CreatePausedStreamingUpdatesAsync(
+                streamEntered,
+                releaseUpdates,
+                cancellationToken,
+                CopilotChatManagerTestContext.AssistantText("第一段"),
+                CopilotChatManagerTestContext.AssistantText("第二段")),
+        };
+        var context = CopilotChatManagerTestContext.Create(primaryChatClient, mainThreadDispatcher: dispatcher);
+
+        SendMessageResult result = context.ChatManager.SendMessage(new SendMessageRequest("验证流式提交顺序"));
+        await streamEntered.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        dispatcher.Pause();
+        releaseUpdates.SetResult(true);
+        await dispatcher.WaitForPendingInvocationAsync().WaitAsync(TimeSpan.FromSeconds(2));
+
+        Assert.IsFalse(result.RunTask.IsCompleted, "流式消息仍等待主线程提交时，RunTask 不应提前完成。");
+
+        dispatcher.Resume();
+        SendMessageRunState runState = await result.RunTask.WaitAsync(TimeSpan.FromSeconds(2));
+
+        Assert.IsTrue(runState.IsSuccess);
+        Assert.AreEqual("第一段第二段", result.AssistantChatMessage.Content);
+    }
+
+    [TestMethod(DisplayName = "手动同步追加响应不应隐式调用主线程调度器")]
+    [Timeout(10_000)]
+    public async Task ManualContext_AppendResponseUpdate_DoesNotInvokeDispatcher()
+    {
+        var dispatcher = new TestMainThreadDispatcher(isMainThread: false);
+        var primaryChatClient = new FakeChatClient();
+        var context = CopilotChatManagerTestContext.Create(primaryChatClient, mainThreadDispatcher: dispatcher);
+        IManualSendMessageContext manualContext = await context.ChatManager.CreateManualSendMessageContextAsync();
+        int invokeCountBeforeAppend = dispatcher.InvokeCount;
+        var update = new AgentResponseUpdate(ChatRole.Assistant, "同步追加");
+
+        manualContext.AppendResponseUpdate(update);
+
+        Assert.AreEqual(invokeCountBeforeAppend, dispatcher.InvokeCount);
+        Assert.AreEqual("同步追加", manualContext.AssistantChatMessage.Content);
+    }
+
     private static async IAsyncEnumerable<ChatResponseUpdate> CreateStreamingUpdatesAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken,
         params ChatResponseUpdate[] updates)
@@ -365,6 +416,21 @@ public class MainThreadDispatcherTests
         yield return CopilotChatManagerTestContext.AssistantText("部分回复");
         await Task.Yield();
         throw new InvalidOperationException("模拟流式处理中的异常");
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> CreatePausedStreamingUpdatesAsync(
+        TaskCompletionSource<bool> streamEntered,
+        TaskCompletionSource<bool> releaseUpdates,
+        [EnumeratorCancellation] CancellationToken cancellationToken,
+        params ChatResponseUpdate[] updates)
+    {
+        streamEntered.TrySetResult(true);
+        await releaseUpdates.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+        foreach (ChatResponseUpdate update in updates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return update;
+        }
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> CreateToolInvocationAsyncEnumerable(
@@ -442,5 +508,117 @@ public class MainThreadDispatcherTests
         }
 
         return result;
+    }
+
+    private sealed class PausableMainThreadDispatcher : IMainThreadDispatcher
+    {
+        private readonly AsyncLocal<bool> _hasAccess = new();
+        private readonly SemaphoreSlim _serialGate = new(1, 1);
+        private readonly object _pauseSyncRoot = new();
+        private TaskCompletionSource<bool> _resumeSource = CreateCompletedSource();
+        private TaskCompletionSource<bool> _pendingInvocationSource = CreatePendingSource();
+        private int _pendingInvocationCount;
+
+        public bool CheckAccess() => _hasAccess.Value;
+
+        public Task InvokeAsync(Func<Task> action)
+        {
+            ArgumentNullException.ThrowIfNull(action);
+            return InvokeCoreAsync(action);
+        }
+
+        public Task<T> InvokeAsync<T>(Func<Task<T>> action)
+        {
+            ArgumentNullException.ThrowIfNull(action);
+            return InvokeCoreAsync(action);
+        }
+
+        public void Pause()
+        {
+            lock (_pauseSyncRoot)
+            {
+                if (_resumeSource.Task.IsCompleted)
+                {
+                    _resumeSource = CreatePendingSource();
+                }
+            }
+        }
+
+        public void Resume()
+        {
+            lock (_pauseSyncRoot)
+            {
+                _resumeSource.TrySetResult(true);
+            }
+        }
+
+        public Task WaitForPendingInvocationAsync()
+        {
+            if (Volatile.Read(ref _pendingInvocationCount) > 0)
+            {
+                return Task.CompletedTask;
+            }
+
+            lock (_pauseSyncRoot)
+            {
+                return Volatile.Read(ref _pendingInvocationCount) > 0
+                    ? Task.CompletedTask
+                    : _pendingInvocationSource.Task;
+            }
+        }
+
+        private async Task InvokeCoreAsync(Func<Task> action)
+        {
+            await _serialGate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                Task resumeTask;
+                lock (_pauseSyncRoot)
+                {
+                    resumeTask = _resumeSource.Task;
+                    if (Interlocked.Increment(ref _pendingInvocationCount) == 1)
+                    {
+                        _pendingInvocationSource.TrySetResult(true);
+                    }
+                }
+
+                await resumeTask.ConfigureAwait(false);
+                _hasAccess.Value = true;
+                await action().ConfigureAwait(false);
+            }
+            finally
+            {
+                _hasAccess.Value = false;
+                if (Interlocked.Decrement(ref _pendingInvocationCount) == 0)
+                {
+                    lock (_pauseSyncRoot)
+                    {
+                        _pendingInvocationSource = CreatePendingSource();
+                    }
+                }
+
+                _serialGate.Release();
+            }
+        }
+
+        private async Task<T> InvokeCoreAsync<T>(Func<Task<T>> action)
+        {
+            T? result = default;
+            await InvokeCoreAsync(async () =>
+            {
+                result = await action().ConfigureAwait(false);
+            }).ConfigureAwait(false);
+            return result!;
+        }
+
+        private static TaskCompletionSource<bool> CreateCompletedSource()
+        {
+            TaskCompletionSource<bool> source = CreatePendingSource();
+            source.SetResult(true);
+            return source;
+        }
+
+        private static TaskCompletionSource<bool> CreatePendingSource() =>
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 }

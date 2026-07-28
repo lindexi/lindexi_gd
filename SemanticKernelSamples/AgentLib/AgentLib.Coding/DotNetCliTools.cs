@@ -43,10 +43,11 @@ public sealed class DotNetCliTools
     /// <summary>
     /// 创建可按角色授权的 .NET 构建与测试工具集合。
     /// </summary>
-    /// <returns>包含 <c>run_build</c> 和 <c>run_tests</c> 的工具集合。</returns>
+    /// <returns>包含 <c>run_build</c>、<c>run_msbuild</c> 和 <c>run_tests</c> 等功能的工具集合。</returns>
     public IReadOnlyList<AITool> AsAITools() =>
     [
         AIFunctionFactory.Create(RunBuildAsync, "run_build"),
+        AIFunctionFactory.Create(RunMSBuildAsync, "run_msbuild"),
         AIFunctionFactory.Create(RunTestsAsync, "run_tests"),
         AIFunctionFactory.Create(ReadLastLogLines, "read_last_log_lines"),
         AIFunctionFactory.Create(SearchLastLog, "search_last_log")
@@ -78,6 +79,50 @@ public sealed class DotNetCliTools
         AddOption(arguments, "--runtime", runtimeIdentifier);
         AddOption(arguments, "--framework", targetFramework);
         return RunDotNetCommandAsync("build", targetPath, cancellationToken, arguments);
+    }
+
+    /// <summary>
+    /// 使用本机安装的 <c>MSBuild.exe</c> 构建工作区或指定目标。
+    /// </summary>
+    /// <param name="targetPath">可选的解决方案或项目路径。</param>
+    /// <param name="configuration">可选的构建配置，例如 <c>Debug</c> 或 <c>Release</c>。</param>
+    /// <param name="runtimeIdentifier">可选的目标运行时标识符，例如 <c>linux-x64</c> 或 <c>win-x64</c>。</param>
+    /// <param name="targetFramework">可选的目标框架，例如 <c>net8.0</c> 或 <c>net9.0</c>。</param>
+    /// <param name="cancellationToken">用于取消构建的令牌。</param>
+    /// <returns>构建输出、退出码和执行结果；未找到 MSBuild 时返回错误信息。</returns>
+    [Description("使用本机安装的最新 MSBuild.exe 构建代码工作区或指定目标，可设置构建配置、运行时标识符和目标框架，并返回构建输出和退出码。")]
+    public Task<string> RunMSBuildAsync(
+        [Description("可选的构建目标路径。可以传绝对路径；相对路径则相对于代码工作区。留空时由 MSBuild 在工作区中查找项目或解决方案。")]
+        string? targetPath = null,
+        [Description("可选的构建配置，例如 Debug 或 Release。留空时使用项目默认值。")]
+        string? configuration = null,
+        [Description("可选的目标运行时标识符，例如 linux-x64 或 win-x64。留空时不指定运行时。")]
+        string? runtimeIdentifier = null,
+        [Description("可选的目标框架，例如 net8.0 或 net9.0。留空时不指定目标框架。")]
+        string? targetFramework = null,
+        CancellationToken cancellationToken = default)
+    {
+        string? msBuildPath = FindInstalledMSBuildFilePath();
+        if (msBuildPath is null)
+        {
+            return Task.FromResult("未找到已安装的 MSBuild.exe。支持查找 Visual Studio 2026、2022 和 2019，且同版本优先使用企业版、专业版、个人版。");
+        }
+
+        var arguments = new List<string>(3);
+        AddMSBuildProperty(arguments, "Configuration", configuration);
+        AddMSBuildProperty(arguments, "RuntimeIdentifier", runtimeIdentifier);
+        AddMSBuildProperty(arguments, "TargetFramework", targetFramework);
+        return RunProcessCommandAsync(msBuildPath, "MSBuild", targetPath, cancellationToken, arguments);
+
+        static void AddMSBuildProperty(List<string> arguments, string propertyName, string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            arguments.Add($"/property:{propertyName}={value}");
+        }
     }
 
     /// <summary>
@@ -241,6 +286,17 @@ public sealed class DotNetCliTools
         CancellationToken cancellationToken,
         IReadOnlyList<string>? arguments = null)
     {
+        return await RunProcessCommandAsync("dotnet", $"dotnet {command}", targetPath, cancellationToken, arguments, [command]).ConfigureAwait(false);
+    }
+
+    private async Task<string> RunProcessCommandAsync(
+        string fileName,
+        string commandDisplayName,
+        string? targetPath,
+        CancellationToken cancellationToken,
+        IReadOnlyList<string>? arguments = null,
+        IReadOnlyList<string>? argumentsBeforeTarget = null)
+    {
         if (!TryResolveTarget(targetPath, out string? resolvedTargetPath, out string errorMessage))
         {
             return errorMessage;
@@ -248,7 +304,7 @@ public sealed class DotNetCliTools
 
         var startInfo = new ProcessStartInfo
         {
-            FileName = "dotnet",
+            FileName = fileName,
             WorkingDirectory = _workspacePath,
             UseShellExecute = false,
             CreateNoWindow = true,
@@ -257,7 +313,13 @@ public sealed class DotNetCliTools
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8
         };
-        startInfo.ArgumentList.Add(command);
+        if (argumentsBeforeTarget is not null)
+        {
+            foreach (string argument in argumentsBeforeTarget)
+            {
+                startInfo.ArgumentList.Add(argument);
+            }
+        }
         if (resolvedTargetPath is not null)
         {
             startInfo.ArgumentList.Add(resolvedTargetPath);
@@ -278,7 +340,7 @@ public sealed class DotNetCliTools
         {
             if (!process.Start())
             {
-                return $"无法启动 dotnet {command}。";
+                return $"无法启动 {commandDisplayName}。";
             }
 
             Task<string> standardOutputTask = process.StandardOutput.ReadToEndAsync();
@@ -289,9 +351,9 @@ public sealed class DotNetCliTools
             string standardError = await standardErrorTask.ConfigureAwait(false);
 
             // 将完整日志保存到实例内存
-            string full = FormatResult(command, resolvedTargetPath, arguments, process.ExitCode, standardOutput, standardError);
+            string full = FormatResult(commandDisplayName, resolvedTargetPath, arguments, process.ExitCode, standardOutput, standardError);
             string[] lines = full.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-            var snapshot = new LogSnapshot(command, resolvedTargetPath, process.ExitCode, standardOutput, standardError, lines);
+            var snapshot = new LogSnapshot(commandDisplayName, resolvedTargetPath, process.ExitCode, standardOutput, standardError, lines);
             _lastLogSnapshot = snapshot;
 
             // 返回简短摘要
@@ -324,7 +386,7 @@ public sealed class DotNetCliTools
         }
         catch (Win32Exception ex)
         {
-            return $"无法启动 dotnet {command}: {ex.Message}";
+            return $"无法启动 {commandDisplayName}: {ex.Message}";
         }
     }
 
@@ -348,6 +410,26 @@ public sealed class DotNetCliTools
 
         arguments.Add(option);
         arguments.Add(value);
+    }
+
+    private static string? FindInstalledMSBuildFilePath()
+    {
+        string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        string[] candidatePaths =
+        [
+            Path.Join(programFiles, "Microsoft Visual Studio", "18", "Enterprise", "MSBuild", "Current", "Bin", "amd64", "MSBuild.exe"),
+            Path.Join(programFiles, "Microsoft Visual Studio", "18", "Professional", "MSBuild", "Current", "Bin", "amd64", "MSBuild.exe"),
+            Path.Join(programFiles, "Microsoft Visual Studio", "18", "Community", "MSBuild", "Current", "Bin", "amd64", "MSBuild.exe"),
+            Path.Join(programFiles, "Microsoft Visual Studio", "2022", "Enterprise", "MSBuild", "Current", "Bin", "MSBuild.exe"),
+            Path.Join(programFiles, "Microsoft Visual Studio", "2022", "Professional", "MSBuild", "Current", "Bin", "MSBuild.exe"),
+            Path.Join(programFiles, "Microsoft Visual Studio", "2022", "Community", "MSBuild", "Current", "Bin", "MSBuild.exe"),
+            Path.Join(programFilesX86, "Microsoft Visual Studio", "2019", "Enterprise", "MSBuild", "Current", "Bin", "MSBuild.exe"),
+            Path.Join(programFilesX86, "Microsoft Visual Studio", "2019", "Professional", "MSBuild", "Current", "Bin", "MSBuild.exe"),
+            Path.Join(programFilesX86, "Microsoft Visual Studio", "2019", "Community", "MSBuild", "Current", "Bin", "MSBuild.exe")
+        ];
+
+        return candidatePaths.FirstOrDefault(File.Exists);
     }
 
     private bool TryResolveTarget(string? targetPath, out string? resolvedTargetPath, out string errorMessage)
@@ -382,7 +464,7 @@ public sealed class DotNetCliTools
         string standardError)
     {
         var builder = new StringBuilder();
-        builder.AppendLine($"命令: dotnet {command}");
+        builder.AppendLine($"命令: {command}");
         builder.AppendLine($"目标: {(targetPath is null ? "." : ToDisplayPath(targetPath))}");
         if (arguments is { Count: > 0 })
         {
