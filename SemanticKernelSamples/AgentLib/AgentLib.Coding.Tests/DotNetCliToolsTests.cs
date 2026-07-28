@@ -75,6 +75,20 @@ public sealed class DotNetCliToolsTests
         StringAssert.Contains(result, "可使用 read_last_log_lines 按行读取");
     }
 
+    [TestMethod(DisplayName = "测试工具应将测试筛选器传递给 dotnet test")]
+    [Timeout(30000)]
+    public async Task RunTestsAsync_WhenFilterIsSpecified_RecordsFilterInLog()
+    {
+        string workspacePath = await CreateMinimalProjectAsync();
+        var tools = new DotNetCliTools(workspacePath);
+        const string filter = "FullyQualifiedName~SampleTests";
+
+        await tools.RunTestsAsync("Sample.csproj", filter);
+        string result = tools.ReadLastLogLines(1, 10);
+
+        StringAssert.Contains(result, $"测试筛选器: {filter}");
+    }
+
     [TestMethod(DisplayName = "读取构建日志应返回元数据和实际行范围")]
     [Timeout(30000)]
     public async Task ReadLastLogLines_WhenBuildHasCompleted_ReturnsFriendlyMetadata()
