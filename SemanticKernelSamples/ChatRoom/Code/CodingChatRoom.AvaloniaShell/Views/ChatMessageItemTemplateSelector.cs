@@ -21,6 +21,11 @@ public sealed class ChatMessageItemTemplateSelector : IDataTemplate
     public IDataTemplate? ReasoningItemTemplate { get; set; }
 
     /// <summary>
+    /// 获取或设置图片片段模板。
+    /// </summary>
+    public IDataTemplate? ImageItemTemplate { get; set; }
+
+    /// <summary>
     /// 获取或设置审批工具片段模板。
     /// </summary>
     public IDataTemplate? ApprovalToolItemTemplate { get; set; }
@@ -46,6 +51,7 @@ public sealed class ChatMessageItemTemplateSelector : IDataTemplate
         {
             CopilotChatTextItem => TextItemTemplate,
             CopilotChatReasoningItem => ReasoningItemTemplate,
+            CopilotChatImageItem => ImageItemTemplate,
             CopilotChatApprovalToolItem => ApprovalToolItemTemplate,
             CopilotChatToolItem => ToolItemTemplate,
             CopilotChatSubAgentItem => SubAgentItemTemplate,

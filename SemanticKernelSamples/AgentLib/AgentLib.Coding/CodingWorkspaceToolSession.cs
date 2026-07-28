@@ -28,6 +28,7 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
         IReadOnlyList<AITool> tools,
         IAsyncDisposable? asyncDisposable = null)
     {
+
         if (string.IsNullOrWhiteSpace(workspacePath))
         {
             throw new ArgumentException("工作区路径不能为空。", nameof(workspacePath));
@@ -78,6 +79,7 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
 
             var dotNetCliTools = new DotNetCliTools(fullWorkspacePath);
             IReadOnlyList<AITool> dotNetTools = dotNetCliTools.AsAITools();
+            var contentTools = new CodingWorkspaceContentTools(fullWorkspacePath);
             try
             {
                 roslynTools = await RoslynAgentTools
@@ -94,6 +96,7 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
                 .. roslynTools.AsAITools(),
                 .. workspaceTools.CreateDefaultTools(),
                 .. dotNetTools,
+                .. contentTools.AsAITools(),
             ];
             return new CodingWorkspaceToolSession(
                 fullWorkspacePath,

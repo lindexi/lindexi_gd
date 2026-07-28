@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using AgentLib;
 using AgentLib.Coding;
 using AgentLib.Logging;
@@ -34,6 +36,31 @@ public sealed class CodingChatSendingTests
         await runner.Started.Task;
 
         Assert.AreEqual(Path.GetFullPath(workspacePath), runner.ObservedWorkspacePath);
+        runner.Complete("完成");
+        await sendTask;
+    }
+
+    [TestMethod(DisplayName = "发送多模态内容时应保留文本图片顺序和类型")]
+    [Timeout(5000)]
+    public async Task SendMessageAsyncShouldPreserveMultimodalContentOrder()
+    {
+        var manager = new CopilotChatManager();
+        var runner = new TestCodingChatRunner(manager);
+        var application = new CodingChatApplication(manager, new TestSessionStore(), runner);
+        await application.InitializeAsync();
+        IReadOnlyList<AIContent> contents =
+        [
+            new TextContent("分析图片"),
+            new DataContent(new byte[] { 1, 2, 3 }, "image/jpeg"),
+        ];
+
+        Task sendTask = application.SendMessageAsync(contents);
+        await runner.Started.Task;
+
+        Assert.HasCount(2, runner.ObservedContents!);
+        Assert.IsInstanceOfType<TextContent>(runner.ObservedContents[0]);
+        DataContent imageContent = Assert.IsInstanceOfType<DataContent>(runner.ObservedContents[1]);
+        Assert.AreEqual("image/jpeg", imageContent.MediaType);
         runner.Complete("完成");
         await sendTask;
     }
@@ -210,14 +237,20 @@ public sealed class CodingChatSendingTests
 
         public string? ObservedWorkspacePath { get; private set; }
 
+        public IReadOnlyList<AIContent>? ObservedContents { get; private set; }
+
         public CopilotChatMessage AssistantMessage { get; } = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
 
-        public async Task<CodingAgentRunResult> RunAsync(string prompt, string? workspacePath, CancellationToken cancellationToken)
+        public async Task<CodingAgentRunResult> RunAsync(
+            IReadOnlyList<AIContent> contents,
+            string? workspacePath,
+            CancellationToken cancellationToken)
         {
             RunCount++;
+            ObservedContents = contents;
             ObservedWorkspacePath = workspacePath;
             ObservedCancellationToken = cancellationToken;
-            var userMessage = CopilotChatMessage.CreateUser(prompt);
+            var userMessage = CopilotChatMessage.CreateUser(contents);
             await manager.AppendMessageAsync(userMessage, cancellationToken);
             await manager.SelectedSession.AddMessageAsync(AssistantMessage);
             Started.TrySetResult();

@@ -10,6 +10,8 @@ using AgentLib.Coding;
 using AgentLib.Logging;
 using AgentLib.Model;
 
+using Microsoft.Extensions.AI;
+
 namespace CodingChatRoom.AvaloniaShell.Services;
 
 internal sealed class CodingChatApplication
@@ -177,6 +179,20 @@ internal sealed class CodingChatApplication
             throw new ArgumentException("消息内容不能为空。", nameof(prompt));
         }
 
+        await SendMessageAsync([new TextContent(prompt)], cancellationToken);
+    }
+
+    public async Task SendMessageAsync(
+        IReadOnlyList<AIContent> contents,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(contents);
+        var runContents = new List<AIContent>(contents);
+        if (runContents.Count == 0)
+        {
+            throw new ArgumentException("消息内容不能为空。", nameof(contents));
+        }
+
         ICodingChatRunner chatRunner = _chatRunner
             ?? throw new InvalidOperationException("编程代理运行器尚未初始化。");
         if (_isRunActive)
@@ -193,7 +209,7 @@ internal sealed class CodingChatApplication
         try
         {
             CodingAgentRunResult runResult = await chatRunner
-                .RunAsync(prompt, _workspaceController?.CommittedWorkspacePath, runCancellationTokenSource.Token);
+                .RunAsync(runContents, _workspaceController?.CommittedWorkspacePath, runCancellationTokenSource.Token);
             await runResult.CompletionTask;
         }
         catch (Exception exception)

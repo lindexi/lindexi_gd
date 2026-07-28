@@ -14,6 +14,21 @@
                        IsVisible="{Binding HasText}" />
         </DataTemplate>
 
+        <DataTemplate x:Key="UserTextItemTemplate" x:DataType="model:CopilotChatTextItem">
+            <TextBlock Margin="0,0,0,8"
+                       Text="{Binding Text}"
+                       TextWrapping="Wrap"
+                       Foreground="{StaticResource TextOnPrimaryBrush}"
+                       IsVisible="{Binding HasText}" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="ImageItemTemplate" x:DataType="model:CopilotChatImageItem">
+            <views:BinaryImage Width="240"
+                               Height="180"
+                               Margin="0,0,0,8"
+                               Data="{Binding Data}" />
+        </DataTemplate>
+
         <DataTemplate x:Key="AssistantReasoningItemTemplate" x:DataType="model:CopilotChatReasoningItem">
             <Expander Classes="ReasoningExpander"
                       Margin="0,0,0,8"
@@ -118,9 +133,13 @@
         <views:ChatMessageItemTemplateSelector x:Key="ChatMessageItemTemplateSelector"
                                                TextItemTemplate="{StaticResource AssistantTextItemTemplate}"
                                                ReasoningItemTemplate="{StaticResource AssistantReasoningItemTemplate}"
+                                               ImageItemTemplate="{StaticResource ImageItemTemplate}"
                                                ToolItemTemplate="{StaticResource AssistantToolItemTemplate}"
                                                ApprovalToolItemTemplate="{StaticResource AssistantApprovalToolItemTemplate}"
                                                SubAgentItemTemplate="{StaticResource AssistantSubAgentItemTemplate}" />
+        <views:ChatMessageItemTemplateSelector x:Key="UserMessageItemTemplateSelector"
+                                               TextItemTemplate="{StaticResource UserTextItemTemplate}"
+                                               ImageItemTemplate="{StaticResource ImageItemTemplate}" />
     </UserControl.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -223,9 +242,8 @@
                                                       CommandParameter="{Binding}" />
                                         </ContextMenu>
                                     </Border.ContextMenu>
-                                    <TextBlock Text="{Binding Content}"
-                                               TextWrapping="Wrap"
-                                               Foreground="{StaticResource TextOnPrimaryBrush}" />
+                                    <ItemsControl ItemsSource="{Binding MessageItems}"
+                                                  ItemTemplate="{StaticResource UserMessageItemTemplateSelector}" />
                                 </Border>
                             </StackPanel>
 
@@ -259,23 +277,69 @@
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,1,0,0">
-            <Grid ColumnDefinitions="*,Auto,Auto">
-                <TextBox Grid.Column="0"
+            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto,Auto">
+                <ItemsControl Grid.Row="0"
+                              Grid.Column="0"
+                              Grid.ColumnSpan="4"
+                              Margin="0,0,0,8"
+                              ItemsSource="{Binding PendingImages}"
+                              IsVisible="{Binding HasPendingImages}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ImageAttachmentViewModel">
+                            <Border Margin="0,0,8,8"
+                                    Padding="4"
+                                    Background="{StaticResource SurfaceVariantBrush}"
+                                    CornerRadius="6">
+                                <Grid>
+                                    <views:BinaryImage Width="96"
+                                                       Height="72"
+                                                       Data="{Binding Data}"
+                                                       ToolTip.Tip="{Binding FileName}" />
+                                    <Button Width="24"
+                                            Height="24"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Top"
+                                            Padding="0"
+                                            Content="×"
+                                            ToolTip.Tip="{StaticResource RemoveImageText}"
+                                            Click="RemoveImageButton_OnClick"
+                                            CommandParameter="{Binding}" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Grid.Row="1"
+                        Grid.Column="0"
+                        Classes="Flat"
+                        Content="{StaticResource AddImageText}"
+                        Click="AddImageButton_OnClick"
+                        IsEnabled="{Binding !IsRunning}" />
+                <TextBox Grid.Row="1"
+                          Grid.Column="1"
                           x:Name="MessageInputTextBox"
                          Classes="Rounded"
+                         Margin="8,0,0,0"
                          Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="{StaticResource MessageInputPlaceholder}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                           KeyDown="MessageInputTextBox_OnKeyDown"
                          MaxHeight="120" />
-                <Button Grid.Column="1"
+                <Button Grid.Row="1"
+                        Grid.Column="2"
                         Classes="Primary"
                         Content="{StaticResource SendText}"
                         Margin="8,0,0,0"
                         Command="{Binding SendCommand}"
                         IsEnabled="{Binding CanSend}" />
-                <Button Grid.Column="2"
+                <Button Grid.Row="1"
+                        Grid.Column="3"
                         Classes="Danger"
                         Content="{StaticResource StopText}"
                         Margin="8,0,0,0"

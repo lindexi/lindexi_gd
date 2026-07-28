@@ -76,6 +76,12 @@ public sealed class CodingAgentTests
         Assert.AreSame(context.UserChatMessage, chatManager.SelectedSession.ChatMessages[1]);
         Assert.AreSame(context.AssistantChatMessage, chatManager.SelectedSession.ChatMessages[2]);
         Assert.AreEqual("前后", context.UserChatMessage.Content);
+        Assert.HasCount(3, context.UserChatMessage.MessageItems);
+        Assert.IsInstanceOfType<CopilotChatTextItem>(context.UserChatMessage.MessageItems[0]);
+        CopilotChatImageItem imageItem = Assert.IsInstanceOfType<CopilotChatImageItem>(context.UserChatMessage.MessageItems[1]);
+        CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, imageItem.Data.ToArray());
+        Assert.AreEqual("image/png", imageItem.MimeType);
+        Assert.IsInstanceOfType<CopilotChatTextItem>(context.UserChatMessage.MessageItems[2]);
     }
 
     [TestMethod(DisplayName = "连续运行应复用同一个 AgentSession")]

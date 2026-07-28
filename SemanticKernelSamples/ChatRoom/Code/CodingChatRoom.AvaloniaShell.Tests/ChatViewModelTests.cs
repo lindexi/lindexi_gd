@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 
 using AgentLib;
@@ -46,6 +47,36 @@ public sealed class ChatViewModelTests
 
         Assert.AreSame(toolTemplate, selector.SelectTemplate(new CopilotChatToolItem("tool-call", "read_file", "path=a.cs")));
         Assert.AreSame(approvalTemplate, selector.SelectTemplate(new CopilotChatApprovalToolItem("approval-call", "write_file", "path=a.cs")));
+    }
+
+    [TestMethod(DisplayName = "图片片段应选择图片模板")]
+    [Timeout(5000)]
+    public void TemplateSelectorShouldSelectImageTemplate()
+    {
+        var imageTemplate = new TestDataTemplate();
+        var selector = new ChatMessageItemTemplateSelector
+        {
+            ImageItemTemplate = imageTemplate,
+        };
+        var imageItem = new CopilotChatImageItem(BinaryData.FromBytes([1, 2, 3]), "image/png");
+
+        Assert.AreSame(imageTemplate, selector.SelectTemplate(imageItem));
+    }
+
+    [TestMethod(DisplayName = "用户多模态消息投影应保留图片片段")]
+    [Timeout(5000)]
+    public void UserMultimodalMessageProjectionShouldExposeImageItem()
+    {
+        IReadOnlyList<AIContent> contents =
+        [
+            new TextContent("分析图片"),
+            new DataContent(new byte[] { 1, 2, 3 }, "image/webp"),
+        ];
+        using var viewModel = new MessageItemViewModel(CopilotChatMessage.CreateUser(contents));
+
+        Assert.HasCount(2, viewModel.MessageItems);
+        CopilotChatImageItem imageItem = Assert.IsInstanceOfType<CopilotChatImageItem>(viewModel.MessageItems[1]);
+        Assert.AreEqual("image/webp", imageItem.MimeType);
     }
 
     [TestMethod(DisplayName = "流式文本和用量更新应刷新消息投影属性")]
@@ -136,6 +167,38 @@ public sealed class ChatViewModelTests
 
         Assert.AreEqual(string.Empty, viewModel.InputText);
         Assert.AreEqual(1, runner.RunCount);
+    }
+
+    [TestMethod(DisplayName = "仅附加图片时发送命令应可用并清空附件")]
+    [Timeout(5000)]
+    public async Task ImageOnlyMessageShouldSendAndClearAttachments()
+    {
+        var manager = new CopilotChatManager();
+        var runner = new ImmediateRunner(manager);
+        var application = new CodingChatApplication(manager, new EmptySessionStore(), runner);
+        await application.InitializeAsync();
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型");
+        Assert.IsTrue(viewModel.TryAddImageAttachment("sample.png", new byte[] { 1, 2, 3 }));
+
+        viewModel.SendCommand.Execute(null);
+        await runner.Completed.Task;
+
+        Assert.IsTrue(viewModel.SendCommand.CanExecute(null) is false);
+        Assert.IsEmpty(viewModel.PendingImages);
+        Assert.HasCount(1, runner.ObservedContents!);
+        DataContent imageContent = Assert.IsInstanceOfType<DataContent>(runner.ObservedContents[0]);
+        Assert.AreEqual("image/png", imageContent.MediaType);
+    }
+
+    [TestMethod(DisplayName = "不支持扩展名的图片不应加入附件集合")]
+    [Timeout(5000)]
+    public void UnsupportedImageExtensionShouldNotBeAdded()
+    {
+        using var viewModel = new ChatViewModel();
+
+        bool added = viewModel.TryAddImageAttachment("sample.svg", new byte[] { 1, 2, 3 });
+
+        Assert.AreEqual((false, 0), (added, viewModel.PendingImages.Count));
     }
 
     [TestMethod(DisplayName = "发送失败应在聊天列表中显示系统消息")]
@@ -308,10 +371,16 @@ public sealed class ChatViewModelTests
 
         public int RunCount { get; private set; }
 
-        public async Task<CodingAgentRunResult> RunAsync(string prompt, string? workspacePath, CancellationToken cancellationToken)
+        public IReadOnlyList<AIContent>? ObservedContents { get; private set; }
+
+        public async Task<CodingAgentRunResult> RunAsync(
+            IReadOnlyList<AIContent> contents,
+            string? workspacePath,
+            CancellationToken cancellationToken)
         {
             RunCount++;
-            await manager.AppendMessageAsync(CopilotChatMessage.CreateUser(prompt), cancellationToken);
+            ObservedContents = contents;
+            await manager.AppendMessageAsync(CopilotChatMessage.CreateUser(contents), cancellationToken);
             var assistantMessage = CopilotChatMessage.CreateAssistant("完成", isPresetInfo: false);
             await manager.SelectedSession.AddMessageAsync(assistantMessage);
             Completed.TrySetResult();
@@ -322,7 +391,7 @@ public sealed class ChatViewModelTests
     private sealed class FailingRunner(Exception exception) : ICodingChatRunner
     {
         public Task<CodingAgentRunResult> RunAsync(
-            string prompt,
+            IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CancellationToken cancellationToken) =>
             Task.FromException<CodingAgentRunResult>(exception);
@@ -336,10 +405,13 @@ public sealed class ChatViewModelTests
 
         public CancellationToken CancellationToken { get; private set; }
 
-        public async Task<CodingAgentRunResult> RunAsync(string prompt, string? workspacePath, CancellationToken cancellationToken)
+        public async Task<CodingAgentRunResult> RunAsync(
+            IReadOnlyList<AIContent> contents,
+            string? workspacePath,
+            CancellationToken cancellationToken)
         {
             CancellationToken = cancellationToken;
-            await manager.AppendMessageAsync(CopilotChatMessage.CreateUser(prompt), cancellationToken);
+            await manager.AppendMessageAsync(CopilotChatMessage.CreateUser(contents), cancellationToken);
             var assistantMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
             await manager.SelectedSession.AddMessageAsync(assistantMessage);
             Started.TrySetResult();
