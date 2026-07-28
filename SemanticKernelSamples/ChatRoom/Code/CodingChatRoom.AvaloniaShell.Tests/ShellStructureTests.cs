@@ -1,3 +1,6 @@
+using System.Globalization;
+
+using CodingChatRoom.AvaloniaShell.Converters;
 using CodingChatRoom.AvaloniaShell.ViewModels;
 
 namespace CodingChatRoom.AvaloniaShell.Tests;
@@ -46,5 +49,35 @@ public sealed class ShellStructureTests
         Assert.IsFalse(viewModel.CanSend);
         Assert.IsFalse(viewModel.SendCommand.CanExecute(null));
         Assert.IsFalse(viewModel.StopCommand.CanExecute(null));
+    }
+
+    [TestMethod(DisplayName = "窗口标题应显示已提交的工作路径")]
+    [Timeout(5000)]
+    public void WorkspaceTitleShouldIncludeCommittedWorkspacePath()
+    {
+        var converter = new WorkspaceTitleConverter();
+
+        object title = converter.Convert(
+            @"C:\Code\Demo",
+            typeof(string),
+            "CodingChatRoom 编程助手",
+            CultureInfo.InvariantCulture);
+
+        Assert.AreEqual(@"CodingChatRoom 编程助手 - C:\Code\Demo", title);
+    }
+
+    [TestMethod(DisplayName = "未提交工作路径时窗口标题应只显示应用名称")]
+    [Timeout(5000)]
+    public void WorkspaceTitleShouldUseApplicationTitleWhenPathIsEmpty()
+    {
+        var converter = new WorkspaceTitleConverter();
+
+        object title = converter.Convert(
+            null,
+            typeof(string),
+            "CodingChatRoom 编程助手",
+            CultureInfo.InvariantCulture);
+
+        Assert.AreEqual("CodingChatRoom 编程助手", title);
     }
 }

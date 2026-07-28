@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-
 using Avalonia.Data.Converters;
 
 namespace CodingChatRoom.AvaloniaShell.Converters;

@@ -101,6 +101,19 @@ public sealed class ChatViewModelTests
         CollectionAssert.Contains(changedProperties, nameof(MessageItemViewModel.FullContent));
         CollectionAssert.Contains(changedProperties, nameof(MessageItemViewModel.UsageSummaryText));
         Assert.IsTrue(viewModel.HasUsageDetails);
+        StringAssert.StartsWith(viewModel.UsageSummaryText, "当前用量总计 20 用量总计 20");
+    }
+
+    [TestMethod(DisplayName = "用量摘要应先显示最后一次用量总计再显示累计用量总计")]
+    [Timeout(5000)]
+    public void UsageSummaryShouldShowCurrentTotalBeforeAccumulatedTotal()
+    {
+        var message = new CopilotChatMessage(ChatRole.Assistant, "回复");
+        using var viewModel = new MessageItemViewModel(message);
+        message.AppendUsageDetails(new UsageDetails { TotalTokenCount = 100 });
+        message.AppendUsageDetails(new UsageDetails { TotalTokenCount = 40 });
+
+        StringAssert.StartsWith(viewModel.UsageSummaryText, "当前用量总计 40 用量总计 140");
     }
 
     [TestMethod(DisplayName = "复制正文和整条消息应使用不同内容")]

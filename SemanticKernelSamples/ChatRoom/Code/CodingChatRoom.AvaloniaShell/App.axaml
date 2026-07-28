@@ -1,7 +1,12 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="using:CodingChatRoom.AvaloniaShell.Converters"
              x:Class="CodingChatRoom.AvaloniaShell.App"
              RequestedThemeVariant="Light">
+
+    <Application.Resources>
+        <converters:WorkspaceTitleConverter x:Key="WorkspaceTitleConverter" />
+    </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
