@@ -535,13 +535,16 @@ public class CopilotChatManager : NotifyBase
                 await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgentCreatedResult.ChatClientAgent.RunStreamingAsync(
                     runMessages, chatClientAgentCreatedResult.AgentSession, cancellationToken: currentChatCancellationToken))
                 {
-                    if (isFirst)
+                    await TryRunInMainThread(() =>
                     {
-                        assistantChatMessage.ClearMessageItems();
-                    }
+                        if (isFirst)
+                        {
+                            assistantChatMessage.ClearMessageItems();
+                        }
 
+                        AppendAssistantResponseUpdate(assistantChatMessage, agentRunResponseUpdate);
+                    });
                     isFirst = false;
-                    AppendAssistantResponseUpdate(assistantChatMessage, agentRunResponseUpdate);
                 }
 
                 await ChatLogger.LogMessageAsync(currentSession.SessionId, assistantChatMessage);
@@ -726,36 +729,33 @@ public class CopilotChatManager : NotifyBase
         return toolList;
     }
 
-    internal void AppendAssistantResponseUpdate(CopilotChatMessage copilotChatMessage, AgentResponseUpdate responseUpdate)
+    internal void AppendAssistantResponseUpdate(
+        CopilotChatMessage copilotChatMessage,
+        AgentResponseUpdate responseUpdate)
     {
         ArgumentNullException.ThrowIfNull(copilotChatMessage);
         ArgumentNullException.ThrowIfNull(responseUpdate);
 
-        TryRunInMainThread(AppendInner);
-      
-        void AppendInner()
+        foreach (AIContent content in responseUpdate.Contents)
         {
-            foreach (AIContent content in responseUpdate.Contents)
+            switch (content)
             {
-                switch (content)
-                {
-                    case TextReasoningContent textReasoningContent when !string.IsNullOrEmpty(textReasoningContent.Text):
-                        copilotChatMessage.AppendReasoning(textReasoningContent.Text);
-                        break;
-                    case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
-                        copilotChatMessage.AppendText(textContent.Text);
-                        break;
-                    case FunctionCallContent functionCallContent:
-                        copilotChatMessage.AppendFunctionCall(functionCallContent);
-                        break;
-                    case FunctionResultContent functionResultContent:
-                        copilotChatMessage.AppendFunctionResult(functionResultContent);
-                        break;
-                }
+                case TextReasoningContent textReasoningContent when !string.IsNullOrEmpty(textReasoningContent.Text):
+                    copilotChatMessage.AppendReasoning(textReasoningContent.Text);
+                    break;
+                case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
+                    copilotChatMessage.AppendText(textContent.Text);
+                    break;
+                case FunctionCallContent functionCallContent:
+                    copilotChatMessage.AppendFunctionCall(functionCallContent);
+                    break;
+                case FunctionResultContent functionResultContent:
+                    copilotChatMessage.AppendFunctionResult(functionResultContent);
+                    break;
             }
-
-            copilotChatMessage.AppendUsageDetails(responseUpdate.Contents);
         }
+
+        copilotChatMessage.AppendUsageDetails(responseUpdate.Contents);
     }
 
     private CopilotChatSession CreateSession()

@@ -123,10 +123,7 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
             _isFirstUpdate = false;
             if (AssistantChatMessage.Content == CopilotChatMessage.PlaceholderContent)
             {
-                _ = ChatManager.TryRunInMainThread(() =>
-                {
-                    AssistantChatMessage.ClearMessageItems();
-                });
+                AssistantChatMessage.ClearMessageItems();
             }
         }
 
