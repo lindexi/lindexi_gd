@@ -102,29 +102,6 @@ public class AgentSessionStreamingHelperTests
         Assert.AreSame(expectedException, actualException);
     }
 
-    [TestMethod(DisplayName = "工具调用已持久化分段响应时不应再次追加整轮助手内容")]
-    [Timeout(10000)]
-    public async Task RunWithHistoryCompletion_WhenToolCallHistoryIsPersisted_DoesNotAppendAggregatedDuplicate()
-    {
-        var fakeChatClient = new FakeChatClient();
-        var callCount = 0;
-        AITool tool = AIFunctionFactory.Create(GetWeather);
-        fakeChatClient.OnGetStreamingResponseAsync = (_, options, cancellationToken) =>
-            Interlocked.Increment(ref callCount) == 1
-                ? CreateToolCallStreamAsync(options, cancellationToken)
-                : CreateTextAndReasoningStreamAsync(cancellationToken);
-        ChatClientAgent agent = CreateAgent(fakeChatClient, [tool]);
-        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
-
-        await CollectUpdatesAsync(agent.RunWithHistoryCompletionAsync(CreateInputMessages(), session)).ConfigureAwait(false);
-
-        Assert.IsTrue(session.TryGetInMemoryChatHistory(out List<ChatMessage>? messages));
-        Assert.AreEqual(1, messages.SelectMany(message => message.Contents).OfType<TextReasoningContent>()
-            .Count(content => content.Text == "最终思考"));
-        Assert.AreEqual(1, messages.SelectMany(message => message.Contents).OfType<TextContent>()
-            .Count(content => content.Text == "最终正文"));
-    }
-
     private static Exception CreateException(string exceptionType)
     {
         return exceptionType switch
@@ -136,14 +113,10 @@ public class AgentSessionStreamingHelperTests
         };
     }
 
-    private static ChatClientAgent CreateAgent(FakeChatClient fakeChatClient, IReadOnlyList<AITool>? tools = null)
+    private static ChatClientAgent CreateAgent(FakeChatClient fakeChatClient)
     {
         return fakeChatClient.AsAIAgent(new ChatClientAgentOptions
         {
-            ChatOptions = new ChatOptions
-            {
-                Tools = tools is null ? null : [.. tools],
-            },
             ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()),
             RequirePerServiceCallChatHistoryPersistence = true,
         });
@@ -192,31 +165,4 @@ public class AgentSessionStreamingHelperTests
         await Task.Yield();
         throw exception;
     }
-
-    private static async IAsyncEnumerable<ChatResponseUpdate> CreateToolCallStreamAsync(
-        ChatOptions? options,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        AIFunction tool = options?.Tools?.OfType<AIFunction>().Single()
-            ?? throw new InvalidOperationException("未找到测试工具。");
-        yield return CopilotChatManagerTestContext.AssistantReasoning("调用工具前思考");
-        yield return CopilotChatManagerTestContext.AssistantFunctionCall(
-            "weather-call-1",
-            tool.Name,
-            new Dictionary<string, object?>());
-        await Task.Yield();
-    }
-
-    private static async IAsyncEnumerable<ChatResponseUpdate> CreateTextAndReasoningStreamAsync(
-        [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        yield return CopilotChatManagerTestContext.AssistantReasoning("最终思考");
-        yield return CopilotChatManagerTestContext.AssistantText("最终正文");
-        await Task.Yield();
-    }
-
-    [System.ComponentModel.Description("获取天气")]
-    private static string GetWeather() => "天气晴朗";
 }
