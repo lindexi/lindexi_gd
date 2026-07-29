@@ -84,6 +84,40 @@ public sealed class CodingAgentTests
         Assert.IsInstanceOfType<CopilotChatTextItem>(context.UserChatMessage.MessageItems[2]);
     }
 
+    [TestMethod(DisplayName = "交错流式片段应按到达顺序在主线程提交")]
+    [Timeout(10000)]
+    public async Task RunAsyncShouldDispatchInterleavedResponseUpdatesInOrder()
+    {
+        var dispatcher = new StrictMainThreadDispatcher();
+        var client = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (_, _, cancellationToken) =>
+                InterleavedStreamAsync(dispatcher, cancellationToken),
+        };
+        CopilotChatManager chatManager = CreateChatManager(client, dispatcher);
+        await using var agent = new CodingAgent(CreateProvider("workspace", []));
+        IManualSendMessageContext context = await chatManager.CreateManualSendMessageContextAsync();
+        var itemAddDispatchStates = new List<bool>();
+        context.AssistantChatMessage.MessageItems.CollectionChanged += (_, args) =>
+        {
+            if (args.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+            {
+                itemAddDispatchStates.Add(dispatcher.IsInvoking);
+            }
+        };
+
+        CodingAgentRunResult result = await agent.RunAsync(context, "检查顺序", "workspace");
+        Assert.AreEqual("正文一正文二", await result.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
+
+        Assert.HasCount(4, itemAddDispatchStates);
+        Assert.IsTrue(itemAddDispatchStates.All(isInvoking => isInvoking));
+        Assert.HasCount(4, result.AssistantChatMessage.MessageItems);
+        Assert.AreEqual("思考一", Assert.IsInstanceOfType<CopilotChatReasoningItem>(result.AssistantChatMessage.MessageItems[0]).Text);
+        Assert.AreEqual("正文一", Assert.IsInstanceOfType<CopilotChatTextItem>(result.AssistantChatMessage.MessageItems[1]).Text);
+        Assert.AreEqual("思考二", Assert.IsInstanceOfType<CopilotChatReasoningItem>(result.AssistantChatMessage.MessageItems[2]).Text);
+        Assert.AreEqual("正文二", Assert.IsInstanceOfType<CopilotChatTextItem>(result.AssistantChatMessage.MessageItems[3]).Text);
+    }
+
     [TestMethod(DisplayName = "连续运行应复用同一个 AgentSession")]
     [Timeout(10000)]
     public async Task RunAsyncShouldReuseExistingAgentSession()
@@ -439,9 +473,14 @@ public sealed class CodingAgentTests
         Func<string, string, CancellationToken, Task<CodingWorkspaceToolSession>> createSession) =>
         new(new TestSessionProvider(createSession));
 
-    private static CopilotChatManager CreateChatManager(FakeChatClient client)
+    private static CopilotChatManager CreateChatManager(
+        FakeChatClient client,
+        IMainThreadDispatcher? mainThreadDispatcher = null)
     {
-        var chatManager = new CopilotChatManager();
+        var chatManager = new CopilotChatManager
+        {
+            MainThreadDispatcher = mainThreadDispatcher,
+        };
         var model = new FakeLanguageModel(client)
         {
             ModelDefinition = new ModelDefinition
@@ -453,6 +492,27 @@ public sealed class CodingAgentTests
         };
         chatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([model]));
         return chatManager;
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> InterleavedStreamAsync(
+        StrictMainThreadDispatcher dispatcher,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        ChatResponseUpdate[] updates =
+        [
+            new(ChatRole.Assistant, [new TextReasoningContent("思考一")]),
+            new(ChatRole.Assistant, [new TextContent("正文一")]),
+            new(ChatRole.Assistant, [new TextReasoningContent("思考二")]),
+            new(ChatRole.Assistant, [new TextContent("正文二")]),
+        ];
+
+        foreach (ChatResponseUpdate update in updates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Assert.IsFalse(dispatcher.IsInvoking);
+            yield return update;
+            await Task.Yield();
+        }
     }
 
     private sealed class TestSessionProvider(
@@ -543,6 +603,45 @@ public sealed class CodingAgentTests
             DisposeCount++;
             Disposed.TrySetResult();
             return default;
+        }
+    }
+
+    private sealed class StrictMainThreadDispatcher : IMainThreadDispatcher
+    {
+        public int InvokeCount { get; private set; }
+
+        public bool IsInvoking { get; private set; }
+
+        public bool CheckAccess() => IsInvoking;
+
+        public async Task InvokeAsync(Func<Task> action)
+        {
+            Assert.IsFalse(IsInvoking);
+            InvokeCount++;
+            IsInvoking = true;
+            try
+            {
+                await action();
+            }
+            finally
+            {
+                IsInvoking = false;
+            }
+        }
+
+        public async Task<T> InvokeAsync<T>(Func<Task<T>> action)
+        {
+            Assert.IsFalse(IsInvoking);
+            InvokeCount++;
+            IsInvoking = true;
+            try
+            {
+                return await action();
+            }
+            finally
+            {
+                IsInvoking = false;
+            }
         }
     }
 
