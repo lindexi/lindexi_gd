@@ -8,6 +8,7 @@
         x:Class="CodingChatRoom.AvaloniaShell.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="{Binding ChatViewModel.CommittedWorkspacePath, Converter={StaticResource WorkspaceTitleConverter}, ConverterParameter={StaticResource ApplicationTitle}}"
+        Icon="avares://CodingChatRoom.AvaloniaShell/Assets/Icons/CodingChatRoom.ico"
         MinWidth="800"
         MinHeight="520"
         Background="{StaticResource BackgroundBrush}">

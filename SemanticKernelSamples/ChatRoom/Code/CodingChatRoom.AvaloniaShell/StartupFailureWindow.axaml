@@ -4,6 +4,7 @@
         x:Class="CodingChatRoom.AvaloniaShell.StartupFailureWindow"
         x:DataType="vm:StartupFailureViewModel"
         Title="CodingChatRoom 启动失败"
+        Icon="avares://CodingChatRoom.AvaloniaShell/Assets/Icons/CodingChatRoom.ico"
         Width="760"
         Height="520"
         MinWidth="560"
