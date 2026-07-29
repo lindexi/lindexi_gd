@@ -1,0 +1,163 @@
+<Window x:Class="QeechegayyalbeaheJerhernawwulear.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="{DynamicResource AppTitle}"
+        Width="1040"
+        Height="700"
+        MinWidth="900"
+        MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        Background="#F3F6FB"
+        FontFamily="Segoe UI">
+    <Window.Resources>
+        <LinearGradientBrush x:Key="IconBodyBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Offset="0" Color="#397DEC" />
+            <GradientStop Offset="0.55" Color="#316BDA" />
+            <GradientStop Offset="1" Color="#3777E5" />
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="IconHeaderBrush" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Offset="0" Color="#2360BD" />
+            <GradientStop Offset="1" Color="#2557A6" />
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="BracketBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Offset="0" Color="#2864BE" />
+            <GradientStop Offset="1" Color="#2160B6" />
+        </LinearGradientBrush>
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="18,11" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border" Background="{TemplateBinding Background}" CornerRadius="9">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Opacity" Value="0.88" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Border" Property="Opacity" Value="0.72" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Border" Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Margin="4,0,0,24">
+            <TextBlock Text="{DynamicResource AppTitle}" FontSize="28" FontWeight="Bold" Foreground="#15243B" />
+            <TextBlock Margin="0,6,0,0" Text="{DynamicResource PreviewDescription}" FontSize="14" Foreground="#637086" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="300" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Padding="22" Background="White" CornerRadius="18">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="5" Opacity="0.1" Color="#10213B" />
+                </Border.Effect>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Margin="2,0,0,16">
+                        <TextBlock Text="{DynamicResource PreviewTitle}" FontSize="17" FontWeight="SemiBold" Foreground="#17243A" />
+                        <TextBlock Margin="0,4,0,0" Text="512 × 512" Foreground="#8591A5" />
+                    </StackPanel>
+                    <Viewbox Grid.Row="1" Stretch="Uniform">
+                        <Grid x:Name="IconArtwork" Width="512" Height="512" ClipToBounds="True" Background="Transparent">
+                            <Canvas>
+                                <Canvas.Effect>
+                                    <DropShadowEffect BlurRadius="22" ShadowDepth="3" Opacity="0.3" Color="#001124" />
+                                </Canvas.Effect>
+                                <Path Data="M178,149 H142 Q131,149 131,162 V198 M334,149 H370 Q381,149 381,162 V198 M178,363 H142 Q131,363 131,350 V314 M334,363 H370 Q381,363 381,350 V314"
+                                      Stroke="{StaticResource BracketBrush}" StrokeThickness="15" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                            </Canvas>
+
+                            <Border Width="214" Height="170" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Background="{StaticResource IconBodyBrush}" CornerRadius="20">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="18" ShadowDepth="5" Opacity="0.22" Color="#00162D" />
+                                </Border.Effect>
+                                <Grid ClipToBounds="True">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="34" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <Border Background="{StaticResource IconHeaderBrush}" CornerRadius="20,20,0,0">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,18,0" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Ellipse Width="11" Height="11" Fill="#8654C5" />
+                                            <Ellipse Width="11" Height="11" Margin="10,0,0,0" Fill="#FF5637" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Grid Grid.Row="1">
+                                        <Border Width="152" Height="72" Margin="0,14,0,0" VerticalAlignment="Top" Background="#2D55AE" CornerRadius="14">
+                                            <Border.Effect>
+                                                <DropShadowEffect BlurRadius="7" ShadowDepth="2" Opacity="0.12" />
+                                            </Border.Effect>
+                                            <Border Width="17" Height="17" Background="#65C5EF" CornerRadius="5" />
+                                        </Border>
+                                        <Border Width="53" Height="11" Margin="0,0,31,21" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="#2857AE" CornerRadius="6" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Viewbox>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Padding="24" Background="White" CornerRadius="18">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="24" ShadowDepth="5" Opacity="0.1" Color="#10213B" />
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource ExportTitle}" FontSize="19" FontWeight="SemiBold" Foreground="#17243A" />
+                    <Border Height="1" Margin="0,16,0,18" Background="#E8ECF3" />
+                    <TextBlock Text="PNG" FontWeight="SemiBold" Foreground="#324158" />
+                    <TextBlock Margin="0,6,0,18" Text="{DynamicResource ExportDescription}" TextWrapping="Wrap" LineHeight="22" Foreground="#6D798C" />
+                    <TextBlock Text="ICO" FontWeight="SemiBold" Foreground="#324158" />
+                    <TextBlock Margin="0,6,0,18" Text="{DynamicResource IcoDescription}" TextWrapping="Wrap" LineHeight="22" Foreground="#6D798C" />
+                    <TextBlock Text="{DynamicResource OutputTitle}" FontWeight="SemiBold" Foreground="#324158" />
+                    <Border Margin="0,8,0,24" Padding="10" Background="#F4F7FB" CornerRadius="7">
+                        <TextBlock x:Name="OutputPathTextBlock" TextWrapping="Wrap" Foreground="#59677B" FontSize="12" />
+                    </Border>
+                    <Button x:Name="ExportPngButton" Style="{StaticResource ActionButtonStyle}" Background="#316FDD"
+                            Content="{DynamicResource ExportPngButton}" Click="ExportPngButton_Click" />
+                    <Button x:Name="ExportIcoButton" Style="{StaticResource ActionButtonStyle}" Background="#53647B"
+                            Content="{DynamicResource ExportIcoButton}" Click="ExportIcoButton_Click" />
+                    <Button x:Name="ExportAllButton" Style="{StaticResource ActionButtonStyle}" Background="#102B50"
+                            Content="{DynamicResource ExportAllButton}" Click="ExportAllButton_Click" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Margin="0,20,0,0" Padding="14,10" Background="#E8F1FF" CornerRadius="9">
+            <TextBlock x:Name="StatusTextBlock" Text="{DynamicResource ReadyStatus}" Foreground="#28599F" />
+        </Border>
+    </Grid>
+</Window>
