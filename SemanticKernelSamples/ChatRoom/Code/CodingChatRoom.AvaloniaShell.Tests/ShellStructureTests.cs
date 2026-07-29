@@ -1,7 +1,9 @@
 using System.Globalization;
+using System.Reflection;
 
 using CodingChatRoom.AvaloniaShell.Converters;
 using CodingChatRoom.AvaloniaShell.ViewModels;
+using CodingChatRoom.AvaloniaShell.Views;
 
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
@@ -48,7 +50,20 @@ public sealed class ShellStructureTests
 
         Assert.IsFalse(viewModel.CanSend);
         Assert.IsFalse(viewModel.SendCommand.CanExecute(null));
+        Assert.IsFalse(viewModel.CanCompressConversation);
+        Assert.IsFalse(viewModel.CompressConversationCommand.CanExecute(null));
         Assert.IsFalse(viewModel.StopCommand.CanExecute(null));
+    }
+
+    [TestMethod(DisplayName = "聊天视图应包含压缩对话按钮")]
+    [Timeout(5000)]
+    public void ChatViewShouldContainCompressConversationButton()
+    {
+        FieldInfo? buttonField = typeof(ChatView).GetField(
+            "CompressConversationButton",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.IsNotNull(buttonField);
     }
 
     [TestMethod(DisplayName = "窗口标题应显示已提交的工作路径")]

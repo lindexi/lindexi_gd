@@ -2,12 +2,15 @@ using System.Collections.Generic;
 
 using AgentLib;
 using AgentLib.Coding;
+using AgentLib.Core.AgentApiManagers.Contexts;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Logging;
 using AgentLib.Model;
 
 using CodingChatRoom.AvaloniaShell.Services;
 using CodingChatRoom.AvaloniaShell.ViewModels;
 
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 namespace CodingChatRoom.AvaloniaShell.Tests;
@@ -142,12 +145,78 @@ public sealed class CodingChatApplicationTests
         await sendTask;
     }
 
+    [TestMethod(DisplayName = "压缩对话时应禁用冲突操作并保存压缩后的历史")]
+    [Timeout(5000)]
+    public async Task CompressConversationAsyncShouldDisableConflictingOperationsAndSaveReducedHistory()
+    {
+        var compressionStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseCompression = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        const string summaryText = "这是压缩后的对话摘要";
+        var chatClient = new FakeChatClient
+        {
+            OnGetResponseAsync = async (_, _, cancellationToken) =>
+            {
+                compressionStarted.TrySetResult();
+                await releaseCompression.Task.WaitAsync(cancellationToken);
+                return new ChatResponse([new ChatMessage(ChatRole.Assistant, summaryText)]);
+            },
+        };
+        CopilotChatManager manager = CreateChatManager(chatClient);
+        IManualSendMessageContext context = await manager.CreateManualSendMessageContextAsync();
+        AgentSession agentSession = await context.GetAgentSessionAsync();
+        agentSession.SetInMemoryChatHistory(
+        [
+            new ChatMessage(ChatRole.System, "系统提示"),
+            new ChatMessage(ChatRole.User, "用户问题"),
+            new ChatMessage(ChatRole.Assistant, "助手回答"),
+        ]);
+        var store = new TestSessionStore();
+        var application = new CodingChatApplication(manager, store, new ControllableRunner());
+        await application.InitializeAsync();
+        Assert.IsTrue(application.CanSend);
+        Assert.IsTrue(application.CanCompressConversation);
+
+        Task compressionTask = application.CompressConversationAsync();
+        await compressionStarted.Task;
+
+        Assert.IsTrue(application.IsCompressionActive);
+        Assert.IsFalse(application.CanChangeSession);
+        Assert.IsFalse(application.CanSend);
+        Assert.IsFalse(application.CanCompressConversation);
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => application.SendMessageAsync("并发发送"));
+
+        releaseCompression.TrySetResult();
+        await compressionTask;
+
+        Assert.IsFalse(application.IsCompressionActive);
+        Assert.AreEqual(1, store.SaveCount);
+        Assert.AreSame(manager.SelectedSession, store.LastSavedSession);
+        Assert.IsTrue(agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? compressedMessages));
+        Assert.IsTrue(compressedMessages.Any(message => message.Text.Contains(summaryText, StringComparison.Ordinal)));
+    }
+
     private static CopilotChatSession CreateSession(string title, string content, DateTimeOffset startedTime)
     {
         var session = new CopilotChatSession(Guid.NewGuid(), startedTime);
         session.SetTitle(title);
         session.AddMessageAsync(new CopilotChatMessage(ChatRole.User, content)).GetAwaiter().GetResult();
         return session;
+    }
+
+    private static CopilotChatManager CreateChatManager(FakeChatClient chatClient)
+    {
+        var manager = new CopilotChatManager();
+        var model = new FakeLanguageModel(chatClient)
+        {
+            ModelDefinition = new ModelDefinition
+            {
+                Provider = "fake",
+                ModelId = "fake",
+                ModelName = "Fake",
+            },
+        };
+        manager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([model]));
+        return manager;
     }
 
     private sealed class TestSessionStore : ICodingChatSessionStore
@@ -162,6 +231,10 @@ public sealed class CodingChatApplicationTests
         public Exception? LoadException { get; init; }
 
         public Exception? DeleteException { get; init; }
+
+        public int SaveCount { get; private set; }
+
+        public CopilotChatSession? LastSavedSession { get; private set; }
 
         public Task<IReadOnlyList<CopilotChatSessionSummary>> ListSessionsAsync(CancellationToken cancellationToken = default)
         {
@@ -199,7 +272,11 @@ public sealed class CodingChatApplicationTests
         }
 
         public Task SaveSessionAsync(CopilotChatSession session, CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
+        {
+            SaveCount++;
+            LastSavedSession = session;
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class ControllableRunner : ICodingChatRunner

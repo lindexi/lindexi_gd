@@ -3,6 +3,8 @@ using System.ComponentModel;
 
 using AgentLib;
 using AgentLib.Coding;
+using AgentLib.Core.AgentApiManagers.Contexts;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Logging;
 using AgentLib.Model;
 
@@ -13,6 +15,7 @@ using CodingChatRoom.AvaloniaShell.ViewModels;
 using CodingChatRoom.AvaloniaShell.Views;
 using CodingChatRoom.AvaloniaShell.Services;
 
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 namespace CodingChatRoom.AvaloniaShell.Tests;
@@ -261,6 +264,38 @@ public sealed class ChatViewModelTests
         Assert.IsTrue(viewModel.Messages[^1].IsSystemMessage);
     }
 
+    [TestMethod(DisplayName = "压缩命令应压缩当前对话并显示完成消息")]
+    [Timeout(5000)]
+    public async Task CompressConversationCommandShouldReduceCurrentHistoryAndShowCompletionMessage()
+    {
+        const string summaryText = "压缩后的编程对话摘要";
+        var chatClient = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) =>
+                Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, summaryText)])),
+        };
+        CopilotChatManager manager = CreateChatManager(chatClient);
+        IManualSendMessageContext context = await manager.CreateManualSendMessageContextAsync();
+        AgentSession agentSession = await context.GetAgentSessionAsync();
+        agentSession.SetInMemoryChatHistory(
+        [
+            new ChatMessage(ChatRole.System, "系统提示"),
+            new ChatMessage(ChatRole.User, "用户问题"),
+            new ChatMessage(ChatRole.Assistant, "助手回答"),
+        ]);
+        var application = new CodingChatApplication(manager, new EmptySessionStore());
+        await application.InitializeAsync();
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型");
+
+        Assert.IsTrue(viewModel.CompressConversationCommand.CanExecute(null));
+        viewModel.CompressConversationCommand.Execute(null);
+        await WaitUntilAsync(() => viewModel.Messages[^1].Content == "对话压缩完成。");
+
+        Assert.IsTrue(agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? compressedMessages));
+        Assert.IsTrue(compressedMessages.Any(message => message.Text.Contains(summaryText, StringComparison.Ordinal)));
+        Assert.IsTrue(viewModel.Messages[^1].IsSystemMessage);
+    }
+
     [TestMethod(DisplayName = "应用工作路径命令应提交输入并刷新状态")]
     [Timeout(5000)]
     public async Task ApplyWorkspaceCommandShouldCommitInputAndRefreshStatus()
@@ -330,6 +365,22 @@ public sealed class ChatViewModelTests
         string path = Path.Join(Path.GetTempPath(), $"CodingChatRoom.ViewModelWorkspace.{Guid.NewGuid():N}");
         Directory.CreateDirectory(path);
         return path;
+    }
+
+    private static CopilotChatManager CreateChatManager(FakeChatClient chatClient)
+    {
+        var manager = new CopilotChatManager();
+        var model = new FakeLanguageModel(chatClient)
+        {
+            ModelDefinition = new ModelDefinition
+            {
+                Provider = "fake",
+                ModelId = "fake",
+                ModelName = "Fake",
+            },
+        };
+        manager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([model]));
+        return manager;
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition)
