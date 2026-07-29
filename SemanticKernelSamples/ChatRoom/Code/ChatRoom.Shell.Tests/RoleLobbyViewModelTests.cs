@@ -96,7 +96,7 @@ public sealed class RoleLobbyViewModelTests
         await AddTemplateAsync(FirstTemplateId, expectedRoleCount: 1);
         await AddTemplateAsync(SecondTemplateId, expectedRoleCount: 2);
 
-        Assert.AreEqual(2, _chatRoomService.CurrentManager!.Roles.Count);
+        Assert.HasCount(2, _chatRoomService.CurrentManager!.Roles);
     }
 
     /// <summary>

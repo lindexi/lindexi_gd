@@ -148,7 +148,7 @@ public sealed class ChatViewModelTests
         await previousSession.AddMessageAsync(new CopilotChatMessage(ChatRole.Assistant, "旧会话迟到更新"));
 
         Assert.AreEqual(manager.SelectedSession.SessionId, viewModel.CurrentSessionId);
-        Assert.AreEqual(currentMessageCount, viewModel.Messages.Count);
+        Assert.HasCount(currentMessageCount, viewModel.Messages);
     }
 
     [TestMethod(DisplayName = "审批入口应复用聊天管理器完成决策")]
@@ -202,10 +202,11 @@ public sealed class ChatViewModelTests
         viewModel.SendCommand.Execute(null);
         await runner.Completed.Task;
 
-        Assert.IsTrue(viewModel.SendCommand.CanExecute(null) is false);
+        Assert.IsFalse(viewModel.SendCommand.CanExecute(null));
         Assert.IsEmpty(viewModel.PendingImages);
-        Assert.HasCount(1, runner.ObservedContents!);
-        DataContent imageContent = Assert.IsInstanceOfType<DataContent>(runner.ObservedContents[0]);
+        IReadOnlyList<AIContent> observedContents = runner.ObservedContents!;
+        Assert.HasCount(1, observedContents);
+        DataContent imageContent = Assert.IsInstanceOfType<DataContent>(observedContents[0]);
         Assert.AreEqual("image/png", imageContent.MediaType);
     }
 
