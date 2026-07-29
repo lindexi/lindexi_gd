@@ -37,6 +37,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     {
         _modelStatusText = "等待应用初始化";
         SendCommand = new SimpleCommand(static () => { }, static () => false);
+        CompressConversationCommand = new SimpleCommand(static () => { }, static () => false);
         StopCommand = new SimpleCommand(static () => { }, static () => false);
         ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
         PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
@@ -48,6 +49,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _chatManager = chatManager;
         _modelStatusText = statusText;
         SendCommand = new SimpleCommand(static () => { }, static () => false);
+        CompressConversationCommand = new SimpleCommand(static () => { }, static () => false);
         StopCommand = new SimpleCommand(static () => { }, static () => false);
         ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
@@ -66,6 +68,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _application = application;
         _modelStatusText = statusText;
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend);
+        CompressConversationCommand = new SimpleAsyncCommand(CompressConversationAsync, () => CanCompressConversation);
         StopCommand = new SimpleCommand(application.StopActiveRun, () => IsRunning);
         ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
@@ -88,6 +91,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _workspaceController = workspaceController;
         _modelStatusText = statusText;
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend);
+        CompressConversationCommand = new SimpleAsyncCommand(CompressConversationAsync, () => CanCompressConversation);
         StopCommand = new SimpleCommand(application.StopActiveRun, () => IsRunning);
         ApplyWorkspaceCommand = new SimpleAsyncCommand(ApplyWorkspaceAsync, () => CanApplyWorkspace);
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
@@ -144,6 +148,11 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     public ICommand SendCommand { get; }
 
     /// <summary>
+    /// 获取压缩当前对话命令。
+    /// </summary>
+    public ICommand CompressConversationCommand { get; }
+
+    /// <summary>
     /// 获取停止命令。
     /// </summary>
     public ICommand StopCommand { get; }
@@ -160,6 +169,11 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         && (!string.IsNullOrWhiteSpace(InputText) || PendingImages.Count > 0);
 
     /// <summary>
+    /// 获取当前对话是否可以压缩。
+    /// </summary>
+    public bool CanCompressConversation => _application?.CanCompressConversation == true;
+
+    /// <summary>
     /// 获取是否存在待发送图片。
     /// </summary>
     public bool HasPendingImages => PendingImages.Count > 0;
@@ -168,6 +182,11 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// 获取是否正在运行。
     /// </summary>
     public bool IsRunning => _application?.IsRunActive == true;
+
+    /// <summary>
+    /// 获取当前是否正在压缩对话。
+    /// </summary>
+    public bool IsCompressing => _application?.IsCompressionActive == true;
 
     /// <summary>
     /// 获取或设置待应用的工作路径。
@@ -337,8 +356,42 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     private void OnApplicationStateChanged(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(CanSend));
+        OnPropertyChanged(nameof(CanCompressConversation));
         OnPropertyChanged(nameof(IsRunning));
+        OnPropertyChanged(nameof(IsCompressing));
         RaiseCommandCanExecuteChanged();
+    }
+
+    private async Task CompressConversationAsync()
+    {
+        if (_application is null || !CanCompressConversation)
+        {
+            return;
+        }
+
+        CopilotChatSession? session = _subscribedSession;
+        _runStatusText = "正在压缩对话";
+        OnPropertyChanged(nameof(StatusText));
+        try
+        {
+            await _application.CompressConversationAsync().ConfigureAwait(true);
+            _runStatusText = "对话压缩完成";
+            await AddSystemMessageAsync(session, "对话压缩完成。").ConfigureAwait(true);
+        }
+        catch (OperationCanceledException)
+        {
+            _runStatusText = "对话压缩已取消";
+            await AddSystemMessageAsync(session, "对话压缩已取消。").ConfigureAwait(true);
+        }
+        catch (Exception exception)
+        {
+            _runStatusText = $"对话压缩失败：{exception.Message}";
+            await AddSystemMessageAsync(session, _runStatusText).ConfigureAwait(true);
+        }
+        finally
+        {
+            OnPropertyChanged(nameof(StatusText));
+        }
     }
 
     private async Task SendAsync()
@@ -399,6 +452,11 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
             sendCommand.RaiseCanExecuteChanged();
         }
 
+        if (CompressConversationCommand is SimpleAsyncCommand compressConversationCommand)
+        {
+            compressConversationCommand.RaiseCanExecuteChanged();
+        }
+
         if (StopCommand is SimpleCommand stopCommand)
         {
             stopCommand.RaiseCanExecuteChanged();
@@ -415,6 +473,8 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         if (e.PropertyName == nameof(CopilotChatManager.SelectedSession) && _chatManager is not null)
         {
             AttachSession(_chatManager.SelectedSession);
+            OnPropertyChanged(nameof(CanCompressConversation));
+            RaiseCommandCanExecuteChanged();
         }
     }
 
@@ -456,6 +516,11 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         if (e.PropertyName == nameof(CopilotChatSession.Title))
         {
             OnPropertyChanged(nameof(CurrentSessionTitle));
+        }
+        else if (e.PropertyName == nameof(CopilotChatSession.AgentSession))
+        {
+            OnPropertyChanged(nameof(CanCompressConversation));
+            RaiseCommandCanExecuteChanged();
         }
     }
 

@@ -10,6 +10,7 @@ using AgentLib.Coding;
 using AgentLib.Logging;
 using AgentLib.Model;
 
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
@@ -21,6 +22,7 @@ internal sealed class CodingChatApplication
     private readonly ICodingChatRunner? _chatRunner;
     private readonly CodingWorkspaceController? _workspaceController;
     private CancellationTokenSource? _activeRunCancellationTokenSource;
+    private bool _isCompressionActive;
     private bool _isRunActive;
 
     public CodingChatApplication(CopilotChatManager chatManager, ICodingChatSessionStore sessionStore)
@@ -58,9 +60,14 @@ internal sealed class CodingChatApplication
 
     public Guid SelectedSessionId => _chatManager.SelectedSession.SessionId;
 
-    public bool CanChangeSession => !_isRunActive;
+    public bool CanChangeSession => !HasActiveOperation;
 
-    public bool CanSend => _chatRunner is not null && !_isRunActive;
+    public bool CanSend => _chatRunner is not null && !HasActiveOperation;
+
+    public bool CanCompressConversation => !HasActiveOperation
+        && _chatManager.SelectedSession.AgentSession is not null;
+
+    public bool IsCompressionActive => _isCompressionActive;
 
     public bool IsRunActive => _isRunActive;
 
@@ -195,9 +202,9 @@ internal sealed class CodingChatApplication
 
         ICodingChatRunner chatRunner = _chatRunner
             ?? throw new InvalidOperationException("编程代理运行器尚未初始化。");
-        if (_isRunActive)
+        if (HasActiveOperation)
         {
-            throw new InvalidOperationException("已有活动发送正在运行。");
+            throw new InvalidOperationException("已有活动操作正在运行。");
         }
 
         CancellationTokenSource runCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -239,6 +246,33 @@ internal sealed class CodingChatApplication
                 runCancellationTokenSource.Dispose();
                 OnStateChanged();
             }
+        }
+    }
+
+    public async Task CompressConversationAsync(CancellationToken cancellationToken = default)
+    {
+        if (!CanCompressConversation)
+        {
+            throw new InvalidOperationException("当前会话没有可压缩的对话历史，或已有操作正在运行。");
+        }
+
+        CopilotChatSession session = _chatManager.SelectedSession;
+        AgentSession agentSession = session.AgentSession
+            ?? throw new InvalidOperationException("当前会话没有可压缩的对话历史。");
+        _isCompressionActive = true;
+        OnStateChanged();
+        try
+        {
+            await _chatManager
+                .ReduceSessionAsync();
+            await _sessionStore
+                .SaveSessionAsync(session, CancellationToken.None);
+            AddOrUpdateSummary(session, insertAtTop: true);
+        }
+        finally
+        {
+            _isCompressionActive = false;
+            OnStateChanged();
         }
     }
 
@@ -287,6 +321,8 @@ internal sealed class CodingChatApplication
             throw new InvalidOperationException("活动发送期间不能切换会话。");
         }
     }
+
+    private bool HasActiveOperation => _isRunActive || _isCompressionActive;
 
     private void OnStateChanged() => StateChanged?.Invoke(this, EventArgs.Empty);
 }
