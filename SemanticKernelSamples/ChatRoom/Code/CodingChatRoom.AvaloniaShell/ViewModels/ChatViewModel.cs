@@ -503,11 +503,6 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         {
             OnPropertyChanged(nameof(CurrentSessionTitle));
         }
-        else if (e.PropertyName == nameof(CopilotChatSession.AgentSession))
-        {
-            OnPropertyChanged(nameof(CanCompressConversation));
-            RaiseCommandCanExecuteChanged();
-        }
     }
 
     private void OnChatMessagesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

@@ -218,7 +218,7 @@ public sealed class CodingAgent : IAsyncDisposable
                 agentSession,
                 cancellationToken).ConfigureAwait(false))
             {
-                context.AppendResponseUpdate(update);
+                await AppendResponseUpdateAsync(context, update).ConfigureAwait(false);
                 hasResponseUpdate = true;
             }
 
@@ -252,6 +252,24 @@ public sealed class CodingAgent : IAsyncDisposable
                 }
             }
         }
+    }
+
+    private static Task AppendResponseUpdateAsync(
+        IManualSendMessageContext context,
+        AgentResponseUpdate update)
+    {
+        IMainThreadDispatcher? dispatcher = context.MainThreadDispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess())
+        {
+            context.AppendResponseUpdate(update);
+            return Task.CompletedTask;
+        }
+
+        return dispatcher.InvokeAsync(() =>
+        {
+            context.AppendResponseUpdate(update);
+            return Task.CompletedTask;
+        });
     }
 
     private static ICopilotChatMessageItem CreateDataMessageItem(DataContent dataContent)
