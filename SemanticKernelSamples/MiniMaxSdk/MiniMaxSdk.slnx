@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="MiniMaxDemo/MiniMaxDemo.csproj" />
+  <Project Path="MiniMaxImageGenerationWpf/MiniMaxImageGenerationWpf.csproj" />
   <Project Path="MiniMaxSdk/MiniMaxSdk.csproj" />
 </Solution>
