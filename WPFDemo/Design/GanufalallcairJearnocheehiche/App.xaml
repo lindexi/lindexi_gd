@@ -1,0 +1,23 @@
+<Application x:Class="GanufalallcairJearnocheehiche.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <sys:String x:Key="AppTitle">代码对话图标绘制与导出</sys:String>
+        <sys:String x:Key="PreviewTitle">WPF 矢量图标预览</sys:String>
+        <sys:String x:Key="PreviewDescription">使用 WPF 路径、渐变和阴影绘制，可无损导出多种尺寸</sys:String>
+        <sys:String x:Key="ExportTitle">导出设置</sys:String>
+        <sys:String x:Key="ExportDescription">PNG：1024、512、256、128、64、48、32、16 像素</sys:String>
+        <sys:String x:Key="IcoDescription">ICO：合并 256、128、64、48、32、16 像素</sys:String>
+        <sys:String x:Key="OutputTitle">默认输出目录</sys:String>
+        <sys:String x:Key="ExportPngButton">导出多尺寸 PNG</sys:String>
+        <sys:String x:Key="ExportIcoButton">导出多尺寸 ICO</sys:String>
+        <sys:String x:Key="ExportAllButton">全部导出</sys:String>
+        <sys:String x:Key="ReadyStatus">准备就绪</sys:String>
+        <sys:String x:Key="PngExportCompleted">PNG 图片导出完成</sys:String>
+        <sys:String x:Key="IcoExportCompleted">ICO 图标导出完成</sys:String>
+        <sys:String x:Key="AllExportCompleted">全部图片导出完成</sys:String>
+        <sys:String x:Key="ExportFailed">导出失败</sys:String>
+    </Application.Resources>
+</Application>
