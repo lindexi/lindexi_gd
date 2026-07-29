@@ -38,6 +38,7 @@ public static class AgentSessionStreamingHelper
         SanitizeSessionHistory(session);
 
         var collectedUpdates = new List<AgentResponseUpdate>();
+        int historyStartIndex = GetHistoryCount(session);
         try
         {
             IReadOnlyList<ChatMessage> currentInputMessages = inputMessages;
@@ -86,7 +87,7 @@ public static class AgentSessionStreamingHelper
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
-                CompleteRunHistory(session, inputMessages, collectedUpdates);
+                historyStartIndex = CompleteRunHistory(session, inputMessages, collectedUpdates, historyStartIndex);
                 collectedUpdates.Clear();
                 currentInputMessages = [];
                 retryCount++;
@@ -94,7 +95,7 @@ public static class AgentSessionStreamingHelper
         }
         finally
         {
-            CompleteRunHistory(session, inputMessages, collectedUpdates);
+            CompleteRunHistory(session, inputMessages, collectedUpdates, historyStartIndex);
         }
 
         static async Task<MoveNextResult> TryMoveNextAsync(IAsyncEnumerator<AgentResponseUpdate> enumerator)
@@ -122,14 +123,15 @@ public static class AgentSessionStreamingHelper
 
     private readonly record struct MoveNextResult(bool HasNext, Exception? Exception);
 
-    private static void CompleteRunHistory(
+    private static int CompleteRunHistory(
         AgentSession session,
         IReadOnlyList<ChatMessage> inputMessages,
-        IReadOnlyList<AgentResponseUpdate> collectedUpdates)
+        IReadOnlyList<AgentResponseUpdate> collectedUpdates,
+        int historyStartIndex)
     {
         if (!session.TryGetInMemoryChatHistory(out List<ChatMessage>? chatMessageList))
         {
-            return;
+            return historyStartIndex;
         }
 
         HashSet<string> completedFunctionCallIds = GetFunctionResultIds(chatMessageList, collectedUpdates);
@@ -142,14 +144,22 @@ public static class AgentSessionStreamingHelper
         }
 
         List<AIContent> assistantContents = CollectAssistantContents(chatMessageList, collectedUpdates, completedFunctionCallIds);
-        if (assistantContents.Count == 0 || EndsWithAssistantContents(chatMessageList, assistantContents))
+        if (assistantContents.Count == 0 || ContainsVisibleAssistantContents(chatMessageList, historyStartIndex, assistantContents))
         {
             session.SetInMemoryChatHistory(chatMessageList);
-            return;
+            return chatMessageList.Count;
         }
 
         chatMessageList.Add(new ChatMessage(ChatRole.Assistant, assistantContents));
         session.SetInMemoryChatHistory(chatMessageList);
+        return chatMessageList.Count;
+    }
+
+    private static int GetHistoryCount(AgentSession session)
+    {
+        return session.TryGetInMemoryChatHistory(out List<ChatMessage>? chatMessageList)
+            ? chatMessageList.Count
+            : 0;
     }
 
     private static void SanitizeSessionHistory(AgentSession session)
@@ -425,18 +435,74 @@ public static class AgentSessionStreamingHelper
         return false;
     }
 
-    private static bool EndsWithAssistantContents(IReadOnlyList<ChatMessage> messageList, IReadOnlyList<AIContent> assistantContents)
+    private static bool ContainsVisibleAssistantContents(
+        IReadOnlyList<ChatMessage> messageList,
+        int historyStartIndex,
+        IReadOnlyList<AIContent> assistantContents)
     {
-        if (messageList.Count == 0 || messageList[^1].Role != ChatRole.Assistant)
+        List<VisibleContent> expectedContents = GetVisibleContents(assistantContents);
+        if (expectedContents.Count == 0)
+        {
+            return true;
+        }
+
+        var actualContents = new List<VisibleContent>();
+        for (int i = Math.Clamp(historyStartIndex, 0, messageList.Count); i < messageList.Count; i++)
+        {
+            AppendVisibleContents(actualContents, messageList[i].Contents);
+        }
+
+        if (actualContents.Count < expectedContents.Count)
         {
             return false;
         }
 
-        return string.Equals(messageList[^1].Text, GetText(assistantContents), StringComparison.Ordinal);
+        int startIndex = actualContents.Count - expectedContents.Count;
+        for (var i = 0; i < expectedContents.Count; i++)
+        {
+            if (actualContents[startIndex + i] != expectedContents[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    private static string GetText(IEnumerable<AIContent> contents)
+    private static List<VisibleContent> GetVisibleContents(IEnumerable<AIContent> contents)
     {
-        return string.Concat(contents.OfType<TextContent>().Select(content => content.Text));
+        var result = new List<VisibleContent>();
+        AppendVisibleContents(result, contents);
+        return result;
     }
+
+    private static void AppendVisibleContents(List<VisibleContent> result, IEnumerable<AIContent> contents)
+    {
+        foreach (AIContent content in contents)
+        {
+            VisibleContent? visibleContent = content switch
+            {
+                TextReasoningContent reasoningContent when !string.IsNullOrEmpty(reasoningContent.Text)
+                    => new VisibleContent(true, reasoningContent.Text),
+                TextContent textContent when !string.IsNullOrEmpty(textContent.Text)
+                    => new VisibleContent(false, textContent.Text),
+                _ => null,
+            };
+            if (visibleContent is not { } current)
+            {
+                continue;
+            }
+
+            if (result.LastOrDefault() is { } previous && previous.IsReasoning == current.IsReasoning)
+            {
+                result[^1] = previous with { Text = $"{previous.Text}{current.Text}" };
+            }
+            else
+            {
+                result.Add(current);
+            }
+        }
+    }
+
+    private readonly record struct VisibleContent(bool IsReasoning, string Text);
 }
