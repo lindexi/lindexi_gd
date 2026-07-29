@@ -137,9 +137,11 @@ public sealed class ChatViewModelTests
     public async Task SwitchingSessionShouldUnsubscribePreviousMessageCollection()
     {
         var manager = new CopilotChatManager();
+        var application = new CodingChatApplication(manager, new EmptySessionStore());
+        await application.InitializeAsync();
         CopilotChatSession previousSession = manager.SelectedSession;
         await previousSession.AddMessageAsync(new CopilotChatMessage(ChatRole.User, "旧会话问题"));
-        using var viewModel = new ChatViewModel(manager, "当前模型：测试模型");
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型");
 
         manager.CreateNewSession();
         int currentMessageCount = viewModel.Messages.Count;
@@ -154,7 +156,8 @@ public sealed class ChatViewModelTests
     public void ApprovalActionsShouldDelegateToChatManager()
     {
         var manager = new CopilotChatManager();
-        using var viewModel = new ChatViewModel(manager, "当前模型：测试模型");
+        var application = new CodingChatApplication(manager, new EmptySessionStore());
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型");
         var approvedItem = new CopilotChatApprovalToolItem("approved", "write_file", "path=a.cs");
         var rejectedItem = new CopilotChatApprovalToolItem("rejected", "delete_file", "path=b.cs");
 

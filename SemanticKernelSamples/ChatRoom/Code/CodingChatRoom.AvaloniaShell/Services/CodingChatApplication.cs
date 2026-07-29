@@ -257,8 +257,6 @@ internal sealed class CodingChatApplication
         }
 
         CopilotChatSession session = _chatManager.SelectedSession;
-        AgentSession agentSession = session.AgentSession
-            ?? throw new InvalidOperationException("当前会话没有可压缩的对话历史。");
         _isCompressionActive = true;
         OnStateChanged();
         try

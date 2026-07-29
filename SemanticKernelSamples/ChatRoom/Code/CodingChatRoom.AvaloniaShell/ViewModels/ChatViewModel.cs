@@ -43,20 +43,6 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
     }
 
-    internal ChatViewModel(CopilotChatManager chatManager, string statusText)
-    {
-        ArgumentNullException.ThrowIfNull(chatManager);
-        _chatManager = chatManager;
-        _modelStatusText = statusText;
-        SendCommand = new SimpleCommand(static () => { }, static () => false);
-        CompressConversationCommand = new SimpleCommand(static () => { }, static () => false);
-        StopCommand = new SimpleCommand(static () => { }, static () => false);
-        ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
-        _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
-        PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
-        AttachSession(_chatManager.SelectedSession);
-    }
-
     internal ChatViewModel(
         CopilotChatManager chatManager,
         CodingChatApplication application,
