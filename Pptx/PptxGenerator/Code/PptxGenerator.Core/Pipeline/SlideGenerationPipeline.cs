@@ -98,6 +98,11 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
     }
 
     private bool _isEvaluating;
+    private int _evaluationCount;
+    private long _automaticEvaluationGeneration;
+    private readonly object _automaticEvaluationTaskSyncRoot = new();
+    private Task _automaticEvaluationTask = Task.CompletedTask;
+    private CancellationTokenSource? _automaticEvaluationCancellationTokenSource;
     public bool IsEvaluating
     {
         get => _isEvaluating;
@@ -110,6 +115,8 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
     public bool CanEvaluate => _slideEvaluator is not null;
     public bool CanEvaluatePrompt => _promptEvaluator is not null;
+
+    public Task AutomaticEvaluationTask => Volatile.Read(ref _automaticEvaluationTask);
 
     public event EventHandler<SlideEvaluationResult>? EvaluationCompleted;
     public event EventHandler<PromptEvaluationResult>? PromptEvaluationCompleted;
@@ -164,10 +171,10 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             }
 
             _streamingState ??= new SlideStreamingState(
-                _promptProvider, SlideMlRenderTool.RenderPipeline, _dispatcher);
+                _promptProvider, SlideMlRenderTool.RenderPipeline);
 
             var generator = new StreamingSlideGenerator(
-                _copilotChatManager, _promptProvider, SlideMlRenderTool, _dispatcher);
+                _copilotChatManager, _promptProvider, SlideMlRenderTool);
 
             await generator.GenerateAsync(
                 userMessage, isFirstMessage, _streamingState, cancellationToken,
@@ -175,15 +182,6 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
                 attachedImageFiles: attachedImageFiles,
                 requiredAttachedImageFiles: requiredAttachedImageFiles,
                 chatClientOverride: chatClientOverride).ConfigureAwait(false);
-
-            _ = _dispatcher.InvokeAsync(() =>
-            {
-                OnPropertyChanged(nameof(PreviewImage));
-                OnPropertyChanged(nameof(CurrentSlideXml));
-                OnPropertyChanged(nameof(RenderedXml));
-                OnPropertyChanged(nameof(WarningText));
-                return Task.CompletedTask;
-            });
             return;
         }
 
@@ -271,20 +269,11 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             await _copilotChatManager.SendMessage(toolRequest).RunTask.ConfigureAwait(false);
         }
 
-        _ = _copilotChatManager.MainThreadDispatcher!.InvokeAsync(() =>
-        {
-            OnPropertyChanged(nameof(PreviewImage));
-            OnPropertyChanged(nameof(CurrentSlideXml));
-            OnPropertyChanged(nameof(RenderedXml));
-            OnPropertyChanged(nameof(WarningText));
-            return Task.CompletedTask;
-        });
-
         if (!skipAutoEvaluation && _slideEvaluator is not null && !string.IsNullOrWhiteSpace(CurrentSlideXml))
         {
             var context = new PipelineContext { UserPrompt = userMessage };
             context.SnapshotFromRenderTool(SlideMlRenderTool);
-            _ = EvaluateContextAsync(context, userMessage, cancellationToken);
+            StartAutomaticEvaluation(context, userMessage, cancellationToken);
         }
     }
 
@@ -300,14 +289,15 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         ArgumentNullException.ThrowIfNull(assistantText);
 
         _streamingState ??= new SlideStreamingState(
-            _promptProvider, SlideMlRenderTool.RenderPipeline, _dispatcher);
+            _promptProvider, SlideMlRenderTool.RenderPipeline);
 
         _streamingState.Context.Reset();
         _streamingState.Pipeline.ResetExtractor();
+        var pendingRenderResults = new Queue<SlideMlRenderResult>();
 
         void OnRendered(SlideMlRenderResult renderResult)
         {
-            SlideMlRenderTool.ApplyRenderResult(renderResult);
+            pendingRenderResults.Enqueue(renderResult);
         }
 
         _streamingState.Pipeline.Rendered += OnRendered;
@@ -315,23 +305,24 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         {
             await _streamingState.Pipeline.ProcessIncrementalTextAsync(
                 assistantText, _streamingState.Context, cancellationToken).ConfigureAwait(false);
+            await ApplyPendingRenderResultsAsync(pendingRenderResults).ConfigureAwait(false);
 
             await _streamingState.Pipeline.ProcessStreamEndAsync(
                 _streamingState.Context, cancellationToken).ConfigureAwait(false);
+            await ApplyPendingRenderResultsAsync(pendingRenderResults).ConfigureAwait(false);
         }
         finally
         {
             _streamingState.Pipeline.Rendered -= OnRendered;
         }
+    }
 
-        await _dispatcher.InvokeAsync(() =>
+    private async Task ApplyPendingRenderResultsAsync(Queue<SlideMlRenderResult> pendingRenderResults)
+    {
+        while (pendingRenderResults.TryDequeue(out var renderResult))
         {
-            OnPropertyChanged(nameof(PreviewImage));
-            OnPropertyChanged(nameof(CurrentSlideXml));
-            OnPropertyChanged(nameof(RenderedXml));
-            OnPropertyChanged(nameof(WarningText));
-            return Task.CompletedTask;
-        }).ConfigureAwait(false);
+            await SlideMlRenderTool.ApplyRenderResultAsync(renderResult).ConfigureAwait(false);
+        }
     }
 
     public async Task<SlideEvaluationResult?> EvaluateAsync(string userPrompt, CancellationToken cancellationToken = default)
@@ -341,13 +332,14 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             return null;
         }
 
+        CancelIfActive(Volatile.Read(ref _automaticEvaluationCancellationTokenSource));
         var context = new PipelineContext { UserPrompt = userPrompt };
         context.SnapshotFromRenderTool(SlideMlRenderTool);
 
         if (string.IsNullOrWhiteSpace(context.SlideXml))
         {
             var result = SlideEvaluationResult.Failed("尚未生成 SlideML，无法评估。");
-            LastSlideEvaluation = result;
+            await CommitSlideEvaluationAsync(result).ConfigureAwait(false);
             return result;
         }
 
@@ -361,31 +353,33 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             return null;
         }
 
-        IsEvaluating = true;
+        await BeginEvaluationAsync().ConfigureAwait(false);
         try
         {
             var systemPrompt = _promptProvider.BuildSystemPrompt();
             var userPromptTemplate = _promptProvider.BuildInitialUserPrompt("{USER_INPUT}");
 
-            var result = await _promptEvaluator.EvaluateAsync(systemPrompt, userPromptTemplate, cancellationToken);
+            var result = await _promptEvaluator.EvaluateAsync(
+                systemPrompt, userPromptTemplate, cancellationToken).ConfigureAwait(false);
 
-            LastPromptEvaluation = result;
+            await AppendEvaluationMessageAsync(result).ConfigureAwait(false);
 
-            await AppendEvaluationMessageAsync(result);
-
-            PromptEvaluationCompleted?.Invoke(this, result);
+            await CommitPromptEvaluationAsync(result).ConfigureAwait(false);
             return result;
         }
         finally
         {
-            IsEvaluating = false;
+            await EndEvaluationAsync().ConfigureAwait(false);
         }
     }
 
     private async Task<SlideEvaluationResult> EvaluateContextAsync(
-        PipelineContext context, string userPrompt, CancellationToken cancellationToken)
+        PipelineContext context,
+        string userPrompt,
+        CancellationToken cancellationToken,
+        long? automaticEvaluationGeneration = null)
     {
-        IsEvaluating = true;
+        await BeginEvaluationAsync().ConfigureAwait(false);
         try
         {
             byte[]? previewImageBytes = null;
@@ -402,20 +396,166 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
                     context.RenderedXml ?? string.Empty,
                     context.Warnings ?? string.Empty,
                     previewImageBytes,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
             context.SlideEvaluation = result;
-            LastSlideEvaluation = result;
 
-            await AppendEvaluationMessageAsync(result);
+            if (automaticEvaluationGeneration is null
+                || IsCurrentAutomaticEvaluation(automaticEvaluationGeneration.Value))
+            {
+                await AppendEvaluationMessageAsync(result).ConfigureAwait(false);
+            }
 
-            EvaluationCompleted?.Invoke(this, result);
+            await CommitSlideEvaluationAsync(result, automaticEvaluationGeneration).ConfigureAwait(false);
             return result;
         }
         finally
         {
-            IsEvaluating = false;
+            await EndEvaluationAsync().ConfigureAwait(false);
         }
+    }
+
+    private void StartAutomaticEvaluation(
+        PipelineContext context,
+        string userPrompt,
+        CancellationToken cancellationToken)
+    {
+        var generation = Interlocked.Increment(ref _automaticEvaluationGeneration);
+        var evaluationCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var previousCancellationTokenSource = Interlocked.Exchange(
+            ref _automaticEvaluationCancellationTokenSource,
+            evaluationCancellationTokenSource);
+        CancelIfActive(previousCancellationTokenSource);
+
+        var evaluationTask = RunAutomaticEvaluationAsync(
+            context,
+            userPrompt,
+            generation,
+            evaluationCancellationTokenSource);
+        lock (_automaticEvaluationTaskSyncRoot)
+        {
+            Volatile.Write(
+                ref _automaticEvaluationTask,
+                AwaitAutomaticEvaluationsAsync(_automaticEvaluationTask, evaluationTask));
+        }
+    }
+
+    private async Task RunAutomaticEvaluationAsync(
+        PipelineContext context,
+        string userPrompt,
+        long generation,
+        CancellationTokenSource cancellationTokenSource)
+    {
+        try
+        {
+            await EvaluateContextAsync(
+                context,
+                userPrompt,
+                cancellationTokenSource.Token,
+                generation).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine(exception);
+        }
+        finally
+        {
+            Interlocked.CompareExchange(
+                ref _automaticEvaluationCancellationTokenSource,
+                null,
+                cancellationTokenSource);
+            cancellationTokenSource.Dispose();
+        }
+    }
+
+    private static async Task AwaitAutomaticEvaluationsAsync(Task previousTask, Task currentTask)
+    {
+        await Task.WhenAll(previousTask, currentTask).ConfigureAwait(false);
+    }
+
+    private static void CancelIfActive(CancellationTokenSource? cancellationTokenSource)
+    {
+        if (cancellationTokenSource is null)
+        {
+            return;
+        }
+
+        try
+        {
+            cancellationTokenSource.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+    }
+
+    private bool IsCurrentAutomaticEvaluation(long generation) =>
+        generation == Volatile.Read(ref _automaticEvaluationGeneration);
+
+    private Task BeginEvaluationAsync()
+    {
+        if (Interlocked.Increment(ref _evaluationCount) != 1)
+        {
+            return Task.CompletedTask;
+        }
+
+        return _dispatcher.InvokeAsync(() =>
+        {
+            IsEvaluating = true;
+            return Task.CompletedTask;
+        });
+    }
+
+    private Task EndEvaluationAsync()
+    {
+        var count = Interlocked.Decrement(ref _evaluationCount);
+        if (count < 0)
+        {
+            Interlocked.Exchange(ref _evaluationCount, 0);
+            throw new InvalidOperationException("评估活动计数不能小于零。");
+        }
+
+        if (count != 0)
+        {
+            return Task.CompletedTask;
+        }
+
+        return _dispatcher.InvokeAsync(() =>
+        {
+            IsEvaluating = false;
+            return Task.CompletedTask;
+        });
+    }
+
+    private Task CommitSlideEvaluationAsync(
+        SlideEvaluationResult result,
+        long? automaticEvaluationGeneration = null)
+    {
+        return _dispatcher.InvokeAsync(() =>
+        {
+            if (automaticEvaluationGeneration is not null
+                && !IsCurrentAutomaticEvaluation(automaticEvaluationGeneration.Value))
+            {
+                return Task.CompletedTask;
+            }
+
+            LastSlideEvaluation = result;
+            EvaluationCompleted?.Invoke(this, result);
+            return Task.CompletedTask;
+        });
+    }
+
+    private Task CommitPromptEvaluationAsync(PromptEvaluationResult result)
+    {
+        return _dispatcher.InvokeAsync(() =>
+        {
+            LastPromptEvaluation = result;
+            PromptEvaluationCompleted?.Invoke(this, result);
+            return Task.CompletedTask;
+        });
     }
 
     private void OnSlideRendered()

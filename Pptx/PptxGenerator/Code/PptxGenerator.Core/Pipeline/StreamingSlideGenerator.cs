@@ -30,7 +30,6 @@ internal sealed class StreamingSlideGenerator
     private readonly CopilotChatManager _copilotChatManager;
     private readonly ISlideMlPromptProvider _promptProvider;
     private readonly SlideMlRenderTool _renderTool;
-    private readonly IMainThreadDispatcher _dispatcher;
 
     /// <summary>
     /// 初始化 <see cref="StreamingSlideGenerator"/> 的新实例。
@@ -38,17 +37,14 @@ internal sealed class StreamingSlideGenerator
     /// <param name="copilotChatManager">聊天管理器。</param>
     /// <param name="promptProvider">提示词提供者。</param>
     /// <param name="renderTool">渲染工具。</param>
-    /// <param name="dispatcher">主线程调度器。</param>
     public StreamingSlideGenerator(
         CopilotChatManager copilotChatManager,
         ISlideMlPromptProvider promptProvider,
-        SlideMlRenderTool renderTool,
-        IMainThreadDispatcher dispatcher)
+        SlideMlRenderTool renderTool)
     {
         _copilotChatManager = copilotChatManager ?? throw new ArgumentNullException(nameof(copilotChatManager));
         _promptProvider = promptProvider ?? throw new ArgumentNullException(nameof(promptProvider));
         _renderTool = renderTool ?? throw new ArgumentNullException(nameof(renderTool));
-        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
     }
 
     /// <summary>
@@ -131,11 +127,12 @@ internal sealed class StreamingSlideGenerator
     )
     {
         var renderErrors = new ConcurrentQueue<string>();
+        var pendingRenderResults = new Queue<SlideMlRenderResult>();
 
         // 将流式渲染结果同步到 SlideMlRenderTool，使 Latest* 属性保持最新
         Action<SlideMlRenderResult> onRendered = renderResult =>
         {
-            _renderTool.ApplyRenderResult(renderResult);
+            pendingRenderResults.Enqueue(renderResult);
 
             // 收集渲染阶段产生的错误（作为 context.Errors 的补充，如 ProcessStreamEndAsync 产生的错误）
             if (renderResult.Errors is { Count: > 0 })
@@ -204,7 +201,7 @@ internal sealed class StreamingSlideGenerator
 
             await manualContext.AppendMessagesToSessionAsync().ConfigureAwait(false);
 
-            using var _ = manualContext.StartChatting();
+            using IDisposable chattingScope = manualContext.StartChatting();
 
             var loopToken = errorCancellationTokenSource.Token;
 
@@ -213,7 +210,7 @@ internal sealed class StreamingSlideGenerator
                 await foreach (AgentResponseUpdate update in agent.RunWithHistoryCompletionAsync(
                     inputMessages, session, cancellationToken: loopToken).ConfigureAwait(false))
                 {
-                    manualContext.AppendResponseUpdate(update);
+                    await AppendResponseUpdateAsync(manualContext, update).ConfigureAwait(false);
 
                     if (string.IsNullOrEmpty(update.Text))
                     {
@@ -223,6 +220,7 @@ internal sealed class StreamingSlideGenerator
                     // 将增量文本喂给流式管道
                     await streamingPipeline.ProcessIncrementalTextAsync(
                         update.Text, context, loopToken).ConfigureAwait(false);
+                    await ApplyPendingRenderResultsAsync(pendingRenderResults).ConfigureAwait(false);
 
                     // 检查合并阶段是否产生了 XML 解析错误
                     if (context.Errors.Count > 0)
@@ -251,6 +249,7 @@ internal sealed class StreamingSlideGenerator
             {
                 // 未检测到异常，执行流结束渲染
                 await streamingPipeline.ProcessStreamEndAsync(context, externalCancellationToken).ConfigureAwait(false);
+                await ApplyPendingRenderResultsAsync(pendingRenderResults).ConfigureAwait(false);
 
                 // ProcessStreamEndAsync 可能也会产生错误（缓冲区残留等）
                 if (context.Errors.Count > 0)
@@ -270,6 +269,14 @@ internal sealed class StreamingSlideGenerator
         {
             // 确保在任何路径下都取消订阅，避免跨轮重复累积
             streamingPipeline.Rendered -= onRendered;
+        }
+    }
+
+    private async Task ApplyPendingRenderResultsAsync(Queue<SlideMlRenderResult> pendingRenderResults)
+    {
+        while (pendingRenderResults.TryDequeue(out var renderResult))
+        {
+            await _renderTool.ApplyRenderResultAsync(renderResult).ConfigureAwait(false);
         }
     }
 
@@ -318,6 +325,26 @@ internal sealed class StreamingSlideGenerator
                 _renderTool.CreatePreviewTool()
             ],
         };
+    }
+
+    private static Task AppendResponseUpdateAsync(
+        IManualSendMessageContext manualContext,
+        AgentResponseUpdate update)
+    {
+        ArgumentNullException.ThrowIfNull(manualContext);
+        ArgumentNullException.ThrowIfNull(update);
+
+        if (manualContext.MainThreadDispatcher is { } dispatcher && !dispatcher.CheckAccess())
+        {
+            return dispatcher.InvokeAsync(() =>
+            {
+                manualContext.AppendResponseUpdate(update);
+                return Task.CompletedTask;
+            });
+        }
+
+        manualContext.AppendResponseUpdate(update);
+        return Task.CompletedTask;
     }
 
     internal static async Task AppendAttachedImageContentsAsync(

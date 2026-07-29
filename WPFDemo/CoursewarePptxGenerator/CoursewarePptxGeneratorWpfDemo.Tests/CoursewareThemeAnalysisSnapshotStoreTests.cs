@@ -26,7 +26,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStoreTests
         var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
         var result = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package);
         var outputRoot = CreateOutputRoot();
-        var store = new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName, () => FixedTimestamp);
+        var store = new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName, FixedTimestamp);
 
         var snapshotDirectory = await store.SaveAsync(package, result);
         Directory.Delete(exportDirectory.FullName, recursive: true);
@@ -205,7 +205,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStoreTests
             .Build();
         var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
         var outputRoot = CreateOutputRoot();
-        var store = new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName, () => FixedTimestamp);
+        var store = new CoursewareThemeAnalysisSnapshotStore(outputRoot.FullName, FixedTimestamp);
         var result = FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package);
 
         var first = await store.SaveAsync(package, result);
@@ -238,7 +238,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStoreTests
             .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容"))
             .Build();
         var package = await new CoursewareFolderLoader().LoadAsync(exportDirectory.FullName);
-        var store = new CoursewareThemeAnalysisSnapshotStore(CreateOutputRoot().FullName, () => FixedTimestamp);
+        var store = new CoursewareThemeAnalysisSnapshotStore(CreateOutputRoot().FullName, FixedTimestamp);
         var snapshotDirectory = await store.SaveAsync(package, FakeCoursewareThemeAnalysisService.CreateSuccessfulResult(package));
         return (store, snapshotDirectory);
     }

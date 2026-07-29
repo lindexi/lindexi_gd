@@ -53,10 +53,11 @@ public sealed class PipelineContext
     /// </summary>
     public void SnapshotFromRenderTool(SlideMlRenderTool renderTool)
     {
-        SlideXml = renderTool.LatestSlideXml;
-        RenderedXml = renderTool.LatestRenderedXml;
-        Warnings = renderTool.LatestWarnings;
-        PreviewImage = renderTool.LatestPreviewImage;
+        var snapshot = renderTool.GetLatestSnapshot();
+        SlideXml = snapshot.SlideXml;
+        RenderedXml = snapshot.RenderedXml;
+        Warnings = snapshot.Warnings;
+        PreviewImage = snapshot.PreviewImage;
         IsGenerationComplete = !string.IsNullOrWhiteSpace(SlideXml);
     }
 }

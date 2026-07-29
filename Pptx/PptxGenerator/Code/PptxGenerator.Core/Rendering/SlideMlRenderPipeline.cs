@@ -68,11 +68,11 @@ public sealed class SlideMlRenderPipeline : ISlideMlRenderPipeline
 
             // 阶段 ② + ③ + ④: PreMeasure → FinalLayout → Render（在 UI 线程执行）
             SlideMlElementMeasurements measurements = null!;
-            var previewImage = await _dispatcher.InvokeAsync(async () =>
+            var previewImage = await _dispatcher.InvokeAsync(() =>
             {
                 measurements = _renderEngine.PreMeasure(page, _context);
                 _layoutEngine.FinalLayout(page, _context, measurements);
-                return _renderEngine.Render(page, _context);
+                return Task.FromResult(_renderEngine.Render(page, _context));
             }).ConfigureAwait(false);
 
             var renderedXml = SlideMlXmlUtilities.FormatRenderedXml(normalizedXml, page, _context);
@@ -87,10 +87,8 @@ public sealed class SlideMlRenderPipeline : ISlideMlRenderPipeline
         }
         catch (Exception ex) when (ex is SlideMlParseException or System.Xml.XmlException)
         {
-            var previewImage = await _dispatcher.InvokeAsync(async () =>
-            {
-                return _renderEngine.RenderErrorPreview(ex.Message, _context);
-            }).ConfigureAwait(false);
+            var previewImage = await _dispatcher.InvokeAsync(() => Task.FromResult(
+                _renderEngine.RenderErrorPreview(ex.Message, _context))).ConfigureAwait(false);
             return new SlideMlRenderResult
             {
                 InputXml = slideXml,

@@ -64,12 +64,12 @@ public partial class CoursewareAnalysisView : UserControl
         PageTitle.Focus();
     }
 
-    private void OpenCoursewareButton_OnClick(object sender, System.Windows.RoutedEventArgs e)
+    private async void OpenCoursewareButton_OnClick(object sender, System.Windows.RoutedEventArgs e)
     {
         var folderPath = _coursewareFolderPicker.PickCoursewareFolder();
         if (!string.IsNullOrWhiteSpace(folderPath) && DataContext is CoursewareWorkspaceViewModel viewModel)
         {
-            _ = viewModel.OpenCoursewareFolderAsync(folderPath);
+            await viewModel.OpenCoursewareFolderAsync(folderPath);
         }
     }
 

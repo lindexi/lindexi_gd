@@ -9,7 +9,8 @@ namespace PptxGenerator;
 /// </summary>
 public sealed class WpfDispatcher : IMainThreadDispatcher
 {
-    private static readonly Lazy<Dispatcher> FallbackDispatcher = new(CreateFallbackDispatcher);
+    private static readonly Lazy<Task<Dispatcher>> FallbackDispatcherTask = new(CreateFallbackDispatcherAsync);
+    private static Dispatcher? _fallbackDispatcher;
     private readonly bool _preferApplicationDispatcher;
 
     /// <summary>
@@ -28,61 +29,74 @@ public sealed class WpfDispatcher : IMainThreadDispatcher
     }
 
     /// <inheritdoc />
-    public Task InvokeAsync(Func<Task> action)
+    public async Task InvokeAsync(Func<Task> action)
     {
         ArgumentNullException.ThrowIfNull(action);
 
-        var dispatcher = GetAvailableDispatcher();
+        var dispatcher = await GetAvailableDispatcherAsync().ConfigureAwait(false);
 
         if (dispatcher.CheckAccess())
         {
-            return action();
+            await action().ConfigureAwait(false);
+            return;
         }
 
-        return dispatcher.InvokeAsync(action).Task.Unwrap();
+        await dispatcher.InvokeAsync(action).Task.Unwrap().ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public Task<T> InvokeAsync<T>(Func<Task<T>> action)
+    public async Task<T> InvokeAsync<T>(Func<Task<T>> action)
     {
         ArgumentNullException.ThrowIfNull(action);
 
-        var dispatcher = GetAvailableDispatcher();
+        var dispatcher = await GetAvailableDispatcherAsync().ConfigureAwait(false);
 
         if (dispatcher.CheckAccess())
         {
-            return action();
+            return await action().ConfigureAwait(false);
         }
 
-        return dispatcher.InvokeAsync(action).Task.Unwrap();
+        return await dispatcher.InvokeAsync(action).Task.Unwrap().ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public bool CheckAccess()
     {
-        return GetAvailableDispatcher().CheckAccess();
-    }
-
-    private Dispatcher GetAvailableDispatcher()
-    {
-        if (_preferApplicationDispatcher)
+        if (GetApplicationDispatcher() is { } applicationDispatcher)
         {
-            var applicationDispatcher = Application.Current?.Dispatcher;
-            if (applicationDispatcher is { HasShutdownStarted: false, HasShutdownFinished: false })
-            {
-                return applicationDispatcher;
-            }
+            return applicationDispatcher.CheckAccess();
         }
 
-        return FallbackDispatcher.Value;
+        return Volatile.Read(ref _fallbackDispatcher)?.CheckAccess() == true;
     }
 
-    private static Dispatcher CreateFallbackDispatcher()
+    private async Task<Dispatcher> GetAvailableDispatcherAsync()
+    {
+        if (GetApplicationDispatcher() is { } applicationDispatcher)
+        {
+            return applicationDispatcher;
+        }
+
+        return await FallbackDispatcherTask.Value.ConfigureAwait(false);
+    }
+
+    private Dispatcher? GetApplicationDispatcher()
+    {
+        if (!_preferApplicationDispatcher)
+        {
+            return null;
+        }
+
+        return Application.Current?.Dispatcher;
+    }
+
+    private static Task<Dispatcher> CreateFallbackDispatcherAsync()
     {
         var dispatcherReady = new TaskCompletionSource<Dispatcher>(TaskCreationOptions.RunContinuationsAsynchronously);
         var thread = new Thread(() =>
         {
             var dispatcher = Dispatcher.CurrentDispatcher;
+            Volatile.Write(ref _fallbackDispatcher, dispatcher);
             dispatcherReady.SetResult(dispatcher);
             Dispatcher.Run();
         })
@@ -92,6 +106,6 @@ public sealed class WpfDispatcher : IMainThreadDispatcher
         };
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        return dispatcherReady.Task.GetAwaiter().GetResult();
+        return dispatcherReady.Task;
     }
 }

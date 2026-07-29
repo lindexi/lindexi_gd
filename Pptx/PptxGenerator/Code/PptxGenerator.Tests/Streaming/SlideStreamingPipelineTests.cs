@@ -1,3 +1,4 @@
+using AgentLib;
 using PptxGenerator.Models;
 using PptxGenerator.Pipeline;
 using PptxGenerator.Prompt;
@@ -104,6 +105,40 @@ public sealed class SlideStreamingPipelineTests
 
         // Assert：片段合并后立即触发渲染（无需等待 ProcessStreamEndAsync）
         Assert.HasCount(1, renderedResults);
+    }
+
+    [TestMethod(DisplayName = "流式渲染事件在线程中立的操作线程同步触发")]
+    [Timeout(10_000)]
+    public async Task ProcessIncrementalTextAsync_RaisesRenderedSynchronouslyOnOperationThread()
+    {
+        var renderResult = new SlideMlRenderResult
+        {
+            InputXml = "<Page/>",
+            OutputXml = "<Page/>",
+            Warnings = Array.Empty<string>(),
+            Errors = Array.Empty<string>(),
+            PreviewImage = new FakePreviewImage(),
+        };
+        var pipeline = new SlideStreamingPipeline(
+            new SlideMlPromptProvider(),
+            new FakeRenderPipeline(renderResult));
+        var operationThreadId = 0;
+        var renderedThreadId = 0;
+        var expectedException = new InvalidOperationException("rendered-event-sentinel");
+        pipeline.Rendered += _ =>
+        {
+            renderedThreadId = Environment.CurrentManagedThreadId;
+            throw expectedException;
+        };
+
+        var actualException = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => Task.Run(async () =>
+        {
+            operationThreadId = Environment.CurrentManagedThreadId;
+            await pipeline.ProcessIncrementalTextAsync("<Page/>", new SlideMlPipelineContext());
+        }));
+
+        Assert.AreSame(expectedException, actualException);
+        Assert.AreEqual(operationThreadId, renderedThreadId);
     }
 
     [TestMethod(DisplayName = "首片段为悬空样式元素：暂存样式，后续 Page 引用后形成可渲染页面")]
@@ -614,9 +649,8 @@ public sealed class SlideStreamingPipelineTests
             PreviewImage = new FakePreviewImage(),
         };
         var fakePipeline = new FakeRenderPipeline(renderResult);
-        var dispatcher = new FakeMainThreadDispatcher();
         var promptProvider = new SlideMlPromptProvider();
-        return new SlideStreamingPipeline(promptProvider, fakePipeline, dispatcher);
+        return new SlideStreamingPipeline(promptProvider, fakePipeline);
     }
 
     /// <summary>
@@ -630,6 +664,6 @@ public sealed class SlideStreamingPipelineTests
         var dispatcher = new FakeMainThreadDispatcher();
         var renderPipeline = new SlideMlRenderPipeline(layoutEngine, renderEngine, dispatcher);
         var promptProvider = new SlideMlPromptProvider();
-        return new SlideStreamingPipeline(promptProvider, renderPipeline, dispatcher);
+        return new SlideStreamingPipeline(promptProvider, renderPipeline);
     }
 }

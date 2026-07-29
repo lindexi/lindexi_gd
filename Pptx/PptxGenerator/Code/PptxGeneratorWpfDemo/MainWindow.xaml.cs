@@ -32,8 +32,8 @@ public partial class MainWindow : Window
     /// <summary>
     /// MCP 服务地址输入框失去焦点时，尝试连接 MCP 服务并切换渲染管道。
     /// </summary>
-    private void McpServiceUrl_LostFocus(object sender, System.Windows.RoutedEventArgs e)
+    private async void McpServiceUrl_LostFocus(object sender, System.Windows.RoutedEventArgs e)
     {
-        _ = ViewModel.TryConnectMcpRenderAsync();
+        await ViewModel.TryConnectMcpRenderAsync();
     }
 }

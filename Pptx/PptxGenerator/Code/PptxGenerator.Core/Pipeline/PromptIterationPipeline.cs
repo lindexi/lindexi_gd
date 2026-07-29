@@ -70,8 +70,9 @@ public sealed class PromptIterationPipeline
                 .ConfigureAwait(false);
 
             var renderTool = _generationPipeline.SlideMlRenderTool;
+            var renderSnapshot = renderTool.GetLatestSnapshot();
 
-            if (string.IsNullOrWhiteSpace(renderTool.LatestSlideXml))
+            if (string.IsNullOrWhiteSpace(renderSnapshot.SlideXml))
             {
                 await AppendIterationMessageAsync($"⚠️ 第 {round} 轮未生成有效的 SlideML，终止迭代。").ConfigureAwait(false);
                 break;
@@ -79,7 +80,7 @@ public sealed class PromptIterationPipeline
 
             // 2. 评估 SlideML（含原始截图对比）
             byte[]? previewImageBytes = null;
-            if (renderTool.LatestPreviewImage is { } previewImage)
+            if (renderSnapshot.PreviewImage is { } previewImage)
             {
                 using var memoryStream = new MemoryStream();
                 previewImage.Save(memoryStream);
@@ -88,9 +89,9 @@ public sealed class PromptIterationPipeline
 
             var slideEvaluation = await _slideEvaluator.EvaluateAsync(
                     userPrompt,
-                    renderTool.LatestSlideXml,
-                    renderTool.LatestRenderedXml,
-                    renderTool.LatestWarnings,
+                    renderSnapshot.SlideXml,
+                    renderSnapshot.RenderedXml,
+                    renderSnapshot.Warnings,
                     previewImageBytes,
                     originalScreenshot,
                     cancellationToken)

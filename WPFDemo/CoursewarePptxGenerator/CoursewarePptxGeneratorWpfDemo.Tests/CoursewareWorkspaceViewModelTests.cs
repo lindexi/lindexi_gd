@@ -257,7 +257,7 @@ public sealed class CoursewareWorkspaceViewModelTests
         var timestamp = DateTimeOffset.Parse("2026-07-22T03:44:47.123+08:00");
         var snapshotStore = new CoursewareThemeAnalysisSnapshotStore(
             snapshotOutputRoot.FullName,
-            () => timestamp);
+            timestamp);
         var analysisService = new FakeCoursewareThemeAnalysisService();
         var viewModel = CreateViewModel(analysisService, snapshotStore: snapshotStore);
 

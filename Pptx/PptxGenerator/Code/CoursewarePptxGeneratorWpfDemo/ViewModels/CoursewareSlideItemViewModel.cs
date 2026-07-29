@@ -41,6 +41,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     private bool _hasStartedGenerationConversation;
     private bool _hasUnsavedChanges;
     private CoursewareModelDisplayItem? _selectedModelItem;
+    private Task _propertyChangeTask = Task.CompletedTask;
     private bool _isDisposed;
 
     /// <summary>
@@ -548,8 +549,9 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
 
             if (_runtimeCreationTask is null)
             {
-                _runtimeCreationCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                _runtimeCreationTask = CreateRuntimeAsync(_runtimeCreationCancellationTokenSource.Token);
+                var runtimeCreationCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                _runtimeCreationCancellationTokenSource = runtimeCreationCancellationTokenSource;
+                _runtimeCreationTask = CreateRuntimeAsync(runtimeCreationCancellationTokenSource);
             }
 
             runtimeCreationTask = _runtimeCreationTask;
@@ -772,13 +774,9 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
 
         _isDisposed = true;
         CancelActiveOperation();
-        _operationCancellationTokenSource?.Dispose();
-        _operationCancellationTokenSource = null;
         lock (_runtimeSyncRoot)
         {
             _runtimeCreationCancellationTokenSource?.Cancel();
-            _runtimeCreationCancellationTokenSource?.Dispose();
-            _runtimeCreationCancellationTokenSource = null;
         }
 
         if (_runtime is not null)
@@ -787,8 +785,10 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         }
     }
 
-    private async Task<CoursewareSlideRuntime> CreateRuntimeAsync(CancellationToken cancellationToken)
+    private async Task<CoursewareSlideRuntime> CreateRuntimeAsync(
+        CancellationTokenSource runtimeCreationCancellationTokenSource)
     {
+        var cancellationToken = runtimeCreationCancellationTokenSource.Token;
         await InvokeIfNotDisposedAsync(() =>
         {
             RuntimeState = CoursewareSlideRuntimeState.Creating;
@@ -815,10 +815,9 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
             lock (_runtimeSyncRoot)
             {
                 _runtimeCreationTask = null;
-                _runtimeCreationCancellationTokenSource?.Dispose();
-                _runtimeCreationCancellationTokenSource = null;
             }
 
+            CompleteRuntimeCreation(runtimeCreationCancellationTokenSource);
             throw;
         }
         catch (Exception ex)
@@ -835,8 +834,6 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
                 lock (_runtimeSyncRoot)
                 {
                     _runtimeCreationTask = null;
-                    _runtimeCreationCancellationTokenSource?.Dispose();
-                    _runtimeCreationCancellationTokenSource = null;
                 }
 
                 await InvokeIfNotDisposedAsync(() =>
@@ -846,21 +843,38 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
                     RenderingLog = fallbackException.ToString();
                     State = CoursewareSlideState.Failed;
                 });
+                CompleteRuntimeCreation(runtimeCreationCancellationTokenSource);
                 throw new AggregateException("页面美化服务和本地渲染均准备失败。", ex, fallbackException);
             }
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-        await InvokeIfNotDisposedAsync(() => AttachRuntime(runtime));
-        cancellationToken.ThrowIfCancellationRequested();
-        ThrowIfDisposed();
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await InvokeIfNotDisposedAsync(() => AttachRuntime(runtime));
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            return runtime;
+        }
+        finally
+        {
+            CompleteRuntimeCreation(runtimeCreationCancellationTokenSource);
+        }
+    }
+
+    private void CompleteRuntimeCreation(CancellationTokenSource runtimeCreationCancellationTokenSource)
+    {
         lock (_runtimeSyncRoot)
         {
-            _runtimeCreationCancellationTokenSource?.Dispose();
-            _runtimeCreationCancellationTokenSource = null;
+            if (ReferenceEquals(
+                    _runtimeCreationCancellationTokenSource,
+                    runtimeCreationCancellationTokenSource))
+            {
+                _runtimeCreationCancellationTokenSource = null;
+            }
         }
 
-        return runtime;
+        runtimeCreationCancellationTokenSource.Dispose();
     }
 
     private void AttachRuntime(CoursewareSlideRuntime runtime)
@@ -909,33 +923,54 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
             return;
         }
 
-        _ = InvokeIfNotDisposedAsync(() =>
-        {
-            switch (e.PropertyName)
-            {
-                case nameof(SlideChatManager.CurrentSlideXml):
-                    if (!HasUnsavedChanges)
-                    {
-                        ApplyGeneratedSlideXml(SlideChatManager?.CurrentSlideXml ?? string.Empty);
-                    }
+        _propertyChangeTask = ApplySlideChatManagerPropertyChangeAfterAsync(
+            _propertyChangeTask,
+            e.PropertyName);
+    }
 
-                    break;
-                case nameof(SlideChatManager.PreviewImage):
-                    OnPropertyChanged(nameof(PreviewImage));
-                    OnPropertyChanged(nameof(HasRenderedPreviewImage));
-                    OnPropertyChanged(nameof(ShowSourceScreenshot));
-                    OnPropertyChanged(nameof(HasAnyPreviewImage));
-                    break;
-                case nameof(SlideChatManager.RenderedXml):
-                    CallbackXml = SlideChatManager?.RenderedXml ?? string.Empty;
-                    break;
-                case nameof(SlideChatManager.WarningText):
-                    RenderingLog = string.IsNullOrWhiteSpace(SlideChatManager?.WarningText)
-                        ? "渲染完成，未报告警告。"
-                        : SlideChatManager.WarningText;
-                    break;
-            }
-        });
+    internal Task WaitForPendingPropertyChangesAsync() => _propertyChangeTask;
+
+    private async Task ApplySlideChatManagerPropertyChangeAfterAsync(
+        Task previousTask,
+        string? propertyName)
+    {
+        try
+        {
+            await previousTask.ConfigureAwait(false);
+            await InvokeIfNotDisposedAsync(() => ApplySlideChatManagerPropertyChange(propertyName)).ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine(exception);
+        }
+    }
+
+    private void ApplySlideChatManagerPropertyChange(string? propertyName)
+    {
+        switch (propertyName)
+        {
+            case nameof(SlideChatManager.CurrentSlideXml):
+                if (!HasUnsavedChanges)
+                {
+                    ApplyGeneratedSlideXml(SlideChatManager?.CurrentSlideXml ?? string.Empty);
+                }
+
+                break;
+            case nameof(SlideChatManager.PreviewImage):
+                OnPropertyChanged(nameof(PreviewImage));
+                OnPropertyChanged(nameof(HasRenderedPreviewImage));
+                OnPropertyChanged(nameof(ShowSourceScreenshot));
+                OnPropertyChanged(nameof(HasAnyPreviewImage));
+                break;
+            case nameof(SlideChatManager.RenderedXml):
+                CallbackXml = SlideChatManager?.RenderedXml ?? string.Empty;
+                break;
+            case nameof(SlideChatManager.WarningText):
+                RenderingLog = string.IsNullOrWhiteSpace(SlideChatManager?.WarningText)
+                    ? "渲染完成，未报告警告。"
+                    : SlideChatManager.WarningText;
+                break;
+        }
     }
 
     private Task InvokeIfNotDisposedAsync(Action action)

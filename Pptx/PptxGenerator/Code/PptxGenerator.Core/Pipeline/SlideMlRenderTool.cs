@@ -15,6 +15,7 @@ public sealed class SlideMlRenderTool
 {
     private readonly ISlideMlRenderPipeline _renderPipeline;
     private readonly IMainThreadDispatcher _dispatcher;
+    private SlideMlRenderSnapshot _latestSnapshot = SlideMlRenderSnapshot.Empty;
 
     /// <summary>
     /// 初始化 <see cref="SlideMlRenderTool"/> 的新实例。
@@ -45,42 +46,57 @@ public sealed class SlideMlRenderTool
     /// <summary>
     /// 渲染预览图片缓存，供 UI 读取。
     /// </summary>
-    public IPreviewImage? LatestPreviewImage { get; private set; }
+    public IPreviewImage? LatestPreviewImage => Volatile.Read(ref _latestSnapshot).PreviewImage;
 
     /// <summary>
     /// 最近一次渲染的警告列表。
     /// </summary>
-    public string LatestWarnings { get; private set; } = string.Empty;
+    public string LatestWarnings => Volatile.Read(ref _latestSnapshot).Warnings;
 
     /// <summary>
     /// 最近一次渲染后回填的 XML。
     /// </summary>
-    public string LatestRenderedXml { get; private set; } = string.Empty;
+    public string LatestRenderedXml => Volatile.Read(ref _latestSnapshot).RenderedXml;
 
     /// <summary>
     /// 最近一次输入的 SlideML XML。
     /// </summary>
-    public string LatestSlideXml { get; private set; } = string.Empty;
+    public string LatestSlideXml => Volatile.Read(ref _latestSnapshot).SlideXml;
+
+    internal SlideMlRenderSnapshot GetLatestSnapshot() => Volatile.Read(ref _latestSnapshot);
 
     /// <summary>
     /// 将渲染结果应用到当前实例的 Latest* 属性，供流式渲染路径复用。
     /// </summary>
     /// <param name="result">渲染结果。</param>
-    public void ApplyRenderResult(SlideMlRenderResult result)
+    public Task ApplyRenderResultAsync(SlideMlRenderResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        _ = _dispatcher.InvokeAsync(() =>
+        if (_dispatcher.CheckAccess())
         {
-            LatestPreviewImage = result.PreviewImage;
-            LatestWarnings = result.Warnings.Count == 0
-                ? "(none)"
-                : string.Join("\n", result.Warnings);
-            LatestRenderedXml = result.OutputXml;
-            LatestSlideXml = result.InputXml;
-            SlideRendered?.Invoke();
+            ApplyRenderResultCore(result);
+            return Task.CompletedTask;
+        }
+
+        return _dispatcher.InvokeAsync(() =>
+        {
+            ApplyRenderResultCore(result);
             return Task.CompletedTask;
         });
+    }
+
+    private void ApplyRenderResultCore(SlideMlRenderResult result)
+    {
+        var snapshot = new SlideMlRenderSnapshot(
+            result.PreviewImage,
+            result.Warnings.Count == 0
+                ? "(none)"
+                : string.Join("\n", result.Warnings),
+            result.OutputXml,
+            result.InputXml);
+        Volatile.Write(ref _latestSnapshot, snapshot);
+        SlideRendered?.Invoke();
     }
 
     /// <summary>
@@ -88,15 +104,23 @@ public sealed class SlideMlRenderTool
     /// </summary>
     public Task ResetLatestResultAsync()
     {
+        if (_dispatcher.CheckAccess())
+        {
+            ResetLatestResultCore();
+            return Task.CompletedTask;
+        }
+
         return _dispatcher.InvokeAsync(() =>
         {
-            LatestPreviewImage = null;
-            LatestWarnings = string.Empty;
-            LatestRenderedXml = string.Empty;
-            LatestSlideXml = string.Empty;
-            SlideRendered?.Invoke();
+            ResetLatestResultCore();
             return Task.CompletedTask;
         });
+    }
+
+    private void ResetLatestResultCore()
+    {
+        Volatile.Write(ref _latestSnapshot, SlideMlRenderSnapshot.Empty);
+        SlideRendered?.Invoke();
     }
 
     /// <summary>
@@ -153,13 +177,14 @@ public sealed class SlideMlRenderTool
     /// </summary>
     private Task<string> GetSlideStateAsync()
     {
-        var xml = LatestRenderedXml;
+        var snapshot = GetLatestSnapshot();
+        var xml = snapshot.RenderedXml;
         if (string.IsNullOrWhiteSpace(xml))
         {
             return Task.FromResult("[get_slide_state] 当前尚未生成内容或尚未完成渲染，请先输出 SlideML 片段。");
         }
 
-        var warnings = LatestWarnings;
+        var warnings = snapshot.Warnings;
         var result = new StringBuilder(xml.Length + 128);
         result.AppendLine("[get_slide_state] 当前已合并的 SlideML（已回填渲染信息）：");
         result.AppendLine();
@@ -180,26 +205,14 @@ public sealed class SlideMlRenderTool
     /// </summary>
     private async Task<AIContent> GetPreviewImageAsync()
     {
-        var image = LatestPreviewImage;
+        var image = GetLatestSnapshot().PreviewImage;
         if (image is null)
         {
             return new TextContent("[get_slide_preview] 尚未渲染任何页面，请先输出 SlideML 内容或调用 render_slide。");
         }
 
         using var memoryStream = new MemoryStream();
-        if (Dispatcher.CheckAccess())
-        {
-            image.Save(memoryStream);
-        }
-        else
-        {
-            await Dispatcher.InvokeAsync(() =>
-            {
-                image.Save(memoryStream);
-                return Task.CompletedTask;
-            });
-        }
-
+        image.Save(memoryStream);
         memoryStream.Position = 0;
         return await DataContent.LoadFromAsync(memoryStream, "image/png").ConfigureAwait(false);
     }
@@ -209,7 +222,7 @@ public sealed class SlideMlRenderTool
     /// </summary>
     public async Task<DataContent?> CreatePreviewDataContentAsync(CancellationToken cancellationToken = default)
     {
-        var image = LatestPreviewImage;
+        var image = GetLatestSnapshot().PreviewImage;
         if (image is null)
         {
             return null;
@@ -241,17 +254,7 @@ public sealed class SlideMlRenderTool
             return $"[render_slide] 渲染异常：{ex.Message}";
         }
 
-        _ = _dispatcher.InvokeAsync(() =>
-        {
-            LatestPreviewImage = renderResult.PreviewImage;
-            LatestWarnings = renderResult.Warnings.Count == 0
-                ? "(none)"
-                : string.Join("\n", renderResult.Warnings);
-            LatestRenderedXml = renderResult.OutputXml;
-            LatestSlideXml = renderResult.InputXml;
-            SlideRendered?.Invoke();
-            return Task.CompletedTask;
-        });
+        await ApplyRenderResultAsync(renderResult).ConfigureAwait(false);
 
         var builder = new StringBuilder();
         builder.AppendLine("[render_slide] 渲染完成。");
@@ -274,4 +277,17 @@ public sealed class SlideMlRenderTool
 
         return builder.ToString();
     }
+}
+
+internal sealed record SlideMlRenderSnapshot(
+    IPreviewImage? PreviewImage,
+    string Warnings,
+    string RenderedXml,
+    string SlideXml)
+{
+    public static SlideMlRenderSnapshot Empty { get; } = new(
+        PreviewImage: null,
+        Warnings: string.Empty,
+        RenderedXml: string.Empty,
+        SlideXml: string.Empty);
 }

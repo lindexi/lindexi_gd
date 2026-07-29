@@ -18,6 +18,12 @@ public sealed class WpfPreviewImage : IPreviewImage
     public WpfPreviewImage(BitmapSource bitmapSource)
     {
         ArgumentNullException.ThrowIfNull(bitmapSource);
+        if (!bitmapSource.IsFrozen)
+        {
+            bitmapSource = bitmapSource.CloneCurrentValue();
+            bitmapSource.Freeze();
+        }
+
         _bitmapSource = bitmapSource;
     }
 

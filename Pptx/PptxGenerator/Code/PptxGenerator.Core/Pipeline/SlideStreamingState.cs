@@ -1,4 +1,3 @@
-using AgentLib;
 using PptxGenerator.Models;
 using PptxGenerator.Prompt;
 using PptxGenerator.Rendering;
@@ -17,17 +16,14 @@ internal sealed class SlideStreamingState
     /// </summary>
     /// <param name="promptProvider">提示词提供者。</param>
     /// <param name="renderPipeline">SlideML 渲染管道。</param>
-    /// <param name="dispatcher">主线程调度器。</param>
     public SlideStreamingState(
         ISlideMlPromptProvider promptProvider,
-        ISlideMlRenderPipeline renderPipeline,
-        IMainThreadDispatcher dispatcher)
+        ISlideMlRenderPipeline renderPipeline)
     {
         ArgumentNullException.ThrowIfNull(promptProvider);
         ArgumentNullException.ThrowIfNull(renderPipeline);
-        ArgumentNullException.ThrowIfNull(dispatcher);
 
-        Pipeline = new SlideStreamingPipeline(promptProvider, renderPipeline, dispatcher);
+        Pipeline = new SlideStreamingPipeline(promptProvider, renderPipeline);
         Context = new SlideMlPipelineContext();
     }
 

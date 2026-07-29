@@ -171,17 +171,14 @@ public sealed class StreamingSlideGeneratorTests
                 output, correctedOutput);
 
         var promptProvider = new SlideMlPromptProvider();
-        var dispatcher = new FakeMainThreadDispatcher();
         var streamingState = new SlideStreamingState(promptProvider,
-            chatManager.SlideMlRenderTool.RenderPipeline,
-            dispatcher);
+            chatManager.SlideMlRenderTool.RenderPipeline);
 
         var generator = new StreamingSlideGenerator
         (
             chatManager.Pipeline.ChatManager,
             promptProvider,
-            chatManager.SlideMlRenderTool,
-            dispatcher
+            chatManager.SlideMlRenderTool
         );
 
         // Act
@@ -239,17 +236,14 @@ public sealed class StreamingSlideGeneratorTests
                 danglingStyleFragment, pageFragment);
 
         var promptProvider = new SlideMlPromptProvider();
-        var dispatcher = new FakeMainThreadDispatcher();
         var streamingState = new SlideStreamingState(promptProvider,
-            chatManager.SlideMlRenderTool.RenderPipeline,
-            dispatcher);
+            chatManager.SlideMlRenderTool.RenderPipeline);
 
         var generator = new StreamingSlideGenerator
         (
             chatManager.Pipeline.ChatManager,
             promptProvider,
-            chatManager.SlideMlRenderTool,
-            dispatcher
+            chatManager.SlideMlRenderTool
         );
 
         var originalCallback = fakeChatClient.OnGetStreamingResponseAsync!;
@@ -337,17 +331,14 @@ public sealed class StreamingSlideGeneratorTests
             SlideStreamingTestHelper.CreateChatManagerWithSequentialTextsAndRecorder(output);
 
         var promptProvider = new SlideMlPromptProvider();
-        var dispatcher = new FakeMainThreadDispatcher();
         var streamingState = new SlideStreamingState(promptProvider,
-            chatManager.SlideMlRenderTool.RenderPipeline,
-            dispatcher);
+            chatManager.SlideMlRenderTool.RenderPipeline);
 
         var generator = new StreamingSlideGenerator
         (
             chatManager.Pipeline.ChatManager,
             promptProvider,
-            chatManager.SlideMlRenderTool,
-            dispatcher
+            chatManager.SlideMlRenderTool
         );
 
         // Act

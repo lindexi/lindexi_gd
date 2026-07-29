@@ -58,7 +58,7 @@ public sealed class AsyncRelayCommand : ICommand
     /// <inheritdoc />
     public void Execute(object? parameter)
     {
-        _ = ObserveExecutionAsync(ExecuteAsync(parameter));
+        ExecutionTask = ObserveExecutionAsync(ExecuteAsync(parameter));
     }
 
     /// <summary>

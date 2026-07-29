@@ -3,6 +3,7 @@
 /// <summary>
 /// 预览图片抽象接口，解耦 UI 框架特定的 Bitmap 类型。
 /// 各 UI 框架（WPF、Avalonia）通过实现此接口来封装各自的图片类型。
+/// 实现必须提供可跨线程读取的不可变图片快照，使保存操作不依赖 UI Dispatcher。
 /// </summary>
 public interface IPreviewImage
 {

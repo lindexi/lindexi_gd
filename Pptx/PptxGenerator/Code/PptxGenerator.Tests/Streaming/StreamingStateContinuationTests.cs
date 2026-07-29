@@ -257,9 +257,8 @@ public sealed class StreamingStateContinuationTests
             PreviewImage = new FakePreviewImage(),
         };
         var fakePipeline = new FakeRenderPipeline(renderResult);
-        var dispatcher = new FakeMainThreadDispatcher();
         var promptProvider = new SlideMlPromptProvider();
-        return new SlideStreamingPipeline(promptProvider, fakePipeline, dispatcher);
+        return new SlideStreamingPipeline(promptProvider, fakePipeline);
     }
 
     /// <summary>
@@ -277,9 +276,8 @@ public sealed class StreamingStateContinuationTests
             PreviewImage = new FakePreviewImage(),
         };
         var renderPipeline = new FakeRenderPipeline(renderResult);
-        var dispatcher = new FakeMainThreadDispatcher();
         var promptProvider = new SlideMlPromptProvider();
-        var state = new SlideStreamingState(promptProvider, renderPipeline, dispatcher);
+        var state = new SlideStreamingState(promptProvider, renderPipeline);
         return (state, renderPipeline);
     }
 }

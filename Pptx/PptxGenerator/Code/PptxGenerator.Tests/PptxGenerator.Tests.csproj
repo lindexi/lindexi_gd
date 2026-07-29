@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PptxGenerator.Core\PptxGenerator.Core.csproj" />
+    <ProjectReference Include="..\PptxGeneratorWpfDemo\PptxGeneratorWpfDemo.csproj" />
   </ItemGroup>
 
   <ItemGroup>

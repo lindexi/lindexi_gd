@@ -317,12 +317,6 @@ public sealed class MainWindowCompositionTests
 
         private sealed class DispatcherViewModelDispatcher(Dispatcher dispatcher) : IViewModelDispatcher
         {
-            public async Task InvokeAsync(Func<Task> action)
-            {
-                var task = await dispatcher.InvokeAsync(action).Task;
-                await task;
-            }
-
             public async Task InvokeAsync(Action action)
             {
                 await dispatcher.InvokeAsync(action).Task;

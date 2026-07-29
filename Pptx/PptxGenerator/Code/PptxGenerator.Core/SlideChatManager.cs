@@ -62,13 +62,6 @@ public sealed class SlideChatManager : INotifyPropertyChanged
     private void AttachPipelineEvents()
     {
         Pipeline.PropertyChanged += (_, e) => OnPropertyChanged(e.PropertyName!);
-        Pipeline.SlideRendered += () =>
-        {
-            OnPropertyChanged(nameof(PreviewImage));
-            OnPropertyChanged(nameof(CurrentSlideXml));
-            OnPropertyChanged(nameof(RenderedXml));
-            OnPropertyChanged(nameof(WarningText));
-        };
     }
 
     public IReadOnlyList<ILanguageModel> AvailableModels => _endpointManager.GetSupportedModels();

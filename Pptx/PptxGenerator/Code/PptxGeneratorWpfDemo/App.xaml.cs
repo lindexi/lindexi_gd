@@ -35,6 +35,8 @@ public partial class App : Application
             DataContext = viewModel,
         };
         mainWindow.Show();
+
+        await viewModel.TryConnectMcpRenderAsync();
     }
 
     /// <summary>

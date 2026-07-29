@@ -1,4 +1,3 @@
-using AgentLib;
 using PptxGenerator.Models;
 using PptxGenerator.Pipeline;
 using PptxGenerator.Prompt;
@@ -20,7 +19,6 @@ public sealed class SlideStreamingPipeline
     private readonly SlideMlStreamingMerger _merger;
     private readonly ISlideMlRenderPipeline _renderPipeline;
     private readonly ISlideMlPromptProvider _promptProvider;
-    private readonly IMainThreadDispatcher _dispatcher;
     private SlideMlFragmentExtractor _extractor = new();
 
     /// <summary>
@@ -28,18 +26,14 @@ public sealed class SlideStreamingPipeline
     /// </summary>
     /// <param name="promptProvider">提示词提供者。</param>
     /// <param name="renderPipeline">SlideML 渲染管道。</param>
-    /// <param name="dispatcher">主线程调度器。</param>
     public SlideStreamingPipeline(
         ISlideMlPromptProvider promptProvider,
-        ISlideMlRenderPipeline renderPipeline,
-        IMainThreadDispatcher dispatcher)
+        ISlideMlRenderPipeline renderPipeline)
     {
         ArgumentNullException.ThrowIfNull(promptProvider);
         ArgumentNullException.ThrowIfNull(renderPipeline);
-        ArgumentNullException.ThrowIfNull(dispatcher);
 
         _promptProvider = promptProvider;
-        _dispatcher = dispatcher;
         _merger = new SlideMlStreamingMerger();
         _renderPipeline = renderPipeline;
     }
@@ -170,4 +164,5 @@ public sealed class SlideStreamingPipeline
     {
         _extractor = new SlideMlFragmentExtractor();
     }
+
 }

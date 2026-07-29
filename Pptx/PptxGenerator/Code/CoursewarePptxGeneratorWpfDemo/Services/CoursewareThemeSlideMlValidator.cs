@@ -37,24 +37,11 @@ public sealed class CoursewareThemeSlideMlValidator : ICoursewareThemeSlideMlVal
         "get_slide_state",
     };
 
-    private readonly Func<SlideDocumentContext, ISlideMlRenderPipeline> _renderPipelineFactory;
-
     /// <summary>
     /// Initializes a validator that uses the production WPF SlideML rendering pipeline.
     /// </summary>
     public CoursewareThemeSlideMlValidator()
-        : this(CreateProductionRenderPipeline)
     {
-    }
-
-    /// <summary>
-    /// Initializes a validator with an injectable rendering pipeline factory for tests.
-    /// </summary>
-    /// <param name="renderPipelineFactory">Creates a rendering pipeline for the supplied document context.</param>
-    public CoursewareThemeSlideMlValidator(Func<SlideDocumentContext, ISlideMlRenderPipeline> renderPipelineFactory)
-    {
-        ArgumentNullException.ThrowIfNull(renderPipelineFactory);
-        _renderPipelineFactory = renderPipelineFactory;
     }
 
     /// <inheritdoc />
@@ -250,7 +237,7 @@ public sealed class CoursewareThemeSlideMlValidator : ICoursewareThemeSlideMlVal
     {
         try
         {
-            var pipeline = _renderPipelineFactory(documentContext);
+            var pipeline = CreateProductionRenderPipeline(documentContext);
             var result = await pipeline.RenderAsync(slideMl, cancellationToken).ConfigureAwait(false);
             errors.AddRange(result.Errors.Select(error => $"{fieldName}: {error}"));
             errors.AddRange(result.Warnings

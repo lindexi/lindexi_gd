@@ -308,8 +308,6 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
             slide.PropertyChanged -= OnSlidePropertyChanged;
             slide.Dispose();
         }
-
-        _workspaceCancellationTokenSource.Dispose();
     }
 
     private Task StartSelectedSlideInitialization(
@@ -317,16 +315,18 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
         CancellationToken cancellationToken = default)
     {
         CancelSelectionInitialization();
-        _selectionInitializationCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+        var initializationCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             _workspaceCancellationTokenSource.Token,
             cancellationToken);
-        return InitializeSlideAsync(slide, _selectionInitializationCancellationTokenSource.Token);
+        _selectionInitializationCancellationTokenSource = initializationCancellationTokenSource;
+        return InitializeSlideAsync(slide, initializationCancellationTokenSource);
     }
 
     private async Task InitializeSlideAsync(
         CoursewareSlideItemViewModel slide,
-        CancellationToken cancellationToken)
+        CancellationTokenSource initializationCancellationTokenSource)
     {
+        var cancellationToken = initializationCancellationTokenSource.Token;
         try
         {
             await InvokeIfNotDisposedAsync(() => PrepareInitialDraft(slide)).ConfigureAwait(false);
@@ -352,6 +352,14 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
                 slide.RuntimeState = CoursewareSlideRuntimeState.Failed;
                 slide.State = CoursewareSlideState.Failed;
             }).ConfigureAwait(false);
+        }
+        finally
+        {
+            Interlocked.CompareExchange(
+                ref _selectionInitializationCancellationTokenSource,
+                null,
+                initializationCancellationTokenSource);
+            initializationCancellationTokenSource.Dispose();
         }
     }
 
@@ -588,7 +596,8 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
             }).ConfigureAwait(false);
             var renderResult = await runtime.SlideChatManager.SlideMlRenderTool.RenderPipeline
                 .RenderAsync(slide.EditableSlideXml, cancellationToken).ConfigureAwait(false);
-            runtime.SlideChatManager.SlideMlRenderTool.ApplyRenderResult(renderResult);
+            await runtime.SlideChatManager.SlideMlRenderTool
+                .ApplyRenderResultAsync(renderResult).ConfigureAwait(false);
             await InvokeIfNotDisposedAsync(() =>
             {
                 slide.CallbackXml = renderResult.OutputXml;
@@ -775,7 +784,6 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
             ref _selectionInitializationCancellationTokenSource,
             null);
         cancellationTokenSource?.Cancel();
-        cancellationTokenSource?.Dispose();
     }
 
     private async Task ApplyUnexpectedPageExceptionAsync(
@@ -798,11 +806,11 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
 
     private void HandleUnexpectedCommandException(Exception exception)
     {
-        _ = InvokeIfNotDisposedAsync(() =>
+        if (!_isDisposed)
         {
             McpStatusText = $"远程渲染服务操作失败：{exception.Message}";
             IsConnectingMcp = false;
-        });
+        }
     }
 
     private Task InvokeIfNotDisposedAsync(Action action)

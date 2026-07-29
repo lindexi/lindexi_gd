@@ -1,4 +1,4 @@
-using System.Windows;
+using PptxGenerator;
 
 namespace CoursewarePptxGeneratorWpfDemo.Threading;
 
@@ -17,31 +17,13 @@ public sealed class WpfViewModelDispatcher : IViewModelDispatcher
     }
 
     /// <inheritdoc />
-    public async Task InvokeAsync(Func<Task> action)
-    {
-        ArgumentNullException.ThrowIfNull(action);
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher is null || dispatcher.CheckAccess())
-        {
-            await action().ConfigureAwait(true);
-            return;
-        }
-
-        var task = await dispatcher.InvokeAsync(action).Task.ConfigureAwait(false);
-        await task.ConfigureAwait(false);
-    }
-
-    /// <inheritdoc />
     public async Task InvokeAsync(Action action)
     {
         ArgumentNullException.ThrowIfNull(action);
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher is null || dispatcher.CheckAccess())
+        await WpfDispatcher.Instance.InvokeAsync(() =>
         {
             action();
-            return;
-        }
-
-        await dispatcher.InvokeAsync(action).Task.ConfigureAwait(false);
+            return Task.CompletedTask;
+        }).ConfigureAwait(false);
     }
 }

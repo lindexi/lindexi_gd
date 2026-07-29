@@ -535,9 +535,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 .RenderAsync(EditableSlideXml)
                 .ConfigureAwait(false);
 
+            await renderTool.ApplyRenderResultAsync(renderResult).ConfigureAwait(false);
+
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                renderTool.ApplyRenderResult(renderResult);
                 StatusText = "重新渲染完成";
             });
         }

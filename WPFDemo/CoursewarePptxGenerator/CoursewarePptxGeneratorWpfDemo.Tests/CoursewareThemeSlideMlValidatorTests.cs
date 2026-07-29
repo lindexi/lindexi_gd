@@ -1,12 +1,8 @@
-using AgentLib;
-using System.IO;
 using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.Tests.Fakes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PptxGenerator.Models;
-using PptxGenerator.Models.SlideDocuments;
-using PptxGenerator.Rendering;
 
 namespace CoursewarePptxGeneratorWpfDemo.Tests;
 
@@ -77,7 +73,7 @@ public sealed class CoursewareThemeSlideMlValidatorTests
     public async Task ValidateAsyncShouldReportRealParserFailureAsync()
     {
         const string slideMl = "<?xml version=\"1.0\"?><Page><TextElement Id=\"title\" FontSize=\"bad\" /></Page>";
-        var validator = new CoursewareThemeSlideMlValidator(CreateRealParserPipeline);
+        var validator = new CoursewareThemeSlideMlValidator();
 
         var result = await validator.ValidateAsync(CreateTheme(slideMl), CreateCanvas(), EmptyResources);
 
@@ -89,7 +85,7 @@ public sealed class CoursewareThemeSlideMlValidatorTests
     public async Task ValidateAsyncShouldRejectOutOfBoundsAndClippingAsync()
     {
         const string slideMl = "<?xml version=\"1.0\"?><Page><Panel Id=\"panel\" X=\"750\" Y=\"550\" Width=\"100\" Height=\"100\"><Rect Id=\"rect\" X=\"90\" Y=\"90\" Width=\"20\" Height=\"20\" Fill=\"#000000\" /></Panel></Page>";
-        var validator = new CoursewareThemeSlideMlValidator(CreateRealWpfPipeline);
+        var validator = new CoursewareThemeSlideMlValidator();
 
         var result = await validator.ValidateAsync(CreateTheme(slideMl), CreateCanvas(), EmptyResources);
 
@@ -102,7 +98,7 @@ public sealed class CoursewareThemeSlideMlValidatorTests
     public async Task ValidateAsyncShouldRejectTextOverflowAsync()
     {
         const string slideMl = "<?xml version=\"1.0\"?><Page><TextElement Id=\"text\" X=\"10\" Y=\"10\" Width=\"100\" Height=\"10\" Text=\"这是一段明显无法放入固定高度的文本内容\" FontSize=\"32\" /></Page>";
-        var validator = new CoursewareThemeSlideMlValidator(CreateRealWpfPipeline);
+        var validator = new CoursewareThemeSlideMlValidator();
 
         var result = await validator.ValidateAsync(CreateTheme(slideMl), CreateCanvas(), EmptyResources);
 
@@ -114,7 +110,7 @@ public sealed class CoursewareThemeSlideMlValidatorTests
     public async Task ValidateAsyncShouldAcceptValidNonStandardCanvasAsync()
     {
         const string slideMl = "<?xml version=\"1.0\"?><Page Background=\"#FFFFFF\"><TextElement Id=\"title\" X=\"24\" Y=\"20\" Width=\"300\" Height=\"60\" Text=\"非标准画布\" FontSize=\"28\" Foreground=\"#111111\" /></Page>";
-        var validator = new CoursewareThemeSlideMlValidator(CreateRealWpfPipeline);
+        var validator = new CoursewareThemeSlideMlValidator();
 
         var result = await validator.ValidateAsync(CreateTheme(slideMl), new SlideDocumentContext(1024, 577), EmptyResources);
 
@@ -125,14 +121,15 @@ public sealed class CoursewareThemeSlideMlValidatorTests
     [Timeout(5000)]
     public async Task ValidateAsyncShouldValidateCoverAndContentAsync()
     {
-        var pipeline = new FakeSlideMlRenderPipeline();
-        var validator = new CoursewareThemeSlideMlValidator(_ => pipeline);
-        var theme = CreateTheme(EmptyPage, "<?xml version=\"1.0\"?><Page Background=\"#FFFFFF\" />");
+        var validator = new CoursewareThemeSlideMlValidator();
+        var theme = CreateTheme(
+            "<?xml version=\"1.0\"?><Page UnknownCover=\"x\" />",
+            "<?xml version=\"1.0\"?><Page UnknownContent=\"x\" />");
 
         var result = await validator.ValidateAsync(theme, CreateCanvas(), EmptyResources);
 
-        Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Errors));
-        Assert.AreEqual(2, pipeline.RenderedSlideXml.Count);
+        Assert.IsTrue(result.Errors.Any(error => error.Contains("CoverPageSlideMl", StringComparison.Ordinal)));
+        Assert.IsTrue(result.Errors.Any(error => error.Contains("ContentPageSlideMl", StringComparison.Ordinal)));
     }
 
     [TestMethod(DisplayName = "主题校验应汇总字段错误和SlideML错误")]
@@ -156,28 +153,13 @@ public sealed class CoursewareThemeSlideMlValidatorTests
 
     private static CoursewareThemeSlideMlValidator CreateValidator()
     {
-        return new CoursewareThemeSlideMlValidator(_ => new FakeSlideMlRenderPipeline());
+        return new CoursewareThemeSlideMlValidator();
     }
 
-    private static ISlideMlRenderPipeline CreateRealParserPipeline(SlideDocumentContext documentContext)
+    private static SlideDocumentContext CreateCanvas()
     {
-        return new SlideMlRenderPipeline(
-            new SlideMlLayoutEngine(),
-            new TestRenderEngine(),
-            new ImmediateMainThreadDispatcher(),
-            new SlideMlPipelineContext(documentContext));
+        return new SlideDocumentContext(800, 600);
     }
-
-    private static ISlideMlRenderPipeline CreateRealWpfPipeline(SlideDocumentContext documentContext)
-    {
-        return new SlideMlRenderPipeline(
-            new SlideMlLayoutEngine(),
-            new WpfSlideMlRenderEngine(enableClip: true),
-            global::PptxGenerator.WpfDispatcher.BackgroundInstance,
-            new SlideMlPipelineContext(documentContext));
-    }
-
-    private static SlideDocumentContext CreateCanvas() => new(800, 600);
 
     private static CoursewareTheme CreateTheme(string coverSlideMl, string? contentSlideMl = null)
     {
@@ -199,32 +181,4 @@ public sealed class CoursewareThemeSlideMlValidatorTests
         };
     }
 
-    private sealed class ImmediateMainThreadDispatcher : IMainThreadDispatcher
-    {
-        public Task InvokeAsync(Func<Task> action) => action();
-        public Task<T> InvokeAsync<T>(Func<Task<T>> action) => action();
-        public bool CheckAccess() => true;
-    }
-
-    private sealed class TestRenderEngine : ISlideMlRenderEngine
-    {
-        public SlideMlElementMeasurements PreMeasure(SlideMlPage page, SlideMlPipelineContext context)
-        {
-            return new SlideMlElementMeasurements(new Dictionary<string, SlideMlElementMeasureResult>());
-        }
-
-        public IPreviewImage Render(SlideMlPage page, SlideMlPipelineContext context) => new TestPreviewImage();
-        public IPreviewImage RenderErrorPreview(string message, SlideMlPipelineContext context) => new TestPreviewImage();
-    }
-
-    private sealed class TestPreviewImage : IPreviewImage
-    {
-        public void Save(string filePath)
-        {
-        }
-
-        public void Save(Stream stream)
-        {
-        }
-    }
 }

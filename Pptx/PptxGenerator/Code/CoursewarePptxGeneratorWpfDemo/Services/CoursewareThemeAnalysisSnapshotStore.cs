@@ -16,7 +16,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
     private const string ThemeFileRelativePath = "Theme/Theme.json";
     private const string SnapshotDirectoryNamePrefix = "CoursewareThemeAnalysis_";
     private readonly string _outputRootPath;
-    private readonly Func<DateTimeOffset> _nowProvider;
+    private readonly DateTimeOffset? _fixedTimestamp;
     private readonly CoursewareFolderLoader _coursewareFolderLoader;
     private readonly CoursewareThemeValidator _themeValidator;
 
@@ -29,16 +29,23 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
     }
 
     /// <summary>
-    /// Initializes a snapshot store with an explicit output root and time source.
+    /// Initializes a snapshot store with an explicit output root.
     /// </summary>
-    public CoursewareThemeAnalysisSnapshotStore(string outputRootPath, Func<DateTimeOffset>? nowProvider = null)
-        : this(outputRootPath, nowProvider, new CoursewareFolderLoader(), new CoursewareThemeValidator())
+    public CoursewareThemeAnalysisSnapshotStore(string outputRootPath)
+        : this(outputRootPath, fixedTimestamp: null, new CoursewareFolderLoader(), new CoursewareThemeValidator())
     {
     }
 
     internal CoursewareThemeAnalysisSnapshotStore(
         string outputRootPath,
-        Func<DateTimeOffset>? nowProvider,
+        DateTimeOffset fixedTimestamp)
+        : this(outputRootPath, fixedTimestamp, new CoursewareFolderLoader(), new CoursewareThemeValidator())
+    {
+    }
+
+    private CoursewareThemeAnalysisSnapshotStore(
+        string outputRootPath,
+        DateTimeOffset? fixedTimestamp,
         CoursewareFolderLoader coursewareFolderLoader,
         CoursewareThemeValidator themeValidator)
     {
@@ -50,7 +57,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
         ArgumentNullException.ThrowIfNull(coursewareFolderLoader);
         ArgumentNullException.ThrowIfNull(themeValidator);
         _outputRootPath = Path.GetFullPath(outputRootPath);
-        _nowProvider = nowProvider ?? (() => DateTimeOffset.Now);
+        _fixedTimestamp = fixedTimestamp;
         _coursewareFolderLoader = coursewareFolderLoader;
         _themeValidator = themeValidator;
     }
@@ -83,7 +90,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
                 CoursewareExportJsonSerializerContext.Default.CoursewareTheme,
                 cancellationToken).ConfigureAwait(false);
 
-            var createdAt = _nowProvider();
+            var createdAt = _fixedTimestamp ?? DateTimeOffset.Now;
             var manifest = new CoursewareThemeAnalysisSnapshotManifest
             {
                 CreatedAt = createdAt,

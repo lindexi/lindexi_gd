@@ -12,7 +12,7 @@ namespace CoursewarePptxGeneratorWpfDemo.Services;
 public sealed class CopilotChatManagerFactory : ICopilotChatManagerFactory
 {
     private const string ConfigurationFilePath = @"C:\lindexi\Work\Key\AgentConfiguration.json";
-    private const string ModelName = "qwen3.7-plus";
+    private const string ModelName = "gpt-5.6-luna";
 
     private readonly WpfDispatcher _dispatcher;
 

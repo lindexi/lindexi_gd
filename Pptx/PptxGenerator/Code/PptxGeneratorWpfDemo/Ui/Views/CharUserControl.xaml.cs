@@ -112,7 +112,7 @@ public partial class CharUserControl : UserControl
         _chatScrollViewer.ScrollToEnd();
 
         // 等待布局完成后再滚一次，确保新内容被纳入后仍在底部
-        Dispatcher.InvokeAsync(
+        _ = Dispatcher.InvokeAsync(
             () => _chatScrollViewer?.ScrollToEnd(),
             DispatcherPriority.Loaded);
     }
