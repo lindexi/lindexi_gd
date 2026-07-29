@@ -268,6 +268,36 @@ public sealed class ChatViewModelTests
         Assert.IsTrue(viewModel.Messages[^1].IsSystemMessage);
     }
 
+    [TestMethod(DisplayName = "后台创建代理会话时应由完整应用操作刷新命令状态")]
+    [Timeout(5000)]
+    public async Task BackgroundAgentSessionChangeShouldWaitForApplicationStateNotification()
+    {
+        var chatClient = new FakeChatClient();
+        CopilotChatManager manager = CreateChatManager(chatClient);
+        IManualSendMessageContext context = await manager.CreateManualSendMessageContextAsync();
+        AgentSession agentSession = await context.GetAgentSessionAsync();
+        manager.SelectedSession.SetAgentSession(null);
+        var runner = new ImmediateRunner(manager);
+        var application = new CodingChatApplication(manager, new EmptySessionStore(), runner);
+        await application.InitializeAsync();
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型")
+        {
+            InputText = "刷新命令状态",
+        };
+        int notificationCount = 0;
+        viewModel.CompressConversationCommand.CanExecuteChanged += (_, _) => notificationCount++;
+
+        await Task.Run(() => manager.SelectedSession.SetAgentSession(agentSession));
+        int countAfterAgentSessionChanged = notificationCount;
+        viewModel.SendCommand.Execute(null);
+        await runner.Completed.Task;
+        await WaitUntilAsync(() => viewModel.CompressConversationCommand.CanExecute(null));
+
+        Assert.AreEqual(
+            (0, true, true),
+            (countAfterAgentSessionChanged, notificationCount > 0, viewModel.CompressConversationCommand.CanExecute(null)));
+    }
+
     [TestMethod(DisplayName = "压缩命令应压缩当前对话并显示完成消息")]
     [Timeout(5000)]
     public async Task CompressConversationCommandShouldReduceCurrentHistoryAndShowCompletionMessage()
