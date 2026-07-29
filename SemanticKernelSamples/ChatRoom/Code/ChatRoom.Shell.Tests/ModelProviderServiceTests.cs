@@ -47,16 +47,16 @@ public class ModelProviderServiceTests
         var service = new ModelProviderService(settings);
         var providers = service.GetProviders();
 
-        Assert.AreEqual(2, providers.Count);
+        Assert.HasCount(2, providers);
         Assert.IsTrue(providers.ContainsKey("deepseek"));
         Assert.IsTrue(providers.ContainsKey("doubao"));
 
         var deepseekModels = providers["deepseek"].GetSupportedModels();
-        Assert.AreEqual(1, deepseekModels.Count);
+        Assert.HasCount(1, deepseekModels);
         Assert.AreEqual("deepseek-v4-pro", deepseekModels[0].ModelDefinition.ModelName);
 
         var doubaoModels = providers["doubao"].GetSupportedModels();
-        Assert.AreEqual(1, doubaoModels.Count);
+        Assert.HasCount(1, doubaoModels);
         Assert.AreEqual("Doubao-Seed-2.0-pro", doubaoModels[0].ModelDefinition.ModelName);
     }
 
@@ -97,7 +97,7 @@ public class ModelProviderServiceTests
         var service = new ModelProviderService(settings);
         var providers = service.GetProviders();
 
-        Assert.AreEqual(1, providers.Count);
+        Assert.HasCount(1, providers);
         Assert.IsTrue(providers.ContainsKey("ok"));
     }
 
@@ -128,7 +128,7 @@ public class ModelProviderServiceTests
         var service = new ModelProviderService(settings);
         var names = service.GetAvailableModelDisplayNames();
 
-        Assert.AreEqual(2, names.Count);
+        Assert.HasCount(2, names);
         Assert.AreEqual("deepseek / deepseek-v4-pro", names[0]);
         Assert.AreEqual("deepseek / deepseek-v4-flash", names[1]);
     }
@@ -154,7 +154,7 @@ public class ModelProviderServiceTests
         };
 
         var service = new ModelProviderService(settings);
-        Assert.AreEqual(1, service.GetProviders().Count);
+        Assert.HasCount(1, service.GetProviders());
 
         var newSettings = new AppSettings
         {
@@ -180,7 +180,7 @@ public class ModelProviderServiceTests
         service.UpdateSettings(newSettings);
 
         var providers = service.GetProviders();
-        Assert.AreEqual(2, providers.Count);
+        Assert.HasCount(2, providers);
         Assert.IsTrue(providers.ContainsKey("provider-b"));
         Assert.IsTrue(providers.ContainsKey("provider-c"));
     }

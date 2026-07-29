@@ -104,7 +104,7 @@ public class ChatRoomServiceTests
 
         await _chatRoomService.AddRoleAsync(definition);
 
-        Assert.AreEqual(1, _chatRoomService.CurrentManager!.Roles.Count);
+        Assert.HasCount(1, _chatRoomService.CurrentManager!.Roles);
         Assert.AreEqual("test-role", _chatRoomService.CurrentManager.Roles[0].Definition.RoleId);
     }
 
@@ -184,7 +184,7 @@ public class ChatRoomServiceTests
 
         await _chatRoomService.CloseCurrentSessionAsync();
 
-        Assert.AreEqual(0, manager.Roles.Count);
+        Assert.IsEmpty(manager.Roles);
         Assert.IsNull(_chatRoomService.CurrentManager);
     }
 
@@ -215,11 +215,11 @@ public class ChatRoomServiceTests
         };
         await _chatRoomService.AddRoleAsync(definition);
 
-        Assert.AreEqual(1, _chatRoomService.CurrentManager!.Roles.Count);
+        Assert.HasCount(1, _chatRoomService.CurrentManager!.Roles);
 
         await _chatRoomService.RemoveRoleAsync("removable-role");
 
-        Assert.AreEqual(0, _chatRoomService.CurrentManager.Roles.Count);
+        Assert.IsEmpty(_chatRoomService.CurrentManager.Roles);
     }
 
     [TestMethod(DisplayName = "原位更新角色应保留运行时实例和执行种类")]
@@ -333,7 +333,7 @@ public class ChatRoomServiceTests
 
         await _chatRoomService.HumanInterjectAsync("你好", "human", "我");
 
-        Assert.AreEqual(1, _chatRoomService.CurrentManager!.Session.Messages.Count);
+        Assert.HasCount(1, _chatRoomService.CurrentManager!.Session.Messages);
         Assert.AreEqual("你好", _chatRoomService.CurrentManager.Session.Messages[0].Content);
         Assert.IsTrue(_chatRoomService.CurrentManager.Session.Messages[0].IsHumanMessage);
     }
@@ -373,7 +373,7 @@ public class ChatRoomServiceTests
         var sessionService = new SessionService(new ChatRoomPersistence(_tempDir));
         IReadOnlyList<SessionSummary> sessions = await sessionService.ListSessionsAsync();
 
-        Assert.IsTrue(sessions.Count >= 1);
+        Assert.IsGreaterThanOrEqualTo(1, sessions.Count);
         Assert.IsTrue(sessions.Any(s => s.Title == "持久化测试"));
     }
 
@@ -485,7 +485,7 @@ public class ChatRoomServiceTests
 
         await _chatRoomService.AddRoleAsync(definition);
 
-        Assert.AreEqual(1, _chatRoomService.CurrentManager!.Roles.Count);
+        Assert.HasCount(1, _chatRoomService.CurrentManager!.Roles);
         Assert.AreEqual("ai-role", _chatRoomService.CurrentManager.Roles[0].Definition.RoleId);
     }
 

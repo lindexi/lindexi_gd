@@ -137,16 +137,18 @@ public sealed class ChatViewModelTests
     public async Task SwitchingSessionShouldUnsubscribePreviousMessageCollection()
     {
         var manager = new CopilotChatManager();
+        var application = new CodingChatApplication(manager, new EmptySessionStore());
+        await application.InitializeAsync();
         CopilotChatSession previousSession = manager.SelectedSession;
         await previousSession.AddMessageAsync(new CopilotChatMessage(ChatRole.User, "旧会话问题"));
-        using var viewModel = new ChatViewModel(manager, "当前模型：测试模型");
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型");
 
         manager.CreateNewSession();
         int currentMessageCount = viewModel.Messages.Count;
         await previousSession.AddMessageAsync(new CopilotChatMessage(ChatRole.Assistant, "旧会话迟到更新"));
 
         Assert.AreEqual(manager.SelectedSession.SessionId, viewModel.CurrentSessionId);
-        Assert.AreEqual(currentMessageCount, viewModel.Messages.Count);
+        Assert.HasCount(currentMessageCount, viewModel.Messages);
     }
 
     [TestMethod(DisplayName = "审批入口应复用聊天管理器完成决策")]
@@ -154,7 +156,8 @@ public sealed class ChatViewModelTests
     public void ApprovalActionsShouldDelegateToChatManager()
     {
         var manager = new CopilotChatManager();
-        using var viewModel = new ChatViewModel(manager, "当前模型：测试模型");
+        var application = new CodingChatApplication(manager, new EmptySessionStore());
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型");
         var approvedItem = new CopilotChatApprovalToolItem("approved", "write_file", "path=a.cs");
         var rejectedItem = new CopilotChatApprovalToolItem("rejected", "delete_file", "path=b.cs");
 
@@ -199,10 +202,11 @@ public sealed class ChatViewModelTests
         viewModel.SendCommand.Execute(null);
         await runner.Completed.Task;
 
-        Assert.IsTrue(viewModel.SendCommand.CanExecute(null) is false);
+        Assert.IsFalse(viewModel.SendCommand.CanExecute(null));
         Assert.IsEmpty(viewModel.PendingImages);
-        Assert.HasCount(1, runner.ObservedContents!);
-        DataContent imageContent = Assert.IsInstanceOfType<DataContent>(runner.ObservedContents[0]);
+        IReadOnlyList<AIContent> observedContents = runner.ObservedContents!;
+        Assert.HasCount(1, observedContents);
+        DataContent imageContent = Assert.IsInstanceOfType<DataContent>(observedContents[0]);
         Assert.AreEqual("image/png", imageContent.MediaType);
     }
 

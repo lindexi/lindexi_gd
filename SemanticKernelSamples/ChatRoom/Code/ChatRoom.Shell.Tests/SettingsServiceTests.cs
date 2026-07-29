@@ -72,10 +72,10 @@ public class SettingsServiceTests
         Assert.AreEqual("/test/path", loaded.PersistencePath);
         Assert.AreEqual(20, loaded.DefaultMaxRounds);
         Assert.AreEqual("deepseek/deepseek-v4-pro", loaded.PrimaryModel);
-        Assert.AreEqual(1, loaded.Providers.Count);
+        Assert.HasCount(1, loaded.Providers);
         Assert.AreEqual("deepseek", loaded.Providers[0].Name);
         Assert.AreEqual("https://api.deepseek.com", loaded.Providers[0].Endpoint);
-        Assert.AreEqual(2, loaded.Providers[0].Models.Count);
+        Assert.HasCount(2, loaded.Providers[0].Models);
         Assert.AreEqual("deepseek-v4-pro", loaded.Providers[0].Models[0].ModelName);
         Assert.IsFalse(loaded.Providers[0].Models[0].IsFlash);
         Assert.IsTrue(loaded.Providers[0].Models[1].IsFlash);
@@ -125,13 +125,13 @@ public class SettingsServiceTests
 
         Assert.AreEqual("deepseek/deepseek-v4-pro", config.PrimaryModel);
         Assert.IsNotNull(config.OpenAIConfigurationList);
-        Assert.AreEqual(1, config.OpenAIConfigurationList!.Count);
+        Assert.HasCount(1, config.OpenAIConfigurationList!);
 
         var openAiConfig = config.OpenAIConfigurationList[0];
         Assert.AreEqual("https://api.deepseek.com", openAiConfig.EndPoint);
         Assert.AreEqual("test-key", openAiConfig.Key);
         Assert.IsNotNull(openAiConfig.ModelDefinitions);
-        Assert.AreEqual(1, openAiConfig.ModelDefinitions!.Count);
+        Assert.HasCount(1, openAiConfig.ModelDefinitions!);
         Assert.AreEqual("deepseek", openAiConfig.ModelDefinitions[0].Provider);
         Assert.AreEqual("deepseek-v4-pro", openAiConfig.ModelDefinitions[0].ModelName);
     }
@@ -164,11 +164,11 @@ public class SettingsServiceTests
         AppSettings roundTripped = SettingsService.FromApiConfiguration(config);
 
         Assert.AreEqual("test/model", roundTripped.PrimaryModel);
-        Assert.AreEqual(1, roundTripped.Providers.Count);
+        Assert.HasCount(1, roundTripped.Providers);
         Assert.AreEqual("test", roundTripped.Providers[0].Name);
         Assert.AreEqual("https://test.api", roundTripped.Providers[0].Endpoint);
         Assert.AreEqual("key123", roundTripped.Providers[0].Key);
-        Assert.AreEqual(1, roundTripped.Providers[0].Models.Count);
+        Assert.HasCount(1, roundTripped.Providers[0].Models);
         Assert.AreEqual("model-a", roundTripped.Providers[0].Models[0].ModelName);
         Assert.IsTrue(roundTripped.Providers[0].Models[0].IsFlash);
     }

@@ -268,7 +268,9 @@ public sealed class CodingAgentTests
 
             Assert.AreEqual(0, firstResource.DisposeCount);
             AIFunction oldTool = firstRunTools!.OfType<AIFunction>().Single(tool => tool.Name == "tool_first");
-            Assert.AreEqual("first", (await oldTool.InvokeAsync()).ToString());
+            object? oldToolResult = await oldTool.InvokeAsync();
+            Assert.IsNotNull(oldToolResult);
+            Assert.AreEqual("first", oldToolResult.ToString());
             releaseFirstStream.TrySetResult();
             Assert.AreEqual("完成", await firstRun.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
             await firstResource.Disposed.Task.WaitAsync(TimeSpan.FromSeconds(2));

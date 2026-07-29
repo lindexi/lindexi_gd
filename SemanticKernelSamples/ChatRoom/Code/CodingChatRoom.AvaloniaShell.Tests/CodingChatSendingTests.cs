@@ -57,9 +57,10 @@ public sealed class CodingChatSendingTests
         Task sendTask = application.SendMessageAsync(contents);
         await runner.Started.Task;
 
-        Assert.HasCount(2, runner.ObservedContents!);
-        Assert.IsInstanceOfType<TextContent>(runner.ObservedContents[0]);
-        DataContent imageContent = Assert.IsInstanceOfType<DataContent>(runner.ObservedContents[1]);
+        IReadOnlyList<AIContent> observedContents = runner.ObservedContents!;
+        Assert.HasCount(2, observedContents);
+        Assert.IsInstanceOfType<TextContent>(observedContents[0]);
+        DataContent imageContent = Assert.IsInstanceOfType<DataContent>(observedContents[1]);
         Assert.AreEqual("image/jpeg", imageContent.MediaType);
         runner.Complete("完成");
         await sendTask;
