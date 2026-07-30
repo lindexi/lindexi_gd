@@ -4,26 +4,24 @@
 
 在模型、调度和执行稳定后，开放完整产品入口：
 
-- legacy `room.config.json` 保存 `InvocationMode`、`IsPresetInfo` 和结构化 `Mentions`。
+- `room.config.json` 保存 `InvocationMode`、`IsPresetInfo` 和结构化 `Mentions`。
 - 角色模板保存 `InvocationMode`。
-- Domain snapshot 保存对应 Domain 字段。
-- 三套格式各自提升版本，明确拒绝旧版和未来版，不实现迁移。
-- legacy 恢复 Assistant 消息时把外层 preset 传播到底层 `CopilotChatMessage`。
+- 两套格式各自提升版本，明确拒绝旧版和未来版，不实现迁移。
+- 恢复 Assistant 消息时把外层 preset 传播到底层 `CopilotChatMessage`。
 - Avalonia 可编辑和展示角色调用模式。
 - 点击 SubAgent 的 Mention 操作时插入到消息索引 0。
 - 发送消息不再 `Trim()` 掉前导空白，保证位置语义真实。
 
-本阶段不迁移 UI 到 Coordinator，不增加子代理专用消息模板、卡片或事件。
+本阶段不增加子代理专用消息模板、卡片或事件。
 
 ## 2. 当前代码事实
 
-### 2.1 存在三套独立格式
+### 2.1 存在两套独立格式
 
 | 格式 | 当前入口 | 当前版本状态 |
 |---|---|---|
-| legacy 会话配置 | `ChatRoomPersistence` / `ChatRoomSessionData` | 无版本 |
+| 会话配置 | `ChatRoomPersistence` / `ChatRoomSessionData` | 无版本 |
 | 角色模板 | `RoleTemplateService` / `RoleTemplate` | 无版本 |
-| Domain snapshot | `ChatRoomSnapshotMapper` / Stored DTO | 已有 schema 2 |
 
 它们的 DTO、失败策略和使用者不同，不应共享一个模糊的全局版本号。
 
@@ -50,10 +48,9 @@
 ```text
 ChatRoomSessionData.CurrentFormatVersion = 1
 RoleTemplate.CurrentFormatVersion = 1
-ChatRoomSnapshotMapper.CurrentSchemaVersion = 3
 ```
 
-legacy 和模板此前没有版本，因此本次从 1 开始；snapshot 从 2 提升为 3。
+会话配置和模板此前没有版本，因此本次从 1 开始。
 
 保存入口必须显式写当前版本。加载入口只接受严格等于当前版本的值。
 
@@ -75,15 +72,14 @@ legacy 和模板此前没有版本，因此本次从 1 开始；snapshot 从 2 �
 - 消息 `Mentions`。
 - Mention 的 `TargetRoleId`、`SourceMessageId`、`StartIndex`、`Length`。
 
-不建立通用 `JsonFormatValidator` 框架，不逐字段重复验证全部旧属性，不统一三套格式的异常模型。
+不建立通用 `JsonFormatValidator` 框架，不逐字段重复验证全部旧属性，也不强行统一会话配置与角色模板的异常模型。
 
 ### 3.3 失败策略保持入口现状
 
-- 指定 legacy 会话加载：格式错误抛 `InvalidDataException`。
+- 指定会话加载：格式错误抛 `InvalidDataException`。
 - 模板批量加载：无效或旧版文件按现有策略跳过，不影响其他模板。
-- snapshot 加载：schema 不匹配或映射不合法时拒绝。
 
-## 4. legacy 会话配置
+## 4. 会话配置
 
 ### 4.1 模型和源生成上下文
 
@@ -131,28 +127,7 @@ legacy 和模板此前没有版本，因此本次从 1 开始；snapshot 从 2 �
 
 不因为 ExecutionKind 或 MentionOnly 推断 SubAgent。
 
-## 6. Domain snapshot
-
-提升 schema 到 3，并为 Stored DTO 增加：
-
-```text
-StoredRole.InvocationMode
-StoredMessage.IsPresetInfo
-StoredMessage.Mentions[]
-```
-
-Stored Mention 与 Domain Mention 字段对齐，MessageId 使用可稳定往返的 Guid 表达。
-
-`ChatRoomSnapshotMapper`：
-
-- ToStored 保存新字段。
-- FromStored 读取并验证 InvocationMode 枚举。
-- 构造 Domain Message 时传入 preset 和 Mentions。
-- 继续由 Domain 模型验证来源 MessageId、span 范围、顺序和重复目标。
-
-只接受 schema 3，不迁移 schema 2。不要借此重构 repository、CAS、PersistencePump 或 transient state。
-
-## 7. Avalonia 最小改造
+## 6. Avalonia 最小改造
 
 ### 7.1 角色编辑
 
@@ -212,13 +187,13 @@ text = InputText.TrimEnd()
 
 继续使用现有 Assistant 消息模板。`IsPresetInfo` 只影响上下文和调度，不要求增加“子代理消息”模板。可选增加弱标签，但不属于完成门禁。
 
-## 8. 按序实施任务
+## 7. 按序实施任务
 
-### 03-01 升级 legacy 配置格式
+### 03-01 升级会话配置格式
 
 增加 FormatVersion、新字段序列化和加载入口的局部存在性检查。
 
-### 03-02 修复 legacy 消息恢复
+### 03-02 修复消息恢复
 
 恢复底层 Assistant 消息时传播 preset，并保持持久化 Mentions 原值。
 
@@ -226,33 +201,29 @@ text = InputText.TrimEnd()
 
 增加版本，迁移三条复制路径和所有内置模板创建点。
 
-### 03-04 升级 Domain snapshot
-
-提升 schema、增加 Stored Mention 和新字段映射。
-
-### 03-05 增加角色调用模式编辑
+### 03-04 增加角色调用模式编辑
 
 修改 RoleEdit ViewModel、服务更新参数和 XAML 控件。
 
-### 03-06 增加角色类型展示
+### 03-05 增加角色类型展示
 
 让列表可区分 Participant/SubAgent 和 Standard/Coding。
 
-### 03-07 修正 Mention 插入位置
+### 03-06 修正 Mention 插入位置
 
 Participant 追加，SubAgent 插入索引 0，并保留原任务文本。
 
-### 03-08 修正发送文本处理
+### 03-07 修正发送文本处理
 
 移除全量 Trim，保证前导空白不会被 UI 改写。
 
-### 03-09 更新 README
+### 03-08 更新 README
 
 说明角色调用模式、两种调用方式、Standard 正式返回协议、调用间无记忆和 preset 可见性。
 
-## 9. 关键测试
+## 8. 关键测试
 
-### legacy 配置
+### 会话配置
 
 - 当前版本完整往返。
 - InvocationMode、preset、Mention span 往返。
@@ -267,13 +238,6 @@ Participant 追加，SubAgent 插入索引 0，并保留原任务文本。
 - 旧版和缺失字段模板被跳过，其他模板仍返回。
 - preset 与 runtime Coding 模板显式 Participant。
 
-### snapshot
-
-- schema 3 完整往返。
-- schema 2 和未来 schema 拒绝。
-- Stored Mention 来源、span 和枚举错误被拒绝。
-- transient state 保持现有重置规则。
-
 ### Avalonia
 
 - 编辑已有 SubAgent 正确回显和保存。
@@ -283,11 +247,11 @@ Participant 追加，SubAgent 插入索引 0，并保留原任务文本。
 - 前导空白发送后仍存在，使 Mention 的 StartIndex 不被改写。
 - 消息继续使用现有模板展示。
 
-## 10. 完成门禁
+## 9. 完成门禁
 
-- 三套格式只接受当前版本，新字段完整往返。
+- 两套格式只接受当前版本，新字段完整往返。
 - 没有旧字段双写和旧格式迁移分支。
 - 不存在通用 JSON shape-validation 框架。
 - Avalonia 可配置、展示和正确触发 SubAgent。
-- UI 未迁移到 Coordinator，未增加子代理专用消息模板。
+- 未增加子代理专用消息模板。
 - AgentSession 底层文件格式、Coding 执行链和 AgentLib 现有子代理实现无改动。

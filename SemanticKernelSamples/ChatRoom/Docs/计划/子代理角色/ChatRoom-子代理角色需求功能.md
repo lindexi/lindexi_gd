@@ -4,7 +4,7 @@
 
 本文档只定义 ChatRoom 子代理角色需要实现的产品行为和审核边界，供人类确认需求是否正确、实现路径是否偏离。
 
-候选技术方案及比较见[候选方案汇总](候选方案/ChatRoom-子代理角色候选方案汇总.md)。本文档不规定具体数据模型、类型名称或代码改造方式。
+具体实现路线见[实施总览与阶段路线](计划/00-实施总览与阶段路线.md)。本文档不规定具体数据模型、类型名称或代码改造方式。
 
 ## 2. 背景
 
@@ -29,8 +29,8 @@
 13. 普通角色构建后续上下文时必须跳过 `IsPresetInfo = true` 的子代理消息；父 AI 已获得的工具结果不受该过滤影响。
 14. 不对子代理增加 `IsHuman`、`ParticipationMode`、`IsManagerRole`、执行引擎组合、嵌套深度或调用环路等额外硬约束。
 15. 本轮只改 Standard 执行引擎的通用工具接缝；Coding 子代理继续使用现有 Coding/AgentLib 完成结果，并将该结果视为等价提交，不注入 `ReturnOutputToCaller`，也不修改 `AgentLib.Coding`。
-16. legacy `ChatRoomManager` 与新 `ChatRoomCoordinator` 必须对同一角色定义、Mention 信息和 preset 上下文过滤保持一致解释。
-17. 当前产品尚未发布，持久化结构可直接调整为新格式，不实现旧角色、旧模板、旧消息或旧 snapshot 的兼容迁移；legacy 会话、角色模板和 snapshot 都使用显式格式版本，缺失或旧版本数据直接拒绝。
+16. ChatRoom 只维护当前 `ChatRoomManager` 实现；角色定义、Mention 信息、自动调度、上下文过滤和持久化都以这套实现为唯一事实来源。
+17. 当前产品尚未发布，持久化结构可直接调整为新格式，不实现旧角色、旧模板或旧消息的兼容迁移；会话配置和角色模板都使用显式格式版本，缺失或旧版本数据直接拒绝。
 
 ## 4. Mention 触发规则
 
@@ -102,14 +102,13 @@
 - [ ] 子代理消息可见、可持久化，但不会进入其他普通角色的后续上下文或 Mention 调度。
 - [ ] AI 调用时，Standard 返回工具值或 Coding 现有完成结果会交还父 AI，父 AI 可以继续完成回复。
 - [ ] Coding 执行链路保持不变，其现有结果被视为等价完成。
-- [ ] legacy 与 Coordinator 的行为一致。
-- [ ] 持久化只覆盖当前新结构，不包含旧 schema 迁移分支；缺失或旧格式版本会被明确拒绝。
+- [ ] 项目只保留一套聊天室实现，不存在平行的角色模型、调度器或持久化链路。
+- [ ] 持久化只覆盖当前新结构，不包含旧格式迁移分支；缺失或旧格式版本会被明确拒绝。
 
 ## 8. 已知实现约束
 
-- 当前同时存在 legacy `ChatRoomManager` 与新 `ChatRoomCoordinator` 两套链路，方案必须覆盖两者。
-- legacy `MentionParser` 和 Coordinator 当前返回的都只是 RoleId，需要扩展为包含来源与位置的结构化结果，但不改变现有 Mention 语法。
-- legacy `StepAsync` 已经负责角色流式消息、会话保存和 UI 展示，子代理应复用该链路。
+- `MentionParser` 当前只返回 RoleId，需要扩展为包含来源与位置的结构化结果，但不改变现有 Mention 语法。
+- `StepAsync` 已经负责角色流式消息、会话保存和 UI 展示，子代理应复用该链路。
 - Standard 执行器可以接收本轮附加 `AITool`。发送请求增加通用的“按函数名排除默认工具”能力；ChatRoom Standard 只排除 AgentLib 默认 `InvokeSubAgent`，保留其他默认工具，并追加聊天室工具和按需返回工具。
 - Coding 执行器走独立接口且当前不消费 Standard 的附加工具，本轮不修改；其现有完成结果直接作为 Coding 子代理调用结果。
 - `IsPresetInfo` 当前不能单独完成聊天室上下文隔离；实现必须在上下文构造、Mention 调度和持久化中传播并执行过滤。
@@ -117,6 +116,4 @@
 
 ## 9. 文档导航
 
-- [候选方案汇总](候选方案/ChatRoom-子代理角色候选方案汇总.md)
 - [设计方案导航](ChatRoom-子代理角色设计方案.md)
-- [探索过程导航](ChatRoom-子代理角色探索过程.md)
