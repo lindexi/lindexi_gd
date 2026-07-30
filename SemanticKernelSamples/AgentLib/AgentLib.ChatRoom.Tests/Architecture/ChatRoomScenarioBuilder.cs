@@ -67,7 +67,8 @@ internal sealed class ChatRoomScenarioBuilder
         string content,
         string senderRoleId = "human",
         string senderRoleName = "用户",
-        ChatRoomMessageKind kind = ChatRoomMessageKind.Human)
+        ChatRoomMessageKind kind = ChatRoomMessageKind.Human,
+        bool isPresetInfo = false)
     {
         long sequence = _messages.Count + 1L;
         _messages.Add(new ChatRoomMessage(
@@ -77,7 +78,8 @@ internal sealed class ChatRoomScenarioBuilder
             content,
             _createdAt.AddMinutes(sequence),
             kind == ChatRoomMessageKind.System ? null : senderRoleId,
-            kind == ChatRoomMessageKind.System ? null : senderRoleName));
+            kind == ChatRoomMessageKind.System ? null : senderRoleName,
+            isPresetInfo: isPresetInfo));
         return this;
     }
 

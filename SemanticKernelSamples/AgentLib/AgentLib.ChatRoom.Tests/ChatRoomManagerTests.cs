@@ -435,6 +435,33 @@ public sealed class ChatRoomManagerTests
         CollectionAssert.AreEqual(new[] { "问题", "旧角色说：旧回答" }, executor.LastInputTexts.ToArray());
     }
 
+    [TestMethod(DisplayName = "preset 公开消息不应进入其他角色上下文")]
+    [Timeout(5000)]
+    public async Task StepAsyncShouldExcludePresetMessagesFromRoleContext()
+    {
+        var executor = new TestChatRoomRoleExecutor();
+        var role = new ChatRoomRole(new ChatRoomRoleDefinition
+        {
+            RoleId = "assistant",
+            RoleName = "助手",
+            ModelProviderId = "test-provider",
+        }, null, executor);
+        await using var manager = new ChatRoomManager();
+        RegisterFakeModel(manager, new FakeChatClient());
+        await manager.AddRoleAsync(role);
+        await manager.HumanInterjectAsync("实际问题", "human", "用户");
+        CopilotChatMessage presetMessage = CopilotChatMessage.CreateAssistant("仅供展示", isPresetInfo: true);
+        await manager.Session.AddMessageAsync(ChatRoomMessage.CreateAssistant(
+            presetMessage.Content,
+            "other",
+            "其他角色",
+            presetMessage));
+
+        _ = await manager.StepAsync(role);
+
+        CollectionAssert.AreEqual(new[] { "实际问题" }, executor.LastInputTexts.ToArray());
+    }
+
     [TestMethod(DisplayName = "动态增删第二个 AI 应立即切换人类消息格式")]
     public async Task StepAsyncRoleChangesShouldImmediatelySwitchHumanMessageFormat()
     {

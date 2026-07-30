@@ -14,7 +14,12 @@ public sealed class ChatRoomSnapshotMapperTests
             .WithRevision(5)
             .WithWorkspaceVersion(7)
             .WithRole(executionKind: ChatRoomRoleExecutionKind.Coding, runtimeVersion: 3)
-            .WithMessage("实现功能")
+            .WithMessage(
+                "实现功能",
+                senderRoleId: "assistant",
+                senderRoleName: "助手",
+                kind: ChatRoomMessageKind.Assistant,
+                isPresetInfo: true)
             .WithConsumedSequence("assistant", 1)
             .WithCheckpoint(
                 executionKind: ChatRoomRoleExecutionKind.Coding,
@@ -29,6 +34,7 @@ public sealed class ChatRoomSnapshotMapperTests
         Assert.AreEqual(original.State.RoomId, restored.State.RoomId);
         Assert.AreEqual(original.State.Revision, restored.State.Revision);
         Assert.AreEqual(original.State.Messages[0].Content, restored.State.Messages[0].Content);
+        Assert.IsTrue(restored.State.Messages[0].IsPresetInfo);
         Assert.AreEqual(original.State.Roles[0].ExecutionKind, restored.State.Roles[0].ExecutionKind);
         Assert.AreEqual(3L, restored.State.Roles[0].RuntimeVersion);
         Assert.AreEqual(1L, restored.State.ConsumedThroughSequenceByRole["assistant"]);

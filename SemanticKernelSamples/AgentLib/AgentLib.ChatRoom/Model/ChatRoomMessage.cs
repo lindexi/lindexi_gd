@@ -69,6 +69,11 @@ public sealed class ChatRoomMessage : NotifyBase
     public bool IsSystemMessage { get; init; }
 
     /// <summary>
+    /// 是否为预设信息。预设信息仍保存并显示，但不参与其他角色的上下文和调度。
+    /// </summary>
+    public bool IsPresetInfo { get; init; }
+
+    /// <summary>
     /// AI 消息实际采用的模型显示名。
     /// </summary>
     public string ModelDisplayName
@@ -191,6 +196,7 @@ public sealed class ChatRoomMessage : NotifyBase
             SenderRoleName = roleName,
             CopilotChatMessage = copilotChatMessage,
             ModelDisplayName = modelDisplayName ?? string.Empty,
+            IsPresetInfo = copilotChatMessage?.IsPresetInfo == true,
         };
     }
 
@@ -218,7 +224,7 @@ public sealed class ChatRoomMessage : NotifyBase
     {
         if (_copilotChatMessage is null && !string.IsNullOrEmpty(_staticContent) && !IsHumanMessage && !IsSystemMessage)
         {
-            CopilotChatMessage = new CopilotChatMessage(ChatRole.Assistant, _staticContent);
+            CopilotChatMessage = CopilotChatMessage.CreateAssistant(_staticContent, IsPresetInfo);
         }
     }
 }

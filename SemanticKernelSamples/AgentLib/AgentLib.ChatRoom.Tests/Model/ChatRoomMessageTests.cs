@@ -1,4 +1,5 @@
 ﻿using AgentLib.ChatRoom.Model;
+using AgentLib.Model;
 
 namespace AgentLib.ChatRoom.Tests.Model;
 
@@ -176,5 +177,20 @@ public sealed class ChatRoomMessageTests
         Assert.AreEqual(content, message.Content);
         Assert.IsFalse(message.IsHumanMessage);
         Assert.IsFalse(message.IsSystemMessage);
+    }
+
+    [TestMethod(DisplayName = "创建 Assistant 公开消息应保留底层 preset 标记")]
+    [Timeout(5000)]
+    public void CreateAssistantShouldPreservePresetFlagFromCopilotMessage()
+    {
+        CopilotChatMessage copilotMessage = CopilotChatMessage.CreateAssistant("展示信息", isPresetInfo: true);
+
+        ChatRoomMessage message = ChatRoomMessage.CreateAssistant(
+            copilotMessage.Content,
+            "assistant",
+            "助手",
+            copilotMessage);
+
+        Assert.IsTrue(message.IsPresetInfo);
     }
 }
