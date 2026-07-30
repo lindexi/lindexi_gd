@@ -120,7 +120,8 @@ internal sealed class IsolatedChatRoomRoleRuntime : IChatRoomRoleRuntime
                 Identity,
                 publicContent,
                 speakResult.ModelDisplayName,
-                candidateCheckpoint);
+                candidateCheckpoint,
+                speakResult.AssistantChatMessage.IsPresetInfo);
         }
         finally
         {

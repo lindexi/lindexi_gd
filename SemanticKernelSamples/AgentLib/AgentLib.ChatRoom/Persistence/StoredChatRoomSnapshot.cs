@@ -73,6 +73,8 @@ internal sealed class StoredChatRoomMessage
     public List<string> MentionedRoleIds { get; set; } = [];
 
     public string? ModelDisplayName { get; set; }
+
+    public bool IsPresetInfo { get; set; }
 }
 
 internal sealed class StoredChatRoomRoleCheckpoint

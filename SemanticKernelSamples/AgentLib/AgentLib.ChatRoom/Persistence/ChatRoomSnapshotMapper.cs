@@ -108,6 +108,7 @@ internal static class ChatRoomSnapshotMapper
         SenderRoleName = message.SenderRoleName,
         MentionedRoleIds = message.MentionedRoleIds.ToList(),
         ModelDisplayName = message.ModelDisplayName,
+        IsPresetInfo = message.IsPresetInfo,
     };
 
     private static ChatRoomMessage FromStored(StoredChatRoomMessage message) => new(
@@ -119,7 +120,8 @@ internal static class ChatRoomSnapshotMapper
         message.SenderRoleId,
         message.SenderRoleName,
         message.MentionedRoleIds,
-        message.ModelDisplayName);
+        message.ModelDisplayName,
+        message.IsPresetInfo);
 
     private static StoredChatRoomRoleCheckpoint ToStored(ChatRoomRoleCheckpoint checkpoint) => new()
     {

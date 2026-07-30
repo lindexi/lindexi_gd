@@ -69,9 +69,9 @@ public sealed record ChatRoomRoleExecutionRequest
         {
             throw new ArgumentOutOfRangeException(nameof(inputThroughSequence));
         }
-        if (inputMessages.Count > 0 && inputMessages[^1].MessageSequence != inputThroughSequence)
+        if (inputMessages.Count > 0 && inputMessages[^1].MessageSequence > inputThroughSequence)
         {
-            throw new ArgumentException("输入水位必须与输入消息末尾序号一致。", nameof(inputThroughSequence));
+            throw new ArgumentException("输入消息末尾序号不能超过输入水位。", nameof(inputThroughSequence));
         }
         if (committedCheckpoint is not null
             && committedCheckpoint.RoleIdentity != definition.Identity)
@@ -155,7 +155,8 @@ public sealed record ChatRoomRoleExecutionCandidate
         ChatRoomRoleIdentity roleIdentity,
         string? publicContent,
         string? modelDisplayName,
-        ChatRoomRoleCheckpointCandidate candidateCheckpoint)
+        ChatRoomRoleCheckpointCandidate candidateCheckpoint,
+        bool isPresetInfo = false)
     {
         if (executionId == Guid.Empty)
         {
@@ -179,6 +180,7 @@ public sealed record ChatRoomRoleExecutionCandidate
             ? null
             : modelDisplayName.Trim();
         CandidateCheckpoint = candidateCheckpoint;
+        IsPresetInfo = isPresetInfo;
     }
 
     /// <summary>
@@ -205,6 +207,11 @@ public sealed record ChatRoomRoleExecutionCandidate
     /// 模型显示名。
     /// </summary>
     public string? ModelDisplayName { get; }
+
+    /// <summary>
+    /// 公开消息是否为预设信息。
+    /// </summary>
+    public bool IsPresetInfo { get; }
 
     /// <summary>
     /// 仅在协调器接受结果后才能成为 committed 的候选 checkpoint。

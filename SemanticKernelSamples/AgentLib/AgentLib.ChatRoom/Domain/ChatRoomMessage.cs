@@ -21,7 +21,8 @@ public sealed record ChatRoomMessage
         string? senderRoleId = null,
         string? senderRoleName = null,
         IEnumerable<string>? mentionedRoleIds = null,
-        string? modelDisplayName = null)
+        string? modelDisplayName = null,
+        bool isPresetInfo = false)
     {
         if (messageSequence <= 0)
         {
@@ -41,6 +42,10 @@ public sealed record ChatRoomMessage
         {
             throw new ArgumentException("人类和助手消息必须包含发送角色标识与名称。", nameof(senderRoleId));
         }
+        if (kind == ChatRoomMessageKind.Human && isPresetInfo)
+        {
+            throw new ArgumentException("人类消息不能标记为预设信息。", nameof(isPresetInfo));
+        }
 
         MessageSequence = messageSequence;
         MessageId = messageId;
@@ -51,6 +56,7 @@ public sealed record ChatRoomMessage
         SenderRoleName = NormalizeOptionalValue(senderRoleName);
         MentionedRoleIds = CopyMentionedRoleIds(mentionedRoleIds);
         ModelDisplayName = NormalizeOptionalValue(modelDisplayName);
+        IsPresetInfo = isPresetInfo;
     }
 
     /// <summary>
@@ -97,6 +103,11 @@ public sealed record ChatRoomMessage
     /// 助手消息实际采用的模型显示名。
     /// </summary>
     public string? ModelDisplayName { get; }
+
+    /// <summary>
+    /// 是否为预设信息。预设信息仍保存并显示，但不参与其他角色的上下文和调度。
+    /// </summary>
+    public bool IsPresetInfo { get; }
 
     private static IReadOnlyList<string> CopyMentionedRoleIds(IEnumerable<string>? mentionedRoleIds)
     {

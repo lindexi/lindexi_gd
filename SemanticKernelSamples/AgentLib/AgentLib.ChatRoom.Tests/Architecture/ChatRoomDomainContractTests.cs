@@ -73,6 +73,21 @@ public sealed class ChatRoomDomainContractTests
             messages: [message]));
     }
 
+    [TestMethod(DisplayName = "人类消息不应允许标记为 preset")]
+    [Timeout(5000)]
+    public void HumanMessageShouldRejectPresetFlag()
+    {
+        _ = Assert.ThrowsExactly<ArgumentException>(() => new ChatRoomMessage(
+            1,
+            Guid.NewGuid(),
+            ChatRoomMessageKind.Human,
+            "人类输入",
+            DateTimeOffset.UtcNow,
+            "human",
+            "用户",
+            isPresetInfo: true));
+    }
+
     [TestMethod(DisplayName = "相同逻辑角色的不同 incarnation 不应同时存在")]
     [Timeout(5000)]
     public void StateShouldRejectMultipleIncarnationsOfSameLogicalRole()

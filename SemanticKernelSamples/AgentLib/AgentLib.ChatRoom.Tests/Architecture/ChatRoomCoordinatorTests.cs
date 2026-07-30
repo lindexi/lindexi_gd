@@ -91,6 +91,37 @@ public sealed class ChatRoomCoordinatorTests
         await WaitForStateAsync(coordinator, state => state.CurrentExecution is null);
     }
 
+    [TestMethod(DisplayName = "preset 消息应推进输入水位但不进入角色输入")]
+    [Timeout(5000)]
+    public async Task PresetMessageShouldAdvanceInputWatermarkWithoutEnteringRoleInput()
+    {
+        CoordinatorFixture fixture = await CreateCoordinatorWithRoleAsync();
+        await using ChatRoomCoordinator coordinator = fixture.Coordinator;
+        await coordinator.ExecuteAsync(new StartRoleExecutionCommand(
+            Guid.NewGuid(),
+            fixture.Definition.Identity.RoleId));
+        ControlledRuntimeInvocation firstInvocation = await fixture.Runtime.NextInvocationAsync();
+        firstInvocation.Complete("仅供展示", isPresetInfo: true);
+        await WaitForStateAsync(coordinator, state => state.CurrentExecution is null);
+        await coordinator.ExecuteAsync(new AppendHumanMessageCommand(
+            Guid.NewGuid(),
+            "新的问题",
+            "human",
+            "用户"));
+
+        await coordinator.ExecuteAsync(new StartRoleExecutionCommand(
+            Guid.NewGuid(),
+            fixture.Definition.Identity.RoleId));
+        ControlledRuntimeInvocation invocation = await fixture.Runtime.NextInvocationAsync();
+
+        Assert.AreEqual(3L, invocation.Request.InputThroughSequence);
+        CollectionAssert.AreEqual(
+            new long[] { 3 },
+            invocation.Request.InputMessages.Select(message => message.MessageSequence).ToArray());
+        invocation.Complete("回答");
+        await WaitForStateAsync(coordinator, state => state.CurrentExecution is null);
+    }
+
     [TestMethod(DisplayName = "执行请求应按当前非人类角色数量设置人类前缀省略事实")]
     [Timeout(5000)]
     public async Task ExecutionRequestShouldReflectCurrentAiRoleCount()
@@ -847,7 +878,8 @@ public sealed class ChatRoomCoordinatorTests
 
         public ChatRoomRoleExecutionCandidate CreateCandidate(
             string? content,
-            string? modelDisplayName = null)
+            string? modelDisplayName = null,
+            bool isPresetInfo = false)
         {
             var checkpoint = new ChatRoomRoleCheckpointCandidate(
                 Request.Definition.Identity,
@@ -863,11 +895,12 @@ public sealed class ChatRoomCoordinatorTests
                 Request.Definition.Identity,
                 content,
                 modelDisplayName,
-                checkpoint);
+                checkpoint,
+                isPresetInfo);
         }
 
-        public void Complete(string? content, string? modelDisplayName = null) =>
-            Completion.TrySetResult(CreateCandidate(content, modelDisplayName));
+        public void Complete(string? content, string? modelDisplayName = null, bool isPresetInfo = false) =>
+            Completion.TrySetResult(CreateCandidate(content, modelDisplayName, isPresetInfo));
 
         public void Complete(ChatRoomRoleExecutionCandidate candidate) =>
             Completion.TrySetResult(candidate);

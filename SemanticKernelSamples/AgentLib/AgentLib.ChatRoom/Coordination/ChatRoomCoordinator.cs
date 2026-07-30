@@ -472,7 +472,7 @@ public sealed class ChatRoomCoordinator : IAsyncDisposable
         PublishState(next, ChatRoomChangeKind.MessageCommitted, messageId: message.MessageId);
         if (_state.AutoLoop.Status == ChatRoomAutoLoopStatus.Running)
         {
-            EnqueueMentionedRoles(command.Content);
+            EnqueueMentionedRoles(message);
             EnqueueDefaultRoles();
             TryStartNextAutoLoopRole();
         }
@@ -789,10 +789,24 @@ public sealed class ChatRoomCoordinator : IAsyncDisposable
             : 0;
         long inputThroughSequence = _state.NextMessageSequence - 1;
         ChatRoomMessage[] inputMessages = _state.Messages
-            .Where(message => message.MessageSequence > consumedThroughSequence)
+            .Where(message => message.MessageSequence > consumedThroughSequence && !message.IsPresetInfo)
             .ToArray();
         if (inputMessages.Length == 0)
         {
+            if (inputThroughSequence > consumedThroughSequence)
+            {
+                var presetConsumed = new Dictionary<string, long>(_state.ConsumedThroughSequenceByRole, StringComparer.Ordinal)
+                {
+                    [definition.Identity.RoleId] = inputThroughSequence,
+                };
+                ChatRoomState presetSkippedState = CreateState(
+                    revision: _state.Revision + 1,
+                    consumedThroughSequenceByRole: presetConsumed,
+                    persistenceHealth: ChatRoomPersistenceHealth.Dirty,
+                    lastPersistenceError: null);
+                PublishState(presetSkippedState, ChatRoomChangeKind.ExecutionChanged, roleId: definition.Identity.RoleId,
+                    detail: "已跨过不参与角色上下文的预设信息。");
+            }
             return Receipt(command, ChatRoomCommandOutcome.NoOp, "没有新的公开消息可供角色消费。");
         }
 
@@ -911,8 +925,11 @@ public sealed class ChatRoomCoordinator : IAsyncDisposable
                 now,
                 execution.RoleIdentity.RoleId,
                 definition.RoleName,
-                ParseMentions(command.Candidate.PublicContent!, _state.Roles),
-                command.Candidate.ModelDisplayName);
+                command.Candidate.IsPresetInfo
+                    ? []
+                    : ParseMentions(command.Candidate.PublicContent!, _state.Roles),
+                command.Candidate.ModelDisplayName,
+                command.Candidate.IsPresetInfo);
             messages.Add(message);
             messageId = message.MessageId;
             nextMessageSequence++;
@@ -947,7 +964,10 @@ public sealed class ChatRoomCoordinator : IAsyncDisposable
                 roleId: execution.RoleIdentity.RoleId,
                 detail: "角色执行已完成。");
         }
-        ContinueAutoLoopAfterExecution(execution.RoleIdentity.RoleId, command.Candidate.PublicContent);
+        ContinueAutoLoopAfterExecution(
+            execution.RoleIdentity.RoleId,
+            command.Candidate.PublicContent,
+            command.Candidate.IsPresetInfo);
         return Receipt(command, ChatRoomCommandOutcome.Applied, executionId: execution.ExecutionId);
     }
 
@@ -984,7 +1004,7 @@ public sealed class ChatRoomCoordinator : IAsyncDisposable
             executionId: command.ExecutionId,
             roleId: command.RoleIdentity.RoleId,
             detail: command.WasCanceled ? "角色执行已取消。" : command.FailureMessage ?? "角色执行失败。");
-        ContinueAutoLoopAfterExecution(command.RoleIdentity.RoleId, publicContent: null);
+        ContinueAutoLoopAfterExecution(command.RoleIdentity.RoleId, publicContent: null, isPresetInfo: false);
         return Receipt(command, ChatRoomCommandOutcome.Applied, executionId: command.ExecutionId);
     }
 
@@ -1439,7 +1459,7 @@ public sealed class ChatRoomCoordinator : IAsyncDisposable
             autoLoop ?? _state.AutoLoop);
     }
 
-    private void ContinueAutoLoopAfterExecution(string roleId, string? publicContent)
+    private void ContinueAutoLoopAfterExecution(string roleId, string? publicContent, bool isPresetInfo)
     {
         if (_state.AutoLoop.Status == ChatRoomAutoLoopStatus.Stopping)
         {
@@ -1456,9 +1476,9 @@ public sealed class ChatRoomCoordinator : IAsyncDisposable
             ? roleTurns + 1
             : 1;
         _lastAutoLoopRoleId = roleId;
-        if (!string.IsNullOrWhiteSpace(publicContent))
+        if (!isPresetInfo && !string.IsNullOrWhiteSpace(publicContent))
         {
-            EnqueueMentionedRoles(publicContent);
+            EnqueueMentionedRoles(_state.Messages[^1]);
         }
         if (completedTurns >= _state.AutoLoop.MaxTurns)
         {
@@ -1532,7 +1552,7 @@ public sealed class ChatRoomCoordinator : IAsyncDisposable
 
     private void EnqueueMentionedRolesFromLatestMessage()
     {
-        ChatRoomMessage? message = _state.Messages.LastOrDefault();
+        ChatRoomMessage? message = _state.Messages.LastOrDefault(candidate => !candidate.IsPresetInfo);
         if (message is null)
         {
             return;
@@ -1544,9 +1564,14 @@ public sealed class ChatRoomCoordinator : IAsyncDisposable
         }
     }
 
-    private void EnqueueMentionedRoles(string content)
+    private void EnqueueMentionedRoles(ChatRoomMessage message)
     {
-        IReadOnlyList<string> roleIds = ParseMentions(content, _state.Roles);
+        if (message.IsPresetInfo)
+        {
+            return;
+        }
+
+        IReadOnlyList<string> roleIds = message.MentionedRoleIds;
         for (int i = roleIds.Count - 1; i >= 0; i--)
         {
             EnqueueAutoLoopRole(roleIds[i], prioritize: true);

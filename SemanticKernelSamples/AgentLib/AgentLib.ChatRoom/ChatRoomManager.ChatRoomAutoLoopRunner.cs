@@ -358,6 +358,7 @@ public sealed partial class ChatRoomManager
                     SenderRoleName = role.Definition.RoleName,
                     CopilotChatMessage = speakResult.AssistantChatMessage,
                     ModelDisplayName = speakResult.ModelDisplayName,
+                    IsPresetInfo = speakResult.AssistantChatMessage.IsPresetInfo,
                     IsStreaming = true,
                 };
                 await _manager.Session.AddMessageAsync(streamingMessage).ConfigureAwait(false);
@@ -441,8 +442,8 @@ public sealed partial class ChatRoomManager
 
             foreach (ChatRoomMessage message in incrementalMessages)
             {
-                // 跳过系统消息
-                if (message.IsSystemMessage)
+                // 系统消息和预设信息不进入其他角色的上下文。
+                if (message.IsSystemMessage || message.IsPresetInfo)
                 {
                     continue;
                 }
@@ -534,7 +535,7 @@ public sealed partial class ChatRoomManager
             for (int i = _manager.Session.Messages.Count - 1; i >= 0; i--)
             {
                 ChatRoomMessage message = _manager.Session.Messages[i];
-                if (!message.IsSystemMessage)
+                if (!message.IsSystemMessage && !message.IsPresetInfo)
                 {
                     return message;
                 }
@@ -568,7 +569,9 @@ public sealed partial class ChatRoomManager
 
         private async Task<IReadOnlyList<string>> HandleAutoLoopMessageAsync(ChatRoomMessage message)
         {
-            IReadOnlyList<string> mentionedRoleIds = MentionParser.ParseMentions(message.Content, _manager.Roles);
+            IReadOnlyList<string> mentionedRoleIds = message.IsPresetInfo
+                ? []
+                : MentionParser.ParseMentions(message.Content, _manager.Roles);
             if (mentionedRoleIds.Count > 0)
             {
                 message.MentionedRoleIds = mentionedRoleIds;
@@ -592,7 +595,7 @@ public sealed partial class ChatRoomManager
 
         private IReadOnlyList<string> GetMentionedRoleIds(ChatRoomMessage message)
         {
-            if (message.IsSystemMessage)
+            if (message.IsSystemMessage || message.IsPresetInfo)
             {
                 return [];
             }

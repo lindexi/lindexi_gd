@@ -151,7 +151,10 @@ public sealed class ChatRoomPersistence
         var copilotMessage = new CopilotChatMessage(
             message.IsSystemMessage ? ChatRole.System :
             message.IsHumanMessage ? ChatRole.User : ChatRole.Assistant,
-            message.Content);
+            message.Content)
+        {
+            IsPresetInfo = message.IsPresetInfo,
+        };
 
         await _publicLogger.LogMessageAsync(sessionId, copilotMessage).ConfigureAwait(false);
     }
