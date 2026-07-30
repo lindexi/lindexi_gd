@@ -18,6 +18,7 @@ public sealed class SlideStreamingErrorIntegrationTests
     /// 状态延续后，第一轮成功合并的 r1 应保留在合并器 DOM 树中。
     /// </summary>
     [TestMethod(DisplayName = "格式错误 XML：检测到异常后取消流并重试，第一轮成功片段保留")]
+    [Timeout(60_000, CooperativeCancellation = true)]
     public async Task FullStreaming_MalformedXml_LlmContinuesAfterError()
     {
         // Arrange — 第一轮：有效片段 + 无效片段（触发取消）；第二轮：有效片段
@@ -29,14 +30,17 @@ public sealed class SlideStreamingErrorIntegrationTests
         var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(firstRound, secondRound);
 
         // Act
-        await chatManager.SendMessageAsync(
+        var result = await chatManager.SendStreamingMessageWithResultAsync(
             "生成页面",
             isFirstMessage: true,
-            attachPreview: false,
-            useStreaming: true).ConfigureAwait(false);
+            cancellationToken: CancellationToken.None).ConfigureAwait(false);
 
         // Assert — 状态延续后，第一轮成功合并的 r1 应保留
         StringAssert.Contains(chatManager.RenderedXml, "r1", "第一轮成功合并的 r1 应保留（状态延续）");
+        Assert.IsTrue(result.IsSuccess);
+        Assert.AreEqual(2, result.AttemptCount);
+        Assert.AreEqual(2, result.AcceptedFragmentCount);
+        Assert.AreEqual(1, result.FinalAttemptAcceptedFragmentCount);
     }
 
     // ───────── 用例 2：不完整 XML 只渲染完整片段 ─────────
@@ -574,5 +578,56 @@ public sealed class SlideStreamingErrorIntegrationTests
             "修正后渲染结果不应包含错误的 Padding=\"xyz\"");
         StringAssert.Contains(chatManager.RenderedXml, "r1", "r1 应保留");
         StringAssert.Contains(chatManager.RenderedXml, "r2", "重试后 r2 应被渲染");
+    }
+
+    [TestMethod(DisplayName = "最终尝试无新片段：前序尝试保留 XML 时仍返回失败")]
+    [Timeout(60_000, CooperativeCancellation = true)]
+    public async Task SendStreamingMessageWithResultAsync_FinalAttemptHasNoNewFragment_ReturnsFailure()
+    {
+        var firstRound =
+            """<Page><Rect Id="r1" Width="100"/></Page><Panel Id="r1"/>""";
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(firstRound, string.Empty);
+
+        var result = await chatManager.SendStreamingMessageWithResultAsync(
+            "生成页面",
+            isFirstMessage: true,
+            cancellationToken: CancellationToken.None).ConfigureAwait(false);
+
+        Assert.IsFalse(result.IsSuccess);
+        Assert.AreEqual(2, result.AttemptCount);
+        Assert.AreEqual(1, result.AcceptedFragmentCount);
+        Assert.AreEqual(0, result.FinalAttemptAcceptedFragmentCount);
+        Assert.AreEqual(string.Empty, result.FinalSlideXml);
+        StringAssert.Contains(result.ErrorMessage, "没有成功合并任何新片段");
+        StringAssert.Contains(chatManager.CurrentSlideXml, "Id=\"r1\"",
+            "失败结果不得因管道仍保留前序尝试 XML 而变为成功。");
+    }
+
+    [TestMethod(DisplayName = "续轮无新片段：已有页面时仍返回失败并保留旧页面")]
+    [Timeout(60_000, CooperativeCancellation = true)]
+    public async Task SendStreamingMessageWithResultAsync_ContinuationWithoutNewFragment_ReturnsFailure()
+    {
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(
+            """<Page><Rect Id="existing" Width="100"/></Page>""",
+            string.Empty);
+        var initialResult = await chatManager.SendStreamingMessageWithResultAsync(
+            "生成页面",
+            isFirstMessage: true,
+            cancellationToken: CancellationToken.None).ConfigureAwait(false);
+        var existingSlideXml = chatManager.CurrentSlideXml;
+
+        var continuationResult = await chatManager.SendStreamingMessageWithResultAsync(
+            "继续优化",
+            isFirstMessage: false,
+            cancellationToken: CancellationToken.None).ConfigureAwait(false);
+
+        Assert.IsTrue(initialResult.IsSuccess);
+        Assert.IsFalse(continuationResult.IsSuccess);
+        Assert.AreEqual(1, continuationResult.AttemptCount);
+        Assert.AreEqual(0, continuationResult.AcceptedFragmentCount);
+        Assert.AreEqual(0, continuationResult.FinalAttemptAcceptedFragmentCount);
+        Assert.AreEqual(string.Empty, continuationResult.FinalSlideXml);
+        Assert.AreEqual(existingSlideXml, chatManager.CurrentSlideXml,
+            "续轮失败不得把会话中已有 XML 误报为本次成功结果，也不应清空现有页面。");
     }
 }

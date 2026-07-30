@@ -23,7 +23,7 @@ public sealed class CoursewareSlidePromptSource
     public CoursewareInputPackage InputPackage { get; }
 
     /// <summary>
-    /// Gets the complete original Theme 2.0 result.
+    /// Gets the complete original Theme 2.1 result.
     /// </summary>
     public CoursewareTheme Theme { get; }
 }

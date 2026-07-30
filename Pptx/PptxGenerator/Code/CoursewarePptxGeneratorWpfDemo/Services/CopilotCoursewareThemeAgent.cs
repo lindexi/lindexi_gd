@@ -140,7 +140,8 @@ public sealed class CopilotCoursewareThemeAgent : ICoursewareThemeAgent
         return $"""
 你是课件全局主题分析 Agent。必须遵守以下规则：
 - 只调用 submit_courseware_theme_analysis；不要调用、提及或模拟其他工具。
-- 必须通过该工具提交 Theme 2.0，SchemaVersion 必须精确为 2.0。
+- 必须通过该工具提交 Theme 2.1，SchemaVersion 必须精确为 2.1。
+- FontSizeRules 必须总结整课件的字号层级和使用方式，并保留为可直接用于页面美化的规则原文。
 - CoverPageSlideMl 与 ContentPageSlideMl 必须分别是完整、可渲染的 SlideML Page XML 文档。
 - 禁止输出流式 SlideML 协议、片段补丁、Remove、StyleFrom、StyleId、TargetId 或 get_slide_state。
 - 不要在工具调用之外输出主题结果；收到校验问题后修正全部问题并重新调用同一工具。
@@ -168,7 +169,7 @@ public sealed class CopilotCoursewareThemeAgent : ICoursewareThemeAgent
 
         if (submissionTool.SubmittedTheme is not { } submittedTheme)
         {
-            return ["工具未提交可用的 Theme 2.0。"];
+            return ["工具未提交可用的 Theme 2.1。"];
         }
 
         var validationResult = await _themeValidator.ValidateAsync(

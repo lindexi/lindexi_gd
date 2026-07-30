@@ -5,6 +5,7 @@ using CoursewarePptxGeneratorWpfDemo.Services;
 using PptxGenerator;
 using PptxGenerator.Models;
 using PptxGenerator.Pipeline;
+using PptxGenerator.Prompt;
 
 namespace CoursewarePptxGeneratorWpfDemo.Tests.Fakes;
 
@@ -32,7 +33,13 @@ internal sealed class FakeSlideChatManagerFactory : ISlideChatManagerFactory
 
         var dispatcher = new FakeMainThreadDispatcher();
         var renderTool = new SlideMlRenderTool(new FakeSlideMlRenderPipeline(), dispatcher);
-        return new SlideChatManager(copilotChatManager, renderTool, slideDocumentContext: documentContext);
+        var promptProvider = new SlideMlPromptProvider(documentContext);
+        promptProvider.UpdatePrompts(null, null, streamingUserPromptTemplate: "{USER_INPUT}");
+        return new SlideChatManager(
+            copilotChatManager,
+            renderTool,
+            promptProvider: promptProvider,
+            slideDocumentContext: documentContext);
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> StreamResponseAsync()

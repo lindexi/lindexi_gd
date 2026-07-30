@@ -33,6 +33,11 @@ public sealed class CoursewareChatImageAttachmentViewModel
     public CoursewareChatImageAttachmentKind Kind { get; }
 
     /// <summary>
+    /// Gets a value indicating whether the user may remove this attachment before sending.
+    /// </summary>
+    public bool CanRemove => Kind != CoursewareChatImageAttachmentKind.SourceScreenshot;
+
+    /// <summary>
     /// Gets the full image path used by image bindings and the request snapshot.
     /// </summary>
     public string FullName => File.FullName;

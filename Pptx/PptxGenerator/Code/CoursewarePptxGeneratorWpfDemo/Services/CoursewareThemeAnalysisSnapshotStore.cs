@@ -7,7 +7,7 @@ using CoursewarePptxGeneratorWpfDemo.Models;
 namespace CoursewarePptxGeneratorWpfDemo.Services;
 
 /// <summary>
-/// Saves and restores self-contained version 2 theme-analysis snapshots.
+/// Saves and restores self-contained version 3 theme-analysis snapshots.
 /// </summary>
 public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnalysisSnapshotStore
 {
@@ -142,16 +142,16 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
             "课件清单");
         if (!string.Equals(coursewareManifestPath, Path.Join(snapshotDirectory.FullName, CoursewareManifestFileName), StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidDataException($"快照 v2 的课件清单必须位于 {CoursewareManifestFileName}。");
+            throw new InvalidDataException($"快照 v3 的课件清单必须位于 {CoursewareManifestFileName}。");
         }
 
-        var themePath = ResolveExistingFileUnderRoot(snapshotDirectory.FullName, manifest.ThemeFile, "Theme 2.0");
+        var themePath = ResolveExistingFileUnderRoot(snapshotDirectory.FullName, manifest.ThemeFile, "Theme 2.1");
         var inputPackage = await _coursewareFolderLoader.LoadAsync(snapshotDirectory.FullName, cancellationToken)
             .ConfigureAwait(false);
         var theme = await ReadJsonAsync(
                 themePath,
                 CoursewareExportJsonSerializerContext.Default.CoursewareTheme,
-                "Theme 2.0",
+                "Theme 2.1",
                 cancellationToken)
             .ConfigureAwait(false);
 
@@ -169,7 +169,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
             .ConfigureAwait(false);
         if (!validationResult.IsValid)
         {
-            throw new InvalidDataException($"快照 v2 的 Theme 2.0 无效：{string.Join("；", validationResult.Errors)}");
+            throw new InvalidDataException($"快照 v3 的 Theme 2.1 无效：{string.Join("；", validationResult.Errors)}");
         }
 
         return new CoursewareThemeAnalysisSnapshot
@@ -298,7 +298,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
             }
             catch (JsonException exception)
             {
-                throw new InvalidDataException($"快照清单 {SnapshotManifestFileName} 不符合 v2 格式。", exception);
+                throw new InvalidDataException($"快照清单 {SnapshotManifestFileName} 不符合 v3 格式。", exception);
             }
         }
     }
@@ -353,7 +353,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
         }
         catch (JsonException exception)
         {
-            throw new InvalidDataException($"{displayName} 文件无法解析。", exception);
+            throw new InvalidDataException($"{displayName} 文件无法解析：{exception.Message}", exception);
         }
     }
 
@@ -386,7 +386,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStore : ICoursewareThemeAnaly
         var resolvedPath = ResolvePathUnderRoot(rootPath, relativePath);
         if (!File.Exists(resolvedPath))
         {
-            throw new FileNotFoundException($"快照 v2 缺少{displayName}文件：{relativePath}", resolvedPath);
+            throw new FileNotFoundException($"快照 v3 缺少{displayName}文件：{relativePath}", resolvedPath);
         }
 
         return resolvedPath;

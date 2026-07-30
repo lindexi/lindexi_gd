@@ -56,13 +56,17 @@ internal sealed class StreamingSlideGenerator
     /// <param name="isFirstMessage">是否为首次消息。</param>
     /// <param name="streamingState">跨轮复用的流式生成状态，包含合并器和渲染上下文。</param>
     /// <param name="attachPreview">是否将当前预览图附带给 LLM。</param>
+    /// <param name="attachedImageContents">附加到本次首次请求的预加载图片内容。</param>
     /// <param name="attachedImageFiles">附加到本次首轮请求的本地图片文件。</param>
+    /// <param name="requiredAttachedImageFiles">必须成功加载的本地图片文件。</param>
+    /// <param name="chatClientOverride">用于测试或专用调用的聊天客户端。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>表示异步操作的任务。</returns>
-    public async Task GenerateAsync(
+    /// <returns>本次流式生成的明确结果。</returns>
+    public async Task<SlideStreamingGenerationResult> GenerateAsync(
         string userMessage, bool isFirstMessage, SlideStreamingState streamingState,
         CancellationToken cancellationToken,
         bool attachPreview = false,
+        IReadOnlyList<DataContent>? attachedImageContents = null,
         IReadOnlyList<string>? attachedImageFiles = null,
         IReadOnlyCollection<string>? requiredAttachedImageFiles = null,
         IChatClient? chatClientOverride = null)
@@ -73,6 +77,7 @@ internal sealed class StreamingSlideGenerator
             ? _promptProvider.BuildStreamingUserPrompt(userMessage)
             : userMessage;
         var includeSystemPrompt = isFirstMessage;
+        var acceptedFragmentCount = 0;
 
         for (var attempt = 0; attempt <= MaxRetries; attempt++)
         {
@@ -82,24 +87,65 @@ internal sealed class StreamingSlideGenerator
             streamingState.Pipeline.ResetExtractor();
 
             using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var (hasErrors, errorFeedback) = await RunStreamingLoopAsync(
+            var attemptResult = await RunStreamingLoopAsync(
                 currentMessage, includeSystemPrompt,
                 linkedCancellationTokenSource, cancellationToken,
                 streamingState.Pipeline, streamingState.Context,
                 attachPreview && attempt == 0,
+                attempt == 0 ? attachedImageContents : null,
                 attempt == 0 ? attachedImageFiles : null,
                 attempt == 0 ? requiredAttachedImageFiles : null,
                 chatClientOverride).ConfigureAwait(false);
+            acceptedFragmentCount += attemptResult.AcceptedFragmentCount;
 
-            if (!hasErrors || attempt == MaxRetries)
+            var attemptCount = attempt + 1;
+            var finalSlideXml = streamingState.Pipeline.CurrentMergedXml;
+            if (!attemptResult.HasErrors)
             {
-                break;
+                if (attemptResult.AcceptedFragmentCount == 0)
+                {
+                    return CreateFailureResult(
+                        attemptCount,
+                        acceptedFragmentCount,
+                        attemptResult.AcceptedFragmentCount,
+                        "最终一次模型尝试没有成功合并任何新片段。");
+                }
+
+                if (string.IsNullOrWhiteSpace(finalSlideXml))
+                {
+                    return CreateFailureResult(
+                        attemptCount,
+                        acceptedFragmentCount,
+                        attemptResult.AcceptedFragmentCount,
+                        "最终一次模型尝试没有形成非空 SlideML 页面。");
+                }
+
+                return new SlideStreamingGenerationResult
+                {
+                    IsSuccess = true,
+                    AttemptCount = attemptCount,
+                    AcceptedFragmentCount = acceptedFragmentCount,
+                    FinalAttemptAcceptedFragmentCount = attemptResult.AcceptedFragmentCount,
+                    FinalSlideXml = finalSlideXml,
+                    ErrorMessage = null,
+                };
+            }
+
+            if (attempt == MaxRetries)
+            {
+                return CreateFailureResult(
+                    attemptCount,
+                    acceptedFragmentCount,
+                    attemptResult.AcceptedFragmentCount,
+                    $"流式生成在 {attemptCount} 次尝试后仍有错误：{attemptResult.ErrorMessage}");
             }
 
             // 组织错误反馈消息，重新调用 agent
-            currentMessage = errorFeedback;
+            currentMessage = attemptResult.ErrorFeedback;
             includeSystemPrompt = false;
         }
+
+        throw new InvalidOperationException("流式生成尝试循环意外结束。");
     }
 
     /// <summary>
@@ -113,14 +159,18 @@ internal sealed class StreamingSlideGenerator
     /// <param name="streamingPipeline">流式渲染管道（跨轮复用，保留合并器状态）。</param>
     /// <param name="context">渲染上下文（跨轮复用，诊断信息已由调用方重置）。</param>
     /// <param name="attachPreview">是否将当前预览图附带给 LLM。</param>
+    /// <param name="attachedImageContents">附加到本轮请求的预加载图片内容。</param>
     /// <param name="attachedImageFiles">附加到本轮请求的本地图片文件。</param>
-    /// <returns>是否检测到异常，以及错误反馈文本（无异常时为空字符串）。</returns>
-    private async Task<(bool HasErrors, string ErrorFeedback)> RunStreamingLoopAsync
+    /// <param name="requiredAttachedImageFiles">必须成功加载的本地图片文件。</param>
+    /// <param name="chatClientOverride">用于测试或专用调用的聊天客户端。</param>
+    /// <returns>本轮尝试的错误状态、反馈文本和成功合并片段数。</returns>
+    private async Task<StreamingAttemptResult> RunStreamingLoopAsync
     (
         string userMessage, bool includeSystemPrompt,
         CancellationTokenSource errorCancellationTokenSource, CancellationToken externalCancellationToken,
         SlideStreamingPipeline streamingPipeline, SlideMlPipelineContext context,
         bool attachPreview = false,
+        IReadOnlyList<DataContent>? attachedImageContents = null,
         IReadOnlyList<string>? attachedImageFiles = null,
         IReadOnlyCollection<string>? requiredAttachedImageFiles = null,
         IChatClient? chatClientOverride = null
@@ -128,6 +178,7 @@ internal sealed class StreamingSlideGenerator
     {
         var renderErrors = new ConcurrentQueue<string>();
         var pendingRenderResults = new Queue<SlideMlRenderResult>();
+        var acceptedFragmentCount = 0;
 
         // 将流式渲染结果同步到 SlideMlRenderTool，使 Latest* 属性保持最新
         Action<SlideMlRenderResult> onRendered = renderResult =>
@@ -143,8 +194,10 @@ internal sealed class StreamingSlideGenerator
                 }
             }
         };
+        void OnFragmentReceived(string _) => acceptedFragmentCount++;
 
         streamingPipeline.Rendered += onRendered;
+        streamingPipeline.FragmentReceived += OnFragmentReceived;
 
         try
         {
@@ -181,6 +234,7 @@ internal sealed class StreamingSlideGenerator
             ChatMessage userChatMessage = manualContext.UserChatMessage.ToChatMessage();
             await AppendAttachedImageContentsAsync(
                 userChatMessage,
+                attachedImageContents,
                 attachedImageFiles,
                 externalCancellationToken,
                 requiredAttachedImageFiles).ConfigureAwait(false);
@@ -235,15 +289,7 @@ internal sealed class StreamingSlideGenerator
                 // 由异常检测触发的取消，非外部取消，继续走错误反馈流程
             }
 
-            // 收集所有错误信息
-            var allErrors = new List<string>(context.Errors.Count + renderErrors.Count);
-            allErrors.AddRange(context.Errors);
-            while (renderErrors.TryDequeue(out var renderError))
-            {
-                allErrors.Add(renderError);
-            }
-
-            allErrors = allErrors.Distinct().ToList();
+            var allErrors = CollectErrors(context, renderErrors);
 
             if (allErrors.Count == 0)
             {
@@ -251,25 +297,66 @@ internal sealed class StreamingSlideGenerator
                 await streamingPipeline.ProcessStreamEndAsync(context, externalCancellationToken).ConfigureAwait(false);
                 await ApplyPendingRenderResultsAsync(pendingRenderResults).ConfigureAwait(false);
 
-                // ProcessStreamEndAsync 可能也会产生错误（缓冲区残留等）
-                if (context.Errors.Count > 0)
+                // ProcessStreamEndAsync 及其最终渲染也可能产生错误
+                allErrors = CollectErrors(context, renderErrors);
+                if (allErrors.Count > 0)
                 {
-                    var feedback = BuildErrorFeedback(streamingPipeline.CurrentMergedXml, context.Errors);
-                    return (true, feedback);
+                    var feedback = BuildErrorFeedback(streamingPipeline.CurrentMergedXml, allErrors);
+                    return new StreamingAttemptResult(
+                        true,
+                        feedback,
+                        string.Join(Environment.NewLine, allErrors),
+                        acceptedFragmentCount);
                 }
 
-                return (false, string.Empty);
+                return new StreamingAttemptResult(false, string.Empty, null, acceptedFragmentCount);
             }
 
             // 有异常，组织错误反馈
             var errorFeedback = BuildErrorFeedback(streamingPipeline.CurrentMergedXml, allErrors);
-            return (true, errorFeedback);
+            return new StreamingAttemptResult(
+                true,
+                errorFeedback,
+                string.Join(Environment.NewLine, allErrors),
+                acceptedFragmentCount);
         }
         finally
         {
             // 确保在任何路径下都取消订阅，避免跨轮重复累积
             streamingPipeline.Rendered -= onRendered;
+            streamingPipeline.FragmentReceived -= OnFragmentReceived;
         }
+    }
+
+    private static List<string> CollectErrors(
+        SlideMlPipelineContext context,
+        ConcurrentQueue<string> renderErrors)
+    {
+        var allErrors = new List<string>(context.Errors.Count + renderErrors.Count);
+        allErrors.AddRange(context.Errors);
+        while (renderErrors.TryDequeue(out var renderError))
+        {
+            allErrors.Add(renderError);
+        }
+
+        return allErrors.Distinct().ToList();
+    }
+
+    private static SlideStreamingGenerationResult CreateFailureResult(
+        int attemptCount,
+        int acceptedFragmentCount,
+        int finalAttemptAcceptedFragmentCount,
+        string errorMessage)
+    {
+        return new SlideStreamingGenerationResult
+        {
+            IsSuccess = false,
+            AttemptCount = attemptCount,
+            AcceptedFragmentCount = acceptedFragmentCount,
+            FinalAttemptAcceptedFragmentCount = finalAttemptAcceptedFragmentCount,
+            FinalSlideXml = string.Empty,
+            ErrorMessage = errorMessage,
+        };
     }
 
     private async Task ApplyPendingRenderResultsAsync(Queue<SlideMlRenderResult> pendingRenderResults)
@@ -349,12 +436,23 @@ internal sealed class StreamingSlideGenerator
 
     internal static async Task AppendAttachedImageContentsAsync(
         ChatMessage userChatMessage,
+        IReadOnlyList<DataContent>? attachedImageContents,
         IReadOnlyList<string>? attachedImageFiles,
         CancellationToken cancellationToken,
         IReadOnlyCollection<string>? requiredAttachedImageFiles = null)
     {
         ArgumentNullException.ThrowIfNull(userChatMessage);
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (attachedImageContents is { Count: > 0 })
+        {
+            foreach (var imageContent in attachedImageContents)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                ArgumentNullException.ThrowIfNull(imageContent);
+                userChatMessage.Contents.Add(imageContent);
+            }
+        }
 
         var requiredFiles = requiredAttachedImageFiles?.ToHashSet(StringComparer.OrdinalIgnoreCase);
         if (attachedImageFiles is not { Count: > 0 })
@@ -396,5 +494,11 @@ internal sealed class StreamingSlideGenerator
             throw new FileNotFoundException("必需的图片附件未能加入请求。");
         }
     }
+
+    private sealed record StreamingAttemptResult(
+        bool HasErrors,
+        string ErrorFeedback,
+        string? ErrorMessage,
+        int AcceptedFragmentCount);
 
 }

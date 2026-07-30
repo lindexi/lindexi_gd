@@ -17,6 +17,12 @@ internal static class CoursewareUiStrings
 
     internal static string AnalysisReadyCaptionFormat => GetString(nameof(AnalysisReadyCaptionFormat));
 
+    internal static string TypographyChineseFontLabel => GetString(nameof(TypographyChineseFontLabel));
+
+    internal static string TypographyWesternFontLabel => GetString(nameof(TypographyWesternFontLabel));
+
+    internal static string TypographyFontSizeRulesLabel => GetString(nameof(TypographyFontSizeRulesLabel));
+
     internal static string CapabilityPassed => GetString(nameof(CapabilityPassed));
 
     internal static string CapabilityNotRequested => GetString(nameof(CapabilityNotRequested));
@@ -64,6 +70,24 @@ internal static class CoursewareUiStrings
     internal static string ScreenshotFileMissing => GetString(nameof(ScreenshotFileMissing));
 
     internal static string ScreenshotSendFailed => GetString(nameof(ScreenshotSendFailed));
+
+    internal static string ScreenshotSent => GetString(nameof(ScreenshotSent));
+
+    internal static string InitialPromptThemeOutdated => GetString(nameof(InitialPromptThemeOutdated));
+
+    internal static string SourceScreenshotRequired => GetString(nameof(SourceScreenshotRequired));
+
+    internal static string AttachmentFileMissingFormat => GetString(nameof(AttachmentFileMissingFormat));
+
+    internal static string ImageAttachmentLoadFailedFormat => GetString(nameof(ImageAttachmentLoadFailedFormat));
+
+    internal static string ImageAttachmentHasNoFrame => GetString(nameof(ImageAttachmentHasNoFrame));
+
+    internal static string ImageAttachmentTypeUnsupported => GetString(nameof(ImageAttachmentTypeUnsupported));
+
+    internal static string PreviewAttachmentUnavailable => GetString(nameof(PreviewAttachmentUnavailable));
+
+    internal static string SlideGenerationFailed => GetString(nameof(SlideGenerationFailed));
 
     internal static string SlideGenerationCompleted => GetString(nameof(SlideGenerationCompleted));
 

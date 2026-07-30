@@ -1,3 +1,4 @@
+using System.IO;
 using System.Runtime.CompilerServices;
 using AgentLib;
 using AgentLib.Core.AgentApiManagers.Contexts;
@@ -12,6 +13,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PptxGenerator;
 using PptxGenerator.Models;
 using PptxGenerator.Pipeline;
+using PptxGenerator.Prompt;
 
 namespace CoursewarePptxGeneratorWpfDemo.Tests;
 
@@ -36,7 +38,10 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         Assert.IsNull(workspace.Slides[1].Runtime);
         Assert.IsTrue(workspace.Slides[0].IsInitialPromptPrepared);
         Assert.IsFalse(workspace.Slides[1].IsInitialPromptPrepared);
-        StringAssert.Contains(workspace.Slides[0].InputText, CoursewareSlideGenerationEnvelope.CurrentSchemaVersion);
+        StringAssert.StartsWith(workspace.Slides[0].InputText, "# 单页课件美化任务");
+        StringAssert.Contains(
+            workspace.Slides[0].InputText,
+            "请根据当前页完整内容、可用视觉附件和全课件主题完成页面美化，保持教学语义准确、信息完整、层级清晰，并确保所有内容适合当前画布。");
         Assert.HasCount(1, workspace.Slides[0].AttachedImageFiles);
         Assert.AreEqual(CoursewareChatImageAttachmentKind.SourceScreenshot, workspace.Slides[0].AttachedImageFiles[0].Kind);
         Assert.AreEqual(1, workspace.Summary.ReadyCount);
@@ -52,7 +57,7 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         Assert.AreEqual(2, workspace.Summary.ReadyCount);
     }
 
-    [TestMethod(DisplayName = "统一发送应使用可见结构化首轮 Prompt 并复用同一页面会话")]
+    [TestMethod(DisplayName = "统一发送应原样发送可见首轮 Prompt 并复用同一页面会话")]
     [Timeout(60_000)]
     public async Task GenerateAndFollowUpShouldUseStructuredInitialPromptAndSamePageConversation()
     {
@@ -76,11 +81,8 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         StringAssert.Contains(slide.EditableSlideXml, "首次生成");
         Assert.HasCount(1, factory.CapturedRequests);
         var initialRequest = factory.CapturedRequests[0];
-        StringAssert.Contains(initialRequest.UserMessage, CoursewareSlideGenerationEnvelope.CurrentSchemaVersion);
-        StringAssert.Contains(initialRequest.UserMessage, "slide-first");
-        var initialEnvelope = DeserializeWrappedEnvelope(initialRequest.UserMessage);
-        Assert.AreEqual("请根据当前页面完整 Markdown、可用的原始截图和全课件主题完成页面美化，保持教学语义准确。", initialEnvelope.Task.UserInstruction);
-        StringAssert.Contains(initialRequest.UserMessage, visibleInitialPrompt);
+        Assert.AreEqual(visibleInitialPrompt, initialRequest.UserMessage);
+        Assert.AreEqual(1, CountOccurrences(initialRequest.UserMessage, "# 单页课件美化任务"));
         Assert.AreEqual(1, initialRequest.DataContentCount);
         CollectionAssert.AreEquivalent(
             new[] { "get_slide_state", "get_slide_preview" },
@@ -93,13 +95,13 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         Assert.HasCount(2, factory.CapturedRequests);
         var followUpRequest = factory.CapturedRequests[1];
         Assert.AreEqual("把标题改得更简洁", followUpRequest.UserMessage);
-        Assert.IsFalse(followUpRequest.UserMessage.Contains(CoursewareSlideGenerationEnvelope.CurrentSchemaVersion, StringComparison.Ordinal));
+        Assert.IsFalse(followUpRequest.UserMessage.Contains("# 单页课件美化任务", StringComparison.Ordinal));
         Assert.AreEqual(0, followUpRequest.DataContentCount);
         Assert.AreEqual(1, factory.CreateCount);
         Assert.IsGreaterThanOrEqualTo(4, slide.CopilotChatManager?.ChatMessages.Count ?? 0);
     }
 
-    [TestMethod(DisplayName = "重分析应保留页面状态并只让未来首轮使用新主题")]
+    [TestMethod(DisplayName = "重分析应保留已编辑首轮草稿并只标记主题过期")]
     [Timeout(60_000)]
     public async Task ThemeUpdateShouldPreserveStateAndOnlyAffectFutureInitialMessages()
     {
@@ -133,17 +135,15 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
 
         Assert.AreSame(secondRuntime, secondSlide.Runtime);
         Assert.AreEqual("第二页用户草稿", secondSlide.InputText);
+        Assert.IsTrue(secondSlide.IsInitialPromptThemeOutdated);
         Assert.IsTrue(firstSlide.HasStartedGenerationConversation);
         await workspace.SendMessageCommand.ExecuteAsync(secondSlide);
 
         Assert.HasCount(2, factory.CapturedRequests);
         StringAssert.Contains(factory.CapturedRequests[0].UserMessage, "旧主题标记");
         Assert.IsFalse(factory.CapturedRequests[0].UserMessage.Contains("新主题标记", StringComparison.Ordinal));
-        StringAssert.Contains(factory.CapturedRequests[1].UserMessage, "新主题标记");
-        StringAssert.Contains(factory.CapturedRequests[1].UserMessage, "new-cover");
-        StringAssert.Contains(factory.CapturedRequests[1].UserMessage, "new-content");
-        var secondEnvelope = DeserializeWrappedEnvelope(factory.CapturedRequests[1].UserMessage);
-        Assert.AreEqual("第二页用户草稿", secondEnvelope.Task.UserInstruction);
+        Assert.AreEqual("第二页用户草稿", factory.CapturedRequests[1].UserMessage);
+        Assert.IsFalse(factory.CapturedRequests[1].UserMessage.Contains("新主题标记", StringComparison.Ordinal));
 
         workspace.SelectedSlide = firstSlide;
         await workspace.SelectedSlideInitializationTask;
@@ -210,6 +210,90 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         Assert.AreEqual(CoursewareSlideState.Completed, slide.State);
         Assert.AreEqual("发送期间的新草稿", slide.InputText);
         Assert.IsTrue(slide.HasStartedGenerationConversation);
+    }
+
+    [TestMethod(DisplayName = "首轮发送期间主题更新不应覆盖正在发送的草稿")]
+    [Timeout(60_000)]
+    public async Task ThemeUpdateDuringInitialSendShouldNotReplaceSnapshotDraft()
+    {
+        var session = await CreateSessionAsync();
+        var originalTheme = session.ThemeAnalysisResult!.Theme with { Style = "旧主题标记" };
+        session.ThemeAnalysisResult = new CoursewareThemeAnalysisResult { Theme = originalTheme };
+        var factory = new RecordingSlideChatManagerFactory(
+            ["<Page><TextElement Id=\"done\" Text=\"完成\"/></Page>"],
+            blockFirstRequest: true);
+        using var workspace = CreateWorkspace(session, factory);
+        await workspace.ActivateAsync();
+        var slide = workspace.SelectedSlide!;
+        var visibleInitialPrompt = slide.InputText;
+        var sendTask = workspace.SendMessageCommand.ExecuteAsync();
+        await factory.FirstRequestStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        workspace.UpdateThemeAnalysisResult(new CoursewareThemeAnalysisResult
+        {
+            Theme = originalTheme with { Style = "新主题标记" },
+        });
+
+        Assert.AreEqual(visibleInitialPrompt, slide.InputText);
+        Assert.IsTrue(slide.IsInitialPromptThemeOutdated);
+        Assert.IsFalse(slide.ResetInitialPromptToLatestThemeCommand.CanExecute(null));
+
+        factory.ReleaseFirstRequest();
+        await sendTask;
+
+        Assert.IsTrue(slide.HasStartedGenerationConversation);
+        Assert.AreEqual(string.Empty, slide.InputText);
+        Assert.IsFalse(slide.IsInitialPromptThemeOutdated);
+        Assert.AreEqual(visibleInitialPrompt, factory.CapturedRequests.Single().UserMessage);
+        Assert.IsFalse(factory.CapturedRequests.Single().UserMessage.Contains("新主题标记", StringComparison.Ordinal));
+    }
+
+    [TestMethod(DisplayName = "图片附件预加载失败时整次发送应保持草稿附件和会话不变")]
+    [Timeout(60_000)]
+    public async Task AttachmentLoadFailureShouldFailAtomicallyWithoutStartingRequest()
+    {
+        var session = await CreateSessionAsync();
+        var factory = new RecordingSlideChatManagerFactory(["<Page/>"]);
+        var loader = new FailingImageAttachmentLoader();
+        using var workspace = CreateWorkspace(session, factory, loader);
+        await workspace.ActivateAsync();
+        var slide = workspace.SelectedSlide!;
+        var prompt = slide.InputText;
+
+        await workspace.SendMessageCommand.ExecuteAsync();
+
+        Assert.AreEqual(CoursewareSlideState.Failed, slide.State);
+        Assert.AreEqual(prompt, slide.InputText);
+        Assert.HasCount(1, slide.AttachedImageFiles);
+        Assert.IsFalse(slide.HasStartedGenerationConversation);
+        Assert.AreEqual(CoursewareScreenshotAttachmentState.SendFailed, slide.ScreenshotAttachmentState);
+        Assert.IsEmpty(factory.CapturedRequests);
+        Assert.AreNotEqual(true, slide.ErrorMessage?.Contains(slide.AttachedImageFiles[0].FullName, StringComparison.Ordinal));
+    }
+
+    [TestMethod(DisplayName = "已编辑首轮草稿在主题更新后应标记过期并可显式重建")]
+    [Timeout(60_000)]
+    public async Task EditedInitialPromptShouldBecomeOutdatedAndResetToLatestTheme()
+    {
+        var session = await CreateSessionAsync();
+        var factory = new RecordingSlideChatManagerFactory(["<Page/>"]);
+        using var workspace = CreateWorkspace(session, factory);
+        await workspace.ActivateAsync();
+        var slide = workspace.SelectedSlide!;
+        slide.InputText = "用户编辑后的完整首轮草稿";
+        var newTheme = session.ThemeAnalysisResult!.Theme with { Style = "最新主题标记" };
+
+        workspace.UpdateThemeAnalysisResult(new CoursewareThemeAnalysisResult { Theme = newTheme });
+
+        Assert.AreEqual("用户编辑后的完整首轮草稿", slide.InputText);
+        Assert.IsTrue(slide.IsInitialPromptThemeOutdated);
+        Assert.IsTrue(slide.ResetInitialPromptToLatestThemeCommand.CanExecute(null));
+
+        slide.ResetInitialPromptToLatestThemeCommand.Execute(null);
+
+        StringAssert.Contains(slide.InputText, "最新主题标记");
+        Assert.IsFalse(slide.IsInitialPromptDirty);
+        Assert.IsFalse(slide.IsInitialPromptThemeOutdated);
     }
 
     [TestMethod(DisplayName = "切换页面不应取消仍在生成的原页面任务")]
@@ -287,7 +371,7 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         Assert.IsTrue(workspace.RerenderCommand.CanExecute(slide));
     }
 
-    [TestMethod(DisplayName = "无截图页面首次生成应明确标记截图缺失并继续生成")]
+    [TestMethod(DisplayName = "无截图页面不得构建虚假首轮 Prompt 或调用模型")]
     [Timeout(60_000)]
     public async Task GenerateWithoutSourceScreenshotShouldContinueWithFileMissingState()
     {
@@ -302,11 +386,25 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         using var workspace = CreateWorkspace(session, factory);
         await workspace.ActivateAsync();
 
-        await workspace.SendMessageCommand.ExecuteAsync();
+        var slide = workspace.SelectedSlide!;
+        Assert.IsFalse(slide.IsInitialPromptPrepared);
+        Assert.AreEqual(string.Empty, slide.InputText);
+        Assert.AreEqual(CoursewareScreenshotAttachmentState.FileMissing, slide.ScreenshotAttachmentState);
+        Assert.IsFalse(workspace.SendMessageCommand.CanExecute(null));
+        Assert.IsEmpty(factory.CapturedRequests);
+    }
 
-        Assert.AreEqual(CoursewareSlideState.Completed, workspace.SelectedSlide!.State);
-        Assert.AreEqual(CoursewareScreenshotAttachmentState.FileMissing, workspace.SelectedSlide.ScreenshotAttachmentState);
-        Assert.AreEqual(0, factory.CapturedRequests.Single().DataContentCount);
+    private static int CountOccurrences(string text, string value)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
     }
 
     [TestMethod(DisplayName = "模型不可用时工作台应禁用 AI 生成但允许本地重新渲染")]
@@ -354,14 +452,16 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
 
     private static CoursewareSlideWorkspaceViewModel CreateWorkspace(
         CoursewareWorkspaceSession session,
-        ISlideChatManagerFactory factory)
+        ISlideChatManagerFactory factory,
+        ICoursewareImageAttachmentLoader? imageAttachmentLoader = null)
     {
         return new CoursewareSlideWorkspaceViewModel(
             session,
             factory,
             new CoursewareSlidePromptBuilder(),
             new CoursewareSlideSummaryService(),
-            new ImmediateViewModelDispatcher());
+            new ImmediateViewModelDispatcher(),
+            imageAttachmentLoader ?? new SuccessfulImageAttachmentLoader());
     }
 
     private static async Task<CoursewareWorkspaceSession> CreateSessionAsync(int slideCount = 2)
@@ -384,23 +484,6 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
     private static string CreateSlideMarkdown(string title, string content)
     {
         return $"## 元素细节\n\n### 文本.1\n#### 内容\n```\n{title}\n{content}\n```";
-    }
-
-    private static CoursewareSlideGenerationEnvelope DeserializeWrappedEnvelope(string wrappedPrompt)
-    {
-        var jsonStart = wrappedPrompt.IndexOf('{');
-        if (jsonStart < 0)
-        {
-            throw new AssertFailedException("未能从 SlideML 包装提示词中提取页面 JSON 信封。");
-        }
-
-        var reader = new System.Text.Json.Utf8JsonReader(
-            System.Text.Encoding.UTF8.GetBytes(wrappedPrompt[jsonStart..]));
-        using var document = System.Text.Json.JsonDocument.ParseValue(ref reader);
-        return System.Text.Json.JsonSerializer.Deserialize(
-                   document.RootElement.GetRawText(),
-                   CoursewareSlideGenerationJsonSerializerContext.Default.CoursewareSlideGenerationEnvelope)
-               ?? throw new AssertFailedException("页面 JSON 信封不能为空。");
     }
 
     private sealed class RecordingSlideChatManagerFactory : ISlideChatManagerFactory
@@ -465,10 +548,14 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
             chatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([model]));
             var dispatcher = new FakeMainThreadDispatcher();
             var renderTool = new SlideMlRenderTool(new FakeSlideMlRenderPipeline(), dispatcher);
+            var documentContext = options?.DocumentContext ?? new SlideDocumentContext();
+            var promptProvider = new SlideMlPromptProvider(documentContext);
+            promptProvider.UpdatePrompts(null, null, streamingUserPromptTemplate: "{USER_INPUT}");
             return new SlideChatManager(
                 chatManager,
                 renderTool,
-                slideDocumentContext: options?.DocumentContext ?? new SlideDocumentContext());
+                promptProvider: promptProvider,
+                slideDocumentContext: documentContext);
         }
 
         private async IAsyncEnumerable<ChatResponseUpdate> CaptureAndStreamAsync(
@@ -501,4 +588,33 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
         string UserMessage,
         int DataContentCount,
         IReadOnlyList<string> ToolNames);
+
+    private sealed class FailingImageAttachmentLoader : ICoursewareImageAttachmentLoader
+    {
+        public Task<IReadOnlyList<DataContent>> LoadAsync(
+            IReadOnlyList<CoursewareChatImageAttachmentViewModel> attachments,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var attachment = attachments[0];
+            throw new CoursewareImageAttachmentLoadException(
+                attachment,
+                $"无法读取或解码图片附件：{attachment.DisplayName}",
+                new InvalidDataException("测试失败"));
+        }
+    }
+
+    private sealed class SuccessfulImageAttachmentLoader : ICoursewareImageAttachmentLoader
+    {
+        public Task<IReadOnlyList<DataContent>> LoadAsync(
+            IReadOnlyList<CoursewareChatImageAttachmentViewModel> attachments,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            IReadOnlyList<DataContent> contents = attachments
+                .Select(_ => new DataContent(new byte[] { 1 }, "image/png"))
+                .ToArray();
+            return Task.FromResult(contents);
+        }
+    }
 }

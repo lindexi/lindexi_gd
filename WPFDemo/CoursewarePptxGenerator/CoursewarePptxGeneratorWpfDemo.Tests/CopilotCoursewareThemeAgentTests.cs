@@ -34,7 +34,8 @@ public sealed class CopilotCoursewareThemeAgentTests
         AssertThemeMatches(theme, result);
         Assert.AreEqual(OriginalPrompt, script.UserPrompts[0]);
         StringAssert.Contains(script.SystemPrompts[0], specification);
-        StringAssert.Contains(script.SystemPrompts[0], "Theme 2.0");
+        StringAssert.Contains(script.SystemPrompts[0], "Theme 2.1");
+        StringAssert.Contains(script.SystemPrompts[0], nameof(CoursewareTheme.FontSizeRules));
         StringAssert.Contains(script.SystemPrompts[0], "禁止输出流式 SlideML 协议");
         CollectionAssert.AreEqual(new[] { "submit_courseware_theme_analysis" }, script.ToolNames[0]);
     }
@@ -82,8 +83,8 @@ public sealed class CopilotCoursewareThemeAgentTests
         AssertThemeMatches(secondTheme, result);
         Assert.AreEqual(2, messages.Count);
         Assert.IsTrue(messages.All(message => message.MessageItems.OfType<CopilotChatToolItem>().Any()));
-        Assert.IsTrue(events.Any(item => item.Title.Contains("第 1 轮未通过", StringComparison.Ordinal)));
-        Assert.IsTrue(events.Any(item => item.Title.Contains("第 2 轮通过", StringComparison.Ordinal)));
+        Assert.IsTrue(events.Any(item => item.Title.Contains("需要继续调整", StringComparison.Ordinal)));
+        Assert.IsTrue(events.Any(item => item.Title.Contains("已通过检查", StringComparison.Ordinal)));
         Assert.AreSame(canvas, slideValidator.LastCanvas);
         CollectionAssert.AreEqual(new[] { "resource-1" }, slideValidator.LastResourceIds!.ToArray());
     }
@@ -232,6 +233,7 @@ public sealed class CopilotCoursewareThemeAgentTests
                 new CoursewareColorSuggestion { Name = "强调蓝", Usage = "重点", Hex = "#2563EB" },
             ],
             Fonts = new CoursewareFontSuggestions { Chinese = "微软雅黑", Western = "Arial" },
+            FontSizeRules = "封面标题 44-52px，内容页标题 30-36px，正文 20-24px，辅助文字不小于 16px。",
             Style = "清晰、克制、现代",
             SafeArea = new CoursewareSafeAreaRatios { LeftRatio = 0.05, TopRatio = 0.05, RightRatio = 0.05, BottomRatio = 0.05 },
             SpacingAndVisualEffects = "保持留白。",
@@ -244,6 +246,7 @@ public sealed class CopilotCoursewareThemeAgentTests
     private static void AssertThemeMatches(CoursewareTheme expected, CoursewareTheme actual)
     {
         Assert.AreEqual(expected.SchemaVersion, actual.SchemaVersion);
+        Assert.AreEqual(expected.FontSizeRules, actual.FontSizeRules);
         Assert.AreEqual(expected.Style, actual.Style);
         Assert.AreEqual(expected.CoverPageSlideMl, actual.CoverPageSlideMl);
         Assert.AreEqual(expected.ContentPageSlideMl, actual.ContentPageSlideMl);

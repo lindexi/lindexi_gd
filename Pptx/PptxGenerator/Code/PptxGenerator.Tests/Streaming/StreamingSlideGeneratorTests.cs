@@ -20,6 +20,7 @@ public sealed class StreamingSlideGeneratorTests
     public async Task SendMessageAsync_AttachedImageShouldOnlyBeSentOnFirstAttemptAndKeepToolWhitelist()
     {
         var imageFilePath = Path.Join(Path.GetTempPath(), $"slide-streaming-{Guid.NewGuid():N}.png");
+        var preloadedImageContent = new DataContent(new byte[] { 1, 2, 3 }, "image/png");
         await File.WriteAllBytesAsync(
             imageFilePath,
             Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="));
@@ -41,16 +42,33 @@ public sealed class StreamingSlideGeneratorTests
                 return originalCallback(messages, options, cancellationToken);
             };
 
-            await chatManager.SendMessageAsync(
+            var promptProvider = new SlideMlPromptProvider();
+            var streamingState = new SlideStreamingState(
+                promptProvider,
+                chatManager.SlideMlRenderTool.RenderPipeline);
+            var generator = new StreamingSlideGenerator(
+                chatManager.Pipeline.ChatManager,
+                promptProvider,
+                chatManager.SlideMlRenderTool);
+
+            var result = await generator.GenerateAsync(
                 "生成页面",
                 isFirstMessage: true,
-                attachPreview: false,
+                streamingState,
+                CancellationToken.None,
+                attachedImageContents: [preloadedImageContent],
                 attachedImageFiles: [imageFilePath, imageFilePath + ".missing"],
-                useStreaming: true);
+                requiredAttachedImageFiles: null);
 
             Assert.AreEqual(2, recorder.StreamingCallCount, "无效首轮输出应触发一次重试。");
             Assert.HasCount(2, capturedMessages);
-            Assert.HasCount(1, capturedMessages[0].SelectMany(message => message.Contents).OfType<DataContent>());
+            var firstRequestImageContents = capturedMessages[0]
+                .SelectMany(message => message.Contents)
+                .OfType<DataContent>()
+                .ToList();
+            Assert.HasCount(2, firstRequestImageContents);
+            Assert.AreSame(preloadedImageContent, firstRequestImageContents[0],
+                "预加载内容应排在由文件加载的内容之前。");
             var retryUserMessage = capturedMessages[1].Last(message => message.Role == ChatRole.User);
             Assert.IsEmpty(retryUserMessage.Contents.OfType<DataContent>(),
                 "错误重试新增的用户消息不应重复附加页面截图；历史首轮消息可继续保留附件。");
@@ -61,6 +79,11 @@ public sealed class StreamingSlideGeneratorTests
                     toolNames.ToArray(),
                     "流式工具白名单不得因附件支持发生变化。");
             }
+
+            Assert.IsTrue(result.IsSuccess);
+            Assert.AreEqual(2, result.AttemptCount);
+            Assert.AreEqual(1, result.AcceptedFragmentCount);
+            Assert.AreEqual(1, result.FinalAttemptAcceptedFragmentCount);
         }
         finally
         {
@@ -79,6 +102,7 @@ public sealed class StreamingSlideGeneratorTests
         await Assert.ThrowsExactlyAsync<OperationCanceledException>(() =>
             StreamingSlideGenerator.AppendAttachedImageContentsAsync(
                 userMessage,
+                attachedImageContents: null,
                 ["missing.png"],
                 cancellationTokenSource.Token));
     }
@@ -109,6 +133,7 @@ public sealed class StreamingSlideGeneratorTests
     /// 第一轮应检测错误并触发重试，第二轮继续合并修正后的内容。
     /// </summary>
     [TestMethod(DisplayName = "GenerateAsync 上层链路：MainContainer 错误闭合片段触发重试后继续合并")]
+    [Timeout(60_000, CooperativeCancellation = true)]
     public async Task GenerateAsync_MainContainerFragmentClosedByIdName_ThenRetryCanContinueMerge()
     {
         // Arrange
@@ -182,7 +207,7 @@ public sealed class StreamingSlideGeneratorTests
         );
 
         // Act
-        await generator.GenerateAsync
+        var result = await generator.GenerateAsync
         (
             "生成学习任务页面",
             isFirstMessage: true,
@@ -192,6 +217,12 @@ public sealed class StreamingSlideGeneratorTests
 
         // Assert
         Assert.AreEqual(2, recorder.StreamingCallCount, "错误闭合标签片段应触发一次重试");
+        Assert.IsTrue(result.IsSuccess);
+        Assert.AreEqual(2, result.AttemptCount);
+        Assert.IsGreaterThan(
+            result.FinalAttemptAcceptedFragmentCount,
+            result.AcceptedFragmentCount,
+            "调用级成功片段总数应大于最终尝试片段数。");
         Assert.IsEmpty(streamingState.Context.Errors, "重试修正后不应留下错误");
         Assert.IsGreaterThanOrEqualTo(2, recorder.StreamingMessages.Count, "应能捕获重试反馈请求");
 
@@ -222,6 +253,7 @@ public sealed class StreamingSlideGeneratorTests
     /// 第一轮实时渲染失败会触发重试，第二轮 Page 仍可引用第一轮暂存的样式。
     /// </summary>
     [TestMethod(DisplayName = "GenerateAsync 上层链路：首片段悬空样式触发重试后 Page 可引用样式")]
+    [Timeout(60_000, CooperativeCancellation = true)]
     public async Task GenerateAsync_FirstFragmentDanglingStyleElement_ThenPageCanReferenceStyle()
     {
         // Arrange
@@ -255,7 +287,7 @@ public sealed class StreamingSlideGeneratorTests
         };
 
         // Act
-        await generator.GenerateAsync
+        var result = await generator.GenerateAsync
         (
             "生成可复用卡片样式页面",
             isFirstMessage: true,
@@ -265,6 +297,9 @@ public sealed class StreamingSlideGeneratorTests
 
         // Assert
         Assert.AreEqual(2, recorder.StreamingCallCount, "首个悬空样式片段不可渲染，应触发一次重试");
+        Assert.IsTrue(result.IsSuccess);
+        Assert.AreEqual(2, result.AcceptedFragmentCount);
+        Assert.AreEqual(1, result.FinalAttemptAcceptedFragmentCount);
         Assert.IsGreaterThanOrEqualTo(2, capturedMessages.Count, "应能捕获首次请求和重试反馈请求");
         var retryText = string.Join("\n", capturedMessages[1].Select(message => message.Text));
         StringAssert.Contains(retryText, "card-template", "重试反馈应包含第一轮已合并的悬空样式片段，便于模型基于当前状态续写");
@@ -292,6 +327,7 @@ public sealed class StreamingSlideGeneratorTests
     /// 通过 <see cref="StreamingSlideGenerator.GenerateAsync"/> 上层入口验证模型一次性输出完整 Page 时可直接完成合并与渲染。
     /// </summary>
     [TestMethod(DisplayName = "GenerateAsync 上层链路：完整 Page 输出可直接合并渲染")]
+    [Timeout(60_000, CooperativeCancellation = true)]
     public async Task GenerateAsync_CompletePageOutput_ThenMergeAndRender()
     {
         // Arrange
@@ -342,7 +378,7 @@ public sealed class StreamingSlideGeneratorTests
         );
 
         // Act
-        await generator.GenerateAsync
+        var result = await generator.GenerateAsync
         (
             "生成任务二品析语言页面",
             isFirstMessage: true,
@@ -352,6 +388,12 @@ public sealed class StreamingSlideGeneratorTests
 
         // Assert
         Assert.AreEqual(1, recorder.StreamingCallCount, "完整合法 Page 输出不应触发重试");
+        Assert.IsTrue(result.IsSuccess);
+        Assert.AreEqual(1, result.AttemptCount);
+        Assert.AreEqual(1, result.AcceptedFragmentCount);
+        Assert.AreEqual(1, result.FinalAttemptAcceptedFragmentCount);
+        Assert.AreEqual(streamingState.Pipeline.CurrentMergedXml, result.FinalSlideXml);
+        Assert.IsNull(result.ErrorMessage);
         Assert.IsEmpty(streamingState.Context.Errors, "完整 Page 合并渲染后不应留下错误");
 
         var doc = XDocument.Parse(chatManager.RenderedXml);

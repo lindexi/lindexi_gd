@@ -54,7 +54,9 @@ public sealed class SlideStreamingPipelineTests
         pipeline.FragmentReceived += fragments.Add;
 
         // Act
-        await pipeline.ProcessIncrementalTextAsync("<Page><Panel Id=\"a\"/></Page><Rect Id=\"b\"/>", context);
+        await pipeline.ProcessIncrementalTextAsync(
+            "<Page><Panel Id=\"a\"/></Page><Page><Rect Id=\"b\"/></Page>",
+            context);
 
         // Assert
         Assert.HasCount(2, fragments);
@@ -275,6 +277,7 @@ public sealed class SlideStreamingPipelineTests
     }
 
     [TestMethod(DisplayName = "错误片段自动回滚，不污染 DOM 树")]
+    [Timeout(60_000, CooperativeCancellation = true)]
     public async Task ProcessIncrementalTextAsync_ErrorFragment_RolledBack()
     {
         // Arrange
@@ -285,12 +288,16 @@ public sealed class SlideStreamingPipelineTests
         await pipeline.ProcessIncrementalTextAsync("<Page><Rect Id=\"r1\" Width=\"100\"/></Page>", context);
         var xmlBeforeError = pipeline.CurrentMergedXml;
 
+        var receivedFragments = new List<string>();
+        pipeline.FragmentReceived += receivedFragments.Add;
+
         // Act — 合并一个类型冲突的错误片段
         await pipeline.ProcessIncrementalTextAsync("<Panel Id=\"r1\" X=\"0\"/>", context);
 
         // Assert — 错误片段被回滚，DOM 树保持干净
         Assert.IsNotEmpty(context.Errors, "应产生类型冲突错误");
         Assert.AreEqual(xmlBeforeError, pipeline.CurrentMergedXml, "错误片段应被回滚，DOM 保持出错前状态");
+        Assert.IsEmpty(receivedFragments, "合并失败并回滚的片段不应触发 FragmentReceived。");
     }
 
     [TestMethod(DisplayName = "错误片段回滚后，后续正确片段可正常合并")]
@@ -611,13 +618,16 @@ public sealed class SlideStreamingPipelineTests
     }
 
     [TestMethod(DisplayName = "首个片段 Panel Padding 格式错误：合并成功，渲染层产生错误")]
+    [Timeout(60_000, CooperativeCancellation = true)]
     public async Task ProcessIncrementalTextAsync_FirstFragmentPanelInvalidPadding_MergerOk_RenderError()
     {
         // Arrange — 首个片段就是含格式错误 Padding 的 Page
         var pipeline = CreatePipelineWithRealRenderEngine();
         var context = new SlideMlPipelineContext();
         var renderedResults = new List<SlideMlRenderResult>();
+        var receivedFragments = new List<string>();
         pipeline.Rendered += renderedResults.Add;
+        pipeline.FragmentReceived += receivedFragments.Add;
 
         // Act
         await pipeline.ProcessIncrementalTextAsync(
@@ -630,6 +640,8 @@ public sealed class SlideStreamingPipelineTests
             context.Errors.Any(e => e.Contains("Padding") && e.Contains("abc")),
             "context.Errors 应包含 Padding 格式错误");
         Assert.Contains("p1", pipeline.CurrentMergedXml, "DOM 应包含 Panel");
+        Assert.HasCount(1, receivedFragments,
+            "成功合并后即使渲染失败，片段仍应触发 FragmentReceived 并计入尝试统计。");
 
         // 渲染层检测出错误
         Assert.IsNotEmpty(renderedResults, "应触发渲染");

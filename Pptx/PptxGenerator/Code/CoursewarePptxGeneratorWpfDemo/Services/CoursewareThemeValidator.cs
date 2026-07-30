@@ -61,6 +61,7 @@ public sealed class CoursewareThemeValidator
             AddRequiredError(theme.Fonts.Western, "Fonts.Western", errors);
         }
 
+        AddRequiredError(theme.FontSizeRules, "FontSizeRules", errors);
         AddRequiredError(theme.SpacingAndVisualEffects, "SpacingAndVisualEffects", errors);
         AddRequiredError(theme.LayoutPrinciples, "LayoutPrinciples", errors);
         AddRequiredError(theme.CoverPageSlideMl, "CoverPageSlideMl", errors);

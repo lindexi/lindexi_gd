@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.Json;
 using AgentLib.Model;
 using CoursewarePptxGenerator.Core.Analysis;
 using CoursewarePptxGenerator.Core.Models;
@@ -44,9 +45,9 @@ public sealed class CoursewareThemeContractTests
             events.Select(item => item.Stage).ToArray());
     }
 
-    [TestMethod(DisplayName = "主题字段验证应接受完整2.0契约")]
+    [TestMethod(DisplayName = "主题字段验证应接受完整2.1契约")]
     [Timeout(5000)]
-    public void ValidateShouldAcceptCompleteVersionTwoTheme()
+    public void ValidateShouldAcceptCompleteVersionTwoPointOneTheme()
     {
         var result = new CoursewareThemeValidator().Validate(CreateValidTheme());
 
@@ -59,13 +60,14 @@ public sealed class CoursewareThemeContractTests
     {
         var theme = CreateValidTheme() with
         {
-            SchemaVersion = "2.0 ",
+            SchemaVersion = "2.0",
             ColorSuggestions =
             [
                 new CoursewareColorSuggestion { Name = "", Usage = "背景", Hex = "#ffffff" },
                 new CoursewareColorSuggestion { Name = "正文", Usage = "", Hex = "112233" },
             ],
             Fonts = new CoursewareFontSuggestions { Chinese = " ", Western = "" },
+            FontSizeRules = " ",
             Style = "",
             SafeArea = new CoursewareSafeAreaRatios
             {
@@ -86,9 +88,10 @@ public sealed class CoursewareThemeContractTests
         CollectionAssert.IsSubsetOf(
             new[]
             {
-                "SchemaVersion 必须为 2.0。",
+                "SchemaVersion 必须为 2.1。",
                 "ColorSuggestions 必须包含 3 到 8 项。",
                 "ColorSuggestions.Name 不能为空。",
+                "FontSizeRules 不能为空。",
                 "LayoutPrinciples 不能为空。",
                 "CoverPageSlideMl 不能为空。",
             },
@@ -110,7 +113,7 @@ public sealed class CoursewareThemeContractTests
         Assert.AreSame(validTheme, tool.SubmittedTheme);
         Assert.AreEqual(2, tool.SubmissionCount);
         Assert.IsEmpty(tool.ValidationErrors);
-        Assert.AreEqual("主题字段校验通过，已记录。", validMessage);
+        Assert.AreEqual("Theme 2.1 字段校验通过，已记录。", validMessage);
         Assert.IsFalse(validMessage.Contains("Draft", StringComparison.OrdinalIgnoreCase));
         Assert.IsFalse(validMessage.Contains("Revision", StringComparison.OrdinalIgnoreCase));
     }
@@ -124,6 +127,35 @@ public sealed class CoursewareThemeContractTests
         Assert.AreEqual("submit_courseware_theme_analysis", function.Name);
     }
 
+    [TestMethod(DisplayName = "主题提交工具Schema应包含必填字号规则")]
+    [Timeout(5000)]
+    public void CreateToolShouldExposeRequiredFontSizeRules()
+    {
+        var function = new CoursewareThemeSubmissionTool(new CoursewareThemeValidator()).CreateTool();
+        var themeSchema = function.JsonSchema.GetProperty("properties").GetProperty("theme");
+        var requiredProperties = themeSchema.GetProperty("required")
+            .EnumerateArray()
+            .Select(item => item.GetString())
+            .ToArray();
+
+        Assert.IsTrue(themeSchema.GetProperty("properties").TryGetProperty("fontSizeRules", out _));
+        CollectionAssert.Contains(requiredProperties, "fontSizeRules");
+    }
+
+    [TestMethod(DisplayName = "Theme 2.1序列化应保留字号规则原文")]
+    [Timeout(5000)]
+    public void SerializationShouldPreserveFontSizeRules()
+    {
+        var theme = CreateValidTheme();
+
+        var json = JsonSerializer.Serialize(theme, CoursewareExportJsonSerializerContext.Default.CoursewareTheme);
+        var restored = JsonSerializer.Deserialize(json, CoursewareExportJsonSerializerContext.Default.CoursewareTheme);
+
+        StringAssert.Contains(json, nameof(CoursewareTheme.FontSizeRules));
+        Assert.IsNotNull(restored);
+        Assert.AreEqual(theme.FontSizeRules, restored.FontSizeRules);
+    }
+
     private static CoursewareTheme CreateValidTheme()
     {
         return new CoursewareTheme
@@ -135,6 +167,7 @@ public sealed class CoursewareThemeContractTests
                 new CoursewareColorSuggestion { Name = "强调蓝", Usage = "重点", Hex = "#2563EB" },
             ],
             Fonts = new CoursewareFontSuggestions { Chinese = "微软雅黑", Western = "Arial" },
+            FontSizeRules = "封面标题 44-52px，内容页标题 30-36px，正文 20-24px，辅助文字不小于 16px。",
             Style = "清晰、克制、现代",
             SafeArea = new CoursewareSafeAreaRatios
             {

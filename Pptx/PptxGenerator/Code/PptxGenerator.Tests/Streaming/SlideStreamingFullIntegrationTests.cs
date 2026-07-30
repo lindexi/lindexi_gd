@@ -19,6 +19,7 @@ public sealed class SlideStreamingFullIntegrationTests
     /// FakeChatClient 逐字符输出包含 TextElement 的 Page XML，验证完整流式渲染链路。
     /// </summary>
     [TestMethod(DisplayName = "单页流式渲染：验证逐字符输出 Page+TextElement 时完整链路正确")]
+    [Timeout(60_000, CooperativeCancellation = true)]
     public async Task FullStreaming_SimplePage_RendersCorrectly()
     {
         // Arrange
@@ -26,17 +27,23 @@ public sealed class SlideStreamingFullIntegrationTests
         var (chatManager, _) = SlideStreamingTestHelper.CreateChatManager(xml);
 
         // Act
-        await chatManager.SendMessageAsync(
+        var result = await chatManager.SendStreamingMessageWithResultAsync(
             "生成标题页",
             isFirstMessage: true,
-            attachPreview: false,
-            useStreaming: true).ConfigureAwait(false);
+            cancellationToken: CancellationToken.None).ConfigureAwait(false);
 
         // Assert
         Assert.IsFalse(string.IsNullOrEmpty(chatManager.RenderedXml), "RenderedXml 不应为空");
         Assert.IsNotNull(chatManager.PreviewImage, "PreviewImage 不应为 null");
         StringAssert.Contains(chatManager.RenderedXml, "Page", "RenderedXml 应包含 Page");
         StringAssert.Contains(chatManager.RenderedXml, "TextElement", "RenderedXml 应包含 TextElement");
+        Assert.IsTrue(result.IsSuccess);
+        Assert.AreEqual(1, result.AttemptCount);
+        Assert.AreEqual(1, result.AcceptedFragmentCount);
+        Assert.AreEqual(1, result.FinalAttemptAcceptedFragmentCount);
+        Assert.AreEqual(
+            System.Xml.Linq.XDocument.Parse(result.FinalSlideXml).ToString(System.Xml.Linq.SaveOptions.DisableFormatting),
+            System.Xml.Linq.XDocument.Parse(chatManager.CurrentSlideXml).ToString(System.Xml.Linq.SaveOptions.DisableFormatting));
     }
 
     // ───────── 用例 2：多元素流式渲染 ─────────
@@ -150,6 +157,7 @@ public sealed class SlideStreamingFullIntegrationTests
     /// 在流式输出过程中取消 CancellationToken，验证抛出 OperationCanceledException 或其子类。
     /// </summary>
     [TestMethod(DisplayName = "取消令牌：流式过程中取消应抛出 OperationCanceledException")]
+    [Timeout(60_000, CooperativeCancellation = true)]
     public async Task FullStreaming_Cancellation_ThrowsOperationCanceledException()
     {
         // Arrange — 使用足够长的 XML 并在每个字符之间加入延迟，确保取消令牌在流式过程中触发
@@ -163,11 +171,9 @@ public sealed class SlideStreamingFullIntegrationTests
         OperationCanceledException? caughtException = null;
         try
         {
-            await chatManager.SendMessageAsync(
+            await chatManager.SendStreamingMessageWithResultAsync(
                 "生成页面",
                 isFirstMessage: true,
-                attachPreview: false,
-                useStreaming: true,
                 cancellationToken: cts.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException ex)

@@ -71,9 +71,9 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
         var prompt = _promptBuilder.Build(inputPackage, styleUsageSummary);
         var validationCanvas = CoursewareCanvasAdapter.CreateDocumentContext(inputPackage.Slides[0]);
         var availableResourceIds = inputPackage.Resources
-            .Select(resource => resource.ResourceId)
-            .Where(resourceId => !string.IsNullOrWhiteSpace(resourceId))
-            .ToHashSet(StringComparer.Ordinal)!;
+            .Where(resource => !string.IsNullOrWhiteSpace(resource.ResourceId))
+            .Select(resource => resource.ResourceId!)
+            .ToHashSet(StringComparer.Ordinal);
 
         progress?.Report(CreateProgressEvent(
             CoursewareAnalysisStage.PreparingInput,

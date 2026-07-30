@@ -1,3 +1,4 @@
+using System.IO;
 using CoursewarePptxGenerator.Core.Analysis;
 using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.Services;
@@ -118,6 +119,46 @@ public sealed class CoursewareSlideItemViewModelTests
 
         await Assert.ThrowsExactlyAsync<OperationCanceledException>(() => runtimeTask);
         Assert.IsNull(item.Runtime);
+    }
+
+    [TestMethod(DisplayName = "首轮成功前原始截图附件应不可移除")]
+    [Timeout(60_000)]
+    public async Task SourceScreenshotShouldNotBeRemovableBeforeInitialSuccess()
+    {
+        var package = await LoadPackageAsync();
+        var item = CreateItem(package.Slides[0], new FakeSlideChatManagerFactory());
+        Assert.IsTrue(item.EnsureSourceScreenshotAttachment());
+        var attachment = item.AttachedImageFiles.Single();
+
+        Assert.IsFalse(attachment.CanRemove);
+        item.RemoveAttachedImageFile(attachment);
+
+        Assert.HasCount(1, item.AttachedImageFiles);
+        Assert.AreEqual(CoursewareScreenshotAttachmentState.Attached, item.ScreenshotAttachmentState);
+    }
+
+    [TestMethod(DisplayName = "首轮成功应只移除快照附件并设置截图已发送状态")]
+    [Timeout(60_000)]
+    public async Task SuccessfulInitialSendShouldConsumeSnapshotAndSetSentState()
+    {
+        var package = await LoadPackageAsync();
+        var item = CreateItem(package.Slides[0], new FakeSlideChatManagerFactory());
+        item.EnsureSourceScreenshotAttachment();
+        item.ApplyInitialPrompt("首轮草稿");
+        var snapshot = item.CreateMessageSnapshot();
+        var newAttachmentFile = new FileInfo(Path.GetTempFileName());
+        item.AttachedImageFiles.Add(new CoursewareChatImageAttachmentViewModel(
+            newAttachmentFile,
+            CoursewareChatImageAttachmentKind.UserSelectedImage));
+
+        item.ApplySuccessfulSend(snapshot);
+
+        Assert.IsTrue(item.HasStartedGenerationConversation);
+        Assert.AreEqual(CoursewareScreenshotAttachmentState.Sent, item.ScreenshotAttachmentState);
+        Assert.AreEqual("原始截图已随首轮发送", item.ScreenshotAttachmentStatusText);
+        Assert.AreEqual(string.Empty, item.InputText);
+        Assert.HasCount(1, item.AttachedImageFiles);
+        Assert.AreEqual(newAttachmentFile.FullName, item.AttachedImageFiles[0].FullName);
     }
 
     private static CoursewareSlideItemViewModel CreateItem(

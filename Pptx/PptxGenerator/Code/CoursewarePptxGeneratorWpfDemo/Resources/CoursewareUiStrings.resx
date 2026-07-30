@@ -24,6 +24,15 @@
   <data name="AnalysisReadyCaptionFormat" xml:space="preserve">
     <value>已分析 {0} 页并生成主题建议，可进入页面美化工作台</value>
   </data>
+  <data name="TypographyChineseFontLabel" xml:space="preserve">
+    <value>中文字体</value>
+  </data>
+  <data name="TypographyWesternFontLabel" xml:space="preserve">
+    <value>西文字体</value>
+  </data>
+  <data name="TypographyFontSizeRulesLabel" xml:space="preserve">
+    <value>字号规则</value>
+  </data>
   <data name="CapabilityPassed" xml:space="preserve">
     <value>已通过</value>
   </data>
@@ -95,6 +104,33 @@
   </data>
   <data name="ScreenshotSendFailed" xml:space="preserve">
     <value>原始截图发送失败</value>
+  </data>
+  <data name="ScreenshotSent" xml:space="preserve">
+    <value>原始截图已随首轮发送</value>
+  </data>
+  <data name="InitialPromptThemeOutdated" xml:space="preserve">
+    <value>当前首轮草稿基于旧主题，可继续发送或按最新主题重建。</value>
+  </data>
+  <data name="SourceScreenshotRequired" xml:space="preserve">
+    <value>当前页缺少首轮页面美化所需的原始截图，无法发送。</value>
+  </data>
+  <data name="AttachmentFileMissingFormat" xml:space="preserve">
+    <value>附件文件不存在：{0}</value>
+  </data>
+  <data name="ImageAttachmentLoadFailedFormat" xml:space="preserve">
+    <value>无法读取或解码图片附件：{0}</value>
+  </data>
+  <data name="ImageAttachmentHasNoFrame" xml:space="preserve">
+    <value>图片附件不包含可用图像帧。</value>
+  </data>
+  <data name="ImageAttachmentTypeUnsupported" xml:space="preserve">
+    <value>图片附件类型不受支持。</value>
+  </data>
+  <data name="PreviewAttachmentUnavailable" xml:space="preserve">
+    <value>已选择附带当前渲染预览，但当前没有可用预览。</value>
+  </data>
+  <data name="SlideGenerationFailed" xml:space="preserve">
+    <value>本次请求未生成有效页面，请调整要求后重试。</value>
   </data>
   <data name="SlideGenerationCompleted" xml:space="preserve">
     <value>页面生成与渲染完成，未报告警告。</value>

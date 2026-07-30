@@ -70,9 +70,9 @@ public sealed class MainWindowCompositionTests
             "进入工作台按钮应由命令 CanExecute 决定，避免重新分析失败或取消后错误禁用。");
     }
 
-    [TestMethod(DisplayName = "分析结果应只展示 Theme 2.0 字段")]
+    [TestMethod(DisplayName = "分析结果应展示 Theme 2.1 字段")]
     [Timeout(60_000)]
-    public void AnalysisResultShouldOnlyDisplayTheme20Fields()
+    public void AnalysisResultShouldDisplayTheme21Fields()
     {
         var projectDirectory = GetApplicationProjectDirectory();
         var analysisView = XDocument.Load(Path.Join(projectDirectory, "Views", "CoursewareAnalysisView.xaml"));
@@ -84,7 +84,9 @@ public sealed class MainWindowCompositionTests
             workspaceView.ToString(SaveOptions.DisableFormatting));
 
         StringAssert.Contains(combinedXaml, "WorkspaceButtonText");
-        StringAssert.Contains(combinedXaml, "ColorSuggestions");
+        StringAssert.Contains(combinedXaml, "ThemeColors");
+        StringAssert.Contains(combinedXaml, "TypographyLevels");
+        StringAssert.Contains(combinedXaml, "Specification");
         StringAssert.Contains(combinedXaml, "ThemeStyle");
         StringAssert.Contains(combinedXaml, "SpacingAndVisualEffects");
         StringAssert.Contains(combinedXaml, "ThemeLayoutPrinciples");
@@ -119,7 +121,8 @@ public sealed class MainWindowCompositionTests
         StringAssert.Contains(sidebarText, "PreviewImage");
         StringAssert.Contains(sidebarText, "Text=\"{Binding PageNumber}\"");
         StringAssert.Contains(sidebarText, "标题：{0}");
-        StringAssert.Contains(sidebarText, "页面 Id：{0}");
+        StringAssert.Contains(sidebarText, "页码：第 {0} 页");
+        Assert.IsFalse(sidebarText.Contains("页面 Id：{0}", StringComparison.Ordinal));
         Assert.IsFalse(sidebarText.Contains("Text=\"{Binding StatusText}\"", StringComparison.Ordinal));
         Assert.IsFalse(sidebarText.Contains("Text=\"{Binding SlideId}\"", StringComparison.Ordinal));
         Assert.IsFalse(sidebarText.Contains("WarningSummary", StringComparison.Ordinal));
@@ -133,7 +136,7 @@ public sealed class MainWindowCompositionTests
         Assert.IsFalse(contentText.Contains("SelectedSlide.CanvasSizeText", StringComparison.Ordinal));
         StringAssert.Contains(copilotText, "SelectedSlide.CopilotChatManager.ChatMessages");
         StringAssert.Contains(copilotText, "SendMessageCommand");
-        StringAssert.Contains(copilotText, "Content=\"发送\"");
+        StringAssert.Contains(copilotText, "SendMessageText");
         StringAssert.Contains(copilotText, "CommandParameter=\"{Binding SelectedSlide}\"");
         Assert.IsFalse(copilotText.Contains("GenerateSelectedSlideCommand", StringComparison.Ordinal));
         Assert.IsFalse(copilotText.Contains("首次生成", StringComparison.Ordinal));
@@ -141,6 +144,47 @@ public sealed class MainWindowCompositionTests
         Assert.IsFalse(contentXaml.Descendants(presentation + "Button")
             .Any(button => string.Equals((string?) button.Attribute("Content"), "打开课件文件夹", StringComparison.Ordinal)));
         Assert.IsFalse(sidebarXaml.ToString(SaveOptions.DisableFormatting).Contains("添加空页面", StringComparison.Ordinal));
+    }
+
+    [TestMethod(DisplayName = "页面美化工作台应绑定附件保护主题过期提示和首轮编辑区")]
+    [Timeout(60_000)]
+    public void CopilotPanelShouldBindAttachmentProtectionThemeWarningAndInitialEditor()
+    {
+        var projectDirectory = GetApplicationProjectDirectory();
+        var copilotXaml = XDocument.Load(Path.Join(projectDirectory, "Views", "CopilotPanel.xaml"));
+        var stringsXaml = XDocument.Load(Path.Join(projectDirectory, "Resources", "Strings.xaml"));
+        var copilotText = copilotXaml.ToString(SaveOptions.DisableFormatting);
+        var stringsText = stringsXaml.ToString(SaveOptions.DisableFormatting);
+        XNamespace presentation = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+        XNamespace x = "http://schemas.microsoft.com/winfx/2006/xaml";
+
+        var removeButton = copilotXaml
+            .Descendants(presentation + "Button")
+            .Single(button => string.Equals((string?) button.Attribute("Click"), "CloseAttachedImageButton_OnClick", StringComparison.Ordinal));
+        Assert.AreEqual("{Binding CanRemove, Converter={StaticResource BooleanToVisibility}}", (string?) removeButton.Attribute("Visibility"));
+
+        StringAssert.Contains(copilotText, "SelectedSlide.IsInitialPromptThemeOutdated");
+        StringAssert.Contains(copilotText, "SelectedSlide.InitialPromptThemeStatusText");
+        StringAssert.Contains(copilotText, "SelectedSlide.ResetInitialPromptToLatestThemeCommand");
+        StringAssert.Contains(copilotText, "SelectedSlide.CanResetInitialPromptToLatestTheme");
+        StringAssert.Contains(copilotText, "SelectedSlide.HasStartedGenerationConversation");
+        StringAssert.Contains(copilotText, "Value=\"180\"");
+        StringAssert.Contains(copilotText, "Value=\"320\"");
+
+        var chatInputs = copilotXaml
+            .Descendants(presentation + "TextBox")
+            .Where(textBox => string.Equals((string?) textBox.Attribute(x + "Name"), "ChatInputTextBox", StringComparison.Ordinal))
+            .ToArray();
+        Assert.HasCount(1, chatInputs);
+        Assert.AreEqual("{Binding SelectedSlide.InputText, UpdateSourceTrigger=PropertyChanged}", (string?) chatInputs[0].Attribute("Text"));
+
+        StringAssert.Contains(stringsText, "ThemeOutdatedWarningTitleText");
+        StringAssert.Contains(stringsText, "ResetInitialPromptToLatestThemeText");
+        StringAssert.Contains(stringsText, "ResetInitialPromptToLatestThemeHintText");
+        StringAssert.Contains(stringsText, "整体视觉风格");
+        StringAssert.Contains(stringsText, "背景、间距与视觉效果");
+        Assert.IsFalse(copilotText.Contains("添加的图片仅用于帮助理解视觉需求", StringComparison.Ordinal));
+        Assert.IsFalse(copilotText.Contains("按最新主题重建草稿", StringComparison.Ordinal));
     }
 
     [TestMethod(DisplayName = "主题分析失败页应绑定真实错误和技术详情")]

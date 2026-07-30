@@ -38,7 +38,7 @@ public sealed class CoursewareThemeSubmissionTool
         return AIFunctionFactory.Create(
             SubmitTheme,
             name: "submit_courseware_theme_analysis",
-            description: "提交完整的课件全局主题分析结果。系统当前执行字段级校验；失败时请修正并重新提交。");
+            description: "提交完整的 Theme 2.1 课件全局主题分析结果，必须包含字号层级与使用规则原文。系统当前执行字段级校验；失败时请修正并重新提交。");
     }
 
     [Description("提交完整且可用于后续页面生成的课件全局主题。")]
@@ -55,6 +55,6 @@ public sealed class CoursewareThemeSubmissionTool
         }
 
         SubmittedTheme = theme;
-        return "主题字段校验通过，已记录。";
+        return "Theme 2.1 字段校验通过，已记录。";
     }
 }

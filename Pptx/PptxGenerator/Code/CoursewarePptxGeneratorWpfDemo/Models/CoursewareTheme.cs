@@ -8,7 +8,7 @@ public sealed record CoursewareTheme
     /// <summary>
     /// Gets the current theme schema version.
     /// </summary>
-    public const string CurrentSchemaVersion = "2.0";
+    public const string CurrentSchemaVersion = "2.1";
 
     /// <summary>
     /// Gets the theme schema version.
@@ -24,6 +24,11 @@ public sealed record CoursewareTheme
     /// Gets the recommended Chinese and Western fonts.
     /// </summary>
     public required CoursewareFontSuggestions Fonts { get; init; }
+
+    /// <summary>
+    /// Gets the original font-size hierarchy and usage rules produced by theme analysis.
+    /// </summary>
+    public required string FontSizeRules { get; init; }
 
     /// <summary>
     /// Gets the visual style description.

@@ -39,7 +39,7 @@ public sealed class SlideStreamingPipeline
     }
 
     /// <summary>
-    /// 片段接收事件，每次从 LLM 流中提取到新片段时触发。
+    /// 片段接收事件，每次从 LLM 流中提取并成功合并新片段时触发。
     /// </summary>
     public event Action<string>? FragmentReceived;
 
@@ -83,7 +83,6 @@ public sealed class SlideStreamingPipeline
         {
             var errorCountBefore = context.Errors.Count;
             _merger.AcceptFragment(fragment, context);
-            FragmentReceived?.Invoke(fragment);
 
             // 片段合并产生错误时回滚到合并前状态，防止错误片段污染 DOM 树
             if (context.Errors.Count > errorCountBefore)
@@ -91,6 +90,8 @@ public sealed class SlideStreamingPipeline
                 _merger.RollbackLastVersion();
                 continue;
             }
+
+            FragmentReceived?.Invoke(fragment);
 
             // 每个片段合并成功后立即渲染，以及时检测渲染错误，避免错误内容污染已提交的 XML
             var mergedXml = _merger.GetMergedXml();

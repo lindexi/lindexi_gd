@@ -4,6 +4,7 @@ using PptxGenerator;
 using PptxGenerator.Evaluation;
 using PptxGenerator.Models;
 using PptxGenerator.Pipeline;
+using PptxGenerator.Prompt;
 using PptxGenerator.Rendering;
 
 namespace CoursewarePptxGeneratorWpfDemo.Services;
@@ -64,21 +65,21 @@ public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
         }
 
         var slideMlRenderTool = CreateRenderTool(renderPipeline);
+        var promptProvider = CreatePromptProvider(documentContext);
 
         var evaluatorChatManager = await _chatManagerFactory.CreateAsync(
             AgentWorkload.Evaluation,
             cancellationToken).ConfigureAwait(false);
         var slideEvaluator = new AiSlideEvaluator(evaluatorChatManager);
         var promptEvaluator = new AiPromptEvaluator(evaluatorChatManager);
-        var promptOptimizer = new AiPromptOptimizer(evaluatorChatManager);
 
         return new SlideChatManager(
             copilotChatManager,
             slideMlRenderTool,
+            promptProvider: promptProvider,
             slideDocumentContext: documentContext,
             slideEvaluator: slideEvaluator,
-            promptEvaluator: promptEvaluator,
-            promptOptimizer: promptOptimizer);
+            promptEvaluator: promptEvaluator);
     }
 
     /// <inheritdoc />
@@ -89,7 +90,18 @@ public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
         return new SlideChatManager(
             copilotChatManager,
             CreateRenderTool(CreateRenderPipeline(documentContext)),
+            promptProvider: CreatePromptProvider(documentContext),
             slideDocumentContext: documentContext);
+    }
+
+    private static SlideMlPromptProvider CreatePromptProvider(SlideDocumentContext documentContext)
+    {
+        var promptProvider = new SlideMlPromptProvider(documentContext);
+        promptProvider.UpdatePrompts(
+            systemPrompt: null,
+            userPromptTemplate: null,
+            streamingUserPromptTemplate: "{USER_INPUT}");
+        return promptProvider;
     }
 
     private SwitchableSlideMlRenderPipeline CreateRenderPipeline(SlideDocumentContext documentContext)

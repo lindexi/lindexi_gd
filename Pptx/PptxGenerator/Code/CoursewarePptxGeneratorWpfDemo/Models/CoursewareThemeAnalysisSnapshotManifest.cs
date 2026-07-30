@@ -12,7 +12,7 @@ public sealed record CoursewareThemeAnalysisSnapshotManifest
     /// <summary>
     /// Gets the supported snapshot schema version.
     /// </summary>
-    public const int CurrentSchemaVersion = 2;
+    public const int CurrentSchemaVersion = 3;
 
     /// <summary>
     /// Gets the snapshot schema version.
@@ -33,7 +33,7 @@ public sealed record CoursewareThemeAnalysisSnapshotManifest
     public required string CoursewareManifestFile { get; init; }
 
     /// <summary>
-    /// Gets the relative path to the Theme 2.0 JSON file.
+    /// Gets the relative path to the Theme 2.1 JSON file.
     /// </summary>
     [JsonPropertyName("ThemeFile")]
     public required string ThemeFile { get; init; }

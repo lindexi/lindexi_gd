@@ -36,7 +36,11 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.IsNotNull(viewModel.CoursewareSession.ThemeAnalysisResult);
         Assert.AreEqual("清晰、克制、现代", viewModel.ThemeTitle);
         Assert.HasCount(3, viewModel.ThemeColors);
-        Assert.HasCount(2, viewModel.TypographyLevels);
+        Assert.HasCount(3, viewModel.TypographyLevels);
+        Assert.AreEqual("字号规则", viewModel.TypographyLevels[2].Name);
+        Assert.AreEqual(
+            "封面标题 44-52px，内容页标题 30-36px，正文 20-24px，辅助文字不小于 16px。",
+            viewModel.TypographyLevels[2].Specification);
         Assert.AreEqual("清晰、克制、现代", viewModel.ThemeStyle);
         Assert.AreEqual("保持充足留白，不使用阴影。", viewModel.SpacingAndVisualEffects);
         Assert.AreEqual("保持对齐，突出重点，并控制留白。", viewModel.ThemeLayoutPrinciples);
@@ -145,6 +149,7 @@ public sealed class CoursewareWorkspaceViewModelTests
         Assert.AreEqual(normalViewModel.FontRecommendationText, restoredViewModel.FontRecommendationText);
         Assert.AreEqual(normalViewModel.SafeAreaText, restoredViewModel.SafeAreaText);
         Assert.AreEqual(normalViewModel.ColorRationale, restoredViewModel.ColorRationale);
+        CollectionAssert.AreEqual(normalViewModel.TypographyLevels.ToArray(), restoredViewModel.TypographyLevels.ToArray());
         CollectionAssert.AreEqual(normalViewModel.LayoutPrinciples.ToArray(), restoredViewModel.LayoutPrinciples.ToArray());
         Assert.AreEqual(normalViewModel.ThemeStyle, restoredViewModel.ThemeStyle);
         Assert.AreEqual(normalViewModel.SpacingAndVisualEffects, restoredViewModel.SpacingAndVisualEffects);
@@ -162,21 +167,24 @@ public sealed class CoursewareWorkspaceViewModelTests
             restoredSelectedSlide.Runtime!.SlideChatManager.Pipeline.PromptProvider.BuildSystemPrompt());
 
         var promptBuilder = new CoursewareSlidePromptBuilder();
-        var normalPrompt = promptBuilder.Build(
+        var normalSource = promptBuilder.PrepareSource(
             normalViewModel.CoursewareSession!.InputPackage,
-            normalViewModel.CoursewareSession.ThemeAnalysisResult!,
+            normalViewModel.CoursewareSession.ThemeAnalysisResult!);
+        var normalPrompt = promptBuilder.BuildInitialPrompt(
+            normalSource,
             normalSelectedSlide.SlideIndex,
-            generationInstruction,
-            screenshotAttached: true);
-        var restoredPrompt = promptBuilder.Build(
+            normalSelectedSlide.Canvas,
+            generationInstruction);
+        var restoredSource = promptBuilder.PrepareSource(
             restoredViewModel.CoursewareSession.InputPackage,
-            restoredViewModel.CoursewareSession.ThemeAnalysisResult!,
+            restoredViewModel.CoursewareSession.ThemeAnalysisResult!);
+        var restoredPrompt = promptBuilder.BuildInitialPrompt(
+            restoredSource,
             restoredSelectedSlide.SlideIndex,
-            generationInstruction,
-            screenshotAttached: true);
+            restoredSelectedSlide.Canvas,
+            generationInstruction);
 
-        Assert.AreEqual(normalPrompt.Prompt, restoredPrompt.Prompt);
-        Assert.AreEqual(normalPrompt.EstimatedTokenCount, restoredPrompt.EstimatedTokenCount);
+        Assert.AreEqual(normalPrompt, restoredPrompt);
     }
 
     [TestMethod(DisplayName = "打开新课件后应替换旧真实工作台且不复用页面运行时")]
@@ -470,6 +478,7 @@ public sealed class CoursewareWorkspaceViewModelTests
     }
 
     [TestMethod(DisplayName = "未选择课件文件夹时应保持欢迎状态")]
+    [Timeout(60_000)]
     public async Task OpenCoursewareFolderAsyncShouldKeepWelcomeStateWhenFolderIsNotSelected()
     {
         var viewModel = CreateViewModel();

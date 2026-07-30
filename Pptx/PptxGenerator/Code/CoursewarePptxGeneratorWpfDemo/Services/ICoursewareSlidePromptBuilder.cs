@@ -4,7 +4,7 @@ using CoursewarePptxGeneratorWpfDemo.Models;
 namespace CoursewarePptxGeneratorWpfDemo.Services;
 
 /// <summary>
-/// Builds privacy-safe structured prompts for real courseware slides.
+/// Builds privacy-safe natural-language prompts for real courseware slides.
 /// </summary>
 public interface ICoursewareSlidePromptBuilder
 {
@@ -17,12 +17,12 @@ public interface ICoursewareSlidePromptBuilder
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Builds one structured page-generation request.
+    /// Builds the initial natural-language page-generation prompt.
     /// </summary>
-    CoursewareSlidePromptBuildResult Build(
+    string BuildInitialPrompt(
         CoursewareSlidePromptSource source,
         int slideIndex,
+        CoursewareSlideCanvas canvas,
         string userInstruction,
-        bool screenshotAttached,
         CancellationToken cancellationToken = default);
 }

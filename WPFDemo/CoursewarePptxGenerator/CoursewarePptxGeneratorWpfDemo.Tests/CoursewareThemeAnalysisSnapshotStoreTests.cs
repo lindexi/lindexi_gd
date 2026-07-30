@@ -13,9 +13,9 @@ public sealed class CoursewareThemeAnalysisSnapshotStoreTests
 {
     private static readonly DateTimeOffset FixedTimestamp = DateTimeOffset.Parse("2026-07-22T03:44:47.123+08:00");
 
-    [TestMethod(DisplayName = "快照 v2 应自包含恢复必要课件数据且不保存旧分析字段")]
+    [TestMethod(DisplayName = "快照 v3 应自包含恢复必要课件数据和字号规则且不保存旧分析字段")]
     [Timeout(60_000)]
-    public async Task Version2SnapshotShouldRestoreSelfContainedDataWithoutLegacyFields()
+    public async Task Version3SnapshotShouldRestoreSelfContainedDataAndFontSizeRulesWithoutLegacyFields()
     {
         var exportDirectory = new TestCoursewareExportBuilder()
             .AddSlide("slide-first", CreateSlideMarkdown("第一页标题", "第一页内容 resource-first"), width: 1600, height: 900)
@@ -43,10 +43,18 @@ public sealed class CoursewareThemeAnalysisSnapshotStoreTests
         Assert.IsFalse(restored.InputPackage.Resources.Single(resource => resource.ResourceId == "resource-missing").Exists);
         Assert.IsFalse(File.Exists(Path.Join(snapshotDirectory.FullName, "Resources", "resource-missing.png")));
         Assert.AreEqual(result.Theme.Style, restored.AnalysisResult.Theme.Style);
+        Assert.AreEqual(result.Theme.FontSizeRules, restored.AnalysisResult.Theme.FontSizeRules);
         CollectionAssert.AreEqual(
             result.Theme.ColorSuggestions.ToArray(),
             restored.AnalysisResult.Theme.ColorSuggestions.ToArray());
-        StringAssert.Contains(manifestText, "\"Version\":2");
+        var themeText = await File.ReadAllTextAsync(Path.Join(snapshotDirectory.FullName, "Theme", "Theme.json"));
+        StringAssert.Contains(manifestText, "\"Version\":3");
+        StringAssert.Contains(themeText, nameof(CoursewareTheme.FontSizeRules));
+        var persistedTheme = JsonSerializer.Deserialize(
+            themeText,
+            CoursewareExportJsonSerializerContext.Default.CoursewareTheme);
+        Assert.IsNotNull(persistedTheme);
+        Assert.AreEqual(result.Theme.FontSizeRules, persistedTheme.FontSizeRules);
         Assert.IsFalse(manifestText.Contains("SourceFingerprint", StringComparison.Ordinal));
         Assert.IsFalse(manifestText.Contains("AnalysisViewFingerprint", StringComparison.Ordinal));
         Assert.IsFalse(manifestText.Contains("DesignSystem", StringComparison.Ordinal));
@@ -66,6 +74,20 @@ public sealed class CoursewareThemeAnalysisSnapshotStoreTests
         var exception = await Assert.ThrowsAsync<InvalidDataException>(() => store.LoadAsync(directory.FullName));
 
         StringAssert.Contains(exception.Message, "1");
+    }
+
+    [TestMethod(DisplayName = "快照加载应明确拒绝 v2 并在错误中包含实际版本")]
+    [Timeout(60_000)]
+    public async Task LoadShouldRejectVersion2WithActualVersionInMessage()
+    {
+        var directory = CreateOutputRoot();
+        await File.WriteAllTextAsync(Path.Join(directory.FullName, "CoursewareThemeAnalysis.json"), "{\"Version\":2}");
+        var store = new CoursewareThemeAnalysisSnapshotStore(CreateOutputRoot().FullName);
+
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(() => store.LoadAsync(directory.FullName));
+
+        StringAssert.Contains(exception.Message, "2");
+        StringAssert.Contains(exception.Message, "v3");
     }
 
     [TestMethod(DisplayName = "快照加载应明确拒绝未知版本并在错误中包含版本")]
@@ -105,7 +127,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStoreTests
         StringAssert.Contains(exception.Message, "路径");
     }
 
-    [TestMethod(DisplayName = "快照 Theme 2.0 字段非法时应明确失败")]
+    [TestMethod(DisplayName = "快照 Theme 2.1 字段非法时应明确失败")]
     [Timeout(60_000)]
     public async Task LoadShouldRejectInvalidTheme()
     {
@@ -119,7 +141,7 @@ public sealed class CoursewareThemeAnalysisSnapshotStoreTests
         StringAssert.Contains(exception.Message, "ColorSuggestions");
     }
 
-    [TestMethod(DisplayName = "快照 Theme 2.0 的 SlideML 非法时应明确失败")]
+    [TestMethod(DisplayName = "快照 Theme 2.1 的 SlideML 非法时应明确失败")]
     [Timeout(60_000)]
     public async Task LoadShouldRejectInvalidSlideMl()
     {
@@ -131,6 +153,23 @@ public sealed class CoursewareThemeAnalysisSnapshotStoreTests
         var exception = await Assert.ThrowsAsync<InvalidDataException>(() => store.LoadAsync(snapshotDirectory.FullName));
 
         StringAssert.Contains(exception.Message, "CoverPageSlideMl");
+    }
+
+    [TestMethod(DisplayName = "快照 v3 缺少字号规则时应明确失败")]
+    [Timeout(60_000)]
+    public async Task LoadShouldRejectMissingFontSizeRules()
+    {
+        var (store, snapshotDirectory) = await CreateSnapshotAsync();
+        var themePath = Path.Join(snapshotDirectory.FullName, "Theme", "Theme.json");
+        using var document = JsonDocument.Parse(await File.ReadAllTextAsync(themePath));
+        var properties = document.RootElement.EnumerateObject()
+            .Where(property => !string.Equals(property.Name, nameof(CoursewareTheme.FontSizeRules), StringComparison.Ordinal))
+            .ToDictionary(property => property.Name, property => property.Value.Clone(), StringComparer.Ordinal);
+        await File.WriteAllTextAsync(themePath, JsonSerializer.Serialize(properties));
+
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(() => store.LoadAsync(snapshotDirectory.FullName));
+
+        StringAssert.Contains(exception.Message, nameof(CoursewareTheme.FontSizeRules));
     }
 
     [TestMethod(DisplayName = "快照应使用首张页面的非标准画布校验 SlideML")]

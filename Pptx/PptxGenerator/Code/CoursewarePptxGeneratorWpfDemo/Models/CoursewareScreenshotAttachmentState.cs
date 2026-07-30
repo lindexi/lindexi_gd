@@ -24,4 +24,9 @@ public enum CoursewareScreenshotAttachmentState
     /// The source screenshot could not be sent.
     /// </summary>
     SendFailed,
+
+    /// <summary>
+    /// The source screenshot was included in the successful initial request.
+    /// </summary>
+    Sent,
 }

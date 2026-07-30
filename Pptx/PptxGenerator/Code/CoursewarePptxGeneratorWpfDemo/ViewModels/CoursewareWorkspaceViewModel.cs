@@ -419,27 +419,27 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
     public string ColorRationale => CoursewareSession?.ThemeAnalysisResult?.Theme.SpacingAndVisualEffects ?? "分析完成后显示间距与视觉效果建议。";
 
     /// <summary>
-    /// Gets the Theme 2.0 style description.
+    /// Gets the Theme 2.1 style description.
     /// </summary>
     public string ThemeStyle => CoursewareSession?.ThemeAnalysisResult?.Theme.Style ?? string.Empty;
 
     /// <summary>
-    /// Gets the Theme 2.0 spacing and visual-effects guidance.
+    /// Gets the Theme 2.1 spacing and visual-effects guidance.
     /// </summary>
     public string SpacingAndVisualEffects => CoursewareSession?.ThemeAnalysisResult?.Theme.SpacingAndVisualEffects ?? string.Empty;
 
     /// <summary>
-    /// Gets the Theme 2.0 layout principles.
+    /// Gets the Theme 2.1 layout principles.
     /// </summary>
     public string ThemeLayoutPrinciples => CoursewareSession?.ThemeAnalysisResult?.Theme.LayoutPrinciples ?? string.Empty;
 
     /// <summary>
-    /// Gets the complete Theme 2.0 cover-page SlideML.
+    /// Gets the complete Theme 2.1 cover-page SlideML.
     /// </summary>
     public string CoverPageSlideMl => CoursewareSession?.ThemeAnalysisResult?.Theme.CoverPageSlideMl ?? string.Empty;
 
     /// <summary>
-    /// Gets the complete Theme 2.0 content-page SlideML.
+    /// Gets the complete Theme 2.1 content-page SlideML.
     /// </summary>
     public string ContentPageSlideMl => CoursewareSession?.ThemeAnalysisResult?.Theme.ContentPageSlideMl ?? string.Empty;
 
@@ -923,8 +923,9 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         }
 
         TypographyLevels.Clear();
-        TypographyLevels.Add(new CoursewareTypographyLevelViewModel("中文字体", theme.Fonts.Chinese));
-        TypographyLevels.Add(new CoursewareTypographyLevelViewModel("西文字体", theme.Fonts.Western));
+        TypographyLevels.Add(new CoursewareTypographyLevelViewModel(CoursewareUiStrings.TypographyChineseFontLabel, theme.Fonts.Chinese));
+        TypographyLevels.Add(new CoursewareTypographyLevelViewModel(CoursewareUiStrings.TypographyWesternFontLabel, theme.Fonts.Western));
+        TypographyLevels.Add(new CoursewareTypographyLevelViewModel(CoursewareUiStrings.TypographyFontSizeRulesLabel, theme.FontSizeRules));
         ReplaceItems(LayoutPrinciples, [theme.LayoutPrinciples]);
     }
 

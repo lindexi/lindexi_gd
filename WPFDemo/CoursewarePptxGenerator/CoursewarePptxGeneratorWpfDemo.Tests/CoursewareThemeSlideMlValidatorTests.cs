@@ -172,6 +172,7 @@ public sealed class CoursewareThemeSlideMlValidatorTests
                 new CoursewareColorSuggestion { Name = "强调", Usage = "强调", Hex = "#2563EB" },
             ],
             Fonts = new CoursewareFontSuggestions { Chinese = "微软雅黑", Western = "Arial" },
+            FontSizeRules = "标题 36px，正文 22px，辅助文字 16px。",
             Style = "简洁",
             SafeArea = new CoursewareSafeAreaRatios { LeftRatio = 0.05, TopRatio = 0.05, RightRatio = 0.05, BottomRatio = 0.05 },
             SpacingAndVisualEffects = "留白",

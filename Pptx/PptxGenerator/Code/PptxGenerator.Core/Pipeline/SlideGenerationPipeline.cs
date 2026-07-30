@@ -164,24 +164,16 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
         if (useStreaming)
         {
-            // 首次消息或新建会话时重置流式状态
-            if (isFirstMessage || createNewSession)
-            {
-                _streamingState = null;
-            }
-
-            _streamingState ??= new SlideStreamingState(
-                _promptProvider, SlideMlRenderTool.RenderPipeline);
-
-            var generator = new StreamingSlideGenerator(
-                _copilotChatManager, _promptProvider, SlideMlRenderTool);
-
-            await generator.GenerateAsync(
-                userMessage, isFirstMessage, _streamingState, cancellationToken,
+            _ = await SendStreamingMessageCoreAsync(
+                userMessage,
+                isFirstMessage,
+                createNewSession,
                 attachPreview: attachPreview,
+                attachedImageContents: null,
                 attachedImageFiles: attachedImageFiles,
                 requiredAttachedImageFiles: requiredAttachedImageFiles,
-                chatClientOverride: chatClientOverride).ConfigureAwait(false);
+                chatClientOverride: chatClientOverride,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
             return;
         }
 
@@ -275,6 +267,86 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             context.SnapshotFromRenderTool(SlideMlRenderTool);
             StartAutomaticEvaluation(context, userMessage, cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// 发送流式消息并返回本次生成的明确结果。
+    /// </summary>
+    /// <param name="userMessage">用户消息。</param>
+    /// <param name="isFirstMessage">是否为首次消息。</param>
+    /// <param name="attachedImageContents">发送前已预加载的图片内容。</param>
+    /// <param name="createNewSession">是否创建新会话。</param>
+    /// <param name="skipAutoEvaluation">是否跳过自动评估；流式模式当前不执行自动评估。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>本次流式生成的明确结果。</returns>
+    public Task<SlideStreamingGenerationResult> SendStreamingMessageWithResultAsync(
+        string userMessage,
+        bool isFirstMessage,
+        IReadOnlyList<DataContent>? attachedImageContents = null,
+        bool createNewSession = false,
+        bool skipAutoEvaluation = false,
+        CancellationToken cancellationToken = default)
+    {
+        _ = skipAutoEvaluation;
+
+        if (string.IsNullOrWhiteSpace(userMessage))
+        {
+            return Task.FromResult(new SlideStreamingGenerationResult
+            {
+                IsSuccess = false,
+                AttemptCount = 0,
+                AcceptedFragmentCount = 0,
+                FinalAttemptAcceptedFragmentCount = 0,
+                FinalSlideXml = string.Empty,
+                ErrorMessage = "用户消息不能为空。",
+            });
+        }
+
+        return SendStreamingMessageCoreAsync(
+            userMessage,
+            isFirstMessage,
+            createNewSession,
+            attachPreview: false,
+            attachedImageContents,
+            attachedImageFiles: null,
+            requiredAttachedImageFiles: null,
+            chatClientOverride: null,
+            cancellationToken);
+    }
+
+    private Task<SlideStreamingGenerationResult> SendStreamingMessageCoreAsync(
+        string userMessage,
+        bool isFirstMessage,
+        bool createNewSession,
+        bool attachPreview,
+        IReadOnlyList<DataContent>? attachedImageContents,
+        IReadOnlyList<string>? attachedImageFiles,
+        IReadOnlyCollection<string>? requiredAttachedImageFiles,
+        IChatClient? chatClientOverride,
+        CancellationToken cancellationToken)
+    {
+        // 首次消息或新建会话时重置流式状态
+        if (isFirstMessage || createNewSession)
+        {
+            _streamingState = null;
+        }
+
+        _streamingState ??= new SlideStreamingState(
+            _promptProvider, SlideMlRenderTool.RenderPipeline);
+
+        var generator = new StreamingSlideGenerator(
+            _copilotChatManager, _promptProvider, SlideMlRenderTool);
+
+        return generator.GenerateAsync(
+            userMessage,
+            isFirstMessage,
+            _streamingState,
+            cancellationToken,
+            attachPreview,
+            attachedImageContents,
+            attachedImageFiles,
+            requiredAttachedImageFiles,
+            chatClientOverride);
     }
 
     internal async Task ResetStreamingRestartStateAsync(CancellationToken cancellationToken)

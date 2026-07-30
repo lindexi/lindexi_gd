@@ -41,6 +41,7 @@ internal sealed class FakeCoursewareThemeAnalysisService : ICoursewareThemeAnaly
                     new CoursewareColorSuggestion { Name = "强调蓝", Usage = "强调", Hex = "#2563EB" },
                 ],
                 Fonts = new CoursewareFontSuggestions { Chinese = "微软雅黑", Western = "Arial" },
+                FontSizeRules = "封面标题 44-52px，内容页标题 30-36px，正文 20-24px，辅助文字不小于 16px。",
                 Style = "清晰、克制、现代",
                 SafeArea = new CoursewareSafeAreaRatios
                 {

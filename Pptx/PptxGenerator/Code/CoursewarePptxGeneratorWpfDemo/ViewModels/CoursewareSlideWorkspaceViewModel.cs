@@ -1,11 +1,14 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Windows.Input;
 using CoursewarePptxGeneratorWpfDemo.Models;
 using CoursewarePptxGeneratorWpfDemo.Resources;
 using CoursewarePptxGeneratorWpfDemo.Services;
 using CoursewarePptxGeneratorWpfDemo.Threading;
+using Microsoft.Extensions.AI;
+using PptxGenerator.Models;
 using PptxGenerator.Rendering;
 
 namespace CoursewarePptxGeneratorWpfDemo.ViewModels;
@@ -15,11 +18,12 @@ namespace CoursewarePptxGeneratorWpfDemo.ViewModels;
 /// </summary>
 public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDisposable
 {
-    private const string DefaultGenerationInstruction = "请根据当前页面的完整内容、可用的原始截图和全课件主题完成页面美化，保持教学语义准确。";
+    private const string DefaultGenerationInstruction = "请根据当前页完整内容、可用视觉附件和全课件主题完成页面美化，保持教学语义准确、信息完整、层级清晰，并确保所有内容适合当前画布。";
     private readonly CoursewareWorkspaceSession _session;
     private readonly ICoursewareSlidePromptBuilder _promptBuilder;
     private CoursewareSlidePromptSource _promptSource;
     private readonly IViewModelDispatcher _dispatcher;
+    private readonly ICoursewareImageAttachmentLoader _imageAttachmentLoader;
     private readonly CancellationTokenSource _workspaceCancellationTokenSource = new();
     private readonly AsyncRelayCommand _sendMessageCommand;
     private readonly AsyncRelayCommand _rerenderCommand;
@@ -44,17 +48,36 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
     /// <param name="promptBuilder">The structured page prompt builder.</param>
     /// <param name="summaryService">The deterministic Markdown summary service.</param>
     /// <param name="dispatcher">The dispatcher used for observable state updates.</param>
+    /// <param name="imageAttachmentLoader">The image attachment loader used to atomically prepare requests.</param>
     public CoursewareSlideWorkspaceViewModel(
         CoursewareWorkspaceSession session,
         ISlideChatManagerFactory slideChatManagerFactory,
         ICoursewareSlidePromptBuilder promptBuilder,
         CoursewareSlideSummaryService summaryService,
         IViewModelDispatcher? dispatcher = null)
+        : this(
+            session,
+            slideChatManagerFactory,
+            promptBuilder,
+            summaryService,
+            dispatcher,
+            new CoursewareImageAttachmentLoader())
+    {
+    }
+
+    internal CoursewareSlideWorkspaceViewModel(
+        CoursewareWorkspaceSession session,
+        ISlideChatManagerFactory slideChatManagerFactory,
+        ICoursewareSlidePromptBuilder promptBuilder,
+        CoursewareSlideSummaryService summaryService,
+        IViewModelDispatcher? dispatcher,
+        ICoursewareImageAttachmentLoader imageAttachmentLoader)
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(slideChatManagerFactory);
         ArgumentNullException.ThrowIfNull(promptBuilder);
         ArgumentNullException.ThrowIfNull(summaryService);
+        ArgumentNullException.ThrowIfNull(imageAttachmentLoader);
         if (session.ThemeAnalysisResult is null)
         {
             throw new ArgumentException("创建页面工作台前必须完成课件主题分析。", nameof(session));
@@ -63,6 +86,7 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
         _session = session;
         _promptBuilder = promptBuilder;
         _dispatcher = dispatcher ?? WpfViewModelDispatcher.Instance;
+        _imageAttachmentLoader = imageAttachmentLoader;
         _promptSource = promptBuilder.PrepareSource(
             session.InputPackage,
             session.ThemeAnalysisResult,
@@ -77,6 +101,7 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
         foreach (var slide in Slides)
         {
             slide.PropertyChanged += OnSlidePropertyChanged;
+            slide.ConfigureInitialPromptReset(ResetInitialPromptToLatestTheme);
         }
 
         _sendMessageCommand = new AsyncRelayCommand(
@@ -265,6 +290,22 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
             analysisResult,
             _workspaceCancellationTokenSource.Token);
 
+        foreach (var slide in Slides)
+        {
+            if (slide.HasStartedGenerationConversation || !slide.IsInitialPromptPrepared)
+            {
+                continue;
+            }
+
+            if (slide.IsOperationActive || slide.IsInitialPromptDirty)
+            {
+                slide.IsInitialPromptThemeOutdated = true;
+                continue;
+            }
+
+            PrepareInitialDraft(slide, force: true);
+        }
+
         OnPropertyChanged(nameof(ThemeTitle));
     }
 
@@ -365,24 +406,41 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
 
     private void PrepareInitialDraft(
         CoursewareSlideItemViewModel slide,
-        bool force = false)
+        bool force = false,
+        bool overwriteDirty = false)
     {
         if (slide.HasStartedGenerationConversation
-            || slide.IsInitialPromptDirty
+            || (!overwriteDirty && slide.IsInitialPromptDirty)
             || (!force && slide.IsInitialPromptPrepared)
-            || (force && slide.IsInitialPromptDirty))
+            || (force && slide.IsInitialPromptDirty && !overwriteDirty))
         {
             return;
         }
 
-        var sourceScreenshotAttached = slide.EnsureSourceScreenshotAttachment();
-        var promptResult = _promptBuilder.Build(
+        if (!slide.EnsureSourceScreenshotAttachment())
+        {
+            slide.ErrorMessage = CoursewareUiStrings.SourceScreenshotRequired;
+            return;
+        }
+
+        var prompt = _promptBuilder.BuildInitialPrompt(
             _promptSource,
             slide.SlideIndex,
+            slide.Canvas,
             DefaultGenerationInstruction,
-            sourceScreenshotAttached,
             _workspaceCancellationTokenSource.Token);
-        slide.ApplyInitialPrompt(promptResult.Prompt);
+        slide.ApplyInitialPrompt(prompt);
+        slide.ErrorMessage = null;
+    }
+
+    private void ResetInitialPromptToLatestTheme(CoursewareSlideItemViewModel slide)
+    {
+        if (!slide.CanResetInitialPromptToLatestTheme)
+        {
+            return;
+        }
+
+        PrepareInitialDraft(slide, force: true, overwriteDirty: true);
     }
 
     private async Task ExecutePageCommandAsync(
@@ -426,34 +484,54 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
 
         var snapshot = slide.CreateMessageSnapshot();
         var isFirstMessage = snapshot.IsFirstMessage;
-        var sourceScreenshotAttached = snapshot.Attachments.Any(attachment =>
-            attachment.Kind == CoursewareChatImageAttachmentKind.SourceScreenshot);
-        if (isFirstMessage)
-        {
-            var userInstruction = slide.IsInitialPromptDirty || !slide.IsInitialPromptPrepared
-                ? snapshot.Message
-                : DefaultGenerationInstruction;
-            var promptResult = _promptBuilder.Build(
-                _promptSource,
-                slide.SlideIndex,
-                userInstruction,
-                sourceScreenshotAttached,
-                cancellationToken);
-            slide.ApplyInitialPrompt(promptResult.Prompt);
-            snapshot = slide.CreateMessageSnapshot();
-        }
         try
         {
+            if (string.IsNullOrWhiteSpace(snapshot.Message))
+            {
+                return;
+            }
+
+            if (slide.HasUnsavedChanges)
+            {
+                return;
+            }
+
+            CoursewareChatImageAttachmentViewModel? sourceScreenshot = null;
+            if (isFirstMessage)
+            {
+                sourceScreenshot = snapshot.Attachments.FirstOrDefault(attachment =>
+                    attachment.Kind == CoursewareChatImageAttachmentKind.SourceScreenshot);
+                if (sourceScreenshot is null)
+                {
+                    await ApplyPreflightFailureAsync(
+                        slide,
+                        CoursewareUiStrings.SourceScreenshotRequired,
+                        CoursewareScreenshotAttachmentState.FileMissing).ConfigureAwait(false);
+                    return;
+                }
+
+                if (!sourceScreenshot.IsAvailable)
+                {
+                    await ApplyPreflightFailureAsync(
+                        slide,
+                        string.Format(
+                            CultureInfo.CurrentCulture,
+                            CoursewareUiStrings.AttachmentFileMissingFormat,
+                            sourceScreenshot.DisplayName),
+                        CoursewareScreenshotAttachmentState.FileMissing).ConfigureAwait(false);
+                    return;
+                }
+            }
+
             var unavailableAttachment = snapshot.Attachments.FirstOrDefault(attachment => !attachment.IsAvailable);
             if (unavailableAttachment is not null)
             {
-                await InvokeIfNotDisposedAsync(() =>
-                {
-                    slide.ErrorMessage = $"附件文件不存在：{unavailableAttachment.DisplayName}";
-                    slide.RenderingLog = "请移除失效附件或重新选择文件后再发送。";
-                    slide.GenerationState = CoursewareSlideGenerationState.Failed;
-                    slide.State = CoursewareSlideState.Failed;
-                }).ConfigureAwait(false);
+                await ApplyPreflightFailureAsync(
+                    slide,
+                    string.Format(
+                        CultureInfo.CurrentCulture,
+                        CoursewareUiStrings.AttachmentFileMissingFormat,
+                        unavailableAttachment.DisplayName)).ConfigureAwait(false);
                 return;
             }
 
@@ -473,11 +551,6 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
 
             if (isFirstMessage)
             {
-                if (runtime.SlideChatManager.Pipeline.ChatManager.ChatMessages.Count > 0)
-                {
-                    runtime.SlideChatManager.Pipeline.ChatManager.CreateNewSession();
-                }
-
                 _ = CoursewareSlideContextBudgetValidator.ValidateIfConfigured(
                     runtime.SlideChatManager.CurrentModel.ModelDefinition,
                     runtime.SlideChatManager.Pipeline.PromptProvider,
@@ -487,40 +560,57 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
                     cancellationToken);
             }
 
+            var attachedImageContents = (await _imageAttachmentLoader.LoadAsync(
+                snapshot.Attachments,
+                cancellationToken).ConfigureAwait(false)).ToList();
+            if (snapshot.AttachPreview)
+            {
+                var previewContent = CapturePreviewDataContent(runtime.SlideChatManager.PreviewImage);
+                if (previewContent is null)
+                {
+                    await ApplyPreflightFailureAsync(
+                        slide,
+                        CoursewareUiStrings.PreviewAttachmentUnavailable).ConfigureAwait(false);
+                    return;
+                }
+
+                attachedImageContents.Add(previewContent);
+            }
+
+            if (isFirstMessage)
+            {
+                if (runtime.SlideChatManager.Pipeline.ChatManager.ChatMessages.Count > 0)
+                {
+                    runtime.SlideChatManager.Pipeline.ChatManager.CreateNewSession();
+                }
+
+                await runtime.SlideChatManager.SlideMlRenderTool.ResetLatestResultAsync().ConfigureAwait(false);
+            }
+
             await InvokeIfNotDisposedAsync(() =>
             {
                 slide.ErrorMessage = null;
                 slide.GenerationState = CoursewareSlideGenerationState.Generating;
                 if (isFirstMessage)
                 {
-                    slide.ScreenshotAttachmentState = sourceScreenshotAttached
-                        ? CoursewareScreenshotAttachmentState.Attached
-                        : CoursewareScreenshotAttachmentState.FileMissing;
+                    slide.ScreenshotAttachmentState = CoursewareScreenshotAttachmentState.Attached;
                 }
 
                 slide.State = CoursewareSlideState.Generating;
             }).ConfigureAwait(false);
-            await runtime.SlideChatManager.SendMessageAsync(
+            var result = await runtime.SlideChatManager.SendStreamingMessageWithResultAsync(
                 snapshot.Message,
                 isFirstMessage,
-                attachPreview: snapshot.AttachPreview,
-                snapshot.Attachments.Select(attachment => attachment.FullName).ToArray(),
-                requiredAttachedImageFiles: sourceScreenshotAttached
-                    ? snapshot.Attachments
-                        .Where(attachment => attachment.Kind == CoursewareChatImageAttachmentKind.SourceScreenshot)
-                        .Select(attachment => attachment.FullName)
-                        .ToArray()
-                    : null,
-                useStreaming: true,
+                attachedImageContents,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (string.IsNullOrWhiteSpace(runtime.SlideChatManager.CurrentSlideXml))
+            if (!result.IsSuccess)
             {
                 await InvokeIfNotDisposedAsync(() =>
                 {
-                    slide.ErrorMessage = "未生成可显示的页面结果。";
-                    slide.RenderingLog = "本次处理已完成，但没有获得可显示的页面结果，请调整要求后重试。";
+                    slide.ErrorMessage = result.ErrorMessage ?? CoursewareUiStrings.SlideGenerationFailed;
+                    slide.RenderingLog = result.ErrorMessage ?? CoursewareUiStrings.SlideGenerationFailed;
                     slide.GenerationState = CoursewareSlideGenerationState.Failed;
                     slide.State = CoursewareSlideState.Failed;
                 }).ConfigureAwait(false);
@@ -530,7 +620,7 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
             await InvokeIfNotDisposedAsync(() =>
             {
                 slide.ApplySuccessfulSend(snapshot);
-                slide.ApplyGeneratedSlideXml(runtime.SlideChatManager.CurrentSlideXml);
+                slide.ApplyGeneratedSlideXml(result.FinalSlideXml);
                 slide.CallbackXml = runtime.SlideChatManager.RenderedXml;
                 slide.RenderingLog = string.IsNullOrWhiteSpace(runtime.SlideChatManager.WarningText)
                     ? CoursewareUiStrings.SlideGenerationCompleted
@@ -549,13 +639,14 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
                 slide.State = CoursewareSlideState.Canceled;
             }).ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch (CoursewareImageAttachmentLoadException ex)
         {
             await InvokeIfNotDisposedAsync(() =>
             {
                 slide.ErrorMessage = ex.Message;
                 slide.RenderingLog = ex.ToString();
-                if (isFirstMessage && sourceScreenshotAttached)
+                if (isFirstMessage
+                    && ex.Attachment.Kind == CoursewareChatImageAttachmentKind.SourceScreenshot)
                 {
                     slide.ScreenshotAttachmentState = CoursewareScreenshotAttachmentState.SendFailed;
                 }
@@ -564,10 +655,51 @@ public sealed class CoursewareSlideWorkspaceViewModel : ObservableObject, IDispo
                 slide.State = CoursewareSlideState.Failed;
             }).ConfigureAwait(false);
         }
+        catch (Exception ex)
+        {
+            await InvokeIfNotDisposedAsync(() =>
+            {
+                slide.ErrorMessage = ex.Message;
+                slide.RenderingLog = ex.ToString();
+                slide.GenerationState = CoursewareSlideGenerationState.Failed;
+                slide.State = CoursewareSlideState.Failed;
+            }).ConfigureAwait(false);
+        }
         finally
         {
             slide.CompleteOperation(cancellationToken);
         }
+    }
+
+    private Task ApplyPreflightFailureAsync(
+        CoursewareSlideItemViewModel slide,
+        string errorMessage,
+        CoursewareScreenshotAttachmentState? screenshotState = null)
+    {
+        return InvokeIfNotDisposedAsync(() =>
+        {
+            slide.ErrorMessage = errorMessage;
+            slide.RenderingLog = errorMessage;
+            if (screenshotState is not null)
+            {
+                slide.ScreenshotAttachmentState = screenshotState.Value;
+            }
+
+            slide.GenerationState = CoursewareSlideGenerationState.Failed;
+            slide.State = CoursewareSlideState.Failed;
+        });
+    }
+
+    private static DataContent? CapturePreviewDataContent(IPreviewImage? previewImage)
+    {
+        if (previewImage is null)
+        {
+            return null;
+        }
+
+        using var memoryStream = new MemoryStream();
+        previewImage.Save(memoryStream);
+        return new DataContent(memoryStream.ToArray(), "image/png");
     }
 
     private async Task RerenderSlideAsync(CoursewareSlideItemViewModel slide)

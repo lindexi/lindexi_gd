@@ -10,7 +10,7 @@ namespace CoursewarePptxGeneratorWpfDemo.Tests;
 [TestClass]
 public sealed class SlideChatManagerFactoryTests
 {
-    [TestMethod(DisplayName = "页面运行时工厂应让 Prompt 和 fallback 使用实际页面画布")]
+    [TestMethod(DisplayName = "页面运行时工厂应使用实际画布和原样流式用户模板并禁用迭代")]
     [Timeout(60_000)]
     public async Task CreateAsyncShouldUsePageDocumentContextForConfiguredAndFallbackManagers()
     {
@@ -26,7 +26,13 @@ public sealed class SlideChatManagerFactoryTests
 
         StringAssert.Contains(configuredManager.Pipeline.PromptProvider.BuildStreamingSystemPrompt(), "1920");
         StringAssert.Contains(configuredManager.Pipeline.PromptProvider.BuildStreamingSystemPrompt(), "1080");
+        Assert.AreEqual("原样课件 Prompt", configuredManager.Pipeline.PromptProvider.BuildStreamingUserPrompt("原样课件 Prompt"));
+        Assert.AreEqual("fallback Prompt", fallbackManager.Pipeline.PromptProvider.BuildStreamingUserPrompt("fallback Prompt"));
         StringAssert.Contains(fallbackManager.Pipeline.PromptProvider.BuildInitialUserPrompt("测试"), "1920x1080");
+        Assert.IsFalse(configuredManager.Pipeline.CanRunIteration);
+        Assert.IsNull(await configuredManager.RunPromptIterationAsync("测试", originalScreenshot: null));
+        Assert.IsFalse(fallbackManager.Pipeline.CanRunIteration);
+        Assert.IsNull(await fallbackManager.RunPromptIterationAsync("测试", originalScreenshot: null));
         Assert.AreEqual(2, chatManagerFactory.CreateCount);
     }
 

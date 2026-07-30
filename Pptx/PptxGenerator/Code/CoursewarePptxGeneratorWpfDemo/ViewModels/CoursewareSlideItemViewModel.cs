@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Windows.Input;
 using AgentLib;
 using AgentLib.Model;
 using CoursewarePptxGenerator.Core.Models;
@@ -33,6 +34,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     private long _draftRevision;
     private bool _isInitialPromptPrepared;
     private bool _isInitialPromptDirty;
+    private bool _isInitialPromptThemeOutdated;
     private string _editableSlideXml = string.Empty;
     private string _renderingLog = CoursewareUiStrings.SlideInitialRenderingLog;
     private string _callbackXml = string.Empty;
@@ -43,6 +45,8 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     private CoursewareModelDisplayItem? _selectedModelItem;
     private Task _propertyChangeTask = Task.CompletedTask;
     private bool _isDisposed;
+    private readonly RelayCommand _resetInitialPromptToLatestThemeCommand;
+    private Action<CoursewareSlideItemViewModel>? _resetInitialPromptToLatestTheme;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursewareSlideItemViewModel" /> class.
@@ -82,6 +86,9 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         _dispatcher = dispatcher;
         AttachedImageFiles = new ObservableCollection<CoursewareChatImageAttachmentViewModel>();
         AvailableModelItems = new ObservableCollection<CoursewareModelDisplayItem>();
+        _resetInitialPromptToLatestThemeCommand = new RelayCommand(
+            _ => _resetInitialPromptToLatestTheme?.Invoke(this),
+            _ => CanResetInitialPromptToLatestTheme);
         _screenshotAttachmentState = input.ScreenshotFile is null
             ? CoursewareScreenshotAttachmentState.FileMissing
             : CoursewareScreenshotAttachmentState.NotPrepared;
@@ -233,6 +240,8 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
             {
                 OnPropertyChanged(nameof(IsBusy));
                 OnPropertyChanged(nameof(StatusText));
+                OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
+                _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -360,6 +369,8 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
             if (SetProperty(ref _screenshotAttachmentState, value))
             {
                 OnPropertyChanged(nameof(ScreenshotAttachmentStatusText));
+                OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
+                _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -373,6 +384,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         CoursewareScreenshotAttachmentState.Attached => CoursewareUiStrings.ScreenshotAttached,
         CoursewareScreenshotAttachmentState.FileMissing => CoursewareUiStrings.ScreenshotFileMissing,
         CoursewareScreenshotAttachmentState.SendFailed => CoursewareUiStrings.ScreenshotSendFailed,
+        CoursewareScreenshotAttachmentState.Sent => CoursewareUiStrings.ScreenshotSent,
         _ => throw new ArgumentOutOfRangeException(),
     };
 
@@ -395,6 +407,48 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
             }
         }
     }
+
+    /// <summary>
+    /// Gets a value indicating whether the visible edited initial prompt was prepared from an older theme.
+    /// </summary>
+    public bool IsInitialPromptThemeOutdated
+    {
+        get => _isInitialPromptThemeOutdated;
+        internal set
+        {
+            if (SetProperty(ref _isInitialPromptThemeOutdated, value))
+            {
+                OnPropertyChanged(nameof(InitialPromptThemeStatusText));
+                OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
+                _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the localized status shown when the initial prompt uses an older theme.
+    /// </summary>
+    public string InitialPromptThemeStatusText => IsInitialPromptThemeOutdated
+        ? CoursewareUiStrings.InitialPromptThemeOutdated
+        : string.Empty;
+
+    /// <summary>
+    /// Gets a value indicating whether the initial prompt can be explicitly rebuilt from the latest theme.
+    /// </summary>
+    public bool CanResetInitialPromptToLatestTheme => IsInitialPromptThemeOutdated
+        && !IsBusy
+        && !IsOperationActive
+        && !HasStartedGenerationConversation
+        && AttachedImageFiles.Any(attachment =>
+            attachment.Kind == CoursewareChatImageAttachmentKind.SourceScreenshot
+            && attachment.IsAvailable);
+
+    internal bool IsOperationActive => Volatile.Read(ref _operationCancellationTokenSource) is not null;
+
+    /// <summary>
+    /// Gets the command that explicitly replaces the initial draft with one built from the latest theme.
+    /// </summary>
+    public ICommand ResetInitialPromptToLatestThemeCommand => _resetInitialPromptToLatestThemeCommand;
 
     /// <summary>
     /// Gets the current page draft revision used to protect edits made during an asynchronous send.
@@ -434,7 +488,14 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     public bool HasStartedGenerationConversation
     {
         get => _hasStartedGenerationConversation;
-        internal set => SetProperty(ref _hasStartedGenerationConversation, value);
+        internal set
+        {
+            if (SetProperty(ref _hasStartedGenerationConversation, value))
+            {
+                OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
+                _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
+            }
+        }
     }
 
     /// <summary>
@@ -583,6 +644,8 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         }
 
         operationCancellationToken = cancellationTokenSource.Token;
+        OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
+        _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
         return true;
     }
 
@@ -632,6 +695,8 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
                 cancellationTokenSource))
         {
             cancellationTokenSource.Dispose();
+            OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
+            _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -651,6 +716,8 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
                 AttachedImageFiles.Add(new CoursewareChatImageAttachmentViewModel(
                     new FileInfo(filePath),
                     CoursewareChatImageAttachmentKind.UserSelectedImage));
+                OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
+                _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -675,6 +742,8 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         }
 
         ScreenshotAttachmentState = CoursewareScreenshotAttachmentState.Attached;
+        OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
+        _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
         return true;
     }
 
@@ -685,7 +754,15 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     public void RemoveAttachedImageFile(CoursewareChatImageAttachmentViewModel attachment)
     {
         ArgumentNullException.ThrowIfNull(attachment);
+        if (attachment.Kind == CoursewareChatImageAttachmentKind.SourceScreenshot
+            && !HasStartedGenerationConversation)
+        {
+            return;
+        }
+
         AttachedImageFiles.Remove(attachment);
+        OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
+        _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
         if (attachment.Kind == CoursewareChatImageAttachmentKind.SourceScreenshot)
         {
             ScreenshotAttachmentState = CoursewareScreenshotAttachmentState.NotPrepared;
@@ -711,6 +788,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
 
         IsInitialPromptPrepared = true;
         IsInitialPromptDirty = false;
+        IsInitialPromptThemeOutdated = false;
     }
 
     /// <summary>
@@ -753,7 +831,16 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         {
             HasStartedGenerationConversation = true;
             IsInitialPromptDirty = false;
+            IsInitialPromptThemeOutdated = false;
+            ScreenshotAttachmentState = CoursewareScreenshotAttachmentState.Sent;
         }
+    }
+
+    internal void ConfigureInitialPromptReset(Action<CoursewareSlideItemViewModel> resetInitialPrompt)
+    {
+        ArgumentNullException.ThrowIfNull(resetInitialPrompt);
+        _resetInitialPromptToLatestTheme = resetInitialPrompt;
+        _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
     }
 
     private bool ContainsAttachment(string filePath)

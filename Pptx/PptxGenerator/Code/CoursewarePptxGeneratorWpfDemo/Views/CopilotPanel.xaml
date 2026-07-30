@@ -11,6 +11,10 @@
              d:DesignHeight="760"
              d:DesignWidth="420"
              mc:Ignorable="d">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -46,7 +50,7 @@
                            Foreground="{StaticResource TextSecondaryBrush}"
                            FontSize="11"
                            FontWeight="SemiBold" />
-                <TextBlock Text="添加的图片仅用于帮助理解视觉需求，不会自动加入课件资源。"
+                <TextBlock Text="{StaticResource ImageAttachmentUsageHintText}"
                            Foreground="{StaticResource TextSecondaryBrush}"
                            FontSize="10"
                            TextWrapping="Wrap"
@@ -76,13 +80,24 @@
                             <Border CornerRadius="8" Width="64" Height="64" Margin="0,0,8,0" Background="#FFF1F5F9" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" ClipToBounds="True">
                                 <Grid>
                                     <Image Source="{Binding FullName, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}" Stretch="UniformToFill" Width="64" Height="64" />
-                                    <Button Content="✕" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#CC444444" Foreground="White" FontSize="9" Padding="0" Click="CloseAttachedImageButton_OnClick" />
+                                    <Button Content="✕"
+                                            ToolTip="{StaticResource RemoveImageAttachmentText}"
+                                            Visibility="{Binding CanRemove, Converter={StaticResource BooleanToVisibility}}"
+                                            Width="16"
+                                            Height="16"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Top"
+                                            Background="#CC444444"
+                                            Foreground="White"
+                                            FontSize="9"
+                                            Padding="0"
+                                            Click="CloseAttachedImageButton_OnClick" />
                                 </Grid>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                <Button Content="添加图片"
+                <Button Content="{StaticResource AddImageText}"
                         DockPanel.Dock="Right"
                         HorizontalAlignment="Left"
                         MinWidth="88"
@@ -122,10 +137,10 @@
                              Grid.Column="0"
                              Text="{Binding McpServiceUrl, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource SingleLineInputTextBoxStyle}"
-                             ToolTip="远程渲染服务地址" />
+                             ToolTip="{StaticResource RemoteRenderingServiceAddressText}" />
                     <Button Grid.Row="0"
                             Grid.Column="1"
-                            Content="连接服务"
+                            Content="{StaticResource ConnectServiceText}"
                             Command="{Binding ConnectMcpCommand}"
                             MinWidth="88"
                             Height="34"
@@ -149,33 +164,84 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
+                <Border Grid.Row="0"
+                        Grid.ColumnSpan="2"
+                        Margin="0,0,0,8"
+                        Padding="10,8"
+                        Background="#FFFFF7ED"
+                        BorderBrush="#FFF59E0B"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Visibility="{Binding SelectedSlide.IsInitialPromptThemeOutdated, Converter={StaticResource BooleanToVisibility}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="{StaticResource ThemeOutdatedWarningTitleText}"
+                                       Foreground="#FF92400E"
+                                       FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding SelectedSlide.InitialPromptThemeStatusText}"
+                                       Margin="0,2,12,0"
+                                       Foreground="#FF92400E"
+                                       FontSize="11"
+                                       TextWrapping="Wrap" />
+                            <TextBlock Text="{StaticResource ResetInitialPromptToLatestThemeHintText}"
+                                       Margin="0,2,12,0"
+                                       Foreground="#FF92400E"
+                                       FontSize="10"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button Grid.Column="1"
+                                Content="{StaticResource ResetInitialPromptToLatestThemeText}"
+                                Command="{Binding SelectedSlide.ResetInitialPromptToLatestThemeCommand}"
+                                Visibility="{Binding SelectedSlide.CanResetInitialPromptToLatestTheme, Converter={StaticResource BooleanToVisibility}}"
+                                VerticalAlignment="Center"
+                                MinWidth="150"
+                                Height="32"
+                                Padding="12,4"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                    </Grid>
+                </Border>
                 <TextBox x:Name="ChatInputTextBox"
-                         Grid.Row="0"
+                         Grid.Row="1"
                          Grid.ColumnSpan="2"
                          Text="{Binding SelectedSlide.InputText, UpdateSourceTrigger=PropertyChanged}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto"
-                         HorizontalScrollBarVisibility="Disabled"
-                         MinHeight="42"
-                         MaxHeight="120"
-                         Style="{StaticResource InputTextBoxStyle}" />
-                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="10,6,0,0">
-                    <Button Content="发送" Command="{Binding SendMessageCommand}" CommandParameter="{Binding SelectedSlide}" MinWidth="88" Height="28" Style="{StaticResource PrimaryButtonStyle}" Padding="12,2" />
-                    <Button Content="取消" Command="{Binding CancelSelectedSlideCommand}" MinWidth="64" Height="28" Margin="8,0,0,0" Style="{StaticResource SecondaryButtonStyle}" Padding="10,2" />
+                         HorizontalScrollBarVisibility="Disabled">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox" BasedOn="{StaticResource InputTextBoxStyle}">
+                            <Setter Property="MinHeight" Value="42" />
+                            <Setter Property="MaxHeight" Value="120" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedSlide.HasStartedGenerationConversation}" Value="False">
+                                    <Setter Property="MinHeight" Value="180" />
+                                    <Setter Property="MaxHeight" Value="320" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="10,6,0,0">
+                    <Button Content="{StaticResource SendMessageText}" Command="{Binding SendMessageCommand}" CommandParameter="{Binding SelectedSlide}" MinWidth="88" Height="28" Style="{StaticResource PrimaryButtonStyle}" Padding="12,2" />
+                    <Button Content="{StaticResource CancelMessageText}" Command="{Binding CancelSelectedSlideCommand}" MinWidth="64" Height="28" Margin="8,0,0,0" Style="{StaticResource SecondaryButtonStyle}" Padding="10,2" />
                 </StackPanel>
-                <CheckBox Grid.Row="1"
+                <CheckBox Grid.Row="2"
                           Grid.Column="0"
                           IsChecked="{Binding SelectedSlide.AttachPreview}"
                           Margin="0,6,0,0"
                           FontSize="12"
                           Foreground="{StaticResource TextSecondaryBrush}">
-                    <TextBlock Text="发送时附带当前渲染预览" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{StaticResource AttachCurrentPreviewText}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
                 </CheckBox>
             </Grid>
         </Border>

@@ -2,6 +2,7 @@
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
+using Microsoft.Extensions.AI;
 
 using System;
 using System.Collections.Generic;
@@ -122,6 +123,33 @@ public sealed class SlideChatManager : INotifyPropertyChanged
     public async Task SendMessageAsync(string userMessage, bool isFirstMessage, bool attachPreview, IReadOnlyList<string>? attachedImageFiles = null, bool createNewSession = false, bool skipAutoEvaluation = false, bool useStreaming = false, CancellationToken cancellationToken = default, IReadOnlyCollection<string>? requiredAttachedImageFiles = null)
     {
         await Pipeline.SendMessageAsync(userMessage, isFirstMessage, attachPreview, attachedImageFiles, requiredAttachedImageFiles: requiredAttachedImageFiles, createNewSession: createNewSession, skipAutoEvaluation: skipAutoEvaluation, useStreaming: useStreaming, cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 发送流式消息并返回本次生成的明确结果。
+    /// </summary>
+    /// <param name="userMessage">用户消息。</param>
+    /// <param name="isFirstMessage">是否为首次消息。</param>
+    /// <param name="attachedImageContents">发送前已预加载的图片内容。</param>
+    /// <param name="createNewSession">是否创建新会话。</param>
+    /// <param name="skipAutoEvaluation">是否跳过自动评估。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>本次流式生成的明确结果。</returns>
+    public Task<SlideStreamingGenerationResult> SendStreamingMessageWithResultAsync(
+        string userMessage,
+        bool isFirstMessage,
+        IReadOnlyList<DataContent>? attachedImageContents = null,
+        bool createNewSession = false,
+        bool skipAutoEvaluation = false,
+        CancellationToken cancellationToken = default)
+    {
+        return Pipeline.SendStreamingMessageWithResultAsync(
+            userMessage,
+            isFirstMessage,
+            attachedImageContents,
+            createNewSession,
+            skipAutoEvaluation,
+            cancellationToken);
     }
 
     /// <summary>
