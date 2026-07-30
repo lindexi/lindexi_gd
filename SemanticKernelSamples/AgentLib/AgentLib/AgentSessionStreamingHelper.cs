@@ -64,6 +64,9 @@ public static class AgentSessionStreamingHelper
                             break;
                         }
 
+                        // 有过正常的情况，重置重试次数
+                        retryCount = 0;
+
                         AgentResponseUpdate update = enumerator.Current;
                         collectedUpdates.Add(update);
                         yield return update;
@@ -80,9 +83,17 @@ public static class AgentSessionStreamingHelper
                     break;
                 }
 
-                if (!IsRetryableException(streamingException) || retryCount >= MaxRetryCount)
+                if (IsRetryableServerError(streamingException))
+                {
+                    // 明确的服务器错误，做等待，然后重试
+                    await Task.Delay(TimeSpan.FromSeconds(0.5), cancellationToken);
+                    // 不计入重试
+                    retryCount--;
+                }
+                else if (!IsRetryableException(streamingException) || retryCount >= MaxRetryCount)
                 {
                     ExceptionDispatchInfo.Capture(streamingException).Throw();
+                    yield break; // 理论上不会进入此分支，只是为了做明确的打断
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -117,6 +128,21 @@ public static class AgentSessionStreamingHelper
             return exception is HttpRequestException 
                 or IOException 
                 or TimeoutException;
+        }
+
+        static bool IsRetryableServerError(Exception exception)
+        {
+            // 服务器级错误，不累计错误，但是要做等待的重试
+            if (exception is System.ClientModel.ClientResultException clientResultException)
+            {
+                if (clientResultException.Message.Contains("HTTP 500 (server_error: internal_server_error)", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+
+            return false;
         }
     }
 

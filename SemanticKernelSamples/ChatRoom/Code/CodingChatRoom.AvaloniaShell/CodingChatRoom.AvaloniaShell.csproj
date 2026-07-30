@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\Icons\CodingChatRoom.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
@@ -27,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets\Icons\CodingChatRoom.ico" />
     <AvaloniaResource Include="Styles\Strings.axaml" />
     <AvaloniaResource Include="Styles\Colors.axaml" />
     <AvaloniaResource Include="Styles\Controls.axaml" />
