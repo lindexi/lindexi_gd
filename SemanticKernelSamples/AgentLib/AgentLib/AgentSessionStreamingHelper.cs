@@ -125,8 +125,8 @@ public static class AgentSessionStreamingHelper
         static bool IsRetryableException(Exception exception)
         {
             // 是否可重试的异常类型判断逻辑
-            return exception is HttpRequestException 
-                or IOException 
+            return exception is HttpRequestException
+                or IOException
                 or TimeoutException;
         }
 
@@ -167,14 +167,14 @@ public static class AgentSessionStreamingHelper
             chatMessageList.AddRange(inputMessages);
         }
 
-        List<AIContent> assistantContents = CollectAssistantContents(chatMessageList, collectedUpdates, completedFunctionCallIds);
-        if (assistantContents.Count == 0 || EndsWithAssistantContents(chatMessageList, assistantContents))
+        List<ChatMessage> updateChatMessageList = CollectAssistantContents(chatMessageList, collectedUpdates, completedFunctionCallIds);
+        if (updateChatMessageList.Count == 0 || EndsWithAssistantContents(chatMessageList, updateChatMessageList))
         {
             session.SetInMemoryChatHistory(chatMessageList);
             return;
         }
 
-        chatMessageList.Add(new ChatMessage(ChatRole.Assistant, assistantContents));
+        chatMessageList.AddRange(updateChatMessageList);
         session.SetInMemoryChatHistory(chatMessageList);
     }
 
@@ -191,13 +191,16 @@ public static class AgentSessionStreamingHelper
         session.SetInMemoryChatHistory(chatMessageList);
     }
 
-    private static List<AIContent> CollectAssistantContents(
-        IEnumerable<ChatMessage> chatMessageList,
+    private static List<ChatMessage> CollectAssistantContents(
+        IReadOnlyList<ChatMessage> chatMessageList,
         IReadOnlyList<AgentResponseUpdate> collectedUpdates,
         HashSet<string> completedFunctionCallIds)
     {
         HashSet<string> existingFunctionCallIds = GetExistingFunctionCallIds(chatMessageList);
         HashSet<string> existingFunctionResultIds = GetExistingFunctionResultIds(chatMessageList);
+
+        var updateChatMessageList = new List<ChatMessage>();
+
         var assistantContents = new List<AIContent>(collectedUpdates.Sum(update => update.Contents.Count));
         foreach (AgentResponseUpdate agentResponseUpdate in collectedUpdates)
         {
@@ -218,11 +221,29 @@ public static class AgentSessionStreamingHelper
                     continue;
                 }
 
-                assistantContents.Add(content);
+                if (content is FunctionResultContent)
+                {
+                    if (assistantContents.Count > 0)
+                    {
+                        updateChatMessageList.Add(new ChatMessage(ChatRole.Assistant, assistantContents));
+                        assistantContents = new List<AIContent>();
+                    }
+
+                    updateChatMessageList.Add(new ChatMessage(ChatRole.Tool, [content]));
+                }
+                else
+                {
+                    assistantContents.Add(content);
+                }
             }
         }
 
-        return assistantContents;
+        if (assistantContents.Count > 0)
+        {
+            updateChatMessageList.Add(new ChatMessage(ChatRole.Assistant, assistantContents));
+        }
+
+        return updateChatMessageList;
     }
 
     private static void RemoveIncompleteFunctionCalls(List<ChatMessage> chatMessageList, HashSet<string> completedFunctionCallIds)
@@ -451,14 +472,35 @@ public static class AgentSessionStreamingHelper
         return false;
     }
 
-    private static bool EndsWithAssistantContents(IReadOnlyList<ChatMessage> messageList, IReadOnlyList<AIContent> assistantContents)
+    private static bool EndsWithAssistantContents(IReadOnlyList<ChatMessage> messageList, IReadOnlyList<ChatMessage> updateChatMessageList)
     {
         if (messageList.Count == 0 || messageList[^1].Role != ChatRole.Assistant)
         {
             return false;
         }
 
-        return string.Equals(messageList[^1].Text, GetText(assistantContents), StringComparison.Ordinal);
+        if (updateChatMessageList.Count != 1)
+        {
+            return false;
+        }
+
+        var firstUpdateChatMessage = updateChatMessageList[0];
+        if (firstUpdateChatMessage.Role != ChatRole.Assistant)
+        {
+            // 如果追加的是工具，那就不需要检查是否以助手内容结尾
+            return false;
+        }
+
+        var assistantContents = firstUpdateChatMessage.Contents;
+
+        var lastText = messageList[^1].Text;
+
+        //if (string.IsNullOrEmpty(lastText))
+        //{
+        //    return false;
+        //}
+
+        return string.Equals(lastText, GetText(assistantContents), StringComparison.Ordinal);
     }
 
     private static string GetText(IEnumerable<AIContent> contents)
