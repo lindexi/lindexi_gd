@@ -117,9 +117,6 @@ internal static class Win32ImeEditScenario
     private const uint EsAutoHScroll = 0x0080;
     private const int SwShow = 5;
     private const uint PmRemove = 0x0001;
-    private const uint InputKeyboard = 1;
-    private const uint KeyEventFKeyUp = 0x0002;
-    private const ushort VkX = 0x58;
     private const uint LoadLibrarySearchSystem32 = 0x00000800;
     private const string ResetDiagnosticsExport = "XiaoXiImeResetKeystrokeDiagnostics";
     private const string GetDiagnosticsExport = "XiaoXiImeGetKeystrokeDiagnostics";
@@ -140,7 +137,7 @@ internal static class Win32ImeEditScenario
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
 
-        await completion.Task.WaitAsync(TimeSpan.FromSeconds(15));
+        await completion.Task.WaitAsync(TimeSpan.FromSeconds(90));
     }
 
     private static void RunOnWindowThread(TaskCompletionSource completion)
@@ -160,12 +157,12 @@ internal static class Win32ImeEditScenario
             window = CreateWindowEx(
                 0,
                 "STATIC",
-                "XiaoXiIme Integration Test",
+                "XiaoXiIme Integration Test - 请用键盘输入 xx",
                 WsOverlappedWindow | WsVisible,
                 100,
                 100,
-                480,
-                160,
+                520,
+                190,
                 0,
                 0,
                 GetModuleHandle(null),
@@ -175,14 +172,32 @@ internal static class Win32ImeEditScenario
                 throw new Win32Exception(Marshal.GetLastPInvokeError(), "Unable to create the integration test window.");
             }
 
+            var prompt = CreateWindowEx(
+                0,
+                "STATIC",
+                "请在下面的输入框中用键盘输入 xx（不要粘贴）",
+                WsChild | WsVisible,
+                20,
+                20,
+                470,
+                24,
+                window,
+                0,
+                GetModuleHandle(null),
+                0);
+            if (prompt == 0)
+            {
+                throw new Win32Exception(Marshal.GetLastPInvokeError(), "Unable to create the manual input prompt.");
+            }
+
             var edit = CreateWindowEx(
                 0,
                 "EDIT",
                 string.Empty,
                 WsChild | WsVisible | WsBorder | EsAutoHScroll,
                 20,
-                30,
-                420,
+                55,
+                470,
                 32,
                 window,
                 0,
@@ -203,7 +218,7 @@ internal static class Win32ImeEditScenario
 
             if (GetForegroundWindow() != window || GetFocus() != edit)
             {
-                throw new InvalidOperationException("The integration test could not acquire the foreground window and EDIT focus required by SendInput.");
+                throw new InvalidOperationException("The integration test could not acquire the foreground window and EDIT focus required for manual keyboard input.");
             }
 
             imeModule = LoadLibraryEx(ExpectedImeFile, 0, LoadLibrarySearchSystem32);
@@ -214,9 +229,9 @@ internal static class Win32ImeEditScenario
 
             var diagnostics = ImeDiagnosticsExports.Load(imeModule);
             diagnostics.Reset();
-            SendXx();
+            Console.WriteLine("ACTION real-ime-keystroke-commit: 请在测试窗口中用键盘输入 xx（不要粘贴）。");
 
-            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(60);
             string text;
             do
             {
@@ -239,7 +254,7 @@ internal static class Win32ImeEditScenario
             while (DateTime.UtcNow < deadline);
 
             throw new InvalidOperationException(
-                $"Expected the EDIT control text to be '小希' after typing 'xx', but it was '{text}'. {GetImeState(edit, keyboardLayout)} {diagnostics.GetSnapshot()}");
+                $"Timed out waiting for the user to type 'xx'. Expected the EDIT control text to be '小希', but it was '{text}'. {GetImeState(edit, keyboardLayout)} {diagnostics.GetSnapshot()}");
         }
 
         catch (Exception exception)
@@ -347,49 +362,6 @@ internal static class Win32ImeEditScenario
         throw new InvalidOperationException("The installed XiaoXi IME keyboard layout was not found in HKLM.");
     }
 
-    private static void SendXx()
-    {
-        var inputSize = Marshal.SizeOf<Input>();
-        var inputUnionOffset = Marshal.OffsetOf<Input>(nameof(Input.Union)).ToInt32();
-        if (inputSize != 40 || inputUnionOffset != 8)
-        {
-            throw new InvalidOperationException(
-                $"Unexpected Win32 INPUT layout for {RuntimeInformation.ProcessArchitecture}: size={inputSize}, unionOffset={inputUnionOffset}; expected size=40, unionOffset=8.");
-        }
-
-        var inputs = new[]
-        {
-            CreateKeyboardInput(VkX, 0),
-            CreateKeyboardInput(VkX, KeyEventFKeyUp),
-            CreateKeyboardInput(VkX, 0),
-            CreateKeyboardInput(VkX, KeyEventFKeyUp),
-        };
-
-        var sent = SendInput((uint)inputs.Length, inputs, inputSize);
-        if (sent != inputs.Length)
-        {
-            throw new Win32Exception(
-                Marshal.GetLastPInvokeError(),
-                $"SendInput injected {sent} of {inputs.Length} keyboard events. ProcessArchitecture={RuntimeInformation.ProcessArchitecture}, InputSize={inputSize}, InputUnionOffset={inputUnionOffset}, ForegroundWindow=0x{GetForegroundWindow():X}, FocusWindow=0x{GetFocus():X}.");
-        }
-    }
-
-    private static Input CreateKeyboardInput(ushort virtualKey, uint flags)
-    {
-        return new Input
-        {
-            Type = InputKeyboard,
-            Union = new InputUnion
-            {
-                Keyboard = new KeyboardInput
-                {
-                    VirtualKey = virtualKey,
-                    Flags = flags,
-                },
-            },
-        };
-    }
-
     private static void PumpMessages()
     {
         while (PeekMessage(out var message, 0, 0, 0, PmRemove))
@@ -405,33 +377,6 @@ internal static class Win32ImeEditScenario
         var buffer = new StringBuilder(length + 1);
         GetWindowText(window, buffer, buffer.Capacity);
         return buffer.ToString();
-    }
-
-    [StructLayout(LayoutKind.Explicit, Size = 40)]
-    private struct Input
-    {
-        [FieldOffset(0)]
-        public uint Type;
-
-        [FieldOffset(8)]
-        public InputUnion Union;
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    private struct InputUnion
-    {
-        [FieldOffset(0)]
-        public KeyboardInput Keyboard;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct KeyboardInput
-    {
-        public ushort VirtualKey;
-        public ushort ScanCode;
-        public uint Flags;
-        public uint Time;
-        public nuint ExtraInfo;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -588,9 +533,6 @@ internal static class Win32ImeEditScenario
     [DllImport("imm32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool ImmSetOpenStatus(nint inputContext, [MarshalAs(UnmanagedType.Bool)] bool open);
-
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern uint SendInput(uint inputCount, Input[] inputs, int inputSize);
 
     [DllImport("user32.dll", EntryPoint = "PeekMessageW")]
     [return: MarshalAs(UnmanagedType.Bool)]
