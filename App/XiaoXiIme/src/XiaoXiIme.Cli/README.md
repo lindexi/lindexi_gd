@@ -1,4 +1,4 @@
-﻿# XiaoXiIme.Cli
+# XiaoXiIme.Cli
 
 小希输入法命令行工具。职责：安装、卸载、重新安装、状态检查、诊断、Host 管理和系统级冒烟测试入口。
 
@@ -83,7 +83,7 @@ $env:XIAOXIIME_ENVIRONMENT = "VirtualMachine"
 2. 仅卸载注册表中明确归属于 `XiaoXi IME` / `XiaoXiIme.ime` 的旧布局。
 3. 当前使用 `native\win-x64\ime\XiaoXiIme.ime` 执行已实现的安装路径，并明确报告 x86 注册仍需单独验证。
 4. 分别使用 x86/x64 ABI Host 验证对应架构的 TSF ABI/vtable 和隔离 COM 激活。
-5. 执行负载中的集成测试程序集，覆盖 Host、IPC 和上层逻辑。
+5. 执行负载中的集成测试程序集，覆盖 Host、IPC 和上层逻辑；真实按键场景会弹出测试窗口，需用户在输入框中用键盘输入 `xx`（不要粘贴），流程会等待最多 60 秒。
 6. 输出单行 JSON 控制台事件并写入完整 JSON 报告。
 7. 默认卸载测试输入法；传入 `--keep-installed` 才保留安装状态，以便继续人工输入测试。
 
