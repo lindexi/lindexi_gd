@@ -31,11 +31,37 @@ public sealed class ServerIntegrationTests
         var remote = Path.Combine(root, "remote.txt");
         var output = Path.Combine(root, "output.txt");
         await File.WriteAllTextAsync(source, "remote content");
+        var creationTimeUtc = new DateTime(2024, 5, 6, 7, 8, 10, DateTimeKind.Utc);
+        var lastWriteTimeUtc = new DateTime(2024, 6, 7, 8, 9, 10, DateTimeKind.Utc);
+        File.SetCreationTimeUtc(source, creationTimeUtc);
+        File.SetLastWriteTimeUtc(source, lastWriteTimeUtc);
 
         await PushClient.PushAsync(host.Address, source, remote);
         await PullClient.PullAsync(host.Address, remote, output);
 
         Assert.AreEqual("remote content", await File.ReadAllTextAsync(output));
+        Assert.AreEqual(creationTimeUtc, File.GetCreationTimeUtc(output));
+        Assert.AreEqual(lastWriteTimeUtc, File.GetLastWriteTimeUtc(output));
+    }
+
+    [TestMethod]
+    public async Task WhenFileIsPushedThenFileMetadataIsPreserved()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var root = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        var source = Path.Combine(root, "source.txt");
+        var remote = Path.Combine(root, "remote.txt");
+        await File.WriteAllTextAsync(source, "metadata content");
+        var creationTimeUtc = new DateTime(2024, 1, 2, 3, 4, 6, DateTimeKind.Utc);
+        var lastWriteTimeUtc = new DateTime(2024, 2, 3, 4, 5, 6, DateTimeKind.Utc);
+        File.SetCreationTimeUtc(source, creationTimeUtc);
+        File.SetLastWriteTimeUtc(source, lastWriteTimeUtc);
+
+        await PushClient.PushAsync(host.Address, source, remote);
+
+        Assert.AreEqual(creationTimeUtc, File.GetCreationTimeUtc(remote));
+        Assert.AreEqual(lastWriteTimeUtc, File.GetLastWriteTimeUtc(remote));
     }
 
     [TestMethod]
@@ -49,11 +75,39 @@ public sealed class ServerIntegrationTests
         var output = Path.Combine(root, "output");
         Directory.CreateDirectory(nested);
         await File.WriteAllTextAsync(Path.Combine(nested, "content.txt"), "nested content");
+        var sourceCreationTimeUtc = new DateTime(2024, 3, 4, 5, 6, 8, DateTimeKind.Utc);
+        var sourceLastWriteTimeUtc = new DateTime(2024, 4, 5, 6, 7, 8, DateTimeKind.Utc);
+        Directory.SetCreationTimeUtc(source, sourceCreationTimeUtc);
+        Directory.SetLastWriteTimeUtc(source, sourceLastWriteTimeUtc);
 
         await PushClient.PushAsync(host.Address, source, remote);
         await PullClient.PullAsync(host.Address, remote, output);
 
         Assert.AreEqual("nested content", await File.ReadAllTextAsync(Path.Combine(output, "nested", "content.txt")));
+        Assert.AreEqual(sourceCreationTimeUtc, Directory.GetCreationTimeUtc(remote));
+        Assert.AreEqual(sourceLastWriteTimeUtc, Directory.GetLastWriteTimeUtc(remote));
+    }
+
+    [TestMethod]
+    public async Task WhenDirectoryIsPushedThenNoTemporaryArchiveIsCreated()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var root = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        var source = Path.Combine(root, "source");
+        var remote = Path.Combine(root, "remote");
+        Directory.CreateDirectory(source);
+        await File.WriteAllBytesAsync(Path.Combine(source, "content.bin"), new byte[16 * 1024 * 1024]);
+        var archiveCreated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var watcher = new FileSystemWatcher(Path.GetTempPath(), "WinRemoteShell_Push_*.zip")
+        {
+            EnableRaisingEvents = true
+        };
+        watcher.Created += (_, _) => archiveCreated.TrySetResult();
+
+        await PushClient.PushAsync(host.Address, source, remote);
+        await Task.WhenAny(archiveCreated.Task, Task.Delay(100));
+
+        Assert.IsFalse(archiveCreated.Task.IsCompleted);
     }
 
     [TestMethod]

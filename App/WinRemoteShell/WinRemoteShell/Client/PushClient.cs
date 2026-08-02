@@ -1,5 +1,6 @@
-using System.IO.Compression;
-using System.Text;
+using System.Net;
+using WinRemoteShell.Shared;
+using WinRemoteShell.Shared.Transmissions;
 
 namespace WinRemoteShell.Client;
 
@@ -7,70 +8,47 @@ public static class PushClient
 {
     public static async Task PushAsync(Uri server, string source, string target, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(server);
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            throw new ArgumentException("The source path is required.", nameof(source));
+        }
+
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            throw new ArgumentException("The target path is required.", nameof(target));
+        }
+
+        using var content = new TransferContent(TransferManifest.Create(source));
         using var client = new HttpClient { BaseAddress = server };
-        using var request = new HttpRequestMessage(HttpMethod.Post, "push");
-        request.Headers.Add("X-WinRS-Target", Convert.ToBase64String(Encoding.UTF8.GetBytes(target)));
-
-        string? archivePath = null;
-        try
+        using var request = new HttpRequestMessage(HttpMethod.Post, "push")
         {
-            if ((File.GetAttributes(source) & FileAttributes.Directory) != 0)
-            {
-                request.Headers.Add("X-WinRS-Type", "directory");
-                archivePath = Path.Join(Path.GetTempPath(), $"WinRemoteShell_Push_{Guid.NewGuid():N}.zip");
-                await CreateDirectoryArchiveAsync(source, archivePath, cancellationToken);
-                request.Content = new StreamContent(File.OpenRead(archivePath));
-            }
-            else
-            {
-                request.Headers.Add("X-WinRS-Type", "file");
-                request.Content = new StreamContent(File.OpenRead(source));
-            }
+            Content = content
+        };
+        request.Headers.Add("X-WinRS-Target", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(target)));
 
-            using (request.Content)
-            using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
-            {
-                response.EnsureSuccessStatusCode();
-            }
-        }
-        finally
-        {
-            if (archivePath is not null)
-            {
-                File.Delete(archivePath);
-            }
-        }
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken);
+        response.EnsureSuccessStatusCode();
     }
 
-    private static async Task CreateDirectoryArchiveAsync(
-        string source,
-        string archivePath,
-        CancellationToken cancellationToken)
+    private sealed class TransferContent(TransferDefinition definition) : HttpContent
     {
-        await using var archiveStream = new FileStream(
-            archivePath,
-            FileMode.CreateNew,
-            FileAccess.ReadWrite,
-            FileShare.None,
-            4096,
-            FileOptions.Asynchronous | FileOptions.SequentialScan);
-        using var archive = new ZipArchive(archiveStream, ZipArchiveMode.Create);
+        protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context) =>
+            TransferStream.WriteAsync(stream, definition, CancellationToken.None);
 
-        foreach (var directoryPath in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            archive.CreateEntry(Path.GetRelativePath(source, directoryPath).Replace('\\', '/') + "/");
-        }
+        protected override Task SerializeToStreamAsync(
+            Stream stream,
+            TransportContext? context,
+            CancellationToken cancellationToken) =>
+            TransferStream.WriteAsync(stream, definition, cancellationToken);
 
-        foreach (var filePath in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+        protected override bool TryComputeLength(out long length)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var entry = archive.CreateEntry(
-                Path.GetRelativePath(source, filePath).Replace('\\', '/'),
-                CompressionLevel.Fastest);
-            await using var entryStream = entry.Open();
-            await using var file = File.OpenRead(filePath);
-            await file.CopyToAsync(entryStream, cancellationToken);
+            length = 0;
+            return false;
         }
     }
 }

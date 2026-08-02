@@ -1,9 +1,8 @@
-using System.IO.Compression;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Text;
-using Microsoft.AspNetCore.Http.Features;
 using WinRemoteShell.Shared;
+using WinRemoteShell.Shared.Transmissions;
 
 namespace WinRemoteShell.Server;
 
@@ -13,7 +12,11 @@ public static class ServerHost
     {
         var builder = WebApplication.CreateSlimBuilder();
         builder.Host.UseWindowsService(options => options.ServiceName = WindowsServiceInstaller.ServiceName);
-        builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(port));
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            options.Limits.MaxRequestBodySize = null;
+            options.ListenAnyIP(port);
+        });
         builder.Services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
         builder.Services.AddSingleton<CmdProcess>();
@@ -97,43 +100,12 @@ public static class ServerHost
     {
         app.MapPost("/push", async (HttpContext context) =>
         {
-            var maxRequestBodySizeFeature = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
-            if (maxRequestBodySizeFeature is { IsReadOnly: false })
-            {
-                maxRequestBodySizeFeature.MaxRequestBodySize = null;
-            }
-
             var target = Decode(context.Request.Headers["X-WinRS-Target"].ToString());
-            if (context.Request.Headers["X-WinRS-Type"] == "directory")
-            {
-                Directory.CreateDirectory(target);
-                var archivePath = Path.Join(Path.GetTempPath(), $"WinRemoteShell_Push_{Guid.NewGuid():N}.zip");
-                try
-                {
-                    await using (var archiveStream = new FileStream(
-                        archivePath,
-                        FileMode.CreateNew,
-                        FileAccess.Write,
-                        FileShare.None,
-                        4096,
-                        FileOptions.Asynchronous | FileOptions.SequentialScan))
-                    {
-                        await context.Request.Body.CopyToAsync(archiveStream, context.RequestAborted);
-                    }
-
-                    using var archive = ZipFile.OpenRead(archivePath);
-                    archive.ExtractToDirectory(target, true);
-                }
-                finally
-                {
-                    File.Delete(archivePath);
-                }
-            }
-            else
-            {
-                await using var file = File.Create(target);
-                await context.Request.Body.CopyToAsync(file, context.RequestAborted);
-            }
+            await TransferStream.ReceiveAsync(
+                context.Request.Body,
+                target,
+                placeFileInExistingDirectory: false,
+                context.RequestAborted);
         });
     }
 
@@ -142,21 +114,11 @@ public static class ServerHost
         app.MapGet("/pull", async (HttpContext context) =>
         {
             var source = Decode(context.Request.Query["source"].ToString());
-            if ((File.GetAttributes(source) & FileAttributes.Directory) != 0)
-            {
-                context.Response.Headers["X-WinRS-Type"] = "directory";
-                context.Response.ContentType = "application/zip";
-                await WriteDirectoryArchiveAsync(source, context.Response, context.RequestAborted);
-            }
-            else
-            {
-                context.Response.Headers["X-WinRS-Type"] = "file";
-                context.Response.Headers["X-WinRS-FileName"] = Encode(Path.GetFileName(source));
-                context.Response.ContentType = "application/octet-stream";
-                await using var file = File.OpenRead(source);
-                context.Response.ContentLength = file.Length;
-                await file.CopyToAsync(context.Response.Body, context.RequestAborted);
-            }
+            context.Response.ContentType = "application/vnd.winremoteshell.transfer-v1";
+            await TransferStream.WriteAsync(
+                context.Response.Body,
+                TransferManifest.Create(source),
+                context.RequestAborted);
         });
     }
 
@@ -167,95 +129,6 @@ public static class ServerHost
             context.Response.ContentType = "image/png";
             await ScreenshotCapture.CaptureAsync(context.Response.Body, context.RequestAborted);
         });
-    }
-
-    private static async Task WriteDirectoryArchiveAsync(
-        string source,
-        HttpResponse response,
-        CancellationToken cancellationToken)
-    {
-        // ZipArchive 会在写入条目元数据和释放时同步写入中央目录，而 Kestrel 禁止对响应 Body 执行同步 I/O。
-        // 此适配器将同步写入限制在 PipeWriter 缓冲区内，再通过异步刷新发送响应，从而保持流式压缩和背压。
-        using var responseStream = new PipeWriterStream(response.BodyWriter);
-        using (var archive = new ZipArchive(responseStream, ZipArchiveMode.Create, true))
-        {
-            foreach (var directoryPath in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                archive.CreateEntry(Path.GetRelativePath(source, directoryPath).Replace('\\', '/') + "/");
-            }
-
-            foreach (var filePath in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var entry = archive.CreateEntry(
-                    Path.GetRelativePath(source, filePath).Replace('\\', '/'),
-                    CompressionLevel.Fastest);
-                await using var entryStream = entry.Open();
-                await using var file = File.OpenRead(filePath);
-                await file.CopyToAsync(entryStream, cancellationToken);
-            }
-        }
-
-        await responseStream.FlushAsync(cancellationToken);
-    }
-
-    private sealed class PipeWriterStream(PipeWriter writer) : Stream
-    {
-        public override bool CanRead => false;
-
-        public override bool CanSeek => false;
-
-        public override bool CanWrite => true;
-
-        public override long Length => throw new NotSupportedException();
-
-        public override long Position
-        {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
-        }
-
-        public override void Flush()
-        {
-        }
-
-        public override Task FlushAsync(CancellationToken cancellationToken) => FlushCoreAsync(cancellationToken);
-
-        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-
-        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
-
-        public override void SetLength(long value) => throw new NotSupportedException();
-
-        public override void Write(byte[] buffer, int offset, int count) =>
-            Write(buffer.AsSpan(offset, count));
-
-        public override void Write(ReadOnlySpan<byte> buffer)
-        {
-            buffer.CopyTo(writer.GetSpan(buffer.Length));
-            writer.Advance(buffer.Length);
-        }
-
-        public override Task WriteAsync(
-            byte[] buffer,
-            int offset,
-            int count,
-            CancellationToken cancellationToken) =>
-            WriteAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
-
-        public override async ValueTask WriteAsync(
-            ReadOnlyMemory<byte> buffer,
-            CancellationToken cancellationToken = default)
-        {
-            Write(buffer.Span);
-            await writer.FlushAsync(cancellationToken);
-        }
-
-        private async Task FlushCoreAsync(CancellationToken cancellationToken)
-        {
-            await writer.FlushAsync(cancellationToken);
-        }
     }
 
     private static async Task ReceiveShellInputAsync(WebSocket webSocket, CmdProcess cmd, CancellationToken cancellationToken)
