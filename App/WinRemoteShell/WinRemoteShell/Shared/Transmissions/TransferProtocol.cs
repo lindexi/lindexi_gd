@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Text;
 
@@ -78,21 +79,29 @@ internal static class TransferProtocol
         TransferManifestEntry entry,
         CancellationToken cancellationToken)
     {
-        var pathBytes = Encoding.UTF8.GetBytes(entry.RelativePath);
-        if (pathBytes.Length is < 1 or > MaximumPathByteLength)
+        var pathLength = Encoding.UTF8.GetByteCount(entry.RelativePath);
+        if (pathLength is < 1 or > MaximumPathByteLength)
         {
             throw new InvalidDataException($"The relative path length for '{entry.RelativePath}' is invalid.");
         }
 
-        var buffer = new byte[EntryFixedLength];
-        buffer[0] = (byte)entry.EntryType;
-        BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(1, 4), entry.Permissions);
-        BinaryPrimitives.WriteInt32LittleEndian(buffer.AsSpan(5, 4), pathBytes.Length);
-        BinaryPrimitives.WriteInt64LittleEndian(buffer.AsSpan(9, 8), entry.Length);
-        BinaryPrimitives.WriteInt64LittleEndian(buffer.AsSpan(17, 8), entry.CreationTimeUtc.Ticks);
-        BinaryPrimitives.WriteInt64LittleEndian(buffer.AsSpan(25, 8), entry.LastWriteTimeUtc.Ticks);
-        await stream.WriteAsync(buffer, cancellationToken);
-        await stream.WriteAsync(pathBytes, cancellationToken);
+        var entryLength = EntryFixedLength + pathLength;
+        var buffer = ArrayPool<byte>.Shared.Rent(entryLength);
+        try
+        {
+            buffer[0] = (byte)entry.EntryType;
+            BinaryPrimitives.WriteUInt32LittleEndian(buffer.AsSpan(1, 4), entry.Permissions);
+            BinaryPrimitives.WriteInt32LittleEndian(buffer.AsSpan(5, 4), pathLength);
+            BinaryPrimitives.WriteInt64LittleEndian(buffer.AsSpan(9, 8), entry.Length);
+            BinaryPrimitives.WriteInt64LittleEndian(buffer.AsSpan(17, 8), entry.CreationTimeUtc.Ticks);
+            BinaryPrimitives.WriteInt64LittleEndian(buffer.AsSpan(25, 8), entry.LastWriteTimeUtc.Ticks);
+            Encoding.UTF8.GetBytes(entry.RelativePath, buffer.AsSpan(EntryFixedLength, pathLength));
+            await stream.WriteAsync(buffer.AsMemory(0, entryLength), cancellationToken);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
     }
 
     internal static async Task<TransferManifestEntry> ReadManifestEntryAsync(
@@ -124,16 +133,23 @@ internal static class TransferProtocol
 
         var creationTimeUtc = ReadUtcDateTime(buffer.AsSpan(17, 8));
         var lastWriteTimeUtc = ReadUtcDateTime(buffer.AsSpan(25, 8));
-        var pathBytes = new byte[pathLength];
-        await stream.ReadExactlyAsync(pathBytes, cancellationToken);
-        return new TransferManifestEntry(
-            entryType,
-            Encoding.UTF8.GetString(pathBytes),
-            length,
-            creationTimeUtc,
-            lastWriteTimeUtc,
-            permissions,
-            null);
+        var pathBytes = ArrayPool<byte>.Shared.Rent(pathLength);
+        try
+        {
+            await stream.ReadExactlyAsync(pathBytes.AsMemory(0, pathLength), cancellationToken);
+            return new TransferManifestEntry(
+                entryType,
+                Encoding.UTF8.GetString(pathBytes, 0, pathLength),
+                length,
+                creationTimeUtc,
+                lastWriteTimeUtc,
+                permissions,
+                null);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(pathBytes);
+        }
     }
 
     private static DateTime ReadUtcDateTime(ReadOnlySpan<byte> value)

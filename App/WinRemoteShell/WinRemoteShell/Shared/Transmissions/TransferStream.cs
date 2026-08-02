@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace WinRemoteShell.Shared.Transmissions;
 
 internal static class TransferStream
@@ -165,20 +167,27 @@ internal static class TransferStream
         long length,
         CancellationToken cancellationToken)
     {
-        var buffer = new byte[81920];
-        var remaining = length;
-        while (remaining > 0)
+        var buffer = ArrayPool<byte>.Shared.Rent(81920);
+        try
         {
-            var read = await source.ReadAsync(
-                buffer.AsMemory(0, (int)Math.Min(buffer.Length, remaining)),
-                cancellationToken);
-            if (read == 0)
+            var remaining = length;
+            while (remaining > 0)
             {
-                throw new EndOfStreamException("The transfer ended before the declared file length was received.");
-            }
+                var read = await source.ReadAsync(
+                    buffer.AsMemory(0, (int)Math.Min(buffer.Length, remaining)),
+                    cancellationToken);
+                if (read == 0)
+                {
+                    throw new EndOfStreamException("The transfer ended before the declared file length was received.");
+                }
 
-            await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
-            remaining -= read;
+                await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                remaining -= read;
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 

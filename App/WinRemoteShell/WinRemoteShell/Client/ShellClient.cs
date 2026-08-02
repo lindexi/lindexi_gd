@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Net.WebSockets;
 using System.Text;
 
@@ -25,8 +26,18 @@ public static class ShellClient
     {
         while (await input.ReadLineAsync(cancellationToken) is { } line)
         {
-            var content = Encoding.UTF8.GetBytes(line);
-            await webSocket.SendAsync(content, WebSocketMessageType.Text, true, cancellationToken);
+            var byteCount = Encoding.UTF8.GetByteCount(line);
+            var content = ArrayPool<byte>.Shared.Rent(byteCount);
+            try
+            {
+                var bytesWritten = Encoding.UTF8.GetBytes(line, content);
+                await webSocket.SendAsync(content.AsMemory(0, bytesWritten), WebSocketMessageType.Text, true, cancellationToken);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(content);
+            }
+
             if (string.Equals(line.Trim(), "exit", StringComparison.OrdinalIgnoreCase))
             {
                 return;
@@ -36,17 +47,24 @@ public static class ShellClient
 
     private static async Task ReceiveAsync(ClientWebSocket webSocket, TextWriter output, CancellationToken cancellationToken)
     {
-        var buffer = new byte[4096];
-        while (webSocket.State == WebSocketState.Open)
+        var buffer = ArrayPool<byte>.Shared.Rent(4096);
+        try
         {
-            var result = await webSocket.ReceiveAsync(buffer, cancellationToken);
-            if (result.MessageType == WebSocketMessageType.Close)
+            while (webSocket.State == WebSocketState.Open)
             {
-                return;
-            }
+                var result = await webSocket.ReceiveAsync(buffer, cancellationToken);
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    return;
+                }
 
-            await output.WriteAsync(Encoding.UTF8.GetString(buffer, 0, result.Count));
-            await output.FlushAsync(cancellationToken);
+                await output.WriteAsync(Encoding.UTF8.GetString(buffer, 0, result.Count));
+                await output.FlushAsync(cancellationToken);
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 

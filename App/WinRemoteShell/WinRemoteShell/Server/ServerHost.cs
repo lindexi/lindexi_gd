@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Text;
@@ -133,35 +134,42 @@ public static class ServerHost
 
     private static async Task ReceiveShellInputAsync(WebSocket webSocket, CmdProcess cmd, CancellationToken cancellationToken)
     {
-        var buffer = new byte[4096];
-        using var message = new MemoryStream();
-        while (webSocket.State == WebSocketState.Open)
+        var buffer = ArrayPool<byte>.Shared.Rent(4096);
+        try
         {
-            var result = await webSocket.ReceiveAsync(buffer, cancellationToken);
-            if (result.MessageType == WebSocketMessageType.Close)
+            using var message = new MemoryStream();
+            while (webSocket.State == WebSocketState.Open)
             {
-                return;
-            }
+                var result = await webSocket.ReceiveAsync(buffer, cancellationToken);
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    return;
+                }
 
-            if (result.MessageType != WebSocketMessageType.Text)
-            {
-                continue;
-            }
+                if (result.MessageType != WebSocketMessageType.Text)
+                {
+                    continue;
+                }
 
-            await message.WriteAsync(buffer.AsMemory(0, result.Count), cancellationToken);
-            if (!result.EndOfMessage)
-            {
-                continue;
-            }
+                await message.WriteAsync(buffer.AsMemory(0, result.Count), cancellationToken);
+                if (!result.EndOfMessage)
+                {
+                    continue;
+                }
 
-            var line = Encoding.UTF8.GetString(message.GetBuffer(), 0, checked((int)message.Length));
-            message.SetLength(0);
-            if (string.Equals(line.Trim(), "exit", StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
+                var line = Encoding.UTF8.GetString(message.GetBuffer(), 0, checked((int)message.Length));
+                message.SetLength(0);
+                if (string.Equals(line.Trim(), "exit", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
 
-            await cmd.WriteLineAsync(line, cancellationToken);
+                await cmd.WriteLineAsync(line, cancellationToken);
+            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 
@@ -169,8 +177,18 @@ public static class ServerHost
     {
         await foreach (var line in cmd.ReadOutputAsync(cancellationToken))
         {
-            var content = Encoding.UTF8.GetBytes(line + Environment.NewLine);
-            await webSocket.SendAsync(content, WebSocketMessageType.Text, true, cancellationToken);
+            var contentText = line + Environment.NewLine;
+            var byteCount = Encoding.UTF8.GetByteCount(contentText);
+            var content = ArrayPool<byte>.Shared.Rent(byteCount);
+            try
+            {
+                var bytesWritten = Encoding.UTF8.GetBytes(contentText, content);
+                await webSocket.SendAsync(content.AsMemory(0, bytesWritten), WebSocketMessageType.Text, true, cancellationToken);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(content);
+            }
         }
     }
 

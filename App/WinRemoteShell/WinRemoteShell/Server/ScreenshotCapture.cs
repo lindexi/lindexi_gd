@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 
@@ -11,7 +12,10 @@ internal static partial class ScreenshotCapture
     private const int SmCyVirtualScreen = 79;
     private const uint Srccopy = 0x00CC0020;
     private const uint DibRgbColors = 0;
-    private static ReadOnlySpan<byte> PngSignature => [137, 80, 78, 71, 13, 10, 26, 10];
+    private static readonly byte[] PngSignature = [137, 80, 78, 71, 13, 10, 26, 10];
+    private static readonly byte[] IhdrChunkType = "IHDR"u8.ToArray();
+    private static readonly byte[] IdatChunkType = "IDAT"u8.ToArray();
+    private static readonly byte[] IendChunkType = "IEND"u8.ToArray();
 
     public static async Task CaptureAsync(Stream output, CancellationToken cancellationToken)
     {
@@ -48,13 +52,21 @@ internal static partial class ScreenshotCapture
                     Compression = 0
                 }
             };
-            var pixels = new byte[checked(width * height * 4)];
-            if (GetDIBits(memoryDc, bitmap, 0, (uint)height, pixels, ref bitmapInfo, DibRgbColors) == 0)
+            var pixelLength = checked(width * height * 4);
+            var pixels = ArrayPool<byte>.Shared.Rent(pixelLength);
+            try
             {
-                throw new InvalidOperationException("Unable to read captured desktop pixels.");
-            }
+                if (GetDIBits(memoryDc, bitmap, 0, (uint)height, pixels, ref bitmapInfo, DibRgbColors) == 0)
+                {
+                    throw new InvalidOperationException("Unable to read captured desktop pixels.");
+                }
 
-            await WritePngAsync(output, pixels, width, height, cancellationToken);
+                await WritePngAsync(output, pixels, width, height, cancellationToken);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(pixels, clearArray: true);
+            }
         }
         finally
         {
@@ -67,42 +79,55 @@ internal static partial class ScreenshotCapture
 
     private static async Task WritePngAsync(Stream output, byte[] pixels, int width, int height, CancellationToken cancellationToken)
     {
-        await output.WriteAsync(PngSignature.ToArray(), cancellationToken);
+        await output.WriteAsync(PngSignature, cancellationToken);
         var header = new byte[13];
         WriteUInt32(header, 0, (uint)width);
         WriteUInt32(header, 4, (uint)height);
         header[8] = 8;
         header[9] = 6;
-        await WriteChunkAsync(output, "IHDR"u8.ToArray(), header, cancellationToken);
+        await WriteChunkAsync(output, IhdrChunkType, header, cancellationToken);
 
         using var compressed = new MemoryStream();
         await using (var zlib = new ZLibStream(compressed, CompressionLevel.Fastest, true))
         {
-            var scanline = new byte[checked(width * 4 + 1)];
-            for (var row = 0; row < height; row++)
+            var scanlineLength = checked(width * 4 + 1);
+            var scanline = ArrayPool<byte>.Shared.Rent(scanlineLength);
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                scanline[0] = 0;
-                var sourceOffset = row * width * 4;
-                for (var column = 0; column < width; column++)
+                for (var row = 0; row < height; row++)
                 {
-                    var source = sourceOffset + column * 4;
-                    var target = 1 + column * 4;
-                    scanline[target] = pixels[source + 2];
-                    scanline[target + 1] = pixels[source + 1];
-                    scanline[target + 2] = pixels[source];
-                    scanline[target + 3] = 255;
-                }
+                    cancellationToken.ThrowIfCancellationRequested();
+                    scanline[0] = 0;
+                    var sourceOffset = row * width * 4;
+                    for (var column = 0; column < width; column++)
+                    {
+                        var source = sourceOffset + column * 4;
+                        var target = 1 + column * 4;
+                        scanline[target] = pixels[source + 2];
+                        scanline[target + 1] = pixels[source + 1];
+                        scanline[target + 2] = pixels[source];
+                        scanline[target + 3] = 255;
+                    }
 
-                await zlib.WriteAsync(scanline, cancellationToken);
+                    await zlib.WriteAsync(scanline.AsMemory(0, scanlineLength), cancellationToken);
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(scanline);
             }
         }
 
-        await WriteChunkAsync(output, "IDAT"u8.ToArray(), compressed.ToArray(), cancellationToken);
-        await WriteChunkAsync(output, "IEND"u8.ToArray(), [], cancellationToken);
+        if (!compressed.TryGetBuffer(out var compressedBuffer))
+        {
+            throw new InvalidOperationException("Unable to access the compressed screenshot data.");
+        }
+
+        await WriteChunkAsync(output, IdatChunkType, compressedBuffer.AsMemory(), cancellationToken);
+        await WriteChunkAsync(output, IendChunkType, ReadOnlyMemory<byte>.Empty, cancellationToken);
     }
 
-    private static async Task WriteChunkAsync(Stream output, byte[] type, byte[] data, CancellationToken cancellationToken)
+    private static async Task WriteChunkAsync(Stream output, byte[] type, ReadOnlyMemory<byte> data, CancellationToken cancellationToken)
     {
         var length = new byte[4];
         WriteUInt32(length, 0, (uint)data.Length);
@@ -110,17 +135,19 @@ internal static partial class ScreenshotCapture
         await output.WriteAsync(type, cancellationToken);
         await output.WriteAsync(data, cancellationToken);
 
-        var crcInput = new byte[type.Length + data.Length];
-        type.CopyTo(crcInput, 0);
-        data.CopyTo(crcInput, type.Length);
         var crc = new byte[4];
-        WriteUInt32(crc, 0, ComputeCrc32(crcInput));
+        WriteUInt32(crc, 0, ComputeCrc32(type, data.Span));
         await output.WriteAsync(crc, cancellationToken);
     }
 
-    private static uint ComputeCrc32(ReadOnlySpan<byte> data)
+    private static uint ComputeCrc32(ReadOnlySpan<byte> first, ReadOnlySpan<byte> second)
     {
-        var crc = uint.MaxValue;
+        var crc = AppendCrc32(uint.MaxValue, first);
+        return ~AppendCrc32(crc, second);
+    }
+
+    private static uint AppendCrc32(uint crc, ReadOnlySpan<byte> data)
+    {
         foreach (var value in data)
         {
             crc ^= value;
@@ -130,7 +157,7 @@ internal static partial class ScreenshotCapture
             }
         }
 
-        return ~crc;
+        return crc;
     }
 
     private static void WriteUInt32(Span<byte> destination, int offset, uint value)
