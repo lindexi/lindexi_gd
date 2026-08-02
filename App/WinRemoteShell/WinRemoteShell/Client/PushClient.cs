@@ -11,39 +11,66 @@ public static class PushClient
         using var request = new HttpRequestMessage(HttpMethod.Post, "push");
         request.Headers.Add("X-WinRS-Target", Convert.ToBase64String(Encoding.UTF8.GetBytes(target)));
 
-        if ((File.GetAttributes(source) & FileAttributes.Directory) != 0)
+        string? archivePath = null;
+        try
         {
-            request.Headers.Add("X-WinRS-Type", "directory");
-            var archiveStream = new MemoryStream();
-            using (var archive = new ZipArchive(archiveStream, ZipArchiveMode.Create, true))
+            if ((File.GetAttributes(source) & FileAttributes.Directory) != 0)
             {
-                foreach (var directoryPath in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
-                {
-                    archive.CreateEntry(Path.GetRelativePath(source, directoryPath).Replace('\\', '/') + "/");
-                }
-
-                foreach (var filePath in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
-                {
-                    var entry = archive.CreateEntry(Path.GetRelativePath(source, filePath), CompressionLevel.Fastest);
-                    await using var entryStream = entry.Open();
-                    await using var file = File.OpenRead(filePath);
-                    await file.CopyToAsync(entryStream, cancellationToken);
-                }
+                request.Headers.Add("X-WinRS-Type", "directory");
+                archivePath = Path.Join(Path.GetTempPath(), $"WinRemoteShell_Push_{Guid.NewGuid():N}.zip");
+                await CreateDirectoryArchiveAsync(source, archivePath, cancellationToken);
+                request.Content = new StreamContent(File.OpenRead(archivePath));
+            }
+            else
+            {
+                request.Headers.Add("X-WinRS-Type", "file");
+                request.Content = new StreamContent(File.OpenRead(source));
             }
 
-            archiveStream.Position = 0;
-            request.Content = new StreamContent(archiveStream);
+            using (request.Content)
+            using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+            {
+                response.EnsureSuccessStatusCode();
+            }
         }
-        else
+        finally
         {
-            request.Headers.Add("X-WinRS-Type", "file");
-            request.Content = new StreamContent(File.OpenRead(source));
+            if (archivePath is not null)
+            {
+                File.Delete(archivePath);
+            }
+        }
+    }
+
+    private static async Task CreateDirectoryArchiveAsync(
+        string source,
+        string archivePath,
+        CancellationToken cancellationToken)
+    {
+        await using var archiveStream = new FileStream(
+            archivePath,
+            FileMode.CreateNew,
+            FileAccess.ReadWrite,
+            FileShare.None,
+            4096,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        using var archive = new ZipArchive(archiveStream, ZipArchiveMode.Create);
+
+        foreach (var directoryPath in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            archive.CreateEntry(Path.GetRelativePath(source, directoryPath).Replace('\\', '/') + "/");
         }
 
-        using (request.Content)
-        using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+        foreach (var filePath in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
         {
-            response.EnsureSuccessStatusCode();
+            cancellationToken.ThrowIfCancellationRequested();
+            var entry = archive.CreateEntry(
+                Path.GetRelativePath(source, filePath).Replace('\\', '/'),
+                CompressionLevel.Fastest);
+            await using var entryStream = entry.Open();
+            await using var file = File.OpenRead(filePath);
+            await file.CopyToAsync(entryStream, cancellationToken);
         }
     }
 }

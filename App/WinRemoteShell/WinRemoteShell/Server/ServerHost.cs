@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Text;
+using Microsoft.AspNetCore.Http.Features;
 using WinRemoteShell.Shared;
 
 namespace WinRemoteShell.Server;
@@ -96,15 +97,37 @@ public static class ServerHost
     {
         app.MapPost("/push", async (HttpContext context) =>
         {
+            var maxRequestBodySizeFeature = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
+            if (maxRequestBodySizeFeature is { IsReadOnly: false })
+            {
+                maxRequestBodySizeFeature.MaxRequestBodySize = null;
+            }
+
             var target = Decode(context.Request.Headers["X-WinRS-Target"].ToString());
             if (context.Request.Headers["X-WinRS-Type"] == "directory")
             {
                 Directory.CreateDirectory(target);
-                using var archiveStream = new MemoryStream();
-                await context.Request.Body.CopyToAsync(archiveStream, context.RequestAborted);
-                archiveStream.Position = 0;
-                using var archive = new ZipArchive(archiveStream, ZipArchiveMode.Read);
-                archive.ExtractToDirectory(target, true);
+                var archivePath = Path.Join(Path.GetTempPath(), $"WinRemoteShell_Push_{Guid.NewGuid():N}.zip");
+                try
+                {
+                    await using (var archiveStream = new FileStream(
+                        archivePath,
+                        FileMode.CreateNew,
+                        FileAccess.Write,
+                        FileShare.None,
+                        4096,
+                        FileOptions.Asynchronous | FileOptions.SequentialScan))
+                    {
+                        await context.Request.Body.CopyToAsync(archiveStream, context.RequestAborted);
+                    }
+
+                    using var archive = ZipFile.OpenRead(archivePath);
+                    archive.ExtractToDirectory(target, true);
+                }
+                finally
+                {
+                    File.Delete(archivePath);
+                }
             }
             else
             {
