@@ -10,26 +10,12 @@ namespace AgentLib.Tests.Fakes;
 
 internal sealed class CopilotChatManagerTestContext
 {
-    public CopilotChatManagerTestContext(FakeChatClient primaryChatClient, FakeChatClient? flashChatClient = null, IMainThreadDispatcher? mainThreadDispatcher = null)
+    public CopilotChatManagerTestContext(FakeChatClient primaryChatClient, FakeChatClient? flashChatClient = null)
     {
         PrimaryChatClient = primaryChatClient ?? throw new ArgumentNullException(nameof(primaryChatClient));
         FlashChatClient = flashChatClient;
 
-        ChatManager = new CopilotChatManager(new EmptyCopilotChatLogger())
-        {
-            MainThreadDispatcher = mainThreadDispatcher,
-        };
-        // 对象初始化器在构造函数之后执行，构造函数中创建的会话不带 dispatcher。
-        // 创建一个新会话替换之，新会话通过对象初始化器拿到 dispatcher。
-        if (mainThreadDispatcher is not null)
-        {
-            var newSession = new CopilotChatSession
-            {
-                MainThreadDispatcher = mainThreadDispatcher,
-            };
-            ChatManager.ChatSessions.Insert(0, newSession);
-            ChatManager.SelectedSession = newSession;
-        }
+        ChatManager = new CopilotChatManager(new EmptyCopilotChatLogger());
         ChatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([CreatePrimaryModel()]));
 
         if (flashChatClient is not null)
@@ -44,9 +30,9 @@ internal sealed class CopilotChatManagerTestContext
 
     public FakeChatClient? FlashChatClient { get; }
 
-    public static CopilotChatManagerTestContext Create(FakeChatClient primaryChatClient, FakeChatClient? flashChatClient = null, IMainThreadDispatcher? mainThreadDispatcher = null)
+    public static CopilotChatManagerTestContext Create(FakeChatClient primaryChatClient, FakeChatClient? flashChatClient = null)
     {
-        return new CopilotChatManagerTestContext(primaryChatClient, flashChatClient, mainThreadDispatcher);
+        return new CopilotChatManagerTestContext(primaryChatClient, flashChatClient);
     }
 
     public static ChatResponseUpdate AssistantText(string text)

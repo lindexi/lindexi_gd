@@ -30,7 +30,8 @@ public interface IManualSendMessageContext
     IChatClient ChatClient { get; }
 
     /// <summary>
-    /// 主线程调度器。用于将操作调度回 UI 主线程执行。为 <see langword="null"  /> 时不做线程调度。
+    /// Gets the optional UI-thread dispatcher configured on the owning <see cref="CopilotChatManager" />.
+    /// The context does not use it automatically; callers may use it at an explicit cross-thread boundary.
     /// </summary>
     IMainThreadDispatcher? MainThreadDispatcher { get; }
 

@@ -153,6 +153,120 @@ public class WorkspaceToolProviderTests
         Assert.IsTrue(result.EndsWith("hello", StringComparison.Ordinal));
     }
 
+    [TestMethod(DisplayName = "读取文件应保持支持工作区外绝对路径")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task ReadFileLines_WhenAbsolutePathIsOutsideWorkspace_ReadsFile()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        string outsideDirectoryPath = Path.Join(testRoot, "outside");
+        Directory.CreateDirectory(workspacePath);
+        Directory.CreateDirectory(outsideDirectoryPath);
+        string outsideFilePath = Path.Join(outsideDirectoryPath, "outside.txt");
+        await File.WriteAllTextAsync(outsideFilePath, "outside-content");
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath,
+        };
+
+        string result = await provider.ReadFileLines(outsideFilePath, 1, 1);
+
+        StringAssert.Contains(result, "outside-content");
+    }
+
+    [TestMethod(DisplayName = "工作区外读取属性默认应关闭")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public void AllowReadingOutsideWorkspace_DefaultValue_IsFalse()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        Assert.IsFalse(provider.AllowReadingOutsideWorkspace);
+    }
+
+    [TestMethod(DisplayName = "默认不应列举工作区外绝对目录")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task ListDirectory_WhenAbsolutePathIsOutsideWorkspaceByDefault_ReturnsError()
+    {
+        (WorkspaceToolProvider provider, string outsideDirectoryPath) = CreateProviderWithOutsideDirectory();
+
+        string result = await provider.ListDirectory(outsideDirectoryPath);
+
+        StringAssert.Contains(result, "目录不在工作区范围内");
+    }
+
+    [TestMethod(DisplayName = "启用属性后应允许列举工作区外绝对目录")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task ListDirectory_WhenOutsideReadingIsAllowed_ListsDirectory()
+    {
+        (WorkspaceToolProvider provider, string outsideDirectoryPath) = CreateProviderWithOutsideDirectory();
+        provider.AllowReadingOutsideWorkspace = true;
+        await File.WriteAllTextAsync(Path.Join(outsideDirectoryPath, "outside.txt"), "content");
+
+        string result = await provider.ListDirectory(outsideDirectoryPath);
+
+        StringAssert.Contains(result, "outside.txt");
+    }
+
+    [TestMethod(DisplayName = "默认不应在工作区外绝对目录按名称查询")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task FindEntriesByName_WhenAbsolutePathIsOutsideWorkspaceByDefault_ReturnsError()
+    {
+        (WorkspaceToolProvider provider, string outsideDirectoryPath) = CreateProviderWithOutsideDirectory();
+
+        string result = await provider.FindEntriesByName("outside", outsideDirectoryPath);
+
+        StringAssert.Contains(result, "目录不在工作区范围内");
+    }
+
+    [TestMethod(DisplayName = "启用属性后应允许在工作区外绝对目录按名称查询")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task FindEntriesByName_WhenOutsideReadingIsAllowed_FindsEntry()
+    {
+        (WorkspaceToolProvider provider, string outsideDirectoryPath) = CreateProviderWithOutsideDirectory();
+        provider.AllowReadingOutsideWorkspace = true;
+        await File.WriteAllTextAsync(Path.Join(outsideDirectoryPath, "outside.txt"), "content");
+
+        string result = await provider.FindEntriesByName("outside", outsideDirectoryPath);
+
+        StringAssert.Contains(result, "outside.txt");
+    }
+
+    [TestMethod(DisplayName = "默认不应在工作区外绝对目录查询文件内容")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task FindFilesMatchingPattern_WhenAbsolutePathIsOutsideWorkspaceByDefault_ReturnsError()
+    {
+        (WorkspaceToolProvider provider, string outsideDirectoryPath) = CreateProviderWithOutsideDirectory();
+
+        string result = await provider.FindFilesMatchingPattern("outside", outsideDirectoryPath);
+
+        StringAssert.Contains(result, "目录不在工作区范围内");
+    }
+
+    [TestMethod(DisplayName = "启用属性后应允许在工作区外绝对目录查询文件内容")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task FindFilesMatchingPattern_WhenOutsideReadingIsAllowed_FindsContent()
+    {
+        (WorkspaceToolProvider provider, string outsideDirectoryPath) = CreateProviderWithOutsideDirectory();
+        provider.AllowReadingOutsideWorkspace = true;
+        await File.WriteAllTextAsync(Path.Join(outsideDirectoryPath, "outside.txt"), "unique-outside-content");
+
+        string result = await provider.FindFilesMatchingPattern("unique-outside-content", outsideDirectoryPath);
+
+        StringAssert.Contains(result, "outside.txt");
+    }
+
+    [TestMethod(DisplayName = "启用属性后相对目录仍不应逃逸工作区")]
+    [Timeout(5000, CooperativeCancellation = true)]
+    public async Task ListDirectory_WhenRelativePathEscapesWorkspaceAndOutsideReadingIsAllowed_ReturnsError()
+    {
+        (WorkspaceToolProvider provider, _) = CreateProviderWithOutsideDirectory();
+        provider.AllowReadingOutsideWorkspace = true;
+
+        string result = await provider.ListDirectory(Path.Join("..", "outside"));
+
+        StringAssert.Contains(result, "路径超出了当前工作路径范围");
+    }
+
     [TestMethod]
     [Description("主工作区为空时，列目录会回退到副工作区")]
     public async Task ListDirectory_WhenPrimaryWorkspaceIsEmpty_FallsBackToSecondaryWorkspace()
@@ -1028,6 +1142,20 @@ public class WorkspaceToolProviderTests
         };
         provider.ExcludedDirectoryNames.Add(directoryName);
         return provider;
+    }
+
+    private static (WorkspaceToolProvider Provider, string OutsideDirectoryPath) CreateProviderWithOutsideDirectory()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        string outsideDirectoryPath = Path.Join(testRoot, "outside");
+        Directory.CreateDirectory(workspacePath);
+        Directory.CreateDirectory(outsideDirectoryPath);
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath,
+        };
+        return (provider, outsideDirectoryPath);
     }
 
     private static string CreateTestDirectory()
