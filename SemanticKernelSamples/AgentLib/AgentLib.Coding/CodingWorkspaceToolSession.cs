@@ -70,6 +70,7 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
         {
             var workspaceTools = new WorkspaceToolProvider
             {
+                AllowReadingOutsideWorkspace = true,
                 WorkspacePath = fullWorkspacePath,
             };
             foreach (string directoryName in DefaultExcludedDirectoryNames)

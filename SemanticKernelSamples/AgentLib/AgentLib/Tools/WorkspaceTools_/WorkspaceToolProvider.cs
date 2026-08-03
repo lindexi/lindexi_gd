@@ -34,6 +34,12 @@ public sealed class WorkspaceToolProvider
     public ISet<string> ExcludedDirectoryNames { get; } = new HashSet<string>(GetPathComparer());
 
     /// <summary>
+    /// 获取或设置是否允许目录列举和查询工具读取工作区外的绝对路径。
+    /// 此属性不影响 <see cref="ReadFileLines"/>，该工具继续支持读取任意绝对文件路径。
+    /// </summary>
+    public bool AllowReadingOutsideWorkspace { get; set; }
+
+    /// <summary>
     /// 工作路径
     /// </summary>
     public string? WorkspacePath
@@ -62,22 +68,22 @@ public sealed class WorkspaceToolProvider
     {
         return
         [
-            AIFunctionFactory.Create(ListDirectory, name: nameof(ListDirectory), description: "列出工作路径下指定目录中的文件与子目录。"),
+            AIFunctionFactory.Create(ListDirectory, name: nameof(ListDirectory), description: "列出目录中的文件和子目录。"),
             //AIFunctionFactory.Create(ReadFile, name: nameof(ReadFile), description: "读取工作路径下指定文件的开头内容。"),
-            AIFunctionFactory.Create(FindEntriesByName, name: nameof(FindEntriesByName), description: "在工作路径下递归查找名称包含指定关键字的文件或文件夹。"),
-            AIFunctionFactory.Create(FindFilesMatchingPattern, name: nameof(FindFilesMatchingPattern), description: "在工作路径下递归查找匹配指定模式的文件，并返回命中文件路径与行号。支持纯文本匹配和正则表达式匹配。"),
-            AIFunctionFactory.Create(ReadFileLines, name: nameof(ReadFileLines), description: "读取工作路径下指定文件的某一段行内容。"),
-            AIFunctionFactory.Create(WriteFileContent, name: nameof(WriteFileContent), description: "将内容写入工作区内的文件。写入前要求先读取过该文件，防止误覆盖。"),
-            AIFunctionFactory.Create(ReplaceStringInFile, name: nameof(ReplaceStringInFile), description: "替换文件中的指定字符串。要求先读取过该文件，且 oldString 在文件中必须唯一匹配。"),
-            AIFunctionFactory.Create(MultiReplaceStringInFile, name: nameof(MultiReplaceStringInFile), description: "批量替换文件中的多个字符串。每个替换操作要求先读取过对应文件，且 oldString 在文件中必须唯一匹配。")
+            AIFunctionFactory.Create(FindEntriesByName, name: nameof(FindEntriesByName), description: "按名称关键字递归查找文件或目录。"),
+            AIFunctionFactory.Create(FindFilesMatchingPattern, name: nameof(FindFilesMatchingPattern), description: "在文件内容中递归搜索文本或正则表达式，返回命中位置。"),
+            AIFunctionFactory.Create(ReadFileLines, name: nameof(ReadFileLines), description: "读取文件的指定行范围。"),
+            AIFunctionFactory.Create(WriteFileContent, name: nameof(WriteFileContent), description: "覆写或创建文件；覆写前必须先读取文件。"),
+            AIFunctionFactory.Create(ReplaceStringInFile, name: nameof(ReplaceStringInFile), description: "替换文件中唯一匹配的文本；替换前必须先读取文件。"),
+            AIFunctionFactory.Create(MultiReplaceStringInFile, name: nameof(MultiReplaceStringInFile), description: "批量替换文件中唯一匹配的文本。")
         ];
     }
 
-    [Description("列出工作路径下指定目录中的文件与子目录。")]
+    [Description("列出目录中的文件和子目录。")]
     public Task<string> ListDirectory(
-        [Description("要访问的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示工作路径根目录。")] string? directoryPath = null,
-        [Description("是否递归列出子目录。false 表示只列出当前目录。")] bool recursive = false,
-        [Description("最多返回多少个结果。")] int maxResults = DefaultMaxResults)
+        [Description("目录路径；留空表示工作区根目录。")] string? directoryPath = null,
+        [Description("是否递归。")] bool recursive = false,
+        [Description("最大结果数。")] int maxResults = DefaultMaxResults)
     {
         if (maxResults <= 0)
         {
@@ -122,13 +128,13 @@ public sealed class WorkspaceToolProvider
         return Task.FromResult(builder.ToString().TrimEnd());
     }
 
-    [Description("在工作路径下递归查找名称包含指定关键字的文件或文件夹。")]
+    [Description("按名称关键字递归查找文件或目录。")]
     public async Task<string> FindEntriesByName(
-        [Description("名称中要包含的关键字。")] string query,
-        [Description("要搜索的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示从工作路径根目录开始搜索。")] string? directoryPath = null,
-        [Description("是否包含文件。")] bool includeFiles = true,
-        [Description("是否包含文件夹。")] bool includeDirectories = true,
-        [Description("最多返回多少个结果。")] int maxResults = DefaultMaxResults)
+        [Description("名称关键字。")] string query,
+        [Description("搜索目录；留空表示工作区根目录。")] string? directoryPath = null,
+        [Description("是否查找文件。")] bool includeFiles = true,
+        [Description("是否查找目录。")] bool includeDirectories = true,
+        [Description("最大结果数。")] int maxResults = DefaultMaxResults)
     {
         ArgumentHelper.ThrowIfNullOrWhiteSpace(query);
 
@@ -185,15 +191,15 @@ public sealed class WorkspaceToolProvider
     /// 支持纯文本匹配和正则表达式匹配。
     /// </summary>
     /// <param name="query">要匹配的文本或正则表达式模式。</param>
-    /// <param name="directoryPath">要搜索的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示从工作路径根目录开始搜索。</param>
+    /// <param name="directoryPath">要搜索的目录路径。相对路径相对于当前工作区；绝对路径默认必须位于工作区内，宿主启用工作区外读取后可指向任意位置。留空表示从工作区根目录开始搜索。</param>
     /// <param name="useRegex">是否将 <paramref name="query"/> 作为正则表达式进行匹配。默认为 false，表示纯文本匹配。</param>
     /// <param name="maxResults">最多返回多少个命中文件。</param>
-    [Description("在工作路径下递归查找匹配指定模式的文件，并返回命中文件路径与行号。支持纯文本匹配和正则表达式匹配。")]
+    [Description("在文件内容中递归搜索文本或正则表达式，返回命中位置。")]
     public async Task<string> FindFilesMatchingPattern(
-        [Description("要匹配的文本或正则表达式模式。")] string query,
-        [Description("要搜索的目录路径。可以传绝对路径；相对路径则相对于当前工作路径。留空表示从工作路径根目录开始搜索。")] string? directoryPath = null,
-        [Description("是否将 query 作为正则表达式进行匹配。默认为 false，表示纯文本匹配。")] bool useRegex = false,
-        [Description("最多返回多少个命中文件。")] int maxResults = DefaultMaxResults)
+        [Description("搜索文本或正则表达式。")] string query,
+        [Description("搜索目录；留空表示工作区根目录。")] string? directoryPath = null,
+        [Description("是否按正则表达式匹配。")] bool useRegex = false,
+        [Description("最大命中文件数。")] int maxResults = DefaultMaxResults)
     {
         ArgumentHelper.ThrowIfNullOrWhiteSpace(query);
 
@@ -269,12 +275,12 @@ public sealed class WorkspaceToolProvider
         return builder.ToString().TrimEnd();
     }
 
-    [Description("读取工作路径下指定文件的某一段行内容。")]
+    [Description("读取文件的指定行范围。")]
     public async Task<string> ReadFileLines(
-        [Description("要读取的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
-        [Description("起始行号，从 1 开始(1-based)。")] int startLine,
-        [Description("结束行号，包含该行(1-based)。")] int endLine,
-        [Description("是否在每一行前面包含行号。true 表示添加行号，false 表示只返回原始行内容。")] bool includeLineNumbers = false)
+        [Description("文件路径。")] string filePath,
+        [Description("起始行号，从 1 开始。")] int startLine,
+        [Description("结束行号，包含该行。")] int endLine,
+        [Description("是否显示行号。")] bool includeLineNumbers = false)
     {
         ArgumentHelper.ThrowIfNullOrWhiteSpace(filePath);
 
@@ -446,6 +452,13 @@ public sealed class WorkspaceToolProvider
         if (Path.IsPathRooted(path))
         {
             fullPath = NormalizePath(path);
+
+            if (!AllowReadingOutsideWorkspace && !IsPathInsideAnyWorkspace(fullPath))
+            {
+                errorMessage = $"目录不在工作区范围内: {fullPath}";
+                return false;
+            }
+
             errorMessage = string.Empty;
             return true;
         }
@@ -675,10 +688,10 @@ public sealed class WorkspaceToolProvider
     /// <param name="filePath">要写入的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。</param>
     /// <param name="content">要写入的内容。</param>
     /// <returns>成功时返回 "OK"，失败时返回错误信息。</returns>
-    [Description("将内容覆写到工作区内的文件，整体覆盖原内容。若文件不存在则创建新文件。写入前要求先通过 ReadFileLines 读取过该文件，且文件自读取后未被外部修改。")]
+    [Description("覆写或创建文件；覆写前必须先读取文件。")]
     public string WriteFileContent(
-        [Description("要写入的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
-        [Description("要写入的内容。")] string content)
+        [Description("文件路径。")] string filePath,
+        [Description("文件内容。")] string content)
     {
         ArgumentHelper.ThrowIfNullOrWhiteSpace(filePath);
 
@@ -723,11 +736,11 @@ public sealed class WorkspaceToolProvider
     /// <param name="oldString">要替换的原始文本，必须在文件中唯一匹配。</param>
     /// <param name="newString">替换后的新文本。</param>
     /// <returns>成功时返回 "OK"，失败时返回错误信息。</returns>
-    [Description("替换文件中的指定字符串。要求先读取过该文件，且 oldString 在文件中必须唯一匹配。")]
+    [Description("替换文件中唯一匹配的文本；替换前必须先读取文件。")]
     public string ReplaceStringInFile(
-        [Description("要替换的文件路径。可以传绝对路径；相对路径则相对于当前工作路径。")] string filePath,
-        [Description("要替换的原始文本，必须在文件中唯一匹配。包含前后各 3-5 行上下文以确保唯一性。")] string oldString,
-        [Description("替换后的新文本。")] string newString)
+        [Description("文件路径。")] string filePath,
+        [Description("必须唯一匹配的原始文本；必要时包含上下文。")] string oldString,
+        [Description("新文本。")] string newString)
     {
         ArgumentHelper.ThrowIfNullOrWhiteSpace(filePath);
         ArgumentNullException.ThrowIfNull(oldString);
@@ -743,10 +756,10 @@ public sealed class WorkspaceToolProvider
     /// <param name="replacements">替换操作列表，每个操作包含文件路径、原始文本、新文本和说明。</param>
     /// <param name="explanation">批量替换操作的总体说明。</param>
     /// <returns>替换操作的汇总结果。</returns>
-    [Description("批量替换文件中的多个字符串。顺序执行每个替换操作，每个操作独立处理错误。")]
+    [Description("批量替换文件中唯一匹配的文本。")]
     public string MultiReplaceStringInFile(
-        [Description("替换操作列表，每个操作包含文件路径、原始文本、新文本和说明。")] IReadOnlyList<ReplaceOperation> replacements,
-        [Description("批量替换操作的总体说明。")] string explanation)
+        [Description("替换操作列表。")] IReadOnlyList<ReplaceOperation> replacements,
+        [Description("修改说明。")] string explanation)
     {
         ArgumentNullException.ThrowIfNull(replacements);
 
