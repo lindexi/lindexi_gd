@@ -65,7 +65,7 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
         cancellationToken.ThrowIfCancellationRequested();
 
         // 压缩器始终使用 PrimaryModel 获取 IChatClient，与聊天逻辑无关
-        IChatClient reducerChatClient = await ChatManager.AgentApiEndpointManager.PrimaryModel.GetChatClientAsync().ConfigureAwait(false);
+        IChatClient reducerChatClient = await ChatManager.AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
 
         var chatClientAgentOptions = new ChatClientAgentOptions()
         {
@@ -107,8 +107,8 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
             return _agentSession;
         }
 
-        ChatClientAgent chatClientAgent = await GetChatClientAgentAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-        _agentSession = await chatClientAgent.CreateSessionAsync(cancellationToken).ConfigureAwait(false);
+        ChatClientAgent chatClientAgent = await GetChatClientAgentAsync(cancellationToken: cancellationToken);
+        _agentSession = await chatClientAgent.CreateSessionAsync(cancellationToken);
         Session.SetAgentSession(_agentSession);
         return _agentSession;
     }
@@ -133,11 +133,8 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
     /// <inheritdoc />
     public async Task AppendMessagesToSessionAsync()
     {
-        await ChatManager.TryRunInMainThread(async () =>
-        {
-            await ChatManager.AppendMessageAsync(Session, UserChatMessage);
-            await ChatManager.AppendMessageAsync(Session, AssistantChatMessage);
-        });
+        await ChatManager.AppendMessageAsync(Session, UserChatMessage);
+        await ChatManager.AppendMessageAsync(Session, AssistantChatMessage);
     }
 
     /// <inheritdoc />

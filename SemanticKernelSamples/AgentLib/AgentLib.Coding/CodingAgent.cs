@@ -199,14 +199,14 @@ public sealed class CodingAgent : IAsyncDisposable
             }
 
             using IDisposable chatting = context.StartChatting();
-            await context.AppendMessagesToSessionAsync().ConfigureAwait(false);
+            await context.AppendMessagesToSessionAsync();
             ChatClientAgent chatClientAgent = await context.GetChatClientAgentAsync(options =>
             {
                 options.ChatOptions ??= new ChatOptions();
                 options.ChatOptions.Tools = [.. lease.Tools];
                 options.AIContextProviders = [];
-            }, cancellationToken).ConfigureAwait(false);
-            AgentSession agentSession = await context.GetAgentSessionAsync(cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+            AgentSession agentSession = await context.GetAgentSessionAsync(cancellationToken);
             EnsureSystemPromptInSession(agentSession);
             ChatMessage[] inputMessages =
             [
@@ -216,9 +216,9 @@ public sealed class CodingAgent : IAsyncDisposable
             await foreach (AgentResponseUpdate update in chatClientAgent.RunWithHistoryCompletionAsync(
                 inputMessages,
                 agentSession,
-                cancellationToken).ConfigureAwait(false))
+                cancellationToken))
             {
-                await AppendResponseUpdateAsync(context, update).ConfigureAwait(false);
+                context.AppendResponseUpdate(update);
                 hasResponseUpdate = true;
             }
 
@@ -252,24 +252,6 @@ public sealed class CodingAgent : IAsyncDisposable
                 }
             }
         }
-    }
-
-    private static Task AppendResponseUpdateAsync(
-        IManualSendMessageContext context,
-        AgentResponseUpdate update)
-    {
-        IMainThreadDispatcher? dispatcher = context.MainThreadDispatcher;
-        if (dispatcher is null || dispatcher.CheckAccess())
-        {
-            context.AppendResponseUpdate(update);
-            return Task.CompletedTask;
-        }
-
-        return dispatcher.InvokeAsync(() =>
-        {
-            context.AppendResponseUpdate(update);
-            return Task.CompletedTask;
-        });
     }
 
     private static ICopilotChatMessageItem CreateDataMessageItem(DataContent dataContent)

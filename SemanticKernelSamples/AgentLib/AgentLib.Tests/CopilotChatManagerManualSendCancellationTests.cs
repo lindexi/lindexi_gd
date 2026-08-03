@@ -88,14 +88,15 @@ public class CopilotChatManagerManualSendCancellationTests
         Assert.IsTrue(firstResult.WasCancelled, "工具调用后的普通文本输出应触发内部取消分支。");
         Assert.IsTrue(firstResult.Session.TryGetInMemoryChatHistory(out List<ChatMessage>? messagesAfterCancel), "取消后应保留 AgentSession 历史。");
         Assert.IsNotNull(messagesAfterCancel);
-        Assert.HasCount(3, messagesAfterCancel, "取消补全后应保留本轮用户、已持久化工具调用和助手局部输出，不应重复追加用户消息或工具调用。");
+        Assert.HasCount(4, messagesAfterCancel, "取消补全后应保留本轮用户、工具调用、工具结果和助手局部输出，不应重复追加消息。");
         Assert.AreEqual(ChatRole.User, messagesAfterCancel[0].Role);
         Assert.AreEqual("请调用工具获取天气", messagesAfterCancel[0].Text);
         Assert.AreEqual(ChatRole.Assistant, messagesAfterCancel[1].Role);
         Assert.IsTrue(messagesAfterCancel[1].Contents.OfType<FunctionCallContent>().Any(), "历史应保留工具调用请求。");
-        Assert.AreEqual(ChatRole.Assistant, messagesAfterCancel[2].Role);
+        Assert.AreEqual(ChatRole.Tool, messagesAfterCancel[2].Role);
         Assert.IsTrue(messagesAfterCancel[2].Contents.OfType<FunctionResultContent>().Any(), "历史应补全工具调用结果。");
-        Assert.AreEqual("工具后第一段工具后第二段", messagesAfterCancel[2].Text);
+        Assert.AreEqual(ChatRole.Assistant, messagesAfterCancel[3].Role);
+        Assert.AreEqual("工具后第一段工具后第二段", messagesAfterCancel[3].Text);
 
         using var secondLoopCancellationTokenSource = new CancellationTokenSource();
         var secondResult = await RunManualSendLoopAsync(
@@ -107,11 +108,11 @@ public class CopilotChatManagerManualSendCancellationTests
         Assert.IsFalse(secondResult.WasCancelled, "第二轮不应再被取消。");
         Assert.IsTrue(secondResult.Session.TryGetInMemoryChatHistory(out List<ChatMessage>? messagesAfterSecondLoop), "第二轮后应仍可读取历史。");
         Assert.IsNotNull(messagesAfterSecondLoop);
-        Assert.HasCount(5, messagesAfterSecondLoop, "第二轮应在已补全历史后继续追加新的用户和助手消息。");
-        Assert.AreEqual(ChatRole.User, messagesAfterSecondLoop[3].Role);
-        Assert.AreEqual("请根据上一轮中断位置继续", messagesAfterSecondLoop[3].Text);
-        Assert.AreEqual(ChatRole.Assistant, messagesAfterSecondLoop[4].Role);
-        Assert.AreEqual("续跑响应，历史消息数：4", messagesAfterSecondLoop[4].Text);
+        Assert.HasCount(6, messagesAfterSecondLoop, "第二轮应在已补全历史后继续追加新的用户和助手消息。");
+        Assert.AreEqual(ChatRole.User, messagesAfterSecondLoop[4].Role);
+        Assert.AreEqual("请根据上一轮中断位置继续", messagesAfterSecondLoop[4].Text);
+        Assert.AreEqual(ChatRole.Assistant, messagesAfterSecondLoop[5].Role);
+        Assert.AreEqual("续跑响应，历史消息数：5", messagesAfterSecondLoop[5].Text);
     }
 
     [TestMethod(DisplayName = "手动发送的工具调用未完成时不应触发压缩模型")]

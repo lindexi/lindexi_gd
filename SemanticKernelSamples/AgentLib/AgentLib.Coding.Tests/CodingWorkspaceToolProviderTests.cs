@@ -94,6 +94,32 @@ public sealed class CodingWorkspaceToolProviderTests
         Assert.IsFalse(resultText.Contains("generated.txt", StringComparison.OrdinalIgnoreCase));
     }
 
+    [TestMethod(DisplayName = "Coding 工作区文件工具应允许列举工作区外绝对目录")]
+    [Timeout(15000)]
+    public async Task ListDirectory_WhenAbsolutePathIsOutsideCodingWorkspace_ListsDirectory()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        string outsideDirectoryPath = Path.Join(testRoot, "outside");
+        Directory.CreateDirectory(workspacePath);
+        Directory.CreateDirectory(outsideDirectoryPath);
+        await File.WriteAllTextAsync(Path.Join(outsideDirectoryPath, "outside.txt"), "outside-content");
+        string invalidLanguageServerPath = CreateInvalidLanguageServerFile(workspacePath);
+        await using var toolProvider = new CodingWorkspaceToolProvider(invalidLanguageServerPath);
+        await toolProvider.SetWorkspacePathAsync(workspacePath, CancellationToken.None);
+        await using CodingWorkspaceToolLease lease = await toolProvider.AcquireLeaseAsync();
+        AIFunction listDirectory = lease.Tools
+            .OfType<AIFunction>()
+            .Single(tool => tool.Name == "ListDirectory");
+
+        object? result = await listDirectory.InvokeAsync(new AIFunctionArguments
+        {
+            ["directoryPath"] = outsideDirectoryPath,
+        });
+
+        StringAssert.Contains(result?.ToString(), "outside.txt");
+    }
+
     [TestMethod(DisplayName = "清空工作区时应移除已发布工具")]
     [Timeout(15000)]
     public async Task SetWorkspacePathAsync_WhenWorkspaceIsCleared_RemovesTools()

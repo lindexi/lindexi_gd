@@ -55,7 +55,7 @@ public class SessionTitleGenerator
             return;
         }
 
-        string? title = await GenerateTitleCoreAsync(session, systemPrompt, cancellationToken).ConfigureAwait(false);
+        string? title = await GenerateTitleCoreAsync(session, systemPrompt, cancellationToken);
         if (!string.IsNullOrWhiteSpace(title))
         {
             session.SetTitle(title, TitleSource.Generated);

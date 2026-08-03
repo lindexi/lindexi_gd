@@ -195,9 +195,8 @@ public class CopilotChatManager : NotifyBase
     public IReadOnlyList<AIContextProvider>? AIContextProviders { get; set; }
 
     /// <summary>
-    /// 主线程调度器。设置后，所有新创建的 <see cref="CopilotChatSession"/> 都将携带此调度器，
-    /// <see cref="CopilotChatSession.AddMessage"/> 将自动调度到主线程执行。为 <see langword="null"/> 时不做线程调度。
-    /// 仅在构造期可设置。
+    /// Gets the optional UI-thread dispatcher supplied by the application.
+    /// The manager does not automatically dispatch observable state changes; callers may use this value when they explicitly own a cross-thread boundary.
     /// </summary>
     public IMainThreadDispatcher? MainThreadDispatcher { get; init; }
 
@@ -291,10 +290,7 @@ public class CopilotChatManager : NotifyBase
             throw new InvalidOperationException("在当前的会话中找不到所选的聊天消息。");
         }
 
-        var newSession = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now)
-        {
-            MainThreadDispatcher = MainThreadDispatcher,
-        };
+        var newSession = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
         for (int i = 0; i <= index; i++)
         {
             newSession.AddMessage(currentSession.ChatMessages[i].Clone());
@@ -535,15 +531,12 @@ public class CopilotChatManager : NotifyBase
                 await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgentCreatedResult.ChatClientAgent.RunStreamingAsync(
                     runMessages, chatClientAgentCreatedResult.AgentSession, cancellationToken: currentChatCancellationToken))
                 {
-                    await TryRunInMainThread(() =>
+                    if (isFirst)
                     {
-                        if (isFirst)
-                        {
-                            assistantChatMessage.ClearMessageItems();
-                        }
+                        assistantChatMessage.ClearMessageItems();
+                    }
 
-                        AppendAssistantResponseUpdate(assistantChatMessage, agentRunResponseUpdate);
-                    });
+                    AppendAssistantResponseUpdate(assistantChatMessage, agentRunResponseUpdate);
                     isFirst = false;
                 }
 
@@ -601,7 +594,7 @@ public class CopilotChatManager : NotifyBase
         CopilotChatMessage userChatMessage = CopilotChatMessage.CreateUser(string.Empty);
         CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
 
-        IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync().ConfigureAwait(false);
+        IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
 
         return new ManualSendMessageContext
         {
@@ -639,7 +632,7 @@ public class CopilotChatManager : NotifyBase
     public async Task ReduceSessionAsync(IChatReducer? chatReducer = null)
     {
         CopilotChatSession currentSession = SelectedSession;
-        List<ChatMessage> resultList = await ReduceAgentSessionAsync(currentSession.AgentSession, chatReducer).ConfigureAwait(false);
+        List<ChatMessage> resultList = await ReduceAgentSessionAsync(currentSession.AgentSession, chatReducer);
 
         // 从压缩结果中提取 Assistant 角色的完整内容（含文本、图片、音频等多模态），保留原始 AIContent
         List<AIContent> assistantContents = resultList
@@ -670,8 +663,7 @@ public class CopilotChatManager : NotifyBase
     public async Task ReduceAgentSessionOnlyAsync(AgentSession? agentSession = null, IChatReducer? chatReducer = null,
         CancellationToken cancellationToken = default)
     {
-        await ReduceAgentSessionAsync(agentSession ?? SelectedSession.AgentSession, chatReducer, cancellationToken)
-            .ConfigureAwait(false);
+        await ReduceAgentSessionAsync(agentSession ?? SelectedSession.AgentSession, chatReducer, cancellationToken);
     }
 
     private async Task<List<ChatMessage>> ReduceAgentSessionAsync(AgentSession? agentSession, IChatReducer? chatReducer = null,
@@ -697,7 +689,7 @@ public class CopilotChatManager : NotifyBase
             chatReducer = new CopilotChatManagerChatReducer(chatClient);
         }
 
-        IEnumerable<ChatMessage> result = await chatReducer.ReduceAsync(messages, cancellationToken).ConfigureAwait(false);
+        IEnumerable<ChatMessage> result = await chatReducer.ReduceAsync(messages, cancellationToken);
         var resultList = result.ToList();
         agentSession.SetInMemoryChatHistory(resultList);
         return resultList;
@@ -760,10 +752,7 @@ public class CopilotChatManager : NotifyBase
 
     private CopilotChatSession CreateSession()
     {
-        var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now)
-        {
-            MainThreadDispatcher = MainThreadDispatcher,
-        };
+        var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
         AddAssistantWelcomeMessage(session);
         ChatSessions.Insert(0, session);
         OnSessionCreated(session);
@@ -783,7 +772,7 @@ public class CopilotChatManager : NotifyBase
 
     /// <summary>
     /// 向当前选中会话追加一条聊天消息。
-    /// 如果设置了 <see cref="MainThreadDispatcher"/>，消息将通过调度器在主线程上添加，确保 UI 绑定集合的线程安全。
+    /// 调用方负责在拥有聊天可观察状态的线程上调用。
     /// </summary>
     /// <param name="chatMessage">要追加的聊天消息。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -816,47 +805,6 @@ public class CopilotChatManager : NotifyBase
         await session.AddMessageAsync(chatMessage);
         await ChatLogger.LogMessageAsync(session.SessionId, chatMessage);
     }
-
-    #region 辅助方法
-
-    internal Task TryRunInMainThread(Action action)
-    {
-        return TryRunInMainThread(() =>
-        {
-            action();
-            return Task.CompletedTask;
-        });
-    }
-
-    internal Task TryRunInMainThread(Func<Task> action)
-    {
-        if (MainThreadDispatcher is { } dispatcher)
-        {
-            if (dispatcher.CheckAccess())
-            {
-                return action();
-            }
-            else
-            {
-                return dispatcher.InvokeAsync(action);
-            }
-        }
-        else
-        {
-            // 没办法，没有主线程调度器，直接执行
-            return action();
-        }
-    }
-
-    protected override void OnPropertyChanged(string? propertyName = null)
-    {
-        TryRunInMainThread(() =>
-        {
-            base.OnPropertyChanged(propertyName);
-        });
-    }
-
-    #endregion
 
     private static async Task<AgentSession> GetOrCreateAgentSessionAsync(ChatClientAgent chatClientAgent, CopilotChatSession currentSession,
         CancellationToken cancellationToken)
