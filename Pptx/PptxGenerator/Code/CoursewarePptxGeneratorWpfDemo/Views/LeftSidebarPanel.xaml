@@ -43,17 +43,13 @@
                            FontSize="12"
                            Margin="0,2,8,0"
                            VerticalAlignment="Top" />
-                <Border x:Name="ThumbnailBorder"
-                        Grid.Column="1"
+                <Border Grid.Column="1"
                         Width="166"
-                        Height="118"
                         Background="White"
-                        BorderBrush="Transparent"
-                        BorderThickness="2"
                         CornerRadius="6"
                         ClipToBounds="True">
-                    <Grid Background="#F1F5F9">
-                        <Viewbox Stretch="Uniform">
+                    <Grid>
+                        <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Top">
                             <Grid Width="{Binding CanvasWidth}" Height="{Binding CanvasHeight}" Background="White">
                                 <Image Source="{Binding SourceScreenshotFilePath, Converter={x:Static converters:FilePathToImageSourceConverter.Instance}}"
                                        Stretch="Uniform" />
@@ -67,6 +63,11 @@
                                            Visibility="{Binding HasAnyPreviewImage, Converter={x:Static converters:InverseBooleanToVisibilityConverter.Instance}}" />
                             </Grid>
                         </Viewbox>
+                        <Border x:Name="ThumbnailBorder"
+                                BorderBrush="Transparent"
+                                BorderThickness="2"
+                                CornerRadius="6"
+                                IsHitTestVisible="False" />
                     </Grid>
                 </Border>
             </Grid>
