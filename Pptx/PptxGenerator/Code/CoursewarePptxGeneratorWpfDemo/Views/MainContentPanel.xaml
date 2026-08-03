@@ -69,9 +69,8 @@
             </Border>
         </Border>
 
-        <Border Grid.Row="1" Margin="24,0,24,24" Style="{StaticResource WorkspaceCardStyle}">
-            <Expander Header="{StaticResource AdvancedPageEditingTitleText}" IsExpanded="False" Padding="16,10">
-                <DockPanel Margin="0,8,0,0">
+        <Border Grid.Row="1" Margin="24,0,24,24" Padding="16,10" Style="{StaticResource WorkspaceCardStyle}">
+            <DockPanel>
                     <Border DockPanel.Dock="Top" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,10">
                         <DockPanel>
                             <Button DockPanel.Dock="Right"
@@ -80,17 +79,11 @@
                                     CommandParameter="{Binding SelectedSlide}"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Padding="12,6" />
-                            <StackPanel>
-                                <TextBlock Text="{StaticResource AdvancedPageEditingDescriptionText}"
-                                           FontSize="11"
-                                           Foreground="{StaticResource TextSecondaryBrush}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock Text="存在尚未应用的手工修改"
-                                           FontSize="10"
-                                           Foreground="#B54708"
-                                           Margin="0,4,0,0"
-                                           Visibility="{Binding SelectedSlide.HasUnsavedChanges, Converter={StaticResource BooleanToVisibility}}" />
-                            </StackPanel>
+                            <TextBlock Text="存在尚未应用的手工修改"
+                                       FontSize="10"
+                                       Foreground="#B54708"
+                                       VerticalAlignment="Center"
+                                       Visibility="{Binding SelectedSlide.HasUnsavedChanges, Converter={StaticResource BooleanToVisibility}}" />
                         </DockPanel>
                     </Border>
 
@@ -147,8 +140,7 @@
                             </TabControl>
                         </Border>
                     </Grid>
-                </DockPanel>
-            </Expander>
+            </DockPanel>
         </Border>
     </Grid>
 </UserControl>

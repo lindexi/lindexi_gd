@@ -32,8 +32,6 @@
     <system:String x:Key="SendMessageText">发送</system:String>
     <system:String x:Key="CancelMessageText">取消</system:String>
     <system:String x:Key="AttachCurrentPreviewText">发送时附带当前渲染预览</system:String>
-    <system:String x:Key="AdvancedPageEditingTitleText">高级页面编辑</system:String>
-    <system:String x:Key="AdvancedPageEditingDescriptionText">可直接调整页面描述代码，并查看渲染记录与诊断信息。普通使用无需修改。</system:String>
     <system:String x:Key="PageSourceTitleText">页面描述代码</system:String>
     <system:String x:Key="RenderingLogTitleText">渲染记录</system:String>
     <system:String x:Key="InputDiagnosticTitleText">页面检查信息</system:String>
