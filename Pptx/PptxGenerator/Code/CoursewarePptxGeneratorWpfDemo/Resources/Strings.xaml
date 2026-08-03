@@ -21,6 +21,8 @@
     <system:String x:Key="BackToThemeSuggestionText">← 返回主题建议</system:String>
     <system:String x:Key="BackToThemeSuggestionAutomationText">返回主题建议</system:String>
     <system:String x:Key="PageAssistantTitleText">页面美化助手</system:String>
+    <system:String x:Key="GenerationModelText">生成模型</system:String>
+    <system:String x:Key="GenerationModelToolTipText">选择用于页面美化的 AI 模型</system:String>
     <system:String x:Key="ImageAttachmentUsageHintText">添加的图片仅用于帮助理解视觉需求，不会自动加入课件资源。</system:String>
     <system:String x:Key="RemoveImageAttachmentText">移除图片</system:String>
     <system:String x:Key="AddImageText">添加图片</system:String>

@@ -35,12 +35,21 @@
                     <TextBlock Text="{StaticResource PageAssistantTitleText}" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextPrimaryBrush}" />
                     <TextBlock Text="{Binding SelectedSlide.Title}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
                 </StackPanel>
-                <ComboBox Grid.Column="1"
-                          Width="220"
-                          ItemsSource="{Binding SelectedSlide.AvailableModelItems}"
-                          SelectedItem="{Binding SelectedSlide.SelectedModelItem, Mode=TwoWay}"
-                          IsEnabled="{Binding SelectedSlide.IsAiGenerationAvailable}"
-                          DisplayMemberPath="DisplayName" />
+                <StackPanel Grid.Column="1" Margin="16,0,0,0">
+                    <TextBlock Text="{StaticResource GenerationModelText}"
+                               Margin="2,0,0,4"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               FontSize="10"
+                               FontWeight="SemiBold" />
+                    <ComboBox Width="220"
+                              AutomationProperties.Name="{StaticResource GenerationModelToolTipText}"
+                              ToolTip="{StaticResource GenerationModelToolTipText}"
+                              Style="{DynamicResource ModelSelectorComboBoxStyle}"
+                              ItemsSource="{Binding SelectedSlide.AvailableModelItems}"
+                              SelectedItem="{Binding SelectedSlide.SelectedModelItem, Mode=TwoWay}"
+                              IsEnabled="{Binding SelectedSlide.IsAiGenerationAvailable}"
+                              DisplayMemberPath="DisplayName" />
+                </StackPanel>
             </Grid>
         </Border>
 

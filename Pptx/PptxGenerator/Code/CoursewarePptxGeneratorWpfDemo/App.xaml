@@ -8,6 +8,7 @@
                 <ResourceDictionary Source="Resources/Strings.xaml" />
                 <ResourceDictionary Source="Resources/Brushes.xaml" />
                 <ResourceDictionary Source="Resources/ButtonStyles.xaml" />
+                <ResourceDictionary Source="Resources/ComboBoxStyles.xaml" />
                 <ResourceDictionary Source="Resources/ScrollViewerStyles.xaml" />
                 <ResourceDictionary Source="Resources/TabStyles.xaml" />
                 <ResourceDictionary Source="Resources/CardStyles.xaml" />
