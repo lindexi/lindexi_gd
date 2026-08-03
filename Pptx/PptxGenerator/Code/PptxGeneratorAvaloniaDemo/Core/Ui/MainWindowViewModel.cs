@@ -84,6 +84,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     private void OnSlideChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        VerifyAccess();
         switch (e.PropertyName)
         {
             case nameof(SlideChatManager.PreviewImage):
@@ -102,6 +103,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private void OnCopilotChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        VerifyAccess();
         switch (e.PropertyName)
         {
             case nameof(AgentLib.CopilotChatManager.ChatMessages):
@@ -113,31 +115,25 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private void OnEvaluationCompleted(object? sender, SlideEvaluationResult result)
     {
-        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            EvaluationSummaryText = $"评估完成 | 综合评分: {result.OverallScore:F1}/10";
-            _evaluateCommand.RaiseCanExecuteChanged();
-        });
+        VerifyAccess();
+        EvaluationSummaryText = $"评估完成 | 综合评分: {result.OverallScore:F1}/10";
+        _evaluateCommand.RaiseCanExecuteChanged();
     }
 
     private void OnPromptEvaluationCompleted(object? sender, PromptEvaluationResult result)
     {
-        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            _evaluatePromptCommand.RaiseCanExecuteChanged();
-        });
+        VerifyAccess();
+        _evaluatePromptCommand.RaiseCanExecuteChanged();
     }
 
     private void OnIterationCompleted(object? sender, IterationResult result)
     {
-        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            IsIterating = false;
-            IterationStatusText = result.IsConverged
-                ? $"✅ 迭代收敛 | {result.TotalRounds} 轮 | 最终评分: {result.FinalScore:F1}/10"
-                : $"⏹ 迭代完成 | {result.TotalRounds} 轮 | 最终评分: {result.FinalScore:F1}/10";
-            _evaluatePromptCommand.RaiseCanExecuteChanged();
-        });
+        VerifyAccess();
+        IsIterating = false;
+        IterationStatusText = result.IsConverged
+            ? $"✅ 迭代收敛 | {result.TotalRounds} 轮 | 最终评分: {result.FinalScore:F1}/10"
+            : $"⏹ 迭代完成 | {result.TotalRounds} 轮 | 最终评分: {result.FinalScore:F1}/10";
+        _evaluatePromptCommand.RaiseCanExecuteChanged();
     }
 
     /// <summary>
@@ -329,6 +325,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private async Task RunSendMessageAsync()
     {
+        VerifyAccess();
         if (string.IsNullOrWhiteSpace(InputText))
         {
             return;
@@ -359,12 +356,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         using var cancellationTokenSource = new CancellationTokenSource();
         try
         {
-            await SlideChatManager.SendMessageAsync(message, isFirstMessage, attachPreview, imageFiles, useStreaming: _isStreamingMode, cancellationToken: cancellationTokenSource.Token).ConfigureAwait(false);
-
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                StatusText = "完成";
-            });
+            await SlideChatManager.SendMessageAsync(message, isFirstMessage, attachPreview, imageFiles, useStreaming: _isStreamingMode, cancellationToken: cancellationTokenSource.Token);
+            StatusText = "完成";
         }
         catch (OperationCanceledException)
         {
@@ -382,6 +375,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private async Task RunEvaluateAsync()
     {
+        VerifyAccess();
         if (string.IsNullOrWhiteSpace(_lastUserPrompt) || IsBusy)
         {
             return;
@@ -391,12 +385,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         StatusText = "正在评估 SlideML...";
         try
         {
-            await SlideChatManager.EvaluateAsync(_lastUserPrompt).ConfigureAwait(false);
-
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                StatusText = "评估完成";
-            });
+            await SlideChatManager.EvaluateAsync(_lastUserPrompt);
+            StatusText = "评估完成";
         }
         catch (OperationCanceledException)
         {
@@ -414,6 +404,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private async Task RunEvaluatePromptAsync()
     {
+        VerifyAccess();
         if (IsBusy || IsIterating)
         {
             return;
@@ -449,20 +440,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             var result = await SlideChatManager.RunPromptIterationAsync(
                 _lastUserPrompt,
                 originalScreenshot,
-                cancellationToken: CancellationToken.None)
-                .ConfigureAwait(false);
+                cancellationToken: CancellationToken.None);
 
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            if (result is not null)
             {
-                if (result is not null)
-                {
-                    StatusText = result.IsConverged ? "迭代收敛" : "迭代完成";
-                }
-                else
-                {
-                    StatusText = "迭代不可用";
-                }
-            });
+                StatusText = result.IsConverged ? "迭代收敛" : "迭代完成";
+            }
+            else
+            {
+                StatusText = "迭代不可用";
+            }
         }
         catch (OperationCanceledException)
         {
@@ -481,16 +468,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private async Task RunSinglePromptEvaluationAsync()
     {
+        VerifyAccess();
         IsBusy = true;
         StatusText = "正在评估提示词...";
         try
         {
-            await SlideChatManager.EvaluatePromptAsync().ConfigureAwait(false);
-
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                StatusText = "提示词评估完成";
-            });
+            await SlideChatManager.EvaluatePromptAsync();
+            StatusText = "提示词评估完成";
         }
         catch (OperationCanceledException)
         {
@@ -511,16 +495,18 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     public async Task TryConnectMcpRenderAsync()
     {
+        VerifyAccess();
         if (SlideChatManager.SlideMlRenderTool.RenderPipeline is not SwitchableSlideMlRenderPipeline pipeline)
         {
             return;
         }
 
-        await pipeline.TryEnableMcpAsync(McpServiceUrl).ConfigureAwait(false);
+        await pipeline.TryEnableMcpAsync(McpServiceUrl);
     }
 
     private async Task RunRerenderAsync()
     {
+        VerifyAccess();
         if (IsBusy || string.IsNullOrWhiteSpace(EditableSlideXml))
         {
             return;
@@ -532,15 +518,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         {
             var renderTool = SlideChatManager.SlideMlRenderTool;
             var renderResult = await renderTool.RenderPipeline
-                .RenderAsync(EditableSlideXml)
-                .ConfigureAwait(false);
+                .RenderAsync(EditableSlideXml);
 
-            await renderTool.ApplyRenderResultAsync(renderResult).ConfigureAwait(false);
-
-            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                StatusText = "重新渲染完成";
-            });
+            await renderTool.ApplyRenderResultAsync(renderResult);
+            StatusText = "重新渲染完成";
         }
         catch (OperationCanceledException)
         {
@@ -558,7 +539,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private async Task UseMcpSlideMlRender()
     {
-        await TryConnectMcpRenderAsync().ConfigureAwait(false);
+        await TryConnectMcpRenderAsync();
     }
 
     private void OnPropertyChanged(string propertyName)
@@ -576,5 +557,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
+    }
+
+    private static void VerifyAccess()
+    {
+        if (!AvaloniaDispatcher.Instance.CheckAccess())
+        {
+            throw new InvalidOperationException("主窗口 ViewModel 只能由所属的 UI Dispatcher 调用。");
+        }
     }
 }

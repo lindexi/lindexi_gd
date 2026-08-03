@@ -13,7 +13,7 @@ public sealed class AsyncDelegateCommand : ICommand
     private readonly Func<Task> _executeAsync;
     private readonly Func<bool>? _canExecute;
     private readonly Action<Exception> _onException;
-    private int _isExecuting;
+    private bool _isExecuting;
 
     public AsyncDelegateCommand(
         Func<Task> executeAsync,
@@ -27,7 +27,7 @@ public sealed class AsyncDelegateCommand : ICommand
 
     public event EventHandler? CanExecuteChanged;
 
-    public bool IsExecuting => Volatile.Read(ref _isExecuting) != 0;
+    public bool IsExecuting => _isExecuting;
 
     public Task ExecutionTask { get; private set; } = Task.CompletedTask;
 
@@ -41,11 +41,12 @@ public sealed class AsyncDelegateCommand : ICommand
     public Task ExecuteAsync()
     {
         if (!(_canExecute?.Invoke() ?? true)
-            || Interlocked.CompareExchange(ref _isExecuting, 1, 0) != 0)
+            || _isExecuting)
         {
             return Task.CompletedTask;
         }
 
+        _isExecuting = true;
         ExecutionTask = ExecuteCoreAsync();
         return ExecutionTask;
     }
@@ -64,7 +65,7 @@ public sealed class AsyncDelegateCommand : ICommand
         }
         finally
         {
-            Interlocked.Exchange(ref _isExecuting, 0);
+            _isExecuting = false;
             RaiseCanExecuteChanged();
         }
     }
@@ -90,7 +91,7 @@ public sealed class AsyncDelegateCommand<T> : ICommand
     private readonly Func<T?, Task> _executeAsync;
     private readonly Func<T?, bool>? _canExecute;
     private readonly Action<Exception> _onException;
-    private int _isExecuting;
+    private bool _isExecuting;
 
     public AsyncDelegateCommand(
         Func<T?, Task> executeAsync,
@@ -104,7 +105,7 @@ public sealed class AsyncDelegateCommand<T> : ICommand
 
     public event EventHandler? CanExecuteChanged;
 
-    public bool IsExecuting => Volatile.Read(ref _isExecuting) != 0;
+    public bool IsExecuting => _isExecuting;
 
     public Task ExecutionTask { get; private set; } = Task.CompletedTask;
 
@@ -122,11 +123,12 @@ public sealed class AsyncDelegateCommand<T> : ICommand
     public Task ExecuteAsync(T? parameter = default)
     {
         if (!(_canExecute?.Invoke(parameter) ?? true)
-            || Interlocked.CompareExchange(ref _isExecuting, 1, 0) != 0)
+            || _isExecuting)
         {
             return Task.CompletedTask;
         }
 
+        _isExecuting = true;
         ExecutionTask = ExecuteCoreAsync(parameter);
         return ExecutionTask;
     }
@@ -145,7 +147,7 @@ public sealed class AsyncDelegateCommand<T> : ICommand
         }
         finally
         {
-            Interlocked.Exchange(ref _isExecuting, 0);
+            _isExecuting = false;
             RaiseCanExecuteChanged();
         }
     }

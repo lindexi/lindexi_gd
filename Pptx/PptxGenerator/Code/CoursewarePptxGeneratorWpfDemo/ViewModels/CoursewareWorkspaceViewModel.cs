@@ -55,7 +55,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
     private readonly ISlideChatManagerFactory _slideChatManagerFactory;
     private readonly CoursewareSlideSummaryService _slideSummaryService;
     private readonly ICoursewareSlidePromptBuilder _slidePromptBuilder;
-    private readonly IViewModelDispatcher _dispatcher;
+    private readonly IViewModelThreadAccess _threadAccess;
     private readonly AsyncRelayCommand _enterWorkspaceCommand;
     private readonly AsyncRelayCommand _reanalyzeCommand;
     private readonly RelayCommand _cancelAnalysisCommand;
@@ -81,7 +81,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
     /// Initializes a new instance of the <see cref="CoursewareWorkspaceViewModel" /> class.
     /// </summary>
     /// <param name="coursewareFolderLoader">The courseware export folder loader.</param>
-    /// <param name="dispatcher">The dispatcher used for ViewModel state updates.</param>
+    /// <param name="threadAccess">Verifies access to the thread that owns ViewModel state.</param>
     /// <param name="themeAnalysisService">The service used to analyze the loaded courseware theme.</param>
     /// <param name="slideChatManagerFactory">The factory used to create independent page runtimes.</param>
     /// <param name="slideSummaryService">The deterministic page summary service.</param>
@@ -90,7 +90,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
     /// <param name="workspaceFolderLoader">The unified ordinary-courseware and snapshot folder loader.</param>
     public CoursewareWorkspaceViewModel(
         CoursewareFolderLoader coursewareFolderLoader,
-        IViewModelDispatcher? dispatcher = null,
+        IViewModelThreadAccess? threadAccess = null,
         ICoursewareThemeAnalysisService? themeAnalysisService = null,
         ISlideChatManagerFactory? slideChatManagerFactory = null,
         CoursewareSlideSummaryService? slideSummaryService = null,
@@ -107,7 +107,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         _slideChatManagerFactory = slideChatManagerFactory ?? new SlideChatManagerFactory();
         _slideSummaryService = slideSummaryService ?? new CoursewareSlideSummaryService();
         _slidePromptBuilder = slidePromptBuilder ?? new CoursewareSlidePromptBuilder();
-        _dispatcher = dispatcher ?? WpfViewModelDispatcher.Instance;
+        _threadAccess = threadAccess ?? WpfViewModelThreadAccess.Instance;
         CoursewareThumbnails = new ObservableCollection<CoursewareThumbnailItemViewModel>();
         ThemeColors = new ObservableCollection<CoursewareThemeColorViewModel>();
         TypographyLevels = new ObservableCollection<CoursewareTypographyLevelViewModel>();
@@ -220,7 +220,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         }
 
         _isDisposed = true;
-        CancelIfActive(Volatile.Read(ref _workflowCancellationTokenSource));
+        CancelIfActive(_workflowCancellationTokenSource);
         DisposeSlideWorkspace();
     }
 
@@ -314,6 +314,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         get => _selectedAnalysisTab;
         set
         {
+            VerifyAccess();
             if (value == CoursewareAnalysisTab.ThemeResult && !IsAnalysisReady)
             {
                 return;
@@ -540,31 +541,29 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
     /// <returns>A task that represents the loading operation.</returns>
     public async Task OpenCoursewareFolderAsync(string? folderPath)
     {
+        VerifyAccess();
         if (_isDisposed || string.IsNullOrWhiteSpace(folderPath))
         {
             return;
         }
 
         var cancellationTokenSource = new CancellationTokenSource();
-        var previousCancellationTokenSource = Interlocked.Exchange(ref _workflowCancellationTokenSource, cancellationTokenSource);
+        var previousCancellationTokenSource = _workflowCancellationTokenSource;
+        _workflowCancellationTokenSource = cancellationTokenSource;
         CancelIfActive(previousCancellationTokenSource);
 
-        await _dispatcher.InvokeAsync(() =>
-        {
-            DisposeSlideWorkspace();
-            CurrentPage = CoursewareApplicationPage.CoursewareAnalysis;
-            CoursewareSession = null;
-            CoursewareThumbnails.Clear();
-            ClearAnalysisPresentation();
-            WorkspaceState = CoursewareWorkspaceState.LoadingCourseware;
-            LoadErrorMessage = null;
-            LoadErrorDetails = null;
-        });
+        DisposeSlideWorkspace();
+        CurrentPage = CoursewareApplicationPage.CoursewareAnalysis;
+        CoursewareSession = null;
+        CoursewareThumbnails.Clear();
+        ClearAnalysisPresentation();
+        WorkspaceState = CoursewareWorkspaceState.LoadingCourseware;
+        LoadErrorMessage = null;
+        LoadErrorDetails = null;
 
         try
         {
-            var folderLoadResult = await _workspaceFolderLoader.LoadAsync(folderPath, cancellationTokenSource.Token)
-                .ConfigureAwait(false);
+            var folderLoadResult = await _workspaceFolderLoader.LoadAsync(folderPath, cancellationTokenSource.Token);
             var package = folderLoadResult.InputPackage;
             var thumbnails = new List<CoursewareThumbnailItemViewModel>(package.Slides.Count);
             foreach (var slide in package.Slides)
@@ -573,87 +572,83 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
                 thumbnails.Add(CoursewareThumbnailItemViewModel.Create(slide));
             }
 
-            await _dispatcher.InvokeAsync(() =>
+            CoursewareThumbnails.Clear();
+            CoursewareSession = null;
+            foreach (var thumbnail in thumbnails)
             {
-                CoursewareThumbnails.Clear();
-                CoursewareSession = null;
-                foreach (var thumbnail in thumbnails)
-                {
-                    CoursewareThumbnails.Add(thumbnail);
-                }
+                CoursewareThumbnails.Add(thumbnail);
+            }
 
-                CoursewareSession = new CoursewareWorkspaceSession(package);
-                ClearAnalysisPresentation();
-                WorkspaceState = folderLoadResult.IsThemeAnalysisSnapshot
-                    ? CoursewareWorkspaceState.LoadingCourseware
-                    : CoursewareWorkspaceState.AnalyzingCourseware;
-                OnPropertyChanged(nameof(SlideCountText));
-                OnPropertyChanged(nameof(InputHealthText));
-            });
+            CoursewareSession = new CoursewareWorkspaceSession(package);
+            ClearAnalysisPresentation();
+            WorkspaceState = folderLoadResult.IsThemeAnalysisSnapshot
+                ? CoursewareWorkspaceState.LoadingCourseware
+                : CoursewareWorkspaceState.AnalyzingCourseware;
+            OnPropertyChanged(nameof(SlideCountText));
+            OnPropertyChanged(nameof(InputHealthText));
 
             if (folderLoadResult.AnalysisResult is not null)
             {
-                await _dispatcher.InvokeAsync(() => PublishRestoredAnalysisResult(
+                PublishRestoredAnalysisResult(
                     package,
                     cancellationTokenSource,
-                    folderLoadResult.AnalysisResult));
-                await EnterWorkspaceAsync().ConfigureAwait(false);
+                    folderLoadResult.AnalysisResult);
+                await EnterWorkspaceAsync();
                 return;
             }
 
             var analysisResult = await AnalyzeThemeAsync(
                 package,
-                cancellationTokenSource).ConfigureAwait(false);
+                cancellationTokenSource);
             await SaveThemeAnalysisSnapshotAsync(
                 package,
                 analysisResult,
-                cancellationTokenSource.Token).ConfigureAwait(false);
-            await _dispatcher.InvokeAsync(() => PublishAnalysisResult(package, cancellationTokenSource, analysisResult));
+                cancellationTokenSource.Token);
+            PublishAnalysisResult(package, cancellationTokenSource, analysisResult);
         }
         catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
         {
-            await _dispatcher.InvokeAsync(() =>
+            if (!_isDisposed
+                && ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource)
+                && CoursewareSession is not null)
             {
-                if (!_isDisposed
-                    && ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource)
-                    && CoursewareSession is not null)
-                {
-                    WorkspaceState = CoursewareWorkspaceState.Canceled;
-                }
-            });
+                WorkspaceState = CoursewareWorkspaceState.Canceled;
+            }
         }
         catch (Exception ex)
         {
-            await _dispatcher.InvokeAsync(() =>
+            if (_isDisposed
+                || !ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource))
             {
-                if (_isDisposed
-                    || !ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource))
-                {
-                    return;
-                }
+                return;
+            }
 
-                LoadErrorMessage = ex.Message;
-                LoadErrorDetails = ex.ToString();
-                if (CoursewareSession is null)
-                {
-                    CoursewareThumbnails.Clear();
-                    WorkspaceState = CoursewareWorkspaceState.LoadFailed;
-                }
-                else
-                {
-                    WorkspaceState = CoursewareWorkspaceState.AnalysisFailed;
-                }
-            });
+            LoadErrorMessage = ex.Message;
+            LoadErrorDetails = ex.ToString();
+            if (CoursewareSession is null)
+            {
+                CoursewareThumbnails.Clear();
+                WorkspaceState = CoursewareWorkspaceState.LoadFailed;
+            }
+            else
+            {
+                WorkspaceState = CoursewareWorkspaceState.AnalysisFailed;
+            }
         }
         finally
         {
-            Interlocked.CompareExchange(ref _workflowCancellationTokenSource, null, cancellationTokenSource);
+            if (ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource))
+            {
+                _workflowCancellationTokenSource = null;
+            }
+
             cancellationTokenSource.Dispose();
         }
     }
 
     private async Task ReanalyzeAsync()
     {
+        VerifyAccess();
         var session = CoursewareSession;
         if (_isDisposed || session is null)
         {
@@ -661,58 +656,54 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         }
 
         var cancellationTokenSource = new CancellationTokenSource();
-        var previousCancellationTokenSource = Interlocked.Exchange(ref _workflowCancellationTokenSource, cancellationTokenSource);
+        var previousCancellationTokenSource = _workflowCancellationTokenSource;
+        _workflowCancellationTokenSource = cancellationTokenSource;
         CancelIfActive(previousCancellationTokenSource);
 
-        await _dispatcher.InvokeAsync(() =>
-        {
-            ClearAnalysisPresentation();
-            LoadErrorMessage = null;
-            LoadErrorDetails = null;
-            WorkspaceState = CoursewareWorkspaceState.AnalyzingCourseware;
-            OnPropertyChanged(nameof(ShowsThemeResult));
-        });
+        ClearAnalysisPresentation();
+        LoadErrorMessage = null;
+        LoadErrorDetails = null;
+        WorkspaceState = CoursewareWorkspaceState.AnalyzingCourseware;
+        OnPropertyChanged(nameof(ShowsThemeResult));
 
         try
         {
             var analysisResult = await AnalyzeThemeAsync(
                 session.InputPackage,
-                cancellationTokenSource).ConfigureAwait(false);
+                cancellationTokenSource);
             await SaveThemeAnalysisSnapshotAsync(
                 session.InputPackage,
                 analysisResult,
-                cancellationTokenSource.Token).ConfigureAwait(false);
-            await _dispatcher.InvokeAsync(() => PublishAnalysisResult(session.InputPackage, cancellationTokenSource, analysisResult));
+                cancellationTokenSource.Token);
+            PublishAnalysisResult(session.InputPackage, cancellationTokenSource, analysisResult);
         }
         catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
         {
-            await _dispatcher.InvokeAsync(() =>
+            if (!_isDisposed
+                && ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource))
             {
-                if (!_isDisposed
-                    && ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource))
-                {
-                    WorkspaceState = CoursewareWorkspaceState.Canceled;
-                }
-            });
+                WorkspaceState = CoursewareWorkspaceState.Canceled;
+            }
         }
         catch (Exception ex)
         {
-            await _dispatcher.InvokeAsync(() =>
+            if (_isDisposed
+                || !ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource))
             {
-                if (_isDisposed
-                    || !ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource))
-                {
-                    return;
-                }
+                return;
+            }
 
-                LoadErrorMessage = ex.Message;
-                LoadErrorDetails = ex.ToString();
-                WorkspaceState = CoursewareWorkspaceState.AnalysisFailed;
-            });
+            LoadErrorMessage = ex.Message;
+            LoadErrorDetails = ex.ToString();
+            WorkspaceState = CoursewareWorkspaceState.AnalysisFailed;
         }
         finally
         {
-            Interlocked.CompareExchange(ref _workflowCancellationTokenSource, null, cancellationTokenSource);
+            if (ReferenceEquals(_workflowCancellationTokenSource, cancellationTokenSource))
+            {
+                _workflowCancellationTokenSource = null;
+            }
+
             cancellationTokenSource.Dispose();
         }
     }
@@ -741,7 +732,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         _ = await _themeAnalysisSnapshotStore.SaveAsync(
             inputPackage,
             analysisResult,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
     private void PublishRestoredAnalysisResult(
@@ -776,7 +767,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
                 _slideChatManagerFactory,
                 _slidePromptBuilder,
                 _slideSummaryService,
-                _dispatcher));
+                _threadAccess));
         }
         else
         {
@@ -803,27 +794,18 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
     {
         var progress = CreateAnalysisProgress(inputPackage, workflowCancellationTokenSource);
         var messageProgress = CreateAnalysisMessageProgress(inputPackage, workflowCancellationTokenSource);
-        try
-        {
-            return await _themeAnalysisService.AnalyzeAsync(
-                inputPackage,
-                progress,
-                messageProgress,
-                workflowCancellationTokenSource.Token).ConfigureAwait(false);
-        }
-        finally
-        {
-            await Task.WhenAll(
-                progress.WaitForCompletionAsync(),
-                messageProgress.WaitForCompletionAsync()).ConfigureAwait(false);
-        }
+        return await _themeAnalysisService.AnalyzeAsync(
+            inputPackage,
+            progress,
+            messageProgress,
+            workflowCancellationTokenSource.Token);
     }
 
-    private OrderedDispatcherProgress<CoursewareAnalysisEvent> CreateAnalysisProgress(
+    private SynchronousUiProgress<CoursewareAnalysisEvent> CreateAnalysisProgress(
         CoursewareInputPackage inputPackage,
         CancellationTokenSource workflowCancellationTokenSource)
     {
-        return new OrderedDispatcherProgress<CoursewareAnalysisEvent>(_dispatcher, analysisEvent =>
+        return new SynchronousUiProgress<CoursewareAnalysisEvent>(_threadAccess, analysisEvent =>
         {
             if (_isDisposed
                 || CoursewareSession is null
@@ -837,11 +819,11 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         });
     }
 
-    private OrderedDispatcherProgress<CopilotChatMessage> CreateAnalysisMessageProgress(
+    private SynchronousUiProgress<CopilotChatMessage> CreateAnalysisMessageProgress(
         CoursewareInputPackage inputPackage,
         CancellationTokenSource workflowCancellationTokenSource)
     {
-        return new OrderedDispatcherProgress<CopilotChatMessage>(_dispatcher, message =>
+        return new SynchronousUiProgress<CopilotChatMessage>(_threadAccess, message =>
         {
             if (_isDisposed
                 || CoursewareSession is null
@@ -855,35 +837,21 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         });
     }
 
-    private sealed class OrderedDispatcherProgress<T>(
-        IViewModelDispatcher dispatcher,
+    private sealed class SynchronousUiProgress<T>(
+        IViewModelThreadAccess threadAccess,
         Action<T> report) : IProgress<T>
     {
-        private readonly IViewModelDispatcher _dispatcher = dispatcher;
+        private readonly IViewModelThreadAccess _threadAccess = threadAccess;
         private readonly Action<T> _report = report;
-        private readonly object _syncRoot = new();
-        private Task _pendingTask = Task.CompletedTask;
 
         public void Report(T value)
         {
-            lock (_syncRoot)
+            if (!_threadAccess.CheckAccess())
             {
-                _pendingTask = DispatchAfterAsync(_pendingTask, value);
+                throw new InvalidOperationException("课件分析进度必须在所属的 UI Dispatcher 上报告。");
             }
-        }
 
-        public Task WaitForCompletionAsync()
-        {
-            lock (_syncRoot)
-            {
-                return _pendingTask;
-            }
-        }
-
-        private async Task DispatchAfterAsync(Task previousTask, T value)
-        {
-            await previousTask.ConfigureAwait(false);
-            await _dispatcher.InvokeAsync(() => _report(value)).ConfigureAwait(false);
+            _report(value);
         }
     }
 
@@ -971,14 +939,15 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
 
     private async Task EnterWorkspaceAsync()
     {
+        VerifyAccess();
         var workspace = SlideWorkspace;
         if (workspace is null || !CanEnterWorkspace())
         {
             return;
         }
 
-        await _dispatcher.InvokeAsync(() => CurrentPage = CoursewareApplicationPage.SlideWorkspace);
-        await workspace.ActivateAsync().ConfigureAwait(false);
+        CurrentPage = CoursewareApplicationPage.SlideWorkspace;
+        await workspace.ActivateAsync();
     }
 
     private bool CanEnterWorkspace()
@@ -992,6 +961,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
 
     private void ReturnToAnalysis()
     {
+        VerifyAccess();
         SlideWorkspace?.Deactivate();
         CurrentPage = CoursewareApplicationPage.CoursewareAnalysis;
     }
@@ -1012,6 +982,7 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
 
     private void HandleUnexpectedCommandException(Exception exception)
     {
+        VerifyAccess();
         LoadErrorMessage = exception.Message;
         LoadErrorDetails = exception.ToString();
         WorkspaceState = CoursewareSession is null
@@ -1032,6 +1003,14 @@ public sealed class CoursewareWorkspaceViewModel : ObservableObject, IDisposable
         }
         catch (ObjectDisposedException)
         {
+        }
+    }
+
+    private void VerifyAccess()
+    {
+        if (!_threadAccess.CheckAccess())
+        {
+            throw new InvalidOperationException("课件工作流只能由所属的 UI Dispatcher 调用。");
         }
     }
 

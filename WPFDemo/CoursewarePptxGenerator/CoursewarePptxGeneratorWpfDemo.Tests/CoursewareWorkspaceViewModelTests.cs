@@ -499,7 +499,7 @@ public sealed class CoursewareWorkspaceViewModelTests
         snapshotStore ??= CreateSnapshotStore();
         return new CoursewareWorkspaceViewModel(
             new CoursewareFolderLoader(),
-            new ImmediateViewModelDispatcher(),
+            new ImmediateViewModelThreadAccess(),
             themeAnalysisService,
             slideChatManagerFactory,
             summaryService,

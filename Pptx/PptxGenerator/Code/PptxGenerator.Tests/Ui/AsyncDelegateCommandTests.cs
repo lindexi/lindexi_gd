@@ -140,9 +140,9 @@ public sealed class AsyncDelegateCommandTests
         Assert.AreEqual(1, threadIds.Distinct().Count());
     }
 
-    [TestMethod(DisplayName = "重新渲染命令应通过 ViewModel 提交开始和结束状态")]
+    [TestMethod(DisplayName = "重新渲染命令应在 UI Dispatcher 入口完成开始和结束状态")]
     [Timeout(60_000)]
-    public async Task RerenderCommand_CommitsStartAndFinalViewModelStateThroughDispatcher()
+    public async Task RerenderCommand_FromDispatcherEntry_CommitsCompleteViewModelState()
     {
         var dispatcher = new RecordingDispatcher();
         var chatManager = new CopilotChatManager();
@@ -154,25 +154,30 @@ public sealed class AsyncDelegateCommandTests
         chatManager.AgentApiEndpointManager.RegisterLanguageModelProvider(
             new FakeLanguageModelProvider(chatClient));
         var renderTool = new SlideMlRenderTool(new YieldingRenderPipeline(), dispatcher);
-        var viewModel = new MainWindowViewModel(
-            new SlideChatManager(chatManager, renderTool),
-            dispatcher)
-        {
-            EditableSlideXml = "<Page/>",
-        };
+        MainWindowViewModel? viewModel = null;
         var observedProperties = new List<string>();
-        viewModel.PropertyChanged += (_, e) =>
+        await dispatcher.InvokeAsync(async () =>
         {
-            Assert.IsTrue(dispatcher.IsDispatching, $"{e.PropertyName} was raised outside the dispatcher.");
-            if (e.PropertyName is not null)
+            viewModel = new MainWindowViewModel(
+                new SlideChatManager(chatManager, renderTool),
+                dispatcher)
             {
-                observedProperties.Add(e.PropertyName);
-            }
-        };
+                EditableSlideXml = "<Page/>",
+            };
+            viewModel.PropertyChanged += (_, e) =>
+            {
+                Assert.IsTrue(dispatcher.IsDispatching, $"{e.PropertyName} was raised outside the dispatcher.");
+                if (e.PropertyName is not null)
+                {
+                    observedProperties.Add(e.PropertyName);
+                }
+            };
 
-        var command = (AsyncDelegateCommand)viewModel.RerenderCommand;
-        await command.ExecuteAsync().WaitAsync(TimeSpan.FromSeconds(2));
+            var command = (AsyncDelegateCommand)viewModel.RerenderCommand;
+            await command.ExecuteAsync().WaitAsync(TimeSpan.FromSeconds(2));
+        });
 
+        Assert.IsNotNull(viewModel);
         Assert.IsFalse(viewModel.IsBusy);
         Assert.AreEqual("重新渲染完成", viewModel.StatusText);
         CollectionAssert.Contains(observedProperties, nameof(MainWindowViewModel.IsBusy));

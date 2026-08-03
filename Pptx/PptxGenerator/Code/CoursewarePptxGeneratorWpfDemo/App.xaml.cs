@@ -33,7 +33,7 @@ public partial class App : Application
         {
             DataContext = new CoursewareWorkspaceViewModel(
                 coursewareFolderLoader,
-                WpfViewModelDispatcher.Instance,
+                WpfViewModelThreadAccess.Instance,
                 themeAnalysisService,
                 slideChatManagerFactory: new SlideChatManagerFactory(),
                 slideSummaryService,

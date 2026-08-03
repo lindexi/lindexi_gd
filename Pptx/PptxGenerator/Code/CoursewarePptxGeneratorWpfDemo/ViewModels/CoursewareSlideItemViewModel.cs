@@ -20,12 +20,11 @@ namespace CoursewarePptxGeneratorWpfDemo.ViewModels;
 public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
 {
     private readonly ISlideChatManagerFactory _slideChatManagerFactory;
-    private readonly IViewModelDispatcher _dispatcher;
-    private readonly object _runtimeSyncRoot = new();
+    private readonly IViewModelThreadAccess _threadAccess;
     private CoursewareSlideRuntime? _runtime;
     private Task<CoursewareSlideRuntime>? _runtimeCreationTask;
     private CancellationTokenSource? _runtimeCreationCancellationTokenSource;
-    private CancellationTokenSource? _operationCancellationTokenSource;
+    private ActiveOperation? _activeOperation;
     private CoursewareSlideState _state = CoursewareSlideState.NotStarted;
     private CoursewareSlideRuntimeState _runtimeState = CoursewareSlideRuntimeState.NotCreated;
     private CoursewareSlideGenerationState _generationState = CoursewareSlideGenerationState.NotStarted;
@@ -43,7 +42,6 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     private bool _hasStartedGenerationConversation;
     private bool _hasUnsavedChanges;
     private CoursewareModelDisplayItem? _selectedModelItem;
-    private Task _propertyChangeTask = Task.CompletedTask;
     private bool _isDisposed;
     private readonly RelayCommand _resetInitialPromptToLatestThemeCommand;
     private Action<CoursewareSlideItemViewModel>? _resetInitialPromptToLatestTheme;
@@ -55,13 +53,13 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     /// <param name="title">The deterministic display title.</param>
     /// <param name="summary">The deterministic display summary.</param>
     /// <param name="slideChatManagerFactory">The lazy page runtime factory.</param>
-    /// <param name="dispatcher">The dispatcher used for observable state updates.</param>
+    /// <param name="threadAccess">Verifies access to the thread that owns observable state.</param>
     public CoursewareSlideItemViewModel(
         CoursewareSlideInput input,
         string title,
         string summary,
         ISlideChatManagerFactory slideChatManagerFactory,
-        IViewModelDispatcher dispatcher)
+        IViewModelThreadAccess threadAccess)
     {
         ArgumentNullException.ThrowIfNull(input);
         if (string.IsNullOrWhiteSpace(title))
@@ -75,7 +73,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         }
 
         ArgumentNullException.ThrowIfNull(slideChatManagerFactory);
-        ArgumentNullException.ThrowIfNull(dispatcher);
+        ArgumentNullException.ThrowIfNull(threadAccess);
 
         Input = input;
         Title = title;
@@ -83,7 +81,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         Canvas = CoursewareCanvasAdapter.CreateCanvas(input);
         DocumentContext = Canvas.DocumentContext;
         _slideChatManagerFactory = slideChatManagerFactory;
-        _dispatcher = dispatcher;
+        _threadAccess = threadAccess;
         AttachedImageFiles = new ObservableCollection<CoursewareChatImageAttachmentViewModel>();
         AvailableModelItems = new ObservableCollection<CoursewareModelDisplayItem>();
         _resetInitialPromptToLatestThemeCommand = new RelayCommand(
@@ -287,7 +285,8 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Gets a value indicating whether the page is initializing, generating, or rendering.
     /// </summary>
-    public bool IsBusy => State is CoursewareSlideState.Initializing or CoursewareSlideState.Generating or CoursewareSlideState.Rendering;
+    public bool IsBusy => IsOperationActive
+        || State is CoursewareSlideState.Initializing or CoursewareSlideState.Generating or CoursewareSlideState.Rendering;
 
     /// <summary>
     /// Gets the localized page status text.
@@ -338,6 +337,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         get => _selectedModelItem;
         set
         {
+            VerifyAccess();
             if (ReferenceEquals(_selectedModelItem, value))
             {
                 return;
@@ -396,6 +396,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         get => _inputText;
         set
         {
+            VerifyAccess();
             if (SetProperty(ref _inputText, value))
             {
                 _draftRevision++;
@@ -443,7 +444,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
             attachment.Kind == CoursewareChatImageAttachmentKind.SourceScreenshot
             && attachment.IsAvailable);
 
-    internal bool IsOperationActive => Volatile.Read(ref _operationCancellationTokenSource) is not null;
+    internal bool IsOperationActive => _activeOperation is not null;
 
     /// <summary>
     /// Gets the command that explicitly replaces the initial draft with one built from the latest theme.
@@ -479,7 +480,11 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     public bool AttachPreview
     {
         get => _attachPreview;
-        set => SetProperty(ref _attachPreview, value);
+        set
+        {
+            VerifyAccess();
+            SetProperty(ref _attachPreview, value);
+        }
     }
 
     /// <summary>
@@ -506,6 +511,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         get => _editableSlideXml;
         set
         {
+            VerifyAccess();
             if (SetProperty(ref _editableSlideXml, value))
             {
                 HasUnsavedChanges = true;
@@ -593,59 +599,55 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     public bool HasAnyPreviewImage => HasRenderedPreviewImage || HasSourceScreenshot;
 
     /// <summary>
-    /// Gets or creates the independent page runtime. Concurrent calls share one creation task.
+    /// Gets or creates the independent page runtime. Reentrant UI calls share one creation task.
     /// </summary>
     /// <param name="cancellationToken">The token used to cancel runtime initialization.</param>
     /// <returns>The independent page runtime.</returns>
     public Task<CoursewareSlideRuntime> EnsureRuntimeAsync(CancellationToken cancellationToken = default)
     {
+        VerifyAccess();
         ThrowIfDisposed();
-        Task<CoursewareSlideRuntime> runtimeCreationTask;
-        lock (_runtimeSyncRoot)
+        if (_runtime is { } runtime)
         {
-            if (_runtime is not null)
-            {
-                return Task.FromResult(_runtime);
-            }
-
-            if (_runtimeCreationTask is null)
-            {
-                var runtimeCreationCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                _runtimeCreationCancellationTokenSource = runtimeCreationCancellationTokenSource;
-                _runtimeCreationTask = CreateRuntimeAsync(runtimeCreationCancellationTokenSource);
-            }
-
-            runtimeCreationTask = _runtimeCreationTask;
+            return Task.FromResult(runtime);
         }
 
-        return runtimeCreationTask;
+        if (_runtimeCreationTask is { IsCanceled: true } or { IsFaulted: true })
+        {
+            _runtimeCreationTask = null;
+        }
+
+        if (_runtimeCreationTask is null)
+        {
+            var runtimeCreationCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _runtimeCreationCancellationTokenSource = runtimeCreationCancellationTokenSource;
+            _runtimeCreationTask = CreateRuntimeAsync(runtimeCreationCancellationTokenSource);
+        }
+
+        return _runtimeCreationTask;
     }
 
     /// <summary>
-    /// Tries to start one page operation with a token linked to the workspace lifetime.
+    /// Tries to acquire the single UI-owned operation slot for this page.
     /// </summary>
     /// <param name="workspaceCancellationToken">The workspace lifetime token.</param>
-    /// <param name="operationCancellationToken">The page operation cancellation token when the operation starts.</param>
+    /// <param name="operation">The page operation handle when the operation starts.</param>
     /// <returns><see langword="true" /> when no other operation is active for this page.</returns>
-    public bool TryBeginOperation(
+    internal bool TryBeginOperation(
         CancellationToken workspaceCancellationToken,
-        out CancellationToken operationCancellationToken)
+        out ActiveOperation operation)
     {
+        VerifyAccess();
         ThrowIfDisposed();
-        var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(workspaceCancellationToken);
-        if (Interlocked.CompareExchange(
-                ref _operationCancellationTokenSource,
-                cancellationTokenSource,
-                null) is not null)
+        if (_activeOperation is not null)
         {
-            cancellationTokenSource.Dispose();
-            operationCancellationToken = default;
+            operation = null!;
             return false;
         }
 
-        operationCancellationToken = cancellationTokenSource.Token;
-        OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
-        _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
+        operation = new ActiveOperation(workspaceCancellationToken);
+        _activeOperation = operation;
+        NotifyOperationActivityChanged();
         return true;
     }
 
@@ -654,49 +656,30 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     /// </summary>
     public void CancelActiveOperation()
     {
-        _operationCancellationTokenSource?.Cancel();
+        VerifyAccess();
+        _activeOperation?.Cancel();
         if (RuntimeState == CoursewareSlideRuntimeState.Creating)
         {
-            lock (_runtimeSyncRoot)
-            {
-                _runtimeCreationCancellationTokenSource?.Cancel();
-            }
+            _runtimeCreationCancellationTokenSource?.Cancel();
         }
 
         CopilotChatManager?.CancelCurrentChat();
     }
 
     /// <summary>
-    /// Clears and disposes the active page operation token source when it belongs to the completed operation.
+    /// Releases the UI-owned operation slot when it still belongs to the completed operation.
     /// </summary>
-    /// <param name="cancellationToken">The completed operation token.</param>
-    public void CompleteOperation(CancellationToken cancellationToken)
+    /// <param name="operation">The completed operation.</param>
+    internal void CompleteOperation(ActiveOperation operation)
     {
-        var cancellationTokenSource = _operationCancellationTokenSource;
-        if (cancellationTokenSource is null)
-        {
-            return;
-        }
+        ArgumentNullException.ThrowIfNull(operation);
+        VerifyAccess();
 
-        try
+        if (ReferenceEquals(_activeOperation, operation))
         {
-            if (cancellationTokenSource.Token != cancellationToken)
-            {
-                return;
-            }
-        }
-        catch (ObjectDisposedException)
-        {
-            return;
-        }
-
-        if (ReferenceEquals(
-                Interlocked.CompareExchange(ref _operationCancellationTokenSource, null, cancellationTokenSource),
-                cancellationTokenSource))
-        {
-            cancellationTokenSource.Dispose();
-            OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
-            _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
+            _activeOperation = null;
+            operation.Dispose();
+            NotifyOperationActivityChanged();
         }
     }
 
@@ -706,6 +689,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     /// <param name="filePaths">The selected local image paths.</param>
     public void AddAttachedImageFiles(IEnumerable<string> filePaths)
     {
+        VerifyAccess();
         ArgumentNullException.ThrowIfNull(filePaths);
         foreach (var filePath in filePaths)
         {
@@ -753,6 +737,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     /// <param name="attachment">The attachment to remove.</param>
     public void RemoveAttachedImageFile(CoursewareChatImageAttachmentViewModel attachment)
     {
+        VerifyAccess();
         ArgumentNullException.ThrowIfNull(attachment);
         if (attachment.Kind == CoursewareChatImageAttachmentKind.SourceScreenshot
             && !HasStartedGenerationConversation)
@@ -854,6 +839,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
     /// </summary>
     public void Dispose()
     {
+        VerifyAccess();
         if (_isDisposed)
         {
             return;
@@ -861,14 +847,13 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
 
         _isDisposed = true;
         CancelActiveOperation();
-        lock (_runtimeSyncRoot)
-        {
-            _runtimeCreationCancellationTokenSource?.Cancel();
-        }
+        _activeOperation?.Dispose();
+        _activeOperation = null;
+        _runtimeCreationCancellationTokenSource?.Cancel();
 
-        if (_runtime is not null)
+        if (_runtime is { } runtime)
         {
-            _runtime.SlideChatManager.PropertyChanged -= OnSlideChatManagerPropertyChanged;
+            runtime.SlideChatManager.PropertyChanged -= OnSlideChatManagerPropertyChanged;
         }
     }
 
@@ -876,11 +861,8 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         CancellationTokenSource runtimeCreationCancellationTokenSource)
     {
         var cancellationToken = runtimeCreationCancellationTokenSource.Token;
-        await InvokeIfNotDisposedAsync(() =>
-        {
-            RuntimeState = CoursewareSlideRuntimeState.Creating;
-            State = CoursewareSlideState.Initializing;
-        });
+        RuntimeState = CoursewareSlideRuntimeState.Creating;
+        State = CoursewareSlideState.Initializing;
         var options = new SlideChatManagerFactoryOptions(DocumentContext)
         {
             TryEnableDefaultMcp = false,
@@ -888,23 +870,18 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         CoursewareSlideRuntime runtime;
         try
         {
-            var slideChatManager = await _slideChatManagerFactory.CreateAsync(options, cancellationToken).ConfigureAwait(false);
+            var slideChatManager = await _slideChatManagerFactory.CreateAsync(options, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             runtime = new CoursewareSlideRuntime(slideChatManager, isAiGenerationAvailable: true);
         }
         catch (OperationCanceledException)
         {
-            await InvokeIfNotDisposedAsync(() =>
+            if (!_isDisposed)
             {
                 RuntimeState = CoursewareSlideRuntimeState.Canceled;
                 State = CoursewareSlideState.Canceled;
-            });
-            lock (_runtimeSyncRoot)
-            {
-                _runtimeCreationTask = null;
             }
 
-            CompleteRuntimeCreation(runtimeCreationCancellationTokenSource);
             throw;
         }
         catch (Exception ex)
@@ -918,19 +895,14 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
             }
             catch (Exception fallbackException)
             {
-                lock (_runtimeSyncRoot)
-                {
-                    _runtimeCreationTask = null;
-                }
-
-                await InvokeIfNotDisposedAsync(() =>
+                if (!_isDisposed)
                 {
                     RuntimeState = CoursewareSlideRuntimeState.Failed;
                     ErrorMessage = fallbackException.Message;
                     RenderingLog = fallbackException.ToString();
                     State = CoursewareSlideState.Failed;
-                });
-                CompleteRuntimeCreation(runtimeCreationCancellationTokenSource);
+                }
+
                 throw new AggregateException("页面美化服务和本地渲染均准备失败。", ex, fallbackException);
             }
         }
@@ -938,9 +910,8 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await InvokeIfNotDisposedAsync(() => AttachRuntime(runtime));
-            cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
+            AttachRuntime(runtime);
             return runtime;
         }
         finally
@@ -951,14 +922,11 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
 
     private void CompleteRuntimeCreation(CancellationTokenSource runtimeCreationCancellationTokenSource)
     {
-        lock (_runtimeSyncRoot)
+        if (ReferenceEquals(
+                _runtimeCreationCancellationTokenSource,
+                runtimeCreationCancellationTokenSource))
         {
-            if (ReferenceEquals(
-                    _runtimeCreationCancellationTokenSource,
-                    runtimeCreationCancellationTokenSource))
-            {
-                _runtimeCreationCancellationTokenSource = null;
-            }
+            _runtimeCreationCancellationTokenSource = null;
         }
 
         runtimeCreationCancellationTokenSource.Dispose();
@@ -966,6 +934,7 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
 
     private void AttachRuntime(CoursewareSlideRuntime runtime)
     {
+        VerifyAccess();
         _runtime = runtime;
         runtime.SlideChatManager.PropertyChanged += OnSlideChatManagerPropertyChanged;
         AvailableModelItems.Clear();
@@ -1005,31 +974,13 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
 
     private void OnSlideChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        VerifyAccess();
         if (_isDisposed)
         {
             return;
         }
 
-        _propertyChangeTask = ApplySlideChatManagerPropertyChangeAfterAsync(
-            _propertyChangeTask,
-            e.PropertyName);
-    }
-
-    internal Task WaitForPendingPropertyChangesAsync() => _propertyChangeTask;
-
-    private async Task ApplySlideChatManagerPropertyChangeAfterAsync(
-        Task previousTask,
-        string? propertyName)
-    {
-        try
-        {
-            await previousTask.ConfigureAwait(false);
-            await InvokeIfNotDisposedAsync(() => ApplySlideChatManagerPropertyChange(propertyName)).ConfigureAwait(false);
-        }
-        catch (Exception exception)
-        {
-            System.Diagnostics.Debug.WriteLine(exception);
-        }
+        ApplySlideChatManagerPropertyChange(e.PropertyName);
     }
 
     private void ApplySlideChatManagerPropertyChange(string? propertyName)
@@ -1060,20 +1011,51 @@ public sealed class CoursewareSlideItemViewModel : ObservableObject, IDisposable
         }
     }
 
-    private Task InvokeIfNotDisposedAsync(Action action)
+    private void NotifyOperationActivityChanged()
     {
-        if (_isDisposed)
+        OnPropertyChanged(nameof(IsOperationActive));
+        OnPropertyChanged(nameof(IsBusy));
+        OnPropertyChanged(nameof(CanResetInitialPromptToLatestTheme));
+        _resetInitialPromptToLatestThemeCommand.RaiseCanExecuteChanged();
+    }
+
+    private void VerifyAccess()
+    {
+        if (!_threadAccess.CheckAccess())
         {
-            return Task.CompletedTask;
+            throw new InvalidOperationException("页面可观察状态只能由所属的 ViewModel Dispatcher 修改。");
+        }
+    }
+
+    internal sealed class ActiveOperation : IDisposable
+    {
+        private readonly CancellationTokenSource _cancellationTokenSource;
+        private bool _isDisposed;
+
+        internal ActiveOperation(CancellationToken workspaceCancellationToken)
+        {
+            _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(workspaceCancellationToken);
+            CancellationToken = _cancellationTokenSource.Token;
         }
 
-        return _dispatcher.InvokeAsync(() =>
+        internal CancellationToken CancellationToken { get; }
+
+        internal void Cancel()
         {
             if (!_isDisposed)
             {
-                action();
+                _cancellationTokenSource.Cancel();
             }
-        });
+        }
+
+        public void Dispose()
+        {
+            if (!_isDisposed)
+            {
+                _isDisposed = true;
+                _cancellationTokenSource.Dispose();
+            }
+        }
     }
 
     private void ThrowIfDisposed()

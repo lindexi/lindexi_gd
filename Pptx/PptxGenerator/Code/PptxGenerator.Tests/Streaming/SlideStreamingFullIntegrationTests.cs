@@ -211,4 +211,34 @@ public sealed class SlideStreamingFullIntegrationTests
         StringAssert.Contains(chatManager.RenderedXml, "Page", "RenderedXml 应包含 Page");
         StringAssert.Contains(chatManager.RenderedXml, "r1", "RenderedXml 应包含 r1");
     }
+
+    [TestMethod(DisplayName = "新建流式会话：应同时重建聊天会话和页面流式状态")]
+    [Timeout(60_000, CooperativeCancellation = true)]
+    public async Task FullStreaming_CreateNewSession_ReplacesChatSessionAndStreamingState()
+    {
+        var (chatManager, _) = SlideStreamingTestHelper.CreateChatManagerWithSequentialTexts(
+            """<Page><Rect Id="first" Width="100"/></Page>""",
+            """<Page><Rect Id="second" Width="200"/></Page>""");
+
+        var firstResult = await chatManager.SendStreamingMessageWithResultAsync(
+            "生成第一页",
+            isFirstMessage: true,
+            cancellationToken: CancellationToken.None).ConfigureAwait(false);
+        var firstSessionId = chatManager.Pipeline.ChatManager.CurrentSessionId;
+
+        var secondResult = await chatManager.SendStreamingMessageWithResultAsync(
+            "重新生成独立页面",
+            isFirstMessage: true,
+            createNewSession: true,
+            cancellationToken: CancellationToken.None).ConfigureAwait(false);
+
+        Assert.IsTrue(firstResult.IsSuccess);
+        Assert.IsTrue(secondResult.IsSuccess);
+        Assert.AreNotEqual(firstSessionId, chatManager.Pipeline.ChatManager.CurrentSessionId);
+        StringAssert.Contains(secondResult.FinalSlideXml, "Id=\"second\"");
+        Assert.DoesNotContain("Id=\"first\"", secondResult.FinalSlideXml);
+        Assert.HasCount(2, chatManager.Pipeline.ChatManager.ChatSessions);
+        Assert.HasCount(1, SlideStreamingTestHelper.GetNormalUserMessages(chatManager));
+        Assert.HasCount(1, SlideStreamingTestHelper.GetNormalAssistantMessages(chatManager));
+    }
 }

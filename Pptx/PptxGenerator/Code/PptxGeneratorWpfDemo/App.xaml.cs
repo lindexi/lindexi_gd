@@ -48,7 +48,10 @@ public partial class App : Application
         var agentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
 
         var dispatcher = WpfDispatcher.Instance;
-        var copilotChatManager = new CopilotChatManager { MainThreadDispatcher = dispatcher };
+        var copilotChatManager = new CopilotChatManager
+        {
+            MainThreadDispatcher = dispatcher,
+        };
         var agentApiEndpointManager = copilotChatManager.AgentApiEndpointManager;
         await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile));
 

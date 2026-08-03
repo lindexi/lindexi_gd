@@ -32,25 +32,28 @@ public sealed class AsyncRelayCommandTests
         Assert.IsTrue(command.CanExecute(null));
     }
 
-    [TestMethod(DisplayName = "异步命令并发启动时默认只应执行一次")]
+    [TestMethod(DisplayName = "异步命令在 UI 重入时默认只应执行一次")]
     [Timeout(60_000)]
-    public async Task ExecuteAsyncShouldAtomicallyRejectConcurrentExecution()
+    public async Task ExecuteAsyncShouldRejectReentrantExecution()
     {
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var executionCount = 0;
         var command = new AsyncRelayCommand(async _ =>
         {
-            Interlocked.Increment(ref executionCount);
+            executionCount++;
             started.TrySetResult();
             await release.Task;
         });
 
-        var executionTasks = await Task.WhenAll(Enumerable.Range(0, 8)
-            .Select(_ => Task.Run<Task>(() => command.ExecuteAsync())));
+        var firstExecutionTask = command.ExecuteAsync();
+        var reentrantExecutionTasks = Enumerable.Range(0, 7)
+            .Select(_ => command.ExecuteAsync())
+            .ToArray();
         await started.Task.WaitAsync(TimeSpan.FromSeconds(10));
         release.TrySetResult();
-        await Task.WhenAll(executionTasks);
+        await firstExecutionTask;
+        await Task.WhenAll(reentrantExecutionTasks);
 
         Assert.AreEqual(1, executionCount);
     }

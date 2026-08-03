@@ -228,7 +228,7 @@ public sealed class MainWindowCompositionTests
         var summaryService = new CoursewareSlideSummaryService();
         var viewModel = new CoursewareWorkspaceViewModel(
             new CoursewareFolderLoader(),
-            new DispatcherViewModelDispatcher(Dispatcher.CurrentDispatcher),
+                    new DispatcherViewModelThreadAccess(Dispatcher.CurrentDispatcher),
             new FakeCoursewareThemeAnalysisService(),
             new FakeSlideChatManagerFactory(),
             summaryService,
@@ -359,11 +359,8 @@ public sealed class MainWindowCompositionTests
         return taskCompletionSource.Task;
     }
 
-        private sealed class DispatcherViewModelDispatcher(Dispatcher dispatcher) : IViewModelDispatcher
+        private sealed class DispatcherViewModelThreadAccess(Dispatcher dispatcher) : IViewModelThreadAccess
         {
-            public async Task InvokeAsync(Action action)
-            {
-                await dispatcher.InvokeAsync(action).Task;
-            }
+            public bool CheckAccess() => dispatcher.CheckAccess();
         }
 }

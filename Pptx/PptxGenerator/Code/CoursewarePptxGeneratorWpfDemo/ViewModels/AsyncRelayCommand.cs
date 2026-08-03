@@ -43,7 +43,7 @@ public sealed class AsyncRelayCommand : ICommand
     /// <summary>
     /// Gets a value indicating whether the command is currently executing.
     /// </summary>
-    public bool IsExecuting => Volatile.Read(ref _executionCount) > 0;
+    public bool IsExecuting => _executionCount > 0;
 
     /// <summary>
     /// Gets the current execution task, or a completed task when the command is idle.
@@ -75,11 +75,15 @@ public sealed class AsyncRelayCommand : ICommand
 
         if (_allowsConcurrentExecutions)
         {
-            Interlocked.Increment(ref _executionCount);
+            _executionCount++;
         }
-        else if (Interlocked.CompareExchange(ref _executionCount, 1, 0) != 0)
+        else if (_executionCount != 0)
         {
             return Task.CompletedTask;
+        }
+        else
+        {
+            _executionCount = 1;
         }
 
         ExecutionTask = ExecuteCoreAsync(parameter);
@@ -114,7 +118,7 @@ public sealed class AsyncRelayCommand : ICommand
         }
         finally
         {
-            Interlocked.Decrement(ref _executionCount);
+            _executionCount--;
             RaiseCanExecuteChanged();
         }
     }

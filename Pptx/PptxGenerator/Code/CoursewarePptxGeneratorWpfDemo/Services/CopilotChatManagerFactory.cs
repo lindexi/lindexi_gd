@@ -14,16 +14,6 @@ public sealed class CopilotChatManagerFactory : ICopilotChatManagerFactory
     private const string ConfigurationFilePath = @"C:\lindexi\Work\Key\AgentConfiguration.json";
     private const string ModelName = "gpt-5.6-luna";
 
-    private readonly WpfDispatcher _dispatcher;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CopilotChatManagerFactory" /> class.
-    /// </summary>
-    public CopilotChatManagerFactory()
-    {
-        _dispatcher = WpfDispatcher.Instance;
-    }
-
     /// <inheritdoc />
     public async Task<CopilotChatManager> CreateAsync(
         AgentWorkload workload,
@@ -37,7 +27,10 @@ public sealed class CopilotChatManagerFactory : ICopilotChatManagerFactory
             throw new FileNotFoundException("语言模型配置文件不存在。", configurationFile.FullName);
         }
 
-        var chatManager = new CopilotChatManager { MainThreadDispatcher = _dispatcher };
+        var chatManager = new CopilotChatManager
+        {
+            MainThreadDispatcher = WpfDispatcher.Instance,
+        };
         var endpointManager = chatManager.AgentApiEndpointManager;
         await endpointManager.LoadConfigurationFromJsonFileAsync(configurationFile).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();

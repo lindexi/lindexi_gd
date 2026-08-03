@@ -55,7 +55,7 @@ public sealed class CopilotCoursewareThemeAgent : ICoursewareThemeAgent
 
         var chatManager = await _chatManagerFactory.CreateAsync(
             AgentWorkload.ThemeAnalysis,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
         chatManager.CreateNewSession();
 
         var promptProvider = _promptProvider ?? new SlideMlPromptProvider(validationCanvas);
@@ -93,7 +93,7 @@ public sealed class CopilotCoursewareThemeAgent : ICoursewareThemeAgent
                 CancellationToken = cancellationToken,
             });
             messageProgress?.Report(sendResult.AssistantChatMessage);
-            var runState = await sendResult.RunTask.ConfigureAwait(false);
+            var runState = await sendResult.RunTask;
 
             if (!runState.IsSuccess)
             {
@@ -106,7 +106,7 @@ public sealed class CopilotCoursewareThemeAgent : ICoursewareThemeAgent
                 submissionCountBeforeRound,
                 validationCanvas,
                 availableResourceIds,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
             if (latestProblems.Count == 0 && submissionTool.SubmittedTheme is { } submittedTheme)
             {
                 progress?.Report(CreateProgressEvent(
@@ -176,7 +176,7 @@ public sealed class CopilotCoursewareThemeAgent : ICoursewareThemeAgent
             submittedTheme,
             validationCanvas,
             availableResourceIds,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
         return validationResult.Errors;
     }
 

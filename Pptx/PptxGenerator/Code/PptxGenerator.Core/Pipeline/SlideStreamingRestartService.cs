@@ -12,13 +12,11 @@ internal sealed class SlideStreamingRestartService
 {
     private readonly SlideGenerationPipeline _pipeline;
     private readonly CopilotChatManager _chatManager;
-    private readonly IMainThreadDispatcher _dispatcher;
 
     public SlideStreamingRestartService(SlideGenerationPipeline pipeline)
     {
         _pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
         _chatManager = pipeline.ChatManager;
-        _dispatcher = _chatManager.MainThreadDispatcher ?? pipeline.SlideMlRenderTool.Dispatcher;
     }
 
     public async Task RestartFromMessageAsync(CopilotChatMessage targetMessage, CancellationToken cancellationToken)
@@ -28,13 +26,13 @@ internal sealed class SlideStreamingRestartService
         var plan = SlideStreamingRestartPlan.Create(_chatManager.SelectedSession, targetMessage);
         CopilotChatSession session = _chatManager.SelectedSession;
 
-        await _pipeline.ResetStreamingRestartStateAsync(cancellationToken).ConfigureAwait(false);
-        await ReplayStateBeforeTargetAsync(plan, cancellationToken).ConfigureAwait(false);
-        await RestoreAgentHistoryBeforeTargetAsync(session, plan, cancellationToken).ConfigureAwait(false);
-        await TruncateSessionFromTargetAsync(session, plan.TargetIndex, cancellationToken).ConfigureAwait(false);
+        await _pipeline.ResetStreamingRestartStateAsync(cancellationToken);
+        await ReplayStateBeforeTargetAsync(plan, cancellationToken);
+        await RestoreAgentHistoryBeforeTargetAsync(session, plan, cancellationToken);
+        TruncateSessionFromTarget(session, plan.TargetIndex, cancellationToken);
 
         _chatManager.SelectedSession = session;
-        await SendTargetMessageAsync(plan.TargetUserText, plan.IsTargetFirstMessage, cancellationToken).ConfigureAwait(false);
+        await SendTargetMessageAsync(plan.TargetUserText, plan.IsTargetFirstMessage, cancellationToken);
     }
 
     private async Task ReplayStateBeforeTargetAsync(SlideStreamingRestartPlan plan, CancellationToken cancellationToken)
@@ -42,7 +40,7 @@ internal sealed class SlideStreamingRestartService
         foreach (RestartReplayTurn turn in plan.PreviousTurns)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await _pipeline.ReplayStreamingAssistantTextAsync(turn.AssistantText, cancellationToken).ConfigureAwait(false);
+            await _pipeline.ReplayStreamingAssistantTextAsync(turn.AssistantText, cancellationToken);
         }
     }
 
@@ -65,7 +63,7 @@ internal sealed class SlideStreamingRestartService
             chatHistory.Add(new ChatMessage(ChatRole.Assistant, turn.AssistantText));
         }
 
-        AgentSession agentSession = await CreateAgentSessionAsync(cancellationToken).ConfigureAwait(false);
+        AgentSession agentSession = await CreateAgentSessionAsync(cancellationToken);
         agentSession.SetInMemoryChatHistory(chatHistory);
         session.SetAgentSession(agentSession);
     }
@@ -82,9 +80,9 @@ internal sealed class SlideStreamingRestartService
     private async Task<AgentSession> CreateAgentSessionAsync(CancellationToken cancellationToken)
     {
         IManualSendMessageContext manualContext = await _chatManager
-            .CreateManualSendMessageContextAsync(cancellationToken).ConfigureAwait(false);
+            .CreateManualSendMessageContextAsync(cancellationToken);
 
-        return await manualContext.GetAgentSessionAsync(cancellationToken).ConfigureAwait(false);
+        return await manualContext.GetAgentSessionAsync(cancellationToken);
     }
 
     private async Task SendTargetMessageAsync(string targetText, bool isFirstMessage, CancellationToken cancellationToken)
@@ -95,25 +93,20 @@ internal sealed class SlideStreamingRestartService
             attachPreview: false,
             skipAutoEvaluation: false,
             useStreaming: true,
-            cancellationToken: cancellationToken).ConfigureAwait(false);
+            cancellationToken: cancellationToken);
     }
 
-    private async Task TruncateSessionFromTargetAsync(
+    private static void TruncateSessionFromTarget(
         CopilotChatSession session,
         int targetIndex,
         CancellationToken cancellationToken)
     {
-        await _dispatcher.InvokeAsync(() =>
+        cancellationToken.ThrowIfCancellationRequested();
+
+        while (session.ChatMessages.Count > targetIndex)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            while (session.ChatMessages.Count > targetIndex)
-            {
-                session.ChatMessages.RemoveAt(session.ChatMessages.Count - 1);
-            }
-
-            return Task.CompletedTask;
-        }).ConfigureAwait(false);
+            session.ChatMessages.RemoveAt(session.ChatMessages.Count - 1);
+        }
     }
 }
 

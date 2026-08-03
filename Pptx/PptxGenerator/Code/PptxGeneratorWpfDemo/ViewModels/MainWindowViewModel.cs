@@ -83,19 +83,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// <summary>
     /// 订阅 SlideChatManager 的属性变更，在工具调用过程中即可实时刷新 UI 绑定。
     /// </summary>
-    private async void OnSlideChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    private void OnSlideChatManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        try
-        {
-            await InvokeOnUiAsync(() => ApplySlideChatManagerPropertyChange(e.PropertyName)).ConfigureAwait(false);
-        }
-        catch (TaskCanceledException)
-        {
-        }
-        catch (Exception exception)
-        {
-            System.Diagnostics.Debug.WriteLine(exception);
-        }
+        VerifyAccess();
+        ApplySlideChatManagerPropertyChange(e.PropertyName);
     }
 
     private void ApplySlideChatManagerPropertyChange(string? propertyName)
@@ -329,40 +320,27 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private async Task RunSendMessageAsync()
     {
-        string? message = null;
-        var isFirstMessage = false;
-        var attachPreview = false;
-        var isStreamingMode = false;
-        System.Collections.Generic.List<string>? imageFiles = null;
-
-        await InvokeOnUiAsync(() =>
-        {
-            if (IsBusy || string.IsNullOrWhiteSpace(InputText))
-            {
-                return;
-            }
-
-            message = InputText;
-            InputText = string.Empty;
-            IsBusy = true;
-            StatusText = "正在生成页面...";
-            EvaluationSummaryText = string.Empty;
-            _lastUserPrompt = message;
-
-            isFirstMessage = _isFirstMessage;
-            _isFirstMessage = false;
-            attachPreview = _attachPreview;
-            isStreamingMode = _isStreamingMode;
-            imageFiles = AttachedImageFiles.Count > 0
-                ? AttachedImageFiles.Select(f => f.FullName).ToList()
-                : null;
-            AttachedImageFiles.Clear();
-        }).ConfigureAwait(false);
-
-        if (message is null)
+        VerifyAccess();
+        if (IsBusy || string.IsNullOrWhiteSpace(InputText))
         {
             return;
         }
+
+        var message = InputText;
+        InputText = string.Empty;
+        IsBusy = true;
+        StatusText = "正在生成页面...";
+        EvaluationSummaryText = string.Empty;
+        _lastUserPrompt = message;
+
+        var isFirstMessage = _isFirstMessage;
+        _isFirstMessage = false;
+        var attachPreview = _attachPreview;
+        var isStreamingMode = _isStreamingMode;
+        var imageFiles = AttachedImageFiles.Count > 0
+            ? AttachedImageFiles.Select(f => f.FullName).ToList()
+            : null;
+        AttachedImageFiles.Clear();
 
         string finalStatus;
         try
@@ -372,7 +350,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 isFirstMessage,
                 attachPreview,
                 imageFiles,
-                useStreaming: isStreamingMode).ConfigureAwait(false);
+                useStreaming: isStreamingMode);
             finalStatus = "完成";
         }
         catch (OperationCanceledException)
@@ -384,40 +362,29 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             finalStatus = "执行失败";
         }
 
-        await InvokeOnUiAsync(() =>
-        {
-            StatusText = finalStatus;
-            IsBusy = false;
-        }).ConfigureAwait(false);
+        StatusText = finalStatus;
+        IsBusy = false;
     }
 
     private async Task RunRestartFromMessageAsync(CopilotChatMessage? message)
     {
-        CopilotChatMessage? targetMessage = null;
-        await InvokeOnUiAsync(() =>
-        {
-            if (!CanRestartFromMessage(message))
-            {
-                return;
-            }
-
-            targetMessage = message;
-            IsBusy = true;
-            StatusText = "正在重新开始生成...";
-            EvaluationSummaryText = string.Empty;
-            _lastUserPrompt = message!.Content;
-        }).ConfigureAwait(false);
-
-        if (targetMessage is null)
+        VerifyAccess();
+        if (!CanRestartFromMessage(message))
         {
             return;
         }
+
+        var targetMessage = message!;
+        IsBusy = true;
+        StatusText = "正在重新开始生成...";
+        EvaluationSummaryText = string.Empty;
+        _lastUserPrompt = targetMessage.Content;
 
         var completed = false;
         string finalStatus;
         try
         {
-            await SlideChatManager.RestartFromMessageAsync(targetMessage).ConfigureAwait(false);
+            await SlideChatManager.RestartFromMessageAsync(targetMessage);
             completed = true;
             finalStatus = "重新生成完成";
         }
@@ -430,16 +397,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             finalStatus = "重新生成失败";
         }
 
-        await InvokeOnUiAsync(() =>
+        if (completed)
         {
-            if (completed)
-            {
-                _isFirstMessage = false;
-            }
+            _isFirstMessage = false;
+        }
 
-            StatusText = finalStatus;
-            IsBusy = false;
-        }).ConfigureAwait(false);
+        StatusText = finalStatus;
+        IsBusy = false;
     }
 
     private bool CanRestartFromMessage(CopilotChatMessage? message)
@@ -452,28 +416,20 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private async Task RunEvaluateAsync()
     {
-        string? userPrompt = null;
-        await InvokeOnUiAsync(() =>
-        {
-            if (string.IsNullOrWhiteSpace(_lastUserPrompt) || IsBusy)
-            {
-                return;
-            }
-
-            userPrompt = _lastUserPrompt;
-            IsBusy = true;
-            StatusText = "正在评估 SlideML...";
-        }).ConfigureAwait(false);
-
-        if (userPrompt is null)
+        VerifyAccess();
+        if (string.IsNullOrWhiteSpace(_lastUserPrompt) || IsBusy)
         {
             return;
         }
 
+        var userPrompt = _lastUserPrompt;
+        IsBusy = true;
+        StatusText = "正在评估 SlideML...";
+
         string finalStatus;
         try
         {
-            await SlideChatManager.EvaluateAsync(userPrompt).ConfigureAwait(false);
+            await SlideChatManager.EvaluateAsync(userPrompt);
             finalStatus = "评估完成";
         }
         catch (OperationCanceledException)
@@ -485,49 +441,44 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             finalStatus = "评估失败";
         }
 
-        await InvokeOnUiAsync(() =>
-        {
-            StatusText = finalStatus;
-            IsBusy = false;
-        }).ConfigureAwait(false);
+        StatusText = finalStatus;
+        IsBusy = false;
     }
 
     private async Task RunEvaluatePromptAsync()
     {
+        VerifyAccess();
         var useSinglePromptEvaluation = false;
         string? userPrompt = null;
         FileInfo? originalScreenshotFile = null;
 
-        await InvokeOnUiAsync(() =>
+        if (IsBusy || IsIterating)
         {
-            if (IsBusy || IsIterating)
-            {
-                return;
-            }
+            return;
+        }
 
-            if (!SlideChatManager.Pipeline.CanRunIteration)
-            {
-                useSinglePromptEvaluation = true;
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(_lastUserPrompt))
-            {
-                StatusText = "请先生成 SlideML 页面。";
-                return;
-            }
-
+        if (!SlideChatManager.Pipeline.CanRunIteration)
+        {
+            useSinglePromptEvaluation = true;
+        }
+        else if (string.IsNullOrWhiteSpace(_lastUserPrompt))
+        {
+            StatusText = "请先生成 SlideML 页面。";
+            return;
+        }
+        else
+        {
             userPrompt = _lastUserPrompt;
             originalScreenshotFile = AttachedOriginalScreenshot.FirstOrDefault();
             IsBusy = true;
             IsIterating = true;
             IterationStatusText = "正在运行提示词迭代优化...";
             StatusText = "提示词迭代优化中...";
-        }).ConfigureAwait(false);
+        }
 
         if (useSinglePromptEvaluation)
         {
-            await RunSinglePromptEvaluationAsync().ConfigureAwait(false);
+            await RunSinglePromptEvaluationAsync();
             return;
         }
 
@@ -547,8 +498,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             iterationResult = await SlideChatManager.RunPromptIterationAsync(
                 userPrompt,
                 originalScreenshot,
-                cancellationToken: CancellationToken.None)
-                .ConfigureAwait(false);
+                cancellationToken: CancellationToken.None);
             finalStatus = iterationResult is null
                 ? "迭代不可用"
                 : iterationResult.IsConverged ? "迭代收敛" : "迭代完成";
@@ -562,45 +512,33 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             finalStatus = "迭代失败";
         }
 
-        await InvokeOnUiAsync(() =>
+        StatusText = finalStatus;
+        if (iterationResult is not null)
         {
-            StatusText = finalStatus;
-            if (iterationResult is not null)
-            {
-                IterationStatusText = iterationResult.IsConverged
-                    ? $"✅ 迭代收敛 | {iterationResult.TotalRounds} 轮 | 最终评分: {iterationResult.FinalScore:F1}/10"
-                    : $"⏹ 迭代完成 | {iterationResult.TotalRounds} 轮 | 最终评分: {iterationResult.FinalScore:F1}/10";
-            }
+            IterationStatusText = iterationResult.IsConverged
+                ? $"✅ 迭代收敛 | {iterationResult.TotalRounds} 轮 | 最终评分: {iterationResult.FinalScore:F1}/10"
+                : $"⏹ 迭代完成 | {iterationResult.TotalRounds} 轮 | 最终评分: {iterationResult.FinalScore:F1}/10";
+        }
 
-            IsBusy = false;
-            IsIterating = false;
-        }).ConfigureAwait(false);
+        IsBusy = false;
+        IsIterating = false;
     }
 
     private async Task RunSinglePromptEvaluationAsync()
     {
-        var started = false;
-        await InvokeOnUiAsync(() =>
-        {
-            if (IsBusy)
-            {
-                return;
-            }
-
-            started = true;
-            IsBusy = true;
-            StatusText = "正在评估提示词...";
-        }).ConfigureAwait(false);
-
-        if (!started)
+        VerifyAccess();
+        if (IsBusy)
         {
             return;
         }
 
+        IsBusy = true;
+        StatusText = "正在评估提示词...";
+
         string finalStatus;
         try
         {
-            await SlideChatManager.EvaluatePromptAsync().ConfigureAwait(false);
+            await SlideChatManager.EvaluatePromptAsync();
             finalStatus = "提示词评估完成";
         }
         catch (OperationCanceledException)
@@ -612,11 +550,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             finalStatus = "提示词评估失败";
         }
 
-        await InvokeOnUiAsync(() =>
-        {
-            StatusText = finalStatus;
-            IsBusy = false;
-        }).ConfigureAwait(false);
+        StatusText = finalStatus;
+        IsBusy = false;
     }
 
     private void OnPropertyChanged(string propertyName)
@@ -641,33 +576,24 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     private async Task RunRerenderAsync()
     {
-        string? slideXml = null;
-        await InvokeOnUiAsync(() =>
-        {
-            if (IsBusy || string.IsNullOrWhiteSpace(_editableSlideXml))
-            {
-                return;
-            }
-
-            slideXml = _editableSlideXml;
-            IsBusy = true;
-            StatusText = "正在重新渲染...";
-        }).ConfigureAwait(false);
-
-        if (slideXml is null)
+        VerifyAccess();
+        if (IsBusy || string.IsNullOrWhiteSpace(_editableSlideXml))
         {
             return;
         }
+
+        var slideXml = _editableSlideXml;
+        IsBusy = true;
+        StatusText = "正在重新渲染...";
 
         string finalStatus;
         try
         {
             var renderTool = SlideChatManager.SlideMlRenderTool;
             var renderResult = await renderTool.RenderPipeline
-                .RenderAsync(slideXml)
-                .ConfigureAwait(false);
+                .RenderAsync(slideXml);
 
-            await renderTool.ApplyRenderResultAsync(renderResult).ConfigureAwait(false);
+            await renderTool.ApplyRenderResultAsync(renderResult);
             finalStatus = "重新渲染完成";
         }
         catch (OperationCanceledException)
@@ -679,11 +605,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             finalStatus = "重新渲染失败";
         }
 
-        await InvokeOnUiAsync(() =>
-        {
-            StatusText = finalStatus;
-            IsBusy = false;
-        }).ConfigureAwait(false);
+        StatusText = finalStatus;
+        IsBusy = false;
     }
 
     /// <summary>
@@ -693,20 +616,16 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// </summary>
     public async Task TryConnectMcpRenderAsync()
     {
-        SwitchableSlideMlRenderPipeline? pipeline = null;
-        string? serviceUrl = null;
-        await InvokeOnUiAsync(() =>
-        {
-            pipeline = SlideChatManager.SlideMlRenderTool.RenderPipeline as SwitchableSlideMlRenderPipeline;
-            serviceUrl = McpServiceUrl;
-        }).ConfigureAwait(false);
+        VerifyAccess();
+        var pipeline = SlideChatManager.SlideMlRenderTool.RenderPipeline as SwitchableSlideMlRenderPipeline;
+        var serviceUrl = McpServiceUrl;
 
         if (pipeline is null)
         {
             return;
         }
 
-        await pipeline.TryEnableMcpAsync(serviceUrl).ConfigureAwait(false);
+        await pipeline.TryEnableMcpAsync(serviceUrl);
     }
 
     private void HandleUnexpectedCommandException(Exception exception)
@@ -715,13 +634,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         StatusText = "执行失败";
     }
 
-    private Task InvokeOnUiAsync(Action action)
+    private void VerifyAccess()
     {
-        ArgumentNullException.ThrowIfNull(action);
-        return _dispatcher.InvokeAsync(() =>
+        if (!_dispatcher.CheckAccess())
         {
-            action();
-            return Task.CompletedTask;
-        });
+            throw new InvalidOperationException("主窗口 ViewModel 只能由所属的 UI Dispatcher 调用。");
+        }
     }
 }

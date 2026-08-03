@@ -2,12 +2,7 @@ using CoursewarePptxGeneratorWpfDemo.Threading;
 
 namespace CoursewarePptxGeneratorWpfDemo.Tests.Fakes;
 
-internal sealed class ImmediateViewModelDispatcher : IViewModelDispatcher
+internal sealed class ImmediateViewModelThreadAccess : IViewModelThreadAccess
 {
-    public Task InvokeAsync(Action action)
-    {
-        ArgumentNullException.ThrowIfNull(action);
-        action();
-        return Task.CompletedTask;
-    }
+    public bool CheckAccess() => true;
 }

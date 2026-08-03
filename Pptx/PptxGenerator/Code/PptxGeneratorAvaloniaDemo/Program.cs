@@ -81,7 +81,10 @@ class Program
         var agentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
 
         var dispatcher = AvaloniaDispatcher.Instance;
-        var copilotChatManager = new CopilotChatManager { MainThreadDispatcher = dispatcher };
+        var copilotChatManager = new CopilotChatManager
+        {
+            MainThreadDispatcher = dispatcher,
+        };
         var agentApiEndpointManager = copilotChatManager.AgentApiEndpointManager;
         await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile)).ConfigureAwait(false);
 

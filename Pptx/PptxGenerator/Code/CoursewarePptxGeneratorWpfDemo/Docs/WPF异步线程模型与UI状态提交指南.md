@@ -77,6 +77,21 @@ Dispatcher 只解决前两类问题，不自动解决数据竞争和任务所有
 
 只有前两问命中且当前执行上下文不属于目标 UI Dispatcher 时，才需要额外调度。若调用链本来就从目标 UI Dispatcher 进入并通过普通 `await` 保持上下文，应直接提交状态，不要重复调用 Dispatcher。第 5 至第 7 问分别需要完整任务生命周期、并发原语和迟到提交防护。
 
+### 3.3 可观察核心对象不能内置线程纠错
+
+一个同时持有 `ObservableCollection`、`INotifyPropertyChanged` 状态和会话选择状态的对象，本质上已经是可观察状态所有者。它不能一边声称自己“线程中立”，一边接受 Dispatcher 并在每次集合修改、属性通知或流式增量到达时自动切线程。这样的设计会产生三个问题：
+
+1. 错误调用线程被静默修正，真正破坏所有权的调用方长期无法被发现；
+2. 上层开始依赖下层调度，随后在更多层继续加入 Dispatcher、锁、`volatile` 和等待队列；
+3. 同一个对象在 WPF、Avalonia、CLI 和测试中的完成顺序、异常传播和重入语义变得不一致。
+
+正确选择只能二选一：
+
+- 对象拥有可观察状态：由创建和拥有它的调用上下文串行修改，错误线程入口快速失败；
+- 对象保持线程中立：不暴露 UI 绑定集合或可变通知状态，只返回普通数据、不可变快照或可等待结果，由上层提交。
+
+不要在核心聊天管理器、会话模型或类似对象中提供“异步新建会话并自动调度”一类 API。新建会话是同步状态变更，调用方应在正确线程直接调用；网络和模型等待仍通过普通异步 API 表达。
+
 ## 四、Dispatcher 只执行最小同步提交
 
 ### 4.1 合法的 Dispatcher 区域
@@ -126,6 +141,17 @@ internal interface IUiDispatcher
 ```
 
 不暴露 `Func<Task>`，避免调用方把完整业务流程放入 Dispatcher。如果底层框架 API 只能接受异步委托，适配层传入的委托应同步执行 `Action` 并返回 `Task.CompletedTask`；但适配层返回给调用方的任务仍必须等待该委托真正在 Dispatcher 上执行完成，不能在委托尚未执行时提前返回。
+
+如果某个 ViewModel 明确规定只能由所属 UI Dispatcher 调用，更严格的方案是只注入访问校验器：
+
+```csharp
+internal interface IViewModelThreadAccess
+{
+    bool CheckAccess();
+}
+```
+
+该抽象不提供 `InvokeAsync`。它的职责是暴露契约破坏，而不是修复契约破坏。真正需要跨线程提交的独立适配层可以使用 UI Dispatcher；UI 单线程 ViewModel 本身不应持有一个随时可用于回跳的调度入口。
 
 ### 4.4 Dispatcher 初始化也必须异步可观察
 

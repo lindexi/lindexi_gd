@@ -171,7 +171,7 @@ public sealed class CoursewareSlideItemViewModelTests
             summaryService.CreateTitle(input.MarkdownText, input.PageNumber),
             summaryService.CreateSummary(input.MarkdownText),
             factory,
-            new ImmediateViewModelDispatcher());
+            new ImmediateViewModelThreadAccess());
     }
 
     private static async Task<CoursewarePptxGenerator.Core.Models.CoursewareInputPackage> LoadPackageAsync()

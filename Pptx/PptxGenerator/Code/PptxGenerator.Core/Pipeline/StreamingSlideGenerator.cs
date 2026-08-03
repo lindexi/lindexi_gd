@@ -95,7 +95,7 @@ internal sealed class StreamingSlideGenerator
                 attempt == 0 ? attachedImageContents : null,
                 attempt == 0 ? attachedImageFiles : null,
                 attempt == 0 ? requiredAttachedImageFiles : null,
-                chatClientOverride).ConfigureAwait(false);
+                chatClientOverride);
             acceptedFragmentCount += attemptResult.AcceptedFragmentCount;
 
             var attemptCount = attempt + 1;
@@ -202,7 +202,7 @@ internal sealed class StreamingSlideGenerator
         try
         {
             var manualContext = await _copilotChatManager
-                .CreateManualSendMessageContextAsync(externalCancellationToken).ConfigureAwait(false);
+                .CreateManualSendMessageContextAsync(externalCancellationToken);
 
             // 填充用户消息
             manualContext.UserChatMessage.AppendText(userMessage);
@@ -216,8 +216,7 @@ internal sealed class StreamingSlideGenerator
             if (chatClientOverride is null)
             {
                 agent = await manualContext.GetChatClientAgentAsync(options => options.ChatOptions = chatOptions,
-                    externalCancellationToken)
-                    .ConfigureAwait(false);
+                    externalCancellationToken);
             }
             else
             {
@@ -229,7 +228,7 @@ internal sealed class StreamingSlideGenerator
                 });
             }
 
-            AgentSession session = await manualContext.GetAgentSessionAsync(externalCancellationToken).ConfigureAwait(false);
+            AgentSession session = await manualContext.GetAgentSessionAsync(externalCancellationToken);
 
             ChatMessage userChatMessage = manualContext.UserChatMessage.ToChatMessage();
             await AppendAttachedImageContentsAsync(
@@ -237,12 +236,12 @@ internal sealed class StreamingSlideGenerator
                 attachedImageContents,
                 attachedImageFiles,
                 externalCancellationToken,
-                requiredAttachedImageFiles).ConfigureAwait(false);
+                requiredAttachedImageFiles);
 
             // 附带当前预览图供 LLM 参考（仅在用户勾选且存在预览图时）
             if (attachPreview)
             {
-                var previewDataContent = await _renderTool.CreatePreviewDataContentAsync(externalCancellationToken).ConfigureAwait(false);
+                var previewDataContent = await _renderTool.CreatePreviewDataContentAsync(externalCancellationToken);
                 if (previewDataContent is not null)
                 {
                     userChatMessage.Contents.Add(previewDataContent);
@@ -253,7 +252,7 @@ internal sealed class StreamingSlideGenerator
                 ? new[] { new ChatMessage(ChatRole.System, systemPrompt), userChatMessage }
                 : new[] { userChatMessage };
 
-            await manualContext.AppendMessagesToSessionAsync().ConfigureAwait(false);
+            await manualContext.AppendMessagesToSessionAsync();
 
             using IDisposable chattingScope = manualContext.StartChatting();
 
@@ -262,9 +261,9 @@ internal sealed class StreamingSlideGenerator
             try
             {
                 await foreach (AgentResponseUpdate update in agent.RunWithHistoryCompletionAsync(
-                    inputMessages, session, cancellationToken: loopToken).ConfigureAwait(false))
+                    inputMessages, session, cancellationToken: loopToken))
                 {
-                    await AppendResponseUpdateAsync(manualContext, update).ConfigureAwait(false);
+                    manualContext.AppendResponseUpdate(update);
 
                     if (string.IsNullOrEmpty(update.Text))
                     {
@@ -273,8 +272,8 @@ internal sealed class StreamingSlideGenerator
 
                     // 将增量文本喂给流式管道
                     await streamingPipeline.ProcessIncrementalTextAsync(
-                        update.Text, context, loopToken).ConfigureAwait(false);
-                    await ApplyPendingRenderResultsAsync(pendingRenderResults).ConfigureAwait(false);
+                        update.Text, context, loopToken);
+                    await ApplyPendingRenderResultsAsync(pendingRenderResults);
 
                     // 检查合并阶段是否产生了 XML 解析错误
                     if (context.Errors.Count > 0)
@@ -294,8 +293,8 @@ internal sealed class StreamingSlideGenerator
             if (allErrors.Count == 0)
             {
                 // 未检测到异常，执行流结束渲染
-                await streamingPipeline.ProcessStreamEndAsync(context, externalCancellationToken).ConfigureAwait(false);
-                await ApplyPendingRenderResultsAsync(pendingRenderResults).ConfigureAwait(false);
+                await streamingPipeline.ProcessStreamEndAsync(context, externalCancellationToken);
+                await ApplyPendingRenderResultsAsync(pendingRenderResults);
 
                 // ProcessStreamEndAsync 及其最终渲染也可能产生错误
                 allErrors = CollectErrors(context, renderErrors);
@@ -363,7 +362,7 @@ internal sealed class StreamingSlideGenerator
     {
         while (pendingRenderResults.TryDequeue(out var renderResult))
         {
-            await _renderTool.ApplyRenderResultAsync(renderResult).ConfigureAwait(false);
+            await _renderTool.ApplyRenderResultAsync(renderResult);
         }
     }
 
@@ -412,26 +411,6 @@ internal sealed class StreamingSlideGenerator
                 _renderTool.CreatePreviewTool()
             ],
         };
-    }
-
-    private static Task AppendResponseUpdateAsync(
-        IManualSendMessageContext manualContext,
-        AgentResponseUpdate update)
-    {
-        ArgumentNullException.ThrowIfNull(manualContext);
-        ArgumentNullException.ThrowIfNull(update);
-
-        if (manualContext.MainThreadDispatcher is { } dispatcher && !dispatcher.CheckAccess())
-        {
-            return dispatcher.InvokeAsync(() =>
-            {
-                manualContext.AppendResponseUpdate(update);
-                return Task.CompletedTask;
-            });
-        }
-
-        manualContext.AppendResponseUpdate(update);
-        return Task.CompletedTask;
     }
 
     internal static async Task AppendAttachedImageContentsAsync(
@@ -483,7 +462,7 @@ internal sealed class StreamingSlideGenerator
 
             var imageContent = await DataContent.LoadFromAsync(
                 imageFile,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken);
             userChatMessage.Contents.Add(imageContent);
             loadedFiles?.Add(imageFile);
         }

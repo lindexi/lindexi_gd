@@ -86,7 +86,10 @@ public sealed class SlideChatManagerFactory : ISlideChatManagerFactory
     public SlideChatManager CreateFallback(SlideChatManagerFactoryOptions? options = null)
     {
         var documentContext = options?.DocumentContext ?? new SlideDocumentContext();
-        var copilotChatManager = new CopilotChatManager { MainThreadDispatcher = _dispatcher };
+        var copilotChatManager = new CopilotChatManager
+        {
+            MainThreadDispatcher = _dispatcher,
+        };
         return new SlideChatManager(
             copilotChatManager,
             CreateRenderTool(CreateRenderPipeline(documentContext)),

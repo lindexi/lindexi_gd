@@ -460,7 +460,7 @@ public sealed class CoursewareSlideWorkspaceViewModelTests
             factory,
             new CoursewareSlidePromptBuilder(),
             new CoursewareSlideSummaryService(),
-            new ImmediateViewModelDispatcher(),
+            new ImmediateViewModelThreadAccess(),
             imageAttachmentLoader ?? new SuccessfulImageAttachmentLoader());
     }
 

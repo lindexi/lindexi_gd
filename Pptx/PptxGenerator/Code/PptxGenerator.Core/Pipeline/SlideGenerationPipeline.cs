@@ -139,7 +139,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
         var restartService = new SlideStreamingRestartService(this);
 
-        await restartService.RestartFromMessageAsync(targetMessage, cancellationToken).ConfigureAwait(false);
+        await restartService.RestartFromMessageAsync(targetMessage, cancellationToken);
     }
 
     public async Task SendMessageAsync
@@ -173,7 +173,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
                 attachedImageFiles: attachedImageFiles,
                 requiredAttachedImageFiles: requiredAttachedImageFiles,
                 chatClientOverride: chatClientOverride,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken);
             return;
         }
 
@@ -248,7 +248,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         };
 
         var requestResult = _copilotChatManager.SendMessage(request);
-        await requestResult.RunTask.ConfigureAwait(false);
+        await requestResult.RunTask;
 
         bool doNotRender = string.IsNullOrEmpty(CurrentSlideXml);
         if (doNotRender)
@@ -258,7 +258,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
                 Contents = [new TextContent("请调用 render_slide 工具进行渲染，根据渲染结果优化界面")],
                 SystemPrompt = "**重要：生成 SlideML 后必须调用 render_slide 工具，不可跳过此步骤**",
             };
-            await _copilotChatManager.SendMessage(toolRequest).RunTask.ConfigureAwait(false);
+            await _copilotChatManager.SendMessage(toolRequest).RunTask;
         }
 
         if (!skipAutoEvaluation && _slideEvaluator is not null && !string.IsNullOrWhiteSpace(CurrentSlideXml))
@@ -314,7 +314,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             cancellationToken);
     }
 
-    private Task<SlideStreamingGenerationResult> SendStreamingMessageCoreAsync(
+    private async Task<SlideStreamingGenerationResult> SendStreamingMessageCoreAsync(
         string userMessage,
         bool isFirstMessage,
         bool createNewSession,
@@ -331,13 +331,18 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             _streamingState = null;
         }
 
+        if (createNewSession)
+        {
+            _copilotChatManager.CreateNewSession();
+        }
+
         _streamingState ??= new SlideStreamingState(
             _promptProvider, SlideMlRenderTool.RenderPipeline);
 
         var generator = new StreamingSlideGenerator(
             _copilotChatManager, _promptProvider, SlideMlRenderTool);
 
-        return generator.GenerateAsync(
+        return await generator.GenerateAsync(
             userMessage,
             isFirstMessage,
             _streamingState,
@@ -353,7 +358,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
     {
         cancellationToken.ThrowIfCancellationRequested();
         _streamingState = null;
-        await SlideMlRenderTool.ResetLatestResultAsync().ConfigureAwait(false);
+        await SlideMlRenderTool.ResetLatestResultAsync();
     }
 
     internal async Task ReplayStreamingAssistantTextAsync(string assistantText, CancellationToken cancellationToken)
@@ -376,12 +381,12 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
         try
         {
             await _streamingState.Pipeline.ProcessIncrementalTextAsync(
-                assistantText, _streamingState.Context, cancellationToken).ConfigureAwait(false);
-            await ApplyPendingRenderResultsAsync(pendingRenderResults).ConfigureAwait(false);
+                assistantText, _streamingState.Context, cancellationToken);
+            await ApplyPendingRenderResultsAsync(pendingRenderResults);
 
             await _streamingState.Pipeline.ProcessStreamEndAsync(
-                _streamingState.Context, cancellationToken).ConfigureAwait(false);
-            await ApplyPendingRenderResultsAsync(pendingRenderResults).ConfigureAwait(false);
+                _streamingState.Context, cancellationToken);
+            await ApplyPendingRenderResultsAsync(pendingRenderResults);
         }
         finally
         {
@@ -393,7 +398,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
     {
         while (pendingRenderResults.TryDequeue(out var renderResult))
         {
-            await SlideMlRenderTool.ApplyRenderResultAsync(renderResult).ConfigureAwait(false);
+            await SlideMlRenderTool.ApplyRenderResultAsync(renderResult);
         }
     }
 

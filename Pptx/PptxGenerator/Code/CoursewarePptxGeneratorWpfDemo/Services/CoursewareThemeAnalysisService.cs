@@ -97,7 +97,7 @@ public sealed class CoursewareThemeAnalysisService : ICoursewareThemeAnalysisSer
             theme,
             validationCanvas,
             availableResourceIds,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
         if (!validationResult.IsValid)
         {
             throw new InvalidDataException("课件主题验证失败：" + Environment.NewLine + string.Join(Environment.NewLine, validationResult.Errors));
