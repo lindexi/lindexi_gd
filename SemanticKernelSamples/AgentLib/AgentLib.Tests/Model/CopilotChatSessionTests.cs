@@ -60,4 +60,38 @@ public class CopilotChatSessionTests
 
         Assert.AreEqual("第一个标题", session.Title);
     }
+
+    [TestMethod]
+    [Description("后台线程添加消息时应通过主线程调度器修改消息集合")]
+    public async Task AddMessage_WhenDispatcherRequiresDispatch_InvokesDispatcher()
+    {
+        var dispatcher = new RecordingMainThreadDispatcher();
+        var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now)
+        {
+            MainThreadDispatcher = dispatcher,
+        };
+
+        await session.AddMessageAsync(new CopilotChatMessage(ChatRole.User, "测试消息"));
+
+        Assert.AreEqual(1, dispatcher.InvocationCount);
+    }
+
+    private sealed class RecordingMainThreadDispatcher : IMainThreadDispatcher
+    {
+        public int InvocationCount { get; private set; }
+
+        public bool CheckAccess() => false;
+
+        public Task InvokeAsync(Func<Task> action)
+        {
+            InvocationCount++;
+            return action();
+        }
+
+        public Task<T> InvokeAsync<T>(Func<Task<T>> action)
+        {
+            InvocationCount++;
+            return action();
+        }
+    }
 }

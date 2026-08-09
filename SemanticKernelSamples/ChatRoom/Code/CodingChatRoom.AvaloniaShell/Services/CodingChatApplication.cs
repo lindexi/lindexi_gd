@@ -249,6 +249,38 @@ internal sealed class CodingChatApplication
         }
     }
 
+    public async Task RunLoopIterationAsync(string prompt, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(prompt))
+        {
+            throw new ArgumentException("消息内容不能为空。", nameof(prompt));
+        }
+
+        while (true)
+        {
+            try
+            {
+                await SendMessageAsync(prompt, cancellationToken);
+                await CompressConversationAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+            }
+        }
+    }
+
     public async Task CompressConversationAsync(CancellationToken cancellationToken = default)
     {
         if (!CanCompressConversation)
