@@ -44,7 +44,7 @@ internal sealed class CodingChatRoomRoleExecutor : IChatRoomRoleExecutor
                 manualContext,
                 contents,
                 _workspacePath,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken).ConfigureAwait(false);
             return new ChatRoomRoleExecutionResult(
                 runResult.AssistantChatMessage,
                 CompleteAsync(runResult.CompletionTask, cancellationToken));

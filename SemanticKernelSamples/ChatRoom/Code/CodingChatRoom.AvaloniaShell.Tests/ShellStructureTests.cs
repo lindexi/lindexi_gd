@@ -77,6 +77,26 @@ public sealed class ShellStructureTests
         Assert.IsNotNull(checkBoxField);
     }
 
+    [TestMethod(DisplayName = "聊天视图应包含自动压缩勾选框")]
+    [Timeout(5000)]
+    public void ChatViewShouldContainAutomaticCompressionCheckBox()
+    {
+        FieldInfo? checkBoxField = typeof(ChatView).GetField(
+            "AutomaticCompressionCheckBox",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.IsNotNull(checkBoxField);
+    }
+
+    [TestMethod(DisplayName = "聊天视图模型默认应启用自动压缩")]
+    [Timeout(5000)]
+    public void ChatViewModelShouldEnableAutomaticCompressionByDefault()
+    {
+        var viewModel = new ChatViewModel();
+
+        Assert.IsTrue(viewModel.IsAutomaticCompressionEnabled);
+    }
+
     [TestMethod(DisplayName = "窗口标题应显示已提交的工作路径")]
     [Timeout(5000)]
     public void WorkspaceTitleShouldIncludeCommittedWorkspacePath()

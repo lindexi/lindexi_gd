@@ -541,6 +541,7 @@ public sealed class ChatViewModelTests
         public async Task<CodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
+            bool enableAutomaticCompression,
             CancellationToken cancellationToken)
         {
             RunCount++;
@@ -558,6 +559,7 @@ public sealed class ChatViewModelTests
         public Task<CodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
+            bool enableAutomaticCompression,
             CancellationToken cancellationToken) =>
             Task.FromException<CodingAgentRunResult>(exception);
     }
@@ -579,6 +581,7 @@ public sealed class ChatViewModelTests
         public async Task<CodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
+            bool enableAutomaticCompression,
             CancellationToken cancellationToken)
         {
             CancellationToken = cancellationToken;

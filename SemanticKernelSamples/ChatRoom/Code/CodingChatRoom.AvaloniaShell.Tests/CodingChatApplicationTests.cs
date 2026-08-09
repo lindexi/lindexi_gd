@@ -288,6 +288,7 @@ public sealed class CodingChatApplicationTests
         public Task<CodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
+            bool enableAutomaticCompression,
             CancellationToken cancellationToken)
         {
             Started.TrySetResult();

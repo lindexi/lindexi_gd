@@ -179,18 +179,22 @@ internal sealed class CodingChatApplication
         OnStateChanged();
     }
 
-    public async Task SendMessageAsync(string prompt, CancellationToken cancellationToken = default)
+    public async Task SendMessageAsync(
+        string prompt,
+        bool enableAutomaticCompression = true,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(prompt))
         {
             throw new ArgumentException("消息内容不能为空。", nameof(prompt));
         }
 
-        await SendMessageAsync([new TextContent(prompt)], cancellationToken);
+        await SendMessageAsync([new TextContent(prompt)], enableAutomaticCompression, cancellationToken);
     }
 
     public async Task SendMessageAsync(
         IReadOnlyList<AIContent> contents,
+        bool enableAutomaticCompression = true,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(contents);
@@ -222,7 +226,11 @@ internal sealed class CodingChatApplication
         try
         {
             CodingAgentRunResult runResult = await chatRunner
-                .RunAsync(runContents, _workspaceController?.CommittedWorkspacePath, runCancellationTokenSource.Token);
+                .RunAsync(
+                    runContents,
+                    _workspaceController?.CommittedWorkspacePath,
+                    enableAutomaticCompression,
+                    runCancellationTokenSource.Token);
             await runResult.CompletionTask;
             if (ReferenceEquals(_activeRunCancellationTokenSource, runCancellationTokenSource))
             {
@@ -272,7 +280,7 @@ internal sealed class CodingChatApplication
         {
             try
             {
-                await SendMessageAsync(prompt, cancellationToken);
+                await SendMessageAsync(prompt, enableAutomaticCompression: true, cancellationToken);
                 await CompressConversationAsync(cancellationToken);
             }
             catch (OperationCanceledException)

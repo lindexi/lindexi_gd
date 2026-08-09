@@ -29,6 +29,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     private string _inputText = string.Empty;
     private string? _runStatusText;
     private bool _isLoopIterationEnabled;
+    private bool _isAutomaticCompressionEnabled = true;
     private bool _isDisposed;
 
     /// <summary>
@@ -148,6 +149,15 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
                 RaiseCommandCanExecuteChanged();
             }
         }
+    }
+
+    /// <summary>
+    /// 获取或设置发送消息时是否自动压缩对话历史。
+    /// </summary>
+    public bool IsAutomaticCompressionEnabled
+    {
+        get => _isAutomaticCompressionEnabled;
+        set => SetField(ref _isAutomaticCompressionEnabled, value);
     }
 
     /// <summary>
@@ -444,7 +454,9 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
             }
             else
             {
-                await _application.SendMessageAsync(contents).ConfigureAwait(true);
+                await _application
+                .SendMessageAsync(contents, IsAutomaticCompressionEnabled)
+                .ConfigureAwait(true);
             }
 
             _runStatusText = isInterruption && IsRunning

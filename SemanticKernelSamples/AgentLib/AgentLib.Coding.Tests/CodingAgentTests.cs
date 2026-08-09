@@ -49,7 +49,7 @@ public sealed class CodingAgentTests
             context,
             contents,
             "coding-workspace",
-            CancellationToken.None);
+            cancellationToken: CancellationToken.None);
         await streamStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
 
         Assert.AreSame(context.AssistantChatMessage, result.AssistantChatMessage);
@@ -394,7 +394,7 @@ public sealed class CodingAgentTests
             await chatManager.CreateManualSendMessageContextAsync(),
             "取消任务",
             "workspace",
-            cancellationTokenSource.Token);
+            cancellationToken: cancellationTokenSource.Token);
         await streamStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
 
         await provider.SetWorkspacePathAsync("next-workspace", CancellationToken.None);
