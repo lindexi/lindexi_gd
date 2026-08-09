@@ -12,6 +12,7 @@
         <sys:String x:Key="AddImageText">添加图片</sys:String>
         <sys:String x:Key="RemoveImageText">移除图片</sys:String>
         <sys:String x:Key="LoopIterationText">循环迭代</sys:String>
+        <sys:String x:Key="AutomaticCompressionText">自动压缩对话</sys:String>
         <sys:String x:Key="SendText">发送</sys:String>
         <sys:String x:Key="CompressConversationText">压缩对话</sys:String>
         <sys:String x:Key="StopText">停止</sys:String>

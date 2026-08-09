@@ -44,12 +44,14 @@ public sealed class CodingAgent : IAsyncDisposable
     /// <param name="context">现有手动发送上下文。</param>
     /// <param name="prompt">用户任务文本。</param>
     /// <param name="workspacePath">本次运行期望使用的工作区路径。</param>
+    /// <param name="enableAutomaticCompression">是否自动压缩对话历史。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>流式消息和完整生命周期任务。</returns>
     public Task<CodingAgentRunResult> RunAsync(
         IManualSendMessageContext context,
         string prompt,
         string? workspacePath,
+        bool enableAutomaticCompression = true,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(prompt))
@@ -57,7 +59,12 @@ public sealed class CodingAgent : IAsyncDisposable
             throw new ArgumentException("编程任务文本不能为空。", nameof(prompt));
         }
 
-        return RunAsync(context, [new TextContent(prompt)], workspacePath, cancellationToken);
+        return RunAsync(
+            context,
+            [new TextContent(prompt)],
+            workspacePath,
+            enableAutomaticCompression,
+            cancellationToken);
     }
 
     /// <summary>
@@ -66,12 +73,14 @@ public sealed class CodingAgent : IAsyncDisposable
     /// <param name="context">现有手动发送上下文。</param>
     /// <param name="contents">保持原始顺序的用户输入内容。</param>
     /// <param name="workspacePath">本次运行期望使用的工作区路径。</param>
+    /// <param name="enableAutomaticCompression">是否自动压缩对话历史。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>流式消息和完整生命周期任务。</returns>
     public async Task<CodingAgentRunResult> RunAsync(
         IManualSendMessageContext context,
         IReadOnlyList<AIContent> contents,
         string? workspacePath,
+        bool enableAutomaticCompression = true,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -105,6 +114,10 @@ public sealed class CodingAgent : IAsyncDisposable
                 options.AIContextProviders = [];
                 options.EnableMessageInjection = true;
                 options.RequirePerServiceCallChatHistoryPersistence = true;
+                if (!enableAutomaticCompression)
+                {
+                    options.ChatHistoryProvider = null;
+                }
             }, runCancellationToken).ConfigureAwait(false);
             MessageInjectingChatClient messageInjector = chatClientAgent.GetService<MessageInjectingChatClient>()
                 ?? throw new InvalidOperationException("编程代理未启用消息注入。");

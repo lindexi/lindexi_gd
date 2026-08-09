@@ -40,6 +40,40 @@ public sealed class CodingChatSendingTests
         await sendTask;
     }
 
+    [TestMethod(DisplayName = "发送默认应启用自动压缩")]
+    [Timeout(5000)]
+    public async Task SendMessageAsyncShouldEnableAutomaticCompressionByDefault()
+    {
+        var manager = new CopilotChatManager();
+        var runner = new TestCodingChatRunner(manager);
+        var application = new CodingChatApplication(manager, new TestSessionStore(), runner);
+        await application.InitializeAsync();
+
+        Task sendTask = application.SendMessageAsync("检查代码");
+        await runner.Started.Task;
+
+        Assert.IsTrue(runner.ObservedAutomaticCompressionEnabled);
+        runner.Complete("完成");
+        await sendTask;
+    }
+
+    [TestMethod(DisplayName = "发送应允许关闭自动压缩")]
+    [Timeout(5000)]
+    public async Task SendMessageAsyncShouldAllowDisablingAutomaticCompression()
+    {
+        var manager = new CopilotChatManager();
+        var runner = new TestCodingChatRunner(manager);
+        var application = new CodingChatApplication(manager, new TestSessionStore(), runner);
+        await application.InitializeAsync();
+
+        Task sendTask = application.SendMessageAsync("检查代码", enableAutomaticCompression: false);
+        await runner.Started.Task;
+
+        Assert.IsFalse(runner.ObservedAutomaticCompressionEnabled);
+        runner.Complete("完成");
+        await sendTask;
+    }
+
     [TestMethod(DisplayName = "发送多模态内容时应保留文本图片顺序和类型")]
     [Timeout(5000)]
     public async Task SendMessageAsyncShouldPreserveMultimodalContentOrder()
@@ -267,6 +301,8 @@ public sealed class CodingChatSendingTests
 
         public string? ObservedWorkspacePath { get; private set; }
 
+        public bool ObservedAutomaticCompressionEnabled { get; private set; }
+
         public IReadOnlyList<AIContent>? ObservedContents { get; private set; }
 
         public IReadOnlyList<AIContent>? InjectedContents { get; private set; }
@@ -276,6 +312,7 @@ public sealed class CodingChatSendingTests
         public async Task<CodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
+            bool enableAutomaticCompression,
             CancellationToken cancellationToken)
         {
             RunCount++;
@@ -287,6 +324,7 @@ public sealed class CodingChatSendingTests
 
             ObservedContents = contents;
             ObservedWorkspacePath = workspacePath;
+            ObservedAutomaticCompressionEnabled = enableAutomaticCompression;
             ObservedCancellationToken = cancellationToken;
             var userMessage = CopilotChatMessage.CreateUser(contents);
             await manager.AppendMessageAsync(userMessage, cancellationToken);

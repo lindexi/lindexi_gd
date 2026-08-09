@@ -16,6 +16,7 @@ internal interface ICodingChatRunner
     Task<CodingAgentRunResult> RunAsync(
         IReadOnlyList<AIContent> contents,
         string? workspacePath,
+        bool enableAutomaticCompression,
         CancellationToken cancellationToken);
 
     Task InjectMessageAsync(
@@ -41,6 +42,7 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
     public async Task<CodingAgentRunResult> RunAsync(
         IReadOnlyList<AIContent> contents,
         string? workspacePath,
+        bool enableAutomaticCompression,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(contents);
@@ -48,7 +50,12 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
             .CreateManualSendMessageContextAsync(cancellationToken)
             .ConfigureAwait(false);
         CodingAgentRunResult run = await _codingAgent
-            .RunAsync(context, contents, workspacePath, cancellationToken)
+            .RunAsync(
+                context,
+                contents,
+                workspacePath,
+                cancellationToken: cancellationToken,
+                enableAutomaticCompression: enableAutomaticCompression)
             .ConfigureAwait(false);
         _activeRun = run;
         return new CodingAgentRunResult(
