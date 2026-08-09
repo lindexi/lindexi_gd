@@ -33,6 +33,7 @@ public class CopilotChatManager : NotifyBase
     private CancellationTokenSource? _currentChatCancellationTokenSource;
     private readonly CopilotToolManager _toolManager;
     private readonly SessionTitleGenerator _titleGenerator;
+    private IMainThreadDispatcher? _mainThreadDispatcher;
 
     /// <summary>
     /// 使用空日志记录器创建管理器。
@@ -196,9 +197,20 @@ public class CopilotChatManager : NotifyBase
 
     /// <summary>
     /// Gets the optional UI-thread dispatcher supplied by the application.
-    /// The manager does not automatically dispatch observable state changes; callers may use this value when they explicitly own a cross-thread boundary.
+    /// The dispatcher is propagated to all existing and newly created chat sessions.
     /// </summary>
-    public IMainThreadDispatcher? MainThreadDispatcher { get; init; }
+    public IMainThreadDispatcher? MainThreadDispatcher
+    {
+        get => _mainThreadDispatcher;
+        init
+        {
+            _mainThreadDispatcher = value;
+            foreach (CopilotChatSession session in ChatSessions)
+            {
+                session.SetMainThreadDispatcher(value);
+            }
+        }
+    }
 
     /// <summary>
     /// 从指定技能文件夹加载技能并追加到 <see cref="AIContextProviders"/> 中。
@@ -234,6 +246,7 @@ public class CopilotChatManager : NotifyBase
         ArgumentNullException.ThrowIfNull(session);
         CopilotChatSession? existingSession = ChatSessions.FirstOrDefault(item => item.SessionId == session.SessionId);
         CopilotChatSession result = existingSession ?? session;
+        result.SetMainThreadDispatcher(MainThreadDispatcher);
         if (existingSession is null)
         {
             ChatSessions.Insert(0, session);
@@ -290,7 +303,10 @@ public class CopilotChatManager : NotifyBase
             throw new InvalidOperationException("在当前的会话中找不到所选的聊天消息。");
         }
 
-        var newSession = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
+        var newSession = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now)
+        {
+            MainThreadDispatcher = MainThreadDispatcher,
+        };
         for (int i = 0; i <= index; i++)
         {
             newSession.AddMessage(currentSession.ChatMessages[i].Clone());
@@ -752,7 +768,10 @@ public class CopilotChatManager : NotifyBase
 
     private CopilotChatSession CreateSession()
     {
-        var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now);
+        var session = new CopilotChatSession(Guid.NewGuid(), DateTimeOffset.Now)
+        {
+            MainThreadDispatcher = MainThreadDispatcher,
+        };
         AddAssistantWelcomeMessage(session);
         ChatSessions.Insert(0, session);
         OnSessionCreated(session);

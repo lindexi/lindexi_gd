@@ -28,6 +28,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     private CopilotChatSession? _subscribedSession;
     private string _inputText = string.Empty;
     private string? _runStatusText;
+    private bool _isLoopIterationEnabled;
     private bool _isDisposed;
 
     /// <summary>
@@ -53,7 +54,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _chatManager = chatManager;
         _application = application;
         _modelStatusText = statusText;
-        SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend);
+        SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend, allowConcurrentExecutions: true);
         CompressConversationCommand = new SimpleAsyncCommand(CompressConversationAsync, () => CanCompressConversation);
         StopCommand = new SimpleCommand(application.StopActiveRun, () => IsRunning);
         ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
@@ -76,7 +77,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _application = application;
         _workspaceController = workspaceController;
         _modelStatusText = statusText;
-        SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend);
+        SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend, allowConcurrentExecutions: true);
         CompressConversationCommand = new SimpleAsyncCommand(CompressConversationAsync, () => CanCompressConversation);
         StopCommand = new SimpleCommand(application.StopActiveRun, () => IsRunning);
         ApplyWorkspaceCommand = new SimpleAsyncCommand(ApplyWorkspaceAsync, () => CanApplyWorkspace);
@@ -129,6 +130,22 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// 获取或设置下一次发送是否启用循环迭代。
+    /// </summary>
+    public bool IsLoopIterationEnabled
+    {
+        get => _isLoopIterationEnabled;
+        set
+        {
+            if (SetField(ref _isLoopIterationEnabled, value))
+            {
+                OnPropertyChanged(nameof(CanSend));
+                RaiseCommandCanExecuteChanged();
+            }
+        }
+    }
+
+    /// <summary>
     /// 获取发送命令。
     /// </summary>
     public ICommand SendCommand { get; }
@@ -152,7 +169,9 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// 获取是否可发送消息。
     /// </summary>
     public bool CanSend => _application?.CanSend == true
-        && (!string.IsNullOrWhiteSpace(InputText) || PendingImages.Count > 0);
+        && (IsLoopIterationEnabled
+            ? !string.IsNullOrWhiteSpace(InputText)
+            : !string.IsNullOrWhiteSpace(InputText) || PendingImages.Count > 0);
 
     /// <summary>
     /// 获取当前对话是否可以压缩。
@@ -399,14 +418,29 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         }
 
         CopilotChatSession? session = _subscribedSession;
+        string loopPrompt = InputText;
+        bool runLoopIteration = IsLoopIterationEnabled;
+        if (runLoopIteration)
+        {
+            IsLoopIterationEnabled = false;
+        }
+
         InputText = string.Empty;
         PendingImages.Clear();
         _runStatusText = "正在运行";
         OnPropertyChanged(nameof(StatusText));
         try
         {
-            await _application.SendMessageAsync(contents).ConfigureAwait(true);
-            _runStatusText = null;
+            if (runLoopIteration)
+            {
+                await _application.RunLoopIterationAsync(loopPrompt).ConfigureAwait(true);
+            }
+            else
+            {
+                await _application.SendMessageAsync(contents).ConfigureAwait(true);
+            }
+
+            _runStatusText = IsRunning ? "正在运行" : null;
         }
         catch (OperationCanceledException)
         {

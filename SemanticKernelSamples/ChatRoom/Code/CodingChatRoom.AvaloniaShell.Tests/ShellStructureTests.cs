@@ -66,6 +66,17 @@ public sealed class ShellStructureTests
         Assert.IsNotNull(buttonField);
     }
 
+    [TestMethod(DisplayName = "聊天视图应包含循环迭代勾选框")]
+    [Timeout(5000)]
+    public void ChatViewShouldContainLoopIterationCheckBox()
+    {
+        FieldInfo? checkBoxField = typeof(ChatView).GetField(
+            "LoopIterationCheckBox",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.IsNotNull(checkBoxField);
+    }
+
     [TestMethod(DisplayName = "窗口标题应显示已提交的工作路径")]
     [Timeout(5000)]
     public void WorkspaceTitleShouldIncludeCommittedWorkspacePath()

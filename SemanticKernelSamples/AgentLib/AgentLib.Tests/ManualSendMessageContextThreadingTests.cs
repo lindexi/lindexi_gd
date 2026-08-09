@@ -28,6 +28,33 @@ public sealed class ManualSendMessageContextThreadingTests
         Assert.AreEqual(0, dispatcher.InvocationCount);
     }
 
+    [TestMethod(DisplayName = "管理器的主线程调度器应赋给构造期间创建的初始会话")]
+    public void MainThreadDispatcher_ShouldBeAssignedToInitialSession()
+    {
+        var dispatcher = new RecordingMainThreadDispatcher();
+        var manager = new CopilotChatManager
+        {
+            MainThreadDispatcher = dispatcher,
+        };
+
+        Assert.AreSame(dispatcher, manager.SelectedSession.MainThreadDispatcher);
+    }
+
+    [TestMethod(DisplayName = "管理器新建的会话应继承主线程调度器")]
+    public void CreateNewSession_ShouldAssignMainThreadDispatcher()
+    {
+        var dispatcher = new RecordingMainThreadDispatcher();
+        var manager = new CopilotChatManager
+        {
+            MainThreadDispatcher = dispatcher,
+        };
+        manager.SelectedSession.AddMessage(new CopilotChatMessage(Microsoft.Extensions.AI.ChatRole.User, "占用初始会话"));
+
+        manager.CreateNewSession();
+
+        Assert.AreSame(dispatcher, manager.SelectedSession.MainThreadDispatcher);
+    }
+
     private sealed class RecordingMainThreadDispatcher : IMainThreadDispatcher
     {
         public int InvocationCount { get; private set; }

@@ -277,10 +277,10 @@
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,1,0,0">
-            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
                 <ItemsControl Grid.Row="0"
                               Grid.Column="0"
-                              Grid.ColumnSpan="5"
+                              Grid.ColumnSpan="6"
                               Margin="0,0,0,8"
                               ItemsSource="{Binding PendingImages}"
                               IsVisible="{Binding HasPendingImages}">
@@ -318,8 +318,7 @@
                         Grid.Column="0"
                         Classes="Flat"
                         Content="{StaticResource AddImageText}"
-                        Click="AddImageButton_OnClick"
-                        IsEnabled="{Binding !IsRunning}" />
+                        Click="AddImageButton_OnClick" />
                 <TextBox Grid.Row="1"
                           Grid.Column="1"
                           x:Name="MessageInputTextBox"
@@ -331,15 +330,22 @@
                          TextWrapping="Wrap"
                           KeyDown="MessageInputTextBox_OnKeyDown"
                          MaxHeight="120" />
+                <CheckBox Grid.Row="1"
+                          Grid.Column="2"
+                          x:Name="LoopIterationCheckBox"
+                          Margin="8,0,0,0"
+                          VerticalAlignment="Center"
+                          Content="{StaticResource LoopIterationText}"
+                          IsChecked="{Binding IsLoopIterationEnabled}" />
                 <Button Grid.Row="1"
-                        Grid.Column="2"
+                        Grid.Column="3"
                         Classes="Primary"
                         Content="{StaticResource SendText}"
                         Margin="8,0,0,0"
                         Command="{Binding SendCommand}"
                         IsEnabled="{Binding CanSend}" />
                 <Button Grid.Row="1"
-                        Grid.Column="3"
+                        Grid.Column="4"
                         x:Name="CompressConversationButton"
                         Classes="Flat"
                         Content="{StaticResource CompressConversationText}"
@@ -347,7 +353,7 @@
                         Command="{Binding CompressConversationCommand}"
                         IsEnabled="{Binding CanCompressConversation}" />
                 <Button Grid.Row="1"
-                        Grid.Column="4"
+                        Grid.Column="5"
                         Classes="Danger"
                         Content="{StaticResource StopText}"
                         Margin="8,0,0,0"

@@ -188,6 +188,45 @@ public sealed class ChatViewModelTests
         Assert.AreEqual(1, runner.RunCount);
     }
 
+    [TestMethod(DisplayName = "循环迭代发送应取消勾选并可由停止命令结束")]
+    [Timeout(5000)]
+    public async Task LoopIterationShouldClearOptionAndStopActiveRun()
+    {
+        var manager = new CopilotChatManager();
+        var runner = new CancelableRunner(manager);
+        var application = new CodingChatApplication(manager, new EmptySessionStore(), runner);
+        await application.InitializeAsync();
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型")
+        {
+            InputText = "继续处理交接文档",
+            IsLoopIterationEnabled = true,
+        };
+
+        viewModel.SendCommand.Execute(null);
+        await runner.Started.Task;
+
+        Assert.IsFalse(viewModel.IsLoopIterationEnabled);
+        viewModel.StopCommand.Execute(null);
+        await runner.Canceled.Task;
+        await WaitUntilAsync(() => !viewModel.IsRunning);
+
+        Assert.AreEqual("继续处理交接文档", Assert.IsInstanceOfType<TextContent>(runner.ObservedContents![0]).Text);
+    }
+
+    [TestMethod(DisplayName = "循环迭代模式应要求输入固定文本")]
+    [Timeout(5000)]
+    public void LoopIterationShouldRequireTextPrompt()
+    {
+        var manager = new CopilotChatManager();
+        var application = new CodingChatApplication(manager, new EmptySessionStore(), new ImmediateRunner(manager));
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型");
+        Assert.IsTrue(viewModel.TryAddImageAttachment("sample.png", new byte[] { 1, 2, 3 }));
+
+        viewModel.IsLoopIterationEnabled = true;
+
+        Assert.IsFalse(viewModel.SendCommand.CanExecute(null));
+    }
+
     [TestMethod(DisplayName = "仅附加图片时发送命令应可用并清空附件")]
     [Timeout(5000)]
     public async Task ImageOnlyMessageShouldSendAndClearAttachments()
@@ -503,12 +542,15 @@ public sealed class ChatViewModelTests
 
         public CancellationToken CancellationToken { get; private set; }
 
+        public IReadOnlyList<AIContent>? ObservedContents { get; private set; }
+
         public async Task<CodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CancellationToken cancellationToken)
         {
             CancellationToken = cancellationToken;
+            ObservedContents = contents;
             await manager.AppendMessageAsync(CopilotChatMessage.CreateUser(contents), cancellationToken);
             var assistantMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
             await manager.SelectedSession.AddMessageAsync(assistantMessage);

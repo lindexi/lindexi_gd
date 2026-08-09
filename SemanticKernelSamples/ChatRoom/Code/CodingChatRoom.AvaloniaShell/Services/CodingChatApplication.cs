@@ -62,7 +62,7 @@ internal sealed class CodingChatApplication
 
     public bool CanChangeSession => !HasActiveOperation;
 
-    public bool CanSend => _chatRunner is not null && !HasActiveOperation;
+    public bool CanSend => _chatRunner is not null && !_isCompressionActive;
 
     public bool CanCompressConversation => !HasActiveOperation
         && _chatManager.SelectedSession.AgentSession is not null;
@@ -202,9 +202,15 @@ internal sealed class CodingChatApplication
 
         ICodingChatRunner chatRunner = _chatRunner
             ?? throw new InvalidOperationException("编程代理运行器尚未初始化。");
-        if (HasActiveOperation)
+        if (_isCompressionActive)
         {
-            throw new InvalidOperationException("已有活动操作正在运行。");
+            throw new InvalidOperationException("对话压缩期间不能发送消息。");
+        }
+
+        if (_isRunActive)
+        {
+            await chatRunner.InjectMessageAsync(runContents, cancellationToken);
+            return;
         }
 
         CancellationTokenSource runCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -218,6 +224,12 @@ internal sealed class CodingChatApplication
             CodingAgentRunResult runResult = await chatRunner
                 .RunAsync(runContents, _workspaceController?.CommittedWorkspacePath, runCancellationTokenSource.Token);
             await runResult.CompletionTask;
+            if (ReferenceEquals(_activeRunCancellationTokenSource, runCancellationTokenSource))
+            {
+                _activeRunCancellationTokenSource = null;
+                _isRunActive = false;
+                OnStateChanged();
+            }
         }
         catch (Exception exception)
         {
@@ -245,6 +257,38 @@ internal sealed class CodingChatApplication
 
                 runCancellationTokenSource.Dispose();
                 OnStateChanged();
+            }
+        }
+    }
+
+    public async Task RunLoopIterationAsync(string prompt, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(prompt))
+        {
+            throw new ArgumentException("消息内容不能为空。", nameof(prompt));
+        }
+
+        while (true)
+        {
+            try
+            {
+                await SendMessageAsync(prompt, cancellationToken);
+                await CompressConversationAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch
+            {
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
             }
         }
     }

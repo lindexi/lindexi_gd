@@ -16,6 +16,7 @@ public sealed class CopilotChatSession : NotifyBase
     private string _title = "新会话";
     private TitleSource _titleSource;
     private AgentSession? _agentSession;
+    private IMainThreadDispatcher? _mainThreadDispatcher;
 
     /// <summary>
     /// 当前标题的来源。
@@ -57,6 +58,16 @@ public sealed class CopilotChatSession : NotifyBase
     public ObservableCollection<CopilotChatMessage> ChatMessages { get; } = [];
 
     /// <summary>
+    /// 主线程调度器。设置后，<see cref="AddMessageAsync"/> 将通过调度器回到主线程修改 <see cref="ChatMessages"/>。
+    /// 为 <see langword="null"/> 时直接在当前线程执行。仅在初始化阶段设置。
+    /// </summary>
+    public IMainThreadDispatcher? MainThreadDispatcher
+    {
+        get => _mainThreadDispatcher;
+        init => _mainThreadDispatcher = value;
+    }
+
+    /// <summary>
     /// 当前会话关联的代理会话。当不携带历史时为 <see langword="null"/>。
     /// </summary>
     public AgentSession? AgentSession
@@ -89,13 +100,23 @@ public sealed class CopilotChatSession : NotifyBase
 
     /// <summary>
     /// 向会话中添加一条聊天消息，并尝试更新会话标题。
-    /// 调用方负责在拥有会话可观察状态的线程上调用。
+    /// 如果设置了 <see cref="MainThreadDispatcher"/>，将调度到主线程执行。
     /// </summary>
     /// <param name="chatMessage">要添加的聊天消息。</param>
-    public Task AddMessageAsync(CopilotChatMessage chatMessage)
+    public async Task AddMessageAsync(CopilotChatMessage chatMessage)
     {
+        ArgumentNullException.ThrowIfNull(chatMessage);
+        if (_mainThreadDispatcher is not null && !_mainThreadDispatcher.CheckAccess())
+        {
+            await _mainThreadDispatcher.InvokeAsync(() =>
+            {
+                AddMessageCore(chatMessage);
+                return Task.CompletedTask;
+            });
+            return;
+        }
+
         AddMessageCore(chatMessage);
-        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -104,6 +125,11 @@ public sealed class CopilotChatSession : NotifyBase
     internal void AddMessage(CopilotChatMessage chatMessage)
     {
         AddMessageCore(chatMessage);
+    }
+
+    internal void SetMainThreadDispatcher(IMainThreadDispatcher? mainThreadDispatcher)
+    {
+        _mainThreadDispatcher = mainThreadDispatcher;
     }
 
     private void AddMessageCore(CopilotChatMessage chatMessage)
