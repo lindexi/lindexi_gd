@@ -17,7 +17,6 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.17.0" />
   </ItemGroup>
 
   <ItemGroup>

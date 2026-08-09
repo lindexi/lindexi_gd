@@ -84,33 +84,57 @@ public sealed class CodingAgentTests
         Assert.IsInstanceOfType<CopilotChatTextItem>(context.UserChatMessage.MessageItems[2]);
     }
 
-    [TestMethod(DisplayName = "交错流式片段应按到达顺序在主线程提交")]
+    [TestMethod(DisplayName = "运行期间注入消息应由实际运行的 Agent 继续处理")]
     [Timeout(10000)]
-    public async Task RunAsyncShouldDispatchInterleavedResponseUpdatesInOrder()
+    public async Task InjectMessageAsyncShouldContinueTheActiveAgentRun()
     {
-        var dispatcher = new StrictMainThreadDispatcher();
+        var firstCallStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseFirstCall = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondCallStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        IReadOnlyList<ChatMessage>? secondCallMessages = null;
+        int callCount = 0;
+        var client = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (messages, _, cancellationToken) =>
+            {
+                int currentCall = Interlocked.Increment(ref callCount);
+                return currentCall == 1
+                    ? WaitThenRespondAsync(firstCallStarted, releaseFirstCall, "首轮完成", cancellationToken)
+                    : CaptureAndRespondAsync(messages, secondCallStarted, value => secondCallMessages = value, "插话已处理", cancellationToken);
+            },
+        };
+        CopilotChatManager chatManager = CreateChatManager(client);
+        await using var agent = new CodingAgent(CreateProvider("workspace", []));
+        IManualSendMessageContext context = await chatManager.CreateManualSendMessageContextAsync();
+
+        CodingAgentRunResult result = await agent.RunAsync(context, "开始任务", "workspace");
+        await firstCallStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
+
+        await result.InjectMessageAsync([new TextContent("人类插话")]);
+        releaseFirstCall.TrySetResult();
+
+        await secondCallStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
+        Assert.IsTrue(secondCallMessages!
+            .Any(message => message.Role == ChatRole.User && message.Text == "人类插话"));
+        Assert.AreEqual("首轮完成插话已处理", await result.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
+    }
+
+    [TestMethod(DisplayName = "交错流式片段应按到达顺序提交")]
+    [Timeout(10000)]
+    public async Task RunAsyncShouldAppendInterleavedResponseUpdatesInOrder()
+    {
         var client = new FakeChatClient
         {
             OnGetStreamingResponseAsync = (_, _, cancellationToken) =>
-                InterleavedStreamAsync(dispatcher, cancellationToken),
+                InterleavedStreamAsync(cancellationToken),
         };
-        CopilotChatManager chatManager = CreateChatManager(client, dispatcher);
+        CopilotChatManager chatManager = CreateChatManager(client);
         await using var agent = new CodingAgent(CreateProvider("workspace", []));
         IManualSendMessageContext context = await chatManager.CreateManualSendMessageContextAsync();
-        var itemAddDispatchStates = new List<bool>();
-        context.AssistantChatMessage.MessageItems.CollectionChanged += (_, args) =>
-        {
-            if (args.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
-            {
-                itemAddDispatchStates.Add(dispatcher.IsInvoking);
-            }
-        };
 
         CodingAgentRunResult result = await agent.RunAsync(context, "检查顺序", "workspace");
         Assert.AreEqual("正文一正文二", await result.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
 
-        Assert.HasCount(4, itemAddDispatchStates);
-        Assert.IsTrue(itemAddDispatchStates.All(isInvoking => isInvoking));
         Assert.HasCount(4, result.AssistantChatMessage.MessageItems);
         Assert.AreEqual("思考一", Assert.IsInstanceOfType<CopilotChatReasoningItem>(result.AssistantChatMessage.MessageItems[0]).Text);
         Assert.AreEqual("正文一", Assert.IsInstanceOfType<CopilotChatTextItem>(result.AssistantChatMessage.MessageItems[1]).Text);
@@ -244,19 +268,19 @@ public sealed class CodingAgentTests
         Assert.AreEqual("完成", await nextRun.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
     }
 
-    [TestMethod(DisplayName = "模型初始化失败时应清除助手占位符")]
+    [TestMethod(DisplayName = "模型初始化失败时 RunAsync 应直接抛出异常")]
     [Timeout(10000)]
-    public async Task RunAsyncWhenModelInitializationFailsShouldClearPlaceholder()
+    public async Task RunAsyncWhenModelInitializationFailsShouldThrowDirectly()
     {
         await using var agent = new CodingAgent(CreateProvider("workspace", []));
         var context = new FailingManualSendMessageContext();
 
-        CodingAgentRunResult result = await agent.RunAsync(context, "任务", "workspace");
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() =>
+            agent.RunAsync(context, "任务", "workspace"));
 
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(async () =>
-            await result.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
-        Assert.IsTrue(context.MessagesAppended);
-        Assert.IsTrue(string.IsNullOrEmpty(context.AssistantChatMessage.Content));
+        Assert.AreEqual("代理初始化失败。", exception.Message);
+        Assert.IsFalse(context.MessagesAppended);
+        Assert.AreEqual(CopilotChatMessage.PlaceholderContent, context.AssistantChatMessage.Content);
     }
 
     [TestMethod(DisplayName = "工作区切换后运行应继续使用旧租约且下一轮使用新工具")]
@@ -454,7 +478,7 @@ public sealed class CodingAgentTests
         Assert.IsFalse(secondDispose.IsCompleted);
         releaseStream.TrySetResult();
         await Task.WhenAll(firstDispose, secondDispose).WaitAsync(TimeSpan.FromSeconds(2));
-        await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () => await run.CompletionTask);
+        await Assert.ThrowsAsync<OperationCanceledException>(async () => await run.CompletionTask);
     }
 
     private static CodingWorkspaceToolProvider CreateProvider(
@@ -495,7 +519,6 @@ public sealed class CodingAgentTests
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> InterleavedStreamAsync(
-        StrictMainThreadDispatcher dispatcher,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         ChatResponseUpdate[] updates =
@@ -509,7 +532,6 @@ public sealed class CodingAgentTests
         foreach (ChatResponseUpdate update in updates)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            Assert.IsFalse(dispatcher.IsInvoking);
             yield return update;
             await Task.Yield();
         }
@@ -606,45 +628,6 @@ public sealed class CodingAgentTests
         }
     }
 
-    private sealed class StrictMainThreadDispatcher : IMainThreadDispatcher
-    {
-        public int InvokeCount { get; private set; }
-
-        public bool IsInvoking { get; private set; }
-
-        public bool CheckAccess() => IsInvoking;
-
-        public async Task InvokeAsync(Func<Task> action)
-        {
-            Assert.IsFalse(IsInvoking);
-            InvokeCount++;
-            IsInvoking = true;
-            try
-            {
-                await action();
-            }
-            finally
-            {
-                IsInvoking = false;
-            }
-        }
-
-        public async Task<T> InvokeAsync<T>(Func<Task<T>> action)
-        {
-            Assert.IsFalse(IsInvoking);
-            InvokeCount++;
-            IsInvoking = true;
-            try
-            {
-                return await action();
-            }
-            finally
-            {
-                IsInvoking = false;
-            }
-        }
-    }
-
     private sealed class FailingManualSendMessageContext : IManualSendMessageContext
     {
         public CopilotChatMessage UserChatMessage { get; } = CopilotChatMessage.CreateUser(string.Empty);
@@ -688,6 +671,31 @@ public sealed class CodingAgentTests
         public void Dispose()
         {
         }
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> WaitThenRespondAsync(
+        TaskCompletionSource started,
+        TaskCompletionSource release,
+        string response,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        started.TrySetResult();
+        await release.Task.WaitAsync(cancellationToken);
+        yield return new ChatResponseUpdate(ChatRole.Assistant, [new TextContent(response)]);
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> CaptureAndRespondAsync(
+        IEnumerable<ChatMessage> messages,
+        TaskCompletionSource started,
+        Action<IReadOnlyList<ChatMessage>> capture,
+        string response,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        capture(messages.ToArray());
+        started.TrySetResult();
+        yield return new ChatResponseUpdate(ChatRole.Assistant, [new TextContent(response)]);
+        await Task.CompletedTask;
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> ImmediateStreamAsync(

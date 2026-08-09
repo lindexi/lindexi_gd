@@ -214,12 +214,13 @@
 
 ### 4. 验证工具
 
-- `run_build`：固定调用 `dotnet build`，可指定工作区内的解决方案或项目
-- `run_tests`：固定调用 `dotnet test`，可指定工作区内的解决方案或项目
+- `run_build`：固定调用 `dotnet build`，可指定绝对路径或相对于工作区的目标路径
+- `run_msbuild`：固定调用本机安装的 `MSBuild.exe`，可指定绝对路径或相对于工作区的目标路径
+- `run_tests`：固定调用 `dotnet test`，可指定绝对路径或相对于工作区的目标路径
 
-这两个工具由 `AgentLib.ChatRoom.Tools.Coding.DotNetCliTools` 提供，与 Roslyn 相关工具一起归类为编程角色工具。它们不放入通用 `AgentLib` 的 `WorkspaceToolProvider`，也不加入所有聊天室角色的默认工具集合，而是由角色授权机制按需注入。
+这些工具由 `AgentLib.Coding.DotNetCliTools` 提供，与 Roslyn 相关工具一起归类为编程角色工具。它们不放入通用 `AgentLib` 的 `WorkspaceToolProvider`，也不加入所有聊天室角色的默认工具集合，而是由角色授权机制按需注入。
 
-命令执行工具不接受任意 Shell 字符串，只允许选择工作区内的解决方案或项目路径。当前阶段先返回 `dotnet` 原始输出、退出码和成功状态；测试发现、筛选运行、结构化诊断和 Git diff 工具留待后续实现。
+命令执行工具不接受任意 Shell 字符串，只执行预定义的构建或测试命令。目标路径可以位于工作区之外，也不预先限制文件扩展名，路径和文件格式错误由对应构建工具报告。工具返回受限长度的输出摘要、退出码和成功状态，完整日志可通过日志读取与搜索工具查看。
 
 ## RoslynAgentTools 的生命周期
 
@@ -446,10 +447,10 @@
 9. 最终 Git diff 不包含临时文件、本地绝对路径或用户敏感信息
 10. 聊天室关闭或切换工作区后，Roslyn Language Server 进程被正确释放
 11. 普通角色默认看不到 Roslyn 工具，测试角色或审查角色获得显式授权后可以复用同一工作区会话的只读能力
-12. `run_build` 和 `run_tests` 只执行固定的 `dotnet` 子命令，并拒绝工作区外的目标路径
+12. `run_build`、`run_msbuild` 和 `run_tests` 只执行预定义命令；绝对目标路径可位于工作区之外，文件类型错误由底层构建工具报告
 
 ## 结论
 
 专门用于写代码的角色在角色模型上仍然是普通的 `ChatRoomRole`，不需要新增继承体系。它与其他角色的差异来自系统提示词、模型配置和显式授予的工具集合；同时，它还需要受控的工作区生命周期、精确的代码理解工具、单写入者机制、补丁式修改、人工审批以及编译测试验证闭环。
 
-`RoslynAgentTools` 和 `DotNetCliTools` 统一放在 `AgentLib.ChatRoom.Tools.Coding` 下，分别提供只读代码理解能力以及固定的 `dotnet build`、`dotnet test` 验证能力。它们默认不向普通角色开放，但可以按角色显式授权；底层工具实例可以按工作区共享，角色可见性必须保持隔离。文件读取、搜索、创建和精确替换继续复用通用 `WorkspaceToolProvider`，避免在 ChatRoom 层重复实现。后续再补充结构化诊断、测试筛选和 Git diff 审查。
+`RoslynAgentTools` 和 `DotNetCliTools` 位于 `AgentLib.Coding` 下，分别提供只读代码理解能力以及固定的 `dotnet build`、`MSBuild.exe`、`dotnet test` 验证能力。它们默认不向普通角色开放，但可以按角色显式授权；底层工具实例可以按工作区共享，角色可见性必须保持隔离。文件读取、搜索、创建和精确替换继续复用通用 `WorkspaceToolProvider`，避免在 ChatRoom 层重复实现。后续再补充结构化诊断和 Git diff 审查。
