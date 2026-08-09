@@ -277,7 +277,7 @@
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,1,0,0">
-            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
+            <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
                 <ItemsControl Grid.Row="0"
                               Grid.Column="0"
                               Grid.ColumnSpan="6"
@@ -340,7 +340,7 @@
                 <Button Grid.Row="1"
                         Grid.Column="3"
                         Classes="Primary"
-                        Content="{StaticResource SendText}"
+                        Content="{Binding SendButtonText}"
                         Margin="8,0,0,0"
                         Command="{Binding SendCommand}"
                         IsEnabled="{Binding CanSend}" />
@@ -359,6 +359,13 @@
                         Margin="8,0,0,0"
                         Command="{Binding StopCommand}"
                         IsVisible="{Binding IsRunning}" />
+                <TextBlock Grid.Row="2"
+                           Grid.Column="1"
+                           Grid.ColumnSpan="5"
+                           Margin="8,6,0,0"
+                           Classes="Subtitle"
+                           Text="{Binding StatusText}"
+                           TextWrapping="Wrap" />
             </Grid>
         </Border>
     </Grid>

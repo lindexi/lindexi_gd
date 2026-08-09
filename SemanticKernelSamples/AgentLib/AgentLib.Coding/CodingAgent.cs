@@ -3,6 +3,8 @@ using AgentLib.Model;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
+#pragma warning disable MAAI001
+
 namespace AgentLib.Coding;
 
 /// <summary>
@@ -96,13 +98,30 @@ public sealed class CodingAgent : IAsyncDisposable
             }
 
             lease = await _toolProvider.AcquireLeaseAsync(runCancellationToken).ConfigureAwait(false);
+            ChatClientAgent chatClientAgent = await context.GetChatClientAgentAsync(options =>
+            {
+                options.ChatOptions ??= new ChatOptions();
+                options.ChatOptions.Tools = [.. lease.Tools];
+                options.AIContextProviders = [];
+                options.EnableMessageInjection = true;
+                options.RequirePerServiceCallChatHistoryPersistence = true;
+            }, runCancellationToken).ConfigureAwait(false);
+            MessageInjectingChatClient messageInjector = chatClientAgent.GetService<MessageInjectingChatClient>()
+                ?? throw new InvalidOperationException("编程代理未启用消息注入。");
+            AgentSession agentSession = await context.GetAgentSessionAsync(runCancellationToken).ConfigureAwait(false);
             Task<string?> completionTask = RunCoreAsync(
                 context,
                 runContents,
+                chatClientAgent,
+                agentSession,
                 lease,
                 runCancellationTokenSource);
             ownershipTransferred = true;
-            return new CodingAgentRunResult(context.AssistantChatMessage, completionTask);
+            return new CodingAgentRunResult(
+                context.AssistantChatMessage,
+                completionTask,
+                messageInjector,
+                agentSession);
         }
         finally
         {
@@ -175,6 +194,8 @@ public sealed class CodingAgent : IAsyncDisposable
     private async Task<string?> RunCoreAsync(
         IManualSendMessageContext context,
         IReadOnlyList<AIContent> contents,
+        ChatClientAgent chatClientAgent,
+        AgentSession agentSession,
         CodingWorkspaceToolLease lease,
         CancellationTokenSource runCancellationTokenSource)
     {
@@ -200,13 +221,6 @@ public sealed class CodingAgent : IAsyncDisposable
 
             using IDisposable chatting = context.StartChatting();
             await context.AppendMessagesToSessionAsync();
-            ChatClientAgent chatClientAgent = await context.GetChatClientAgentAsync(options =>
-            {
-                options.ChatOptions ??= new ChatOptions();
-                options.ChatOptions.Tools = [.. lease.Tools];
-                options.AIContextProviders = [];
-            }, cancellationToken);
-            AgentSession agentSession = await context.GetAgentSessionAsync(cancellationToken);
             EnsureSystemPromptInSession(agentSession);
             ChatMessage[] inputMessages =
             [

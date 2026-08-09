@@ -18,26 +18,30 @@ public sealed class DotNetCliToolsTests
         Assert.ThrowsExactly<DirectoryNotFoundException>(() => new DotNetCliTools(workspacePath));
     }
 
-    [TestMethod(DisplayName = "构建工具应拒绝工作区外的项目路径")]
-    [Timeout(5000)]
-    public async Task RunBuildAsync_WhenTargetIsOutsideWorkspace_ReturnsErrorMessage()
+    [TestMethod(DisplayName = "构建工具应允许工作区外的项目路径")]
+    [Timeout(30000)]
+    public async Task RunBuildAsync_WhenTargetIsOutsideWorkspace_ReturnsSuccessfulResult()
     {
         string testRoot = CreateTestDirectory();
         string workspacePath = Path.Join(testRoot, "workspace");
-        string outsideProjectPath = Path.Join(testRoot, "outside", "Outside.csproj");
+        string outsideDirectoryPath = Path.Join(testRoot, "outside");
+        string outsideProjectPath = Path.Join(outsideDirectoryPath, "Outside.csproj");
         Directory.CreateDirectory(workspacePath);
-        Directory.CreateDirectory(Path.GetDirectoryName(outsideProjectPath)!);
-        await File.WriteAllTextAsync(outsideProjectPath, "<Project Sdk=\"Microsoft.NET.Sdk\" />");
+        Directory.CreateDirectory(outsideDirectoryPath);
+        await File.WriteAllTextAsync(
+            outsideProjectPath,
+            "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>net6.0</TargetFramework></PropertyGroup></Project>");
+        await File.WriteAllTextAsync(Path.Join(outsideDirectoryPath, "Outside.cs"), "internal static class Outside { }");
         var tools = new DotNetCliTools(workspacePath);
 
         string result = await tools.RunBuildAsync(outsideProjectPath);
 
-        StringAssert.Contains(result, "目标不在代码工作区范围内");
+        StringAssert.Contains(result, "执行成功");
     }
 
-    [TestMethod(DisplayName = "构建工具应拒绝非解决方案或项目文件")]
+    [TestMethod(DisplayName = "构建工具应将非解决方案或项目文件交给 dotnet build 处理")]
     [Timeout(5000)]
-    public async Task RunBuildAsync_WhenTargetIsNotProjectOrSolution_ReturnsErrorMessage()
+    public async Task RunBuildAsync_WhenTargetIsNotProjectOrSolution_ReturnsDotNetBuildError()
     {
         string workspacePath = Path.Join(CreateTestDirectory(), "workspace");
         Directory.CreateDirectory(workspacePath);
@@ -46,7 +50,7 @@ public sealed class DotNetCliToolsTests
 
         string result = await tools.RunBuildAsync("note.txt");
 
-        StringAssert.Contains(result, "仅支持 .sln、.slnx、.csproj、.vbproj 或 .fsproj 文件");
+        StringAssert.Contains(result, "MSB4025");
     }
 
     [TestMethod(DisplayName = "构建工具应使用 dotnet build 构建指定项目")]

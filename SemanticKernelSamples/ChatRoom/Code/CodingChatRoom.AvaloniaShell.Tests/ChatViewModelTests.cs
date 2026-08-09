@@ -188,6 +188,34 @@ public sealed class ChatViewModelTests
         Assert.AreEqual(1, runner.RunCount);
     }
 
+    [TestMethod(DisplayName = "运行期间插话应显示提交反馈并保持发送入口可用")]
+    [Timeout(5000)]
+    public async Task InterruptionShouldShowSubmissionFeedbackAndKeepSendAvailable()
+    {
+        var manager = new CopilotChatManager();
+        var runner = new CancelableRunner(manager);
+        var application = new CodingChatApplication(manager, new EmptySessionStore(), runner);
+        await application.InitializeAsync();
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型")
+        {
+            InputText = "开始长任务",
+        };
+        viewModel.SendCommand.Execute(null);
+        await runner.Started.Task;
+        viewModel.InputText = "改为优先修复测试";
+
+        Assert.AreEqual("插话", viewModel.SendButtonText);
+        Assert.IsTrue(viewModel.SendCommand.CanExecute(null));
+        viewModel.SendCommand.Execute(null);
+        await runner.Injected.Task;
+        await WaitUntilAsync(() => viewModel.StatusText == "插话已提交，等待 Agent 处理");
+
+        Assert.AreEqual(string.Empty, viewModel.InputText);
+        Assert.AreEqual("改为优先修复测试", runner.InjectedText);
+        viewModel.StopCommand.Execute(null);
+        await runner.Canceled.Task;
+    }
+
     [TestMethod(DisplayName = "循环迭代发送应取消勾选并可由停止命令结束")]
     [Timeout(5000)]
     public async Task LoopIterationShouldClearOptionAndStopActiveRun()
@@ -540,9 +568,13 @@ public sealed class ChatViewModelTests
 
         public TaskCompletionSource Canceled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+        public TaskCompletionSource Injected { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
         public CancellationToken CancellationToken { get; private set; }
 
         public IReadOnlyList<AIContent>? ObservedContents { get; private set; }
+
+        public string? InjectedText { get; private set; }
 
         public async Task<CodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
@@ -556,6 +588,16 @@ public sealed class ChatViewModelTests
             await manager.SelectedSession.AddMessageAsync(assistantMessage);
             Started.TrySetResult();
             return new CodingAgentRunResult(assistantMessage, WaitForCancellationAsync(cancellationToken));
+        }
+
+        public Task InjectMessageAsync(
+            IReadOnlyList<AIContent> contents,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            InjectedText = Assert.IsInstanceOfType<TextContent>(contents[0]).Text;
+            Injected.TrySetResult();
+            return Task.CompletedTask;
         }
 
         private async Task<string?> WaitForCancellationAsync(CancellationToken cancellationToken)

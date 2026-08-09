@@ -104,6 +104,11 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     public string StatusText => _runStatusText ?? _modelStatusText;
 
     /// <summary>
+    /// 获取发送按钮文本。
+    /// </summary>
+    public string SendButtonText => IsRunning ? "插话" : "发送";
+
+    /// <summary>
     /// 获取消息投影集合。
     /// </summary>
     public ObservableCollection<MessageItemViewModel> Messages { get; } = [];
@@ -364,6 +369,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(CanCompressConversation));
         OnPropertyChanged(nameof(IsRunning));
         OnPropertyChanged(nameof(IsCompressing));
+        OnPropertyChanged(nameof(SendButtonText));
         RaiseCommandCanExecuteChanged();
     }
 
@@ -420,6 +426,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         CopilotChatSession? session = _subscribedSession;
         string loopPrompt = InputText;
         bool runLoopIteration = IsLoopIterationEnabled;
+        bool isInterruption = IsRunning && !runLoopIteration;
         if (runLoopIteration)
         {
             IsLoopIterationEnabled = false;
@@ -427,7 +434,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
 
         InputText = string.Empty;
         PendingImages.Clear();
-        _runStatusText = "正在运行";
+        _runStatusText = isInterruption ? "正在提交插话" : "正在运行";
         OnPropertyChanged(nameof(StatusText));
         try
         {
@@ -440,7 +447,9 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
                 await _application.SendMessageAsync(contents).ConfigureAwait(true);
             }
 
-            _runStatusText = IsRunning ? "正在运行" : null;
+            _runStatusText = isInterruption && IsRunning
+                ? "插话已提交，等待 Agent 处理"
+                : IsRunning ? "正在运行" : null;
         }
         catch (OperationCanceledException)
         {
