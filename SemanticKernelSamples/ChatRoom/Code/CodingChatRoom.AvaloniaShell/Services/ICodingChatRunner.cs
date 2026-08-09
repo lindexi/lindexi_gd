@@ -68,7 +68,7 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
             ?? throw new InvalidOperationException("当前会话没有活动的 Agent Session。");
         MessageInjectingChatClient injector = _messageInjector
             ?? throw new InvalidOperationException("当前 Agent 未启用消息注入。");
-        injector.EnqueueMessages(session,
-            [new ChatMessage(ChatRole.User, [.. contents])]);
+       await injector.EnqueueMessagesAsync(session,
+            [new ChatMessage(ChatRole.User, [.. contents])], cancellationToken);
     }
 }
