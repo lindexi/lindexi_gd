@@ -44,23 +44,29 @@ public sealed class SimpleAsyncCommand : ICommand
 {
     private readonly Func<Task> _execute;
     private readonly Func<bool>? _canExecute;
+    private readonly bool _allowConcurrentExecutions;
     private bool _isExecuting;
 
     /// <summary>
     /// 使用指定异步执行委托创建命令。
     /// </summary>
-    public SimpleAsyncCommand(Func<Task> execute, Func<bool>? canExecute = null)
+    public SimpleAsyncCommand(
+        Func<Task> execute,
+        Func<bool>? canExecute = null,
+        bool allowConcurrentExecutions = false)
     {
         ArgumentNullException.ThrowIfNull(execute);
         _execute = execute;
         _canExecute = canExecute;
+        _allowConcurrentExecutions = allowConcurrentExecutions;
     }
 
     /// <inheritdoc />
     public event EventHandler? CanExecuteChanged;
 
     /// <inheritdoc />
-    public bool CanExecute(object? parameter) => !_isExecuting && (_canExecute?.Invoke() ?? true);
+    public bool CanExecute(object? parameter)
+        => (_allowConcurrentExecutions || !_isExecuting) && (_canExecute?.Invoke() ?? true);
 
     /// <inheritdoc />
     public async void Execute(object? parameter)

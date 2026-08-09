@@ -94,9 +94,9 @@ public sealed class CodingChatSendingTests
         Assert.AreEqual(2, application.Sessions[0].MessageCount);
     }
 
-    [TestMethod(DisplayName = "活动发送期间重复发送应被拒绝")]
+    [TestMethod(DisplayName = "运行期间插话后应通过当前助手消息收到更新")]
     [Timeout(5000)]
-    public async Task SendMessageAsyncWhileActiveShouldBeRejected()
+    public async Task SendMessageAsyncWhileActiveShouldUpdateCurrentAssistantMessage()
     {
         var manager = new CopilotChatManager();
         var runner = new TestCodingChatRunner(manager);
@@ -104,12 +104,39 @@ public sealed class CodingChatSendingTests
         await application.InitializeAsync();
         Task firstSend = application.SendMessageAsync("第一条");
         await runner.Started.Task;
+        CopilotChatMessage assistantMessage = runner.AssistantMessage;
 
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => application.SendMessageAsync("第二条"));
+        await application.SendMessageAsync("第二条");
 
+        Assert.AreEqual("插话回复：第二条", assistantMessage.Content);
         runner.Complete("完成");
         await firstSend;
-        Assert.AreEqual(1, runner.RunCount);
+    }
+
+    [TestMethod(DisplayName = "运行结束中间态插话后仍应通过当前助手消息收到更新")]
+    [Timeout(5000)]
+    public async Task SendMessageAsyncWhileRunIsFinishingShouldUpdateCurrentAssistantMessage()
+    {
+        var manager = new CopilotChatManager();
+        var store = new TestSessionStore { BlockSave = true };
+        var runner = new TestCodingChatRunner(manager);
+        var application = new CodingChatApplication(manager, store, runner);
+        await application.InitializeAsync();
+        Task firstSend = application.SendMessageAsync("第一条");
+        await runner.Started.Task;
+        CopilotChatMessage assistantMessage = runner.AssistantMessage;
+        runner.Complete("首轮完成");
+        await store.SaveStarted.Task;
+
+        Task secondSend = application.SendMessageAsync("结束边界插话");
+        await runner.SecondRunStarted.Task;
+        CopilotChatMessage secondAssistantMessage = runner.AssistantMessage;
+        runner.Complete("结束边界回复");
+        store.ReleaseSave();
+        await Task.WhenAll(firstSend, secondSend);
+
+        Assert.AreEqual("首轮完成", assistantMessage.Content);
+        Assert.AreEqual("结束边界回复", secondAssistantMessage.Content);
     }
 
     [TestMethod(DisplayName = "停止活动发送应取消完整运行生命周期")]
@@ -228,9 +255,11 @@ public sealed class CodingChatSendingTests
 
     private sealed class TestCodingChatRunner(CopilotChatManager manager) : ICodingChatRunner
     {
-        private readonly TaskCompletionSource<string?> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private TaskCompletionSource<string?> _completion = CreateCompletionSource();
 
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource SecondRunStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public int RunCount { get; private set; }
 
@@ -240,7 +269,9 @@ public sealed class CodingChatSendingTests
 
         public IReadOnlyList<AIContent>? ObservedContents { get; private set; }
 
-        public CopilotChatMessage AssistantMessage { get; } = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
+        public IReadOnlyList<AIContent>? InjectedContents { get; private set; }
+
+        public CopilotChatMessage AssistantMessage { get; private set; } = CreateAssistantMessage();
 
         public async Task<CodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
@@ -248,6 +279,12 @@ public sealed class CodingChatSendingTests
             CancellationToken cancellationToken)
         {
             RunCount++;
+            if (RunCount > 1)
+            {
+                _completion = CreateCompletionSource();
+                AssistantMessage = CreateAssistantMessage();
+            }
+
             ObservedContents = contents;
             ObservedWorkspacePath = workspacePath;
             ObservedCancellationToken = cancellationToken;
@@ -255,7 +292,23 @@ public sealed class CodingChatSendingTests
             await manager.AppendMessageAsync(userMessage, cancellationToken);
             await manager.SelectedSession.AddMessageAsync(AssistantMessage);
             Started.TrySetResult();
+            if (RunCount == 2)
+            {
+                SecondRunStarted.TrySetResult();
+            }
+
             return new CodingAgentRunResult(AssistantMessage, CompleteAsync(cancellationToken));
+        }
+
+        public Task InjectMessageAsync(
+            IReadOnlyList<AIContent> contents,
+            CancellationToken cancellationToken)
+        {
+            InjectedContents = contents;
+            string text = Assert.IsInstanceOfType<TextContent>(contents[0]).Text;
+            AssistantMessage.ClearMessageItems();
+            AssistantMessage.AppendText($"插话回复：{text}");
+            return Task.CompletedTask;
         }
 
         public void Complete(string? content)
@@ -275,6 +328,12 @@ public sealed class CodingChatSendingTests
         {
             return await _completion.Task.WaitAsync(cancellationToken);
         }
+
+        private static TaskCompletionSource<string?> CreateCompletionSource()
+            => new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        private static CopilotChatMessage CreateAssistantMessage()
+            => CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
     }
 
     private static string CreateTestDirectory()
@@ -323,7 +382,13 @@ public sealed class CodingChatSendingTests
 
     private sealed class TestSessionStore : ICodingChatSessionStore
     {
+        private readonly TaskCompletionSource _continueSave = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
         public Exception? SaveException { get; init; }
+
+        public bool BlockSave { get; init; }
+
+        public TaskCompletionSource SaveStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public int SaveCount { get; private set; }
 
@@ -338,16 +403,23 @@ public sealed class CodingChatSendingTests
         public Task<bool> DeleteSessionAsync(Guid sessionId, CancellationToken cancellationToken = default)
             => throw new NotSupportedException();
 
-        public Task SaveSessionAsync(CopilotChatSession session, CancellationToken cancellationToken = default)
+        public async Task SaveSessionAsync(CopilotChatSession session, CancellationToken cancellationToken = default)
         {
+            SaveStarted.TrySetResult();
+            if (BlockSave)
+            {
+                await _continueSave.Task.WaitAsync(cancellationToken);
+            }
+
             if (SaveException is not null)
             {
-                return Task.FromException(SaveException);
+                throw SaveException;
             }
 
             SaveCount++;
             SavedSession = session;
-            return Task.CompletedTask;
         }
+
+        public void ReleaseSave() => _continueSave.TrySetResult();
     }
 }

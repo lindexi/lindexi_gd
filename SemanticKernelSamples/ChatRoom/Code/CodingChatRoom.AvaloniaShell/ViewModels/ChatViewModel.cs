@@ -54,7 +54,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _chatManager = chatManager;
         _application = application;
         _modelStatusText = statusText;
-        SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend);
+        SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend, allowConcurrentExecutions: true);
         CompressConversationCommand = new SimpleAsyncCommand(CompressConversationAsync, () => CanCompressConversation);
         StopCommand = new SimpleCommand(application.StopActiveRun, () => IsRunning);
         ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
@@ -77,7 +77,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _application = application;
         _workspaceController = workspaceController;
         _modelStatusText = statusText;
-        SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend);
+        SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend, allowConcurrentExecutions: true);
         CompressConversationCommand = new SimpleAsyncCommand(CompressConversationAsync, () => CanCompressConversation);
         StopCommand = new SimpleCommand(application.StopActiveRun, () => IsRunning);
         ApplyWorkspaceCommand = new SimpleAsyncCommand(ApplyWorkspaceAsync, () => CanApplyWorkspace);
@@ -440,7 +440,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
                 await _application.SendMessageAsync(contents).ConfigureAwait(true);
             }
 
-            _runStatusText = null;
+            _runStatusText = IsRunning ? "正在运行" : null;
         }
         catch (OperationCanceledException)
         {

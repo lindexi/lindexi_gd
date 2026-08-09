@@ -318,8 +318,7 @@
                         Grid.Column="0"
                         Classes="Flat"
                         Content="{StaticResource AddImageText}"
-                        Click="AddImageButton_OnClick"
-                        IsEnabled="{Binding !IsRunning}" />
+                        Click="AddImageButton_OnClick" />
                 <TextBox Grid.Row="1"
                           Grid.Column="1"
                           x:Name="MessageInputTextBox"
