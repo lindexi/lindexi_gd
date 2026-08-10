@@ -1,0 +1,19 @@
+<Application x:Class="AppLauncherWpf.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             ShutdownMode="OnMainWindowClose">
+    <Application.Resources>
+        <SolidColorBrush x:Key="LauncherBackgroundBrush" Color="#F7F9FC" />
+        <SolidColorBrush x:Key="LauncherBorderBrush" Color="#E3E8EF" />
+        <SolidColorBrush x:Key="LauncherTextBrush" Color="#202631" />
+        <SolidColorBrush x:Key="LauncherMutedTextBrush" Color="#7A8491" />
+        <SolidColorBrush x:Key="LauncherSelectionBrush" Color="#E8EEF7" />
+        <sys:String x:Key="SearchPlaceholder">输入应用名称...</sys:String>
+        <sys:String x:Key="NoApplicationsText">没有找到匹配的应用</sys:String>
+        <sys:String x:Key="ApplicationLoadFailedText">无法读取开始菜单中的应用。</sys:String>
+        <sys:String x:Key="ApplicationLaunchFailedText">无法启动所选应用。</sys:String>
+        <sys:String x:Key="HotkeyRegistrationFailedText">无法注册 Shift+空格 快捷键，请检查该快捷键是否已被其他应用占用。</sys:String>
+        <sys:String x:Key="ErrorCaption">应用启动器</sys:String>
+    </Application.Resources>
+</Application>

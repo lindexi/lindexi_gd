@@ -1,0 +1,171 @@
+<Window x:Class="AppLauncherWpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="应用启动器"
+        Width="680"
+        Height="420"
+        MinWidth="480"
+        MinHeight="260"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        Deactivated="OnDeactivated"
+        PreviewKeyDown="OnPreviewKeyDown">
+    <Window.Resources>
+        <Style x:Key="ApplicationListItemStyle" TargetType="ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Margin" Value="8,2" />
+            <Setter Property="Padding" Value="12,9" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Padding="{TemplateBinding Padding}"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="7">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{StaticResource LauncherSelectionBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{StaticResource LauncherSelectionBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="{StaticResource LauncherBackgroundBrush}"
+            BorderBrush="{StaticResource LauncherBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="12">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="28" Opacity="0.18" ShadowDepth="4" />
+        </Border.Effect>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="68" />
+                <RowDefinition Height="1" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Margin="24,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="28" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Path Width="17"
+                      Height="17"
+                      HorizontalAlignment="Left"
+                      Data="M 7,0 A 7,7 0 1 0 7,14 A 7,7 0 1 0 7,0 M 12,12 L 17,17"
+                      Stroke="{StaticResource LauncherMutedTextBrush}"
+                      StrokeStartLineCap="Round"
+                      StrokeEndLineCap="Round"
+                      StrokeThickness="1.5" />
+                <Grid Grid.Column="1">
+                    <TextBox x:Name="SearchTextBox"
+                             Padding="0"
+                             VerticalContentAlignment="Center"
+                             Background="Transparent"
+                             BorderThickness="0"
+                             CaretBrush="{StaticResource LauncherTextBrush}"
+                             FontSize="18"
+                             Foreground="{StaticResource LauncherTextBrush}"
+                             TextChanged="OnSearchTextChanged" />
+                    <TextBlock Margin="2,0,0,0"
+                               VerticalAlignment="Center"
+                               IsHitTestVisible="False"
+                               FontSize="17"
+                               Foreground="{StaticResource LauncherMutedTextBrush}"
+                               Text="{StaticResource SearchPlaceholder}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=SearchTextBox}" Value="">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+                <Border Grid.Column="2"
+                        Padding="7,3"
+                        VerticalAlignment="Center"
+                        Background="White"
+                        BorderBrush="{StaticResource LauncherBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="5">
+                    <TextBlock FontSize="12" Foreground="{StaticResource LauncherMutedTextBrush}" Text="Shift + Space" />
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="1" Background="{StaticResource LauncherBorderBrush}" />
+
+            <Grid Grid.Row="2" Margin="0,8,0,12">
+                <ListBox x:Name="ApplicationsListBox"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         ItemsSource="{Binding FilteredApplications}"
+                         ItemContainerStyle="{StaticResource ApplicationListItemStyle}"
+                         MouseDoubleClick="OnApplicationDoubleClick"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="42" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="32"
+                                        Height="32"
+                                        HorizontalAlignment="Left"
+                                        Background="#E3EAF5"
+                                        CornerRadius="6">
+                                    <TextBlock HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontSize="15"
+                                               FontWeight="SemiBold"
+                                               Foreground="#4D6380"
+                                               Text="{Binding Initial}" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock FontSize="15"
+                                               Foreground="{StaticResource LauncherTextBrush}"
+                                               Text="{Binding Name}"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Margin="0,2,0,0"
+                                               FontSize="11"
+                                               Foreground="{StaticResource LauncherMutedTextBrush}"
+                                               Text="{Binding Source}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <TextBlock x:Name="EmptyStateTextBlock"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="15"
+                           Foreground="{StaticResource LauncherMutedTextBrush}"
+                           IsHitTestVisible="False"
+                           Text="{StaticResource NoApplicationsText}"
+                           Visibility="Collapsed" />
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
