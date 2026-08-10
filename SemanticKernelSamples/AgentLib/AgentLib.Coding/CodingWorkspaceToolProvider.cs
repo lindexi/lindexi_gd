@@ -20,8 +20,11 @@ public sealed class CodingWorkspaceToolProvider : IAsyncDisposable
     /// 创建代码工作区工具提供器。
     /// </summary>
     /// <param name="languageServerCommand">Roslyn Language Server 启动命令。</param>
-    public CodingWorkspaceToolProvider(string languageServerCommand = "roslyn-language-server")
-        : this(new CodingWorkspaceToolSessionProvider(languageServerCommand))
+    /// <param name="additionalToolSources">由宿主提供的附加工作区工具源。</param>
+    public CodingWorkspaceToolProvider(
+        string languageServerCommand = "roslyn-language-server",
+        IEnumerable<ICodingWorkspaceToolSource>? additionalToolSources = null)
+        : this(new CodingWorkspaceToolSessionProvider(languageServerCommand, additionalToolSources))
     {
     }
 
@@ -351,8 +354,11 @@ internal interface ICodingWorkspaceToolSessionProvider
 internal sealed class CodingWorkspaceToolSessionProvider : ICodingWorkspaceToolSessionProvider
 {
     private readonly string _languageServerCommand;
+    private readonly IReadOnlyList<ICodingWorkspaceToolSource> _additionalToolSources;
 
-    internal CodingWorkspaceToolSessionProvider(string languageServerCommand)
+    internal CodingWorkspaceToolSessionProvider(
+        string languageServerCommand,
+        IEnumerable<ICodingWorkspaceToolSource>? additionalToolSources = null)
     {
         if (string.IsNullOrWhiteSpace(languageServerCommand))
         {
@@ -360,10 +366,21 @@ internal sealed class CodingWorkspaceToolSessionProvider : ICodingWorkspaceToolS
         }
 
         _languageServerCommand = languageServerCommand;
+        ICodingWorkspaceToolSource[] sources = additionalToolSources?.ToArray() ?? [];
+        if (sources.Any(source => source is null))
+        {
+            throw new ArgumentException("附加工作区工具源不能包含 null。", nameof(additionalToolSources));
+        }
+
+        _additionalToolSources = sources;
     }
 
     public Task<CodingWorkspaceToolSession> CreateAsync(
         string workspacePath,
         CancellationToken cancellationToken) =>
-        CodingWorkspaceToolSession.CreateAsync(workspacePath, _languageServerCommand, cancellationToken);
+        CodingWorkspaceToolSession.CreateAsync(
+            workspacePath,
+            _languageServerCommand,
+            _additionalToolSources,
+            cancellationToken);
 }

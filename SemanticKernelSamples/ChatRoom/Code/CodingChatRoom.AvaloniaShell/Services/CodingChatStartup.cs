@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using AgentLib;
 using AgentLib.Coding;
+using AgentLib.Coding.Sandboxes;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Logging;
@@ -47,7 +48,14 @@ internal static class CodingChatStartup
             AgentApiEndpointManager = endpointManager,
             MainThreadDispatcher = mainThreadDispatcher,
         };
-        var codingAgent = new CodingAgent();
+        var workspaceToolProvider = new CodingWorkspaceToolProvider(
+            additionalToolSources:
+            [
+                new WindowsSandboxToolSource(
+                    "WinRemoteShell.exe",
+                    "172.20.115.32:12399"),
+            ]);
+        var codingAgent = new CodingAgent(workspaceToolProvider);
         var workspaceController = new CodingWorkspaceController(
             new CodingAgentWorkspaceRuntime(codingAgent),
             mainThreadDispatcher);

@@ -83,10 +83,10 @@ public static class AgentSessionStreamingHelper
                     break;
                 }
 
-                if (IsRetryableServerError(streamingException))
+                if (IsRetryableServerError(streamingException, out var delayTime))
                 {
                     // 明确的服务器错误，做等待，然后重试
-                    await Task.Delay(TimeSpan.FromSeconds(0.5), cancellationToken);
+                    await Task.Delay(delayTime, cancellationToken);
                     // 不计入重试
                     retryCount--;
                 }
@@ -130,8 +130,10 @@ public static class AgentSessionStreamingHelper
                 or TimeoutException;
         }
 
-        static bool IsRetryableServerError(Exception exception)
+        static bool IsRetryableServerError(Exception exception, out TimeSpan delayTime)
         {
+            delayTime = TimeSpan.FromSeconds(0.5);
+
             // 服务器级错误，不累计错误，但是要做等待的重试
             if (exception is System.ClientModel.ClientResultException clientResultException)
             {
@@ -139,8 +141,15 @@ public static class AgentSessionStreamingHelper
                 {
                     return true;
                 }
-            }
 
+                if (clientResultException.Message.Contains("HTTP 503 (server_error: internal_server_error)", StringComparison.Ordinal))
+                {
+                    // 未登录异常，等待时间稍微久一点
+                    delayTime = TimeSpan.FromSeconds(3);
+
+                    return true;
+                }
+            }
 
             return false;
         }
