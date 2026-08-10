@@ -179,7 +179,7 @@ internal sealed class OpenAiLogLoader
                         int choiceIndex = GetInt32(choiceElement, "index", choices.Count);
                         if (!choices.TryGetValue(choiceIndex, out ResponseChoiceBuilder? builder))
                         {
-                            builder = new ResponseChoiceBuilder(choiceIndex);
+                            builder = new ResponseChoiceBuilder();
                             choices.Add(choiceIndex, builder);
                         }
 
@@ -272,7 +272,7 @@ internal sealed class OpenAiLogLoader
 
         if (!choices.TryGetValue(0, out ResponseChoiceBuilder? builder))
         {
-            builder = new ResponseChoiceBuilder(0);
+            builder = new ResponseChoiceBuilder();
             choices.Add(0, builder);
         }
 
@@ -284,13 +284,15 @@ internal sealed class OpenAiLogLoader
 
     private static string NormalizeResponseLine(string line)
     {
-        string trimmedLine = line.Trim();
-        if (trimmedLine.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        ReadOnlySpan<char> payload = line.AsSpan().Trim();
+        if (payload.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
         {
-            return trimmedLine["data:".Length..].TrimStart();
+            payload = payload["data:".Length..].TrimStart();
         }
 
-        return trimmedLine;
+        return payload.Length == line.Length
+            ? line
+            : payload.ToString();
     }
 
     private static IReadOnlyList<LogToolCall> ReadCompleteToolCalls(JsonElement messageElement)
@@ -460,7 +462,7 @@ internal sealed class OpenAiLogLoader
         return string.IsNullOrWhiteSpace(currentValue) ? candidate : currentValue;
     }
 
-    private sealed class ResponseChoiceBuilder(int index)
+    private sealed class ResponseChoiceBuilder
     {
         private readonly StringBuilder _content = new();
         private readonly StringBuilder _reasoningContent = new();
