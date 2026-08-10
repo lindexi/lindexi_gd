@@ -1,12 +1,178 @@
-﻿<Window x:Class="ImageGenerationWpf.MainWindow"
+<Window x:Class="ImageGenerationWpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ImageGenerationWpf"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="OpenAI 灵感画布"
+        Width="1280"
+        Height="820"
+        MinWidth="1024"
+        MinHeight="680"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="18" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="12" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock FontSize="25" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Text="OpenAI 灵感画布" />
+                <TextBlock Margin="0,5,0,0" Foreground="{StaticResource TextSecondaryBrush}" Text="输入描述生成图片；选择图片后，输入编辑要求继续创作" />
+            </StackPanel>
+            <Border Grid.Column="1" Padding="13,7" Background="{StaticResource PrimarySoftBrush}" CornerRadius="16" VerticalAlignment="Center">
+                <TextBlock Foreground="{StaticResource PrimaryBrush}" FontWeight="SemiBold" Text="GPT-IMAGE-2" />
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="370" />
+                <ColumnDefinition Width="18" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Style="{StaticResource CardStyle}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="20">
+                        <TextBlock FontSize="17" FontWeight="Bold" Text="创作设置" />
+                        <TextBlock x:Name="ModeHintTextBlock" Margin="0,4,0,20" Foreground="{StaticResource TextSecondaryBrush}" Text="当前将根据文字生成新图片" />
+
+                        <TextBlock Style="{StaticResource FieldLabelStyle}" Text="画面描述 / 编辑要求" />
+                        <TextBox x:Name="PromptTextBox"
+                                 Height="160"
+                                 Margin="0,0,0,16"
+                                 AcceptsReturn="True"
+                                 MaxLength="32000"
+                                 TextWrapping="Wrap"
+                                 VerticalContentAlignment="Top"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Text="帮我生成一个图标，图标里面有猫的元素" />
+
+                        <TextBlock Style="{StaticResource FieldLabelStyle}" Text="参考图片（可选）" />
+                        <Border x:Name="EditSourcePanel" Margin="0,0,0,16" Padding="12" Background="{StaticResource SurfaceMutedBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock x:Name="EditSourceTitleTextBlock" FontWeight="SemiBold" Text="未选择图片" />
+                                        <TextBlock x:Name="EditSourceTextBlock" Margin="0,4,8,0" Foreground="{StaticResource TextSecondaryBrush}" Text="可选择本地图片，或点击右侧历史图片" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <Button x:Name="ClearEditSourceButton" Grid.Column="1" Padding="11,6" Style="{StaticResource SecondaryButtonStyle}" Click="ClearEditSourceButton_OnClick" Content="清除" Visibility="Collapsed" VerticalAlignment="Top" />
+                                </Grid>
+                                <Button Height="40" Margin="0,12,0,0" Style="{StaticResource SecondaryButtonStyle}" Click="SelectImageButton_OnClick" Content="选择本地图片…" />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Style="{StaticResource FieldLabelStyle}" Text="服务配置" />
+                        <Border Margin="0,0,0,16" Padding="12" Background="{StaticResource SurfaceMutedBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Text="模型：gpt-image-2" />
+                                <TextBlock Margin="0,5,0,0" Foreground="{StaticResource TextSecondaryBrush}" Text="Endpoint：https://model.server.lindexi.com/v1/" TextWrapping="Wrap" />
+                                <TextBlock Margin="0,5,0,0" Foreground="{StaticResource TextSecondaryBrush}" Text="Key：C:\lindexi\Work\Key\ModelLindexi.txt" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <Button x:Name="RunButton" Height="46" Style="{StaticResource PrimaryButtonStyle}" Click="RunButton_OnClick" Content="生成图片" />
+                        <Button x:Name="CancelButton" Height="40" Margin="0,10,0,0" Style="{StaticResource SecondaryButtonStyle}" Click="CancelButton_OnClick" Content="取消" IsEnabled="False" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <Grid Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="14" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="14" />
+                        <RowDefinition Height="104" />
+                    </Grid.RowDefinitions>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock FontSize="17" FontWeight="Bold" Text="图片预览" />
+                            <TextBlock x:Name="ResultSummaryTextBlock" Margin="0,4,0,0" Foreground="{StaticResource TextSecondaryBrush}" Text="生成结果会显示在这里" />
+                        </StackPanel>
+                        <Button x:Name="SaveButton" Grid.Column="1" Padding="16,8" Style="{StaticResource SecondaryButtonStyle}" Click="SaveButton_OnClick" Content="保存图片…" IsEnabled="False" />
+                    </Grid>
+
+                    <Border Grid.Row="2" Background="{StaticResource SurfaceMutedBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="12">
+                        <Grid>
+                            <Image x:Name="PreviewImage" Margin="16" Stretch="Uniform" />
+                            <TextBlock x:Name="EmptyPreviewTextBlock" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" FontSize="15" Text="尚未生成或选择图片" />
+                            <Border x:Name="BusyOverlay" Background="#D9F8F7FF" CornerRadius="12" Visibility="Collapsed">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <ProgressBar Width="220" Height="6" Foreground="{StaticResource PrimaryBrush}" IsIndeterminate="True" />
+                                    <TextBlock Margin="0,14,0,0" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" Text="正在调用 OpenAI 图片服务…" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <ListBox x:Name="ThumbnailListBox" Grid.Row="4" BorderThickness="0" Background="Transparent" SelectionChanged="ThumbnailListBox_OnSelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0,0,10,0" />
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+                                <Setter Property="BorderThickness" Value="1" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="ItemBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="9" Padding="3">
+                                                <ContentPresenter />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+                                                    <Setter TargetName="ItemBorder" Property="BorderThickness" Value="3" />
+                                                    <Setter TargetName="ItemBorder" Property="Padding" Value="1" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Width="86" Height="86" ClipToBounds="True" CornerRadius="7">
+                                    <Image Source="{Binding Preview}" Stretch="UniformToFill" />
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+            <TextBlock x:Name="StatusTextBlock" Grid.Column="2" Foreground="{StaticResource TextSecondaryBrush}" Text="准备就绪" />
+        </Grid>
     </Grid>
 </Window>
