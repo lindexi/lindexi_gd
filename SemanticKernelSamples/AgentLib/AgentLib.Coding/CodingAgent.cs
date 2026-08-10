@@ -27,7 +27,11 @@ public sealed class CodingAgent : IAsyncDisposable
     {
     }
 
-    internal CodingAgent(CodingWorkspaceToolProvider toolProvider)
+    /// <summary>
+    /// 使用指定工作区工具提供器创建编程代理。
+    /// </summary>
+    /// <param name="toolProvider">工作区工具提供器。</param>
+    public CodingAgent(CodingWorkspaceToolProvider toolProvider)
     {
         ArgumentNullException.ThrowIfNull(toolProvider);
         _toolProvider = toolProvider;

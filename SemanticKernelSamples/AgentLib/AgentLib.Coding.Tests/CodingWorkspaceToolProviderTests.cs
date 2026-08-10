@@ -86,6 +86,24 @@ public sealed class CodingWorkspaceToolProviderTests
         StringAssert.Contains(result?.ToString(), "outside.txt");
     }
 
+    [TestMethod(DisplayName = "附加工具源应使用规范化工作区路径创建并发布工具")]
+    [Timeout(15000)]
+    public async Task SetWorkspacePathAsync_WhenAdditionalToolSourceExists_AddsWorkspaceBoundTools()
+    {
+        string workspacePath = CreateTestDirectory();
+        string invalidLanguageServerPath = CreateInvalidLanguageServerFile(workspacePath);
+        var toolSource = new TrackingToolSource();
+        await using var toolProvider = new CodingWorkspaceToolProvider(
+            invalidLanguageServerPath,
+            [toolSource]);
+
+        await toolProvider.SetWorkspacePathAsync(workspacePath, CancellationToken.None);
+        string[] toolNames = await GetCurrentToolNamesAsync(toolProvider);
+
+        Assert.AreEqual(Path.GetFullPath(workspacePath), toolSource.WorkspacePath);
+        CollectionAssert.Contains(toolNames, "host_workspace_tool");
+    }
+
     [TestMethod(DisplayName = "清空工作区时应移除已发布工具")]
     [Timeout(15000)]
     public async Task SetWorkspacePathAsync_WhenWorkspaceIsCleared_RemovesTools()
@@ -515,6 +533,17 @@ public sealed class CodingWorkspaceToolProviderTests
     {
         await using CodingWorkspaceToolLease lease = await provider.AcquireLeaseAsync();
         return lease.Tools.Select(tool => tool.Name).ToArray();
+    }
+
+    private sealed class TrackingToolSource : ICodingWorkspaceToolSource
+    {
+        public string? WorkspacePath { get; private set; }
+
+        public IReadOnlyList<AITool> CreateTools(string workspacePath)
+        {
+            WorkspacePath = workspacePath;
+            return [CreateTool("host_workspace_tool")];
+        }
     }
 
     private sealed class TestSessionProvider(

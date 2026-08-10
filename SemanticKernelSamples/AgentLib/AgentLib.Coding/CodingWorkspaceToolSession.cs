@@ -47,6 +47,7 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
     public static async Task<CodingWorkspaceToolSession> CreateAsync(
         string workspacePath,
         string languageServerCommand,
+        IReadOnlyList<ICodingWorkspaceToolSource> additionalToolSources,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(workspacePath))
@@ -81,6 +82,9 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
             var dotNetCliTools = new DotNetCliTools(fullWorkspacePath);
             IReadOnlyList<AITool> dotNetTools = dotNetCliTools.AsAITools();
             var contentTools = new CodingWorkspaceContentTools(fullWorkspacePath);
+            IReadOnlyList<AITool> additionalTools = additionalToolSources
+                .SelectMany(source => source.CreateTools(fullWorkspacePath))
+                .ToArray();
             try
             {
                 roslynTools = await RoslynAgentTools
@@ -98,6 +102,7 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
                 .. workspaceTools.CreateDefaultTools(),
                 .. dotNetTools,
                 .. contentTools.AsAITools(),
+                .. additionalTools,
             ];
             return new CodingWorkspaceToolSession(
                 fullWorkspacePath,
