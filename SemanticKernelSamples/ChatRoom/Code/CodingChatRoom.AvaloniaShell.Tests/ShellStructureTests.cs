@@ -10,9 +10,9 @@ namespace CodingChatRoom.AvaloniaShell.Tests;
 [TestClass]
 public sealed class ShellStructureTests
 {
-    [TestMethod(DisplayName = "主 ViewModel 只应组合历史会话与聊天区域")]
+    [TestMethod(DisplayName = "主 ViewModel 应组合历史会话、聊天与设置导航")]
     [Timeout(5000)]
-    public void MainViewModelShouldOnlyComposeSessionListAndChat()
+    public void MainViewModelShouldComposeSessionListChatAndSettingsNavigation()
     {
         var viewModel = new MainViewModel();
 
@@ -26,7 +26,16 @@ public sealed class ShellStructureTests
             .ToArray();
 
         CollectionAssert.AreEquivalent(
-            new[] { nameof(MainViewModel.ChatViewModel), nameof(MainViewModel.IsBusy), nameof(MainViewModel.SessionListViewModel) },
+            new[]
+            {
+                nameof(MainViewModel.ChatViewModel),
+                nameof(MainViewModel.IsBusy),
+                nameof(MainViewModel.IsChatOpen),
+                nameof(MainViewModel.IsSettingsOpen),
+                nameof(MainViewModel.OpenSettingsCommand),
+                nameof(MainViewModel.SessionListViewModel),
+                nameof(MainViewModel.SettingsViewModel),
+            },
             publicPropertyNames);
     }
 

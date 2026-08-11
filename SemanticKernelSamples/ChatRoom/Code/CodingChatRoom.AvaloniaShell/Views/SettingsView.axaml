@@ -1,0 +1,305 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
+             x:Class="CodingChatRoom.AvaloniaShell.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+    <Grid RowDefinitions="Auto,*,Auto" Background="{StaticResource SettingsBackgroundBrush}">
+        <Border Grid.Row="0" Classes="SettingsHeader" Padding="28,14">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" MaxWidth="1120" HorizontalAlignment="Center">
+                <Button Classes="SettingsBack"
+                        Content="‹"
+                        ToolTip.Tip="返回聊天"
+                        Command="{Binding BackCommand}"
+                        VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                    <TextBlock Text="设置" Classes="SettingsPageTitle" />
+                    <TextBlock Text="模型服务与隔离执行环境" Classes="Subtitle" />
+                </StackPanel>
+                <Button Grid.Column="2"
+                        Classes="Primary SaveSettings"
+                        Content="保存更改"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding !IsBusy}"
+                        VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Margin="28,24,28,40"
+                        Spacing="16"
+                        MaxWidth="1040"
+                        HorizontalAlignment="Center">
+                <Border Classes="SettingsIntro" Padding="18">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                        <Border Classes="IntroIcon">
+                            <TextBlock Text="⚙"
+                                       FontSize="20"
+                                       Foreground="White"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="工作区运行配置" Classes="Eyebrow" />
+                            <TextBlock Text="统一管理 Coding Agent 使用的模型与 Windows 沙箱连接。"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Foreground="#22313F" />
+                            <TextBlock Text="更改将在保存后写入配置；重新打开工作区即可使用新的运行环境。"
+                                       Classes="SettingsHint"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Border Grid.Column="2" Classes="SectionTag" VerticalAlignment="Center">
+                            <TextBlock Text="需要重载"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryDarkBrush}" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="20">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                            <Border Classes="SectionIcon">
+                                <TextBlock Text="AI"
+                                           FontSize="12"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryDarkBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="模型与服务" Classes="SettingsSectionTitle" />
+                                <TextBlock Text="配置 OpenAI 兼容服务、模型能力和默认对话模型。"
+                                           Classes="Subtitle"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Classes="PrimaryModelPanel" Padding="16">
+                            <Grid ColumnDefinitions="180,*" ColumnSpacing="18">
+                                <StackPanel Spacing="3" VerticalAlignment="Center">
+                                    <TextBlock Text="首选模型" FontSize="14" FontWeight="SemiBold" />
+                                    <TextBlock Text="主要对话与高质量推理任务" Classes="SettingsHint" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="6">
+                                    <TextBox Classes="Rounded SettingsInput"
+                                             Text="{Binding PrimaryModel}"
+                                             PlaceholderText="例如 deepseek/deepseek-chat" />
+                                    <TextBlock Text="建议使用 Provider/ModelName 格式，与下方模型标识保持一致。"
+                                               Classes="SettingsHint" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,0">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="模型服务" FontSize="15" FontWeight="SemiBold" />
+                                <TextBlock Text="每个服务可配置独立端点、密钥和多个可用模型。" Classes="SettingsHint" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding Providers.Count, StringFormat='{}{0} 个服务'}"
+                                       Classes="SettingsHint"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Providers}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ProviderSettingsViewModel">
+                                    <Border Classes="ProviderCard" Padding="18" Margin="0,5">
+                                        <StackPanel Spacing="16">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <StackPanel Spacing="2">
+                                                    <TextBlock Text="服务连接" FontSize="15" FontWeight="SemiBold" />
+                                                    <TextBlock Text="兼容 OpenAI API 的端点与访问凭据" Classes="SettingsHint" />
+                                                </StackPanel>
+                                                <Button Grid.Column="1"
+                                                        Classes="QuietDanger"
+                                                        Content="移除服务"
+                                                        Command="{Binding $parent[UserControl].((vm:SettingsViewModel)DataContext).RemoveProviderCommand}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+
+                                            <Grid ColumnDefinitions="2*,*" ColumnSpacing="14">
+                                                <StackPanel Spacing="6">
+                                                    <TextBlock Text="服务地址" Classes="SettingsLabel" />
+                                                    <TextBox Classes="Rounded SettingsInput"
+                                                             Text="{Binding EndPoint}"
+                                                             PlaceholderText="https://api.example.com/v1" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Spacing="6">
+                                                    <TextBlock Text="API 密钥" Classes="SettingsLabel" />
+                                                    <TextBox Classes="Rounded SettingsInput"
+                                                             Text="{Binding ApiKey}"
+                                                             PasswordChar="●"
+                                                             RevealPassword="True"
+                                                             PlaceholderText="输入访问密钥" />
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <Border Height="1" Background="{StaticResource SettingsCardBorderBrush}" />
+
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <StackPanel Spacing="2">
+                                                    <TextBlock Text="可用模型" FontSize="14" FontWeight="SemiBold" />
+                                                    <TextBlock Text="定义模型标识、Token 限制与能力。" Classes="SettingsHint" />
+                                                </StackPanel>
+                                                <Button Grid.Column="1"
+                                                        Classes="Flat"
+                                                        Content="＋ 添加模型"
+                                                        Command="{Binding AddModelCommand}"
+                                                        VerticalAlignment="Center" />
+                                            </Grid>
+
+                                            <ItemsControl ItemsSource="{Binding Models}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:ModelSettingsViewModel">
+                                                        <Border Classes="ModelCard" Padding="15" Margin="0,3">
+                                                            <StackPanel Spacing="13">
+                                                                <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="12">
+                                                                    <StackPanel Spacing="5">
+                                                                        <TextBlock Text="供应商标识" Classes="SettingsLabel" />
+                                                                        <TextBox Classes="Rounded SettingsInput"
+                                                                                 Text="{Binding Provider}"
+                                                                                 PlaceholderText="deepseek" />
+                                                                    </StackPanel>
+                                                                    <StackPanel Grid.Column="1" Spacing="5">
+                                                                        <TextBlock Text="显示名称" Classes="SettingsLabel" />
+                                                                        <TextBox Classes="Rounded SettingsInput"
+                                                                                 Text="{Binding ModelName}"
+                                                                                 PlaceholderText="deepseek-chat" />
+                                                                    </StackPanel>
+                                                                    <Button Grid.Column="2"
+                                                                            Classes="IconDanger"
+                                                                            Content="×"
+                                                                            ToolTip.Tip="移除此模型"
+                                                                            Command="{Binding $parent[ItemsControl].((vm:ProviderSettingsViewModel)DataContext).RemoveModelCommand}"
+                                                                            CommandParameter="{Binding}"
+                                                                            VerticalAlignment="Bottom" />
+                                                                </Grid>
+
+                                                                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                                                                    <StackPanel Spacing="5">
+                                                                        <TextBlock Text="API 模型 ID（可选）" Classes="SettingsLabel" />
+                                                                        <TextBox Classes="Rounded SettingsInput"
+                                                                                 Text="{Binding ModelId}"
+                                                                                 PlaceholderText="默认同显示名称" />
+                                                                    </StackPanel>
+                                                                    <StackPanel Grid.Column="1" Spacing="5">
+                                                                        <TextBlock Text="上下文窗口" Classes="SettingsLabel" />
+                                                                        <NumericUpDown Classes="SettingsInput"
+                                                                                       Value="{Binding ContextWindowSize}"
+                                                                                       Minimum="1"
+                                                                                       Maximum="100000000" />
+                                                                    </StackPanel>
+                                                                    <StackPanel Grid.Column="2" Spacing="5">
+                                                                        <TextBlock Text="最大输出 Token" Classes="SettingsLabel" />
+                                                                        <NumericUpDown Classes="SettingsInput"
+                                                                                       Value="{Binding MaxOutputTokens}"
+                                                                                       Minimum="1"
+                                                                                       Maximum="10000000" />
+                                                                    </StackPanel>
+                                                                </Grid>
+
+                                                                <WrapPanel ItemHeight="30">
+                                                                    <CheckBox Content="推理" IsChecked="{Binding SupportsReasoning}" Margin="0,0,18,0" />
+                                                                    <CheckBox Content="工具调用" IsChecked="{Binding SupportsToolCall}" Margin="0,0,18,0" />
+                                                                    <CheckBox Content="图片输入" IsChecked="{Binding SupportsImageInput}" Margin="0,0,18,0" />
+                                                                    <CheckBox Content="快速模型" IsChecked="{Binding IsFlash}" />
+                                                                </WrapPanel>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Button Classes="AddOutline"
+                                Content="＋ 添加模型服务"
+                                Command="{Binding AddProviderCommand}"
+                                HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="20">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                            <Border Classes="SectionIcon SandboxIcon">
+                                <TextBlock Text="&gt;_"
+                                           FontSize="12"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource SandboxAccentBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="Windows 沙箱" Classes="SettingsSectionTitle" />
+                                <TextBlock Text="通过 WinRemoteShell 将命令与文件操作发送到隔离环境。"
+                                           Classes="Subtitle"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="2"
+                                          IsChecked="{Binding IsWindowsSandboxEnabled}"
+                                          OnContent="已启用"
+                                          OffContent="已禁用"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Border Classes="SandboxNotice" Padding="14">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <TextBlock Text="✓"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource SandboxAccentBrush}" />
+                                <TextBlock Grid.Column="1"
+                                           Text="仅使用可信的 WinRemoteShell 客户端，并连接到受控网络中的服务地址。沙箱将在工作区打开时建立连接。"
+                                           TextWrapping="Wrap"
+                                           Foreground="{StaticResource SandboxTextBrush}" />
+                            </Grid>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="16" IsEnabled="{Binding IsWindowsSandboxEnabled}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="沙箱工具路径" Classes="SettingsLabel" />
+                                <TextBox Classes="Rounded SettingsInput"
+                                         Text="{Binding WindowsSandboxToolPath}"
+                                         PlaceholderText="C:\Tools\WinRemoteShell.exe" />
+                                <TextBlock Text="可填写完整路径，或系统 PATH 中可解析的命令名。"
+                                           Classes="SettingsHint"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="连接地址" Classes="SettingsLabel" />
+                                <TextBox Classes="Rounded SettingsInput"
+                                         Text="{Binding WindowsSandboxServerAddress}"
+                                         PlaceholderText="127.0.0.1:12399" />
+                                <TextBlock Text="使用 主机:端口 格式，例如 192.168.1.20:12399。"
+                                           Classes="SettingsHint"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2"
+                Classes="StatusBar"
+                Padding="28,12"
+                IsVisible="{Binding HasStatusMessage}">
+            <Grid ColumnDefinitions="*,Auto" MaxWidth="1040" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding StatusMessage}"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center" />
+                <ProgressBar Grid.Column="1"
+                             Width="100"
+                             IsIndeterminate="True"
+                             IsVisible="{Binding IsBusy}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

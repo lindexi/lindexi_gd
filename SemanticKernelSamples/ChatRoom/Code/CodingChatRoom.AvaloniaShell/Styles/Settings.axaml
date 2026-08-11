@@ -1,0 +1,179 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <Color x:Key="SettingsBackgroundColor">#F5F7FA</Color>
+        <Color x:Key="SettingsHeaderColor">#FCFDFE</Color>
+        <Color x:Key="SettingsCardBorderColor">#E4E9F0</Color>
+        <Color x:Key="SettingsMutedSurfaceColor">#F8FAFC</Color>
+        <Color x:Key="SettingsAccentSurfaceColor">#EEF6FF</Color>
+        <Color x:Key="SandboxAccentColor">#118565</Color>
+        <Color x:Key="SandboxTextColor">#175F4D</Color>
+        <SolidColorBrush x:Key="SettingsBackgroundBrush" Color="{StaticResource SettingsBackgroundColor}" />
+        <SolidColorBrush x:Key="SettingsHeaderBrush" Color="{StaticResource SettingsHeaderColor}" />
+        <SolidColorBrush x:Key="SettingsCardBorderBrush" Color="{StaticResource SettingsCardBorderColor}" />
+        <SolidColorBrush x:Key="SettingsMutedSurfaceBrush" Color="{StaticResource SettingsMutedSurfaceColor}" />
+        <SolidColorBrush x:Key="SettingsAccentSurfaceBrush" Color="{StaticResource SettingsAccentSurfaceColor}" />
+        <SolidColorBrush x:Key="SandboxAccentBrush" Color="{StaticResource SandboxAccentColor}" />
+        <SolidColorBrush x:Key="SandboxTextBrush" Color="{StaticResource SandboxTextColor}" />
+    </Styles.Resources>
+
+    <Style Selector="Border.SettingsHeader">
+        <Setter Property="Background" Value="{StaticResource SettingsHeaderBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SettingsCardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+    <Style Selector="Border.SettingsIntro">
+        <Setter Property="Background" Value="{StaticResource SettingsAccentSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="#D6E8FB" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+    </Style>
+    <Style Selector="Border.IntroIcon">
+        <Setter Property="Width" Value="44" />
+        <Setter Property="Height" Value="44" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="Border.SettingsCard">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SettingsCardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="BoxShadow" Value="0 2 8 0 #0D18324A" />
+    </Style>
+    <Style Selector="Border.ProviderCard">
+        <Setter Property="Background" Value="{StaticResource SettingsMutedSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SettingsCardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="10" />
+    </Style>
+    <Style Selector="Border.ModelCard">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="#E6EBF1" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Border.PrimaryModelPanel">
+        <Setter Property="Background" Value="#F7FAFD" />
+        <Setter Property="BorderBrush" Value="#E1E8F0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="9" />
+    </Style>
+    <Style Selector="Border.SectionIcon">
+        <Setter Property="Width" Value="40" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Background" Value="#EAF4FE" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+    <Style Selector="Border.SectionIcon.SandboxIcon">
+        <Setter Property="Background" Value="#E5F5EF" />
+    </Style>
+    <Style Selector="Border.SectionTag">
+        <Setter Property="Background" Value="#EAF2FB" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="9,4" />
+    </Style>
+    <Style Selector="Border.SandboxNotice">
+        <Setter Property="Background" Value="#F0F9F6" />
+        <Setter Property="BorderBrush" Value="#CDE9DF" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="Border.StatusBar">
+        <Setter Property="Background" Value="{StaticResource SettingsHeaderBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource SettingsCardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+    </Style>
+    <Style Selector="TextBlock.SettingsPageTitle">
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="#17212B" />
+    </Style>
+    <Style Selector="TextBlock.SettingsSectionTitle">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="#17212B" />
+    </Style>
+    <Style Selector="TextBlock.SettingsLabel">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="#344454" />
+    </Style>
+    <Style Selector="TextBlock.SettingsHint">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="#728091" />
+    </Style>
+    <Style Selector="TextBlock.Eyebrow">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryDarkBrush}" />
+    </Style>
+    <Style Selector="TextBox.SettingsInput">
+        <Setter Property="MinHeight" Value="38" />
+        <Setter Property="Background" Value="White" />
+        <Setter Property="BorderBrush" Value="#CCD5DF" />
+    </Style>
+    <Style Selector="TextBox.SettingsInput:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="NumericUpDown.SettingsInput">
+        <Setter Property="MinHeight" Value="38" />
+    </Style>
+    <Style Selector="Button.SettingsBack">
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#425466" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontSize" Value="18" />
+    </Style>
+    <Style Selector="Button.SettingsBack:pointerover">
+        <Setter Property="Background" Value="#EDF1F5" />
+    </Style>
+    <Style Selector="Button.SaveSettings">
+        <Setter Property="MinHeight" Value="38" />
+        <Setter Property="Padding" Value="18,8" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.AddOutline">
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryDarkBrush}" />
+        <Setter Property="BorderBrush" Value="#B9D8F2" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,10" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.AddOutline:pointerover">
+        <Setter Property="Background" Value="#F0F7FD" />
+        <Setter Property="BorderBrush" Value="#79B5E5" />
+    </Style>
+    <Style Selector="Button.QuietDanger">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#C53636" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="8,5" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style Selector="Button.QuietDanger:pointerover">
+        <Setter Property="Background" Value="#FCEEEE" />
+    </Style>
+    <Style Selector="Button.IconDanger">
+        <Setter Property="Width" Value="34" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="7" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#C53636" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="Button.IconDanger:pointerover">
+        <Setter Property="Background" Value="#FCEEEE" />
+    </Style>
+</Styles>

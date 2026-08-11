@@ -4,20 +4,39 @@
              xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
              x:Class="CodingChatRoom.AvaloniaShell.Views.MainView"
              x:DataType="vm:MainViewModel">
-    <Grid ColumnDefinitions="260,4,*">
-        <Border Grid.Column="0"
-                Background="{StaticResource SurfaceBrush}"
-                BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="0,0,1,0">
-            <views:SessionListView DataContext="{Binding SessionListViewModel}" />
-        </Border>
+    <Grid>
+        <Grid ColumnDefinitions="260,4,*" IsVisible="{Binding IsChatOpen}">
+            <Border Grid.Column="0"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="0,0,1,0">
+                <Grid RowDefinitions="*,Auto">
+                    <views:SessionListView DataContext="{Binding SessionListViewModel}" />
+                    <Border Grid.Row="1"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="0,1,0,0"
+                            Padding="10">
+                        <Button Name="SettingsButton"
+                                Classes="Flat"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Content="⚙  设置"
+                                Command="{Binding OpenSettingsCommand}" />
+                    </Border>
+                </Grid>
+            </Border>
 
-        <GridSplitter Grid.Column="1"
-                      Width="4"
-                      Background="{StaticResource BorderBrush}"
-                      ResizeDirection="Columns" />
+            <GridSplitter Grid.Column="1"
+                          Width="4"
+                          Background="{StaticResource BorderBrush}"
+                          ResizeDirection="Columns" />
 
-        <views:ChatView Grid.Column="2"
-                        DataContext="{Binding ChatViewModel}" />
+            <views:ChatView Grid.Column="2"
+                            DataContext="{Binding ChatViewModel}" />
+        </Grid>
+
+        <Panel IsVisible="{Binding IsSettingsOpen}">
+            <views:SettingsView DataContext="{Binding SettingsViewModel}" />
+        </Panel>
     </Grid>
 </UserControl>
