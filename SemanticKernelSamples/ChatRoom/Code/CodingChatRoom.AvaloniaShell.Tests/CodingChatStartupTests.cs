@@ -67,19 +67,20 @@ public sealed class CodingChatStartupTests
             () => CodingChatStartup.InitializeAsync(paths, new ImmediateMainThreadDispatcher()));
     }
 
-    [TestMethod(DisplayName = "没有有效 Key 时启动应报告无可用模型")]
+    [TestMethod(DisplayName = "空 Key 的提供商配置应正常启动")]
     [Timeout(5000)]
-    public async Task ConfigurationWithoutUsableProviderShouldFail()
+    public async Task ConfigurationWithoutKeyShouldStart()
     {
         using var temporaryDirectory = new TemporaryDirectory();
         CodingChatRoomPaths paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
         paths.EnsureDirectories();
         await CreateConfiguration(primaryModel: null, key: string.Empty).SaveToFileAsync(paths.ConfigurationFile);
 
-        InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => CodingChatStartup.InitializeAsync(paths, new ImmediateMainThreadDispatcher()));
+        await using CodingChatRuntime runtime = await CodingChatStartup.InitializeAsync(
+            paths,
+            new ImmediateMainThreadDispatcher());
 
-        StringAssert.Contains(exception.Message, "模型列表");
+        Assert.AreEqual("test-provider/test-model", runtime.ModelDisplayName);
     }
 
     [TestMethod(DisplayName = "未知首选模型时启动应保留模型管理器异常")]

@@ -164,14 +164,14 @@ public sealed class SettingsViewModel : ViewModelBase
         {
             var modelConfiguration = new AgentApiManagerConfiguration
             {
-                PrimaryModel = PrimaryModel?.Trim(),
+                PrimaryModel = PrimaryModel,
                 OpenAIConfigurationList = Providers.Select(provider => provider.ToConfiguration()).ToArray(),
             };
             var shellSettings = new CodingChatShellSettings
             {
                 IsWindowsSandboxEnabled = IsWindowsSandboxEnabled,
-                WindowsSandboxToolPath = WindowsSandboxToolPath.Trim(),
-                WindowsSandboxServerAddress = WindowsSandboxServerAddress.Trim(),
+                WindowsSandboxToolPath = WindowsSandboxToolPath,
+                WindowsSandboxServerAddress = WindowsSandboxServerAddress,
             };
 
             await _settingsService.SaveAsync(modelConfiguration, shellSettings).ConfigureAwait(true);
@@ -267,7 +267,7 @@ public sealed class ProviderSettingsViewModel : ViewModelBase
 
     internal OpenAIProtocolLanguageModelConfiguration ToConfiguration()
     {
-        return new OpenAIProtocolLanguageModelConfiguration(EndPoint.Trim(), ApiKey.Trim())
+        return new OpenAIProtocolLanguageModelConfiguration(EndPoint, ApiKey)
         {
             ModelDefinitions = Models.Select(model => model.ToDefinition()).ToArray(),
         };
@@ -376,21 +376,11 @@ public sealed class ModelSettingsViewModel : ViewModelBase
 
     internal ModelDefinition ToDefinition()
     {
-        if (string.IsNullOrWhiteSpace(Provider))
-        {
-            throw new ArgumentException("模型供应商标识不能为空。", nameof(Provider));
-        }
-
-        if (string.IsNullOrWhiteSpace(ModelName))
-        {
-            throw new ArgumentException("模型名称不能为空。", nameof(ModelName));
-        }
-
         return new ModelDefinition
         {
-            Provider = Provider.Trim(),
-            ModelName = ModelName.Trim(),
-            ModelId = string.IsNullOrWhiteSpace(ModelId) ? null : ModelId.Trim(),
+            Provider = Provider,
+            ModelName = ModelName,
+            ModelId = ModelId,
             ContextWindowSize = ContextWindowSize,
             MaxOutputTokens = MaxOutputTokens,
             Capabilities = new LlmModelCapabilities

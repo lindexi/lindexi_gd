@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 using CodingChatRoom.AvaloniaShell.Infrastructure;
@@ -62,12 +61,7 @@ internal sealed class CodingChatSettingsService
         ArgumentNullException.ThrowIfNull(shellSettings);
         cancellationToken.ThrowIfCancellationRequested();
 
-        Validate(modelConfiguration, shellSettings);
         _paths.EnsureDirectories();
-
-        var endpointManager = new AgentApiEndpointManager();
-        endpointManager.LoadConfiguration(modelConfiguration);
-        _ = endpointManager.PrimaryModel;
 
         await modelConfiguration.SaveToFileAsync(_paths.ConfigurationFile).ConfigureAwait(false);
 
@@ -93,53 +87,6 @@ internal sealed class CodingChatSettingsService
             ?? new CodingChatShellSettings();
     }
 
-    private static void Validate(
-        AgentApiManagerConfiguration modelConfiguration,
-        CodingChatShellSettings shellSettings)
-    {
-        if (modelConfiguration.OpenAIConfigurationList is not { Count: > 0 })
-        {
-            throw new ArgumentException("请至少配置一个模型服务。", nameof(modelConfiguration));
-        }
-
-        if (string.IsNullOrWhiteSpace(modelConfiguration.PrimaryModel))
-        {
-            throw new ArgumentException("请选择首选模型。", nameof(modelConfiguration));
-        }
-
-        foreach (OpenAIProtocolLanguageModelConfiguration provider in modelConfiguration.OpenAIConfigurationList)
-        {
-            if (string.IsNullOrWhiteSpace(provider.EndPoint))
-            {
-                throw new ArgumentException("模型服务地址不能为空。", nameof(modelConfiguration));
-            }
-
-            if (string.IsNullOrWhiteSpace(provider.Key))
-            {
-                throw new ArgumentException("API 密钥不能为空。", nameof(modelConfiguration));
-            }
-
-            if (provider.ModelDefinitions is not { Count: > 0 })
-            {
-                throw new ArgumentException("每个模型服务至少需要一个模型。", nameof(modelConfiguration));
-            }
-        }
-
-        if (!shellSettings.IsWindowsSandboxEnabled)
-        {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(shellSettings.WindowsSandboxToolPath))
-        {
-            throw new ArgumentException("沙箱工具路径不能为空。", nameof(shellSettings));
-        }
-
-        if (string.IsNullOrWhiteSpace(shellSettings.WindowsSandboxServerAddress))
-        {
-            throw new ArgumentException("沙箱连接地址不能为空。", nameof(shellSettings));
-        }
-    }
 }
 
 internal sealed record CodingChatSettingsSnapshot(
