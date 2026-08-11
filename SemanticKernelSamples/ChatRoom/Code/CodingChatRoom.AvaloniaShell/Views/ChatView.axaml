@@ -328,7 +328,6 @@
                          PlaceholderText="{StaticResource MessageInputPlaceholder}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
-                          KeyDown="MessageInputTextBox_OnKeyDown"
                          MaxHeight="120" />
                 <CheckBox Grid.Row="1"
                           Grid.Column="2"
