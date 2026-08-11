@@ -2,5 +2,14 @@
   <Folder Name="/Code/">
     <Project Path="Code/LightNotePad/LightNotePad.csproj" />
   </Folder>
+  <Folder Name="/Lib/" />
+  <Folder Name="/Lib/LightTextEditorPlus/">
+    <Project Path="Lib/LightTextEditorPlus/LightTextEditorPlus.Avalonia/LightTextEditorPlus.Avalonia.csproj" />
+    <Project Path="Lib/LightTextEditorPlus/LightTextEditorPlus.Core/LightTextEditorPlus.Core.csproj" />
+    <Project Path="Lib/LightTextEditorPlus/LightTextEditorPlus.Skia/LightTextEditorPlus.Skia.csproj" />
+  </Folder>
+  <Folder Name="/Lib/LightTextEditorPlus/Analyzers/">
+    <Project Path="Lib/LightTextEditorPlus/Analyzers/TextEditorInternalAnalyzer/TextEditorInternalAnalyzer.csproj" />
+  </Folder>
   <Project Path="Docs/Docs.csproj" />
 </Solution>
