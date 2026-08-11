@@ -6,7 +6,19 @@ namespace WinRemoteShell.Client;
 
 public static class PushClient
 {
-    public static async Task PushAsync(Uri server, string source, string target, CancellationToken cancellationToken = default)
+    public static Task PushAsync(
+        Uri server,
+        string source,
+        string target,
+        CancellationToken cancellationToken = default) =>
+        PushAsync(server, source, target, PushMode.Merge, cancellationToken);
+
+    public static async Task PushAsync(
+        Uri server,
+        string source,
+        string target,
+        PushMode mode,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(server);
         if (string.IsNullOrWhiteSpace(source))
@@ -26,6 +38,7 @@ public static class PushClient
             Content = content
         };
         request.Headers.Add("X-WinRS-Target", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(target)));
+        request.Headers.Add("X-WinRS-Push-Mode", mode.ToString());
 
         using var response = await client.SendAsync(
             request,

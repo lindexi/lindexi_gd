@@ -102,11 +102,38 @@ public static class ServerHost
         app.MapPost("/push", async (HttpContext context) =>
         {
             var target = Decode(context.Request.Headers["X-WinRS-Target"].ToString());
+            var modeValue = context.Request.Headers["X-WinRS-Push-Mode"].ToString();
+            var mode = PushMode.Merge;
+            if (!string.IsNullOrWhiteSpace(modeValue) &&
+                (!Enum.TryParse(modeValue, true, out mode) || !Enum.IsDefined(mode)))
+            {
+                return Results.BadRequest("The push mode is invalid.");
+            }
+
+            var targetExists = File.Exists(target) || Directory.Exists(target);
+            if (mode == PushMode.FailIfExists && targetExists)
+            {
+                return Results.Conflict("The push target already exists.");
+            }
+
+            if (mode == PushMode.Replace && targetExists)
+            {
+                if (Directory.Exists(target))
+                {
+                    Directory.Delete(target, true);
+                }
+                else
+                {
+                    File.Delete(target);
+                }
+            }
+
             await TransferStream.ReceiveAsync(
                 context.Request.Body,
                 target,
                 placeFileInExistingDirectory: false,
                 context.RequestAborted);
+            return Results.Ok();
         });
     }
 

@@ -1,4 +1,6 @@
+using System.Net;
 using WinRemoteShell.Client;
+using WinRemoteShell.Shared;
 
 namespace WinRemoteShell.Tests;
 
@@ -108,6 +110,59 @@ public sealed class ServerIntegrationTests
         await Task.WhenAny(archiveCreated.Task, Task.Delay(100));
 
         Assert.IsFalse(archiveCreated.Task.IsCompleted);
+    }
+
+    [TestMethod]
+    public async Task WhenDirectoryIsPushedWithMergeThenExistingExtraFileIsPreserved()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var root = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        var source = Path.Combine(root, "source");
+        var remote = Path.Combine(root, "remote");
+        Directory.CreateDirectory(source);
+        Directory.CreateDirectory(remote);
+        await File.WriteAllTextAsync(Path.Combine(source, "content.txt"), "new content");
+        var extraFile = Path.Combine(remote, "extra.txt");
+        await File.WriteAllTextAsync(extraFile, "existing content");
+
+        await PushClient.PushAsync(host.Address, source, remote, PushMode.Merge);
+
+        Assert.IsTrue(File.Exists(extraFile));
+    }
+
+    [TestMethod]
+    public async Task WhenDirectoryIsPushedWithReplaceThenExistingExtraFileIsDeleted()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var root = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        var source = Path.Combine(root, "source");
+        var remote = Path.Combine(root, "remote");
+        Directory.CreateDirectory(source);
+        Directory.CreateDirectory(remote);
+        await File.WriteAllTextAsync(Path.Combine(source, "content.txt"), "new content");
+        var extraFile = Path.Combine(remote, "extra.txt");
+        await File.WriteAllTextAsync(extraFile, "existing content");
+
+        await PushClient.PushAsync(host.Address, source, remote, PushMode.Replace);
+
+        Assert.IsFalse(File.Exists(extraFile));
+    }
+
+    [TestMethod]
+    public async Task WhenTargetExistsAndFailIfExistsIsUsedThenPushIsRejected()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var root = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        var source = Path.Combine(root, "source");
+        var remote = Path.Combine(root, "remote");
+        Directory.CreateDirectory(source);
+        Directory.CreateDirectory(remote);
+        await File.WriteAllTextAsync(Path.Combine(source, "content.txt"), "new content");
+
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(() =>
+            PushClient.PushAsync(host.Address, source, remote, PushMode.FailIfExists));
+
+        Assert.AreEqual(HttpStatusCode.Conflict, exception.StatusCode);
     }
 
     [TestMethod]

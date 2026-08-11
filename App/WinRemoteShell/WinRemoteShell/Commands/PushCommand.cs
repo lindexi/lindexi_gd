@@ -1,6 +1,7 @@
 using DotNetCampus.Cli;
 using DotNetCampus.Cli.Compiler;
 using WinRemoteShell.Client;
+using WinRemoteShell.Shared;
 
 namespace WinRemoteShell.Commands;
 
@@ -16,9 +17,12 @@ internal sealed class PushCommand : ICommandHandler
     [Option("target")]
     public required string Target { get; init; }
 
+    [Option("mode")]
+    public PushMode Mode { get; init; } = PushMode.Merge;
+
     public async Task<int> RunAsync()
     {
-        await PushClient.PushAsync(ServerAddressResolver.Resolve(Server), Source, Target);
+        await PushClient.PushAsync(ServerAddressResolver.Resolve(Server), Source, Target, Mode);
         return 0;
     }
 }
