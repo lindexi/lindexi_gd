@@ -4,12 +4,13 @@
              x:Class="CodingChatRoom.AvaloniaShell.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
     <Grid RowDefinitions="Auto,*,Auto" Background="{StaticResource SettingsBackgroundBrush}">
-        <Border Grid.Row="0" Classes="SettingsHeader" Padding="28,14">
-            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" MaxWidth="1120" HorizontalAlignment="Center">
+        <Border Grid.Row="0" Classes="SettingsHeader" Padding="20,14">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20" HorizontalAlignment="Stretch">
                 <Button Classes="SettingsBack"
-                        Content="‹"
+                        Content="← 返回聊天"
                         ToolTip.Tip="返回聊天"
                         Command="{Binding BackCommand}"
+                        HorizontalAlignment="Left"
                         VerticalAlignment="Center" />
                 <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
                     <TextBlock Text="设置" Classes="SettingsPageTitle" />
@@ -20,16 +21,16 @@
                         Content="保存更改"
                         Command="{Binding SaveCommand}"
                         IsEnabled="{Binding !IsBusy}"
+                        HorizontalAlignment="Right"
                         VerticalAlignment="Center" />
             </Grid>
         </Border>
 
-        <ScrollViewer Grid.Row="1">
-            <StackPanel Margin="28,24,28,40"
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="20,24,20,40"
                         Spacing="16"
-                        MaxWidth="1040"
-                        HorizontalAlignment="Center">
-                <Border Classes="SettingsIntro" Padding="18">
+                        HorizontalAlignment="Stretch">
+                <Border Classes="SettingsIntro" Padding="18" IsVisible="False">
                     <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
                         <Border Classes="IntroIcon">
                             <TextBlock Text="⚙"
@@ -55,6 +56,66 @@
                                        Foreground="{StaticResource PrimaryDarkBrush}" />
                         </Border>
                     </Grid>
+                </Border>
+
+                <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="20">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                            <Border Classes="SectionIcon SandboxIcon">
+                                <TextBlock Text="&gt;_"
+                                           FontSize="12"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource SandboxAccentBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="Windows 沙箱" Classes="SettingsSectionTitle" />
+                                <TextBlock Text="通过 WinRemoteShell 将命令与文件操作发送到隔离环境。"
+                                           Classes="Subtitle"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="2"
+                                          IsChecked="{Binding IsWindowsSandboxEnabled}"
+                                          OnContent="已启用"
+                                          OffContent="已禁用"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Border Classes="SandboxNotice" Padding="14">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <TextBlock Text="✓"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource SandboxAccentBrush}" />
+                                <TextBlock Grid.Column="1"
+                                           Text="仅使用可信的 WinRemoteShell 客户端，并连接到受控网络中的服务地址。沙箱将在工作区打开时建立连接。"
+                                           TextWrapping="Wrap"
+                                           Foreground="{StaticResource SandboxTextBrush}" />
+                            </Grid>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="16" IsEnabled="{Binding IsWindowsSandboxEnabled}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="沙箱工具路径" Classes="SettingsLabel" />
+                                <TextBox Classes="Rounded SettingsInput"
+                                         Text="{Binding WindowsSandboxToolPath}"
+                                         PlaceholderText="C:\Tools\WinRemoteShell.exe" />
+                                <TextBlock Text="可填写完整路径，或系统 PATH 中可解析的命令名。"
+                                           Classes="SettingsHint"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="连接地址" Classes="SettingsLabel" />
+                                <TextBox Classes="Rounded SettingsInput"
+                                         Text="{Binding WindowsSandboxServerAddress}"
+                                         PlaceholderText="127.0.0.1:12399" />
+                                <TextBlock Text="使用 主机:端口 格式，例如 192.168.1.20:12399。"
+                                           Classes="SettingsHint"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
                 </Border>
 
                 <Border Classes="SettingsCard" Padding="24">
@@ -225,65 +286,6 @@
                     </StackPanel>
                 </Border>
 
-                <Border Classes="SettingsCard" Padding="24">
-                    <StackPanel Spacing="20">
-                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
-                            <Border Classes="SectionIcon SandboxIcon">
-                                <TextBlock Text="&gt;_"
-                                           FontSize="12"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource SandboxAccentBrush}"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center" />
-                            </Border>
-                            <StackPanel Grid.Column="1" Spacing="3">
-                                <TextBlock Text="Windows 沙箱" Classes="SettingsSectionTitle" />
-                                <TextBlock Text="通过 WinRemoteShell 将命令与文件操作发送到隔离环境。"
-                                           Classes="Subtitle"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                            <ToggleSwitch Grid.Column="2"
-                                          IsChecked="{Binding IsWindowsSandboxEnabled}"
-                                          OnContent="已启用"
-                                          OffContent="已禁用"
-                                          VerticalAlignment="Center" />
-                        </Grid>
-
-                        <Border Classes="SandboxNotice" Padding="14">
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                                <TextBlock Text="✓"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource SandboxAccentBrush}" />
-                                <TextBlock Grid.Column="1"
-                                           Text="仅使用可信的 WinRemoteShell 客户端，并连接到受控网络中的服务地址。沙箱将在工作区打开时建立连接。"
-                                           TextWrapping="Wrap"
-                                           Foreground="{StaticResource SandboxTextBrush}" />
-                            </Grid>
-                        </Border>
-
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="16" IsEnabled="{Binding IsWindowsSandboxEnabled}">
-                            <StackPanel Spacing="6">
-                                <TextBlock Text="沙箱工具路径" Classes="SettingsLabel" />
-                                <TextBox Classes="Rounded SettingsInput"
-                                         Text="{Binding WindowsSandboxToolPath}"
-                                         PlaceholderText="C:\Tools\WinRemoteShell.exe" />
-                                <TextBlock Text="可填写完整路径，或系统 PATH 中可解析的命令名。"
-                                           Classes="SettingsHint"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1" Spacing="6">
-                                <TextBlock Text="连接地址" Classes="SettingsLabel" />
-                                <TextBox Classes="Rounded SettingsInput"
-                                         Text="{Binding WindowsSandboxServerAddress}"
-                                         PlaceholderText="127.0.0.1:12399" />
-                                <TextBlock Text="使用 主机:端口 格式，例如 192.168.1.20:12399。"
-                                           Classes="SettingsHint"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </Border>
             </StackPanel>
         </ScrollViewer>
 
