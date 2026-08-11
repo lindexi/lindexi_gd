@@ -1,6 +1,7 @@
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 
@@ -124,8 +125,10 @@ public static class AgentSessionStreamingHelper
 
         static bool IsRetryableException(Exception exception)
         {
-            // 是否可重试的异常类型判断逻辑
-            return exception is HttpRequestException
+            // 400 可能由不完整的工具调用历史引起，清理历史后允许进入有限重试。
+            return exception is HttpRequestException { StatusCode: HttpStatusCode.BadRequest }
+                || exception is System.ClientModel.ClientResultException { Status: (int) HttpStatusCode.BadRequest }
+                || exception is HttpRequestException
                 or IOException
                 or TimeoutException;
         }
@@ -167,9 +170,7 @@ public static class AgentSessionStreamingHelper
             return;
         }
 
-        HashSet<string> completedFunctionCallIds = GetFunctionResultIds(chatMessageList, collectedUpdates);
-        RemoveIncompleteFunctionCalls(chatMessageList, completedFunctionCallIds);
-        RemoveOrphanFunctionResults(chatMessageList, collectedUpdates);
+        HashSet<string> completedFunctionCallIds = ToolCallHistoryRepairer.Repair(chatMessageList, collectedUpdates);
 
         if (!ContainsMessageSequence(chatMessageList, inputMessages))
         {
@@ -194,9 +195,7 @@ public static class AgentSessionStreamingHelper
             return;
         }
 
-        HashSet<string> completedFunctionCallIds = GetFunctionResultIds(chatMessageList, []);
-        RemoveIncompleteFunctionCalls(chatMessageList, completedFunctionCallIds);
-        RemoveOrphanFunctionResults(chatMessageList, []);
+        ToolCallHistoryRepairer.Repair(chatMessageList, []);
         session.SetInMemoryChatHistory(chatMessageList);
     }
 
@@ -255,169 +254,6 @@ public static class AgentSessionStreamingHelper
         return updateChatMessageList;
     }
 
-    private static void RemoveIncompleteFunctionCalls(List<ChatMessage> chatMessageList, HashSet<string> completedFunctionCallIds)
-    {
-        for (var i = chatMessageList.Count - 1; i >= 0; i--)
-        {
-            ChatMessage chatMessage = chatMessageList[i];
-            if (chatMessage.Role != ChatRole.Assistant || !chatMessage.Contents.OfType<FunctionCallContent>().Any())
-            {
-                continue;
-            }
-
-            var contents = new List<AIContent>(chatMessage.Contents.Count);
-            foreach (AIContent content in chatMessage.Contents)
-            {
-                if (content is FunctionCallContent functionCallContent
-                    && !string.IsNullOrWhiteSpace(functionCallContent.CallId)
-                    && !completedFunctionCallIds.Contains(functionCallContent.CallId))
-                {
-                    continue;
-                }
-
-                contents.Add(content);
-            }
-
-            if (contents.Count == 0)
-            {
-                chatMessageList.RemoveAt(i);
-                continue;
-            }
-
-            if (contents.Count != chatMessage.Contents.Count)
-            {
-                chatMessageList[i] = new ChatMessage(chatMessage.Role, contents);
-            }
-        }
-    }
-
-    private static void RemoveOrphanFunctionResults(
-        List<ChatMessage> chatMessageList,
-        IReadOnlyList<AgentResponseUpdate> collectedUpdates)
-    {
-        HashSet<string> validFunctionCallIds = GetAdjacentFunctionCallIds(chatMessageList, collectedUpdates);
-        var retainedFunctionResultIds = new HashSet<string>(StringComparer.Ordinal);
-        for (var i = 0; i < chatMessageList.Count; i++)
-        {
-            ChatMessage chatMessage = chatMessageList[i];
-            if (!chatMessage.Contents.Any(content => content is FunctionCallContent or FunctionResultContent))
-            {
-                continue;
-            }
-
-            var contents = new List<AIContent>(chatMessage.Contents.Count);
-            foreach (AIContent content in chatMessage.Contents)
-            {
-                if (content is FunctionCallContent functionCallContent
-                    && !string.IsNullOrWhiteSpace(functionCallContent.CallId)
-                    && !validFunctionCallIds.Contains(functionCallContent.CallId))
-                {
-                    continue;
-                }
-
-                if (content is FunctionResultContent functionResultContent
-                    && !string.IsNullOrWhiteSpace(functionResultContent.CallId))
-                {
-                    if (!validFunctionCallIds.Contains(functionResultContent.CallId)
-                        || !retainedFunctionResultIds.Add(functionResultContent.CallId))
-                    {
-                        continue;
-                    }
-                }
-
-                contents.Add(content);
-            }
-
-            if (contents.Count == 0)
-            {
-                chatMessageList.RemoveAt(i);
-                i--;
-                continue;
-            }
-
-            if (contents.Count != chatMessage.Contents.Count)
-            {
-                chatMessageList[i] = new ChatMessage(chatMessage.Role, contents);
-            }
-        }
-    }
-
-    private static HashSet<string> GetAdjacentFunctionCallIds(
-        IEnumerable<ChatMessage> chatMessageList,
-        IReadOnlyList<AgentResponseUpdate> collectedUpdates)
-    {
-        var validFunctionCallIds = new HashSet<string>(StringComparer.Ordinal);
-        List<AIContent> allContents = [.. chatMessageList.SelectMany(message => message.Contents)];
-        allContents.AddRange(collectedUpdates.SelectMany(update => update.Contents));
-        for (var i = 0; i < allContents.Count; i++)
-        {
-            if (allContents[i] is not FunctionCallContent functionCallContent
-                || string.IsNullOrWhiteSpace(functionCallContent.CallId))
-            {
-                continue;
-            }
-
-            var callIds = new HashSet<string>(StringComparer.Ordinal);
-            do
-            {
-                if (allContents[i] is FunctionCallContent currentFunctionCallContent
-                    && !string.IsNullOrWhiteSpace(currentFunctionCallContent.CallId))
-                {
-                    callIds.Add(currentFunctionCallContent.CallId);
-                }
-
-                i++;
-            }
-            while (i < allContents.Count && allContents[i] is FunctionCallContent);
-
-            var resultIds = new HashSet<string>(StringComparer.Ordinal);
-            while (i < allContents.Count && allContents[i] is FunctionResultContent currentFunctionResultContent)
-            {
-                if (!string.IsNullOrWhiteSpace(currentFunctionResultContent.CallId)
-                    && callIds.Contains(currentFunctionResultContent.CallId))
-                {
-                    resultIds.Add(currentFunctionResultContent.CallId);
-                }
-
-                i++;
-            }
-
-            validFunctionCallIds.UnionWith(resultIds);
-            i--;
-        }
-
-        return validFunctionCallIds;
-    }
-
-    private static HashSet<string> GetFunctionResultIds(
-        IEnumerable<ChatMessage> chatMessageList,
-        IReadOnlyList<AgentResponseUpdate> collectedUpdates)
-    {
-        var result = new HashSet<string>(StringComparer.Ordinal);
-        foreach (ChatMessage chatMessage in chatMessageList)
-        {
-            AddFunctionResultIds(chatMessage.Contents, result);
-        }
-
-        foreach (AgentResponseUpdate update in collectedUpdates)
-        {
-            AddFunctionResultIds(update.Contents, result);
-        }
-
-        return result;
-    }
-
-    private static void AddFunctionResultIds(IEnumerable<AIContent> contents, HashSet<string> result)
-    {
-        foreach (FunctionResultContent functionResultContent in contents.OfType<FunctionResultContent>())
-        {
-            if (!string.IsNullOrWhiteSpace(functionResultContent.CallId))
-            {
-                result.Add(functionResultContent.CallId);
-            }
-        }
-    }
-
     private static HashSet<string> GetExistingFunctionCallIds(IEnumerable<ChatMessage> chatMessageList)
     {
         var result = new HashSet<string>(StringComparer.Ordinal);
@@ -438,9 +274,14 @@ public static class AgentSessionStreamingHelper
     private static HashSet<string> GetExistingFunctionResultIds(IEnumerable<ChatMessage> chatMessageList)
     {
         var result = new HashSet<string>(StringComparer.Ordinal);
-        foreach (ChatMessage chatMessage in chatMessageList)
+        foreach (FunctionResultContent functionResult in chatMessageList
+                     .SelectMany(message => message.Contents)
+                     .OfType<FunctionResultContent>())
         {
-            AddFunctionResultIds(chatMessage.Contents, result);
+            if (!string.IsNullOrWhiteSpace(functionResult.CallId))
+            {
+                result.Add(functionResult.CallId);
+            }
         }
 
         return result;
