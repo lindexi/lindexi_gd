@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -48,13 +49,18 @@ internal static class CodingChatStartup
             AgentApiEndpointManager = endpointManager,
             MainThreadDispatcher = mainThreadDispatcher,
         };
-        var workspaceToolProvider = new CodingWorkspaceToolProvider(
-            additionalToolSources:
-            [
-                new WindowsSandboxToolSource(
-                    "WinRemoteShell.exe",
-                    "172.20.115.32:12399"),
-            ]);
+        CodingChatShellSettings shellSettings = await new CodingChatSettingsService(paths)
+            .LoadShellSettingsAsync()
+            .ConfigureAwait(false);
+        var additionalToolSources = new List<ICodingWorkspaceToolSource>();
+        if (shellSettings.IsWindowsSandboxEnabled)
+        {
+            additionalToolSources.Add(new WindowsSandboxToolSource(
+                shellSettings.WindowsSandboxToolPath,
+                shellSettings.WindowsSandboxServerAddress));
+        }
+
+        var workspaceToolProvider = new CodingWorkspaceToolProvider(additionalToolSources: additionalToolSources);
         var codingAgent = new CodingAgent(workspaceToolProvider);
         var workspaceController = new CodingWorkspaceController(
             new CodingAgentWorkspaceRuntime(codingAgent),

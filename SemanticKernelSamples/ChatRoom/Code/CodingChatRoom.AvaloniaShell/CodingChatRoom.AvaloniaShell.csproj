@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -33,5 +33,6 @@
     <AvaloniaResource Include="Styles\Colors.axaml" />
     <AvaloniaResource Include="Styles\Controls.axaml" />
     <AvaloniaResource Include="Styles\MessageBubble.axaml" />
+    <AvaloniaResource Include="Styles\Settings.axaml" />
   </ItemGroup>
 </Project>

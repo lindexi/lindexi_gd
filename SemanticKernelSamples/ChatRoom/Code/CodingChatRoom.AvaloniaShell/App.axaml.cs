@@ -46,7 +46,8 @@ public partial class App : Application
                     _runtime.ChatManager,
                     _runtime.Application,
                     _runtime.WorkspaceController,
-                    $"当前模型：{_runtime.ModelDisplayName}"));
+                    $"当前模型：{_runtime.ModelDisplayName}"),
+                new CodingChatSettingsService(paths));
             var mainWindow = new MainWindow
             {
                 DataContext = mainViewModel,

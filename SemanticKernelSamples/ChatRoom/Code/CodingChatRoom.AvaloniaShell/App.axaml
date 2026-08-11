@@ -6,6 +6,7 @@
 
     <Application.Resources>
         <converters:WorkspaceTitleConverter x:Key="WorkspaceTitleConverter" />
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
     </Application.Resources>
 
     <Application.Styles>
@@ -14,5 +15,6 @@
         <StyleInclude Source="avares://CodingChatRoom.AvaloniaShell/Styles/Colors.axaml" />
         <StyleInclude Source="avares://CodingChatRoom.AvaloniaShell/Styles/Controls.axaml" />
         <StyleInclude Source="avares://CodingChatRoom.AvaloniaShell/Styles/MessageBubble.axaml" />
+        <StyleInclude Source="avares://CodingChatRoom.AvaloniaShell/Styles/Settings.axaml" />
     </Application.Styles>
 </Application>
