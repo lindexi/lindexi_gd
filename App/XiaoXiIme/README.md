@@ -84,6 +84,7 @@ dotnet publish src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj -c Release -r 
 - `src/XiaoXiIme.ImeIpc/Docs/JsonIpcDirectRouted.md`：直接路由 JSON IPC 通讯方式说明。
 - `Docs/Ime-Customization.md`：输入法名称、任务栏“简体”、TSF 和文件属性的客制化说明。
 - `Docs/VM-Ime-Installation-Diagnostics.md`：纯净 VM 安装排障工作模式与历史验证记录。
+- `Docs/Windows-Sandbox-Test-Workflow.md`：将完整源码推送到 Windows 沙箱，并在沙箱内使用 .NET 10 SDK 构建、测试和运行项目的工作流。
 
 ## 项目开发进度
 
