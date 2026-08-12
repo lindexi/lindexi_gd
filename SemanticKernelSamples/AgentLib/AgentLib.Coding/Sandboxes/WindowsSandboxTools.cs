@@ -75,7 +75,7 @@ internal sealed class WindowsSandboxTools
     {
         if (!TryResolveSourceDirectory(sourceDirectory, out string fullSourceDirectory, out string validationError)
             || !TryResolveRelativePath(executableRelativePath, "执行文件", out string normalizedExecutablePath, out validationError)
-            || !TryResolveOptionalRelativePath(workingDirectoryRelativePath, "执行工作目录", out string normalizedWorkingDirectory, out validationError)
+            || !TryResolveOptionalRelativePath(workingDirectoryRelativePath, "执行工作目录", out string? normalizedWorkingDirectory, out validationError)
             || !TryResolveOptionalRelativePath(outputRelativePath, "结果路径", out string? normalizedOutputPath, out validationError)
             || !TryResolveLocalOutputDirectory(localOutputDirectory, out string fullLocalOutputDirectory, out validationError))
         {
