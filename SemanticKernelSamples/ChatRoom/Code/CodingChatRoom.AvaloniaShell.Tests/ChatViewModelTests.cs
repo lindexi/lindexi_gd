@@ -216,12 +216,12 @@ public sealed class ChatViewModelTests
         await runner.Canceled.Task;
     }
 
-    [TestMethod(DisplayName = "循环迭代发送应取消勾选并可由停止命令结束")]
+    [TestMethod(DisplayName = "循环迭代取消勾选应等待当前轮完成后退出")]
     [Timeout(5000)]
-    public async Task LoopIterationShouldClearOptionAndStopActiveRun()
+    public async Task LoopIterationShouldFinishCurrentRunWhenOptionIsCleared()
     {
         var manager = new CopilotChatManager();
-        var runner = new CancelableRunner(manager);
+        var runner = new CompletingRunner(manager);
         var application = new CodingChatApplication(manager, new EmptySessionStore(), runner);
         await application.InitializeAsync();
         using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型")
@@ -233,11 +233,13 @@ public sealed class ChatViewModelTests
         viewModel.SendCommand.Execute(null);
         await runner.Started.Task;
 
-        Assert.IsFalse(viewModel.IsLoopIterationEnabled);
-        viewModel.StopCommand.Execute(null);
-        await runner.Canceled.Task;
+        Assert.IsTrue(viewModel.IsLoopIterationEnabled);
+        viewModel.IsLoopIterationEnabled = false;
+        Assert.IsFalse(runner.CancellationToken.IsCancellationRequested);
+        runner.Complete();
         await WaitUntilAsync(() => !viewModel.IsRunning);
 
+        Assert.AreEqual(1, runner.RunCount);
         Assert.AreEqual("继续处理交接文档", Assert.IsInstanceOfType<TextContent>(runner.ObservedContents![0]).Text);
     }
 
@@ -562,6 +564,37 @@ public sealed class ChatViewModelTests
             bool enableAutomaticCompression,
             CancellationToken cancellationToken) =>
             Task.FromException<CodingAgentRunResult>(exception);
+    }
+
+    private sealed class CompletingRunner(CopilotChatManager manager) : ICodingChatRunner
+    {
+        private readonly TaskCompletionSource<string?> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public int RunCount { get; private set; }
+
+        public CancellationToken CancellationToken { get; private set; }
+
+        public IReadOnlyList<AIContent>? ObservedContents { get; private set; }
+
+        public async Task<CodingAgentRunResult> RunAsync(
+            IReadOnlyList<AIContent> contents,
+            string? workspacePath,
+            bool enableAutomaticCompression,
+            CancellationToken cancellationToken)
+        {
+            RunCount++;
+            CancellationToken = cancellationToken;
+            ObservedContents = contents;
+            await manager.AppendMessageAsync(CopilotChatMessage.CreateUser(contents), cancellationToken);
+            var assistantMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
+            await manager.SelectedSession.AddMessageAsync(assistantMessage);
+            Started.TrySetResult();
+            return new CodingAgentRunResult(assistantMessage, _completion.Task);
+        }
+
+        public void Complete() => _completion.TrySetResult("完成");
     }
 
     private sealed class CancelableRunner(CopilotChatManager manager) : ICodingChatRunner

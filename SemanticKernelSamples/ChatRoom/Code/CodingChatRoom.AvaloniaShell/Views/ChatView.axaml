@@ -7,19 +7,18 @@
              x:DataType="vm:ChatViewModel">
     <UserControl.Resources>
         <DataTemplate x:Key="AssistantTextItemTemplate" x:DataType="model:CopilotChatTextItem">
-            <TextBlock Margin="0,0,0,8"
-                       Text="{Binding Text}"
-                       TextWrapping="Wrap"
-                       Foreground="{StaticResource TextPrimaryBrush}"
-                       IsVisible="{Binding HasText}" />
+            <TextBox Classes="ChatOutput"
+                     Margin="0,0,0,8"
+                     Text="{Binding Text}"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     IsVisible="{Binding HasText}" />
         </DataTemplate>
 
         <DataTemplate x:Key="UserTextItemTemplate" x:DataType="model:CopilotChatTextItem">
-            <TextBlock Margin="0,0,0,8"
-                       Text="{Binding Text}"
-                       TextWrapping="Wrap"
-                       Foreground="{StaticResource TextOnPrimaryBrush}"
-                       IsVisible="{Binding HasText}" />
+            <TextBox Classes="ChatOutput UserChatOutput"
+                     Margin="0,0,0,8"
+                     Text="{Binding Text}"
+                     IsVisible="{Binding HasText}" />
         </DataTemplate>
 
         <DataTemplate x:Key="ImageItemTemplate" x:DataType="model:CopilotChatImageItem">

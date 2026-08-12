@@ -8,7 +8,9 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Border.MessageBubbleUser">
-        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Background" Value="{StaticResource PrimaryLightBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="12,12,4,12" />
         <Setter Property="Padding" Value="12,8" />
     </Style>
@@ -16,6 +18,34 @@
         <Setter Property="Background" Value="{StaticResource SurfaceVariantBrush}" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="10,6" />
+    </Style>
+    <Style Selector="TextBox.ChatOutput">
+        <Setter Property="AcceptsReturn" Value="True" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="SelectionBrush" Value="{StaticResource PrimaryLightBrush}" />
+        <Setter Property="SelectionForegroundBrush" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="VerticalContentAlignment" Value="Top" />
+    </Style>
+    <Style Selector="TextBox.ChatOutput:focus">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="TextBox.ChatOutput /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="TextBox.UserChatOutput">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="SelectionBrush" Value="{StaticResource PrimaryDarkBrush}" />
+        <Setter Property="SelectionForegroundBrush" Value="{StaticResource TextOnPrimaryBrush}" />
     </Style>
     <Style Selector="TextBlock.Timestamp">
         <Setter Property="FontSize" Value="11" />
