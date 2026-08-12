@@ -269,14 +269,18 @@ internal sealed class CodingChatApplication
         }
     }
 
-    public async Task RunLoopIterationAsync(string prompt, CancellationToken cancellationToken = default)
+    public async Task RunLoopIterationAsync(
+        string prompt,
+        Func<bool> shouldContinue,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(prompt))
         {
             throw new ArgumentException("消息内容不能为空。", nameof(prompt));
         }
 
-        while (true)
+        ArgumentNullException.ThrowIfNull(shouldContinue);
+        while (shouldContinue())
         {
             try
             {
@@ -289,6 +293,11 @@ internal sealed class CodingChatApplication
             }
             catch
             {
+                if (!shouldContinue())
+                {
+                    return;
+                }
+
                 try
                 {
                     await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);

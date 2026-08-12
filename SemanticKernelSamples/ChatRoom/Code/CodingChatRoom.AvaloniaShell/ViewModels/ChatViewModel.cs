@@ -437,10 +437,6 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         string loopPrompt = InputText;
         bool runLoopIteration = IsLoopIterationEnabled;
         bool isInterruption = IsRunning && !runLoopIteration;
-        if (runLoopIteration)
-        {
-            IsLoopIterationEnabled = false;
-        }
 
         InputText = string.Empty;
         PendingImages.Clear();
@@ -450,7 +446,9 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         {
             if (runLoopIteration)
             {
-                await _application.RunLoopIterationAsync(loopPrompt).ConfigureAwait(true);
+                await _application
+                    .RunLoopIterationAsync(loopPrompt, () => IsLoopIterationEnabled)
+                    .ConfigureAwait(true);
             }
             else
             {
