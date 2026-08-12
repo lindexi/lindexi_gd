@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -24,8 +25,9 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     private readonly CopilotChatManager? _chatManager;
     private readonly CodingChatApplication? _application;
     private readonly CodingWorkspaceController? _workspaceController;
-    private readonly string _modelStatusText;
+    private string _modelStatusText;
     private CopilotChatSession? _subscribedSession;
+    private LanguageModelOptionViewModel? _selectedModel;
     private string _inputText = string.Empty;
     private string? _runStatusText;
     private bool _isLoopIterationEnabled;
@@ -62,6 +64,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
         _application.StateChanged += OnApplicationStateChanged;
         PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
+        InitializeAvailableModels();
         AttachSession(_chatManager.SelectedSession);
     }
 
@@ -86,6 +89,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _application.StateChanged += OnApplicationStateChanged;
         _workspaceController.PropertyChanged += OnWorkspaceControllerPropertyChanged;
         PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
+        InitializeAvailableModels();
         AttachSession(_chatManager.SelectedSession);
     }
 
@@ -103,6 +107,38 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// 获取当前状态说明。
     /// </summary>
     public string StatusText => _runStatusText ?? _modelStatusText;
+
+    /// <summary>
+    /// 获取当前进程可用的语言模型。
+    /// </summary>
+    public ObservableCollection<LanguageModelOptionViewModel> AvailableModels { get; } = [];
+
+    /// <summary>
+    /// 获取或设置当前对话使用的语言模型。
+    /// </summary>
+    public LanguageModelOptionViewModel? SelectedModel
+    {
+        get => _selectedModel;
+        set
+        {
+            if (value is null || !AvailableModels.Contains(value) || !SetField(ref _selectedModel, value))
+            {
+                return;
+            }
+
+            if (_chatManager is not null)
+            {
+                _chatManager.AgentApiEndpointManager.PrimaryModel = value.Model;
+                _modelStatusText = $"当前模型：{value.DisplayName}";
+                OnPropertyChanged(nameof(StatusText));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 获取当前是否允许切换模型。
+    /// </summary>
+    public bool CanSelectModel => AvailableModels.Count > 1 && !IsRunning && !IsCompressing;
 
     /// <summary>
     /// 获取发送按钮文本。
@@ -248,6 +284,29 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// </summary>
     public bool CanApplyWorkspace => _workspaceController is not null && !IsChangingWorkspace;
 
+    private void InitializeAvailableModels()
+    {
+        if (_chatManager is null)
+        {
+            return;
+        }
+
+        foreach (var model in _chatManager.AgentApiEndpointManager.GetSupportedModels())
+        {
+            AvailableModels.Add(new LanguageModelOptionViewModel(model));
+        }
+
+        if (AvailableModels.Count == 0)
+        {
+            return;
+        }
+
+        var primaryModel = _chatManager.AgentApiEndpointManager.PrimaryModel;
+        _selectedModel = AvailableModels.First(option => ReferenceEquals(option.Model, primaryModel));
+        _modelStatusText = $"当前模型：{_selectedModel.DisplayName}";
+        OnPropertyChanged(nameof(CanSelectModel));
+    }
+
     /// <summary>
     /// 尝试添加一张待发送图片。
     /// </summary>
@@ -384,6 +443,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(CanCompressConversation));
         OnPropertyChanged(nameof(IsRunning));
         OnPropertyChanged(nameof(IsCompressing));
+        OnPropertyChanged(nameof(CanSelectModel));
         OnPropertyChanged(nameof(SendButtonText));
         RaiseCommandCanExecuteChanged();
     }

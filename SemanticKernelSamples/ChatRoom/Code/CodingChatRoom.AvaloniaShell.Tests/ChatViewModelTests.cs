@@ -151,6 +151,31 @@ public sealed class ChatViewModelTests
         Assert.HasCount(currentMessageCount, viewModel.Messages);
     }
 
+    [TestMethod(DisplayName = "切换模型应仅更新当前终结点管理器的首选模型")]
+    [Timeout(5000)]
+    public void SelectingModelShouldUpdateInMemoryPrimaryModel()
+    {
+        var manager = new CopilotChatManager();
+        var firstModel = new FakeLanguageModel(new FakeChatClient())
+        {
+            ModelDefinition = new ModelDefinition { Provider = "fake", ModelId = "first", ModelName = "First" },
+        };
+        var secondModel = new FakeLanguageModel(new FakeChatClient())
+        {
+            ModelDefinition = new ModelDefinition { Provider = "fake", ModelId = "second", ModelName = "Second" },
+        };
+        manager.AgentApiEndpointManager.RegisterLanguageModelProvider(
+            new FakeLanguageModelProvider([firstModel, secondModel]));
+        manager.AgentApiEndpointManager.PrimaryModel = firstModel;
+        var application = new CodingChatApplication(manager, new EmptySessionStore());
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：fake/First");
+
+        viewModel.SelectedModel = viewModel.AvailableModels[1];
+
+        Assert.AreSame(secondModel, manager.AgentApiEndpointManager.PrimaryModel);
+        Assert.AreEqual("当前模型：fake/Second", viewModel.StatusText);
+    }
+
     [TestMethod(DisplayName = "审批入口应复用聊天管理器完成决策")]
     [Timeout(5000)]
     public void ApprovalActionsShouldDelegateToChatManager()

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace CodingChatRoom.AvaloniaShell.ViewModels;
@@ -52,7 +53,7 @@ public sealed class ImageAttachmentViewModel
     public static bool TryCreate(
         string fileName,
         ReadOnlyMemory<byte> data,
-        out ImageAttachmentViewModel? attachment)
+        [NotNullWhen(true)] out ImageAttachmentViewModel? attachment)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
 

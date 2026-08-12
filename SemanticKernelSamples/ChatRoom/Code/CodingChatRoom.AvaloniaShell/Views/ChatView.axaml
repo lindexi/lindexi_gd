@@ -163,7 +163,7 @@
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*,Auto,220" RowDefinitions="Auto,Auto">
                 <TextBlock Grid.Row="0"
                            Grid.Column="0"
                            Margin="0,0,8,0"
@@ -183,9 +183,23 @@
                         Content="应用"
                         Command="{Binding ApplyWorkspaceCommand}"
                         IsEnabled="{Binding CanApplyWorkspace}" />
+                <ComboBox x:Name="ModelSelector"
+                          Grid.Row="0"
+                          Grid.Column="3"
+                          Margin="8,0,0,0"
+                          ItemsSource="{Binding AvailableModels}"
+                          SelectedItem="{Binding SelectedModel}"
+                          IsEnabled="{Binding CanSelectModel}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:LanguageModelOptionViewModel">
+                            <TextBlock Text="{Binding DisplayName}"
+                                       TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
                 <StackPanel Grid.Row="1"
                             Grid.Column="1"
-                            Grid.ColumnSpan="2"
+                            Grid.ColumnSpan="3"
                             Margin="0,4,0,0"
                             Orientation="Horizontal"
                             Spacing="8">

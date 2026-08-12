@@ -86,6 +86,17 @@ public sealed class ShellStructureTests
         Assert.IsNotNull(checkBoxField);
     }
 
+    [TestMethod(DisplayName = "聊天视图应包含模型选择下拉框")]
+    [Timeout(5000)]
+    public void ChatViewShouldContainModelSelector()
+    {
+        FieldInfo? comboBoxField = typeof(ChatView).GetField(
+            "ModelSelector",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.IsNotNull(comboBoxField);
+    }
+
     [TestMethod(DisplayName = "聊天视图应包含自动压缩勾选框")]
     [Timeout(5000)]
     public void ChatViewShouldContainAutomaticCompressionCheckBox()
