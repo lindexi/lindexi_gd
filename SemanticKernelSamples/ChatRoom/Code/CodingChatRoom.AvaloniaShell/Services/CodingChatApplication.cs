@@ -22,6 +22,7 @@ internal sealed class CodingChatApplication
     private readonly ICodingChatRunner? _chatRunner;
     private readonly CodingWorkspaceController? _workspaceController;
     private CancellationTokenSource? _activeRunCancellationTokenSource;
+    private volatile bool _isLoopIterationEnabled;
     private bool _isCompressionActive;
     private bool _isRunActive;
 
@@ -68,6 +69,12 @@ internal sealed class CodingChatApplication
         && _chatManager.SelectedSession.AgentSession is not null;
 
     public bool IsCompressionActive => _isCompressionActive;
+
+    public bool IsLoopIterationEnabled
+    {
+        get => _isLoopIterationEnabled;
+        set => _isLoopIterationEnabled = value;
+    }
 
     public bool IsRunActive => _isRunActive;
 
@@ -269,18 +276,14 @@ internal sealed class CodingChatApplication
         }
     }
 
-    public async Task RunLoopIterationAsync(
-        string prompt,
-        Func<bool> shouldContinue,
-        CancellationToken cancellationToken = default)
+    public async Task RunLoopIterationAsync(string prompt, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(prompt))
         {
             throw new ArgumentException("消息内容不能为空。", nameof(prompt));
         }
 
-        ArgumentNullException.ThrowIfNull(shouldContinue);
-        while (shouldContinue())
+        while (IsLoopIterationEnabled)
         {
             try
             {
@@ -293,7 +296,7 @@ internal sealed class CodingChatApplication
             }
             catch
             {
-                if (!shouldContinue())
+                if (!IsLoopIterationEnabled)
                 {
                     return;
                 }
