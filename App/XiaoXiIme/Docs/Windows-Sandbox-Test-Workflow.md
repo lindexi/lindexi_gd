@@ -143,6 +143,7 @@ dotnet build XiaoXiIme.slnx -c Release -bl:sandbox-results/logs/build.binlog
 更稳妥的方式是逐个执行测试项目，并生成 TRX：
 
 ```powershell
+dotnet test tests/XiaoXiIme.Cli.Tests/XiaoXiIme.Cli.Tests.csproj --logger "trx;LogFileName=cli.trx" --results-directory sandbox-results/test-results
 dotnet test tests/XiaoXiIme.Dictionary.Tests/XiaoXiIme.Dictionary.Tests.csproj --logger "trx;LogFileName=dictionary.trx" --results-directory sandbox-results/test-results
 dotnet test tests/XiaoXiIme.ImeCore.Tests/XiaoXiIme.ImeCore.Tests.csproj --logger "trx;LogFileName=ime-core.trx" --results-directory sandbox-results/test-results
 dotnet test tests/XiaoXiIme.ImeIpc.Tests/XiaoXiIme.ImeIpc.Tests.csproj --logger "trx;LogFileName=ime-ipc.trx" --results-directory sandbox-results/test-results
@@ -270,13 +271,13 @@ sandbox-results/stderr.txt
 - 修改系统级输入法注册表；
 - 注册 TSF Profile；
 - 需要管理员权限的真实系统集成流程；
-- 等待人工键盘输入的交互场景。
+- 依赖人工键盘输入且无法保证清理的交互场景。
 
 这类操作必须满足：
 
 - 使用一次性或可还原环境；
 - 使用显式破坏性操作确认参数；
-- 设置 `XIAOXIIME_ENVIRONMENT=VirtualMachine` 或项目约定的测试环境值；
+- 使用 CLI 要求的显式确认令牌；
 - 无论测试成功或失败都执行清理；
 - 拉回完整安装、测试和清理报告。
 

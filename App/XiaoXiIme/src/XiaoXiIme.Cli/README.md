@@ -71,20 +71,21 @@ integration-payload/
 
 ## 在 VM 中执行一键集成验证
 
-将整个负载目录复制到已创建快照的 Windows VM。使用管理员 PowerShell 执行：
+将整个负载目录复制到已创建快照的 Windows VM。当前传统 IMM32 主线验收应使用管理员 PowerShell 执行：
 
 ```powershell
-$env:XIAOXIIME_ENVIRONMENT = "VirtualMachine"
-.\app\cli\XiaoXiIme.Cli.exe integration-run . --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS --report .\results\integration.json
+.\app\cli\XiaoXiIme.Cli.exe integration-run . --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS --skip-tsf --report .\results\integration.json
 ```
+
+如果需要单独验证 TSF ABI 和隔离 COM 激活，可以移除 `--skip-tsf`。该模式要求环境已具备对应 COM 注册；否则 COM 激活可能返回 `0x80040154 (REGDB_E_CLASSNOTREG)`，不应将其误判为传统 IMM32 上屏失败。
 
 命令会依次完成：
 
 1. 校验 manifest、文件长度和 SHA-256。
 2. 仅卸载注册表中明确归属于 `XiaoXi IME` / `XiaoXiIme.ime` 的旧布局。
 3. 将 x64/x86 原生 IME 分别以资源中声明的 `XiaoXiIme.ime` 部署到 `System32`/`SysWOW64`，并使用 x64 系统路径调用 `ImmInstallIME`。
-4. 分别使用 x86/x64 ABI Host 验证对应架构的 TSF ABI/vtable 和隔离 COM 激活。
-5. 执行负载中的集成测试程序集，覆盖 Host、IPC 和上层逻辑；真实按键场景通过 `SendInput` 自动向测试窗口注入 `xx`，并验证 EDIT 控件精确上屏一次“小希”。
+4. 未传入 `--skip-tsf` 时，分别使用 x86/x64 ABI Host 验证对应架构的 TSF ABI/vtable 和隔离 COM 激活。
+5. 执行负载中的自包含集成测试宿主，覆盖 Host、IPC 和上层逻辑；真实按键场景通过 `SendInput` 自动向测试窗口注入 `xx`，并验证 EDIT 控件精确上屏一次“小希”。
 6. 输出单行 JSON 控制台事件并写入完整 JSON 报告。
 7. 卸载测试输入法并清理部署文件。
 
@@ -108,7 +109,7 @@ $env:XIAOXIIME_ENVIRONMENT = "VirtualMachine"
 - IME 绝对路径、长度、SHA-256、文件属性和 Mark of the Web；
 - PE Machine、Magic、Subsystem、DLL 标志和导入模块；
 - API-set 与普通系统 DLL 的分类和解析结果；
-- `GetBinaryType` 与不执行 DLL 初始化代码的映像映射探测；
+- 不执行 DLL 初始化代码的安全映像映射探测，以及独立进程中的真实加载与导出解析；
 - `System32` 目标文件和匹配键盘布局注册表状态。
 
 如果 `ImmInstallIME` 失败，还会输出 `diagnostics-post-install-failure`，立即记录调用后的文件和注册表状态。排障时应同时保留完整控制台输出和 `results\integration-*.json`；报告中的 `Data` 字段包含未被控制台摘要省略的诊断对象。

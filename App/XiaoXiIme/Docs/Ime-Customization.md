@@ -24,7 +24,7 @@ Windows 输入法界面会同时使用多种来源不同的文本：
 ImmInstallIMEW(imeFileName, layoutText)
 ```
 
-当前安装入口位于 `src/XiaoXiIme.Cli/Program.cs`，其中 `XiaoXi IME` 会作为 `layoutText` 传给 `WindowsImeInstaller.Install`。安装器最终在 `src/XiaoXiIme.Cli/WindowsImeInstaller.cs` 中调用 `ImmInstallIMEW`。注册成功后，该值会成为键盘布局注册项的 `Layout Text`，通常用于 Windows 设置和输入法切换列表。
+当前安装入口位于 `src/XiaoXiIme.Cli/Program.cs`，其中 `XiaoXi IME` 会作为 `layoutText` 传给 `WindowsImeInstaller.InstallPair`。安装器将 x64/x86 模块部署到对应系统目录，并最终在 `src/XiaoXiIme.Cli/WindowsImeInstaller.cs` 中调用 `ImmInstallIMEW` 注册 x64 布局。注册成功后，该值会成为键盘布局注册项的 `Layout Text`，通常用于 Windows 设置和输入法切换列表。
 
 若要把产品名改为“示例输入法”，至少需要同步检查以下位置：
 

@@ -28,16 +28,20 @@ XiaoXiIme/
 │   ├── XiaoXiIme.ImeCore/             # 输入法核心上下文与处理逻辑
 │   ├── XiaoXiIme.ImeInterop/          # Windows IME 互操作常量与导出契约
 │   ├── XiaoXiIme.ImeIpc/              # IME 模块与宿主进程的 IPC 消息与协议
-│   ├── XiaoXiIme.ImeModule/           # Native AOT IME 模块与传统 IME 入口导出
+│   ├── XiaoXiIme.ImeModule/           # Native AOT 传统 IME 模块与入口导出
+│   ├── XiaoXiIme.TsfModule/           # TSF InProc 模块与 ABI 验证目标
 │   ├── XiaoXiIme.ImeHost/             # 输入法宿主进程
 │   ├── XiaoXiIme.ImeUi.Avalonia/      # 候选窗口 UI 状态与控制逻辑
-│   └── XiaoXiIme.Cli/                 # 发布检查和输入法安装工具
+│   └── XiaoXiIme.Cli/                 # 发布、诊断、安装和系统测试工具
 └── tests/
+    ├── XiaoXiIme.Cli.Tests/           # CLI、负载与安装逻辑测试
     ├── XiaoXiIme.Dictionary.Tests/    # 词典测试
     ├── XiaoXiIme.ImeCore.Tests/       # 输入法核心测试
     ├── XiaoXiIme.ImeIpc.Tests/        # IPC 协议测试
-    ├── XiaoXiIme.ImeModule.Tests/     # IME 模块测试
-    └── XiaoXiIme.IntegrationTests/    # 集成测试
+    ├── XiaoXiIme.ImeModule.Tests/     # 传统 IME 模块测试
+    ├── XiaoXiIme.TsfModule.Tests/     # TSF 模块测试
+    ├── XiaoXiIme.IntegrationTests/    # 托管集成测试
+    └── XiaoXiIme.IntegrationTestHost/ # 自包含真实安装与按键测试宿主
 ```
 
 ## 构建与测试
@@ -48,11 +52,7 @@ XiaoXiIme/
 dotnet build XiaoXiIme.slnx
 ```
 
-运行测试：
-
-```powershell
-dotnet test XiaoXiIme.slnx
-```
+运行测试时应逐个执行测试项目并确认实际发现了非零测试数；不要只依赖 `dotnet test XiaoXiIme.slnx` 的退出码，因为 `.slnx` 曾出现退出码为 0 但没有测试摘要的“假绿”。完整命令见 `Docs/Windows-Sandbox-Test-Workflow.md`。
 
 发布 IME 模块前，可使用命令行工具输出检查清单：
 
@@ -66,7 +66,7 @@ dotnet run --project src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj -- publish-checklist
 dotnet publish src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj -c Release -r win-x64 --self-contained true -p:PublishAot=true
 ```
 
-最终安装包可以使用管理员权限直接调用 `XiaoXiIme.Cli.exe install <ime-file>` 完成注册。CLI 不判断机器用途；后续涉及真实系统安装的集成测试必须仅部署到专用测试机或可还原虚拟机，不能加入开发机默认测试集合。完整步骤见 `src/XiaoXiIme.Cli/README.md`。
+最终安装包应携带 `payload-build` 生成的完整双架构负载，并使用管理员权限调用 `XiaoXiIme.Cli.exe install <payload-directory> --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS` 完成注册。CLI 不判断机器用途；涉及真实系统安装的集成测试必须仅部署到专用测试机、Windows 沙箱或可还原虚拟机，不能加入开发机默认测试集合。完整步骤见 `src/XiaoXiIme.Cli/README.md`。
 
 ## 维护文档
 

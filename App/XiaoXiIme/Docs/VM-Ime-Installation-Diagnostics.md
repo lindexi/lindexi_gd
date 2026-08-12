@@ -30,8 +30,7 @@ VM 被视为纯净最终用户环境，不假设存在以下组件：
 3. 在 VM 中打开管理员 PowerShell，进入 payload 根目录并运行：
 
    ```powershell
-   $env:XIAOXIIME_ENVIRONMENT = "VirtualMachine"
-   .\app\cli\XiaoXiIme.Cli.exe integration-run . --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS --report .\results\integration.json
+   .\app\cli\XiaoXiIme.Cli.exe integration-run . --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS --skip-tsf --report .\results\integration.json
    ```
 
 4. 操作者原样回传以下两部分，不自行筛选或改写：
@@ -52,11 +51,13 @@ VM 被视为纯净最终用户环境，不假设存在以下组件：
 - `System32\XiaoXiIme.ime`、System32 临时写入能力和匹配键盘布局注册项的安装前状态；
 - 基于以上数据生成的 `Findings`。
 
-安装前还会运行 `native-ime-load-probe`。该阶段在独立的 CLI 子进程中使用正常 Windows 加载器加载项目自身构建的 IME，并用 `GetProcAddress` 验证全部 11 个传统 IME 导出。独立进程可以安全记录 DLL 初始化失败、加载器错误、异常退出和超时，而不破坏主 `integration-run`。
+安装前还会运行 `native-ime-load-probe`。该阶段在独立的 CLI 子进程中使用正常 Windows 加载器加载项目自身构建的 IME，并用 `GetProcAddress` 验证当前要求的 15 个传统 IME 导出。独立进程可以安全记录 DLL 初始化失败、加载器错误、异常退出和超时，而不破坏主 `integration-run`。
 
 如果 `ImmInstallIMEW` 返回失败，还会输出 `diagnostics-post-install-failure`，以便比较调用前后的系统目录和注册表状态。`install-x64` 阶段会记录传给 API 的绝对路径和原始 Win32 错误码。
 
-## 当前已知问题
+## 历史问题与诊断演进
+
+以下内容记录早期 VM 排障过程，不代表当前版本仍存在相同阻塞。传统 IMM32 的双架构安装、HKL 激活、HIMC 打开、`SendInput` 自动注入和 EDIT 精确上屏“小希”现已完成闭环验证；当前操作摘要见 [IMM32 状态与验证交接](./IMM32-Handoff.md)。
 
 首次 VM 输出为：
 
@@ -160,7 +161,7 @@ VM 返回结果确认根因修复有效：
 VM 返回结果确认纯净最终用户环境中的完整流程已经通过：
 
 - `uninstall-old` 未发现上一轮残留；
-- 安装前诊断无 finding，原生加载与 11 个传统 IME 导出验证全部通过；
+- 安装前诊断无 finding，原生加载与当时要求的 11 个传统 IME 导出验证全部通过；
 - `install-x64` 从 `C:\Windows\System32\XiaoXiIme.ime` 成功注册布局 `E0200804`；
 - x86/x64 的 TSF ABI 和隔离 COM 激活全部通过；
 - 自包含 `XiaoXiIme.IntegrationTestHost.exe` 成功执行，输出 `PASS candidate-window-state` 和 `PASS ime-host-ipc`，不再依赖 VM 中的 `dotnet`；
