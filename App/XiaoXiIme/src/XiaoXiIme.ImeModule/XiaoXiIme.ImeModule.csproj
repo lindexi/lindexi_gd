@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -20,5 +20,10 @@
     <ProjectReference Include="..\XiaoXiIme.ImeInterop\XiaoXiIme.ImeInterop.csproj" />
     <ProjectReference Include="..\XiaoXiIme.ImeIpc\XiaoXiIme.ImeIpc.csproj" />
   </ItemGroup>
+
+  <Target Name="CreateImeModule" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' != ''">
+    <Delete Files="$(PublishDir)XiaoXiIme.ime;$(PublishDir)XiaoXiIme.ImeCoreNative.dll" />
+    <Move SourceFiles="$(PublishDir)$(AssemblyName).dll" DestinationFiles="$(PublishDir)XiaoXiIme.ime" />
+  </Target>
 
 </Project>

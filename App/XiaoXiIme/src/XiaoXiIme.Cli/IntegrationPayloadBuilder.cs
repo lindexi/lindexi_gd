@@ -11,9 +11,13 @@ internal static class IntegrationPayloadBuilder
     public static async Task<int> BuildAsync(PayloadBuildOptions options, TextWriter output, TextWriter error)
     {
         var log = new StructuredConsole(output, error);
-        var solutionDirectory = FindSolutionDirectory(AppContext.BaseDirectory);
+        var stagingDirectory = options.NoBuild
+            ? FindPublishDirectory(AppContext.BaseDirectory, Environment.CurrentDirectory)
+            : Path.Combine(FindSolutionDirectory(AppContext.BaseDirectory), "artifacts", "integration-publish");
+        var solutionDirectory = options.NoBuild
+            ? stagingDirectory
+            : FindSolutionDirectory(AppContext.BaseDirectory);
         var outputDirectory = Path.GetFullPath(options.Output ?? Path.Combine(solutionDirectory, "artifacts", "integration-payload"));
-        var stagingDirectory = Path.Combine(solutionDirectory, "artifacts", "integration-publish");
 
         if (!options.NoBuild)
         {
@@ -46,12 +50,6 @@ internal static class IntegrationPayloadBuilder
         foreach (var source in sources)
         {
             CopyDirectory(Path.GetDirectoryName(source.SourcePath)!, Path.Combine(outputDirectory, source.TargetDirectory));
-        }
-
-        foreach (var runtimeIdentifier in NativeRuntimeIdentifiers)
-        {
-            var nativeDirectory = Path.Combine(outputDirectory, "native", runtimeIdentifier);
-            File.Move(Path.Combine(nativeDirectory, "ime", "XiaoXiIme.ImeModule.dll"), Path.Combine(nativeDirectory, "ime", "XiaoXiIme.ime"), true);
         }
 
         if (OperatingSystem.IsWindows())
@@ -125,10 +123,10 @@ internal static class IntegrationPayloadBuilder
 
     private static PayloadSource[] CreateSources(string stagingDirectory) =>
     [
-        new(Path.Combine(stagingDirectory, "native", "win-x86", "ime", "XiaoXiIme.ImeModule.dll"), Path.Combine("native", "win-x86", "ime")),
+        new(Path.Combine(stagingDirectory, "native", "win-x86", "ime", "XiaoXiIme.ime"), Path.Combine("native", "win-x86", "ime")),
         new(Path.Combine(stagingDirectory, "native", "win-x86", "tsf", "XiaoXiIme.TsfModule.dll"), Path.Combine("native", "win-x86", "tsf")),
         new(Path.Combine(stagingDirectory, "native", "win-x86", "tools", "XiaoXiIme.TsfAbiHost.exe"), Path.Combine("native", "win-x86", "tools")),
-        new(Path.Combine(stagingDirectory, "native", "win-x64", "ime", "XiaoXiIme.ImeModule.dll"), Path.Combine("native", "win-x64", "ime")),
+        new(Path.Combine(stagingDirectory, "native", "win-x64", "ime", "XiaoXiIme.ime"), Path.Combine("native", "win-x64", "ime")),
         new(Path.Combine(stagingDirectory, "native", "win-x64", "tsf", "XiaoXiIme.TsfModule.dll"), Path.Combine("native", "win-x64", "tsf")),
         new(Path.Combine(stagingDirectory, "native", "win-x64", "tools", "XiaoXiIme.TsfAbiHost.exe"), Path.Combine("native", "win-x64", "tools")),
         new(Path.Combine(stagingDirectory, "app", "cli", "XiaoXiIme.Cli.exe"), Path.Combine("app", "cli")),
@@ -178,6 +176,24 @@ internal static class IntegrationPayloadBuilder
     {
         using var stream = File.OpenRead(path);
         return new PayloadFile(Path.GetRelativePath(root, path).Replace('\\', '/'), stream.Length, Convert.ToHexString(SHA256.HashData(stream)));
+    }
+
+    private static string FindPublishDirectory(params string[] startDirectories)
+    {
+        foreach (var startDirectory in startDirectories.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var directory = new DirectoryInfo(startDirectory);
+            while (directory is not null)
+            {
+                if (Directory.Exists(Path.Combine(directory.FullName, "app"))
+                    && Directory.Exists(Path.Combine(directory.FullName, "native")))
+                {
+                    return directory.FullName;
+                }
+                directory = directory.Parent;
+            }
+        }
+        throw new DirectoryNotFoundException("Unable to locate the integration publish directory from the CLI or current directory.");
     }
 
     private static string FindSolutionDirectory(string startDirectory)

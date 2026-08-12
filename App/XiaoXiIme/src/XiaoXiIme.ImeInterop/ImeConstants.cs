@@ -4,7 +4,10 @@ public static class ImeConstants
 {
     public const uint ImeVersion0400 = 0x00040000;
 
+    public const uint ImePropKbdCharFirst = 0x00000002;
     public const uint ImePropAtCaret = 0x00010000;
+    public const uint ImePropSpecialUi = 0x00020000;
+    public const uint ImePropCandidateListStartsAtOne = 0x00040000;
     public const uint ImePropUnicode = 0x00080000;
     public const uint ImePropCompleteOnUnselect = 0x00100000;
 

@@ -7,9 +7,13 @@ namespace XiaoXiIme.ImeModule;
 [StructLayout(LayoutKind.Sequential)]
 public struct ImeKeystrokeDiagnosticSnapshot
 {
-    public const uint CurrentVersion = 1;
+    public const uint CurrentVersion = 2;
 
     public uint Version;
+    public uint ImeInquireCallCount;
+    public uint ImeSelectCallCount;
+    public uint ImeSetActiveContextCallCount;
+    public uint NotifyImeCallCount;
     public uint ImeProcessKeyCallCount;
     public uint ImeToAsciiExCallCount;
     public uint LastProcessVirtualKey;
@@ -23,6 +27,10 @@ public struct ImeKeystrokeDiagnosticSnapshot
 
 public static unsafe class ImeKeystrokeDiagnostics
 {
+    private static int s_imeInquireCallCount;
+    private static int s_imeSelectCallCount;
+    private static int s_imeSetActiveContextCallCount;
+    private static int s_notifyImeCallCount;
     private static int s_imeProcessKeyCallCount;
     private static int s_imeToAsciiExCallCount;
     private static int s_lastProcessVirtualKey;
@@ -51,6 +59,14 @@ public static unsafe class ImeKeystrokeDiagnostics
         return 1;
     }
 
+    internal static void RecordImeInquire() => Interlocked.Increment(ref s_imeInquireCallCount);
+
+    internal static void RecordImeSelect() => Interlocked.Increment(ref s_imeSelectCallCount);
+
+    internal static void RecordImeSetActiveContext() => Interlocked.Increment(ref s_imeSetActiveContextCallCount);
+
+    internal static void RecordNotifyIme() => Interlocked.Increment(ref s_notifyImeCallCount);
+
     internal static void RecordImeProcessKey(uint virtualKey, bool handled)
     {
         Interlocked.Increment(ref s_imeProcessKeyCallCount);
@@ -70,6 +86,10 @@ public static unsafe class ImeKeystrokeDiagnostics
 
     internal static void Reset()
     {
+        Volatile.Write(ref s_imeInquireCallCount, 0);
+        Volatile.Write(ref s_imeSelectCallCount, 0);
+        Volatile.Write(ref s_imeSetActiveContextCallCount, 0);
+        Volatile.Write(ref s_notifyImeCallCount, 0);
         Volatile.Write(ref s_imeProcessKeyCallCount, 0);
         Volatile.Write(ref s_imeToAsciiExCallCount, 0);
         Volatile.Write(ref s_lastProcessVirtualKey, 0);
@@ -86,6 +106,10 @@ public static unsafe class ImeKeystrokeDiagnostics
         return new ImeKeystrokeDiagnosticSnapshot
         {
             Version = ImeKeystrokeDiagnosticSnapshot.CurrentVersion,
+            ImeInquireCallCount = unchecked((uint)Volatile.Read(ref s_imeInquireCallCount)),
+            ImeSelectCallCount = unchecked((uint)Volatile.Read(ref s_imeSelectCallCount)),
+            ImeSetActiveContextCallCount = unchecked((uint)Volatile.Read(ref s_imeSetActiveContextCallCount)),
+            NotifyImeCallCount = unchecked((uint)Volatile.Read(ref s_notifyImeCallCount)),
             ImeProcessKeyCallCount = unchecked((uint)Volatile.Read(ref s_imeProcessKeyCallCount)),
             ImeToAsciiExCallCount = unchecked((uint)Volatile.Read(ref s_imeToAsciiExCallCount)),
             LastProcessVirtualKey = unchecked((uint)Volatile.Read(ref s_lastProcessVirtualKey)),

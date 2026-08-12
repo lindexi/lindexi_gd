@@ -26,23 +26,72 @@ public static class Imm32Methods
     public static extern bool ImmGenerateMessage(HImc inputContext);
 }
 
-public struct InputContext
+public struct Point
+{
+    public int X;
+    public int Y;
+}
+
+public struct Rect
+{
+    public int Left;
+    public int Top;
+    public int Right;
+    public int Bottom;
+}
+
+public unsafe struct LogFont
+{
+    public int Height;
+    public int Width;
+    public int Escapement;
+    public int Orientation;
+    public int Weight;
+    public byte Italic;
+    public byte Underline;
+    public byte StrikeOut;
+    public byte CharSet;
+    public byte OutPrecision;
+    public byte ClipPrecision;
+    public byte Quality;
+    public byte PitchAndFamily;
+    public fixed char FaceName[32];
+}
+
+public struct CompositionForm
+{
+    public uint Style;
+    public Point CurrentPosition;
+    public Rect Area;
+}
+
+public struct CandidateForm
+{
+    public uint Index;
+    public uint Style;
+    public Point CurrentPosition;
+    public Rect Area;
+}
+
+public unsafe struct InputContext
 {
     public HWnd Hwnd;
-    public nint FOpen;
-    public nint FdwConversion;
-    public nint FdwSentence;
+    public int FOpen;
+    public Point StatusWindowPosition;
+    public Point SoftKeyboardPosition;
+    public uint FdwConversion;
+    public uint FdwSentence;
+    public LogFont Font;
+    public CompositionForm CompositionForm;
+    public fixed byte CandidateForms[4 * 32];
     public nint HCompStr;
     public nint HCandInfo;
     public nint HGuideLine;
     public nint HPrivate;
+    public uint MessageBufferCount;
+    public nint HMessageBuffer;
     public uint FdwInit;
-    public uint FdwUIFlags;
-    public uint FdwState;
-    public uint FdwChange;
-    public uint FdwImeCompatFlags;
-    public uint FdwOpenCompatFlags;
-    public nint HWndIme;
+    public fixed uint Reserved[3];
 }
 
 public struct CompositionString

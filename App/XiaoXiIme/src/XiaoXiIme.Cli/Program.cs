@@ -9,6 +9,7 @@ if (args.Length == 0)
 return await CommandLine.Parse(args)
     .AddHelpHandler()
     .AddHandler<InstallOptions>(Install)
+    .AddHandler<UninstallOptions>(Uninstall)
     .AddHandler<SystemTestPlanOptions>(PrintSystemTestPlan)
     .AddHandler<SystemTestRunOptions>(RunSystemTests)
     .AddHandler<PayloadBuildOptions>(options => IntegrationPayloadBuilder.BuildAsync(options, Console.Out, Console.Error))
@@ -18,31 +19,52 @@ return await CommandLine.Parse(args)
 
 static int Install(InstallOptions options)
 {
-    if (!options.AllowSystemChanges)
+    if (!string.Equals(options.Confirm, SystemTestRunner.VmConfirmation, StringComparison.Ordinal))
     {
-        Console.Error.WriteLine("Installation refused. Pass --allow-system-changes explicitly.");
+        Console.Error.WriteLine($"Installation refused. Pass --confirm {SystemTestRunner.VmConfirmation} only inside a disposable VM.");
         return 3;
     }
-    var environment = Environment.GetEnvironmentVariable("XIAOXIIME_ENVIRONMENT");
-    if (environment is not ("Test" or "VirtualMachine"))
+
+    var manifestPath = IntegrationTestRunner.ResolveManifestPath(options.Payload, AppContext.BaseDirectory, Environment.CurrentDirectory);
+    if (manifestPath is null)
     {
-        Console.Error.WriteLine("Installation refused. Set XIAOXIIME_ENVIRONMENT=Test or VirtualMachine.");
-        return 3;
-    }
-    if (string.IsNullOrWhiteSpace(options.ImeFile))
-    {
-        Console.Error.WriteLine("The install command requires the full path to an .ime file.");
-        return 2;
-    }
-    var fullPath = Path.GetFullPath(options.ImeFile);
-    if (!File.Exists(fullPath) || !string.Equals(Path.GetExtension(fullPath), ".ime", StringComparison.OrdinalIgnoreCase))
-    {
-        Console.Error.WriteLine($"Valid IME file not found: {fullPath}");
+        Console.Error.WriteLine("Payload manifest was not found.");
         return 4;
     }
-    var result = new WindowsImeInstaller().Install(fullPath, "XiaoXi IME");
+
+    var root = Path.GetDirectoryName(manifestPath)!;
+    var manifest = IntegrationPayloadManifest.Load(manifestPath);
+    var verificationError = IntegrationTestRunner.VerifyPayload(root, manifest);
+    if (verificationError is not null)
+    {
+        Console.Error.WriteLine(verificationError);
+        return 5;
+    }
+    if (!manifest.NativeComponents.TryGetValue("x64", out var x64Components)
+        || !manifest.NativeComponents.TryGetValue("x86", out var x86Components))
+    {
+        Console.Error.WriteLine("The payload does not contain both x64 and x86 IME components.");
+        return 5;
+    }
+
+    var x64ImePath = Path.GetFullPath(Path.Combine(root, x64Components.ImeFile.Replace('/', Path.DirectorySeparatorChar)));
+    var x86ImePath = Path.GetFullPath(Path.Combine(root, x86Components.ImeFile.Replace('/', Path.DirectorySeparatorChar)));
+    var result = new WindowsImeInstaller().InstallPair(x64ImePath, x86ImePath, "XiaoXi IME");
     (result.Succeeded ? Console.Out : Console.Error).WriteLine(result.Message);
-    return result.Succeeded ? 0 : 5;
+    return result.Succeeded ? 0 : 6;
+}
+
+static int Uninstall(UninstallOptions options)
+{
+    if (!string.Equals(options.Confirm, SystemTestRunner.VmConfirmation, StringComparison.Ordinal))
+    {
+        Console.Error.WriteLine($"Uninstallation refused. Pass --confirm {SystemTestRunner.VmConfirmation} only inside a disposable VM.");
+        return 3;
+    }
+
+    var result = new WindowsImeInstaller().UninstallExisting("XiaoXi IME", "XiaoXiIme.ime");
+    (result.Succeeded ? Console.Out : Console.Error).WriteLine(result.Message);
+    return result.Succeeded ? 0 : 6;
 }
 
 static int PrintSystemTestPlan(SystemTestPlanOptions options)

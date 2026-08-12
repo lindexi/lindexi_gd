@@ -66,17 +66,19 @@ internal static class IntegrationTestRunner
             LogResult(log, results[^1]);
             if (!uninstall.Succeeded)
             {
-                return await CompleteAsync(12, reportPath, results, log, installer, installed, options.KeepInstalled);
+                return await CompleteAsync(12, reportPath, results, log, installer, installed, keepInstalled: false);
             }
 
-            if (!manifest.NativeComponents.TryGetValue("x64", out var x64Components))
+            if (!manifest.NativeComponents.TryGetValue("x64", out var x64Components)
+                || !manifest.NativeComponents.TryGetValue("x86", out var x86Components))
             {
-                results.Add(new IntegrationStageResult("install", false, 1, "The payload does not contain x64 native components.", "", ""));
+                results.Add(new IntegrationStageResult("install", false, 1, "The payload does not contain both x64 and x86 native components.", "", ""));
                 LogResult(log, results[^1]);
-                return await CompleteAsync(13, reportPath, results, log, installer, installed, options.KeepInstalled);
+                return await CompleteAsync(13, reportPath, results, log, installer, installed, keepInstalled: false);
             }
 
             var imePath = Resolve(root, x64Components.ImeFile);
+            var x86ImePath = Resolve(root, x86Components.ImeFile);
             var preInstallDiagnostics = ImeInstallationDiagnostics.Collect(imePath);
             results.Add(new IntegrationStageResult(
                 "diagnostics-pre-install",
@@ -94,9 +96,9 @@ internal static class IntegrationTestRunner
             results.Add(nativeLoadProbe);
             LogResult(log, results[^1]);
 
-            var install = installer.Install(imePath, "XiaoXi IME");
+            var install = installer.InstallPair(imePath, x86ImePath, "XiaoXi IME");
             installed = install.Succeeded;
-            var installMessage = $"{install.Message} This stage registers the x64 IME only; x86 registration remains a separate VM validation requirement.";
+            var installMessage = install.Message;
             results.Add(new IntegrationStageResult(
                 "install-x64",
                 install.Succeeded,
@@ -145,14 +147,17 @@ internal static class IntegrationTestRunner
                         variantResults));
                     LogResult(log, results[^1]);
                 }
-                return await CompleteAsync(13, reportPath, results, log, installer, installed, options.KeepInstalled);
+                return await CompleteAsync(13, reportPath, results, log, installer, installed, keepInstalled: false);
             }
 
             var commands = new List<SystemTestCommand>();
-            foreach (var (architecture, components) in manifest.NativeComponents.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+            if (!options.SkipTsf)
             {
-                commands.Add(new SystemTestCommand($"tsf-abi-{architecture}", Resolve(root, components.TsfAbiHostExecutable), ["abi", Resolve(root, components.TsfModule)]));
-                commands.Add(new SystemTestCommand($"tsf-com-activation-{architecture}", Resolve(root, components.TsfAbiHostExecutable), ["com-activation", Resolve(root, components.TsfModule)]));
+                foreach (var (architecture, components) in manifest.NativeComponents.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+                {
+                    commands.Add(new SystemTestCommand($"tsf-abi-{architecture}", Resolve(root, components.TsfAbiHostExecutable), ["abi", Resolve(root, components.TsfModule)]));
+                    commands.Add(new SystemTestCommand($"tsf-com-activation-{architecture}", Resolve(root, components.TsfAbiHostExecutable), ["com-activation", Resolve(root, components.TsfModule)]));
+                }
             }
             foreach (var executable in manifest.TestHostExecutables)
             {
@@ -166,15 +171,15 @@ internal static class IntegrationTestRunner
                 LogResult(log, result);
                 if (!result.Succeeded)
                 {
-                    return await CompleteAsync(14, reportPath, results, log, installer, installed, options.KeepInstalled);
+                    return await CompleteAsync(14, reportPath, results, log, installer, installed, keepInstalled: false);
                 }
             }
 
-            return await CompleteAsync(0, reportPath, results, log, installer, installed, options.KeepInstalled);
+            return await CompleteAsync(0, reportPath, results, log, installer, installed, keepInstalled: false);
         }
         catch
         {
-            if (installed && !options.KeepInstalled)
+            if (installed)
             {
                 installer.UninstallExisting("XiaoXi IME", "XiaoXiIme.ime");
             }
@@ -209,7 +214,7 @@ internal static class IntegrationTestRunner
         return null;
     }
 
-    private static string? VerifyPayload(string root, IntegrationPayloadManifest manifest)
+    internal static string? VerifyPayload(string root, IntegrationPayloadManifest manifest)
     {
         if (manifest.SchemaVersion != 3)
         {

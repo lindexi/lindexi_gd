@@ -11,7 +11,10 @@ public static unsafe class ImeExports
     [UnmanagedCallersOnly(EntryPoint = "ImeInquire", CallConvs = [typeof(CallConvStdcall)])]
     public static int ImeInquire(ImeInquireInfo* inquireInfo, char* className, uint systemInfoFlags)
     {
-        return ImeInquireManaged(inquireInfo, className, systemInfoFlags);
+        ImeKeystrokeDiagnostics.RecordImeInquire();
+        return ImeUiWindowClass.EnsureRegistered()
+            ? ImeInquireManaged(inquireInfo, className, systemInfoFlags)
+            : 0;
     }
 
     internal static int ImeInquireManaged(ImeInquireInfo* inquireInfo, char* className, uint systemInfoFlags)
@@ -26,7 +29,7 @@ public static unsafe class ImeExports
             *inquireInfo = ImeExportsContract.CreateDefaultInquireInfo();
             if (className is not null)
             {
-                CopyNullTerminated(ImeExportsContract.ImeUiClassName, className, 80);
+                CopyNullTerminated(ImeExportsContract.ImeUiClassName, className, ImeExportsContract.ImeUiClassBufferLength);
             }
 
             return 1;
@@ -57,6 +60,13 @@ public static unsafe class ImeExports
 
     internal static bool ImeProcessKeyManaged(nint inputContext, uint virtualKey, nint keyData, byte* keyState)
     {
+        const uint keyTransitionState = 0x80000000;
+        if ((unchecked((uint)keyData) & keyTransitionState) != 0)
+        {
+            ImeKeystrokeDiagnostics.RecordImeProcessKey(virtualKey, false);
+            return false;
+        }
+
         try
         {
             var handled = ImeModuleRuntime.ShouldProcessVirtualKey((ushort)virtualKey, unchecked((uint)keyData), new HImc(inputContext));
@@ -70,11 +80,31 @@ public static unsafe class ImeExports
         }
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "ImeRegisterWord", CallConvs = [typeof(CallConvStdcall)])]
+    public static int ImeRegisterWord(char* reading, uint style, char* value) => 1;
+
+    [UnmanagedCallersOnly(EntryPoint = "ImeUnregisterWord", CallConvs = [typeof(CallConvStdcall)])]
+    public static int ImeUnregisterWord(char* reading, uint style, char* value) => 1;
+
+    [UnmanagedCallersOnly(EntryPoint = "ImeGetRegisterWordStyle", CallConvs = [typeof(CallConvStdcall)])]
+    public static uint ImeGetRegisterWordStyle(uint itemCount, void* styleBuffer) => 0;
+
+    [UnmanagedCallersOnly(EntryPoint = "ImeEnumRegisterWord", CallConvs = [typeof(CallConvStdcall)])]
+    public static uint ImeEnumRegisterWord(nint enumProc, char* reading, uint style, char* value, void* data) => 0;
+
     [UnmanagedCallersOnly(EntryPoint = "ImeSelect", CallConvs = [typeof(CallConvStdcall)])]
-    public static int ImeSelect(nint inputContext, int select) => 1;
+    public static int ImeSelect(nint inputContext, int select)
+    {
+        ImeKeystrokeDiagnostics.RecordImeSelect();
+        return 1;
+    }
 
     [UnmanagedCallersOnly(EntryPoint = "ImeSetActiveContext", CallConvs = [typeof(CallConvStdcall)])]
-    public static int ImeSetActiveContext(nint inputContext, int active) => 1;
+    public static int ImeSetActiveContext(nint inputContext, int active)
+    {
+        ImeKeystrokeDiagnostics.RecordImeSetActiveContext();
+        return 1;
+    }
 
     [UnmanagedCallersOnly(EntryPoint = "ImeSetCompositionString", CallConvs = [typeof(CallConvStdcall)])]
     public static int ImeSetCompositionString(nint inputContext, uint index, void* composition, uint compositionLength, void* reading, uint readingLength) => 0;
@@ -107,6 +137,7 @@ public static unsafe class ImeExports
     [UnmanagedCallersOnly(EntryPoint = "NotifyIME", CallConvs = [typeof(CallConvStdcall)])]
     public static int NotifyIme(nint inputContext, uint action, uint index, uint value)
     {
+        ImeKeystrokeDiagnostics.RecordNotifyIme();
         return 0;
     }
 

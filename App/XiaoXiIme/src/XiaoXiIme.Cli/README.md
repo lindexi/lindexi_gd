@@ -8,11 +8,12 @@
 
 - `system-test-plan [--json]`：输出覆盖传统 IME、TSF、Host、IPC、UI、安装和回滚的全局系统测试计划。
 - `system-test-run <abi-host> <tsf-dll> --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：仅在可还原 VM 中执行隔离 ABI/COM 测试并生成 JSON 报告。
-- `payload-build [--output <directory>]`：在开发机上同时构建 x86/x64 原生组件并收集完整集成测试负载，不修改 Windows 输入法配置。
-- `integration-run [payload-directory] --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：仅在可还原 VM 中执行旧版卸载、新版安装、TSF 验证、集成测试和清理；省略负载路径时会从 CLI 所在目录和当前目录逐级向上查找 manifest。
-- `install <ime-file> --allow-system-changes`：显式调用 Windows API 安装输入法；同时要求 `XIAOXIIME_ENVIRONMENT=Test` 或 `VirtualMachine`。
+- `payload-build [--output <directory>] [--no-build]`：在开发机上构建或收集 x86/x64 组件并生成负载，不修改 Windows 输入法配置。
+- `integration-run [payload-directory] --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS [--skip-tsf] [--report <file>]`：仅在可还原 VM 中执行完整验证，并始终在结束时清理输入法。
+- `install [payload-directory] --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：校验负载，安装 x64/x86 输入法并保留，供人工体验。
+- `uninstall --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：卸载输入法并清理已部署文件。
 
-真实安装和注册涉及管理员权限及系统注册表。执行 `install` 即表示调用方要求安装，CLI 会在基本参数检查通过后调用 `ImmInstallIME`。
+真实安装和注册涉及管理员权限及系统注册表，`install`、`uninstall` 和 `integration-run` 必须在管理员终端及可还原 Windows 环境中执行。
 
 ## 运行命令
 
@@ -42,7 +43,7 @@ dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- --help
 dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- payload-build --output .\artifacts\integration-payload
 ```
 
-该命令依次执行解决方案 Release 构建。传统 IME、TSF InProc DLL 和 TSF ABI Host 分别发布 `win-x86` 与 `win-x64` 两套，因为这些组件必须匹配加载它们的目标进程架构。CLI、ImeHost、IPC 上层应用和集成测试是独立进程或托管逻辑，通过 IPC 通讯，只发布一套 `win-x64` 自包含共享应用负载。
+该命令依次执行解决方案 Release 构建。传统 IME、TSF InProc DLL 和 TSF ABI Host 分别发布 `win-x86` 与 `win-x64` 两套，因为这些组件必须匹配加载它们的目标进程架构。CLI、ImeHost、IPC 上层应用和集成测试是独立进程或托管逻辑，通过 IPC 通讯，只发布一套 `win-x64` 自包含共享应用负载。负载生成与安装、测试相互独立，避免一个命令同时承担多种生命周期。
 
 负载目录结构：
 
@@ -81,11 +82,23 @@ $env:XIAOXIIME_ENVIRONMENT = "VirtualMachine"
 
 1. 校验 manifest、文件长度和 SHA-256。
 2. 仅卸载注册表中明确归属于 `XiaoXi IME` / `XiaoXiIme.ime` 的旧布局。
-3. 当前使用 `native\win-x64\ime\XiaoXiIme.ime` 执行已实现的安装路径，并明确报告 x86 注册仍需单独验证。
+3. 将 x64/x86 原生 IME 分别以资源中声明的 `XiaoXiIme.ime` 部署到 `System32`/`SysWOW64`，并使用 x64 系统路径调用 `ImmInstallIME`。
 4. 分别使用 x86/x64 ABI Host 验证对应架构的 TSF ABI/vtable 和隔离 COM 激活。
-5. 执行负载中的集成测试程序集，覆盖 Host、IPC 和上层逻辑；真实按键场景会弹出测试窗口，需用户在输入框中用键盘输入 `xx`（不要粘贴），流程会等待最多 60 秒。
+5. 执行负载中的集成测试程序集，覆盖 Host、IPC 和上层逻辑；真实按键场景通过 `SendInput` 自动向测试窗口注入 `xx`，并验证 EDIT 控件精确上屏一次“小希”。
 6. 输出单行 JSON 控制台事件并写入完整 JSON 报告。
-7. 默认卸载测试输入法；传入 `--keep-installed` 才保留安装状态，以便继续人工输入测试。
+7. 卸载测试输入法并清理部署文件。
+
+如果只需安装后开始人工体验，不运行测试宿主，请执行：
+
+```powershell
+.\app\cli\XiaoXiIme.Cli.exe install . --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS
+```
+
+体验结束后执行：
+
+```powershell
+.\app\cli\XiaoXiIme.Cli.exe uninstall --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS
+```
 
 控制台每一行都是独立 JSON，包含 `timestampUtc`、`level`、`stage`、`message` 和 `data`，便于 LLM 或自动化脚本实时判断当前阶段、退出码、标准输出和错误输出。
 

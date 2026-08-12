@@ -3,19 +3,20 @@ namespace XiaoXiIme.ImeInterop;
 public static class ImeExportsContract
 {
     public const string ModuleFileExtension = ".ime";
-    public const string ImeUiClassName = "XiaoXiImeUiWindow";
+    public const int ImeUiClassBufferLength = 16;
+    public const string ImeUiClassName = "XiaoXiImeUIWnd";
 
     public static ImeInquireInfo CreateDefaultInquireInfo()
     {
         return new ImeInquireInfo
         {
             PrivateDataSize = 0,
-            Property = ImeConstants.ImePropAtCaret | ImeConstants.ImePropUnicode | ImeConstants.ImePropCompleteOnUnselect,
-            ConversionCaps = ImeConstants.ImeCmodeNative | ImeConstants.ImeCmodeFullShape | ImeConstants.ImeCmodeNoConversion,
+            Property = ImeConstants.ImePropKbdCharFirst | ImeConstants.ImePropSpecialUi | ImeConstants.ImePropCandidateListStartsAtOne | ImeConstants.ImePropUnicode,
+            ConversionCaps = ImeConstants.ImeCmodeNative | ImeConstants.ImeCmodeFullShape,
             SentenceCaps = 0,
             UiCaps = 0,
-            SetCompositionStringCaps = ImeConstants.SCSCapsCompStr | ImeConstants.SCSCapsMakeRead,
-            SelectCaps = ImeConstants.SelectCapsConversion,
+            SetCompositionStringCaps = ImeConstants.SCSCapsCompStr,
+            SelectCaps = 0,
         };
     }
 }
