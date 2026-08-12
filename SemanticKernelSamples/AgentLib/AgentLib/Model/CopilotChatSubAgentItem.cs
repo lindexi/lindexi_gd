@@ -163,7 +163,9 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
     }
 
     /// <inheritdoc/>
-    public void AppendFunctionCall(FunctionCallContent functionCallContent)
+    public void AppendFunctionCall(FunctionCallContent functionCallContent) => AppendFunctionCall(functionCallContent, null);
+
+    internal void AppendFunctionCall(FunctionCallContent functionCallContent, ToolCallPresentation? presentation)
     {
         ArgumentNullException.ThrowIfNull(functionCallContent);
 
@@ -185,14 +187,15 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
 
         if (!_toolItemsByCallId.TryGetValue(callId, out CopilotChatToolItem? toolItem))
         {
-            toolItem = new CopilotChatToolItem(callId, functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent));
+            toolItem = new CopilotChatToolItem(callId, functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent), presentation: presentation);
             _toolItemsByCallId[callId] = toolItem;
             MessageItems.Add(toolItem);
             return;
         }
 
         toolItem.ToolName = functionCallContent.Name;
-        toolItem.InputText = CopilotChatMessageItemFormatter.FormatArguments(functionCallContent) ?? string.Empty;
+        toolItem.InputText = CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent) ?? string.Empty;
+        toolItem.ApplyPresentation(presentation);
     }
 
     /// <inheritdoc/>

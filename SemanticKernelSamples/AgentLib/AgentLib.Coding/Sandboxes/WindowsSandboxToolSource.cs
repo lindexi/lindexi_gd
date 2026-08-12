@@ -1,3 +1,5 @@
+using AgentLib.Tools;
+
 using Microsoft.Extensions.AI;
 
 namespace AgentLib.Coding.Sandboxes;
@@ -36,5 +38,9 @@ public sealed class WindowsSandboxToolSource : ICodingWorkspaceToolSource
 
     /// <inheritdoc />
     public IReadOnlyList<AITool> CreateTools(string workspacePath) =>
-        new WindowsSandboxTools(workspacePath, _runner).AsAITools();
+        CreateToolRegistrations(workspacePath).Select(registration => registration.Tool).ToArray();
+
+    /// <inheritdoc />
+    public IReadOnlyList<ToolRegistration> CreateToolRegistrations(string workspacePath) =>
+        new WindowsSandboxTools(workspacePath, _runner).AsToolRegistrations();
 }

@@ -2,6 +2,9 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
+using AgentLib.Model;
+using AgentLib.Tools;
+
 using Microsoft.Extensions.AI;
 
 namespace AgentLib.Coding;
@@ -64,14 +67,40 @@ public sealed class RoslynAgentTools : IAsyncDisposable
     /// 创建可注入 Agent 的 Roslyn 查询工具集合。
     /// </summary>
     /// <returns>解决方案目录、项目文件、符号搜索、符号详情和引用查询工具。</returns>
-    public IReadOnlyList<AITool> AsAITools() =>
+    public IReadOnlyList<AITool> AsAITools() => AsToolRegistrations().Select(registration => registration.Tool).ToArray();
+
+    /// <summary>
+    /// 创建 Roslyn 工具及其展示摘要规则。
+    /// </summary>
+    public IReadOnlyList<ToolRegistration> AsToolRegistrations() =>
     [
-        AIFunctionFactory.Create(GetProjectsInSolution, "get_projects_in_solution"),
-        AIFunctionFactory.Create(GetFilesInProject, "get_files_in_project"),
-        AIFunctionFactory.Create(CodeSearchAsync, "code_search"),
-        AIFunctionFactory.Create(FindSymbolAsync, "find_symbol"),
-        AIFunctionFactory.Create(FindAllReferencesAsync, "find_all_references")
+        new(AIFunctionFactory.Create(GetProjectsInSolution, "get_projects_in_solution"),
+            arguments => ToolCallPresentationFactory.ForPath(arguments, "solutionPath", "当前工作区解决方案")),
+        new(AIFunctionFactory.Create(GetFilesInProject, "get_files_in_project"),
+            arguments => ToolCallPresentationFactory.ForPath(arguments, "projectPath")),
+        new(AIFunctionFactory.Create(CodeSearchAsync, "code_search"),
+            ToolCallPresentationCollectionFactory.ForCodeSearch),
+        new(AIFunctionFactory.Create(FindSymbolAsync, "find_symbol"),
+            arguments => new ToolCallPresentation(
+                ToolCallPresentationFactory.GetString(arguments, "symbolName"), null)),
+        new(AIFunctionFactory.Create(FindAllReferencesAsync, "find_all_references"),
+            CreateFindReferencesPresentation)
     ];
+
+    private static ToolCallPresentation CreateFindReferencesPresentation(IDictionary<string, object?> arguments)
+    {
+        string? filePath = ToolCallPresentationFactory.GetString(arguments, "filePath");
+        int? line = ToolCallPresentationFactory.GetInt32(arguments, "line");
+        var adjustedArguments = new Dictionary<string, object?>(arguments, StringComparer.Ordinal)
+        {
+            ["line"] = line is null ? null : line + 1,
+        };
+        return ToolCallPresentationFactory.ForFileLineRange(
+            adjustedArguments,
+            "filePath",
+            "line",
+            "line") with { FullTargetText = filePath };
+    }
 
     /// <summary>
     /// 返回当前解决方案中的项目。

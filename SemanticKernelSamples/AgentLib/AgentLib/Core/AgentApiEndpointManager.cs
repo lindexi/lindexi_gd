@@ -19,10 +19,7 @@ public class AgentApiEndpointManager
             {
                 var provider = JsonConfigurationOpenAIProtocolLanguageModelProvider
                     .FromConfiguration(languageModelConfiguration);
-                if (!string.IsNullOrEmpty(provider.Key))
-                {
-                    RegisterLanguageModelProvider(provider);
-                }
+                RegisterLanguageModelProvider(provider);
             }
         }
 

@@ -1,5 +1,8 @@
 using System.ComponentModel;
 
+using AgentLib.Model;
+using AgentLib.Tools;
+
 using Microsoft.Extensions.AI;
 
 namespace AgentLib.Coding;
@@ -22,9 +25,11 @@ internal sealed class CodingWorkspaceContentTools
         }
     }
 
-    internal IReadOnlyList<AITool> AsAITools() =>
+    internal IReadOnlyList<AITool> AsAITools() => AsToolRegistrations().Select(registration => registration.Tool).ToArray();
+
+    internal IReadOnlyList<ToolRegistration> AsToolRegistrations() =>
     [
-        AIFunctionFactory.Create(LoadImageAsync, "load_image")
+        new(AIFunctionFactory.Create(LoadImageAsync, "load_image"), arguments => ToolCallPresentationFactory.ForPath(arguments, "filePath"))
     ];
 
     [Description("从代码工作区内的图片文件加载多模态图片内容。")]

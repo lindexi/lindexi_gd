@@ -1,4 +1,6 @@
 using AgentLib.Coding;
+using AgentLib.Model;
+using AgentLib.Tools;
 
 using Microsoft.Extensions.AI;
 
@@ -258,7 +260,7 @@ public sealed class CodingWorkspaceToolProviderTests
     [Timeout(5000)]
     public async Task SessionShouldFreezeToolsAtCreationTime()
     {
-        var tools = new List<AITool> { CreateTool("original") };
+        var tools = new List<ToolRegistration> { CreateTool("original") };
         await using var provider = CreateProvider(
             (path, _, _) => Task.FromResult(new CodingWorkspaceToolSession(path, tools)));
         await provider.SetWorkspacePathAsync("workspace", CancellationToken.None);
@@ -523,7 +525,8 @@ public sealed class CodingWorkspaceToolProviderTests
         await transaction.DisposeAsync();
     }
 
-    private static AITool CreateTool(string name) => AIFunctionFactory.Create(() => name, name);
+    private static ToolRegistration CreateTool(string name) =>
+        new(AIFunctionFactory.Create(() => name, name));
 
     private static CodingWorkspaceToolProvider CreateProvider(
         Func<string, string, CancellationToken, Task<CodingWorkspaceToolSession>> createSession) =>
@@ -542,7 +545,7 @@ public sealed class CodingWorkspaceToolProviderTests
         public IReadOnlyList<AITool> CreateTools(string workspacePath)
         {
             WorkspacePath = workspacePath;
-            return [CreateTool("host_workspace_tool")];
+            return [CreateTool("host_workspace_tool").Tool];
         }
     }
 

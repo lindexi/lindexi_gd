@@ -1,4 +1,5 @@
 using AgentLib.Model;
+using AgentLib.Tools;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -249,7 +250,7 @@ public sealed class CodingAgent : IAsyncDisposable
                 agentSession,
                 cancellationToken))
             {
-                context.AppendResponseUpdate(update);
+                AppendResponseUpdate(context, update, lease.ToolRegistrationRegistry);
                 hasResponseUpdate = true;
             }
 
@@ -283,6 +284,41 @@ public sealed class CodingAgent : IAsyncDisposable
                 }
             }
         }
+    }
+
+    private static void AppendResponseUpdate(
+        IManualSendMessageContext context,
+        AgentResponseUpdate update,
+        ToolRegistrationRegistry registry)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(update);
+        ArgumentNullException.ThrowIfNull(registry);
+        if (context.AssistantChatMessage.Content == CopilotChatMessage.PlaceholderContent)
+        {
+            context.AssistantChatMessage.ClearMessageItems();
+        }
+
+        foreach (AIContent content in update.Contents)
+        {
+            switch (content)
+            {
+                case TextReasoningContent textReasoningContent when !string.IsNullOrEmpty(textReasoningContent.Text):
+                    context.AssistantChatMessage.AppendReasoning(textReasoningContent.Text);
+                    break;
+                case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
+                    context.AssistantChatMessage.AppendText(textContent.Text);
+                    break;
+                case FunctionCallContent functionCallContent:
+                    context.AssistantChatMessage.AppendFunctionCall(functionCallContent, registry.CreatePresentation(functionCallContent));
+                    break;
+                case FunctionResultContent functionResultContent:
+                    context.AssistantChatMessage.AppendFunctionResult(functionResultContent);
+                    break;
+            }
+        }
+
+        context.AssistantChatMessage.AppendUsageDetails(update.Contents);
     }
 
     private static ICopilotChatMessageItem CreateDataMessageItem(DataContent dataContent)

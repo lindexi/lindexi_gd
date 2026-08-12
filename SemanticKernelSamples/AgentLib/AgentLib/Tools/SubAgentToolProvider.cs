@@ -67,6 +67,7 @@ public sealed class SubAgentToolProvider
         private readonly CopilotChatContext? _chatContext;
         private readonly SubAgentToolProvider _provider;
         private readonly CancellationToken _cancellationToken;
+        private readonly ToolRegistrationRegistry _toolRegistrationRegistry;
         private readonly SubAgentOutputCollector _outputCollector = new();
 
         public SubAgentToolExecutor(AgentApiEndpointManager agentApiEndpointManager, WorkspaceToolProvider workspaceToolProvider, CopilotChatContext? chatContext, SubAgentToolProvider provider, CancellationToken cancellationToken)
@@ -76,6 +77,7 @@ public sealed class SubAgentToolProvider
             _chatContext = chatContext;
             _provider = provider;
             _cancellationToken = cancellationToken;
+            _toolRegistrationRegistry = new ToolRegistrationRegistry(_workspaceToolProvider.CreateDefaultToolRegistrations());
         }
 
         /// <summary>
@@ -174,7 +176,7 @@ public sealed class SubAgentToolProvider
             });
         }
 
-        private static void AppendSubAgentResponseUpdate(CopilotChatSubAgentItem? subAgentItem, AgentResponseUpdate responseUpdate)
+        private void AppendSubAgentResponseUpdate(CopilotChatSubAgentItem? subAgentItem, AgentResponseUpdate responseUpdate)
         {
             ArgumentNullException.ThrowIfNull(responseUpdate);
 
@@ -203,7 +205,7 @@ public sealed class SubAgentToolProvider
             }
         }
 
-        private static void AppendSubAgentFunctionCall(CopilotChatSubAgentItem subAgentItem, FunctionCallContent functionCallContent)
+        private void AppendSubAgentFunctionCall(CopilotChatSubAgentItem subAgentItem, FunctionCallContent functionCallContent)
         {
             ArgumentNullException.ThrowIfNull(subAgentItem);
             ArgumentNullException.ThrowIfNull(functionCallContent);
@@ -215,7 +217,7 @@ public sealed class SubAgentToolProvider
                 return;
             }
 
-            subAgentItem.AppendFunctionCall(functionCallContent);
+            subAgentItem.AppendFunctionCall(functionCallContent, _toolRegistrationRegistry.CreatePresentation(functionCallContent));
         }
 
         private static void AppendSubAgentFunctionResult(CopilotChatSubAgentItem subAgentItem, FunctionResultContent functionResultContent)

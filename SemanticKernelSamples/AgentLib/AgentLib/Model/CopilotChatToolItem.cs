@@ -8,16 +8,18 @@ public sealed class CopilotChatToolItem : NotifyBase, ICopilotChatMessageItem
     /// <summary>
     /// 创建工具调用片段。
     /// </summary>
-    /// <param name="callId">调用 ID。</param>
-    /// <param name="toolName">工具名称。</param>
-    /// <param name="inputText">工具输入文本。</param>
-    /// <param name="outputText">工具输出文本。</param>
-    public CopilotChatToolItem(string callId, string toolName, string? inputText, string? outputText = null)
+    public CopilotChatToolItem(
+        string callId,
+        string toolName,
+        string? inputText,
+        string? outputText = null,
+        ToolCallPresentation? presentation = null)
     {
         CallId = callId;
         ToolName = string.IsNullOrWhiteSpace(toolName) ? "工具" : toolName;
         InputText = inputText ?? string.Empty;
         OutputText = outputText ?? string.Empty;
+        ApplyPresentation(presentation);
     }
 
     /// <summary>
@@ -51,6 +53,85 @@ public sealed class CopilotChatToolItem : NotifyBase, ICopilotChatMessageItem
     public string DisplayName => ToolName;
 
     /// <summary>
+    /// 主要操作对象。
+    /// </summary>
+    public string PrimaryText
+    {
+        get => _primaryText;
+        internal set
+        {
+            if (!SetField(ref _primaryText, value ?? string.Empty))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(HasPrimaryText));
+            OnPropertyChanged(nameof(SummaryText));
+            OnPropertyChanged(nameof(ToolTipText));
+        }
+    }
+
+    private string _primaryText = string.Empty;
+
+    /// <summary>
+    /// 是否有主要操作对象。
+    /// </summary>
+    public bool HasPrimaryText => !string.IsNullOrEmpty(PrimaryText);
+
+    /// <summary>
+    /// 次要摘要文本。
+    /// </summary>
+    public string SecondaryText
+    {
+        get => _secondaryText;
+        internal set
+        {
+            if (!SetField(ref _secondaryText, value ?? string.Empty))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(HasSecondaryText));
+            OnPropertyChanged(nameof(SummaryText));
+            OnPropertyChanged(nameof(ToolTipText));
+        }
+    }
+
+    private string _secondaryText = string.Empty;
+
+    /// <summary>
+    /// 是否有次要摘要文本。
+    /// </summary>
+    public bool HasSecondaryText => !string.IsNullOrEmpty(SecondaryText);
+
+    /// <summary>
+    /// 完整目标文本。
+    /// </summary>
+    public string FullTargetText
+    {
+        get => _fullTargetText;
+        internal set
+        {
+            if (SetField(ref _fullTargetText, value ?? string.Empty))
+            {
+                OnPropertyChanged(nameof(ToolTipText));
+            }
+        }
+    }
+
+    private string _fullTargetText = string.Empty;
+
+    /// <summary>
+    /// 组合摘要文本。
+    /// </summary>
+    public string SummaryText => string.Join(" · ", new[] { PrimaryText, SecondaryText }.Where(value => !string.IsNullOrWhiteSpace(value)));
+
+    /// <summary>
+    /// 标题提示文本。
+    /// </summary>
+    public string ToolTipText => !string.IsNullOrWhiteSpace(FullTargetText) ? FullTargetText : SummaryText;
+
+    /// <summary>
     /// 工具输入文本。
     /// </summary>
     public string InputText
@@ -58,13 +139,10 @@ public sealed class CopilotChatToolItem : NotifyBase, ICopilotChatMessageItem
         get => _inputText;
         internal set
         {
-            string normalizedValue = value ?? string.Empty;
-            if (!SetField(ref _inputText, normalizedValue))
+            if (SetField(ref _inputText, value ?? string.Empty))
             {
-                return;
+                OnPropertyChanged(nameof(HasInputText));
             }
-
-            OnPropertyChanged(nameof(HasInputText));
         }
     }
 
@@ -83,13 +161,10 @@ public sealed class CopilotChatToolItem : NotifyBase, ICopilotChatMessageItem
         get => _outputText;
         internal set
         {
-            string normalizedValue = value ?? string.Empty;
-            if (!SetField(ref _outputText, normalizedValue))
+            if (SetField(ref _outputText, value ?? string.Empty))
             {
-                return;
+                OnPropertyChanged(nameof(HasOutputText));
             }
-
-            OnPropertyChanged(nameof(HasOutputText));
         }
     }
 
@@ -100,6 +175,18 @@ public sealed class CopilotChatToolItem : NotifyBase, ICopilotChatMessageItem
     /// </summary>
     public bool HasOutputText => !string.IsNullOrEmpty(OutputText);
 
+    internal void ApplyPresentation(ToolCallPresentation? presentation)
+    {
+        PrimaryText = presentation?.PrimaryText ?? string.Empty;
+        SecondaryText = presentation?.SecondaryText ?? string.Empty;
+        FullTargetText = presentation?.FullTargetText ?? string.Empty;
+    }
+
     /// <inheritdoc/>
-    ICopilotChatMessageItem ICopilotChatMessageItem.Clone() => new CopilotChatToolItem(CallId, ToolName, InputText, OutputText);
+    ICopilotChatMessageItem ICopilotChatMessageItem.Clone() => new CopilotChatToolItem(
+        CallId,
+        ToolName,
+        InputText,
+        OutputText,
+        new ToolCallPresentation(PrimaryText, SecondaryText, FullTargetText));
 }
