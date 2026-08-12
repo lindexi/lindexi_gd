@@ -51,16 +51,32 @@
         <DataTemplate x:Key="AssistantToolItemTemplate" x:DataType="model:CopilotChatToolItem">
             <Expander Margin="0,0,0,8">
                 <Expander.Header>
-                    <TextBlock Text="{Binding DisplayName}" />
+                    <Grid ColumnDefinitions="Auto,*,Auto"
+                          ColumnSpacing="8"
+                          ToolTip.Tip="{Binding ToolTipText}">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding DisplayName}"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding PrimaryText}"
+                                   TextTrimming="CharacterEllipsis"
+                                   IsVisible="{Binding HasPrimaryText}" />
+                        <TextBlock Grid.Column="2"
+                                   MaxWidth="240"
+                                   Text="{Binding SecondaryText}"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   IsVisible="{Binding HasSecondaryText}" />
+                    </Grid>
                 </Expander.Header>
                 <Border Classes="ToolPanel">
                     <StackPanel Spacing="6">
                         <StackPanel IsVisible="{Binding HasInputText}">
-                            <TextBlock Classes="SecondaryLabel" Text="输入参数" />
+                            <TextBlock Classes="SecondaryLabel" Text="{StaticResource ToolInputText}" />
                             <TextBlock Text="{Binding InputText}" TextWrapping="Wrap" />
                         </StackPanel>
                         <StackPanel IsVisible="{Binding HasOutputText}">
-                            <TextBlock Classes="SecondaryLabel" Text="工具输出" />
+                            <TextBlock Classes="SecondaryLabel" Text="{StaticResource ToolOutputText}" />
                             <TextBlock Text="{Binding OutputText}" TextWrapping="Wrap" />
                         </StackPanel>
                     </StackPanel>

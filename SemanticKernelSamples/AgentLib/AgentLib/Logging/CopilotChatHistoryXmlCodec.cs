@@ -124,15 +124,24 @@ internal static class CopilotChatHistoryXmlCodec
                 element.Attribute("MimeType")?.Value ?? "application/octet-stream"),
             "AudioItem" => new CopilotChatAudioItem(BinaryData.FromBytes(Convert.FromBase64String(element.Value)),
                 element.Attribute("MimeType")?.Value ?? "application/octet-stream"),
-            "ToolItem" => new CopilotChatToolItem(
-                element.Attribute("CallId")?.Value ?? string.Empty,
-                element.Attribute("ToolName")?.Value ?? string.Empty,
-                element.Element("Input")?.Value,
-                element.Element("Output")?.Value),
+            "ToolItem" => ReadToolItem(element),
             "ApprovalToolItem" => ReadApprovalToolItem(element),
             "SubAgentItem" => ReadSubAgentItem(element),
             _ => throw new InvalidDataException($"不支持的聊天消息片段类型：{element.Name.LocalName}")
         };
+    }
+
+    private static CopilotChatToolItem ReadToolItem(XElement element)
+    {
+        return new CopilotChatToolItem(
+            element.Attribute("CallId")?.Value ?? string.Empty,
+            element.Attribute("ToolName")?.Value ?? string.Empty,
+            element.Element("Input")?.Value,
+            element.Element("Output")?.Value,
+            new ToolCallPresentation(
+                element.Element("PrimaryText")?.Value,
+                element.Element("SecondaryText")?.Value,
+                element.Element("FullTargetText")?.Value));
     }
 
     private static CopilotChatApprovalToolItem ReadApprovalToolItem(XElement element)
@@ -195,6 +204,9 @@ internal static class CopilotChatHistoryXmlCodec
             CopilotChatToolItem toolItem => new XElement("ToolItem",
                 new XAttribute("CallId", toolItem.CallId),
                 new XAttribute("ToolName", toolItem.ToolName),
+                new XElement("PrimaryText", toolItem.PrimaryText),
+                new XElement("SecondaryText", toolItem.SecondaryText),
+                new XElement("FullTargetText", toolItem.FullTargetText),
                 new XElement("Input", toolItem.InputText),
                 new XElement("Output", toolItem.OutputText)),
             CopilotChatApprovalToolItem approvalToolItem => new XElement("ApprovalToolItem",

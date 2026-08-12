@@ -1,6 +1,7 @@
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Model;
+using AgentLib.Tools;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -310,7 +311,8 @@ public sealed class CodingAgentTests
         var provider = CreateProvider(
             (path, _, _) => Task.FromResult(new CodingWorkspaceToolSession(
                 path,
-                [AIFunctionFactory.Create(() => path, $"tool_{path}")],
+                [new ToolRegistration(
+                    AIFunctionFactory.Create(() => path, $"tool_{path}"))],
                 path == "first" ? firstResource : secondResource)));
         await provider.SetWorkspacePathAsync("first", CancellationToken.None);
         var agent = new CodingAgent(provider);
@@ -489,7 +491,7 @@ public sealed class CodingAgentTests
         return CreateProvider(
             (path, _, _) => Task.FromResult(new CodingWorkspaceToolSession(
                 path,
-                tools,
+                tools.Select(tool => new ToolRegistration(tool)).ToArray(),
                 path == workspacePath ? asyncDisposable : null)));
     }
 

@@ -1,3 +1,5 @@
+using AgentLib.Tools;
+
 using Microsoft.Extensions.AI;
 
 namespace AgentLib.Coding;
@@ -16,6 +18,7 @@ public sealed class CodingWorkspaceToolLease : IDisposable, IAsyncDisposable
         _session = session;
         WorkspacePath = session?.WorkspacePath;
         Tools = session?.Tools ?? [];
+        ToolRegistrationRegistry = session?.ToolRegistrationRegistry ?? ToolRegistrationRegistry.Empty;
     }
 
     /// <summary>
@@ -27,6 +30,11 @@ public sealed class CodingWorkspaceToolLease : IDisposable, IAsyncDisposable
     /// 本租约绑定的不可变编程工具集合。
     /// </summary>
     public IReadOnlyList<AITool> Tools { get; }
+
+    /// <summary>
+    /// 本租约绑定的不可变工具展示规则注册表。
+    /// </summary>
+    public ToolRegistrationRegistry ToolRegistrationRegistry { get; }
 
     /// <summary>
     /// 释放本次运行对工作区资源的引用。

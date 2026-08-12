@@ -8,6 +8,8 @@ using System.Text.RegularExpressions;
 using AgentLib;
 using AgentLib.Coding;
 using AgentLib.Coding.Sandboxes;
+using AgentLib.Model;
+using AgentLib.Tools;
 using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.AI;
@@ -41,13 +43,19 @@ internal sealed class WindowsSandboxTools
         _runner = runner;
     }
 
-    internal IReadOnlyList<AITool> AsAITools() =>
+    internal IReadOnlyList<AITool> AsAITools() => AsToolRegistrations().Select(registration => registration.Tool).ToArray();
+
+    internal IReadOnlyList<ToolRegistration> AsToolRegistrations() =>
     [
-        AIFunctionFactory.Create(ExecuteAsync, "execute_in_windows_sandbox")
+        new(AIFunctionFactory.Create(ExecuteAsync, "execute_in_windows_sandbox"),
+            arguments => new ToolCallPresentation(
+                ToolCallPresentationFactory.GetString(arguments, "executableRelativePath"),
+                ToolCallPresentationFactory.GetString(arguments, "workingDirectoryRelativePath")))
     ];
 
     [Description("将工作区内的执行器文件夹推送到 Windows 远程沙盒，在隔离任务目录中执行命令，并把指定结果或整个任务目录拉取回工作区。")]
-    internal async Task<string> ExecuteAsync(
+    internal async Task<string> ExecuteAsync
+    (
         [Description("要推送到沙盒的本地文件夹。可以传绝对路径；相对路径则相对于代码工作区，且必须位于工作区内。")]
         string sourceDirectory,
         [Description("要执行的文件相对于 sourceDirectory 的路径，例如 bin\\Debug\\net8.0\\TestRunner.exe。")]
@@ -62,7 +70,8 @@ internal sealed class WindowsSandboxTools
         string? localOutputDirectory = null,
         [Description("远端执行超时秒数，默认 300 秒，最大 1800 秒。")]
         int timeoutSeconds = DefaultTimeoutSeconds,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+     )
     {
         if (!TryResolveSourceDirectory(sourceDirectory, out string fullSourceDirectory, out string validationError)
             || !TryResolveRelativePath(executableRelativePath, "执行文件", out string normalizedExecutablePath, out validationError)

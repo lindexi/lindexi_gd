@@ -1,4 +1,5 @@
 using AgentLib.Core;
+using AgentLib.Model;
 using Microsoft.Extensions.AI;
 
 using System;
@@ -64,18 +65,31 @@ public sealed class WorkspaceToolProvider
         set => _secondaryWorkspacePath = NormalizeWorkspacePath(value);
     }
 
-    public IReadOnlyList<AITool> CreateDefaultTools()
+    public IReadOnlyList<AITool> CreateDefaultTools() =>
+        CreateDefaultToolRegistrations().Select(registration => registration.Tool).ToArray();
+
+    /// <summary>
+    /// 创建默认文件工具及其展示摘要规则。
+    /// </summary>
+    public IReadOnlyList<ToolRegistration> CreateDefaultToolRegistrations()
     {
         return
         [
-            AIFunctionFactory.Create(ListDirectory, name: nameof(ListDirectory), description: "列出目录中的文件和子目录。"),
-            //AIFunctionFactory.Create(ReadFile, name: nameof(ReadFile), description: "读取工作路径下指定文件的开头内容。"),
-            AIFunctionFactory.Create(FindEntriesByName, name: nameof(FindEntriesByName), description: "按名称关键字递归查找文件或目录。"),
-            AIFunctionFactory.Create(FindFilesMatchingPattern, name: nameof(FindFilesMatchingPattern), description: "在文件内容中递归搜索文本或正则表达式，返回命中位置。"),
-            AIFunctionFactory.Create(ReadFileLines, name: nameof(ReadFileLines), description: "读取文件的指定行范围。"),
-            AIFunctionFactory.Create(WriteFileContent, name: nameof(WriteFileContent), description: "覆写或创建文件；覆写前必须先读取文件。"),
-            AIFunctionFactory.Create(ReplaceStringInFile, name: nameof(ReplaceStringInFile), description: "替换文件中唯一匹配的文本；替换前必须先读取文件。"),
-            AIFunctionFactory.Create(MultiReplaceStringInFile, name: nameof(MultiReplaceStringInFile), description: "批量替换文件中唯一匹配的文本。")
+            new(AIFunctionFactory.Create(ListDirectory, name: nameof(ListDirectory), description: "列出目录中的文件和子目录。"),
+                arguments => ToolCallPresentationFactory.ForPath(arguments, "directoryPath", "工作区根目录")),
+            new(AIFunctionFactory.Create(FindEntriesByName, name: nameof(FindEntriesByName), description: "按名称关键字递归查找文件或目录。"),
+                arguments => ToolCallPresentationFactory.ForQuery(arguments, "query", "directoryPath")),
+            new(AIFunctionFactory.Create(FindFilesMatchingPattern, name: nameof(FindFilesMatchingPattern), description: "在文件内容中递归搜索文本或正则表达式，返回命中位置。"),
+                arguments => ToolCallPresentationFactory.ForQuery(arguments, "query", "directoryPath",
+                    ToolCallPresentationFactory.GetBoolean(arguments, "useRegex") == true ? "正则" : null)),
+            new(AIFunctionFactory.Create(ReadFileLines, name: nameof(ReadFileLines), description: "读取文件的指定行范围。"),
+                arguments => ToolCallPresentationFactory.ForFileLineRange(arguments, "filePath", "startLine", "endLine")),
+            new(AIFunctionFactory.Create(WriteFileContent, name: nameof(WriteFileContent), description: "覆写或创建文件；覆写前必须先读取文件。"),
+                arguments => ToolCallPresentationFactory.ForPath(arguments, "filePath")),
+            new(AIFunctionFactory.Create(ReplaceStringInFile, name: nameof(ReplaceStringInFile), description: "替换文件中唯一匹配的文本；替换前必须先读取文件。"),
+                arguments => ToolCallPresentationFactory.ForPath(arguments, "filePath")),
+            new(AIFunctionFactory.Create(MultiReplaceStringInFile, name: nameof(MultiReplaceStringInFile), description: "批量替换文件中唯一匹配的文本。"),
+                ToolCallPresentationCollectionFactory.ForMultipleReplacements)
         ];
     }
 

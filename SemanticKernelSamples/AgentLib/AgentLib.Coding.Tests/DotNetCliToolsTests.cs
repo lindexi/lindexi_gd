@@ -79,6 +79,37 @@ public sealed class DotNetCliToolsTests
         StringAssert.Contains(result, "附加参数: --configuration Release --runtime linux-x64 --framework net6.0");
     }
 
+    [TestMethod(DisplayName = "发布工具应使用完整 dotnet publish 命令发布指定项目")]
+    [Timeout(30000)]
+    public async Task RunDotNetPublishAsync_WhenCommandIsValid_ReturnsSuccessfulResult()
+    {
+        string projectName = $"Publish{Guid.NewGuid():N}";
+        string workspacePath = await CreateMinimalProjectAsync(projectName);
+        var tools = new DotNetCliTools(workspacePath);
+
+        string result = await tools.RunDotNetPublishAsync($"dotnet publish {projectName}.csproj");
+
+        StringAssert.Contains(result, "执行成功");
+        StringAssert.Contains(result, "可使用 read_last_log_lines 按行读取");
+    }
+
+    [DataTestMethod(DisplayName = "发布工具应拒绝未严格以 dotnet publish 开头的命令")]
+    [DataRow(" dotnet publish Sample.csproj")]
+    [DataRow("Dotnet publish Sample.csproj")]
+    [DataRow("dotnet publisher Sample.csproj")]
+    [DataRow("dotnet publish\nSample.csproj")]
+    [Timeout(5000)]
+    public async Task RunDotNetPublishAsync_WhenCommandPrefixIsInvalid_ReturnsValidationError(string commandLine)
+    {
+        string workspacePath = Path.Join(CreateTestDirectory(), "workspace");
+        Directory.CreateDirectory(workspacePath);
+        var tools = new DotNetCliTools(workspacePath);
+
+        string result = await tools.RunDotNetPublishAsync(commandLine);
+
+        StringAssert.Contains(result, "命令行必须严格以 dotnet publish 开头");
+    }
+
     [TestMethod(DisplayName = "测试工具应使用 dotnet test 测试指定项目")]
     [Timeout(30000)]
     public async Task RunTestsAsync_WhenProjectIsValid_ReturnsSuccessfulResult()
@@ -120,14 +151,14 @@ public sealed class DotNetCliToolsTests
         StringAssert.Contains(result, "返回行范围: 1-2");
     }
 
-    private static async Task<string> CreateMinimalProjectAsync()
+    private static async Task<string> CreateMinimalProjectAsync(string projectName = "Sample")
     {
         string workspacePath = Path.Join(CreateTestDirectory(), "workspace");
         Directory.CreateDirectory(workspacePath);
         await File.WriteAllTextAsync(
-            Path.Join(workspacePath, "Sample.csproj"),
+            Path.Join(workspacePath, $"{projectName}.csproj"),
             "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>net6.0</TargetFramework></PropertyGroup></Project>");
-        await File.WriteAllTextAsync(Path.Join(workspacePath, "Sample.cs"), "internal static class Sample { }");
+        await File.WriteAllTextAsync(Path.Join(workspacePath, $"{projectName}.cs"), $"internal static class {projectName} {{ }}");
         return workspacePath;
     }
 

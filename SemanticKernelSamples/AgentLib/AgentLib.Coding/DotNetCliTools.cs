@@ -3,6 +3,9 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 
+using AgentLib.Model;
+using AgentLib.Tools;
+
 using Microsoft.Extensions.AI;
 
 namespace AgentLib.Coding;
@@ -44,14 +47,28 @@ public sealed class DotNetCliTools
     /// 创建可按角色授权的 .NET 构建与测试工具集合。
     /// </summary>
     /// <returns>包含 <c>run_build</c>、<c>run_msbuild</c> 和 <c>run_tests</c> 等功能的工具集合。</returns>
-    public IReadOnlyList<AITool> AsAITools() =>
+    public IReadOnlyList<AITool> AsAITools() => AsToolRegistrations().Select(registration => registration.Tool).ToArray();
+
+    /// <summary>
+    /// 创建 .NET 工具及其展示摘要规则。
+    /// </summary>
+    public IReadOnlyList<ToolRegistration> AsToolRegistrations() =>
     [
-        AIFunctionFactory.Create(RunBuildAsync, "run_build"),
-        AIFunctionFactory.Create(RunMSBuildAsync, "run_msbuild"),
-        AIFunctionFactory.Create(RunTestsAsync, "run_tests"),
-        AIFunctionFactory.Create(ReadLastLogLines, "read_last_log_lines"),
-        AIFunctionFactory.Create(SearchLastLog, "search_last_log")
+        new(AIFunctionFactory.Create(RunBuildAsync, "run_build"), ToolCallPresentationFactory.ForBuild),
+        new(AIFunctionFactory.Create(RunMSBuildAsync, "run_msbuild"), ToolCallPresentationFactory.ForBuild),
+        new(AIFunctionFactory.Create(RunDotNetPublishAsync, "RunDotNetPublish"), arguments => ToolCallPresentationFactory.ForQuery(arguments, "commandLine")),
+        new(AIFunctionFactory.Create(RunTestsAsync, "run_tests"), arguments => ToolCallPresentationFactory.ForTestRun(arguments, "targetPath", "filter")),
+        new(AIFunctionFactory.Create(ReadLastLogLines, "read_last_log_lines"), arguments => new ToolCallPresentation(null,
+                FormatLineRange(arguments, "startLine", "endLine"))),
+        new(AIFunctionFactory.Create(SearchLastLog, "search_last_log"), arguments => ToolCallPresentationFactory.ForQuery(arguments, "pattern"))
     ];
+
+    private static string? FormatLineRange(IDictionary<string, object?> arguments, string startName, string endName)
+    {
+        int? start = ToolCallPresentationFactory.GetInt32(arguments, startName);
+        int? end = ToolCallPresentationFactory.GetInt32(arguments, endName);
+        return start is null ? null : end == start ? $"第 {start} 行" : end is null ? $"从第 {start} 行开始" : $"第 {start}–{end} 行";
+    }
 
     /// <summary>
     /// 使用 <c>dotnet build</c> 构建工作区或指定目标。
@@ -123,6 +140,36 @@ public sealed class DotNetCliTools
 
             arguments.Add($"/property:{propertyName}={value}");
         }
+    }
+
+    /// <summary>
+    /// 执行以 <c>dotnet publish</c> 开头的完整发布命令行。
+    /// </summary>
+    /// <param name="commandLine">必须严格以 <c>dotnet publish</c> 开头的完整命令行。</param>
+    /// <param name="cancellationToken">用于取消发布的令牌。</param>
+    /// <returns>发布输出、退出码和执行结果。</returns>
+    [Description("执行以 dotnet publish 开头的完整命令行发布 .NET 项目。命令必须严格从 dotnet publish 开始，不允许前导空白、换行或空字符；命令不会通过 Shell 执行。")]
+    public Task<string> RunDotNetPublishAsync(
+        [Description("完整发布命令行，必须严格以 dotnet publish 开头，例如 dotnet publish MyApp.csproj -c Release -r win-x64。")]
+        string commandLine,
+        CancellationToken cancellationToken = default)
+    {
+        const string requiredPrefix = "dotnet publish";
+        if (string.IsNullOrEmpty(commandLine)
+            || !commandLine.StartsWith(requiredPrefix, StringComparison.Ordinal)
+            || commandLine.Length > requiredPrefix.Length && !char.IsWhiteSpace(commandLine[requiredPrefix.Length])
+            || commandLine.IndexOfAny(['\r', '\n', '\0']) >= 0)
+        {
+            return Task.FromResult("命令行必须严格以 dotnet publish 开头，且不能包含前导空白、换行或空字符。");
+        }
+
+        string arguments = commandLine["dotnet ".Length..];
+        return RunProcessCommandAsync(
+            "dotnet",
+            commandLine,
+            targetPath: null,
+            cancellationToken,
+            rawArguments: arguments);
     }
 
     /// <summary>
@@ -295,7 +342,8 @@ public sealed class DotNetCliTools
         string? targetPath,
         CancellationToken cancellationToken,
         IReadOnlyList<string>? arguments = null,
-        IReadOnlyList<string>? argumentsBeforeTarget = null)
+        IReadOnlyList<string>? argumentsBeforeTarget = null,
+        string? rawArguments = null)
     {
         if (!TryResolveTarget(targetPath, out string? resolvedTargetPath, out string errorMessage))
         {
@@ -313,22 +361,29 @@ public sealed class DotNetCliTools
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8
         };
-        if (argumentsBeforeTarget is not null)
+        if (rawArguments is not null)
         {
-            foreach (string argument in argumentsBeforeTarget)
+            startInfo.Arguments = rawArguments;
+        }
+        else
+        {
+            if (argumentsBeforeTarget is not null)
             {
-                startInfo.ArgumentList.Add(argument);
+                foreach (string argument in argumentsBeforeTarget)
+                {
+                    startInfo.ArgumentList.Add(argument);
+                }
             }
-        }
-        if (resolvedTargetPath is not null)
-        {
-            startInfo.ArgumentList.Add(resolvedTargetPath);
-        }
-        if (arguments is not null)
-        {
-            foreach (string argument in arguments)
+            if (resolvedTargetPath is not null)
             {
-                startInfo.ArgumentList.Add(argument);
+                startInfo.ArgumentList.Add(resolvedTargetPath);
+            }
+            if (arguments is not null)
+            {
+                foreach (string argument in arguments)
+                {
+                    startInfo.ArgumentList.Add(argument);
+                }
             }
         }
 

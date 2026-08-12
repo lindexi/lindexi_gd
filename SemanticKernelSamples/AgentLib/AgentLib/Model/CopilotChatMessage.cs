@@ -615,7 +615,14 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     /// 追加函数调用内容到消息中。
     /// </summary>
     /// <param name="functionCallContent">函数调用内容。</param>
-    public void AppendFunctionCall(FunctionCallContent functionCallContent)
+    public void AppendFunctionCall(FunctionCallContent functionCallContent) => AppendFunctionCall(functionCallContent, null);
+
+    /// <summary>
+    /// 追加带展示摘要的函数调用内容到消息中。
+    /// </summary>
+    /// <param name="functionCallContent">函数调用内容。</param>
+    /// <param name="presentation">工具调用展示快照。</param>
+    public void AppendFunctionCall(FunctionCallContent functionCallContent, ToolCallPresentation? presentation)
     {
         ArgumentNullException.ThrowIfNull(functionCallContent);
 
@@ -640,7 +647,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 
         if (!_toolItemsByCallId.TryGetValue(callId, out CopilotChatToolItem? toolItem))
         {
-            toolItem = new CopilotChatToolItem(callId, functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent));
+            toolItem = new CopilotChatToolItem(callId, functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent), presentation: presentation);
             _toolItemsByCallId[callId] = toolItem;
             MessageItems.Add(toolItem);
             return;
@@ -648,6 +655,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 
         toolItem.ToolName = functionCallContent.Name;
         toolItem.InputText = CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent) ?? string.Empty;
+        toolItem.ApplyPresentation(presentation);
     }
 
     /// <summary>
@@ -902,7 +910,11 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     private static string FormatToolItem(CopilotChatToolItem toolItem)
     {
         var builder = new StringBuilder();
-        builder.Append("工具：").Append(toolItem.ToolName);
+        builder.Append("工具：").Append(toolItem.DisplayName);
+        if (!string.IsNullOrWhiteSpace(toolItem.SummaryText))
+        {
+            builder.Append(" · ").Append(toolItem.SummaryText);
+        }
 
         if (toolItem.HasInputText)
         {
