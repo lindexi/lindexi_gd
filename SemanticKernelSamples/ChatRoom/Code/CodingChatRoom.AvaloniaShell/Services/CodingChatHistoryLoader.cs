@@ -21,22 +21,12 @@ internal sealed class CodingChatHistoryLoader
     {
         try
         {
-            IReadOnlyList<CopilotChatSessionSummary> summaries = await Task.Run
-                (() => _application.LoadSessionSummariesAsync()).ConfigureAwait(false);
-            foreach (CopilotChatSessionSummary summary in summaries)
-            {
-                await Dispatcher.UIThread.InvokeAsync
-                (
-                    () => _application.AddSessionSummary(summary),
-                    DispatcherPriority.Render
-                );
-            }
-
-            await Dispatcher.UIThread.InvokeAsync
-            (
-                () => _application.RestoreInitialSessionAsync(summaries),
-                DispatcherPriority.Render
-            );
+            IReadOnlyList<CopilotChatSessionSummary> summaries = await _application
+                .LoadSessionSummariesAsync()
+                .ConfigureAwait(false);
+            await Dispatcher.UIThread.InvokeAsync(
+                () => _application.AddSessionSummaries(summaries),
+                DispatcherPriority.Render);
         }
         catch (Exception exception)
         {
