@@ -6,31 +6,14 @@ namespace AgentLib;
 /// 针对尾部连续 Assistant+Tool 消息块的 LLM 摘要压缩器。
 /// 仅当尾部连续的 Assistant/Tool 消息字符总长度达到阈值时才触发压缩。
 /// </summary>
-internal class CopilotChatManagerToolCallChatReducer : IChatReducer
+public class CopilotChatManagerToolCallChatReducer : IChatReducer
 {
-    /// <summary>
-    /// 触发压缩的字符长度阈值。
-    /// </summary>
-    public const int DefaultCharacterThreshold = 50000;
-
-    private readonly IChatClient _chatClient;
-    private readonly int _characterThreshold;
-
-    /// <summary>
-    /// 使用指定的聊天客户端和默认阈值创建压缩器。
-    /// </summary>
-    /// <param name="chatClient">用于生成摘要的聊天客户端。</param>
-    public CopilotChatManagerToolCallChatReducer(IChatClient chatClient)
-        : this(chatClient, DefaultCharacterThreshold)
-    {
-    }
-
     /// <summary>
     /// 使用指定的聊天客户端和自定义阈值创建压缩器。
     /// </summary>
     /// <param name="chatClient">用于生成摘要的聊天客户端。</param>
     /// <param name="characterThreshold">触发压缩的字符长度阈值。</param>
-    public CopilotChatManagerToolCallChatReducer(IChatClient chatClient, int characterThreshold)
+    public CopilotChatManagerToolCallChatReducer(IChatClient chatClient, int characterThreshold = DefaultCharacterThreshold)
     {
         ArgumentNullException.ThrowIfNull(chatClient);
         if (characterThreshold < 1)
@@ -39,8 +22,20 @@ internal class CopilotChatManagerToolCallChatReducer : IChatReducer
         }
 
         _chatClient = chatClient;
-        _characterThreshold = characterThreshold;
+        CharacterThreshold = characterThreshold;
     }
+
+    /// <summary>
+    /// 默认触发压缩的字符长度阈值。
+    /// </summary>
+    public const int DefaultCharacterThreshold = 50000;
+
+    private readonly IChatClient _chatClient;
+
+    /// <summary>
+    /// 触发压缩的字符长度阈值。
+    /// </summary>
+    public int CharacterThreshold { get; }
 
     /// <inheritdoc/>
     public async Task<IEnumerable<ChatMessage>> ReduceAsync(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken)
@@ -65,7 +60,7 @@ internal class CopilotChatManagerToolCallChatReducer : IChatReducer
         int totalLength = CalculateBlockCharacterLength(input, tailStartIndex, input.Count);
 
         // 未达到阈值，不压缩
-        if (totalLength < _characterThreshold)
+        if (totalLength < CharacterThreshold)
         {
             return input;
         }
