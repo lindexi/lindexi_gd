@@ -25,6 +25,8 @@ public static class ServerHost
         var app = builder.Build();
         app.UseWebSockets();
         MapExec(app);
+        MapList(app);
+        MapChangeDirectory(app);
         MapShell(app);
         MapPush(app);
         MapPull(app);
@@ -61,6 +63,43 @@ public static class ServerHost
             {
                 await cmd.InterruptOrRestartAsync(context.RequestAborted);
             }
+        });
+    }
+
+    private static void MapList(WebApplication app)
+    {
+        app.MapGet("/ls", async (CmdProcess cmd, CancellationToken cancellationToken) =>
+        {
+            var path = await cmd.GetWorkingDirectoryAsync(cancellationToken);
+            var entries = Directory.EnumerateFileSystemEntries(path)
+                .Select(entryPath =>
+                {
+                    var isDirectory = Directory.Exists(entryPath);
+                    FileSystemInfo info = isDirectory
+                        ? new DirectoryInfo(entryPath)
+                        : new FileInfo(entryPath);
+                    return new RemoteDirectoryEntry(
+                        info.Name,
+                        info.FullName,
+                        isDirectory,
+                        isDirectory ? null : ((FileInfo) info).Length,
+                        info.CreationTimeUtc,
+                        info.LastWriteTimeUtc);
+                })
+                .ToArray();
+            return new DirectoryListingResponse(path, entries);
+        });
+    }
+
+    private static void MapChangeDirectory(WebApplication app)
+    {
+        app.MapPost("/cd", async (ChangeDirectoryRequest request, CmdProcess cmd, CancellationToken cancellationToken) =>
+        {
+            await foreach (var _ in cmd.ExecuteAsync(["cd", "/d", $"\"{request.Path}\""], cancellationToken))
+            {
+            }
+
+            return new WorkingDirectoryResponse(await cmd.GetWorkingDirectoryAsync(cancellationToken));
         });
     }
 

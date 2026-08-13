@@ -9,6 +9,43 @@ namespace WinRemoteShell.Tests;
 public sealed class ServerIntegrationTests
 {
     [TestMethod]
+    public async Task WhenDirectoryChangesThenListUsesNewWorkingDirectory()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var directory = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+
+        await ChangeDirectoryClient.ChangeAsync(host.Address, directory);
+        var listing = await ListClient.ListAsync(host.Address);
+
+        Assert.AreEqual(directory, listing.Path);
+    }
+
+    [TestMethod]
+    public async Task WhenDirectoryIsListedThenStructuredEntriesAreReturned()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var directory = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        var filePath = Path.Combine(directory, "content.txt");
+        await File.WriteAllTextAsync(filePath, "content");
+        var file = new FileInfo(filePath);
+        await ChangeDirectoryClient.ChangeAsync(host.Address, directory);
+
+        var listing = await ListClient.ListAsync(host.Address);
+
+        Assert.AreEqual(
+            new RemoteDirectoryEntry(
+                file.Name,
+                file.FullName,
+                false,
+                file.Length,
+                file.CreationTimeUtc,
+                file.LastWriteTimeUtc),
+            listing.Entries.Single());
+    }
+
+    [TestMethod]
     public async Task WhenExecRunsTwiceThenCmdStateIsPreserved()
     {
         await using var host = await TestServerHost.StartAsync();

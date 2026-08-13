@@ -42,6 +42,27 @@ public sealed class CmdProcess : IAsyncDisposable
         await _process.StandardInput.FlushAsync(cancellationToken);
     }
 
+    public async Task<string> GetWorkingDirectoryAsync(CancellationToken cancellationToken = default)
+    {
+        const string prefix = "__WINRS_CWD__";
+        await foreach (var line in ExecuteAsync([$"echo {prefix}%CD%"], cancellationToken))
+        {
+            var prefixIndex = line.IndexOf(prefix, StringComparison.Ordinal);
+            if (prefixIndex < 0)
+            {
+                continue;
+            }
+
+            var path = line[(prefixIndex + prefix.Length)..];
+            if (!path.Contains("%CD%", StringComparison.Ordinal))
+            {
+                return path;
+            }
+        }
+
+        throw new InvalidOperationException("The command process did not return its working directory.");
+    }
+
     public async IAsyncEnumerable<string> ReadOutputAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
