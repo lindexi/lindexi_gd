@@ -493,8 +493,8 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
 
         CopilotChatSession? session = _subscribedSession;
         string loopPrompt = InputText;
-        bool runLoopIteration = IsLoopIterationEnabled;
-        bool isInterruption = IsRunning && !runLoopIteration;
+        bool isInterruption = IsRunning;
+        bool runLoopIteration = IsLoopIterationEnabled && !isInterruption;
 
         InputText = string.Empty;
         PendingImages.Clear();

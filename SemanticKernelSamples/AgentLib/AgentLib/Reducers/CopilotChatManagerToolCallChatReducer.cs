@@ -35,7 +35,7 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
     /// <summary>
     /// 触发压缩的字符长度阈值。
     /// </summary>
-    public int CharacterThreshold { get; }
+    public int CharacterThreshold { get; set; }
 
     /// <inheritdoc/>
     public async Task<IEnumerable<ChatMessage>> ReduceAsync(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken)
