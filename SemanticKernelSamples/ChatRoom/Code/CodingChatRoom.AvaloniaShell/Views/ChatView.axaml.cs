@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 
+using CodingChatRoom.AvaloniaShell.Services;
 using CodingChatRoom.AvaloniaShell.ViewModels;
 
 namespace CodingChatRoom.AvaloniaShell.Views;
@@ -107,6 +109,26 @@ public partial class ChatView : UserControl
         if (sender is MenuItem { CommandParameter: MessageItemViewModel message })
         {
             await SetClipboardTextAsync(message.FullContent);
+        }
+    }
+
+    private void ImageButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { CommandParameter: CopilotChatImageItem imageItem })
+        {
+            return;
+        }
+
+        try
+        {
+            TemporaryImageViewer.Open(imageItem);
+        }
+        catch (Exception exception) when (exception is IOException
+                                          or UnauthorizedAccessException
+                                          or InvalidOperationException
+                                          or System.ComponentModel.Win32Exception)
+        {
+            Trace.TraceError($"无法使用系统图片查看器打开聊天图片：{exception}");
         }
     }
 

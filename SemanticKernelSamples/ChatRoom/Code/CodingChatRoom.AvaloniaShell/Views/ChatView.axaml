@@ -22,10 +22,19 @@
         </DataTemplate>
 
         <DataTemplate x:Key="ImageItemTemplate" x:DataType="model:CopilotChatImageItem">
-            <views:BinaryImage Width="240"
-                               Height="180"
-                               Margin="0,0,0,8"
-                               Data="{Binding Data}" />
+            <Button Margin="0,0,0,8"
+                    Padding="0"
+                    HorizontalAlignment="Left"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    ToolTip.Tip="{StaticResource OpenImageExternallyText}"
+                    CommandParameter="{Binding}"
+                    Click="ImageButton_OnClick">
+                <views:BinaryImage Width="240"
+                                   Height="180"
+                                   Data="{Binding Data}" />
+            </Button>
         </DataTemplate>
 
         <DataTemplate x:Key="AssistantReasoningItemTemplate" x:DataType="model:CopilotChatReasoningItem">
