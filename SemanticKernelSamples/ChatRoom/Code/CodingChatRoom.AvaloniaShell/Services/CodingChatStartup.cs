@@ -72,7 +72,6 @@ internal static class CodingChatStartup
             mainThreadDispatcher);
         var chatRunner = new CodingAgentChatRunner(chatManager, codingAgent);
         var application = new CodingChatApplication(chatManager, sessionStore, chatRunner, workspaceController);
-        await application.InitializeAsync();
 
         return new CodingChatRuntime(
             paths,

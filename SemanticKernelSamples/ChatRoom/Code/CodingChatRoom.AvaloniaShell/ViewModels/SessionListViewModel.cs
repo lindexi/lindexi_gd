@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -39,6 +40,7 @@ public sealed class SessionListViewModel : ViewModelBase
         _createNewSessionCommand = new SimpleAsyncCommand(CreateNewSessionAsync, () => CanChangeSession);
         _openSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(OpenSessionAsync, CanExecuteSessionCommand);
         _deleteSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(DeleteSessionAsync, CanExecuteSessionCommand);
+        _application.Sessions.CollectionChanged += OnSessionsCollectionChanged;
         _application.StateChanged += OnApplicationStateChanged;
         Refresh();
     }
@@ -110,9 +112,39 @@ public sealed class SessionListViewModel : ViewModelBase
     private bool CanExecuteSessionCommand(SessionItemViewModel? session)
         => session is not null && CanChangeSession;
 
+    private void OnSessionsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems is not null)
+        {
+            int index = e.NewStartingIndex;
+            foreach (CopilotChatSessionSummary summary in e.NewItems)
+            {
+                Sessions.Insert(index++, new SessionItemViewModel(summary));
+            }
+        }
+        else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems is not null)
+        {
+            foreach (CopilotChatSessionSummary summary in e.OldItems)
+            {
+                SessionItemViewModel? item = Sessions.FirstOrDefault(candidate => candidate.SessionId == summary.SessionId);
+                if (item is not null)
+                {
+                    Sessions.Remove(item);
+                }
+            }
+        }
+        else
+        {
+            Refresh();
+            return;
+        }
+
+        UpdateState();
+    }
+
     private void OnApplicationStateChanged(object? sender, EventArgs e)
     {
-        Refresh();
+        UpdateState();
     }
 
     private void Refresh()
@@ -128,7 +160,12 @@ public sealed class SessionListViewModel : ViewModelBase
             Sessions.Add(new SessionItemViewModel(summary));
         }
 
-        SelectedSession = Sessions.FirstOrDefault(item => item.SessionId == _application.SelectedSessionId);
+        UpdateState();
+    }
+
+    private void UpdateState()
+    {
+        SelectedSession = Sessions.FirstOrDefault(item => item.SessionId == _application?.SelectedSessionId);
         OnPropertyChanged(nameof(IsEmpty));
         OnPropertyChanged(nameof(CanChangeSession));
         _createNewSessionCommand.RaiseCanExecuteChanged();

@@ -80,14 +80,31 @@ internal sealed class CodingChatApplication
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<CopilotChatSessionSummary> summaries = await _sessionStore
-            .ListSessionsAsync(cancellationToken);
+        IReadOnlyList<CopilotChatSessionSummary> summaries = await LoadSessionSummariesAsync(cancellationToken);
         Sessions.Clear();
         foreach (CopilotChatSessionSummary summary in summaries)
         {
-            Sessions.Add(summary);
+            AddSessionSummary(summary);
         }
 
+        await RestoreInitialSessionAsync(summaries, cancellationToken);
+    }
+
+    internal Task<IReadOnlyList<CopilotChatSessionSummary>> LoadSessionSummariesAsync(
+        CancellationToken cancellationToken = default)
+        => _sessionStore.ListSessionsAsync(cancellationToken);
+
+    internal void AddSessionSummary(CopilotChatSessionSummary summary)
+    {
+        ArgumentNullException.ThrowIfNull(summary);
+        Sessions.Add(summary);
+    }
+
+    internal async Task RestoreInitialSessionAsync(
+        IReadOnlyList<CopilotChatSessionSummary> summaries,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(summaries);
         if (summaries.Count == 0)
         {
             AddOrUpdateSummary(_chatManager.SelectedSession, insertAtTop: true);
