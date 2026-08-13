@@ -7,10 +7,16 @@
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="760"
         x:Class="CodingChatRoom.AvaloniaShell.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="{Binding ChatViewModel.CommittedWorkspacePath, Converter={StaticResource WorkspaceTitleConverter}, ConverterParameter={StaticResource ApplicationTitle}}"
         Icon="avares://CodingChatRoom.AvaloniaShell/Assets/Icons/CodingChatRoom.ico"
         MinWidth="800"
         MinHeight="520"
         Background="{StaticResource BackgroundBrush}">
+    <Window.Title>
+        <MultiBinding Converter="{StaticResource WorkspaceTitleConverter}"
+                      ConverterParameter="{StaticResource ApplicationTitle}">
+            <Binding Path="ChatViewModel.CommittedWorkspacePath" />
+            <Binding Path="ChatViewModel.CurrentSessionTitle" />
+        </MultiBinding>
+    </Window.Title>
     <views:MainView />
 </Window>
