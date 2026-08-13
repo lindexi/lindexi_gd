@@ -87,6 +87,7 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
 
             var dotNetCliTools = new DotNetCliTools(fullWorkspacePath);
             IReadOnlyList<ToolRegistration> dotNetTools = dotNetCliTools.AsToolRegistrations();
+            var dotNetApiTools = new DotNetApiTools(fullWorkspacePath);
             var contentTools = new CodingWorkspaceContentTools(fullWorkspacePath);
             IReadOnlyList<ToolRegistration> additionalTools = additionalToolSources
                 .SelectMany(source => source.CreateToolRegistrations(fullWorkspacePath))
@@ -107,6 +108,7 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
                 .. roslynTools.AsToolRegistrations(),
                 .. workspaceTools.CreateDefaultToolRegistrations(),
                 .. dotNetTools,
+                .. dotNetApiTools.AsToolRegistrations(),
                 .. contentTools.AsToolRegistrations(),
                 .. additionalTools,
             ];

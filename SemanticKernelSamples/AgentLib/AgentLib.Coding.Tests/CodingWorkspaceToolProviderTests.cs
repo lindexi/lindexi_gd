@@ -88,6 +88,21 @@ public sealed class CodingWorkspaceToolProviderTests
         StringAssert.Contains(result?.ToString(), "outside.txt");
     }
 
+    [TestMethod(DisplayName = "Coding 工作区应发布 .NET API 概览和详情工具")]
+    [Timeout(15000)]
+    public async Task SetWorkspacePathAsync_WhenWorkspaceExists_PublishesDotNetApiTools()
+    {
+        string workspacePath = CreateTestDirectory();
+        string invalidLanguageServerPath = CreateInvalidLanguageServerFile(workspacePath);
+        await using var toolProvider = new CodingWorkspaceToolProvider(invalidLanguageServerPath);
+
+        await toolProvider.SetWorkspacePathAsync(workspacePath, CancellationToken.None);
+        string[] toolNames = await GetCurrentToolNamesAsync(toolProvider);
+
+        CollectionAssert.Contains(toolNames, "ListDotNetApi");
+        CollectionAssert.Contains(toolNames, "GetDotNetTypeApi");
+    }
+
     [TestMethod(DisplayName = "附加工具源应使用规范化工作区路径创建并发布工具")]
     [Timeout(15000)]
     public async Task SetWorkspacePathAsync_WhenAdditionalToolSourceExists_AddsWorkspaceBoundTools()

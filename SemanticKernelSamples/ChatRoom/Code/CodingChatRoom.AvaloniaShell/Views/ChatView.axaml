@@ -188,8 +188,7 @@
                           Grid.Column="3"
                           Margin="8,0,0,0"
                           ItemsSource="{Binding AvailableModels}"
-                          SelectedItem="{Binding SelectedModel}"
-                          IsEnabled="{Binding CanSelectModel}">
+                          SelectedItem="{Binding SelectedModel}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:LanguageModelOptionViewModel">
                             <TextBlock Text="{Binding DisplayName}"
