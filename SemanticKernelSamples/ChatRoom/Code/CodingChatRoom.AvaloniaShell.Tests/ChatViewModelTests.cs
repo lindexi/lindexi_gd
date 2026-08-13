@@ -241,6 +241,33 @@ public sealed class ChatViewModelTests
         await runner.Canceled.Task;
     }
 
+    [TestMethod(DisplayName = "循环迭代运行期间插话不应启动独立循环")]
+    [Timeout(5000)]
+    public async Task InterruptionDuringLoopIterationShouldUseActiveRun()
+    {
+        var manager = new CopilotChatManager();
+        var runner = new CancelableRunner(manager);
+        var application = new CodingChatApplication(manager, new EmptySessionStore(), runner);
+        await application.InitializeAsync();
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：测试模型")
+        {
+            InputText = "开始循环任务",
+            IsLoopIterationEnabled = true,
+        };
+        viewModel.SendCommand.Execute(null);
+        await runner.Started.Task;
+        viewModel.InputText = "只处理这条插话";
+
+        viewModel.SendCommand.Execute(null);
+        await runner.Injected.Task;
+        await WaitUntilAsync(() => viewModel.StatusText == "插话已提交，等待 Agent 处理");
+
+        Assert.AreEqual("只处理这条插话", runner.InjectedText);
+        viewModel.IsLoopIterationEnabled = false;
+        viewModel.StopCommand.Execute(null);
+        await runner.Canceled.Task;
+    }
+
     [TestMethod(DisplayName = "循环迭代取消勾选应等待当前轮完成后退出")]
     [Timeout(5000)]
     public async Task LoopIterationShouldFinishCurrentRunWhenOptionIsCleared()

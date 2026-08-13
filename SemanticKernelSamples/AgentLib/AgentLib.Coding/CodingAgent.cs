@@ -128,7 +128,16 @@ public sealed class CodingAgent : IAsyncDisposable
                     options.AIContextProviders = [];
                     options.EnableMessageInjection = true;
                     options.RequirePerServiceCallChatHistoryPersistence = true;
-                    if (!enableAutomaticCompression)
+                    if (enableAutomaticCompression)
+                    {
+                        options.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions
+                        {
+                            ChatReducer = new CopilotChatManagerToolCallChatReducer(
+                                context.ChatClient,
+                                characterThreshold: 200_000),
+                        });
+                    }
+                    else
                     {
                         options.ChatHistoryProvider = null;
                     }

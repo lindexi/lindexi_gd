@@ -124,12 +124,12 @@ public sealed class ShellStructureTests
         var converter = new WorkspaceTitleConverter();
 
         object title = converter.Convert(
-            @"C:\Code\Demo",
+            [@"C:\Code\Demo", "修复窗口标题"],
             typeof(string),
             "CodingChatRoom 编程助手",
             CultureInfo.InvariantCulture);
 
-        Assert.AreEqual(@"CodingChatRoom 编程助手 - C:\Code\Demo", title);
+        Assert.AreEqual(@"CodingChatRoom 编程助手 - C:\Code\Demo - 修复窗口标题", title);
     }
 
     [TestMethod(DisplayName = "未提交工作路径时窗口标题应只显示应用名称")]
@@ -139,7 +139,7 @@ public sealed class ShellStructureTests
         var converter = new WorkspaceTitleConverter();
 
         object title = converter.Convert(
-            null,
+            [null, null],
             typeof(string),
             "CodingChatRoom 编程助手",
             CultureInfo.InvariantCulture);
