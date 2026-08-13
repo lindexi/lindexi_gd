@@ -32,6 +32,7 @@ internal sealed class CodingChatApplication
         ArgumentNullException.ThrowIfNull(sessionStore);
         _chatManager = chatManager;
         _sessionStore = sessionStore;
+        AddOrUpdateSummary(_chatManager.SelectedSession, insertAtTop: true);
     }
 
     public CodingChatApplication(
@@ -81,59 +82,20 @@ internal sealed class CodingChatApplication
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         IReadOnlyList<CopilotChatSessionSummary> summaries = await LoadSessionSummariesAsync(cancellationToken);
-        Sessions.Clear();
-        foreach (CopilotChatSessionSummary summary in summaries)
-        {
-            AddSessionSummary(summary);
-        }
-
-        await RestoreInitialSessionAsync(summaries, cancellationToken);
+        AddSessionSummaries(summaries);
     }
 
     internal Task<IReadOnlyList<CopilotChatSessionSummary>> LoadSessionSummariesAsync(
         CancellationToken cancellationToken = default)
         => _sessionStore.ListSessionsAsync(cancellationToken);
 
-    internal void AddSessionSummary(CopilotChatSessionSummary summary)
-    {
-        ArgumentNullException.ThrowIfNull(summary);
-        Sessions.Add(summary);
-    }
-
-    internal async Task RestoreInitialSessionAsync(
-        IReadOnlyList<CopilotChatSessionSummary> summaries,
-        CancellationToken cancellationToken = default)
+    internal void AddSessionSummaries(IReadOnlyList<CopilotChatSessionSummary> summaries)
     {
         ArgumentNullException.ThrowIfNull(summaries);
-        if (summaries.Count == 0)
-        {
-            AddOrUpdateSummary(_chatManager.SelectedSession, insertAtTop: true);
-            OnStateChanged();
-            return;
-        }
-
-        CopilotChatSession initialSession = _chatManager.SelectedSession;
         foreach (CopilotChatSessionSummary summary in summaries)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            try
-            {
-                CopilotChatSession restoredSession = await _sessionStore
-                    .LoadSessionAsync(summary.SessionId, cancellationToken);
-                _chatManager.AddSession(restoredSession, select: true);
-                if (!ReferenceEquals(initialSession, restoredSession))
-                {
-                    _chatManager.RemoveSession(initialSession);
-                }
-
-                break;
-            }
-            catch (Exception) when (!cancellationToken.IsCancellationRequested)
-            {
-            }
+            Sessions.Add(summary);
         }
-
-        OnStateChanged();
     }
 
     public Task CreateNewSessionAsync(CancellationToken cancellationToken = default)

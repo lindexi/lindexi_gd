@@ -18,23 +18,21 @@ namespace CodingChatRoom.AvaloniaShell.Tests;
 [TestClass]
 public sealed class CodingChatApplicationTests
 {
-    [TestMethod(DisplayName = "没有历史时初始化应保留一个可复用空会话")]
+    [TestMethod(DisplayName = "应用创建时应立即提供一个可复用空会话")]
     [Timeout(5000)]
-    public async Task InitializeAsyncWithoutHistoryShouldKeepReusableEmptySession()
+    public void ApplicationCreationShouldImmediatelyProvideReusableEmptySession()
     {
         var manager = new CopilotChatManager();
         var application = new CodingChatApplication(manager, new TestSessionStore());
-
-        await application.InitializeAsync();
 
         Assert.HasCount(1, application.Sessions);
         Assert.AreEqual(manager.SelectedSession.SessionId, application.SelectedSessionId);
         Assert.AreEqual(0, application.Sessions[0].MessageCount);
     }
 
-    [TestMethod(DisplayName = "存在历史时初始化应打开最近会话并移除未使用初始空会话")]
+    [TestMethod(DisplayName = "存在历史时初始化应保留启动新会话并追加历史摘要")]
     [Timeout(5000)]
-    public async Task InitializeAsyncWithHistoryShouldOpenMostRecentSession()
+    public async Task InitializeAsyncWithHistoryShouldKeepInitialSessionAndAppendHistory()
     {
         CopilotChatSession older = CreateSession("较早会话", "较早消息", DateTimeOffset.Now.AddHours(-1));
         CopilotChatSession newer = CreateSession("最近会话", "最近消息", DateTimeOffset.Now);
@@ -45,9 +43,8 @@ public sealed class CodingChatApplicationTests
 
         await application.InitializeAsync();
 
-        Assert.AreEqual(newer.SessionId, application.SelectedSessionId);
-        Assert.IsFalse(manager.ChatSessions.Any(session => session.SessionId == initialSessionId));
-        Assert.HasCount(2, application.Sessions);
+        Assert.AreEqual(initialSessionId, application.SelectedSessionId);
+        Assert.HasCount(3, application.Sessions);
     }
 
     [TestMethod(DisplayName = "新建会话时应复用真正空的当前会话")]
@@ -96,19 +93,18 @@ public sealed class CodingChatApplicationTests
         Assert.AreEqual(previousSessionId, application.SelectedSessionId);
     }
 
-    [TestMethod(DisplayName = "初始化恢复全部失败时不应污染管理器会话集合")]
+    [TestMethod(DisplayName = "初始化历史摘要时不应加载历史会话内容")]
     [Timeout(5000)]
-    public async Task InitializeAsyncRestoreFailureShouldNotPolluteManager()
+    public async Task InitializeAsyncShouldNotLoadHistorySessionContent()
     {
         CopilotChatSession persisted = CreateSession("损坏会话", "消息", DateTimeOffset.Now);
-        var store = new TestSessionStore(persisted) { LoadException = new InvalidDataException("加载失败") };
+        var store = new TestSessionStore(persisted) { LoadException = new InvalidDataException("不应加载") };
         var manager = new CopilotChatManager();
         CopilotChatSession initialSession = manager.SelectedSession;
         var application = new CodingChatApplication(manager, store);
 
         await application.InitializeAsync();
 
-        Assert.HasCount(1, manager.ChatSessions);
         Assert.AreSame(initialSession, manager.SelectedSession);
     }
 
