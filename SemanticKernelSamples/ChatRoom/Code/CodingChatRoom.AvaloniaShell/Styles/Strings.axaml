@@ -11,6 +11,7 @@
         <sys:String x:Key="MessageInputPlaceholder">输入编程问题（Ctrl+Enter 发送）</sys:String>
         <sys:String x:Key="AddImageText">添加图片</sys:String>
         <sys:String x:Key="RemoveImageText">移除图片</sys:String>
+        <sys:String x:Key="OpenImageExternallyText">点击使用系统图片查看器打开</sys:String>
         <sys:String x:Key="LoopIterationText">循环迭代</sys:String>
         <sys:String x:Key="AutomaticCompressionText">自动压缩对话</sys:String>
         <sys:String x:Key="SendText">发送</sys:String>
