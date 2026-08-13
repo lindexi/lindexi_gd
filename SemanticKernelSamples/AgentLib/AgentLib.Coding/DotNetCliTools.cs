@@ -2,10 +2,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
-
 using AgentLib.Model;
 using AgentLib.Tools;
-
 using Microsoft.Extensions.AI;
 
 namespace AgentLib.Coding;
@@ -47,7 +45,8 @@ public sealed class DotNetCliTools
     /// 创建可按角色授权的 .NET 构建与测试工具集合。
     /// </summary>
     /// <returns>包含 <c>run_build</c>、<c>run_msbuild</c> 和 <c>run_tests</c> 等功能的工具集合。</returns>
-    public IReadOnlyList<AITool> AsAITools() => AsToolRegistrations().Select(registration => registration.Tool).ToArray();
+    public IReadOnlyList<AITool> AsAITools() => AsToolRegistrations().Select
+        (registration => registration.Tool).ToArray();
 
     /// <summary>
     /// 创建 .NET 工具及其展示摘要规则。
@@ -56,18 +55,38 @@ public sealed class DotNetCliTools
     [
         new(AIFunctionFactory.Create(RunBuildAsync, "run_build"), ToolCallPresentationFactory.ForBuild),
         new(AIFunctionFactory.Create(RunMSBuildAsync, "run_msbuild"), ToolCallPresentationFactory.ForBuild),
-        new(AIFunctionFactory.Create(RunDotNetPublishAsync, "RunDotNetPublish"), arguments => ToolCallPresentationFactory.ForQuery(arguments, "commandLine")),
-        new(AIFunctionFactory.Create(RunTestsAsync, "run_tests"), arguments => ToolCallPresentationFactory.ForTestRun(arguments, "targetPath", "filter")),
-        new(AIFunctionFactory.Create(ReadLastLogLines, "read_last_log_lines"), arguments => new ToolCallPresentation(null,
-                FormatLineRange(arguments, "startLine", "endLine"))),
-        new(AIFunctionFactory.Create(SearchLastLog, "search_last_log"), arguments => ToolCallPresentationFactory.ForQuery(arguments, "pattern"))
+        new
+        (
+            AIFunctionFactory.Create(RunDotNetPublishAsync, "RunDotNetPublish"),
+            arguments => ToolCallPresentationFactory.ForQuery(arguments, "commandLine")
+        ),
+        new
+        (
+            AIFunctionFactory.Create(RunTestsAsync, "run_tests"),
+            arguments => ToolCallPresentationFactory.ForTestRun(arguments, "targetPath", "filter")
+        ),
+        new
+        (
+            AIFunctionFactory.Create(ReadLastLogLines, "read_last_log_lines"), arguments => new ToolCallPresentation
+            (
+                null,
+                FormatLineRange(arguments, "startLine", "endLine")
+            )
+        ),
+        new
+        (
+            AIFunctionFactory.Create(SearchLastLog, "search_last_log"),
+            arguments => ToolCallPresentationFactory.ForQuery(arguments, "pattern")
+        )
     ];
 
     private static string? FormatLineRange(IDictionary<string, object?> arguments, string startName, string endName)
     {
         int? start = ToolCallPresentationFactory.GetInt32(arguments, startName);
         int? end = ToolCallPresentationFactory.GetInt32(arguments, endName);
-        return start is null ? null : end == start ? $"第 {start} 行" : end is null ? $"从第 {start} 行开始" : $"第 {start}–{end} 行";
+        return start is null ? null :
+            end == start ? $"第 {start} 行" :
+            end is null ? $"从第 {start} 行开始" : $"第 {start}–{end} 行";
     }
 
     /// <summary>
@@ -80,7 +99,8 @@ public sealed class DotNetCliTools
     /// <param name="cancellationToken">用于取消构建的令牌。</param>
     /// <returns>构建输出、退出码和执行结果。</returns>
     [Description("使用 dotnet build 构建代码工作区或指定目标，可设置构建配置、运行时标识符和目标框架，并返回构建输出和退出码。")]
-    public Task<string> RunBuildAsync(
+    public Task<string> RunBuildAsync
+    (
         [Description("可选的构建目标路径。可以传绝对路径；相对路径则相对于代码工作区。留空表示构建整个工作区。")]
         string? targetPath = null,
         [Description("可选的构建配置，例如 Debug 或 Release。留空时使用项目默认值。")]
@@ -89,7 +109,8 @@ public sealed class DotNetCliTools
         string? runtimeIdentifier = null,
         [Description("可选的目标框架，例如 net8.0 或 net9.0。留空时不指定目标框架。")]
         string? targetFramework = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         var arguments = new List<string>(6);
         AddOption(arguments, "--configuration", configuration);
@@ -108,7 +129,8 @@ public sealed class DotNetCliTools
     /// <param name="cancellationToken">用于取消构建的令牌。</param>
     /// <returns>构建输出、退出码和执行结果；未找到 MSBuild 时返回错误信息。</returns>
     [Description("使用本机安装的最新 MSBuild.exe 构建代码工作区或指定目标，可设置构建配置、运行时标识符和目标框架，并返回构建输出和退出码。")]
-    public Task<string> RunMSBuildAsync(
+    public Task<string> RunMSBuildAsync
+    (
         [Description("可选的构建目标路径。可以传绝对路径；相对路径则相对于代码工作区。留空时由 MSBuild 在工作区中查找项目或解决方案。")]
         string? targetPath = null,
         [Description("可选的构建配置，例如 Debug 或 Release。留空时使用项目默认值。")]
@@ -117,7 +139,8 @@ public sealed class DotNetCliTools
         string? runtimeIdentifier = null,
         [Description("可选的目标框架，例如 net8.0 或 net9.0。留空时不指定目标框架。")]
         string? targetFramework = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         string? msBuildPath = FindInstalledMSBuildFilePath();
         if (msBuildPath is null)
@@ -149,10 +172,12 @@ public sealed class DotNetCliTools
     /// <param name="cancellationToken">用于取消发布的令牌。</param>
     /// <returns>发布输出、退出码和执行结果。</returns>
     [Description("执行以 dotnet publish 开头的完整命令行发布 .NET 项目。命令必须严格从 dotnet publish 开始，不允许前导空白、换行或空字符；命令不会通过 Shell 执行。")]
-    public Task<string> RunDotNetPublishAsync(
+    public Task<string> RunDotNetPublishAsync
+    (
         [Description("完整发布命令行，必须严格以 dotnet publish 开头，例如 dotnet publish MyApp.csproj -c Release -r win-x64。")]
         string commandLine,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         const string requiredPrefix = "dotnet publish";
         if (string.IsNullOrEmpty(commandLine)
@@ -164,12 +189,14 @@ public sealed class DotNetCliTools
         }
 
         string arguments = commandLine["dotnet ".Length..];
-        return RunProcessCommandAsync(
+        return RunProcessCommandAsync
+        (
             "dotnet",
             commandLine,
             targetPath: null,
             cancellationToken,
-            rawArguments: arguments);
+            rawArguments: arguments
+        );
     }
 
     /// <summary>
@@ -180,12 +207,14 @@ public sealed class DotNetCliTools
     /// <param name="cancellationToken">用于取消测试的令牌。</param>
     /// <returns>测试输出、退出码和执行结果。</returns>
     [Description("使用 dotnet test 测试代码工作区或指定目标，可通过筛选表达式只运行部分测试，并返回测试输出和退出码。")]
-    public async Task<string> RunTestsAsync(
+    public async Task<string> RunTestsAsync
+    (
         [Description("可选的测试目标路径。可以传绝对路径；相对路径则相对于代码工作区。留空表示测试整个工作区。")]
         string? targetPath = null,
         [Description("可选的测试筛选表达式，语法与 dotnet test --filter 一致。留空表示运行全部测试。")]
         string? filter = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCancellationTokenSource.CancelAfter(DefaultTestTimeout);
@@ -194,20 +223,22 @@ public sealed class DotNetCliTools
         {
             var arguments = new List<string>(2);
             AddOption(arguments, "--filter", filter);
-            return await RunDotNetCommandAsync("test", targetPath, timeoutCancellationTokenSource.Token, arguments).ConfigureAwait(false);
+            return await RunDotNetCommandAsync
+                ("test", targetPath, timeoutCancellationTokenSource.Token, arguments).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && timeoutCancellationTokenSource.IsCancellationRequested)
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested &&
+                                                 timeoutCancellationTokenSource.IsCancellationRequested)
         {
             return "测试执行已超过默认的 5 分钟超时时间，测试进程已终止。";
         }
     }
 
     [Description("按行读取最后一次构建/测试日志，行号从 1 开始，闭区间 [startLine, endLine]。返回带行号的日志片段或错误信息。")]
-    public string ReadLastLogLines(
-        [Description("起始行号，从 1 开始。")]
-        int startLine,
-        [Description("结束行号，必须大于等于起始行号。")]
-        int endLine)
+    public string ReadLastLogLines
+    (
+        [Description("起始行号，从 1 开始。")] int startLine,
+        [Description("结束行号，必须大于等于起始行号。")] int endLine
+    )
     {
         LogSnapshot? snapshot = _lastLogSnapshot;
 
@@ -245,6 +276,7 @@ public sealed class DotNetCliTools
             int requestedEnd = Math.Min(endLine, total);
             builder.AppendLine($"截断: 单次最多返回 {MaxQueryLinesReturn} 行，仍有 {requestedEnd - adjustedEnd} 行请求内容未显示");
         }
+
         builder.AppendLine("</MetaData>");
 
         for (int i = 0; i < count; i++)
@@ -258,9 +290,10 @@ public sealed class DotNetCliTools
     }
 
     [Description("使用正则表达式在最后一次构建/测试日志中逐行搜索，返回匹配行的行号与内容。支持超时保护。")]
-    public string SearchLastLog(
-        [Description("正则表达式模式。")]
-        string pattern)
+    public string SearchLastLog
+    (
+        [Description("正则表达式模式。")] string pattern
+    )
     {
         LogSnapshot? snapshot = _lastLogSnapshot;
 
@@ -317,6 +350,7 @@ public sealed class DotNetCliTools
         {
             builder.AppendLine($"截断: 最多返回 {MaxSearchMatches} 个匹配，仍有匹配项未显示");
         }
+
         builder.AppendLine("</MetaData>");
 
         foreach (string match in matches)
@@ -327,23 +361,28 @@ public sealed class DotNetCliTools
         return builder.ToString().TrimEnd();
     }
 
-    private async Task<string> RunDotNetCommandAsync(
+    private async Task<string> RunDotNetCommandAsync
+    (
         string command,
         string? targetPath,
         CancellationToken cancellationToken,
-        IReadOnlyList<string>? arguments = null)
+        IReadOnlyList<string>? arguments = null
+    )
     {
-        return await RunProcessCommandAsync("dotnet", $"dotnet {command}", targetPath, cancellationToken, arguments, [command]).ConfigureAwait(false);
+        return await RunProcessCommandAsync
+            ("dotnet", $"dotnet {command}", targetPath, cancellationToken, arguments, [command]).ConfigureAwait(false);
     }
 
-    private async Task<string> RunProcessCommandAsync(
+    private async Task<string> RunProcessCommandAsync
+    (
         string fileName,
         string commandDisplayName,
         string? targetPath,
         CancellationToken cancellationToken,
         IReadOnlyList<string>? arguments = null,
         IReadOnlyList<string>? argumentsBeforeTarget = null,
-        string? rawArguments = null)
+        string? rawArguments = null
+    )
     {
         if (!TryResolveTarget(targetPath, out string? resolvedTargetPath, out string errorMessage))
         {
@@ -374,10 +413,12 @@ public sealed class DotNetCliTools
                     startInfo.ArgumentList.Add(argument);
                 }
             }
+
             if (resolvedTargetPath is not null)
             {
                 startInfo.ArgumentList.Add(resolvedTargetPath);
             }
+
             if (arguments is not null)
             {
                 foreach (string argument in arguments)
@@ -406,9 +447,11 @@ public sealed class DotNetCliTools
             string standardError = await standardErrorTask.ConfigureAwait(false);
 
             // 将完整日志保存到实例内存
-            string full = FormatResult(commandDisplayName, resolvedTargetPath, arguments, process.ExitCode, standardOutput, standardError);
+            string full = FormatResult
+                (commandDisplayName, resolvedTargetPath, arguments, process.ExitCode, standardOutput, standardError);
             string[] lines = full.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-            var snapshot = new LogSnapshot(commandDisplayName, resolvedTargetPath, process.ExitCode, standardOutput, standardError, lines);
+            var snapshot = new LogSnapshot
+                (commandDisplayName, resolvedTargetPath, process.ExitCode, standardOutput, standardError, lines);
             _lastLogSnapshot = snapshot;
 
             // 返回简短摘要
@@ -419,7 +462,8 @@ public sealed class DotNetCliTools
             }
 
             // 查找首个包含 error 的行（不区分大小写）
-            string? firstErrorLine = lines.FirstOrDefault(l => l.IndexOf("error", StringComparison.OrdinalIgnoreCase) >= 0);
+            string? firstErrorLine = lines.FirstOrDefault
+                (l => l.IndexOf("error", StringComparison.OrdinalIgnoreCase) >= 0);
             if (!string.IsNullOrEmpty(firstErrorLine))
             {
                 string preview = firstErrorLine.Length <= MaxErrorPreviewCharacters
@@ -473,15 +517,50 @@ public sealed class DotNetCliTools
         string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
         string[] candidatePaths =
         [
-            Path.Join(programFiles, "Microsoft Visual Studio", "18", "Enterprise", "MSBuild", "Current", "Bin", "amd64", "MSBuild.exe"),
-            Path.Join(programFiles, "Microsoft Visual Studio", "18", "Professional", "MSBuild", "Current", "Bin", "amd64", "MSBuild.exe"),
-            Path.Join(programFiles, "Microsoft Visual Studio", "18", "Community", "MSBuild", "Current", "Bin", "amd64", "MSBuild.exe"),
-            Path.Join(programFiles, "Microsoft Visual Studio", "2022", "Enterprise", "MSBuild", "Current", "Bin", "MSBuild.exe"),
-            Path.Join(programFiles, "Microsoft Visual Studio", "2022", "Professional", "MSBuild", "Current", "Bin", "MSBuild.exe"),
-            Path.Join(programFiles, "Microsoft Visual Studio", "2022", "Community", "MSBuild", "Current", "Bin", "MSBuild.exe"),
-            Path.Join(programFilesX86, "Microsoft Visual Studio", "2019", "Enterprise", "MSBuild", "Current", "Bin", "MSBuild.exe"),
-            Path.Join(programFilesX86, "Microsoft Visual Studio", "2019", "Professional", "MSBuild", "Current", "Bin", "MSBuild.exe"),
-            Path.Join(programFilesX86, "Microsoft Visual Studio", "2019", "Community", "MSBuild", "Current", "Bin", "MSBuild.exe")
+            Path.Join
+            (
+                programFiles, "Microsoft Visual Studio", "18", "Enterprise", "MSBuild", "Current", "Bin", "amd64",
+                "MSBuild.exe"
+            ),
+            Path.Join
+            (
+                programFiles, "Microsoft Visual Studio", "18", "Professional", "MSBuild", "Current", "Bin", "amd64",
+                "MSBuild.exe"
+            ),
+            Path.Join
+            (
+                programFiles, "Microsoft Visual Studio", "18", "Community", "MSBuild", "Current", "Bin", "amd64",
+                "MSBuild.exe"
+            ),
+            Path.Join
+            (
+                programFiles, "Microsoft Visual Studio", "2022", "Enterprise", "MSBuild", "Current", "Bin",
+                "MSBuild.exe"
+            ),
+            Path.Join
+            (
+                programFiles, "Microsoft Visual Studio", "2022", "Professional", "MSBuild", "Current", "Bin",
+                "MSBuild.exe"
+            ),
+            Path.Join
+            (
+                programFiles, "Microsoft Visual Studio", "2022", "Community", "MSBuild", "Current", "Bin", "MSBuild.exe"
+            ),
+            Path.Join
+            (
+                programFilesX86, "Microsoft Visual Studio", "2019", "Enterprise", "MSBuild", "Current", "Bin",
+                "MSBuild.exe"
+            ),
+            Path.Join
+            (
+                programFilesX86, "Microsoft Visual Studio", "2019", "Professional", "MSBuild", "Current", "Bin",
+                "MSBuild.exe"
+            ),
+            Path.Join
+            (
+                programFilesX86, "Microsoft Visual Studio", "2019", "Community", "MSBuild", "Current", "Bin",
+                "MSBuild.exe"
+            )
         ];
 
         return candidatePaths.FirstOrDefault(File.Exists);
@@ -510,13 +589,15 @@ public sealed class DotNetCliTools
         return true;
     }
 
-    private string FormatResult(
+    private string FormatResult
+    (
         string command,
         string? targetPath,
         IReadOnlyList<string>? arguments,
         int exitCode,
         string standardOutput,
-        string standardError)
+        string standardError
+    )
     {
         var builder = new StringBuilder();
         builder.AppendLine($"命令: {command}");
@@ -525,6 +606,7 @@ public sealed class DotNetCliTools
         {
             builder.AppendLine($"附加参数: {string.Join(' ', arguments)}");
         }
+
         builder.AppendLine($"退出码: {exitCode}");
         builder.AppendLine($"结果: {(exitCode == 0 ? "成功" : "失败")}");
 
@@ -551,7 +633,10 @@ public sealed class DotNetCliTools
         }
 
         int omittedCharacters = trimmedOutput.Length - DefaultMaxOutputCharacters;
-        builder.AppendLine($"【输出共 {trimmedOutput.Length} 个字符，已达到 {DefaultMaxOutputCharacters} 个字符的显示限制。前 {omittedCharacters} 个字符未显示，以下保留最后 {DefaultMaxOutputCharacters} 个字符。】");
+        builder.AppendLine
+        (
+            $"【输出共 {trimmedOutput.Length} 个字符，已达到 {DefaultMaxOutputCharacters} 个字符的显示限制。前 {omittedCharacters} 个字符未显示，以下保留最后 {DefaultMaxOutputCharacters} 个字符。】"
+        );
         builder.AppendLine(trimmedOutput[^DefaultMaxOutputCharacters..]);
         builder.AppendLine($"</{title}>");
     }
@@ -563,7 +648,11 @@ public sealed class DotNetCliTools
 
     private sealed class LogSnapshot
     {
-        public LogSnapshot(string command, string? targetPath, int exitCode, string standardOutput, string standardError, string[] lines)
+        public LogSnapshot
+        (
+            string command, string? targetPath, int exitCode, string standardOutput, string standardError,
+            string[] lines
+        )
         {
             Command = command;
             TargetPath = targetPath;

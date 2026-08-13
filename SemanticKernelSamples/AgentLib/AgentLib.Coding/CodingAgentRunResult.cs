@@ -1,5 +1,4 @@
 using AgentLib.Model;
-
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
@@ -28,11 +27,13 @@ public sealed record CodingAgentRunResult
         CompletionTask = completionTask;
     }
 
-    internal CodingAgentRunResult(
+    internal CodingAgentRunResult
+    (
         CopilotChatMessage assistantChatMessage,
         Task<string?> completionTask,
         MessageInjectingChatClient messageInjector,
-        AgentSession session)
+        AgentSession session
+    )
         : this(assistantChatMessage, completionTask)
     {
         ArgumentNullException.ThrowIfNull(messageInjector);
@@ -56,9 +57,11 @@ public sealed record CodingAgentRunResult
     /// </summary>
     /// <param name="contents">用户消息内容。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    public Task InjectMessageAsync(
+    public Task InjectMessageAsync
+    (
         IReadOnlyList<AIContent> contents,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(contents);
         if (contents.Count == 0)
@@ -67,10 +70,12 @@ public sealed record CodingAgentRunResult
         }
 
         MessageInjectingChatClient messageInjector = _messageInjector
-            ?? throw new InvalidOperationException("当前运行不支持消息注入。");
-        return messageInjector.EnqueueMessagesAsync(
+                                                     ?? throw new InvalidOperationException("当前运行不支持消息注入。");
+        return messageInjector.EnqueueMessagesAsync
+        (
             _session!,
             [new ChatMessage(ChatRole.User, [.. contents])],
-            cancellationToken);
+            cancellationToken
+        );
     }
 }

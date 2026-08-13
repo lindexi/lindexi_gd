@@ -136,11 +136,6 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
-    /// 获取当前是否允许切换模型。
-    /// </summary>
-    public bool CanSelectModel => AvailableModels.Count > 1 && !IsRunning && !IsCompressing;
-
-    /// <summary>
     /// 获取发送按钮文本。
     /// </summary>
     public string SendButtonText => IsRunning ? "插话" : "发送";
@@ -304,7 +299,6 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         var primaryModel = _chatManager.AgentApiEndpointManager.PrimaryModel;
         _selectedModel = AvailableModels.First(option => ReferenceEquals(option.Model, primaryModel));
         _modelStatusText = $"当前模型：{_selectedModel.DisplayName}";
-        OnPropertyChanged(nameof(CanSelectModel));
     }
 
     /// <summary>
@@ -443,7 +437,6 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(CanCompressConversation));
         OnPropertyChanged(nameof(IsRunning));
         OnPropertyChanged(nameof(IsCompressing));
-        OnPropertyChanged(nameof(CanSelectModel));
         OnPropertyChanged(nameof(SendButtonText));
         RaiseCommandCanExecuteChanged();
     }
