@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using AgentLib;
 using AgentLib.Coding;
+using AgentLib.Coding.Images;
 using AgentLib.Coding.Sandboxes;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
@@ -54,7 +55,10 @@ internal static class CodingChatStartup
         CodingChatShellSettings shellSettings = await new CodingChatSettingsService(paths)
             .LoadShellSettingsAsync()
             .ConfigureAwait(false);
-        var additionalToolSources = new List<ICodingWorkspaceToolSource>();
+        var additionalToolSources = new List<ICodingWorkspaceToolSource>
+        {
+            new CodingImageAnalysisToolSource(chatManager),
+        };
         if (shellSettings.IsWindowsSandboxEnabled)
         {
             additionalToolSources.Add(new WindowsSandboxToolSource(

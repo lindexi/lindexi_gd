@@ -124,7 +124,7 @@ public sealed class ChatRoomRoleTests
         await using var role = new ChatRoomRole(
             definition,
             null,
-            new CodingChatRoomRoleExecutor(CodingAgent.Create(new CodingAgentOptions
+            new CodingChatRoomRoleExecutor(new CodingAgent(new CodingAgentOptions
             {
                 LanguageServerCommand = $"missing-roslyn-{Guid.NewGuid():N}",
             })));

@@ -177,7 +177,7 @@ public sealed class ChatRoomRoleExecutorTests
         CopilotChatManager chatManager = CreateChatManager(client);
         string workspacePath = CreateTestDirectory();
         AITool hostTool = AIFunctionFactory.Create(() => "host", "host_tool");
-        await using var executor = new CodingChatRoomRoleExecutor(CodingAgent.Create(new CodingAgentOptions
+        await using var executor = new CodingChatRoomRoleExecutor(new CodingAgent(new CodingAgentOptions
         {
             LanguageServerCommand = $"missing-roslyn-language-server-{Guid.NewGuid():N}",
         }));
@@ -209,7 +209,7 @@ public sealed class ChatRoomRoleExecutorTests
             OnGetStreamingResponseAsync = (_, _, _) => ThrowOperationCanceledAsync(),
         };
         CopilotChatManager chatManager = CreateChatManager(client);
-        await using var executor = new CodingChatRoomRoleExecutor(CodingAgent.Create());
+        await using var executor = new CodingChatRoomRoleExecutor(new CodingAgent());
 
         ChatRoomRoleExecutionResult result = await executor.RunAsync(
             new ChatRoomRoleExecutionContext(chatManager, null, []),
@@ -234,7 +234,7 @@ public sealed class ChatRoomRoleExecutorTests
                 cancellationToken),
         };
         CopilotChatManager chatManager = CreateChatManager(client, dispatcher);
-        await using var executor = new CodingChatRoomRoleExecutor(CodingAgent.Create());
+        await using var executor = new CodingChatRoomRoleExecutor(new CodingAgent());
 
         ChatRoomRoleExecutionResult result = await executor.RunAsync(
             new ChatRoomRoleExecutionContext(chatManager, null, []),

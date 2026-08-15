@@ -6,6 +6,7 @@ using AgentLib.Tools;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace AgentLib.Coding.Tests;
@@ -38,7 +39,7 @@ public sealed class CodingAgentTests
         IManualSendMessageContext context = await chatManager.CreateManualSendMessageContextAsync();
         Assert.IsNotEmpty(context.DefaultTools);
         AITool codingTool = AIFunctionFactory.Create(() => "coding", "coding_only");
-        await using var agent = new CodingAgent(CreateProvider("coding-workspace", [codingTool]));
+        await using var agent = CreateAgent(CreateProvider("coding-workspace", [codingTool]));
         IReadOnlyList<AIContent> contents =
         [
             new TextContent("前"),
@@ -105,7 +106,7 @@ public sealed class CodingAgentTests
             },
         };
         CopilotChatManager chatManager = CreateChatManager(client);
-        await using var agent = new CodingAgent(CreateProvider("workspace", []));
+        await using var agent = CreateAgent(CreateProvider("workspace", []));
         IManualSendMessageContext context = await chatManager.CreateManualSendMessageContextAsync();
 
         CodingAgentRunResult result = await agent.RunAsync(context, "开始任务", "workspace");
@@ -130,7 +131,7 @@ public sealed class CodingAgentTests
                 InterleavedStreamAsync(cancellationToken),
         };
         CopilotChatManager chatManager = CreateChatManager(client);
-        await using var agent = new CodingAgent(CreateProvider("workspace", []));
+        await using var agent = CreateAgent(CreateProvider("workspace", []));
         IManualSendMessageContext context = await chatManager.CreateManualSendMessageContextAsync();
 
         CodingAgentRunResult result = await agent.RunAsync(context, "检查顺序", "workspace");
@@ -156,7 +157,7 @@ public sealed class CodingAgentTests
                 cancellationToken),
         };
         CopilotChatManager chatManager = CreateChatManager(client);
-        await using var agent = new CodingAgent(CreateProvider("workspace", []));
+        await using var agent = CreateAgent(CreateProvider("workspace", []));
         IManualSendMessageContext firstContext = await chatManager.CreateManualSendMessageContextAsync();
 
         CodingAgentRunResult first = await agent.RunAsync(firstContext, "第一轮", "workspace");
@@ -185,7 +186,7 @@ public sealed class CodingAgentTests
                 cancellationToken),
         };
         CopilotChatManager chatManager = CreateChatManager(client);
-        await using var agent = new CodingAgent(CreateProvider("workspace", []));
+        await using var agent = CreateAgent(CreateProvider("workspace", []));
 
         CodingAgentRunResult first = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
@@ -220,7 +221,7 @@ public sealed class CodingAgentTests
                 cancellationToken),
         };
         CopilotChatManager chatManager = CreateChatManager(client);
-        await using var agent = new CodingAgent(CreateProvider("workspace", []), instructionsPath);
+        await using var agent = CreateAgent(CreateProvider("workspace", []), instructionsPath);
 
         CodingAgentRunResult result = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
@@ -255,7 +256,7 @@ public sealed class CodingAgentTests
         };
         CopilotChatManager firstChatManager = CreateChatManager(client);
         CopilotChatManager secondChatManager = CreateChatManager(client);
-        await using var agent = new CodingAgent(CreateProvider("workspace", []));
+        await using var agent = CreateAgent(CreateProvider("workspace", []));
         CodingAgentRunResult first = await agent.RunAsync(
             await firstChatManager.CreateManualSendMessageContextAsync(),
             "第一轮",
@@ -285,7 +286,7 @@ public sealed class CodingAgentTests
                 cancellationToken),
         };
         CopilotChatManager chatManager = CreateChatManager(client);
-        await using var agent = new CodingAgent(CreateProvider("workspace", []));
+        await using var agent = CreateAgent(CreateProvider("workspace", []));
 
         IManualSendMessageContext failingContext = await chatManager.CreateManualSendMessageContextAsync();
         await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => agent.RunAsync(
@@ -304,7 +305,7 @@ public sealed class CodingAgentTests
     [Timeout(10000)]
     public async Task RunAsyncWhenModelInitializationFailsShouldThrowDirectly()
     {
-        await using var agent = new CodingAgent(CreateProvider("workspace", []));
+        await using var agent = CreateAgent(CreateProvider("workspace", []));
         var context = new FailingManualSendMessageContext();
 
         InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() =>
@@ -346,7 +347,7 @@ public sealed class CodingAgentTests
                     AIFunctionFactory.Create(() => path, $"tool_{path}"))],
                 path == "first" ? firstResource : secondResource)));
         await provider.SetWorkspacePathAsync("first", CancellationToken.None);
-        var agent = new CodingAgent(provider);
+        var agent = CreateAgent(provider);
         try
         {
             CodingAgentRunResult firstRun = await agent.RunAsync(
@@ -394,7 +395,7 @@ public sealed class CodingAgentTests
             OnGetStreamingResponseAsync = (_, _, cancellationToken) => EmptyStreamAsync(cancellationToken),
         };
         CopilotChatManager chatManager = CreateChatManager(client);
-        await using var agent = new CodingAgent(CreateProvider("workspace", []));
+        await using var agent = CreateAgent(CreateProvider("workspace", []));
         IManualSendMessageContext context = await chatManager.CreateManualSendMessageContextAsync();
 
         CodingAgentRunResult result = await agent.RunAsync(context, "任务", "workspace");
@@ -421,7 +422,7 @@ public sealed class CodingAgentTests
         CopilotChatManager chatManager = CreateChatManager(client);
         var provider = CreateProvider("workspace", [], resource);
         await provider.SetWorkspacePathAsync("workspace", CancellationToken.None);
-        await using var agent = new CodingAgent(provider);
+        await using var agent = CreateAgent(provider);
         using var cancellationTokenSource = new CancellationTokenSource();
         CodingAgentRunResult canceledRun = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
@@ -462,7 +463,7 @@ public sealed class CodingAgentTests
         CopilotChatManager chatManager = CreateChatManager(client);
         var provider = CreateProvider("workspace", [], resource);
         await provider.SetWorkspacePathAsync("workspace", CancellationToken.None);
-        await using var agent = new CodingAgent(provider);
+        await using var agent = CreateAgent(provider);
         CodingAgentRunResult failedRun = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "失败任务",
@@ -497,7 +498,7 @@ public sealed class CodingAgentTests
                 releaseStream),
         };
         CopilotChatManager chatManager = CreateChatManager(client);
-        var agent = new CodingAgent(CreateProvider("workspace", []));
+        var agent = CreateAgent(CreateProvider("workspace", []));
         CodingAgentRunResult run = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "任务",
@@ -560,6 +561,20 @@ public sealed class CodingAgentTests
 
         CopilotChatToolItem toolItem = assistantMessage.MessageItems.OfType<CopilotChatToolItem>().Single();
         Assert.AreEqual(expectedException.ToString(), toolItem.OutputText);
+    }
+
+    private static CodingAgent CreateAgent(
+        CodingWorkspaceToolProvider toolProvider,
+        string? copilotInstructionsPath = null)
+    {
+        var agent = new CodingAgent(new CodingAgentOptions
+        {
+            CopilotInstructionsPath = copilotInstructionsPath,
+        });
+        typeof(CodingAgent)
+            .GetField("_toolProvider", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .SetValue(agent, toolProvider);
+        return agent;
     }
 
     private static CodingWorkspaceToolProvider CreateProvider(
