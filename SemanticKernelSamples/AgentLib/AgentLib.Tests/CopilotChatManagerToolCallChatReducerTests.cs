@@ -45,6 +45,51 @@ public class CopilotChatManagerToolCallChatReducerTests
     }
 
     [TestMethod]
+    public async Task ReduceAsync_WhenCompressionSucceeds_RaisesLifecycleEvents()
+    {
+        var responseMessages = new List<ChatMessage>
+        {
+            new(ChatRole.System, "系统消息"),
+            new(ChatRole.Assistant, "压缩摘要"),
+        };
+        var primaryChatClient = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) => Task.FromResult(new ChatResponse(responseMessages)),
+        };
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient, characterThreshold: 1);
+        int startedCount = 0;
+        IReadOnlyList<ChatMessage>? completedMessages = null;
+        reducer.CompressionStarted += (_, _) => startedCount++;
+        reducer.CompressionCompleted += (_, messages) => completedMessages = messages;
+
+        await reducer.ReduceAsync(
+            [new ChatMessage(ChatRole.Assistant, "需要压缩")],
+            CancellationToken.None);
+
+        Assert.AreEqual(1, startedCount);
+        Assert.AreSame(responseMessages, completedMessages);
+    }
+
+    [TestMethod]
+    public async Task ReduceAsync_WhenCompressionFails_RaisesFailureEvent()
+    {
+        var expectedException = new InvalidOperationException("压缩失败");
+        var primaryChatClient = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) => Task.FromException<ChatResponse>(expectedException),
+        };
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient, characterThreshold: 1);
+        Exception? actualException = null;
+        reducer.CompressionFailed += (_, exception) => actualException = exception;
+
+        await reducer.ReduceAsync(
+            [new ChatMessage(ChatRole.Assistant, "需要压缩")],
+            CancellationToken.None);
+
+        Assert.AreSame(expectedException, actualException);
+    }
+
+    [TestMethod]
     [Description("尾部连续 Assistant+Tool 块未超过阈值时不应压缩")]
     public async Task ReduceAsync_WhenTailBlockBelowThreshold_DoesNotCompress()
     {

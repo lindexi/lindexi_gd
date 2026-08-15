@@ -33,6 +33,21 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
     private readonly IChatClient _chatClient;
 
     /// <summary>
+    /// 在开始压缩对话时发生。
+    /// </summary>
+    public event EventHandler? CompressionStarted;
+
+    /// <summary>
+    /// 在压缩对话完成时发生。
+    /// </summary>
+    public event EventHandler<IReadOnlyList<ChatMessage>>? CompressionCompleted;
+
+    /// <summary>
+    /// 在压缩对话失败时发生。
+    /// </summary>
+    public event EventHandler<Exception>? CompressionFailed;
+
+    /// <summary>
     /// 触发压缩的字符长度阈值。
     /// </summary>
     public int CharacterThreshold { get; set; }
@@ -78,11 +93,13 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
 
         messagesToSummarize.Add(new ChatMessage(ChatRole.System, SummarizationEndPrompt));
 
+        CompressionStarted?.Invoke(this, EventArgs.Empty);
         try
         {
             // 调用 LLM 生成摘要
             var chatResponse = await _chatClient
                 .GetResponseAsync(messagesToSummarize, cancellationToken: cancellationToken).ConfigureAwait(false);
+            CompressionCompleted?.Invoke(this, (IReadOnlyList<ChatMessage>)chatResponse.Messages);
 
             // 构建结果：保留非压缩部分 + 摘要消息
             var result = new List<ChatMessage>(tailStartIndex + 1);
@@ -97,9 +114,9 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
 
             return result;
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            // 忽略
+            CompressionFailed?.Invoke(this, exception);
             // 压缩失败，就不影响了
             return input;
         }

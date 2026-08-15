@@ -483,6 +483,54 @@ public sealed class CodingAgentTests
         await Assert.ThrowsAsync<OperationCanceledException>(async () => await run.CompletionTask);
     }
 
+    [TestMethod]
+    public async Task CompressionToolCallObserverShouldAppendAssistantSummary()
+    {
+        var client = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) => Task.FromResult(new ChatResponse(
+            [
+                new ChatMessage(ChatRole.System, "系统消息"),
+                new ChatMessage(ChatRole.Assistant, "摘要一"),
+                new ChatMessage(ChatRole.Assistant, "摘要二"),
+            ])),
+        };
+        var reducer = new CopilotChatManagerToolCallChatReducer(client, characterThreshold: 1);
+        var assistantMessage = CopilotChatMessage.CreateAssistant(
+            CopilotChatMessage.PlaceholderContent,
+            isPresetInfo: false);
+        _ = new CompressionToolCallObserver(assistantMessage, null, reducer);
+
+        await reducer.ReduceAsync(
+            [new ChatMessage(ChatRole.Assistant, "需要压缩")],
+            CancellationToken.None);
+
+        CopilotChatToolItem toolItem = assistantMessage.MessageItems.OfType<CopilotChatToolItem>().Single();
+        Assert.AreEqual("摘要一" + Environment.NewLine + "摘要二", toolItem.OutputText);
+    }
+
+    [TestMethod]
+    public async Task CompressionToolCallObserverShouldAppendExceptionText()
+    {
+        var expectedException = new InvalidOperationException("压缩失败");
+        var client = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) => Task.FromException<ChatResponse>(expectedException),
+        };
+        var reducer = new CopilotChatManagerToolCallChatReducer(client, characterThreshold: 1);
+        var assistantMessage = CopilotChatMessage.CreateAssistant(
+            CopilotChatMessage.PlaceholderContent,
+            isPresetInfo: false);
+        _ = new CompressionToolCallObserver(assistantMessage, null, reducer);
+
+        await reducer.ReduceAsync(
+            [new ChatMessage(ChatRole.Assistant, "需要压缩")],
+            CancellationToken.None);
+
+        CopilotChatToolItem toolItem = assistantMessage.MessageItems.OfType<CopilotChatToolItem>().Single();
+        Assert.AreEqual(expectedException.ToString(), toolItem.OutputText);
+    }
+
     private static CodingWorkspaceToolProvider CreateProvider(
         string workspacePath,
         IReadOnlyList<AITool> tools,
