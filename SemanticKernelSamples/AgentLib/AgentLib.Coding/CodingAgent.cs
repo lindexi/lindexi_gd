@@ -1,5 +1,4 @@
 using AgentLib.Model;
-using AgentLib.Reducers;
 using AgentLib.Tools;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -131,15 +130,11 @@ public sealed class CodingAgent : IAsyncDisposable
                     options.RequirePerServiceCallChatHistoryPersistence = true;
                     if (enableAutomaticCompression)
                     {
-                        var compressionObserver = new CompressionToolCallObserver(
-                            context.AssistantChatMessage,
-                            context.MainThreadDispatcher);
                         options.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions
                         {
                             ChatReducer = new CopilotChatManagerToolCallChatReducer(
                                 context.ChatClient,
-                                characterThreshold: 200_000,
-                                compressionObserver),
+                                characterThreshold: 200_000),
                         });
                     }
                     else

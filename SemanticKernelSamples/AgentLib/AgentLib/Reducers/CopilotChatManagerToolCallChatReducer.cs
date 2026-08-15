@@ -1,4 +1,3 @@
-using AgentLib.Reducers;
 using Microsoft.Extensions.AI;
 
 namespace AgentLib;
@@ -14,11 +13,7 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
     /// </summary>
     /// <param name="chatClient">用于生成摘要的聊天客户端。</param>
     /// <param name="characterThreshold">触发压缩的字符长度阈值。</param>
-    /// <param name="compressionObserver">自动压缩观察者。</param>
-    public CopilotChatManagerToolCallChatReducer(
-        IChatClient chatClient,
-        int characterThreshold = DefaultCharacterThreshold,
-        ICopilotChatCompressionObserver? compressionObserver = null)
+    public CopilotChatManagerToolCallChatReducer(IChatClient chatClient, int characterThreshold = DefaultCharacterThreshold)
     {
         ArgumentNullException.ThrowIfNull(chatClient);
         if (characterThreshold < 1)
@@ -27,7 +22,6 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
         }
 
         _chatClient = chatClient;
-        _compressionObserver = compressionObserver;
         CharacterThreshold = characterThreshold;
     }
 
@@ -37,7 +31,6 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
     public const int DefaultCharacterThreshold = 50000;
 
     private readonly IChatClient _chatClient;
-    private readonly ICopilotChatCompressionObserver? _compressionObserver;
 
     /// <summary>
     /// 触发压缩的字符长度阈值。
@@ -72,20 +65,8 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
             return input;
         }
 
-        int compressedMessageCount = input.Count - tailStartIndex;
-        var statistics = new CopilotChatCompressionStatistics(
-            input.Count,
-            compressedMessageCount,
-            totalLength,
-            CharacterThreshold);
-        if (_compressionObserver is not null)
-        {
-            await _compressionObserver
-                .CompressionStartedAsync(statistics, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        var messagesToSummarize = new List<ChatMessage>(compressedMessageCount + 2)
+        // 构建压缩请求：保留非压缩部分 + 插入起点提示词 + 压缩块内容 + 插入末尾提示词
+        var messagesToSummarize = new List<ChatMessage>(tailStartIndex + 2)
         {
             new ChatMessage(ChatRole.System, SummarizationStartPrompt)
         };
@@ -99,44 +80,27 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
 
         try
         {
-            ChatResponse chatResponse = await _chatClient
+            // 调用 LLM 生成摘要
+            var chatResponse = await _chatClient
                 .GetResponseAsync(messagesToSummarize, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var result = new List<ChatMessage>(tailStartIndex + chatResponse.Messages.Count);
+
+            // 构建结果：保留非压缩部分 + 摘要消息
+            var result = new List<ChatMessage>(tailStartIndex + 1);
 
             for (int i = 0; i < tailStartIndex; i++)
             {
                 result.Add(input[i]);
             }
 
+            // 将 LLM 返回的摘要消息加入结果
             result.AddRange(chatResponse.Messages);
-            AIContent[] summaryContents = chatResponse.Messages
-                .Where(message => message.Role == ChatRole.Assistant)
-                .SelectMany(message => message.Contents)
-                .ToArray();
-            if (_compressionObserver is not null)
-            {
-                await _compressionObserver
-                    .CompressionCompletedAsync(
-                        new CopilotChatCompressionResult(statistics, result.Count, summaryContents),
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
 
             return result;
         }
-        catch (OperationCanceledException)
+        catch (Exception)
         {
-            throw;
-        }
-        catch (Exception exception)
-        {
-            if (_compressionObserver is not null)
-            {
-                await _compressionObserver
-                    .CompressionFailedAsync(statistics, exception, CancellationToken.None)
-                    .ConfigureAwait(false);
-            }
-
+            // 忽略
+            // 压缩失败，就不影响了
             return input;
         }
     }
