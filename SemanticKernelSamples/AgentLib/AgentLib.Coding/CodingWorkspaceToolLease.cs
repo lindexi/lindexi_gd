@@ -1,4 +1,3 @@
-using AgentLib.Model;
 using AgentLib.Tools;
 
 using Microsoft.Extensions.AI;
@@ -32,15 +31,10 @@ public sealed class CodingWorkspaceToolLease : IDisposable, IAsyncDisposable
     /// </summary>
     public IReadOnlyList<AITool> Tools { get; }
 
-
     /// <summary>
     /// 本租约绑定的不可变工具展示规则注册表。
     /// </summary>
     public ToolRegistrationRegistry ToolRegistrationRegistry { get; }
-
-    internal CodingAgentToolSet CreateToolSet(CopilotChatMessage assistantChatMessage) =>
-        _session?.CreateToolSet(assistantChatMessage)
-        ?? new CodingAgentToolSet(Tools, ToolRegistrationRegistry);
 
     /// <summary>
     /// 释放本次运行对工作区资源的引用。
