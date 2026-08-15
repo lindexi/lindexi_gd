@@ -26,4 +26,14 @@ public interface ICodingWorkspaceToolSource
         CreateTools(workspacePath)
             .Select(tool => new ToolRegistration(tool))
             .ToArray();
+
+    /// <summary>
+    /// 为单次编程运行创建需要当前消息上下文的工具及展示摘要规则。
+    /// </summary>
+    /// <param name="workspacePath">代码工作区的完整路径。</param>
+    /// <param name="assistantChatMessage">当前助手消息。</param>
+    /// <returns>绑定本次运行的工具注册集合。</returns>
+    IReadOnlyList<ToolRegistration> CreateRunToolRegistrations(
+        string workspacePath,
+        CopilotChatMessage assistantChatMessage) => [];
 }

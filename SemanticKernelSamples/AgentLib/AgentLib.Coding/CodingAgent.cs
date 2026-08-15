@@ -1,3 +1,4 @@
+using AgentLib.Core;
 using AgentLib.Model;
 using AgentLib.Tools;
 using Microsoft.Agents.AI;
@@ -10,7 +11,7 @@ namespace AgentLib.Coding;
 /// <summary>
 /// 使用固定编程工作流和工作区工具运行代码任务。
 /// </summary>
-public sealed class CodingAgent : IAsyncDisposable
+public sealed partial class CodingAgent : IAsyncDisposable
 {
     private readonly CodingWorkspaceToolProvider _toolProvider;
     private readonly object _disposeSync = new();
@@ -119,12 +120,13 @@ public sealed class CodingAgent : IAsyncDisposable
             }
 
             lease = await _toolProvider.AcquireLeaseAsync(runCancellationToken).ConfigureAwait(false);
+            CodingAgentToolSet toolSet = lease.CreateToolSet(context.AssistantChatMessage);
             ChatClientAgent chatClientAgent = await context.GetChatClientAgentAsync
             (
                 options =>
                 {
                     options.ChatOptions ??= new ChatOptions();
-                    options.ChatOptions.Tools = [.. lease.Tools];
+                    options.ChatOptions.Tools = [.. toolSet.Tools];
                     options.AIContextProviders = [];
                     options.EnableMessageInjection = true;
                     options.RequirePerServiceCallChatHistoryPersistence = true;
@@ -158,6 +160,7 @@ public sealed class CodingAgent : IAsyncDisposable
                 chatClientAgent,
                 agentSession,
                 lease,
+                toolSet.ToolRegistrationRegistry,
                 runCancellationTokenSource
             );
             ownershipTransferred = true;
@@ -248,6 +251,7 @@ public sealed class CodingAgent : IAsyncDisposable
         ChatClientAgent chatClientAgent,
         AgentSession agentSession,
         CodingWorkspaceToolLease lease,
+        ToolRegistrationRegistry toolRegistrationRegistry,
         CancellationTokenSource runCancellationTokenSource
     )
     {
@@ -273,7 +277,7 @@ public sealed class CodingAgent : IAsyncDisposable
 
             using IDisposable chatting = context.StartChatting();
             await context.AppendMessagesToSessionAsync();
-            EnsureSystemPromptInSession(agentSession);
+            CodingSystemPrompt.EnsureInitialized(agentSession);
             ChatMessage[] inputMessages =
             [
                 new ChatMessage(ChatRole.User, new List<AIContent>(contents)),
@@ -286,7 +290,7 @@ public sealed class CodingAgent : IAsyncDisposable
                                cancellationToken
                            ))
             {
-                AppendResponseUpdate(context, update, lease.ToolRegistrationRegistry);
+                AppendResponseUpdate(context, update, toolRegistrationRegistry);
                 hasResponseUpdate = true;
             }
 
@@ -326,12 +330,12 @@ public sealed class CodingAgent : IAsyncDisposable
     (
         IManualSendMessageContext context,
         AgentResponseUpdate update,
-        ToolRegistrationRegistry registry
+        ToolRegistrationRegistry toolRegistrationRegistry
     )
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(update);
-        ArgumentNullException.ThrowIfNull(registry);
+        ArgumentNullException.ThrowIfNull(toolRegistrationRegistry);
         if (context.AssistantChatMessage.Content == CopilotChatMessage.PlaceholderContent)
         {
             context.AssistantChatMessage.ClearMessageItems();
@@ -348,8 +352,9 @@ public sealed class CodingAgent : IAsyncDisposable
                     context.AssistantChatMessage.AppendText(textContent.Text);
                     break;
                 case FunctionCallContent functionCallContent:
-                    context.AssistantChatMessage.AppendFunctionCall
-                        (functionCallContent, registry.CreatePresentation(functionCallContent));
+                    context.AssistantChatMessage.AppendFunctionCall(
+                        functionCallContent,
+                        toolRegistrationRegistry.CreatePresentation(functionCallContent));
                     break;
                 case FunctionResultContent functionResultContent:
                     context.AssistantChatMessage.AppendFunctionResult(functionResultContent);
@@ -376,32 +381,10 @@ public sealed class CodingAgent : IAsyncDisposable
         );
     }
 
-    private static void EnsureSystemPromptInSession(AgentSession agentSession)
-    {
-        if (agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? messages)
-            && messages.Any
-            (message =>
-                message.Role == ChatRole.System
-                && message.Text.Contains("When asked for your name, you must respond with \"GitHub Copilot\".")
-            ))
-        {
-            return;
-        }
+}
 
-        var initializedMessages = new List<ChatMessage>((messages?.Count ?? 0) + 1)
-        {
-            new(ChatRole.System, SystemPrompt),
-            new(ChatRole.System, CodePrompt),
-            new(ChatRole.System, SandboxPrompt),
-        };
-        if (messages is not null)
-        {
-            initializedMessages.AddRange(messages);
-        }
-
-        agentSession.SetInMemoryChatHistory(initializedMessages);
-    }
-
+internal static partial class CodingSystemPrompt
+{
     private const string SystemPrompt
         = """
           You are an AI programming assistant.
@@ -822,7 +805,10 @@ public sealed class CodingAgent : IAsyncDisposable
           You are operating within a restricted sandbox environment. Your available tools are limited to those actually present in your tool set. If a tool is referenced in these instructions but is not among your available tools, do not invoke it, do not attempt to simulate its behavior, and do not mention it to the user. Only call tools that you actually have. Executing command-line operations and running scripts of any kind are expressly prohibited. Do not attempt to run shell commands, launch processes, or execute scripts. Work strictly within the capabilities provided to you.
           The sandbox does not affect your ability to build or test, nor does it affect your ability to read or modify files.
           """;
+}
 
+public sealed partial class CodingAgent
+{
     private static Task ClearAssistantPlaceholderAsync(IManualSendMessageContext context)
     {
         if (context.AssistantChatMessage.Content != CopilotChatMessage.PlaceholderContent)

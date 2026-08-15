@@ -52,7 +52,10 @@ internal static class CodingChatStartup
         CodingChatShellSettings shellSettings = await new CodingChatSettingsService(paths)
             .LoadShellSettingsAsync()
             .ConfigureAwait(false);
-        var additionalToolSources = new List<ICodingWorkspaceToolSource>();
+        var additionalToolSources = new List<ICodingWorkspaceToolSource>
+        {
+            new CodingImageSubAgentTool(endpointManager),
+        };
         if (shellSettings.IsWindowsSandboxEnabled)
         {
             additionalToolSources.Add(new WindowsSandboxToolSource(
