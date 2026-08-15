@@ -1134,6 +1134,162 @@ public class WorkspaceToolProviderTests
         StringAssert.Contains(result, "explicit-content");
     }
 
+    [TestMethod(DisplayName = "目录最大结果数非正数时应返回参数错误")]
+    public async Task ListDirectory_WhenMaxResultsIsNotPositive_ReturnsParameterError()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = await provider.ListDirectory(maxResults: 0);
+
+        Assert.AreEqual("参数错误：maxResults 必须大于 0，当前值为 0。", result);
+    }
+
+    [TestMethod(DisplayName = "按名称查询为空白时应返回参数错误")]
+    [DataRow("")]
+    [DataRow("   ")]
+    public async Task FindEntriesByName_WhenQueryIsBlank_ReturnsParameterError(string query)
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = await provider.FindEntriesByName(query);
+
+        Assert.AreEqual("参数错误：query 不能为空或仅包含空白字符。", result);
+    }
+
+    [TestMethod(DisplayName = "按名称查询未选择条目类型时应返回参数错误")]
+    public async Task FindEntriesByName_WhenNoEntryTypeIsIncluded_ReturnsParameterError()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = await provider.FindEntriesByName("name", includeFiles: false, includeDirectories: false);
+
+        Assert.AreEqual("参数错误：includeFiles 和 includeDirectories 至少有一个必须为 true。", result);
+    }
+
+    [TestMethod(DisplayName = "按名称查询最大结果数非正数时应返回参数错误")]
+    public async Task FindEntriesByName_WhenMaxResultsIsNotPositive_ReturnsParameterError()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = await provider.FindEntriesByName("name", maxResults: 0);
+
+        Assert.AreEqual("参数错误：maxResults 必须大于 0，当前值为 0。", result);
+    }
+
+    [TestMethod(DisplayName = "内容查询为空白时应返回参数错误")]
+    [DataRow("")]
+    [DataRow("   ")]
+    public async Task FindFilesMatchingPattern_WhenQueryIsBlank_ReturnsParameterError(string query)
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = await provider.FindFilesMatchingPattern(query);
+
+        Assert.AreEqual("参数错误：query 不能为空或仅包含空白字符。", result);
+    }
+
+    [TestMethod(DisplayName = "内容查询最大结果数非正数时应返回参数错误")]
+    public async Task FindFilesMatchingPattern_WhenMaxResultsIsNotPositive_ReturnsParameterError()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = await provider.FindFilesMatchingPattern("text", maxResults: 0);
+
+        Assert.AreEqual("参数错误：maxResults 必须大于 0，当前值为 0。", result);
+    }
+
+    [TestMethod(DisplayName = "读取文件路径为空白时应返回参数错误")]
+    public async Task ReadFileLines_WhenFilePathIsBlank_ReturnsParameterError()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = await provider.ReadFileLines(" ", 1, 1);
+
+        Assert.AreEqual("参数错误：filePath 不能为空或仅包含空白字符。", result);
+    }
+
+    [TestMethod(DisplayName = "读取起始行非正数时应返回参数错误")]
+    public async Task ReadFileLines_WhenStartLineIsNotPositive_ReturnsParameterError()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = await provider.ReadFileLines("file.txt", 0, 1);
+
+        Assert.AreEqual("参数错误：startLine 必须大于等于 1，当前值为 0。", result);
+    }
+
+    [TestMethod(DisplayName = "读取结束行小于起始行时应返回参数错误")]
+    public async Task ReadFileLines_WhenEndLinePrecedesStartLine_ReturnsParameterError()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = await provider.ReadFileLines("file.txt", 10, 5);
+
+        Assert.AreEqual("参数错误：endLine 必须大于等于 startLine，当前范围为 10-5。", result);
+    }
+
+    [TestMethod(DisplayName = "读取范围超过上限时应返回参数错误")]
+    public async Task ReadFileLines_WhenRangeExceedsLimit_ReturnsParameterError()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = await provider.ReadFileLines("file.txt", 1, 500);
+
+        Assert.AreEqual("参数错误：单次最多读取 400 行，当前请求读取 500 行。", result);
+    }
+
+    [TestMethod(DisplayName = "写入文件路径为空白时应返回参数错误")]
+    public void WriteFileContent_WhenFilePathIsBlank_ReturnsParameterError()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = provider.WriteFileContent(" ", "content");
+
+        Assert.AreEqual("参数错误：filePath 不能为空或仅包含空白字符。", result);
+    }
+
+    [TestMethod(DisplayName = "替换文件路径为空白时应返回参数错误")]
+    public void ReplaceStringInFile_WhenFilePathIsBlank_ReturnsParameterError()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = provider.ReplaceStringInFile(" ", "old", "new");
+
+        Assert.AreEqual("参数错误：filePath 不能为空或仅包含空白字符。", result);
+    }
+
+    [TestMethod(DisplayName = "替换原文本为空字符串时应返回参数错误")]
+    public void ReplaceStringInFile_WhenOldStringIsEmpty_ReturnsParameterError()
+    {
+        var provider = new WorkspaceToolProvider();
+
+        string result = provider.ReplaceStringInFile("file.txt", string.Empty, "new");
+
+        Assert.AreEqual("参数错误：oldString 不能为空字符串。", result);
+    }
+
+    [TestMethod(DisplayName = "批量替换单项参数错误时应记录失败并继续后续操作")]
+    public async Task MultiReplaceStringInFile_WhenOperationHasInvalidArguments_RecordsFailureAndContinues()
+    {
+        string workspacePath = Path.Join(CreateTestDirectory(), "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        await File.WriteAllTextAsync(filePath, "old");
+        var provider = new WorkspaceToolProvider { WorkspacePath = workspacePath };
+        await provider.ReadFileLines("note.txt", 1, 1);
+        ReplaceOperation[] replacements =
+        [
+            new("note.txt", string.Empty, "ignored", "invalid"),
+            new("note.txt", "old", "new", "valid"),
+        ];
+
+        string result = provider.MultiReplaceStringInFile(replacements, "test");
+
+        StringAssert.Contains(result, "批量替换完成: 1 个成功, 1 个失败。");
+        StringAssert.Contains(result, "消息: 参数错误：oldString 不能为空字符串。");
+        Assert.AreEqual("new", await File.ReadAllTextAsync(filePath));
+    }
+
     private static WorkspaceToolProvider CreateProviderWithExcludedDirectory(string workspacePath, string directoryName)
     {
         var provider = new WorkspaceToolProvider

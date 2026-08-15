@@ -1,4 +1,3 @@
-using AgentLib.Core;
 using AgentLib.Model;
 using Microsoft.Extensions.AI;
 
@@ -101,7 +100,7 @@ public sealed class WorkspaceToolProvider
     {
         if (maxResults <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(maxResults));
+            return Task.FromResult($"参数错误：maxResults 必须大于 0，当前值为 {maxResults}。");
         }
 
         if (!TryResolveDirectory(directoryPath, out var directory, out var errorMessage))
@@ -150,16 +149,19 @@ public sealed class WorkspaceToolProvider
         [Description("是否查找目录。")] bool includeDirectories = true,
         [Description("最大结果数。")] int maxResults = DefaultMaxResults)
     {
-        ArgumentHelper.ThrowIfNullOrWhiteSpace(query);
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return "参数错误：query 不能为空或仅包含空白字符。";
+        }
 
         if (!includeFiles && !includeDirectories)
         {
-            throw new ArgumentException("文件和文件夹至少需要包含一种。", nameof(includeFiles));
+            return "参数错误：includeFiles 和 includeDirectories 至少有一个必须为 true。";
         }
 
         if (maxResults <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(maxResults));
+            return $"参数错误：maxResults 必须大于 0，当前值为 {maxResults}。";
         }
 
         if (!TryResolveDirectory(directoryPath, out var directory, out var errorMessage))
@@ -215,11 +217,14 @@ public sealed class WorkspaceToolProvider
         [Description("是否按正则表达式匹配。")] bool useRegex = false,
         [Description("最大命中文件数。")] int maxResults = DefaultMaxResults)
     {
-        ArgumentHelper.ThrowIfNullOrWhiteSpace(query);
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return "参数错误：query 不能为空或仅包含空白字符。";
+        }
 
         if (maxResults <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(maxResults));
+            return $"参数错误：maxResults 必须大于 0，当前值为 {maxResults}。";
         }
 
         if (!TryResolveDirectory(directoryPath, out var directory, out var errorMessage))
@@ -296,21 +301,25 @@ public sealed class WorkspaceToolProvider
         [Description("结束行号，包含该行。")] int endLine,
         [Description("是否显示行号。")] bool includeLineNumbers = false)
     {
-        ArgumentHelper.ThrowIfNullOrWhiteSpace(filePath);
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return "参数错误：filePath 不能为空或仅包含空白字符。";
+        }
 
         if (startLine <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(startLine));
+            return $"参数错误：startLine 必须大于等于 1，当前值为 {startLine}。";
         }
 
         if (endLine < startLine)
         {
-            throw new ArgumentOutOfRangeException(nameof(endLine));
+            return $"参数错误：endLine 必须大于等于 startLine，当前范围为 {startLine}-{endLine}。";
         }
 
-        if (endLine - startLine + 1 > DefaultMaxRangeLines)
+        int requestedLines = endLine - startLine + 1;
+        if (requestedLines > DefaultMaxRangeLines)
         {
-            throw new ArgumentOutOfRangeException(nameof(endLine), $"单次最多读取 {DefaultMaxRangeLines} 行。");
+            return $"参数错误：单次最多读取 {DefaultMaxRangeLines} 行，当前请求读取 {requestedLines} 行。";
         }
 
         if (!TryResolveFile(filePath, out var file, out var errorMessage))
@@ -707,7 +716,10 @@ public sealed class WorkspaceToolProvider
         [Description("文件路径。")] string filePath,
         [Description("文件内容。")] string content)
     {
-        ArgumentHelper.ThrowIfNullOrWhiteSpace(filePath);
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return "参数错误：filePath 不能为空或仅包含空白字符。";
+        }
 
         if (!TryResolveFileForWrite(filePath, out var file, out var errorMessage))
         {
@@ -756,9 +768,18 @@ public sealed class WorkspaceToolProvider
         [Description("必须唯一匹配的原始文本；必要时包含上下文。")] string oldString,
         [Description("新文本。")] string newString)
     {
-        ArgumentHelper.ThrowIfNullOrWhiteSpace(filePath);
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return "参数错误：filePath 不能为空或仅包含空白字符。";
+        }
+
         ArgumentNullException.ThrowIfNull(oldString);
         ArgumentNullException.ThrowIfNull(newString);
+
+        if (oldString.Length == 0)
+        {
+            return "参数错误：oldString 不能为空字符串。";
+        }
 
         var result = ReplaceStringInFileCore(filePath, oldString, newString);
         return result.Message;
@@ -788,7 +809,20 @@ public sealed class WorkspaceToolProvider
 
         foreach (var operation in replacements)
         {
-            var result = ReplaceStringInFileCore(operation.FilePath, operation.OldString, operation.NewString);
+            StringReplaceOutcome result;
+            if (string.IsNullOrWhiteSpace(operation.FilePath))
+            {
+                result = new StringReplaceOutcome(false, "参数错误：filePath 不能为空或仅包含空白字符。", null);
+            }
+            else if (operation.OldString.Length == 0)
+            {
+                result = new StringReplaceOutcome(false, "参数错误：oldString 不能为空字符串。", null);
+            }
+            else
+            {
+                result = ReplaceStringInFileCore(operation.FilePath, operation.OldString, operation.NewString);
+            }
+
             results.Add(new ReplaceResult(operation.FilePath, result.Success, result.Message));
 
             if (result.Success)
