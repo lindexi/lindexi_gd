@@ -139,7 +139,7 @@ public sealed class CodingAgent : IAsyncDisposable
                             reducer);
                         options.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions
                         {
-                            ChatReducer = reducer,
+                            ChatReducer = new ToolCallAwareChatReducer(reducer),
                         });
                     }
                     else
