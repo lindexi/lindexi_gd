@@ -6,6 +6,7 @@ using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 using System.Runtime.CompilerServices;
+using AgentLib.Reducers;
 
 namespace AgentLib.Tests;
 
