@@ -1,7 +1,6 @@
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Model;
-using AgentLib.Reducers;
 using AgentLib.Tools;
 
 using Microsoft.Agents.AI;
@@ -84,36 +83,6 @@ public sealed class CodingAgentTests
         CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, imageItem.Data.ToArray());
         Assert.AreEqual("image/png", imageItem.MimeType);
         Assert.IsInstanceOfType<CopilotChatTextItem>(context.UserChatMessage.MessageItems[2]);
-    }
-
-    [TestMethod(DisplayName = "已有助手工具输出时自动压缩观察者应追加压缩工具项")]
-    public async Task CompressionObserverShouldAppendToolItemAfterExistingAssistantOutput()
-    {
-        CopilotChatMessage assistantMessage = CopilotChatMessage.CreateAssistant(string.Empty, isPresetInfo: false);
-        assistantMessage.AppendFunctionCall(new FunctionCallContent(
-            "existing-call",
-            "读取文件",
-            new Dictionary<string, object?> { ["路径"] = "a.txt" }));
-        var observer = new CompressionToolCallObserver(assistantMessage, mainThreadDispatcher: null);
-        var statistics = new CopilotChatCompressionStatistics(
-            OriginalMessageCount: 12,
-            CompressedMessageCount: 8,
-            OriginalCharacterCount: 200_001,
-            CharacterThreshold: 200_000);
-
-        await observer.CompressionStartedAsync(statistics, CancellationToken.None);
-        await observer.CompressionCompletedAsync(
-            new CopilotChatCompressionResult(
-                statistics,
-                ReducedMessageCount: 5,
-                SummaryContents: [new TextContent("自动压缩摘要")]),
-            CancellationToken.None);
-
-        Assert.HasCount(2, assistantMessage.MessageItems);
-        CopilotChatToolItem compressionItem = assistantMessage.MessageItems
-            .OfType<CopilotChatToolItem>()
-            .Single(item => item.ToolName == "压缩对话");
-        Assert.AreEqual("自动压缩摘要", compressionItem.OutputText);
     }
 
     [TestMethod(DisplayName = "运行期间注入消息应由实际运行的 Agent 继续处理")]

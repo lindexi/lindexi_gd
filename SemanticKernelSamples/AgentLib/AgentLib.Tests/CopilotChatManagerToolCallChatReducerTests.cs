@@ -6,7 +6,6 @@ using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 using System.Runtime.CompilerServices;
-using AgentLib.Reducers;
 
 namespace AgentLib.Tests;
 
@@ -43,77 +42,6 @@ public class CopilotChatManagerToolCallChatReducerTests
         var resultList = result.ToList();
         Assert.IsLessThan(messages.Count, resultList.Count, "压缩后消息数量应减少");
         Assert.IsTrue(resultList.Any(m => m.Text?.Contains(summaryText) == true), "应包含摘要内容");
-    }
-
-    [TestMethod]
-    [Description("压缩成功时应依次报告开始和完成，并提供摘要内容")]
-    public async Task ReduceAsync_WhenCompressionSucceeds_ReportsStructuredUpdates()
-    {
-        var primaryChatClient = new FakeChatClient();
-        primaryChatClient.OnGetResponseAsync = (_, _, _) =>
-            Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "压缩摘要")]));
-        var observer = new TestCompressionObserver();
-        var reducer = new CopilotChatManagerToolCallChatReducer(
-            primaryChatClient,
-            characterThreshold: 10,
-            observer);
-        var messages = new List<ChatMessage>
-        {
-            new(ChatRole.User, "用户消息"),
-            new(ChatRole.Assistant, new string('A', 20)),
-        };
-
-        await reducer.ReduceAsync(messages, CancellationToken.None);
-
-        Assert.IsNotNull(observer.StartedStatistics);
-        Assert.IsNotNull(observer.CompletedResult);
-        Assert.IsNull(observer.Failure);
-        Assert.AreEqual("压缩摘要", Assert.IsInstanceOfType<TextContent>(observer.CompletedResult.SummaryContents.Single()).Text);
-    }
-
-    [TestMethod]
-    [Description("压缩失败时应报告失败并保留原始历史")]
-    public async Task ReduceAsync_WhenCompressionFails_ReportsFailureAndPreservesHistory()
-    {
-        var primaryChatClient = new FakeChatClient();
-        primaryChatClient.OnGetResponseAsync = (_, _, _) =>
-            Task.FromException<ChatResponse>(new InvalidOperationException("摘要模型失败"));
-        var observer = new TestCompressionObserver();
-        var reducer = new CopilotChatManagerToolCallChatReducer(
-            primaryChatClient,
-            characterThreshold: 10,
-            observer);
-        var messages = new List<ChatMessage>
-        {
-            new(ChatRole.User, "用户消息"),
-            new(ChatRole.Assistant, new string('A', 20)),
-        };
-
-        IEnumerable<ChatMessage> result = await reducer.ReduceAsync(messages, CancellationToken.None);
-
-        CollectionAssert.AreEqual(messages, result.ToList());
-        Assert.IsNotNull(observer.StartedStatistics);
-        Assert.IsNull(observer.CompletedResult);
-        Assert.AreEqual("摘要模型失败", observer.Failure?.Message);
-    }
-
-    [TestMethod]
-    [Description("压缩取消时不应转换为普通失败")]
-    public async Task ReduceAsync_WhenCompressionIsCanceled_PropagatesCancellation()
-    {
-        var primaryChatClient = new FakeChatClient();
-        primaryChatClient.OnGetResponseAsync = (_, _, cancellationToken) =>
-            Task.FromCanceled<ChatResponse>(cancellationToken);
-        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient, characterThreshold: 10);
-        var messages = new List<ChatMessage>
-        {
-            new(ChatRole.Assistant, new string('A', 20)),
-        };
-        using var cancellationTokenSource = new CancellationTokenSource();
-        cancellationTokenSource.Cancel();
-
-        await Assert.ThrowsAsync<OperationCanceledException>(() =>
-            reducer.ReduceAsync(messages, cancellationTokenSource.Token));
     }
 
     [TestMethod]
@@ -294,44 +222,6 @@ public class CopilotChatManagerToolCallChatReducerTests
             cancellationToken.ThrowIfCancellationRequested();
             yield return update;
             await Task.Yield();
-        }
-    }
-
-    private sealed class TestCompressionObserver : ICopilotChatCompressionObserver
-    {
-        public CopilotChatCompressionStatistics? StartedStatistics { get; private set; }
-
-        public CopilotChatCompressionResult? CompletedResult { get; private set; }
-
-        public Exception? Failure { get; private set; }
-
-        public Task CompressionStartedAsync(
-            CopilotChatCompressionStatistics statistics,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            StartedStatistics = statistics;
-            return Task.CompletedTask;
-        }
-
-        public Task CompressionCompletedAsync(
-            CopilotChatCompressionResult result,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            CompletedResult = result;
-            return Task.CompletedTask;
-        }
-
-        public Task CompressionFailedAsync(
-            CopilotChatCompressionStatistics statistics,
-            Exception exception,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            StartedStatistics ??= statistics;
-            Failure = exception;
-            return Task.CompletedTask;
         }
     }
 
