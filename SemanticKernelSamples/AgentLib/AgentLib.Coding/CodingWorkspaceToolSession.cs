@@ -1,3 +1,4 @@
+using AgentLib.Model;
 using AgentLib.Tools;
 
 using Microsoft.Extensions.AI;
@@ -17,6 +18,7 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
     ];
 
     private readonly IAsyncDisposable? _asyncDisposable;
+    private readonly IReadOnlyList<ICodingWorkspaceToolSource> _additionalToolSources;
     private readonly object _lifecycleLock = new();
     private readonly TaskCompletionSource _disposalCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private int _leaseCount;
@@ -26,7 +28,8 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
     internal CodingWorkspaceToolSession(
         string workspacePath,
         IReadOnlyList<ToolRegistration> registrations,
-        IAsyncDisposable? asyncDisposable = null)
+        IAsyncDisposable? asyncDisposable = null,
+        IReadOnlyList<ICodingWorkspaceToolSource>? additionalToolSources = null)
     {
 
         if (string.IsNullOrWhiteSpace(workspacePath))
@@ -37,6 +40,7 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
 
         WorkspacePath = workspacePath;
         _asyncDisposable = asyncDisposable;
+        _additionalToolSources = additionalToolSources ?? [];
         ToolRegistrations = Array.AsReadOnly(registrations.ToArray());
         Tools = Array.AsReadOnly(ToolRegistrations.Select(registration => registration.Tool).ToArray());
         ToolRegistrationRegistry = new ToolRegistrationRegistry(ToolRegistrations);
@@ -115,7 +119,8 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
             return new CodingWorkspaceToolSession(
                 fullWorkspacePath,
                 registrations,
-                roslynTools);
+                roslynTools,
+                additionalToolSources);
         }
         catch
         {
@@ -141,6 +146,30 @@ internal sealed class CodingWorkspaceToolSession : IAsyncDisposable
         }
 
         return new CodingWorkspaceToolLease(this);
+    }
+
+    internal CodingAgentToolSet CreateToolSet(CopilotChatMessage assistantChatMessage)
+    {
+        ArgumentNullException.ThrowIfNull(assistantChatMessage);
+        ToolRegistration[] runRegistrations = _additionalToolSources
+            .SelectMany(source => source.CreateRunToolRegistrations(WorkspacePath, assistantChatMessage))
+            .ToArray();
+        if (runRegistrations.Length == 0)
+        {
+            return new CodingAgentToolSet(Tools, ToolRegistrationRegistry);
+        }
+
+        IReadOnlyList<AITool> tools =
+        [
+            .. Tools,
+            .. runRegistrations.Select(registration => registration.Tool),
+        ];
+        ToolRegistrationRegistry registry = new(
+        [
+            .. ToolRegistrations,
+            .. runRegistrations,
+        ]);
+        return new CodingAgentToolSet(tools, registry);
     }
 
     internal Task Retire()
