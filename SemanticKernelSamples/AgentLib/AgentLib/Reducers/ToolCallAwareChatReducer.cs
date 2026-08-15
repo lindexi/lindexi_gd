@@ -18,7 +18,7 @@ namespace AgentLib;
 /// 等待工具执行完成后再由框架再次触发压缩。
 /// </para>
 /// </summary>
-internal sealed class ToolCallAwareChatReducer : IChatReducer
+public sealed class ToolCallAwareChatReducer : IChatReducer
 {
     private readonly IChatReducer _innerReducer;
 
