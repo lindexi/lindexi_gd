@@ -103,6 +103,7 @@ internal static class IntegrationPayloadBuilder
         }
         commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj", Path.Combine("app", "cli"), false));
         commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.ImeHost/XiaoXiIme.ImeHost.csproj", Path.Combine("app", "host"), false));
+        commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.ImeUi.Avalonia/XiaoXiIme.ImeUi.Avalonia.csproj", Path.Combine("app", "ui"), false));
         commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "tests/XiaoXiIme.IntegrationTestHost/XiaoXiIme.IntegrationTestHost.csproj", Path.Combine("app", "tests"), false));
         return commands;
     }
@@ -131,6 +132,7 @@ internal static class IntegrationPayloadBuilder
         new(Path.Combine(stagingDirectory, "native", "win-x64", "tools", "XiaoXiIme.TsfAbiHost.exe"), Path.Combine("native", "win-x64", "tools")),
         new(Path.Combine(stagingDirectory, "app", "cli", "XiaoXiIme.Cli.exe"), Path.Combine("app", "cli")),
         new(Path.Combine(stagingDirectory, "app", "host", "XiaoXiIme.ImeHost.exe"), Path.Combine("app", "host")),
+        new(Path.Combine(stagingDirectory, "app", "ui", "XiaoXiIme.ImeUi.Avalonia.exe"), Path.Combine("app", "ui")),
         new(Path.Combine(stagingDirectory, "app", "tests", "XiaoXiIme.IntegrationTestHost.exe"), Path.Combine("app", "tests")),
     ];
 

@@ -13,6 +13,10 @@ public sealed record CandidateWindowViewState(
     int AnchorX,
     int AnchorY)
 {
+    public string PageText => TotalPages > 1 ? $"{CurrentPage}/{TotalPages}" : string.Empty;
+
+    public bool HasGuideline => !string.IsNullOrWhiteSpace(GuidelineText);
+
     public static CandidateWindowViewState Hidden { get; } = new(
         IsVisible: false,
         CompositionText: string.Empty,

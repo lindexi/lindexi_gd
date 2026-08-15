@@ -1,13 +1,21 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.7" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.7" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\XiaoXiIme.Foundation\XiaoXiIme.Foundation.csproj" />
+    <ProjectReference Include="..\XiaoXiIme.ImeIpc\XiaoXiIme.ImeIpc.csproj" />
   </ItemGroup>
 
 </Project>
