@@ -1,6 +1,6 @@
 using Microsoft.Extensions.AI;
 
-namespace AgentLib;
+namespace AgentLib.Reducers;
 
 /// <summary>
 /// 装饰器模式的 <see cref="IChatReducer"/> 包装器，在工具调用尚未完成时跳过压缩。
