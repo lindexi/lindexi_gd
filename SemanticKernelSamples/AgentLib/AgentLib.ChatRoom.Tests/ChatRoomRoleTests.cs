@@ -1,4 +1,4 @@
-﻿using AgentLib.ChatRoom;
+using AgentLib.ChatRoom;
 using AgentLib.ChatRoom.Model;
 using AgentLib.Coding;
 using AgentLib.Core;
@@ -124,7 +124,10 @@ public sealed class ChatRoomRoleTests
         await using var role = new ChatRoomRole(
             definition,
             null,
-            new CodingChatRoomRoleExecutor(new CodingAgent($"missing-roslyn-{Guid.NewGuid():N}")));
+            new CodingChatRoomRoleExecutor(new CodingAgent(new CodingAgentOptions
+            {
+                LanguageServerCommand = $"missing-roslyn-{Guid.NewGuid():N}",
+            })));
         await using var manager = new ChatRoomManager();
         manager.RegisterRoleModelProviders(new Dictionary<string, ILanguageModelProvider>
         {

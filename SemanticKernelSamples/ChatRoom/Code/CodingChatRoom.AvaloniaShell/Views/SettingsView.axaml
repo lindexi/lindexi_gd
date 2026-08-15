@@ -120,6 +120,42 @@
 
                 <Border Classes="SettingsCard" Padding="24">
                     <StackPanel Spacing="20">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                            <Border Classes="SectionIcon">
+                                <TextBlock Text="MD"
+                                           FontSize="11"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryDarkBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="Copilot 自定义指令" Classes="SettingsSectionTitle" />
+                                <TextBlock Text="将 copilot-instructions.md 的内容追加到 Coding Agent 系统提示词。"
+                                           Classes="Subtitle"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="2"
+                                          IsChecked="{Binding IsCopilotInstructionsEnabled}"
+                                          OnContent="已启用"
+                                          OffContent="已禁用"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <StackPanel Spacing="6" IsEnabled="{Binding IsCopilotInstructionsEnabled}">
+                            <TextBlock Text="指令文件路径（可选）" Classes="SettingsLabel" />
+                            <TextBox Classes="Rounded SettingsInput"
+                                     Text="{Binding CopilotInstructionsPath}"
+                                     PlaceholderText="C:\Users\用户名\copilot-instructions.md" />
+                            <TextBlock Text="留空时使用当前用户目录下的 copilot-instructions.md；填写后使用指定的完整路径。"
+                                       Classes="SettingsHint"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="20">
                         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
                             <Border Classes="SectionIcon">
                                 <TextBlock Text="AI"

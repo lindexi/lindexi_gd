@@ -22,6 +22,8 @@ public sealed class SettingsViewModel : ViewModelBase
     private bool _isWindowsSandboxEnabled = true;
     private string _windowsSandboxToolPath = "WinRemoteShell.exe";
     private string _windowsSandboxServerAddress = "127.0.0.1:12399";
+    private bool _isCopilotInstructionsEnabled;
+    private string? _copilotInstructionsPath;
     private string? _statusMessage;
     private bool _isStatusError;
 
@@ -70,6 +72,18 @@ public sealed class SettingsViewModel : ViewModelBase
     {
         get => _windowsSandboxServerAddress;
         set => SetField(ref _windowsSandboxServerAddress, value);
+    }
+
+    public bool IsCopilotInstructionsEnabled
+    {
+        get => _isCopilotInstructionsEnabled;
+        set => SetField(ref _isCopilotInstructionsEnabled, value);
+    }
+
+    public string? CopilotInstructionsPath
+    {
+        get => _copilotInstructionsPath;
+        set => SetField(ref _copilotInstructionsPath, value);
     }
 
     public string? StatusMessage
@@ -140,6 +154,8 @@ public sealed class SettingsViewModel : ViewModelBase
         IsWindowsSandboxEnabled = snapshot.ShellSettings.IsWindowsSandboxEnabled;
         WindowsSandboxToolPath = snapshot.ShellSettings.WindowsSandboxToolPath;
         WindowsSandboxServerAddress = snapshot.ShellSettings.WindowsSandboxServerAddress;
+        IsCopilotInstructionsEnabled = snapshot.ShellSettings.IsCopilotInstructionsEnabled;
+        CopilotInstructionsPath = snapshot.ShellSettings.CopilotInstructionsPath;
 
         if (!string.IsNullOrWhiteSpace(snapshot.ModelConfigurationError))
         {
@@ -172,10 +188,14 @@ public sealed class SettingsViewModel : ViewModelBase
                 IsWindowsSandboxEnabled = IsWindowsSandboxEnabled,
                 WindowsSandboxToolPath = WindowsSandboxToolPath,
                 WindowsSandboxServerAddress = WindowsSandboxServerAddress,
+                IsCopilotInstructionsEnabled = IsCopilotInstructionsEnabled,
+                CopilotInstructionsPath = string.IsNullOrWhiteSpace(CopilotInstructionsPath)
+                    ? null
+                    : CopilotInstructionsPath.Trim(),
             };
 
             await _settingsService.SaveAsync(modelConfiguration, shellSettings).ConfigureAwait(true);
-            SetStatus("设置已保存。模型和沙箱配置将在下次启动时生效。", isError: false);
+            SetStatus("设置已保存。模型、系统提示词和沙箱配置将在下次启动时生效。", isError: false);
         }
         catch (ArgumentException exception)
         {
