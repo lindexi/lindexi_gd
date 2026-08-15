@@ -5,8 +5,14 @@ namespace AgentLib.Coding;
 
 internal static class CodingSystemPrompt
 {
-    internal static void EnsureSystemPromptInSession(AgentSession agentSession)
+    internal static async Task EnsureSystemPromptInSessionAsync
+    (
+        AgentSession agentSession,
+        string? copilotInstructionsPath,
+        CancellationToken cancellationToken
+    )
     {
+        ArgumentNullException.ThrowIfNull(agentSession);
         if (agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? messages)
             && messages.Any
             (message =>
@@ -17,10 +23,11 @@ internal static class CodingSystemPrompt
             return;
         }
 
-        var initializedMessages = new List<ChatMessage>((messages?.Count ?? 0) + 1)
+        string codePrompt = await BuildCodePromptAsync(copilotInstructionsPath, cancellationToken).ConfigureAwait(false);
+        var initializedMessages = new List<ChatMessage>((messages?.Count ?? 0) + 3)
         {
             new(ChatRole.System, SystemPrompt),
-            new(ChatRole.System, CodePrompt),
+            new(ChatRole.System, codePrompt),
             new(ChatRole.System, SandboxPrompt),
         };
         if (messages is not null)
@@ -29,6 +36,42 @@ internal static class CodingSystemPrompt
         }
 
         agentSession.SetInMemoryChatHistory(initializedMessages);
+    }
+
+    private static async Task<string> BuildCodePromptAsync
+    (
+        string? copilotInstructionsPath,
+        CancellationToken cancellationToken
+    )
+    {
+        if (string.IsNullOrWhiteSpace(copilotInstructionsPath))
+        {
+            return CodePrompt;
+        }
+
+        if (!File.Exists(copilotInstructionsPath))
+        {
+            throw new FileNotFoundException
+            (
+                $"未找到 Copilot 指令文件：{copilotInstructionsPath}",
+                copilotInstructionsPath
+            );
+        }
+
+        string instructions = await File
+            .ReadAllTextAsync(copilotInstructionsPath, cancellationToken)
+            .ConfigureAwait(false);
+
+
+        return string.IsNullOrWhiteSpace(instructions)
+            ? CodePrompt
+            : $"""
+               {CodePrompt}
+               
+               ```markdown {copilotInstructionsPath}
+               {instructions}
+               ```
+               """;
     }
 
     private const string SystemPrompt

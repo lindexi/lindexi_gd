@@ -205,6 +205,37 @@ public sealed class CodingAgentTests
         Assert.AreEqual(3, systemPromptCount);
     }
 
+    [TestMethod(DisplayName = "指定 Copilot 指令文件时应追加到代码系统提示词")]
+    [Timeout(10000)]
+    public async Task RunAsyncShouldAppendCopilotInstructionsToCodePrompt()
+    {
+        string instructionsPath = Path.Join(CreateTestDirectory(), "copilot-instructions.md");
+        const string instructions = "CUSTOM_COPILOT_INSTRUCTIONS";
+        await File.WriteAllTextAsync(instructionsPath, instructions);
+        var client = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (messages, _, cancellationToken) => ImmediateStreamAsync(
+                messages,
+                [],
+                cancellationToken),
+        };
+        CopilotChatManager chatManager = CreateChatManager(client);
+        await using var agent = new CodingAgent(CreateProvider("workspace", []), instructionsPath);
+
+        CodingAgentRunResult result = await agent.RunAsync(
+            await chatManager.CreateManualSendMessageContextAsync(),
+            "测试自定义指令",
+            "workspace");
+        await result.CompletionTask;
+
+        AgentSession agentSession = chatManager.SelectedSession.AgentSession!;
+        bool containsInstructions = agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? messages)
+                                    && messages.Any(message =>
+                                        message.Role == ChatRole.System
+                                        && message.Text.Contains(instructions, StringComparison.Ordinal));
+        Assert.IsTrue(containsInstructions);
+    }
+
     [TestMethod(DisplayName = "同一 CodingAgent 允许重叠运行")]
     [Timeout(10000)]
     public async Task RunAsyncShouldAllowOverlappingRuns()

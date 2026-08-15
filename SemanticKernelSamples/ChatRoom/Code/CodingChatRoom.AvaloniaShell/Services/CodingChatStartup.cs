@@ -19,9 +19,11 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 /// </summary>
 internal static class CodingChatStartup
 {
-    public static async Task<CodingChatRuntime> InitializeAsync(
+    public static async Task<CodingChatRuntime> InitializeAsync
+    (
         CodingChatRoomPaths paths,
-        IMainThreadDispatcher mainThreadDispatcher)
+        IMainThreadDispatcher mainThreadDispatcher
+    )
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(mainThreadDispatcher);
@@ -60,8 +62,11 @@ internal static class CodingChatStartup
                 shellSettings.WindowsSandboxServerAddress));
         }
 
-        var workspaceToolProvider = new CodingWorkspaceToolProvider(additionalToolSources: additionalToolSources);
-        var codingAgent = new CodingAgent(workspaceToolProvider);
+        var codingAgent = new CodingAgent(new CodingAgentOptions
+        {
+            AdditionalToolSources = additionalToolSources,
+            CopilotInstructionsPath = GetCopilotInstructionsPath(shellSettings),
+        });
         var workspaceController = new CodingWorkspaceController(
             new CodingAgentWorkspaceRuntime(codingAgent),
             mainThreadDispatcher);
@@ -73,7 +78,8 @@ internal static class CodingChatStartup
         var chatRunner = new CodingAgentChatRunner(chatManager, codingAgent);
         var application = new CodingChatApplication(chatManager, sessionStore, chatRunner, workspaceController);
 
-        return new CodingChatRuntime(
+        return new CodingChatRuntime
+        (
             paths,
             endpointManager,
             chatLogger,
@@ -81,6 +87,34 @@ internal static class CodingChatStartup
             codingAgent,
             primaryModel,
             application,
-            workspaceController);
+            workspaceController
+        );
+    }
+
+    private static string? GetCopilotInstructionsPath(CodingChatShellSettings shellSettings)
+    {
+        if (!shellSettings.IsCopilotInstructionsEnabled)
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(shellSettings.CopilotInstructionsPath))
+        {
+            var userCopilotInstructionsPath = Path.Join
+                (Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "copilot-instructions.md");
+            if (!File.Exists(userCopilotInstructionsPath))
+            {
+                // 如果不存在，那也不能炸掉。如果传入不存在的，在后续会炸掉
+                return null;
+            }
+            else
+            {
+                return userCopilotInstructionsPath;
+            }
+        }
+        else
+        {
+            return Path.GetFullPath(shellSettings.CopilotInstructionsPath);
+        }
     }
 }

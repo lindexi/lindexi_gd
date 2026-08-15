@@ -189,6 +189,9 @@ internal sealed class CodingChatRoomRoleExecutorFactory : IChatRoomRoleExecutorF
     public IChatRoomRoleExecutor Create(ChatRoomRoleExecutorCreationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return new CodingChatRoomRoleExecutor(new CodingAgent(_languageServerCommand));
+        return new CodingChatRoomRoleExecutor(new CodingAgent(new CodingAgentOptions
+        {
+            LanguageServerCommand = _languageServerCommand,
+        }));
     }
 }

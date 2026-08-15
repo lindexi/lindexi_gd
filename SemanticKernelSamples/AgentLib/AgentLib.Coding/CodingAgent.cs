@@ -14,28 +14,35 @@ namespace AgentLib.Coding;
 public sealed class CodingAgent : IAsyncDisposable
 {
     private readonly CodingWorkspaceToolProvider _toolProvider;
+    private readonly string? _copilotInstructionsPath;
     private readonly object _disposeSync = new();
     private readonly CancellationTokenSource _disposeCancellationTokenSource = new();
     private Task? _disposeTask;
     private int _isDisposed;
 
     /// <summary>
-    /// 创建编程代理。
+    /// 创建独占其工作区工具资源的编程代理。
     /// </summary>
-    /// <param name="languageServerCommand">Roslyn Language Server 启动命令。</param>
-    public CodingAgent(string languageServerCommand = "roslyn-language-server")
-        : this(new CodingWorkspaceToolProvider(languageServerCommand))
+    /// <param name="options">代理创建选项。</param>
+    public CodingAgent(CodingAgentOptions? options = null)
     {
-    }
+        options ??= new CodingAgentOptions();
+        if (string.IsNullOrWhiteSpace(options.LanguageServerCommand))
+        {
+            throw new ArgumentException("Language Server 启动命令不能为空。", nameof(options));
+        }
 
-    /// <summary>
-    /// 使用指定工作区工具提供器创建编程代理。
-    /// </summary>
-    /// <param name="toolProvider">工作区工具提供器。</param>
-    public CodingAgent(CodingWorkspaceToolProvider toolProvider)
-    {
-        ArgumentNullException.ThrowIfNull(toolProvider);
-        _toolProvider = toolProvider;
+        ArgumentNullException.ThrowIfNull(options.AdditionalToolSources);
+        ICodingWorkspaceToolSource[] additionalToolSources = [.. options.AdditionalToolSources];
+        if (additionalToolSources.Any(static source => source is null))
+        {
+            throw new ArgumentException("附加工作区工具源不能包含 null。", nameof(options));
+        }
+
+        _toolProvider = new CodingWorkspaceToolProvider(
+            options.LanguageServerCommand,
+            additionalToolSources);
+        _copilotInstructionsPath = options.CopilotInstructionsPath;
     }
 
     /// <summary>
@@ -274,7 +281,9 @@ public sealed class CodingAgent : IAsyncDisposable
 
             using IDisposable chatting = context.StartChatting();
             await context.AppendMessagesToSessionAsync();
-            CodingSystemPrompt.EnsureSystemPromptInSession(agentSession);
+            await CodingSystemPrompt
+                .EnsureSystemPromptInSessionAsync(agentSession, _copilotInstructionsPath, cancellationToken)
+                .ConfigureAwait(false);
             ChatMessage[] inputMessages =
             [
                 new ChatMessage(ChatRole.User, new List<AIContent>(contents)),
