@@ -1,11 +1,11 @@
 ﻿using AgentLib.Core;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using AgentLib.Reducers;
 
 #pragma warning disable MAAI001
 

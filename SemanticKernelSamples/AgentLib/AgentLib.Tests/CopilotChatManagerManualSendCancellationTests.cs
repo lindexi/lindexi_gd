@@ -7,6 +7,7 @@ using Microsoft.Extensions.AI;
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using AgentLib.Reducers;
 
 #pragma warning disable MAAI001
 

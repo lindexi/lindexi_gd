@@ -1,6 +1,6 @@
 using Microsoft.Extensions.AI;
 
-namespace AgentLib;
+namespace AgentLib.Reducers;
 
 /// <summary>
 /// 针对尾部连续 Assistant+Tool 消息块的 LLM 摘要压缩器。

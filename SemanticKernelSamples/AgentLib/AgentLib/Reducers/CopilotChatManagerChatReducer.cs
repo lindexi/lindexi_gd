@@ -1,6 +1,6 @@
 using Microsoft.Extensions.AI;
 
-namespace AgentLib;
+namespace AgentLib.Reducers;
 
 /// <summary>
 /// 基于 LLM 摘要的 <see cref="IChatReducer"/> 实现。
