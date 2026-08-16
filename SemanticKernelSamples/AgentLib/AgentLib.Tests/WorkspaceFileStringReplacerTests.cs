@@ -93,6 +93,47 @@ public class WorkspaceFileStringReplacerTests
     }
 
     [TestMethod]
+    [DataRow("\r", "\r")]
+    [DataRow("\r", "\n")]
+    [DataRow("\r", "\r\n")]
+    [DataRow("\n", "\r")]
+    [DataRow("\n", "\n")]
+    [DataRow("\n", "\r\n")]
+    [DataRow("\r\n", "\r")]
+    [DataRow("\r\n", "\n")]
+    [DataRow("\r\n", "\r\n")]
+    [Description("文件内容与 oldString 使用任意换行符组合时应替换成功")]
+    public void ReplaceInContent_WhenNewlineStylesDiffer_ReturnsSuccess(string contentNewLine, string oldStringNewLine)
+    {
+        var replacer = new WorkspaceFileStringReplacer();
+        string content = $"line1{contentNewLine}line2{contentNewLine}line3";
+
+        var outcome = replacer.ReplaceInContent(
+            content,
+            $"line1{oldStringNewLine}line2",
+            "replaced\rremaining",
+            "test.txt");
+
+        Assert.AreEqual($"replaced\rremaining{contentNewLine}line3", outcome.NewContent);
+    }
+
+    [TestMethod]
+    [Description("每处换行符样式不同也应替换成功")]
+    public void ReplaceInContent_WhenEachNewlineStyleDiffers_ReturnsSuccess()
+    {
+        var replacer = new WorkspaceFileStringReplacer();
+        string content = "line1\rline2\nline3\r\nline4";
+
+        var outcome = replacer.ReplaceInContent(
+            content,
+            "line1\nline2\r\nline3\rline4",
+            "replaced",
+            "test.txt");
+
+        Assert.AreEqual("replaced", outcome.NewContent);
+    }
+
+    [TestMethod]
     [Description("替换整个文件内容应成功")]
     public void ReplaceInContent_WhenOldStringIsEntireContent_ReturnsSuccess()
     {

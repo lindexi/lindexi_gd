@@ -19,7 +19,17 @@ public sealed class WorkspaceFileStringReplacer
     /// <returns>替换操作的结果，包含是否成功、消息以及替换后的新内容。</returns>
     public StringReplaceOutcome ReplaceInContent(string content, string oldString, string newString, string displayPath)
     {
-        int occurrenceCount = CountOccurrences(content, oldString);
+        ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(oldString);
+        ArgumentNullException.ThrowIfNull(newString);
+        ArgumentNullException.ThrowIfNull(displayPath);
+
+        if (oldString.Length == 0)
+        {
+            throw new ArgumentException("要替换的原始文本不能为空。", nameof(oldString));
+        }
+
+        int occurrenceCount = CountOccurrences(content, oldString, out int matchStart, out int matchLength);
 
         if (occurrenceCount == 0)
         {
@@ -37,32 +47,85 @@ public sealed class WorkspaceFileStringReplacer
                 NewContent: null);
         }
 
-        string newContent = content.Replace(oldString, newString, StringComparison.Ordinal);
+        string newContent = string.Concat(content.AsSpan(0, matchStart), newString, content.AsSpan(matchStart + matchLength));
         return new StringReplaceOutcome(
             Success: true,
             Message: "OK",
             NewContent: newContent);
     }
 
-    private static int CountOccurrences(string content, string value)
+    private static int CountOccurrences(string content, string value, out int matchStart, out int matchLength)
     {
         int count = 0;
-        int index = 0;
+        int searchStart = 0;
+        matchStart = -1;
+        matchLength = 0;
 
-        while (index <= content.Length - value.Length)
+        while (TryFindNext(content, value, searchStart, out int foundStart, out int foundLength))
         {
-            int found = content.IndexOf(value, index, StringComparison.Ordinal);
-            if (found < 0)
-            {
-                break;
-            }
-
             count++;
-            index = found + value.Length;
+            matchStart = foundStart;
+            matchLength = foundLength;
+            searchStart = foundStart + foundLength;
         }
 
         return count;
     }
+
+    private static bool TryFindNext(string content, string value, int searchStart, out int matchStart, out int matchLength)
+    {
+        for (int candidate = searchStart; candidate < content.Length; candidate++)
+        {
+            if (TryMatchAt(content, value, candidate, out matchLength))
+            {
+                matchStart = candidate;
+                return true;
+            }
+        }
+
+        matchStart = -1;
+        matchLength = 0;
+        return false;
+    }
+
+    private static bool TryMatchAt(string content, string value, int contentIndex, out int matchLength)
+    {
+        int matchStart = contentIndex;
+        int valueIndex = 0;
+
+        while (valueIndex < value.Length && contentIndex < content.Length)
+        {
+            if (IsNewLine(value[valueIndex]))
+            {
+                if (!IsNewLine(content[contentIndex]))
+                {
+                    matchLength = 0;
+                    return false;
+                }
+
+                valueIndex += GetNewLineLength(value, valueIndex);
+                contentIndex += GetNewLineLength(content, contentIndex);
+                continue;
+            }
+
+            if (value[valueIndex] != content[contentIndex])
+            {
+                matchLength = 0;
+                return false;
+            }
+
+            valueIndex++;
+            contentIndex++;
+        }
+
+        matchLength = contentIndex - matchStart;
+        return valueIndex == value.Length;
+    }
+
+    private static bool IsNewLine(char character) => character is '\r' or '\n';
+
+    private static int GetNewLineLength(string value, int index)
+        => value[index] == '\r' && index + 1 < value.Length && value[index + 1] == '\n' ? 2 : 1;
 }
 
 /// <summary>
