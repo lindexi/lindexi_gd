@@ -25,7 +25,10 @@ public class CopilotChatManagerToolCallChatReducerTests
             return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, summaryText)]));
         };
 
-        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient, characterThreshold: 50);
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 50,
+        };
 
         // 构造超过阈值的尾部块（每条消息20字符，总计80字符 > 50）
         var messages = new List<ChatMessage>
@@ -57,7 +60,11 @@ public class CopilotChatManagerToolCallChatReducerTests
         {
             OnGetResponseAsync = (_, _, _) => Task.FromResult(new ChatResponse(responseMessages)),
         };
-        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient, characterThreshold: 1);
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 1,
+            ForcedCompressionTokenCountThreshold = 1,
+        };
         int startedCount = 0;
         IReadOnlyList<ChatMessage>? completedMessages = null;
         reducer.CompressionStarted += (_, _) => startedCount++;
@@ -79,7 +86,11 @@ public class CopilotChatManagerToolCallChatReducerTests
         {
             OnGetResponseAsync = (_, _, _) => Task.FromException<ChatResponse>(expectedException),
         };
-        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient, characterThreshold: 1);
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 1,
+            ForcedCompressionTokenCountThreshold = 1,
+        };
         Exception? actualException = null;
         reducer.CompressionFailed += (_, exception) => actualException = exception;
 
@@ -101,7 +112,10 @@ public class CopilotChatManagerToolCallChatReducerTests
             return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "摘要")]));
         };
 
-        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient, characterThreshold: 10000);
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 10000,
+        };
 
         var messages = new List<ChatMessage>
         {
@@ -115,6 +129,188 @@ public class CopilotChatManagerToolCallChatReducerTests
         Assert.IsNotNull(result);
         var resultList = result.ToList();
         Assert.HasCount(messages.Count, resultList, "未超过阈值时消息数量应保持不变");
+    }
+
+    [TestMethod]
+    public async Task ReduceAsync_WhenUsageDetailsHasValue_UsesUsageForEarlierMessages()
+    {
+        bool reducerCalled = false;
+        var primaryChatClient = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) =>
+            {
+                reducerCalled = true;
+                return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "摘要")]));
+            },
+        };
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 10_500,
+        };
+        var messages = new List<ChatMessage>
+        {
+            new(ChatRole.Assistant, new string('A', 20_000)),
+            new(ChatRole.Assistant,
+            [
+                new TextContent(new string('B', 20_000)),
+                new UsageContent(new UsageDetails { TotalTokenCount = 100 }),
+            ]),
+            new(ChatRole.Assistant, new string('C', 10_000)),
+        };
+
+        var result = await reducer.ReduceAsync(messages, CancellationToken.None);
+
+        Assert.IsFalse(reducerCalled);
+        Assert.AreSame(messages[0], result.First());
+    }
+
+    [TestMethod]
+    public async Task ReduceAsync_WhenLastMessageIsUser_DoesNotCompress()
+    {
+        bool reducerCalled = false;
+        var primaryChatClient = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) =>
+            {
+                reducerCalled = true;
+                return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "摘要")]));
+            },
+        };
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 1,
+            ForcedCompressionTokenCountThreshold = 20_000,
+        };
+        var messages = new List<ChatMessage>
+        {
+            new(ChatRole.Assistant, new string('A', 10_000)),
+            new(ChatRole.User, "继续"),
+        };
+
+        await reducer.ReduceAsync(messages, CancellationToken.None);
+
+        Assert.IsFalse(reducerCalled);
+    }
+
+    [TestMethod]
+    public async Task ReduceAsync_WhenLastAssistantMessageIsShort_DoesNotCompress()
+    {
+        bool reducerCalled = false;
+        var primaryChatClient = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) =>
+            {
+                reducerCalled = true;
+                return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "摘要")]));
+            },
+        };
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 1,
+            ForcedCompressionTokenCountThreshold = 20_000,
+        };
+        var messages = new List<ChatMessage>
+        {
+            new(ChatRole.Tool, [new FunctionResultContent("call1", new string('A', 10_000))]),
+            new(ChatRole.Assistant, "完成"),
+        };
+
+        await reducer.ReduceAsync(messages, CancellationToken.None);
+
+        Assert.IsFalse(reducerCalled);
+    }
+
+    [TestMethod]
+    public async Task ReduceAsync_WhenContentFollowsTotalTokenCount_IncludesFollowingContent()
+    {
+        bool reducerCalled = false;
+        var primaryChatClient = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) =>
+            {
+                reducerCalled = true;
+                return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "摘要")]));
+            },
+        };
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 10_000,
+            ForcedCompressionTokenCountThreshold = 20_000,
+        };
+        var messages = new List<ChatMessage>
+        {
+            new(ChatRole.Assistant,
+            [
+                new UsageContent(new UsageDetails { TotalTokenCount = 100 }),
+                new TextContent(new string('A', 10_000)),
+            ]),
+            new(ChatRole.Tool, [new FunctionResultContent("call1", "工具结果")]),
+        };
+
+        await reducer.ReduceAsync(messages, CancellationToken.None);
+
+        Assert.IsTrue(reducerCalled);
+    }
+
+    [TestMethod]
+    public async Task ReduceAsync_WhenContentFollowsOutputTokenCount_IncludesFollowingContent()
+    {
+        bool reducerCalled = false;
+        var primaryChatClient = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) =>
+            {
+                reducerCalled = true;
+                return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "摘要")]));
+            },
+        };
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 1,
+            ForcedCompressionTokenCountThreshold = 20_000,
+        };
+        var messages = new List<ChatMessage>
+        {
+            new(ChatRole.Tool, [new FunctionResultContent("call1", "工具结果")]),
+            new(ChatRole.Assistant,
+            [
+                new TextContent("完成"),
+                new UsageContent(new UsageDetails { OutputTokenCount = 9_999 }),
+                new TextContent("A"),
+            ]),
+        };
+
+        await reducer.ReduceAsync(messages, CancellationToken.None);
+
+        Assert.IsTrue(reducerCalled);
+    }
+
+    [TestMethod]
+    public async Task ReduceAsync_WhenMaximumLengthReached_CompressesDespiteLastUserMessage()
+    {
+        bool reducerCalled = false;
+        var primaryChatClient = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) =>
+            {
+                reducerCalled = true;
+                return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "摘要")]));
+            },
+        };
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 1,
+            ForcedCompressionTokenCountThreshold = 10_000,
+        };
+        var messages = new List<ChatMessage>
+        {
+            new(ChatRole.Assistant, new string('A', 10_000)),
+            new(ChatRole.User, "继续"),
+        };
+
+        await reducer.ReduceAsync(messages, CancellationToken.None);
+
+        Assert.IsTrue(reducerCalled);
     }
 
     [TestMethod]
@@ -144,14 +340,17 @@ public class CopilotChatManagerToolCallChatReducerTests
             return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, summaryText)]));
         };
 
-        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient, characterThreshold: 50);
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 50,
+        };
 
         var messages = new List<ChatMessage>
         {
             new ChatMessage(ChatRole.User, "用户消息"),
             new ChatMessage(ChatRole.Assistant, new string('A', 20)),
             new ChatMessage(ChatRole.Assistant, new string('B', 20)),
-            new ChatMessage(ChatRole.Assistant, new string('C', 20)),
+            new ChatMessage(ChatRole.Assistant, new string('C', 10_000)),
         };
 
         var result = await reducer.ReduceAsync(messages, CancellationToken.None);
@@ -174,7 +373,10 @@ public class CopilotChatManagerToolCallChatReducerTests
             return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, summaryText)]));
         };
 
-        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient, characterThreshold: 50);
+        var reducer = new CopilotChatManagerToolCallChatReducer(primaryChatClient)
+        {
+            ConditionalCompressionTokenCountThreshold = 50,
+        };
 
         var messages = new List<ChatMessage>
         {
@@ -182,7 +384,7 @@ public class CopilotChatManagerToolCallChatReducerTests
             new ChatMessage(ChatRole.User, "用户消息"),
             new ChatMessage(ChatRole.Assistant, "助手回复1"),
             new ChatMessage(ChatRole.Tool, [new FunctionResultContent("call1", "工具结果1")]),
-            new ChatMessage(ChatRole.Assistant, "助手回复2"),
+            new ChatMessage(ChatRole.Assistant, new string('A', 10_000)),
         };
 
         var result = await reducer.ReduceAsync(messages, CancellationToken.None);

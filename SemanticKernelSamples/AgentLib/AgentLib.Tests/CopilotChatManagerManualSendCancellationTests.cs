@@ -765,7 +765,7 @@ public class CopilotChatManagerManualSendCancellationTests
     {
         cancellationToken.ThrowIfCancellationRequested();
         yield return CopilotChatManagerTestContext.AssistantText(
-            new string('A', CopilotChatManagerToolCallChatReducer.DefaultCharacterThreshold));
+            new string('A', CopilotChatManagerToolCallChatReducer.DefaultConditionalCompressionTokenCountThreshold));
         await Task.Yield();
 
         await foreach (ChatResponseUpdate update in CreateToolCallStreamAsync(options, cancellationToken).ConfigureAwait(false))

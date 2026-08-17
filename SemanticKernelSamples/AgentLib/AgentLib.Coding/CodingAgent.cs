@@ -39,9 +39,11 @@ public sealed class CodingAgent : IAsyncDisposable
             throw new ArgumentException("附加工作区工具源不能包含 null。", nameof(options));
         }
 
-        _toolProvider = new CodingWorkspaceToolProvider(
+        _toolProvider = new CodingWorkspaceToolProvider
+        (
             options.LanguageServerCommand,
-            additionalToolSources);
+            additionalToolSources
+        );
         _copilotInstructionsPath = options.CopilotInstructionsPath;
     }
 
@@ -138,17 +140,24 @@ public sealed class CodingAgent : IAsyncDisposable
                     options.RequirePerServiceCallChatHistoryPersistence = true;
                     if (enableAutomaticCompression)
                     {
-                        var reducer = new CopilotChatManagerToolCallChatReducer(
-                            context.ChatClient,
-                            characterThreshold: 200_000);
-                        _ = new CompressionToolCallObserver(
+                        var reducer = new CopilotChatManagerToolCallChatReducer(context.ChatClient)
+                        {
+                            ConditionalCompressionTokenCountThreshold = 200_000,
+                            ForcedCompressionTokenCountThreshold = 300_000,
+                        };
+                        _ = new CompressionToolCallObserver
+                        (
                             context.AssistantChatMessage,
                             context.MainThreadDispatcher,
-                            reducer);
-                        options.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions
-                        {
-                            ChatReducer = new ToolCallAwareChatReducer(reducer),
-                        });
+                            reducer
+                        );
+                        options.ChatHistoryProvider = new InMemoryChatHistoryProvider
+                        (
+                            new InMemoryChatHistoryProviderOptions
+                            {
+                                ChatReducer = new ToolCallAwareChatReducer(reducer),
+                            }
+                        );
                     }
                     else
                     {

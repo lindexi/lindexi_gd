@@ -1,6 +1,7 @@
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Model;
+using AgentLib.Reducers;
 using AgentLib.Tools;
 
 using Microsoft.Agents.AI;
@@ -527,7 +528,11 @@ public sealed class CodingAgentTests
                 new ChatMessage(ChatRole.Assistant, "摘要二"),
             ])),
         };
-        var reducer = new CopilotChatManagerToolCallChatReducer(client, characterThreshold: 1);
+        var reducer = new CopilotChatManagerToolCallChatReducer(client)
+        {
+            ConditionalCompressionTokenCountThreshold = 1,
+            ForcedCompressionTokenCountThreshold = 1,
+        };
         var assistantMessage = CopilotChatMessage.CreateAssistant(
             CopilotChatMessage.PlaceholderContent,
             isPresetInfo: false);
@@ -549,7 +554,11 @@ public sealed class CodingAgentTests
         {
             OnGetResponseAsync = (_, _, _) => Task.FromException<ChatResponse>(expectedException),
         };
-        var reducer = new CopilotChatManagerToolCallChatReducer(client, characterThreshold: 1);
+        var reducer = new CopilotChatManagerToolCallChatReducer(client)
+        {
+            ConditionalCompressionTokenCountThreshold = 1,
+            ForcedCompressionTokenCountThreshold = 1,
+        };
         var assistantMessage = CopilotChatMessage.CreateAssistant(
             CopilotChatMessage.PlaceholderContent,
             isPresetInfo: false);
