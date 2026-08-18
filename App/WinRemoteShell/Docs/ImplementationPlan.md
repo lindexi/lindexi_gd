@@ -6,7 +6,7 @@
 
 - 单个 `Microsoft.NET.Sdk.Web` 项目同时承载 Server 与 Client。
 - 使用 DotNetCampus.CommandLine 的 Command/CommandHandler 模式完成命令分发。
-- Server 维护一个长期运行且可自动重启的 `cmd.exe`。
+- Server 为每次 `exec` 创建独立目标进程，并维护一个仅供 `shell`、`cd`、`ls` 使用且可自动重启的 `cmd.exe`。
 - 支持 `server`、`exec`、`shell`、`push`、`pull`、`screenshot` 命令。
 - 支持 Windows 服务安装与卸载。
 - 保持 Native AOT 兼容。
@@ -82,7 +82,7 @@ WinRemoteShell/
 - `--timeout`
 - `--` 后的位置参数数组
 
-Client 将参数数组和超时值作为 JSON POST 到 `/exec`。Server 将数组写入长期运行的 `cmd.exe`，通过唯一结束标记识别本次命令结束，并以流式 HTTP 响应返回输出。超时后先尝试发送 Ctrl+C，未结束则重启 cmd。
+Client 将参数数组和超时值作为 JSON POST 到 `/exec`。Server 将第一项作为可执行文件，其余项通过 `ProcessStartInfo.ArgumentList` 逐项传入，每次请求创建独立进程。stdout/stderr 合并为流式 HTTP 响应；超时或请求取消时终止该进程树。需要 cmd 语法时由用户显式传入 `cmd.exe /D /C ...`。
 
 ### 4.3 shell
 
@@ -123,27 +123,35 @@ Server 捕获当前桌面并返回 PNG。Client 未指定输出时在当前目�
 
 ## 5. 共享协议
 
+- `ls` 通过可选 `path` 查询参数指定目录；相对路径基于远端当前工作目录解析，列举操作不修改当前目录。
 - `ExecRequest`：参数数组与可选超时秒数。
 - 文件上传通过请求头传递远端目标路径和文件/目录类型，请求体承载原始文件流或 ZIP 流。
 - 文件下载通过查询参数传递远端源路径，通过响应头说明文件/目录类型及建议文件名。
 - 截图为 `image/png` 流。
 - JSON DTO 注册进 `JsonSerializerContext`，保持 Native AOT 兼容。
 
-## 6. CmdProcess
+## 6. 进程执行
 
-- Server 生命周期内注册为单例。
+### 6.1 DirectProcessExecutor
+
+- 每次 exec 创建独立 `Process`。
+- 第一项参数为可执行文件，其余参数加入 `ArgumentList`，不经过 shell 拼接。
+- 并行读取 stdout/stderr 并写入同一输出通道。
+- 超时或 HTTP 请求取消时终止整个进程树。
+- 使用全局 cmd 当前目录作为目标进程的启动目录。
+
+### 6.2 CmdProcess
+
+- Server 生命周期内注册为单例，仅供 shell、cd 和 ls 使用。
 - 启动 `cmd.exe` 并重定向 stdin/stdout/stderr。
-- stdout 和 stderr 汇入同一输出流，避免两个独立读取器导致命令边界难以关联。
-- 每次 exec 写入命令参数和唯一结束标记，并流式读取到该标记。
 - 进程意外退出时，在下一次操作前自动创建新进程。
-- shell 与 exec 使用同一进程，从而共享工作目录和环境状态。
 - 实现 `IAsyncDisposable`，Host 停止时释放进程。
 
 ## 7. Server Host
 
 - 使用 `WebApplication.CreateSlimBuilder`。
 - Kestrel 监听明确选择的端口。
-- 注册 `CmdProcess` 单例和 AOT JSON 上下文。
+- 注册 `CmdProcess`、`DirectProcessExecutor` 和 AOT JSON 上下文。
 - 映射五个 Endpoint。
 - 普通 CLI 运行等待应用停止；测试可直接创建、启动和停止真实 Host。
 
@@ -169,13 +177,16 @@ Server 捕获当前桌面并返回 PNG。Client 未指定输出时在当前目�
 
 每个测试使用独立回环端口、真实 `ServerHost` 和随机临时目录：
 
-- Exec：执行 `echo` 并验证真实流式输出。
-- Exec 状态：执行 `cd` 后再次执行 `cd`，验证同一 cmd 状态保留。
+- List：验证默认目录、绝对目录、相对目录以及列举后当前目录保持不变。
+- Exec：直接执行真实应用并验证流式输出。
+- Exec 参数：验证参数逐项传递，不依赖隐式 shell。
+- Exec cmd 兼容：显式执行 `cmd.exe /D /C` 并验证内置命令可用。
+- Exec 工作目录：通过 `cd` 修改全局当前目录后，验证独立进程从该目录启动。
 - Push 文件：真实上传文件并核对内容。
 - Push 目录：真实上传嵌套目录并核对内容。
 - Pull 文件：真实下载文件并核对内容。
 - Pull 目录：真实下载嵌套目录并核对内容。
-- Shell：真实 WebSocket 发送命令并读取输出，关闭后再用 exec 验证 cmd 仍存活。
+- Shell：真实 WebSocket 发送命令并读取输出，关闭后验证独立 exec 仍可用。
 - Screenshot：真实保存 PNG，并验证 PNG 文件头。
 
 测试不 Mock `HttpClient`、WebSocket、文件系统、ASP.NET Core Host 或 `CmdProcess`。截图测试依赖交互式 Windows 桌面；运行环境不支持时由真实调用报告失败，不用伪造截图替代。
@@ -185,7 +196,7 @@ Server 捕获当前桌面并返回 PNG。Client 未指定输出时在当前目�
 1. 建立命令模型和 CommandHandler，替换模板入口。
 2. 实现服务器地址解析、可用端口选择及服务启动参数生成。
 3. 实现共享 DTO、AOT JSON 上下文和 Server Host。
-4. 实现 CmdProcess、exec Endpoint 与 ExecClient。
+4. 实现 DirectProcessExecutor、CmdProcess、exec Endpoint 与 ExecClient。
 5. 实现 shell WebSocket Endpoint 与 ShellClient。
 6. 实现 push 文件/目录上传。
 7. 实现 pull 文件/目录下载。
@@ -199,7 +210,7 @@ Server 捕获当前桌面并返回 PNG。Client 未指定输出时在当前目�
 
 - 《Commands.md》中列出的全部命令可用。
 - 自动端口会输出，并在服务安装时持久化为实际端口。
-- exec、shell 共享同一 cmd 状态。
+- exec 直接启动目标应用；shell 使用独立的长期 cmd，二者仅共享远端当前工作目录。
 - 文件和目录可真实 push/pull。
 - 截图可真实保存为 PNG。
 - 默认测试不修改 Windows 服务状态，其余核心路径均由真实集成测试覆盖。

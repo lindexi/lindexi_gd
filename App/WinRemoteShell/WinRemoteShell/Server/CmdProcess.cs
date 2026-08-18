@@ -76,21 +76,6 @@ public sealed class CmdProcess : IAsyncDisposable
         }
     }
 
-    public async Task InterruptOrRestartAsync(CancellationToken cancellationToken = default)
-    {
-        EnsureStarted();
-        await _process!.StandardInput.WriteAsync("\u0003".AsMemory(), cancellationToken);
-        await _process.StandardInput.FlushAsync(cancellationToken);
-        await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
-        Restart();
-    }
-
-    public void Restart()
-    {
-        Stop();
-        Start();
-    }
-
     public ValueTask DisposeAsync()
     {
         Stop();

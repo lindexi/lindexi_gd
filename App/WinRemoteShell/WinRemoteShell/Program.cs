@@ -11,4 +11,6 @@ await commandLine
     .AddHandler<PushCommand>()
     .AddHandler<PullCommand>()
     .AddHandler<ScreenshotCommand>()
+    .AddHandler<ProcessListCommand>()
+    .AddHandler<KillCommand>()
     .RunAsync();

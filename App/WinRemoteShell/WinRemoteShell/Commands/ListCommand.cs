@@ -10,9 +10,12 @@ internal sealed class ListCommand : ICommandHandler
     [Option("server")]
     public string? Server { get; init; }
 
+    [Value(0)]
+    public string? Path { get; init; }
+
     public async Task<int> RunAsync()
     {
-        var listing = await ListClient.ListAsync(ServerAddressResolver.Resolve(Server));
+        var listing = await ListClient.ListAsync(ServerAddressResolver.Resolve(Server), Path);
         foreach (var entry in listing.Entries)
         {
             Console.WriteLine(entry.Name);

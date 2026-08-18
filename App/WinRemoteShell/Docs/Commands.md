@@ -15,7 +15,7 @@ WinRemoteShell 是一个单 exe 工具，通过命令行参数切换角色——
 
 ## Server 端命令
 
-启动 ASP.NET Core 服务监听，维护一个全局的 `cmd.exe` 进程。
+启动 ASP.NET Core 服务监听。服务维护一个供 `shell`、`cd` 和 `ls` 使用的全局 `cmd.exe`；每次 `exec` 则创建独立目标进程。
 
 ### `server` — 启动监听
 
@@ -49,6 +49,28 @@ WinRemoteShell.exe server --uninstall-service
 
 ## Client 端命令
 
+### `ls` — 列举远端目录
+
+```
+WinRemoteShell.exe ls
+WinRemoteShell.exe ls C:\Windows
+WinRemoteShell.exe ls ..\logs
+WinRemoteShell.exe ls --server 10.0.0.5:12399 "C:\Program Files"
+```
+
+| 参数 | 必需 | 说明 |
+|------|------|------|
+| `--server` | 否 | 服务器地址（`ip:port`），可从环境变量读取 |
+| `path` | 否 | 要列举的远端目录；不传时使用远端当前工作目录 |
+
+**行为**：
+
+- 绝对路径直接使用
+- 相对路径基于远端当前工作目录解析
+- 仅列举指定目录，不改变远端当前工作目录
+- 输出目录中的文件和子目录名称
+- 服务端返回包含完整路径、类型、大小和时间信息的结构化数据，由客户端负责格式化输出
+
 ### `exec` — 远程执行命令
 
 ```
@@ -60,22 +82,28 @@ WinRemoteShell.exe exec --server 10.0.0.5:12399 --timeout 30 -- <command>
 | 参数 | 必需 | 说明 |
 |------|------|------|
 | `--server` | 否 | 服务器地址（`ip:port`），可从环境变量读取 |
-| `--timeout` | 否 | 超时秒数。超时后向远端 cmd 发送 `Ctrl+C`，终止失败则强杀 cmd 并重启 |
-| `--` 之后的内容 | 是 | 要执行的命令，原样传递给远端 `cmd.exe` |
+| `--timeout` | 否 | 超时秒数。超时后终止本次启动的进程及其进程树 |
+| `--` 之后的内容 | 是 | 第一个参数是要直接启动的应用，其余参数逐项传递给该应用 |
 
 **行为**：
 
-- 通过 HTTP chunked streaming 实时返回 stdout/stderr
-- 每次 `exec` 都在同一个远端 `cmd.exe` 进程中执行，状态保留（如 `cd` 后环境持续生效）
-- 客户端 `Ctrl+C` 会断开 HTTP 连接，远端命令可能继续执行（取决于命令自身行为）
+- Server 不再隐式使用 `cmd.exe`，而是直接启动第一个参数指定的可执行文件
+- 参数通过 `ProcessStartInfo.ArgumentList` 逐项传递，不会先拼接为命令行，也不会进行 shell 展开
+- stdout 和 stderr 通过 HTTP chunked streaming 实时返回
+- 每次 `exec` 使用独立进程，不保留上一次执行的环境变量或进程状态
+- 工作目录取自远端 `cd`/`shell` 维护的当前目录
+- 超时或客户端取消请求时，终止本次进程及其进程树，不影响全局交互式 `cmd.exe`
+- `dir`、`echo`、管道、重定向和环境变量展开等 cmd 内置语法必须显式使用 `cmd.exe /D /C`
 
 **示例**：
 
 ```
-WinRemoteShell.exe exec -- dir C:\
-WinRemoteShell.exe exec -- cd C:\Windows
-WinRemoteShell.exe exec -- dir                  # 列出 C:\Windows
-WinRemoteShell.exe exec --timeout 10 -- ping -t 127.0.0.1
+WinRemoteShell.exe exec -- whoami.exe
+WinRemoteShell.exe exec -- ping.exe -n 4 127.0.0.1
+WinRemoteShell.exe exec -- dotnet.exe --info
+WinRemoteShell.exe exec --timeout 10 -- ping.exe -t 127.0.0.1
+WinRemoteShell.exe exec -- cmd.exe /D /C dir C:\
+WinRemoteShell.exe exec -- cmd.exe /D /C "echo %TEMP% & dir"
 ```
 
 ### `shell` — 交互式 Shell
@@ -90,7 +118,8 @@ WinRemoteShell.exe shell --server 10.0.0.5:12399
 **行为**：
 
 - 进入后获得远端 cmd 提示符，可连续输入命令
-- 与 `exec` 共享同一个 `cmd.exe` 进程——`shell` 退出后，`exec` 可以继续在相同状态下工作
+- `shell` 使用长期运行的全局 `cmd.exe`；`exec` 使用独立进程，不与 shell 共享 stdin/stdout 或环境状态
+- shell 中改变的工作目录会作为后续 `exec` 独立进程的启动目录
 - 输入 `exit` 退出交互式 Shell（不杀远端 cmd）
 
 ### `push` — 上传文件/文件夹
@@ -143,6 +172,45 @@ WinRemoteShell.exe screenshot --server 10.0.0.5:12399 --output "C:\screenshots\"
 
 - Server 端截取当前屏幕，返回 PNG 图片
 - 文件名自动生成格式：`screenshot_YYYYMMDD_HHmmss.png`
+
+### `ps` — 列举远端进程
+
+```
+WinRemoteShell.exe ps
+WinRemoteShell.exe ps --details
+WinRemoteShell.exe ps --json
+WinRemoteShell.exe ps --server 10.0.0.5:12399 --details --json
+```
+
+| 参数 | 必需 | 说明 |
+|------|------|------|
+| `--details` | 否 | 请求更多进程信息，包括可执行文件路径、启动时间、工作集、专用内存和线程数 |
+| `--json` | 否 | 直接输出服务端返回的结构化 JSON；默认由客户端格式化为表格 |
+
+**行为**：
+
+- Server 端始终返回结构化 JSON，而不是预格式化文本
+- 默认响应只填充进程号 `id` 和进程名 `name`
+- `--details` 对无权限读取或平台不支持的字段返回 `null`，不会导致整个列表失败
+- 结果按进程名、进程号排序
+
+### `kill` — 终止远端进程
+
+```
+WinRemoteShell.exe kill --pid 1234
+WinRemoteShell.exe kill --pid 1234 --tree
+WinRemoteShell.exe kill --name notepad
+WinRemoteShell.exe kill --name notepad.exe --json
+```
+
+| 参数 | 必需 | 说明 |
+|------|------|------|
+| `--pid` | 二选一 | 按进程号终止单个进程，必须大于 0 |
+| `--name` | 二选一 | 按进程名终止所有匹配进程；匹配不区分大小写，`.exe` 后缀可省略 |
+| `--tree` | 否 | 同时终止目标进程的整个进程树 |
+| `--json` | 否 | 输出每个匹配进程的结构化执行结果 |
+
+`--pid` 和 `--name` 必须且只能指定一个。按名称匹配时会尝试终止全部匹配项，每项分别返回 `id`、`name`、`killed` 和 `error`。没有匹配进程时返回空列表，不视为错误；部分终止失败时命令返回码为 `1`，参数错误返回码为 `2`。
 
 ---
 

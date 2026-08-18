@@ -21,6 +21,8 @@ public static class ServerHost
         builder.Services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
         builder.Services.AddSingleton<CmdProcess>();
+        builder.Services.AddSingleton<DirectProcessExecutor>();
+        builder.Services.AddSingleton<RemoteProcessManager>();
 
         var app = builder.Build();
         app.UseWebSockets();
@@ -31,6 +33,8 @@ public static class ServerHost
         MapPush(app);
         MapPull(app);
         MapScreenshot(app);
+        MapProcesses(app);
+        MapKillProcesses(app);
         return app;
     }
 
@@ -42,18 +46,31 @@ public static class ServerHost
 
     private static void MapExec(WebApplication app)
     {
-        app.MapPost("/exec", async (ExecRequest request, CmdProcess cmd, HttpContext context) =>
+        app.MapPost("/exec", async (
+            ExecRequest request,
+            DirectProcessExecutor executor,
+            CmdProcess cmd,
+            HttpContext context) =>
         {
+            if (request.Arguments.Count == 0 || string.IsNullOrWhiteSpace(request.Arguments[0]))
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await context.Response.WriteAsync("An executable file name is required.", context.RequestAborted);
+                return;
+            }
+
             context.Response.ContentType = "text/plain; charset=utf-8";
-            using var timeoutSource = request.TimeoutSeconds is { } seconds
-                ? CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted)
-                : null;
-            timeoutSource?.CancelAfter(TimeSpan.FromSeconds(request.TimeoutSeconds!.Value));
-            var cancellationToken = timeoutSource?.Token ?? context.RequestAborted;
 
             try
             {
-                await foreach (var line in cmd.ExecuteAsync(request.Arguments, cancellationToken))
+                using var timeoutSource = request.TimeoutSeconds is not null
+                    ? CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted)
+                    : null;
+                timeoutSource?.CancelAfter(TimeSpan.FromSeconds(request.TimeoutSeconds!.Value));
+                var cancellationToken = timeoutSource?.Token ?? context.RequestAborted;
+                var workingDirectory = await cmd.GetWorkingDirectoryAsync(context.RequestAborted);
+
+                await foreach (var line in executor.ExecuteAsync(request.Arguments, workingDirectory, cancellationToken))
                 {
                     await context.Response.WriteAsync(line + Environment.NewLine, context.RequestAborted);
                     await context.Response.Body.FlushAsync(context.RequestAborted);
@@ -61,17 +78,24 @@ public static class ServerHost
             }
             catch (OperationCanceledException) when (!context.RequestAborted.IsCancellationRequested)
             {
-                await cmd.InterruptOrRestartAsync(context.RequestAborted);
+            }
+            catch (Exception exception) when (!context.RequestAborted.IsCancellationRequested)
+            {
+                await context.Response.WriteAsync(exception.ToString(), context.RequestAborted);
+                await context.Response.Body.FlushAsync(context.RequestAborted);
             }
         });
     }
 
     private static void MapList(WebApplication app)
     {
-        app.MapGet("/ls", async (CmdProcess cmd, CancellationToken cancellationToken) =>
+        app.MapGet("/ls", async (string? path, CmdProcess cmd, CancellationToken cancellationToken) =>
         {
-            var path = await cmd.GetWorkingDirectoryAsync(cancellationToken);
-            var entries = Directory.EnumerateFileSystemEntries(path)
+            var workingDirectory = await cmd.GetWorkingDirectoryAsync(cancellationToken);
+            var resolvedPath = string.IsNullOrWhiteSpace(path)
+                ? workingDirectory
+                : Path.GetFullPath(path, workingDirectory);
+            var entries = Directory.EnumerateFileSystemEntries(resolvedPath)
                 .Select(entryPath =>
                 {
                     var isDirectory = Directory.Exists(entryPath);
@@ -87,7 +111,32 @@ public static class ServerHost
                         info.LastWriteTimeUtc);
                 })
                 .ToArray();
-            return new DirectoryListingResponse(path, entries);
+            return new DirectoryListingResponse(resolvedPath, entries);
+        });
+    }
+
+    private static void MapProcesses(WebApplication app)
+    {
+        app.MapGet("/ps", (bool details, RemoteProcessManager processManager) => processManager.List(details));
+    }
+
+    private static void MapKillProcesses(WebApplication app)
+    {
+        app.MapPost("/kill", (KillProcessesRequest request, RemoteProcessManager processManager) =>
+        {
+            var hasProcessId = request.ProcessId is not null;
+            var hasProcessName = !string.IsNullOrWhiteSpace(request.ProcessName);
+            if (hasProcessId == hasProcessName)
+            {
+                return Results.BadRequest("Specify exactly one process identifier: processId or processName.");
+            }
+
+            if (request.ProcessId <= 0)
+            {
+                return Results.BadRequest("The processId must be greater than zero.");
+            }
+
+            return Results.Ok(processManager.Kill(request));
         });
     }
 
