@@ -33,7 +33,11 @@ internal sealed class McpSlideMlRenderPipeline : ISlideMlRenderPipeline
             throw new ArgumentException("SlideML 不能为空。", nameof(slideXml));
         }
 
-        var jsonObject = new JsonObject { ["slideXml"] = slideXml };
+        var jsonObject = new JsonObject
+        {
+            ["slideXml"] = slideXml,
+            ["slideId"] = null,
+        };
         using var jsonDocument = JsonDocument.Parse(jsonObject.ToJsonString());
         var callToolResult = await _mcpClient.CallToolAsync(_renderToolName, jsonDocument.RootElement, cancellationToken)
             .ConfigureAwait(false);
