@@ -12,7 +12,12 @@
              d:DesignWidth="420"
              mc:Ignorable="d">
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/CoursewarePptxGeneratorWpfDemo;component/Resources/ComboBoxStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid>
@@ -44,7 +49,7 @@
                     <ComboBox Width="220"
                               AutomationProperties.Name="{StaticResource GenerationModelToolTipText}"
                               ToolTip="{StaticResource GenerationModelToolTipText}"
-                              Style="{DynamicResource ModelSelectorComboBoxStyle}"
+                               Style="{DynamicResource ModelSelectorComboBoxStyle}"
                               ItemsSource="{Binding SelectedSlide.AvailableModelItems}"
                               SelectedItem="{Binding SelectedSlide.SelectedModelItem, Mode=TwoWay}"
                               IsEnabled="{Binding SelectedSlide.IsAiGenerationAvailable}"

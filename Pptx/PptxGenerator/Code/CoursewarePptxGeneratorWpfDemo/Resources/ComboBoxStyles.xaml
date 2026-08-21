@@ -17,12 +17,11 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter TargetName="ItemBorder" Property="Background" Value="#EFF6FF" />
-                            <Setter Property="Foreground" Value="{StaticResource PrimaryBlueBrush}" />
+                            <Setter TargetName="ItemBorder" Property="Background" Value="#F1F5F9" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="ItemBorder" Property="Background" Value="#DBEAFE" />
-                            <Setter Property="Foreground" Value="#1D4ED8" />
+                            <Setter TargetName="ItemBorder" Property="Background" Value="#E8EEF5" />
+                            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
@@ -65,12 +64,12 @@
                                         Height="24"
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        Background="#EFF6FF"
+                                        Background="#F1F5F9"
                                         CornerRadius="6">
                                     <TextBlock Text="AI"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"
-                                               Foreground="{StaticResource PrimaryBlueBrush}"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
                                                FontSize="9"
                                                FontWeight="Bold" />
                                 </Border>
@@ -135,16 +134,16 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="SelectorBorder" Property="BorderBrush" Value="#93C5FD" />
-                            <Setter TargetName="SelectorBorder" Property="Background" Value="#F8FBFF" />
+                            <Setter TargetName="SelectorBorder" Property="BorderBrush" Value="#CBD5E1" />
+                            <Setter TargetName="SelectorBorder" Property="Background" Value="#F8FAFC" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                            <Setter TargetName="SelectorBorder" Property="BorderBrush" Value="{StaticResource PrimaryBlueBrush}" />
+                            <Setter TargetName="SelectorBorder" Property="BorderBrush" Value="#94A3B8" />
                             <Setter TargetName="SelectorBorder" Property="BorderThickness" Value="1.5" />
                         </Trigger>
                         <Trigger Property="IsDropDownOpen" Value="True">
-                            <Setter TargetName="SelectorBorder" Property="BorderBrush" Value="{StaticResource PrimaryBlueBrush}" />
-                            <Setter TargetName="SelectorBorder" Property="Background" Value="#EFF6FF" />
+                            <Setter TargetName="SelectorBorder" Property="BorderBrush" Value="#94A3B8" />
+                            <Setter TargetName="SelectorBorder" Property="Background" Value="#F1F5F9" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Cursor" Value="Arrow" />
