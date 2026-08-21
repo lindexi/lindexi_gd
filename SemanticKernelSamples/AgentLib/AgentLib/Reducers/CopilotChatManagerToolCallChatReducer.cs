@@ -1,34 +1,34 @@
 using Microsoft.Extensions.AI;
 
-namespace AgentLib;
+namespace AgentLib.Reducers;
 
 /// <summary>
 /// 针对尾部连续 Assistant+Tool 消息块的 LLM 摘要压缩器。
-/// 仅当尾部连续的 Assistant/Tool 消息字符总长度达到阈值时才触发压缩。
+/// 优先使用 LLM 返回的用量统计判断对话长度，并以字符长度兼容缺少用量统计的消息。
 /// </summary>
 public class CopilotChatManagerToolCallChatReducer : IChatReducer
 {
     /// <summary>
-    /// 使用指定的聊天客户端和自定义阈值创建压缩器。
+    /// 使用指定的聊天客户端创建压缩器。
     /// </summary>
     /// <param name="chatClient">用于生成摘要的聊天客户端。</param>
-    /// <param name="characterThreshold">触发压缩的字符长度阈值。</param>
-    public CopilotChatManagerToolCallChatReducer(IChatClient chatClient, int characterThreshold = DefaultCharacterThreshold)
+    public CopilotChatManagerToolCallChatReducer(IChatClient chatClient)
     {
         ArgumentNullException.ThrowIfNull(chatClient);
-        if (characterThreshold < 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(characterThreshold), "阈值必须大于等于 1。");
-        }
-
         _chatClient = chatClient;
-        CharacterThreshold = characterThreshold;
     }
 
     /// <summary>
-    /// 默认触发压缩的字符长度阈值。
+    /// 默认的条件压缩 token 数阈值。
     /// </summary>
-    public const int DefaultCharacterThreshold = 50000;
+    public const int DefaultConditionalCompressionTokenCountThreshold = 50000;
+
+    /// <summary>
+    /// 默认的强制压缩 token 数阈值。
+    /// </summary>
+    public const int DefaultForcedCompressionTokenCountThreshold = 200_000;
+
+    private const int MinimumLastAssistantMessageTokenCount = 10_000;
 
     private readonly IChatClient _chatClient;
 
@@ -48,36 +48,40 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
     public event EventHandler<Exception>? CompressionFailed;
 
     /// <summary>
-    /// 触发压缩的字符长度阈值。
+    /// 满足消息角色和末条 Assistant 上下文 token 数条件时，触发压缩的 token 数阈值。
+    /// 优先采用模型返回的 token 用量，缺少用量时采用消息内容字符数兼容估算。
     /// </summary>
-    public int CharacterThreshold { get; set; }
+    public int ConditionalCompressionTokenCountThreshold { get; init; }
+        = DefaultConditionalCompressionTokenCountThreshold;
+
+    /// <summary>
+    /// 忽略消息角色和末条 Assistant 上下文 token 数条件，直接触发压缩的 token 数阈值。
+    /// 优先采用模型返回的 token 用量，缺少用量时采用消息内容字符数兼容估算。
+    /// </summary>
+    public int ForcedCompressionTokenCountThreshold { get; init; }
+        = DefaultForcedCompressionTokenCountThreshold;
 
     /// <inheritdoc/>
-    public async Task<IEnumerable<ChatMessage>> ReduceAsync(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken)
+    public async Task<IEnumerable<ChatMessage>> ReduceAsync
+        (IEnumerable<ChatMessage> messages, CancellationToken cancellationToken)
     {
         var input = messages.ToList();
-
-        if (input.Count == 0)
+        int totalTokenCount = CalculateCurrentContextTokenCount(input);
+        bool forceCompression = totalTokenCount >= ForcedCompressionTokenCountThreshold;
+        if (!ShouldCompress(input, totalTokenCount))
         {
             return input;
         }
 
-        // 从后向前查找尾部连续的 Assistant/Tool 消息块
         int tailStartIndex = FindTailAssistantToolBlockStart(input);
-
-        // 没有找到可压缩块（最后一条是 User/System，或没有 Assistant/Tool 消息）
         if (tailStartIndex >= input.Count)
         {
-            return input;
-        }
+            if (!forceCompression)
+            {
+                return input;
+            }
 
-        // 计算可压缩块的字符总长度
-        int totalLength = CalculateBlockCharacterLength(input, tailStartIndex, input.Count);
-
-        // 未达到阈值，不压缩
-        if (totalLength < CharacterThreshold)
-        {
-            return input;
+            tailStartIndex = 0;
         }
 
         // 构建压缩请求：保留非压缩部分 + 插入起点提示词 + 压缩块内容 + 插入末尾提示词
@@ -122,6 +126,28 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
         }
     }
 
+    private bool ShouldCompress(List<ChatMessage> messages, int totalTokenCount)
+    {
+        if (totalTokenCount >= ForcedCompressionTokenCountThreshold)
+        {
+            return true;
+        }
+
+        if (messages.Count == 0 || totalTokenCount < ConditionalCompressionTokenCountThreshold)
+        {
+            return false;
+        }
+
+        ChatMessage lastMessage = messages[^1];
+        if (lastMessage.Role == ChatRole.User || lastMessage.Role == ChatRole.System)
+        {
+            return false;
+        }
+
+        return lastMessage.Role != ChatRole.Assistant
+               || CalculateAssistantOutputTokenCount(lastMessage) >= MinimumLastAssistantMessageTokenCount;
+    }
+
     /// <summary>
     /// 从消息列表末尾向前查找，返回尾部连续 Assistant/Tool 块的起始索引。
     /// 若最后一条消息不是 Assistant/Tool，返回消息总数（表示无可压缩块）。
@@ -146,38 +172,61 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
         return i + 1;
     }
 
-    /// <summary>
-    /// 计算指定范围内消息的字符总长度。
-    /// 包括 TextContent.Text、FunctionCallContent 的 Name/Arguments、FunctionResultContent.Result。
-    /// </summary>
-    private static int CalculateBlockCharacterLength(List<ChatMessage> messages, int startIndex, int endIndex)
+    private static int CalculateCurrentContextTokenCount(List<ChatMessage> messages)
     {
-        int total = 0;
+        long total = 0;
 
-        for (int i = startIndex; i < endIndex; i++)
+        for (int messageIndex = messages.Count - 1; messageIndex >= 0; messageIndex--)
         {
-            var message = messages[i];
-
-            foreach (var content in message.Contents)
+            IList<AIContent> contents = messages[messageIndex].Contents;
+            for (int contentIndex = contents.Count - 1; contentIndex >= 0; contentIndex--)
             {
-                switch (content)
+                AIContent content = contents[contentIndex];
+                if (content is UsageContent { Details.TotalTokenCount: > 0 } usageContent)
                 {
-                    case TextContent textContent:
-                        total += textContent.Text?.Length ?? 0;
-                        break;
-                    case FunctionCallContent functionCallContent:
-                        total += functionCallContent.Name?.Length ?? 0;
-                        total += functionCallContent.Arguments?.Count ?? 0;
-                        break;
-                    case FunctionResultContent functionResultContent:
-                        total += functionResultContent.Result?.ToString()?.Length ?? 0;
-                        break;
+                    return ClampTokenCount(total + usageContent.Details.TotalTokenCount.Value);
                 }
+
+                total += EstimateContentTokenCount(content);
             }
         }
 
-        return total;
+        return ClampTokenCount(total);
     }
+
+    private static int CalculateAssistantOutputTokenCount(ChatMessage message)
+    {
+        long total = 0;
+        IList<AIContent> contents = message.Contents;
+
+        for (int contentIndex = contents.Count - 1; contentIndex >= 0; contentIndex--)
+        {
+            AIContent content = contents[contentIndex];
+            if (content is UsageContent { Details.OutputTokenCount: > 0 } usageContent)
+            {
+                return ClampTokenCount(total + usageContent.Details.OutputTokenCount.Value);
+            }
+
+            total += EstimateContentTokenCount(content);
+        }
+
+        return ClampTokenCount(total);
+    }
+
+    private static int EstimateContentTokenCount(AIContent content)
+    {
+        return content switch
+        {
+            TextContent textContent => textContent.Text?.Length ?? 0,
+            FunctionCallContent functionCallContent =>
+                (functionCallContent.Name?.Length ?? 0) + (functionCallContent.Arguments?.Count ?? 0),
+            FunctionResultContent functionResultContent => functionResultContent.Result?.ToString()?.Length ?? 0,
+            _ => 0,
+        };
+    }
+
+    private static int ClampTokenCount(long tokenCount)
+        => tokenCount >= int.MaxValue ? int.MaxValue : (int)tokenCount;
 
     /// <summary>
     /// 压缩起点系统提示词，告知 LLM 角色和任务。
@@ -190,15 +239,15 @@ public class CopilotChatManagerToolCallChatReducer : IChatReducer
     /// </summary>
     private const string SummarizationEndPrompt
         = """
-        请总结以上对话内容。只需要输出总结，不要回答任何问题。
+          请总结以上对话内容。只需要输出总结，不要回答任何问题。
 
-        总结必须包含以下五个方面：
-        - 已做了什么：Assistant 实际完成了哪些操作、获取了哪些信息，用自然语言描述做了什么，而不是罗列调用了什么工具。
-        - 做出了什么决策：Assistant 在过程中做了哪些关键判断或选择，为什么这样选择。
-        - 当前状态：最终得到了什么结论、数据或产出，当前处于什么阶段。
-        - 后续计划：接下来准备做什么，还需要哪些信息或操作才能完成任务。
-        - 思路：整体逻辑链条是什么，为什么按这样的顺序推进。
+          总结必须包含以下五个方面：
+          - 已做了什么：Assistant 实际完成了哪些操作、获取了哪些信息，用自然语言描述做了什么，而不是罗列调用了什么工具。
+          - 做出了什么决策：Assistant 在过程中做了哪些关键判断或选择，为什么这样选择。
+          - 当前状态：最终得到了什么结论、数据或产出，当前处于什么阶段。
+          - 后续计划：接下来准备做什么，还需要哪些信息或操作才能完成任务。
+          - 思路：整体逻辑链条是什么，为什么按这样的顺序推进。
 
-        确保总结能帮助后续对话理解上下文并继续完成任务。
-        """;
+          确保总结能帮助后续对话理解上下文并继续完成任务。
+          """;
 }

@@ -7,6 +7,7 @@ using Microsoft.Extensions.AI;
 
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using AgentLib.Reducers;
 
 #pragma warning disable MAAI001
 
@@ -764,7 +765,7 @@ public class CopilotChatManagerManualSendCancellationTests
     {
         cancellationToken.ThrowIfCancellationRequested();
         yield return CopilotChatManagerTestContext.AssistantText(
-            new string('A', CopilotChatManagerToolCallChatReducer.DefaultCharacterThreshold));
+            new string('A', CopilotChatManagerToolCallChatReducer.DefaultConditionalCompressionTokenCountThreshold));
         await Task.Yield();
 
         await foreach (ChatResponseUpdate update in CreateToolCallStreamAsync(options, cancellationToken).ConfigureAwait(false))
