@@ -106,30 +106,57 @@ internal sealed class WindowsSandboxTools
         string remoteExecutablePath = CombineRemotePath(remoteTaskDirectory, executablePath);
         string fullLocalOutputPath = ResolveLocalOutputPath(localOutputDirectory, taskId);
 
-        await _runner.PushAsync(fullSourceDirectory, remoteTaskDirectory, cancellationToken).ConfigureAwait(false);
-
-        string executionOutput = await _runner.ExecuteAsync
-        (
-            remoteExecutablePath,
-            arguments ?? [],
-            timeoutSeconds,
-            cancellationToken
-        ).ConfigureAwait(false);
-
-        Directory.CreateDirectory(fullLocalOutputPath);
-        await _runner.PullAsync(remoteTaskDirectory, fullLocalOutputPath, cancellationToken).ConfigureAwait(false);
-
-        string resultPath = outputPath is null
-            ? fullLocalOutputPath
-            : Path.Combine(fullLocalOutputPath, outputPath.Replace('\\', Path.DirectorySeparatorChar));
-        if (outputPath is not null && !File.Exists(resultPath) && !Directory.Exists(resultPath))
+        try
         {
-            throw new FileNotFoundException($"沙箱执行完成，但拉取的任务目录中不存在指定结果：{outputPath}", resultPath);
-        }
+            await _runner.PushAsync(fullSourceDirectory, remoteTaskDirectory, cancellationToken).ConfigureAwait(false);
 
-        return string.IsNullOrWhiteSpace(executionOutput)
-            ? $"沙箱执行完成。结果已保存到：{resultPath}"
-            : $"{executionOutput.Trim()}{Environment.NewLine}结果已保存到：{resultPath}";
+            string executionOutput = await _runner.ExecuteAsync
+            (
+                remoteExecutablePath,
+                arguments ?? [],
+                timeoutSeconds,
+                cancellationToken
+            ).ConfigureAwait(false);
+
+            Directory.CreateDirectory(fullLocalOutputPath);
+            await _runner.PullAsync(remoteTaskDirectory, fullLocalOutputPath, cancellationToken).ConfigureAwait(false);
+
+            string resultPath = outputPath is null
+                ? fullLocalOutputPath
+                : Path.Combine(fullLocalOutputPath, outputPath.Replace('\\', Path.DirectorySeparatorChar));
+            if (outputPath is not null && !File.Exists(resultPath) && !Directory.Exists(resultPath))
+            {
+                throw new FileNotFoundException($"沙箱执行完成，但拉取的任务目录中不存在指定结果：{outputPath}", resultPath);
+            }
+
+            return string.IsNullOrWhiteSpace(executionOutput)
+                ? $"沙箱执行完成。结果已保存到：{resultPath}"
+                : $"{executionOutput.Trim()}{Environment.NewLine}结果已保存到：{resultPath}";
+        }
+        finally
+        {
+            _ = ReplaceRemoteTaskDirectoryWithEmptyDirectoryAsync(remoteTaskDirectory);
+        }
+    }
+
+    private async Task ReplaceRemoteTaskDirectoryWithEmptyDirectoryAsync(string remoteTaskDirectory)
+    {
+        string emptyDirectory = Path.Combine(Path.GetTempPath(), "AgentLib.Coding", "empty", Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(emptyDirectory);
+            await _runner.PushAsync(emptyDirectory, remoteTaskDirectory, CancellationToken.None).ConfigureAwait(false);
+        }
+        catch
+        {
+        }
+        finally
+        {
+            if (Directory.Exists(emptyDirectory))
+            {
+                Directory.Delete(emptyDirectory, recursive: true);
+            }
+        }
     }
 
     private static string FormatFailure(Exception exception)
