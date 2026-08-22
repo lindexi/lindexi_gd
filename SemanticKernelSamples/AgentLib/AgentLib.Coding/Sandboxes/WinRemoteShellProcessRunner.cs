@@ -41,7 +41,9 @@ internal sealed class WinRemoteShellProcessRunner : IWinRemoteShellRunner
 
         ProcessResult result = await RunAsync(clientArguments, cancellationToken).ConfigureAwait(false);
         EnsureSuccess("执行远端命令", result);
-        return JoinOutput(result);
+        string output = JoinOutput(result);
+        EnsureRemoteExecutionSucceeded(output);
+        return output;
     }
 
     public Task PullAsync(string remoteSourcePath, string localOutputPath, CancellationToken cancellationToken) =>
@@ -111,6 +113,22 @@ internal sealed class WinRemoteShellProcessRunner : IWinRemoteShellRunner
         {
             throw new InvalidOperationException(
                 $"WinRemoteShell {operation}失败，客户端退出码为 {result.ExitCode}。{JoinOutput(result)}");
+        }
+    }
+
+    internal static void EnsureRemoteExecutionSucceeded(string output)
+    {
+        if (string.IsNullOrWhiteSpace(output))
+        {
+            return;
+        }
+
+        bool containsServerStackTrace = output.Contains("at WinRemoteShell.Server.", StringComparison.Ordinal);
+        bool startsWithExceptionType = output.TrimStart().StartsWith("System.", StringComparison.Ordinal)
+            && output.Contains("Exception", StringComparison.Ordinal);
+        if (containsServerStackTrace && startsWithExceptionType)
+        {
+            throw new InvalidOperationException($"WinRemoteShell 远端执行失败。服务端返回异常：{output.Trim()}");
         }
     }
 

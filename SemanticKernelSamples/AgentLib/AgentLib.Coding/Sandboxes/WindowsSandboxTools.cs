@@ -1,10 +1,7 @@
 using System.ComponentModel;
 using System.Globalization;
-using System.Text;
-
 using AgentLib.Model;
 using AgentLib.Tools;
-
 using Microsoft.Extensions.AI;
 
 namespace AgentLib.Coding.Sandboxes;
@@ -31,11 +28,15 @@ internal sealed class WindowsSandboxTools
 
     internal IReadOnlyList<ToolRegistration> AsToolRegistrations() =>
     [
-        new(
+        new
+        (
             AIFunctionFactory.Create(ExecuteAsync, "execute_in_windows_sandbox"),
-            arguments => new ToolCallPresentation(
+            arguments => new ToolCallPresentation
+            (
                 ToolCallPresentationFactory.GetString(arguments, "executableRelativePath"),
-                ToolCallPresentationFactory.GetString(arguments, "workingDirectoryRelativePath")))
+                ToolCallPresentationFactory.GetString(arguments, "workingDirectoryRelativePath")
+            )
+        )
     ];
 
     [Description("将工作区内的执行器文件夹推送到 Windows 远程沙盒，在隔离任务目录中执行命令，并把指定结果或整个任务目录拉取回工作区。")]
@@ -58,48 +59,106 @@ internal sealed class WindowsSandboxTools
         CancellationToken cancellationToken = default
     )
     {
+        try
+        {
+            return await ExecuteCoreAsync
+            (
+                sourceDirectory,
+                executableRelativePath,
+                workingDirectoryRelativePath,
+                arguments,
+                outputRelativePath,
+                localOutputDirectory,
+                timeoutSeconds,
+                cancellationToken
+            ).ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            return FormatFailure(exception);
+        }
+    }
+
+    private async Task<string> ExecuteCoreAsync
+    (
+        string sourceDirectory,
+        string executableRelativePath,
+        string? workingDirectoryRelativePath,
+        IReadOnlyList<string>? arguments,
+        string? outputRelativePath,
+        string? localOutputDirectory,
+        int timeoutSeconds,
+        CancellationToken cancellationToken
+    )
+    {
         string fullSourceDirectory = ResolveSourceDirectory(sourceDirectory);
         string executablePath = NormalizeRelativePath(executableRelativePath, nameof(executableRelativePath));
-        string workingDirectory = string.IsNullOrWhiteSpace(workingDirectoryRelativePath)
-            ? string.Empty
-            : NormalizeRelativePath(workingDirectoryRelativePath, nameof(workingDirectoryRelativePath));
+        if (!string.IsNullOrWhiteSpace(workingDirectoryRelativePath))
+        {
+            throw new NotSupportedException("当前 WinRemoteShell exec 协议不支持指定远端工作目录。");
+        }
         string? outputPath = string.IsNullOrWhiteSpace(outputRelativePath)
             ? null
             : NormalizeRelativePath(outputRelativePath, nameof(outputRelativePath));
         if (timeoutSeconds is < 1 or > MaximumTimeoutSeconds)
         {
-            throw new ArgumentOutOfRangeException(
+            throw new ArgumentOutOfRangeException
+            (
                 nameof(timeoutSeconds),
-                $"超时秒数必须在 1 到 {MaximumTimeoutSeconds} 之间。");
+                $"超时秒数必须在 1 到 {MaximumTimeoutSeconds} 之间。"
+            );
         }
 
         string taskId = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
         string remoteTaskDirectory = $@"{RemoteTasksRoot}\{taskId}";
         string remoteExecutablePath = CombineRemotePath(remoteTaskDirectory, executablePath);
-        string remoteWorkingDirectory = CombineRemotePath(remoteTaskDirectory, workingDirectory);
-        string remoteOutputPath = outputPath is null
-            ? remoteTaskDirectory
-            : CombineRemotePath(remoteTaskDirectory, outputPath);
         string fullLocalOutputPath = ResolveLocalOutputPath(localOutputDirectory, taskId);
 
         await _runner.PushAsync(fullSourceDirectory, remoteTaskDirectory, cancellationToken).ConfigureAwait(false);
 
-        IReadOnlyList<string> commandArguments = BuildCommandArguments(
-            remoteWorkingDirectory,
+        string executionOutput = await _runner.ExecuteAsync
+        (
             remoteExecutablePath,
-            arguments ?? []);
-        string executionOutput = await _runner.ExecuteAsync(
-            "cmd.exe",
-            commandArguments,
+            arguments ?? [],
             timeoutSeconds,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken
+        ).ConfigureAwait(false);
 
         Directory.CreateDirectory(fullLocalOutputPath);
-        await _runner.PullAsync(remoteOutputPath, fullLocalOutputPath, cancellationToken).ConfigureAwait(false);
+        await _runner.PullAsync(remoteTaskDirectory, fullLocalOutputPath, cancellationToken).ConfigureAwait(false);
+
+        string resultPath = outputPath is null
+            ? fullLocalOutputPath
+            : Path.Combine(fullLocalOutputPath, outputPath.Replace('\\', Path.DirectorySeparatorChar));
+        if (outputPath is not null && !File.Exists(resultPath) && !Directory.Exists(resultPath))
+        {
+            throw new FileNotFoundException($"沙箱执行完成，但拉取的任务目录中不存在指定结果：{outputPath}", resultPath);
+        }
 
         return string.IsNullOrWhiteSpace(executionOutput)
-            ? $"沙箱执行完成。结果已保存到：{fullLocalOutputPath}"
-            : $"{executionOutput.Trim()}{Environment.NewLine}结果已保存到：{fullLocalOutputPath}";
+            ? $"沙箱执行完成。结果已保存到：{resultPath}"
+            : $"{executionOutput.Trim()}{Environment.NewLine}结果已保存到：{resultPath}";
+    }
+
+    private static string FormatFailure(Exception exception)
+    {
+        IEnumerable<Exception> exceptions = exception is AggregateException aggregateException
+            ? aggregateException.Flatten().InnerExceptions.Prepend(exception)
+            : EnumerateExceptionChain(exception);
+        string details = string.Join
+        (
+            $"{Environment.NewLine}由以下错误导致：",
+            exceptions.Select(current => $"{current.GetType().Name}: {current.Message}")
+        );
+        return $"沙箱执行失败。{Environment.NewLine}错误详情：{details}";
+    }
+
+    private static IEnumerable<Exception> EnumerateExceptionChain(Exception exception)
+    {
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            yield return current;
+        }
     }
 
     private string ResolveSourceDirectory(string sourceDirectory)
@@ -111,6 +170,7 @@ internal sealed class WindowsSandboxTools
         {
             throw new DirectoryNotFoundException($"未找到要推送的目录：{fullPath}");
         }
+
         return fullPath;
     }
 
@@ -143,33 +203,11 @@ internal sealed class WindowsSandboxTools
         {
             throw new ArgumentException("必须提供不包含上级目录的相对路径。", parameterName);
         }
+
         return normalized.TrimStart('.').TrimStart('\\');
     }
 
     private static string CombineRemotePath(string root, string relativePath) =>
         string.IsNullOrEmpty(relativePath) ? root : $@"{root}\{relativePath}";
 
-    private static IReadOnlyList<string> BuildCommandArguments(
-        string workingDirectory,
-        string executablePath,
-        IReadOnlyList<string> arguments)
-    {
-        var command = new StringBuilder();
-        command.Append("cd /D ").Append(QuoteForCommandPrompt(workingDirectory));
-        command.Append(" && ").Append(QuoteForCommandPrompt(executablePath));
-        foreach (string argument in arguments)
-        {
-            command.Append(' ').Append(QuoteForCommandPrompt(argument));
-        }
-        return ["/D", "/C", command.ToString()];
-    }
-
-    private static string QuoteForCommandPrompt(string value)
-    {
-        if (value.Contains('\r') || value.Contains('\n'))
-        {
-            throw new ArgumentException("命令参数不能包含换行符。", nameof(value));
-        }
-        return $"\"{value.Replace("\"", "\"\"")}\"";
-    }
 }

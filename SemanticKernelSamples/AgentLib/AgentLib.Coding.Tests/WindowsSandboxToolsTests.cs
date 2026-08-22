@@ -21,8 +21,8 @@ public sealed class WindowsSandboxToolsTests
         Assert.AreEqual("execute_in_windows_sandbox", tool.Name);
     }
 
-    [TestMethod(DisplayName = "执行目录位于工作区外时应拒绝执行")]
-    public async Task ExecuteAsync_WhenSourceIsOutsideWorkspace_ThrowsArgumentException()
+    [TestMethod(DisplayName = "执行目录位于工作区外时应向 Agent 返回具体错误")]
+    public async Task ExecuteAsync_WhenSourceIsOutsideWorkspace_ReturnsDetailedError()
     {
         string testRoot = CreateTestDirectory();
         string workspacePath = Path.Combine(testRoot, "workspace");
@@ -32,10 +32,32 @@ public sealed class WindowsSandboxToolsTests
         var runner = new RecordingWinRemoteShellRunner();
         var tools = new WindowsSandboxTools(workspacePath, runner);
 
-        await Assert.ThrowsExactlyAsync<ArgumentException>(
-            () => tools.ExecuteAsync(outsidePath, "runner.exe"));
+        string result = await tools.ExecuteAsync(outsidePath, "runner.exe");
 
+        StringAssert.Contains(result, "沙箱执行失败");
+        StringAssert.Contains(result, "ArgumentException");
+        StringAssert.Contains(result, "路径必须位于代码工作区内");
         Assert.AreEqual(0, runner.Calls.Count);
+    }
+
+    [TestMethod(DisplayName = "AITool 调用失败时应返回具体错误而不是抛出异常")]
+    public async Task AITool_WhenRunnerThrows_ReturnsDetailedError()
+    {
+        string workspacePath = CreateTestDirectory();
+        Directory.CreateDirectory(Path.Combine(workspacePath, "runner"));
+        var tools = new WindowsSandboxTools(workspacePath, new ThrowingWinRemoteShellRunner());
+        AIFunction tool = tools.AsAITools().OfType<AIFunction>().Single();
+
+        object? result = await tool.InvokeAsync(new AIFunctionArguments
+        {
+            ["sourceDirectory"] = "runner",
+            ["executableRelativePath"] = "runner.exe",
+        });
+
+        string resultText = result?.ToString() ?? string.Empty;
+        StringAssert.Contains(resultText, "沙箱执行失败");
+        StringAssert.Contains(resultText, "InvalidOperationException");
+        StringAssert.Contains(resultText, "真实的远端错误详情");
     }
 
     [TestMethod(DisplayName = "沙盒执行应推送、逐项执行并拉取任务目录")]
@@ -53,10 +75,8 @@ public sealed class WindowsSandboxToolsTests
             arguments: ["--test", "sample data"]);
 
         CollectionAssert.AreEqual(new[] { "push", "exec", "pull" }, runner.Calls);
-        Assert.AreEqual("cmd.exe", runner.ExecutablePath);
-        CollectionAssert.AreEqual(new[] { "/D", "/C" }, runner.Arguments!.Take(2).ToArray());
-        StringAssert.Contains(runner.Arguments[2], "bin\\TestRunner.exe");
-        StringAssert.Contains(runner.Arguments[2], "sample data");
+        StringAssert.EndsWith(runner.ExecutablePath, "\\bin\\TestRunner.exe");
+        CollectionAssert.AreEqual(new[] { "--test", "sample data" }, runner.Arguments!.ToArray());
         StringAssert.Contains(result, "runner output");
     }
 
@@ -71,7 +91,22 @@ public sealed class WindowsSandboxToolsTests
         await tools.ExecuteAsync("runner", "TestRunner.exe", outputRelativePath: "results");
 
         StringAssert.StartsWith(runner.RemotePushPath, @"C:\CodingAgentSandbox\Tasks\");
-        StringAssert.EndsWith(runner.RemotePullPath, "\\results");
+        Assert.AreEqual(runner.RemotePushPath, runner.RemotePullPath);
+    }
+
+    [TestMethod(DisplayName = "指定工作目录时应明确返回协议不支持")]
+    public async Task ExecuteAsync_WhenWorkingDirectoryIsSpecified_ReturnsNotSupportedError()
+    {
+        string workspacePath = CreateTestDirectory();
+        Directory.CreateDirectory(Path.Combine(workspacePath, "runner"));
+        var runner = new RecordingWinRemoteShellRunner();
+        var tools = new WindowsSandboxTools(workspacePath, runner);
+
+        string result = await tools.ExecuteAsync("runner", "TestRunner.exe", workingDirectoryRelativePath: "bin");
+
+        StringAssert.Contains(result, "NotSupportedException");
+        StringAssert.Contains(result, "不支持指定远端工作目录");
+        Assert.AreEqual(0, runner.Calls.Count);
     }
 
     private static string CreateTestDirectory()
@@ -79,6 +114,22 @@ public sealed class WindowsSandboxToolsTests
         string path = Path.Combine(Path.GetTempPath(), "AgentLib.Coding.Tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(path);
         return path;
+    }
+
+    private sealed class ThrowingWinRemoteShellRunner : IWinRemoteShellRunner
+    {
+        public Task PushAsync(string sourcePath, string remoteTargetPath, CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("真实的远端错误详情");
+
+        public Task<string> ExecuteAsync(
+            string executablePath,
+            IReadOnlyList<string> arguments,
+            int timeoutSeconds,
+            CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("不应执行");
+
+        public Task PullAsync(string remoteSourcePath, string localOutputPath, CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("不应执行");
     }
 
     private sealed class RecordingWinRemoteShellRunner(string output = "") : IWinRemoteShellRunner
