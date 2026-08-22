@@ -198,6 +198,19 @@ public static class ServerHost
                 return Results.BadRequest("The push mode is invalid.");
             }
 
+            var deleteTargetValue = context.Request.Headers["X-WinRS-Delete-Target"].ToString();
+            if (!string.IsNullOrWhiteSpace(deleteTargetValue) &&
+                !bool.TryParse(deleteTargetValue, out _))
+            {
+                return Results.BadRequest("The delete-target value is invalid.");
+            }
+
+            var deleteTarget = bool.TryParse(deleteTargetValue, out var parsedDeleteTarget) && parsedDeleteTarget;
+            if (deleteTarget && mode != PushMode.Replace)
+            {
+                return Results.BadRequest("Deleting the push target requires Replace mode.");
+            }
+
             var targetExists = File.Exists(target) || Directory.Exists(target);
             if (mode == PushMode.FailIfExists && targetExists)
             {
@@ -214,6 +227,11 @@ public static class ServerHost
                 {
                     File.Delete(target);
                 }
+            }
+
+            if (deleteTarget)
+            {
+                return Results.Ok();
             }
 
             await TransferStream.ReceiveAsync(

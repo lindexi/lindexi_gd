@@ -299,6 +299,19 @@ public sealed class ServerIntegrationTests
     }
 
     [TestMethod]
+    public async Task WhenEmptySourceIsPushedWithReplaceThenRemoteDirectoryIsDeleted()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var remote = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(remote);
+        await File.WriteAllTextAsync(Path.Combine(remote, "content.txt"), "existing content");
+
+        await PushClient.PushAsync(host.Address, string.Empty, remote, PushMode.Replace);
+
+        Assert.IsFalse(Directory.Exists(remote));
+    }
+
+    [TestMethod]
     public async Task WhenTargetExistsAndFailIfExistsIsUsedThenPushIsRejected()
     {
         await using var host = await TestServerHost.StartAsync();

@@ -127,17 +127,26 @@ WinRemoteShell.exe shell --server 10.0.0.5:12399
 ```
 WinRemoteShell.exe push --source <本地路径> --target <远端路径>
 WinRemoteShell.exe push --server 10.0.0.5:12399 --source "C:\file.txt" --target "D:\remote\"
+WinRemoteShell.exe push --source "C:\local-directory" --target "D:\remote-directory" --mode Replace
+WinRemoteShell.exe push --source "" --target "D:\remote-directory" --mode Replace
 ```
 
 | 参数 | 必需 | 说明 |
 |------|------|------|
-| `--source` | 是 | 本地文件或文件夹路径 |
+| `--source` | 是 | 本地文件或文件夹路径；配合 `--mode Replace` 时可传空字符串以仅删除远端目标 |
 | `--target` | 是 | 远端目标路径 |
+| `--mode` | 否 | 远端目标已存在时的处理方式：`Merge`（默认）、`Replace` 或 `FailIfExists` |
 
 **行为**：
 
 - 递归上传整个文件夹
 - 不支持通配符，每次操作一个文件或文件夹
+- `--target` 表示远端目标本身，而不是其父目录。例如，将本地文件夹推送到已存在的 `D:\remote-directory` 时，内容直接写入该目录，不会再创建一层同名文件夹
+- `Merge`：合并到已有目标目录；同路径文件会被上传内容覆盖，远端独有的文件和子目录会保留
+- `Replace`：先删除已存在的目标文件或目录，再写入上传内容；远端目标目录中原有的额外内容不会保留
+- `--source "" --mode Replace`：仅删除 `--target` 指定的远端文件或文件夹，不上传任何内容；目标不存在时也视为成功
+- 空 `--source` 只能与 `Replace` 配合使用；`Merge` 或 `FailIfExists` 模式下会报参数错误
+- `FailIfExists`：只要目标文件或目录已存在就拒绝上传，并返回冲突错误
 
 ### `pull` — 下载文件/文件夹
 
