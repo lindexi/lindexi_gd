@@ -5,7 +5,6 @@ internal static class TransferManifest
     internal static TransferDefinition Create(string source)
     {
         var attributes = File.GetAttributes(source);
-        RejectReparsePoint(source, attributes);
         if ((attributes & FileAttributes.Directory) == 0)
         {
             return new TransferDefinition(
@@ -19,15 +18,11 @@ internal static class TransferManifest
         };
         foreach (var directoryPath in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
         {
-            var directoryAttributes = File.GetAttributes(directoryPath);
-            RejectReparsePoint(directoryPath, directoryAttributes);
             entries.Add(CreateDirectoryEntry(directoryPath, NormalizeRelativePath(source, directoryPath)));
         }
 
         foreach (var filePath in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
         {
-            var fileAttributes = File.GetAttributes(filePath);
-            RejectReparsePoint(filePath, fileAttributes);
             entries.Add(CreateFileEntry(filePath, NormalizeRelativePath(source, filePath)));
         }
 
@@ -55,14 +50,6 @@ internal static class TransferManifest
             file.LastWriteTimeUtc,
             0,
             path);
-    }
-
-    private static void RejectReparsePoint(string path, FileAttributes attributes)
-    {
-        if ((attributes & FileAttributes.ReparsePoint) != 0)
-        {
-            throw new NotSupportedException($"Symbolic links and reparse points are not supported: '{path}'.");
-        }
     }
 
     private static string NormalizeRelativePath(string root, string path) =>
