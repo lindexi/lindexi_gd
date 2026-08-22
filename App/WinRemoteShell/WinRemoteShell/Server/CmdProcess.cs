@@ -10,6 +10,11 @@ public sealed class CmdProcess : IAsyncDisposable
     private Process? _process;
     private Channel<string>? _output;
 
+    /// <summary>
+    /// Starts the command process if it is not already running.
+    /// </summary>
+    public void EnsureRunning() => EnsureStarted();
+
     public async IAsyncEnumerable<string> ExecuteAsync(
         IReadOnlyList<string> arguments,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)

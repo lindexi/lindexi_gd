@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using WinRemoteShell.Client;
 using WinRemoteShell.Shared;
 
@@ -367,15 +368,113 @@ public sealed class ServerIntegrationTests
     }
 
     [TestMethod]
+    public async Task WhenConsoleInputBlocksWaitingForNextLineThenShellOutputIsStillReturned()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        using var shellInput = new BlockingInteractiveTextReader("echo blocking-console-input");
+        using var shellOutput = new ObservableTextWriter();
+        using var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var shellTask = Task.Run(() =>
+            ShellClient.RunAsync(host.Address, shellInput, shellOutput, cancellationSource.Token));
+
+        await shellOutput.WaitForTextAsync("blocking-console-input", TimeSpan.FromSeconds(5));
+        shellInput.SubmitExit();
+        await shellTask;
+    }
+
+    [TestMethod]
+    public async Task WhenShellRunsEchoThenOutputIsReturned()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        using var shellInput = new InteractiveTextReader();
+        using var shellOutput = new ObservableTextWriter();
+        using var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var shellTask = ShellClient.RunAsync(host.Address, shellInput, shellOutput, cancellationSource.Token);
+
+        await shellInput.WriteLineAsync("echo shell-echo", cancellationSource.Token);
+        await shellOutput.WaitForTextAsync("shell-echo", TimeSpan.FromSeconds(5));
+        await shellInput.WriteLineAsync("exit", cancellationSource.Token);
+        await shellTask;
+    }
+
+    [TestMethod]
+    public async Task WhenShellRunsMultipleCommandsThenEachOutputIsReturned()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        using var shellInput = new InteractiveTextReader();
+        using var shellOutput = new ObservableTextWriter();
+        using var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var shellTask = ShellClient.RunAsync(host.Address, shellInput, shellOutput, cancellationSource.Token);
+
+        await shellInput.WriteLineAsync("echo shell-first", cancellationSource.Token);
+        await shellOutput.WaitForTextAsync("shell-first", TimeSpan.FromSeconds(5));
+        await shellInput.WriteLineAsync("echo shell-second", cancellationSource.Token);
+        await shellOutput.WaitForTextAsync("shell-second", TimeSpan.FromSeconds(5));
+        await shellInput.WriteLineAsync("exit", cancellationSource.Token);
+
+        await shellTask;
+    }
+
+    [TestMethod]
+    public async Task WhenShellReturnsLongUnicodeOutputThenContentIsNotCorrupted()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        using var shellInput = new InteractiveTextReader();
+        using var shellOutput = new ObservableTextWriter();
+        using var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var shellTask = ShellClient.RunAsync(host.Address, shellInput, shellOutput, cancellationSource.Token);
+        const string expectedLine = "远程终端中文输出";
+        var script = $"foreach ($i in 1..600) {{ '{expectedLine}' }}";
+        var encodedScript = Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
+
+        await shellInput.WriteLineAsync(
+            $"powershell.exe -NoProfile -EncodedCommand {encodedScript}",
+            cancellationSource.Token);
+        await shellInput.WriteLineAsync("echo unicode-output-complete", cancellationSource.Token);
+        await shellOutput.WaitForTextAsync("unicode-output-complete", TimeSpan.FromSeconds(10));
+        await shellOutput.WaitForTextAsync(
+            string.Concat(Enumerable.Repeat(expectedLine + Environment.NewLine, 500)),
+            TimeSpan.FromSeconds(5));
+        await shellInput.WriteLineAsync("exit", cancellationSource.Token);
+        await shellTask;
+    }
+
+    [TestMethod]
+    public async Task WhenShellChangesDirectoryThenListUsesShellWorkingDirectory()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        using var shellInput = new InteractiveTextReader();
+        using var shellOutput = new ObservableTextWriter();
+        using var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var shellTask = ShellClient.RunAsync(host.Address, shellInput, shellOutput, cancellationSource.Token);
+        var directory = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+
+        await shellInput.WriteLineAsync($"cd /d \"{directory}\"", cancellationSource.Token);
+        await shellInput.WriteLineAsync("echo directory-changed", cancellationSource.Token);
+        await shellOutput.WaitForTextAsync("directory-changed", TimeSpan.FromSeconds(5));
+        await shellInput.WriteLineAsync("exit", cancellationSource.Token);
+        await shellTask;
+        var listing = await ListClient.ListAsync(host.Address, cancellationToken: cancellationSource.Token);
+
+        Assert.AreEqual(directory, listing.Path);
+    }
+
+    [TestMethod]
     public async Task WhenShellExitsThenDirectExecRemainsAvailable()
     {
         await using var host = await TestServerHost.StartAsync();
-        using var shellInput = new StringReader("echo shell-ready\nexit\n");
-        using var shellOutput = new StringWriter();
+        using var shellInput = new InteractiveTextReader();
+        using var shellOutput = new ObservableTextWriter();
         using var execOutput = new StringWriter();
+        using var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var shellTask = ShellClient.RunAsync(host.Address, shellInput, shellOutput, cancellationSource.Token);
 
-        await ShellClient.RunAsync(host.Address, shellInput, shellOutput);
-        await ExecClient.ExecuteAsync(host.Address, ["where.exe", "cmd.exe"], null, execOutput);
+        await shellInput.WriteLineAsync("echo shell-ready", cancellationSource.Token);
+        await shellOutput.WaitForTextAsync("shell-ready", TimeSpan.FromSeconds(5));
+        await shellInput.WriteLineAsync("exit", cancellationSource.Token);
+        await shellTask;
+        await ExecClient.ExecuteAsync(host.Address, ["where.exe", "cmd.exe"], null, execOutput, cancellationSource.Token);
 
         StringAssert.Contains(execOutput.ToString(), "cmd.exe");
     }

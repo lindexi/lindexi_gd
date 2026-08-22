@@ -166,6 +166,7 @@ public static class ServerHost
             }
 
             using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            cmd.EnsureRunning();
             using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
             var receiveTask = ReceiveShellInputAsync(webSocket, cmd, cancellationSource.Token);
             var sendTask = SendShellOutputAsync(webSocket, cmd, cancellationSource.Token);
@@ -268,7 +269,10 @@ public static class ServerHost
         });
     }
 
-    private static async Task ReceiveShellInputAsync(WebSocket webSocket, CmdProcess cmd, CancellationToken cancellationToken)
+    private static async Task ReceiveShellInputAsync(
+        WebSocket webSocket,
+        CmdProcess cmd,
+        CancellationToken cancellationToken)
     {
         var buffer = ArrayPool<byte>.Shared.Rent(4096);
         try
@@ -309,7 +313,10 @@ public static class ServerHost
         }
     }
 
-    private static async Task SendShellOutputAsync(WebSocket webSocket, CmdProcess cmd, CancellationToken cancellationToken)
+    private static async Task SendShellOutputAsync(
+        WebSocket webSocket,
+        CmdProcess cmd,
+        CancellationToken cancellationToken)
     {
         await foreach (var line in cmd.ReadOutputAsync(cancellationToken))
         {
