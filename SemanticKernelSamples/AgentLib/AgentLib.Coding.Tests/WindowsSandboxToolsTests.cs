@@ -45,7 +45,8 @@ public sealed class WindowsSandboxToolsTests
     {
         string workspacePath = CreateTestDirectory();
         Directory.CreateDirectory(Path.Combine(workspacePath, "runner"));
-        var tools = new WindowsSandboxTools(workspacePath, new ThrowingWinRemoteShellRunner());
+        var runner = new ThrowingWinRemoteShellRunner();
+        var tools = new WindowsSandboxTools(workspacePath, runner);
         AIFunction tool = tools.AsAITools().OfType<AIFunction>().Single();
 
         object? result = await tool.InvokeAsync(new AIFunctionArguments
@@ -58,6 +59,7 @@ public sealed class WindowsSandboxToolsTests
         StringAssert.Contains(resultText, "沙箱执行失败");
         StringAssert.Contains(resultText, "InvalidOperationException");
         StringAssert.Contains(resultText, "真实的远端错误详情");
+        Assert.AreEqual(2, runner.PushCallCount);
     }
 
     [TestMethod(DisplayName = "沙盒执行应推送、逐项执行并拉取任务目录")]
@@ -74,7 +76,7 @@ public sealed class WindowsSandboxToolsTests
             "bin\\TestRunner.exe",
             arguments: ["--test", "sample data"]);
 
-        CollectionAssert.AreEqual(new[] { "push", "exec", "pull" }, runner.Calls);
+        CollectionAssert.AreEqual(new[] { "push", "exec", "pull", "push" }, runner.Calls);
         StringAssert.EndsWith(runner.ExecutablePath, "\\bin\\TestRunner.exe");
         CollectionAssert.AreEqual(new[] { "--test", "sample data" }, runner.Arguments!.ToArray());
         StringAssert.Contains(result, "runner output");
@@ -92,21 +94,8 @@ public sealed class WindowsSandboxToolsTests
 
         StringAssert.StartsWith(runner.RemotePushPath, @"C:\CodingAgentSandbox\Tasks\");
         Assert.AreEqual(runner.RemotePushPath, runner.RemotePullPath);
-    }
-
-    [TestMethod(DisplayName = "指定工作目录时应明确返回协议不支持")]
-    public async Task ExecuteAsync_WhenWorkingDirectoryIsSpecified_ReturnsNotSupportedError()
-    {
-        string workspacePath = CreateTestDirectory();
-        Directory.CreateDirectory(Path.Combine(workspacePath, "runner"));
-        var runner = new RecordingWinRemoteShellRunner();
-        var tools = new WindowsSandboxTools(workspacePath, runner);
-
-        string result = await tools.ExecuteAsync("runner", "TestRunner.exe", workingDirectoryRelativePath: "bin");
-
-        StringAssert.Contains(result, "NotSupportedException");
-        StringAssert.Contains(result, "不支持指定远端工作目录");
-        Assert.AreEqual(0, runner.Calls.Count);
+        Assert.AreEqual(runner.RemotePushPath, runner.RemoteCleanupPath);
+        Assert.IsTrue(runner.CleanupSourceWasEmpty);
     }
 
     private static string CreateTestDirectory()
@@ -118,8 +107,13 @@ public sealed class WindowsSandboxToolsTests
 
     private sealed class ThrowingWinRemoteShellRunner : IWinRemoteShellRunner
     {
-        public Task PushAsync(string sourcePath, string remoteTargetPath, CancellationToken cancellationToken) =>
+        public int PushCallCount { get; private set; }
+
+        public Task PushAsync(string sourcePath, string remoteTargetPath, CancellationToken cancellationToken)
+        {
+            PushCallCount++;
             throw new InvalidOperationException("真实的远端错误详情");
+        }
 
         public Task<string> ExecuteAsync(
             string executablePath,
@@ -144,10 +138,24 @@ public sealed class WindowsSandboxToolsTests
 
         public string? RemotePullPath { get; private set; }
 
+        public string? RemoteCleanupPath { get; private set; }
+
+        public bool CleanupSourceWasEmpty { get; private set; }
+
         public Task PushAsync(string sourcePath, string remoteTargetPath, CancellationToken cancellationToken)
         {
             Calls.Add("push");
-            RemotePushPath = remoteTargetPath;
+            if (RemotePushPath is null)
+            {
+                RemotePushPath = remoteTargetPath;
+            }
+            else
+            {
+                CleanupSourceWasEmpty = Directory.Exists(sourcePath)
+                    && Directory.GetFileSystemEntries(sourcePath).Length == 0;
+                RemoteCleanupPath = remoteTargetPath;
+            }
+
             return Task.CompletedTask;
         }
 
@@ -169,5 +177,6 @@ public sealed class WindowsSandboxToolsTests
             RemotePullPath = remoteSourcePath;
             return Task.CompletedTask;
         }
+
     }
 }
