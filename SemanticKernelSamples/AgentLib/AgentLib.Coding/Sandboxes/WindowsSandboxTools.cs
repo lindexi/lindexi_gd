@@ -2,16 +2,13 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Net.Http;
 using System.Text;
-
 using System.Text.RegularExpressions;
-
 using AgentLib;
 using AgentLib.Coding;
 using AgentLib.Coding.Sandboxes;
 using AgentLib.Model;
 using AgentLib.Tools;
 using System.Text.RegularExpressions;
-
 using Microsoft.Extensions.AI;
 
 namespace AgentLib.Coding.Sandboxes;
@@ -22,16 +19,21 @@ internal sealed class WindowsSandboxTools
     private const int MaximumTimeoutSeconds = 1800;
     private const int MaximumOutputCharacters = 20000;
     private const string RemoteTasksRoot = @"C:\CodingAgentSandbox\Tasks";
-    private static readonly Regex ExitCodeRegex = new(
+
+    private static readonly Regex ExitCodeRegex = new
+    (
         @"^__CODING_AGENT_EXIT_CODE_([0-9a-f]{32})=(-?\d+)\s*$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Multiline);
+        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Multiline
+    );
 
     private readonly string _workspacePath;
     private readonly IWinRemoteShellRunner _runner;
 
-    internal WindowsSandboxTools(
+    internal WindowsSandboxTools
+    (
         string workspacePath,
-        IWinRemoteShellRunner runner)
+        IWinRemoteShellRunner runner
+    )
     {
         if (string.IsNullOrWhiteSpace(workspacePath))
         {
@@ -43,14 +45,20 @@ internal sealed class WindowsSandboxTools
         _runner = runner;
     }
 
-    internal IReadOnlyList<AITool> AsAITools() => AsToolRegistrations().Select(registration => registration.Tool).ToArray();
+    internal IReadOnlyList<AITool> AsAITools() => AsToolRegistrations().Select
+        (registration => registration.Tool).ToArray();
 
     internal IReadOnlyList<ToolRegistration> AsToolRegistrations() =>
     [
-        new(AIFunctionFactory.Create(ExecuteAsync, "execute_in_windows_sandbox"),
-            arguments => new ToolCallPresentation(
+        new
+        (
+            AIFunctionFactory.Create(ExecuteAsync, "execute_in_windows_sandbox"),
+            arguments => new ToolCallPresentation
+            (
                 ToolCallPresentationFactory.GetString(arguments, "executableRelativePath"),
-                ToolCallPresentationFactory.GetString(arguments, "workingDirectoryRelativePath")))
+                ToolCallPresentationFactory.GetString(arguments, "workingDirectoryRelativePath")
+            )
+        )
     ];
 
     [Description("将工作区内的执行器文件夹推送到 Windows 远程沙盒，在隔离任务目录中执行命令，并把指定结果或整个任务目录拉取回工作区。")]
@@ -71,20 +79,26 @@ internal sealed class WindowsSandboxTools
         [Description("远端执行超时秒数，默认 300 秒，最大 1800 秒。")]
         int timeoutSeconds = DefaultTimeoutSeconds,
         CancellationToken cancellationToken = default
-     )
+    )
     {
         if (!TryResolveSourceDirectory(sourceDirectory, out string fullSourceDirectory, out string validationError)
-            || !TryResolveRelativePath(executableRelativePath, "执行文件", out string normalizedExecutablePath, out validationError)
-            || !TryResolveOptionalRelativePath(workingDirectoryRelativePath, "执行工作目录", out string? normalizedWorkingDirectory, out validationError)
-            || !TryResolveOptionalRelativePath(outputRelativePath, "结果路径", out string? normalizedOutputPath, out validationError)
-            || !TryResolveLocalOutputDirectory(localOutputDirectory, out string fullLocalOutputDirectory, out validationError))
+            || !TryResolveRelativePath
+                (executableRelativePath, "执行文件", out string normalizedExecutablePath, out validationError)
+            || !TryResolveOptionalRelativePath
+                (workingDirectoryRelativePath, "执行工作目录", out string? normalizedWorkingDirectory, out validationError)
+            || !TryResolveOptionalRelativePath
+                (outputRelativePath, "结果路径", out string? normalizedOutputPath, out validationError)
+            || !TryResolveLocalOutputDirectory
+                (localOutputDirectory, out string fullLocalOutputDirectory, out validationError))
         {
             return validationError;
         }
+
         if (timeoutSeconds is < 1 or > MaximumTimeoutSeconds)
         {
             return $"沙盒执行参数无效：超时秒数必须在 1 到 {MaximumTimeoutSeconds} 之间。";
         }
+
         if (!TryValidateCommandValue(normalizedExecutablePath, "执行文件", out validationError)
             || (normalizedWorkingDirectory is not null
                 && !TryValidateCommandValue(normalizedWorkingDirectory, "执行工作目录", out validationError))
@@ -120,7 +134,8 @@ internal sealed class WindowsSandboxTools
         string executionOutput;
         try
         {
-            executionOutput = await _runner.ExecuteAsync(remoteCommand, timeoutSeconds, cancellationToken).ConfigureAwait(false);
+            executionOutput = await _runner.ExecuteAsync
+                (remoteCommand, timeoutSeconds, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -132,26 +147,33 @@ internal sealed class WindowsSandboxTools
         }
 
         Match exitCodeMatch = ExitCodeRegex.Matches(executionOutput)
-            .Cast<Match>()
-            .LastOrDefault(match => string.Equals(match.Groups[1].Value, taskId, StringComparison.OrdinalIgnoreCase))
-            ?? Match.Empty;
+                                  .Cast<Match>()
+                                  .LastOrDefault
+                                  (match => string.Equals
+                                      (match.Groups[1].Value, taskId, StringComparison.OrdinalIgnoreCase)
+                                  )
+                              ?? Match.Empty;
         if (!exitCodeMatch.Success
-            || !int.TryParse(exitCodeMatch.Groups[2].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int exitCode))
+            || !int.TryParse
+                (exitCodeMatch.Groups[2].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int exitCode))
         {
-            return FormatResult(
+            return FormatResult
+            (
                 succeeded: false,
                 exitCode: null,
                 remoteTaskDirectory,
                 localOutputDirectory: null,
                 executionOutput,
-                "未能从远端输出中读取执行文件退出码，结果文件未拉取。");
+                "未能从远端输出中读取执行文件退出码，结果文件未拉取。"
+            );
         }
 
         string visibleOutput = ExitCodeRegex.Replace(executionOutput, string.Empty).TrimEnd();
         try
         {
             Directory.CreateDirectory(fullLocalOutputDirectory);
-            await _runner.PullAsync(remoteOutputPath, fullLocalOutputDirectory, cancellationToken).ConfigureAwait(false);
+            await _runner.PullAsync(remoteOutputPath, fullLocalOutputDirectory, cancellationToken).ConfigureAwait
+                (false);
         }
         catch (OperationCanceledException)
         {
@@ -159,22 +181,26 @@ internal sealed class WindowsSandboxTools
         }
         catch (Exception ex) when (IsExpectedFailure(ex))
         {
-            return FormatResult(
+            return FormatResult
+            (
                 succeeded: false,
                 exitCode,
                 remoteTaskDirectory,
                 fullLocalOutputDirectory,
                 visibleOutput,
-                $"远端命令已完成，但拉取结果失败。原因：{GetFailureMessage(ex)}");
+                $"远端命令已完成，但拉取结果失败。原因：{GetFailureMessage(ex)}"
+            );
         }
 
-        return FormatResult(
+        return FormatResult
+        (
             succeeded: exitCode == 0,
             exitCode,
             remoteTaskDirectory,
             fullLocalOutputDirectory,
             visibleOutput,
-            exitCode == 0 ? null : "远端执行文件返回非零退出码。");
+            exitCode == 0 ? null : "远端执行文件返回非零退出码。"
+        );
     }
 
     private bool TryResolveSourceDirectory(string sourceDirectory, out string fullPath, out string errorMessage)
@@ -188,9 +214,12 @@ internal sealed class WindowsSandboxTools
 
         try
         {
-            fullPath = Path.GetFullPath(Path.IsPathRooted(sourceDirectory)
-                ? sourceDirectory
-                : Path.Combine(_workspacePath, sourceDirectory));
+            fullPath = Path.GetFullPath
+            (
+                Path.IsPathRooted(sourceDirectory)
+                    ? sourceDirectory
+                    : Path.Combine(_workspacePath, sourceDirectory)
+            );
         }
         catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
         {
@@ -204,6 +233,7 @@ internal sealed class WindowsSandboxTools
             errorMessage = $"沙盒执行参数无效：执行目录必须位于代码工作区内。路径：{fullPath}";
             return false;
         }
+
         if (!Directory.Exists(fullPath))
         {
             errorMessage = $"沙盒执行参数无效：执行目录不存在。路径：{fullPath}";
@@ -218,7 +248,9 @@ internal sealed class WindowsSandboxTools
     {
         string candidate = string.IsNullOrWhiteSpace(path)
             ? Path.Combine(_workspacePath, ".coding-agent", "sandbox-results", "{taskId}")
-            : Path.IsPathRooted(path) ? path : Path.Combine(_workspacePath, path);
+            : Path.IsPathRooted(path)
+                ? path
+                : Path.Combine(_workspacePath, path);
         try
         {
             fullPath = Path.GetFullPath(candidate);
@@ -240,11 +272,13 @@ internal sealed class WindowsSandboxTools
         return true;
     }
 
-    private static bool TryResolveOptionalRelativePath(
+    private static bool TryResolveOptionalRelativePath
+    (
         string? path,
         string parameterName,
         out string? normalizedPath,
-        out string errorMessage)
+        out string errorMessage
+    )
     {
         if (string.IsNullOrWhiteSpace(path))
         {
@@ -256,11 +290,13 @@ internal sealed class WindowsSandboxTools
         return TryResolveRelativePath(path, parameterName, out normalizedPath, out errorMessage);
     }
 
-    private static bool TryResolveRelativePath(
+    private static bool TryResolveRelativePath
+    (
         string path,
         string parameterName,
         out string normalizedPath,
-        out string errorMessage)
+        out string errorMessage
+    )
     {
         if (string.IsNullOrWhiteSpace(path) || Path.IsPathRooted(path))
         {
@@ -268,6 +304,7 @@ internal sealed class WindowsSandboxTools
             errorMessage = $"沙盒执行参数无效：{parameterName}必须是非空相对路径。";
             return false;
         }
+
         if (path.IndexOfAny(['\r', '\n']) >= 0)
         {
             normalizedPath = string.Empty;
@@ -322,15 +359,17 @@ internal sealed class WindowsSandboxTools
     {
         string relativePath = Path.GetRelativePath(_workspacePath, path);
         return !Path.IsPathRooted(relativePath)
-            && relativePath != ".."
-            && !relativePath.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal);
+               && relativePath != ".."
+               && !relativePath.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal);
     }
 
-    private static string BuildRemoteCommand(
+    private static string BuildRemoteCommand
+    (
         string workingDirectory,
         string executablePath,
         IReadOnlyList<string>? arguments,
-        string marker)
+        string marker
+    )
     {
         var builder = new StringBuilder("cmd.exe /D /V:ON /S /C \"");
         builder.Append("cd /d ").Append(QuoteForCmd(workingDirectory));
@@ -392,13 +431,15 @@ internal sealed class WindowsSandboxTools
     private static string GetFailureMessage(Exception exception) =>
         string.IsNullOrWhiteSpace(exception.Message) ? exception.GetType().Name : exception.Message;
 
-    private static string FormatResult(
+    private static string FormatResult
+    (
         bool succeeded,
         int? exitCode,
         string remoteTaskDirectory,
         string? localOutputDirectory,
         string output,
-        string? errorMessage)
+        string? errorMessage
+    )
     {
         string limitedOutput = output.Length <= MaximumOutputCharacters
             ? output
@@ -411,10 +452,12 @@ internal sealed class WindowsSandboxTools
         {
             builder.AppendLine($"本地结果目录：{localOutputDirectory}");
         }
+
         if (!string.IsNullOrWhiteSpace(errorMessage))
         {
             builder.AppendLine($"错误：{errorMessage}");
         }
+
         builder.AppendLine("远端输出：");
         builder.Append(limitedOutput);
         return builder.ToString().TrimEnd();
