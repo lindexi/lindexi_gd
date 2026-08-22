@@ -157,8 +157,46 @@ public sealed class ServerIntegrationTests
     }
 
     [TestMethod]
-    public async Task WhenExecTimesOutThenDirectProcessStops()
+    public async Task WhenExecSpecifiesAbsoluteWorkingDirectoryThenItIsUsed()
     {
+        await using var host = await TestServerHost.StartAsync();
+        var directory = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        using var output = new StringWriter();
+
+        await ExecClient.ExecuteAsync(
+            host.Address,
+            ["cmd.exe", "/D", "/C", "cd"],
+            null,
+            output,
+            directory);
+
+        StringAssert.Contains(output.ToString(), directory);
+    }
+
+    [TestMethod]
+    public async Task WhenExecSpecifiesRelativeWorkingDirectoryThenItIsResolvedFromCurrentDirectory()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var root = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        var directory = Path.Combine(root, "child");
+        Directory.CreateDirectory(directory);
+        await ChangeDirectoryClient.ChangeAsync(host.Address, root);
+        using var output = new StringWriter();
+
+        await ExecClient.ExecuteAsync(
+            host.Address,
+            ["cmd.exe", "/D", "/C", "cd"],
+            null,
+            output,
+            "child");
+
+        StringAssert.Contains(output.ToString(), directory);
+    }
+
+    [TestMethod]
+    public async Task WhenExecTimesOutThenDirectProcessStops()
+    { 
         await using var host = await TestServerHost.StartAsync();
         using var output = new StringWriter();
         using var cancellationSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));

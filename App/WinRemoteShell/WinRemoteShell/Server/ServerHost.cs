@@ -68,7 +68,10 @@ public static class ServerHost
                     : null;
                 timeoutSource?.CancelAfter(TimeSpan.FromSeconds(request.TimeoutSeconds!.Value));
                 var cancellationToken = timeoutSource?.Token ?? context.RequestAborted;
-                var workingDirectory = await cmd.GetWorkingDirectoryAsync(context.RequestAborted);
+                var currentWorkingDirectory = await cmd.GetWorkingDirectoryAsync(context.RequestAborted);
+                var workingDirectory = string.IsNullOrWhiteSpace(request.WorkingDirectory)
+                    ? currentWorkingDirectory
+                    : Path.GetFullPath(request.WorkingDirectory, currentWorkingDirectory);
 
                 await foreach (var line in executor.ExecuteAsync(request.Arguments, workingDirectory, cancellationToken))
                 {
