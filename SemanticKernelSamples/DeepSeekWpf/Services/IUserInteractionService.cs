@@ -10,6 +10,12 @@ public interface IUserInteractionService
         string filter,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<string>> SelectFilesAsync(
+        string title,
+        string filter,
+        bool allowMultiple,
+        CancellationToken cancellationToken = default);
+
     Task ShowMessageAsync(string title, string message, CancellationToken cancellationToken = default);
 
     Task CopyTextAsync(string text, CancellationToken cancellationToken = default);

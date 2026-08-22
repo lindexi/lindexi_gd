@@ -195,7 +195,11 @@ public sealed class AgentAiChatService : IAiChatService
         }
         finally
         {
-            if (chatClient is IDisposable disposable)
+            if (chatClient is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+            }
+            else if (chatClient is IDisposable disposable)
             {
                 disposable.Dispose();
             }
@@ -217,7 +221,24 @@ public sealed class AgentAiChatService : IAiChatService
                 continue;
             }
 
-            messages.Add(new ChatMessage(message.Role, message.Content ?? string.Empty));
+            if (message.ImageAttachments.Count == 0)
+            {
+                messages.Add(new ChatMessage(message.Role, message.Content ?? string.Empty));
+                continue;
+            }
+
+            var contents = new List<AIContent>(message.ImageAttachments.Count + 1);
+            if (!string.IsNullOrWhiteSpace(message.Content))
+            {
+                contents.Add(new TextContent(message.Content));
+            }
+
+            contents.AddRange(message.ImageAttachments.Select(attachment =>
+                new DataContent(attachment.Data, attachment.MediaType)
+                {
+                    Name = attachment.FileName,
+                }));
+            messages.Add(new ChatMessage(message.Role, contents));
         }
 
         return messages;

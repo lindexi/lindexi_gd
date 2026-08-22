@@ -1,4 +1,4 @@
-﻿using XiaoXiIme.Foundation;
+using XiaoXiIme.Foundation;
 
 namespace XiaoXiIme.Dictionary;
 
@@ -35,14 +35,45 @@ public sealed class InMemoryImeDictionary : IImeDictionary
 
     public IReadOnlyList<ImeCandidate> Query(string reading, int maxCount = 9)
     {
-        if (string.IsNullOrWhiteSpace(reading) || maxCount <= 0)
+        return Query(new ImeDictionaryQuery(reading, maxCount));
+    }
+
+    public IReadOnlyList<ImeCandidate> Query(ImeDictionaryQuery query)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+
+        if (string.IsNullOrWhiteSpace(query.Input) || query.MaxCount <= 0)
         {
             return Array.Empty<ImeCandidate>();
         }
 
-        return _entries.TryGetValue(reading, out var candidates)
-            ? candidates.Take(maxCount).ToArray()
-            : Array.Empty<ImeCandidate>();
+        var input = query.Input.Trim();
+        if (query.MatchMode == ImeDictionaryMatchMode.Exact)
+        {
+            return _entries.TryGetValue(input, out var candidates)
+                ? candidates.Take(query.MaxCount).ToArray()
+                : Array.Empty<ImeCandidate>();
+        }
+
+        return _entries
+            .Where(entry => entry.Key.StartsWith(input, StringComparison.OrdinalIgnoreCase))
+            .SelectMany(entry => entry.Value.Select(candidate => new
+            {
+                Candidate = candidate,
+                IsExact = string.Equals(entry.Key, input, StringComparison.OrdinalIgnoreCase),
+            }))
+            .GroupBy(item => (item.Candidate.Text, item.Candidate.Reading))
+            .Select(group => group
+                .OrderByDescending(item => item.IsExact)
+                .ThenByDescending(item => item.Candidate.Score)
+                .First())
+            .OrderByDescending(item => item.IsExact)
+            .ThenByDescending(item => item.Candidate.Score)
+            .ThenBy(item => item.Candidate.Reading.Length)
+            .ThenBy(item => item.Candidate.Text, StringComparer.Ordinal)
+            .Take(query.MaxCount)
+            .Select(item => item.Candidate)
+            .ToArray();
     }
 }
 

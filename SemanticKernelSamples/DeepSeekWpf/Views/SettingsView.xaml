@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="DeepSeekWpf.Views.SettingsView"
+<UserControl x:Class="DeepSeekWpf.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -16,7 +16,7 @@
                        FontWeight="SemiBold"
                        Text="设置" />
             <TextBlock Margin="0,8,0,20"
-                       Text="模型凭据由外部 Agent 配置管理，本应用不会读取或回显密钥。"
+                       Text="模型凭据由外部 Agent 配置管理，本应用不会在界面回显、应用设置或日志中保存密钥。"
                        TextWrapping="Wrap" />
         </StackPanel>
 

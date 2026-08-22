@@ -14,11 +14,13 @@ public sealed class ChatMessageViewModel : ObservableObject
     public ChatMessageViewModel(
         CopilotChatMessage message,
         Guid? id = null,
-        DateTime? createdAt = null)
+        DateTime? createdAt = null,
+        IReadOnlyList<ChatImageAttachment>? imageAttachments = null)
     {
         Message = message ?? throw new ArgumentNullException(nameof(message));
         Id = id ?? Guid.NewGuid();
         CreatedAt = createdAt ?? message.CreatedTime.LocalDateTime;
+        ImageAttachments = imageAttachments ?? [];
         Message.PropertyChanged += MessageOnPropertyChanged;
     }
 
@@ -37,6 +39,10 @@ public sealed class ChatMessageViewModel : ObservableObject
     public string ThoughtContent => Message.Reason;
 
     public DateTime CreatedAt { get; }
+
+    public IReadOnlyList<ChatImageAttachment> ImageAttachments { get; }
+
+    public bool HasImageAttachments => ImageAttachments.Count > 0;
 
     public bool IsAssistant => Role == ChatRole.Assistant;
 

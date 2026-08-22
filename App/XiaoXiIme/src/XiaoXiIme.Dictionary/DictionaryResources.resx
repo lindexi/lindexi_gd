@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="EmptyReading" xml:space="preserve">
+    <value>Reading cannot be empty.</value>
+  </data>
+  <data name="EmptyText" xml:space="preserve">
+    <value>Text cannot be empty.</value>
+  </data>
+  <data name="InvalidColumnCount" xml:space="preserve">
+    <value>Expected exactly three tab-separated columns.</value>
+  </data>
+  <data name="InvalidFrequency" xml:space="preserve">
+    <value>Frequency must be a non-negative integer.</value>
+  </data>
+  <data name="InvalidPhoneticSourceLine" xml:space="preserve">
+    <value>{0}({1}): {2}</value>
+  </data>
+  <data name="InvalidReading" xml:space="preserve">
+    <value>Reading must contain only lowercase ASCII letters and spaces between syllables.</value>
+  </data>
+  <data name="LineTooLong" xml:space="preserve">
+    <value>The source line exceeds the maximum supported length.</value>
+  </data>
+  <data name="ReadingTooLong" xml:space="preserve">
+    <value>Reading exceeds the maximum supported length.</value>
+  </data>
+  <data name="TextTooLong" xml:space="preserve">
+    <value>Text exceeds the maximum supported length.</value>
+  </data>
+</root>

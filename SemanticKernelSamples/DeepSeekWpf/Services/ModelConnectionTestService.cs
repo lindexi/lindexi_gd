@@ -18,17 +18,28 @@ public sealed class ModelConnectionTestService : IModelConnectionTestService
         using var timeoutSource = new CancellationTokenSource(TestTimeout);
         using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutSource.Token);
 
+        IChatClient? client = null;
         try
         {
-            var client = await _agentModelService.GetSelectedChatClientAsync().ConfigureAwait(false);
-            var response = await client.GetResponseAsync(
-                [new ChatMessage(ChatRole.User, "Reply OK")],
-                cancellationToken: linkedSource.Token).ConfigureAwait(false);
-            return string.IsNullOrWhiteSpace(response.Text)
-                ? new ModelConnectionTestResult(false, AiChatErrorCategory.EmptyResponse, "连接成功，但模型未返回内容。")
-                : new ModelConnectionTestResult(true, null, "模型连接测试成功。");
+            client = await _agentModelService.GetSelectedChatClientAsync().ConfigureAwait(false);
+            await foreach (var update in client.GetStreamingResponseAsync(
+                               [new ChatMessage(ChatRole.User, "Reply OK")],
+                               cancellationToken: linkedSource.Token)
+                               .ConfigureAwait(false))
+            {
+                if (!string.IsNullOrWhiteSpace(update.Text))
+                {
+                    return new ModelConnectionTestResult(true, null, "模型流式连接测试成功。");
+                }
+            }
+
+            return new ModelConnectionTestResult(false, AiChatErrorCategory.EmptyResponse, "连接成功，但模型未返回内容。");
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OperationCanceledException)
         {
             return new ModelConnectionTestResult(false, AiChatErrorCategory.Timeout, "模型连接测试超时。");
         }
@@ -50,6 +61,17 @@ public sealed class ModelConnectionTestService : IModelConnectionTestService
         catch (Exception)
         {
             return new ModelConnectionTestResult(false, AiChatErrorCategory.Unknown, "模型连接测试失败，请查看日志。");
+        }
+        finally
+        {
+            if (client is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+            }
+            else if (client is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
         }
     }
 

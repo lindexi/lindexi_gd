@@ -10,7 +10,7 @@ namespace DeepSeekWpf.Services;
 
 public sealed class FileChatRepository : IChatRepository
 {
-    private const int CurrentSchemaVersion = 2;
+    private const int CurrentSchemaVersion = 3;
     private readonly ISettingsService _settingsService;
     private readonly ConcurrentDictionary<Guid, SessionWriteState> _sessionWriteStates = new();
     private readonly JsonSerializerOptions _serializerOptions = new()
@@ -183,6 +183,7 @@ public sealed class FileChatRepository : IChatRepository
         return schemaVersion switch
         {
             1 => MigrateV1(root),
+            2 => DeserializeRequired<ChatSessionDto>(root),
             CurrentSchemaVersion => DeserializeRequired<ChatSessionDto>(root),
             _ => throw new NotSupportedException($"不支持会话架构版本 {schemaVersion}。当前支持的版本为 {CurrentSchemaVersion}。"),
         };
@@ -335,6 +336,8 @@ public sealed class FileChatRepository : IChatRepository
 
         public DateTime CreatedAt { get; init; }
 
+        public List<ChatImageAttachmentDto> ImageAttachments { get; init; } = [];
+
         public static ChatMessageDto FromModel(ChatMessageViewModel message)
         {
             return new ChatMessageDto
@@ -344,6 +347,7 @@ public sealed class FileChatRepository : IChatRepository
                 Text = message.Content,
                 Reasoning = message.ThoughtContent,
                 CreatedAt = message.CreatedAt,
+                ImageAttachments = message.ImageAttachments.Select(ChatImageAttachmentDto.FromModel).ToList(),
             };
         }
 
@@ -355,7 +359,32 @@ public sealed class FileChatRepository : IChatRepository
             return new ChatMessageViewModel(
                 message,
                 Id == Guid.Empty ? null : Id,
-                CreatedAt == default ? null : CreatedAt);
+                CreatedAt == default ? null : CreatedAt,
+                ImageAttachments.Select(attachment => attachment.ToModel()).ToArray());
+        }
+    }
+
+    private sealed class ChatImageAttachmentDto
+    {
+        public string FileName { get; init; } = string.Empty;
+
+        public string MediaType { get; init; } = string.Empty;
+
+        public byte[] Data { get; init; } = [];
+
+        public static ChatImageAttachmentDto FromModel(ChatImageAttachment attachment)
+        {
+            return new ChatImageAttachmentDto
+            {
+                FileName = attachment.FileName,
+                MediaType = attachment.MediaType,
+                Data = attachment.Data,
+            };
+        }
+
+        public ChatImageAttachment ToModel()
+        {
+            return new ChatImageAttachment(FileName, MediaType, Data);
         }
     }
 

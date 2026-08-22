@@ -15,32 +15,55 @@ internal sealed class WinRemoteShellProcessRunner : IWinRemoteShellRunner
         _serverAddress = serverAddress;
     }
 
-    public async Task PushAsync(string sourcePath, string remoteTargetPath, CancellationToken cancellationToken)
-    {
-        ProcessResult result = await RunAsync(
-            ["push", "--server", _serverAddress, "--source", sourcePath, "--target", remoteTargetPath],
-            cancellationToken).ConfigureAwait(false);
-        EnsureSuccess("推送文件", result);
-    }
+    public Task PushAsync(string sourcePath, string remoteTargetPath, CancellationToken cancellationToken) =>
+        RunAndEnsureSuccessAsync(
+            "推送文件",
+            ["push", "--server", _serverAddress, "--source", sourcePath, "--target", remoteTargetPath, "--mode", "Replace"],
+            cancellationToken);
 
-    public async Task<string> ExecuteAsync(string command, int timeoutSeconds, CancellationToken cancellationToken)
+    public async Task<string> ExecuteAsync(
+        string executablePath,
+        IReadOnlyList<string> arguments,
+        int timeoutSeconds,
+        CancellationToken cancellationToken)
     {
-        ProcessResult result = await RunAsync(
-            ["exec", "--server", _serverAddress, "--timeout", timeoutSeconds.ToString(CultureInfo.InvariantCulture), "--", command],
-            cancellationToken).ConfigureAwait(false);
+        var clientArguments = new List<string>
+        {
+            "exec",
+            "--server",
+            _serverAddress,
+            "--timeout",
+            timeoutSeconds.ToString(CultureInfo.InvariantCulture),
+            "--",
+            executablePath,
+        };
+        clientArguments.AddRange(arguments);
+
+        ProcessResult result = await RunAsync(clientArguments, cancellationToken).ConfigureAwait(false);
         EnsureSuccess("执行远端命令", result);
-        return JoinOutput(result);
+        string output = JoinOutput(result);
+        EnsureRemoteExecutionSucceeded(output);
+        return output;
     }
 
-    public async Task PullAsync(string remoteSourcePath, string localOutputPath, CancellationToken cancellationToken)
-    {
-        ProcessResult result = await RunAsync(
+    public Task PullAsync(string remoteSourcePath, string localOutputPath, CancellationToken cancellationToken) =>
+        RunAndEnsureSuccessAsync(
+            "拉取文件",
             ["pull", "--server", _serverAddress, "--source", remoteSourcePath, "--output", localOutputPath],
-            cancellationToken).ConfigureAwait(false);
-        EnsureSuccess("拉取文件", result);
+            cancellationToken);
+
+    private async Task RunAndEnsureSuccessAsync(
+        string operation,
+        IReadOnlyList<string> arguments,
+        CancellationToken cancellationToken)
+    {
+        ProcessResult result = await RunAsync(arguments, cancellationToken).ConfigureAwait(false);
+        EnsureSuccess(operation, result);
     }
 
-    private async Task<ProcessResult> RunAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
+    private async Task<ProcessResult> RunAsync(
+        IReadOnlyList<string> arguments,
+        CancellationToken cancellationToken)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -93,10 +116,26 @@ internal sealed class WinRemoteShellProcessRunner : IWinRemoteShellRunner
         }
     }
 
+    internal static void EnsureRemoteExecutionSucceeded(string output)
+    {
+        if (string.IsNullOrWhiteSpace(output))
+        {
+            return;
+        }
+
+        bool containsServerStackTrace = output.Contains("at WinRemoteShell.Server.", StringComparison.Ordinal);
+        bool startsWithExceptionType = output.TrimStart().StartsWith("System.", StringComparison.Ordinal)
+            && output.Contains("Exception", StringComparison.Ordinal);
+        if (containsServerStackTrace && startsWithExceptionType)
+        {
+            throw new InvalidOperationException($"WinRemoteShell 远端执行失败。服务端返回异常：{output.Trim()}");
+        }
+    }
+
     private static string JoinOutput(ProcessResult result) =>
         string.Join(Environment.NewLine, new[] { result.StandardOutput, result.StandardError }
-                .Where(value => !string.IsNullOrWhiteSpace(value)))
-            .TrimEnd();
+            .Where(output => !string.IsNullOrWhiteSpace(output))
+            .Select(output => output.Trim()));
 
     private sealed record ProcessResult(int ExitCode, string StandardOutput, string StandardError);
 }

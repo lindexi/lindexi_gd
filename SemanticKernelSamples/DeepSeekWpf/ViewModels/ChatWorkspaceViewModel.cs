@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Windows.Data;
 using AgentLib.Model;
@@ -11,6 +12,16 @@ namespace DeepSeekWpf.ViewModels;
 
 public sealed class ChatWorkspaceViewModel : ViewModelBase
 {
+    private static readonly IReadOnlyDictionary<string, string> SupportedImageMediaTypes =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [".png"] = "image/png",
+            [".jpg"] = "image/jpeg",
+            [".jpeg"] = "image/jpeg",
+            [".webp"] = "image/webp",
+            [".gif"] = "image/gif",
+        };
+
     private readonly IAiChatService _aiChatService;
     private readonly IChatRepository _chatRepository;
     private readonly ISettingsService _settingsService;
@@ -28,6 +39,8 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
     private readonly RelayCommand _cancelInlineEditCommand;
     private readonly AsyncRelayCommand _renameSessionCommand;
     private readonly AsyncRelayCommand _retryCommand;
+    private readonly AsyncRelayCommand _addImagesCommand;
+    private readonly RelayCommand _removeImageCommand;
     private Task _activeResponseTask = Task.CompletedTask;
     private ChatSession? _selectedSession;
     private ChatMessageViewModel? _selectedMessage;
@@ -40,6 +53,8 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
     private string _editableSessionTitle = string.Empty;
     private string _errorMessage = string.Empty;
     private FailedSendContext? _failedSendContext;
+
+    public ObservableCollection<ChatImageAttachment> PendingImageAttachments { get; } = [];
 
     public ChatWorkspaceViewModel(
         IAiChatService aiChatService,
@@ -70,6 +85,8 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
         _cancelInlineEditCommand = new RelayCommand(CancelInlineEdit, CanCancelInlineEdit);
         _renameSessionCommand = new AsyncRelayCommand(RenameSessionAsync, CanRenameSession);
         _retryCommand = new AsyncRelayCommand(RetryAsync, () => CanRetry);
+        _addImagesCommand = new AsyncRelayCommand(AddImagesAsync, CanAddImages);
+        _removeImageCommand = new RelayCommand(RemoveImage, CanRemoveImage);
     }
 
     private async Task GenerateReplyAsync(ChatSession session, ChatMessageViewModel userMessage)
@@ -384,6 +401,10 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
 
     public AsyncRelayCommand RetryCommand => _retryCommand;
 
+    public AsyncRelayCommand AddImagesCommand => _addImagesCommand;
+
+    public RelayCommand RemoveImageCommand => _removeImageCommand;
+
     public Task InitializeAsync()
     {
         return ReloadSessionsAsync();
@@ -562,7 +583,7 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
     private async Task SendMessageAsync()
     {
         var prompt = PendingUserMessage.Trim();
-        if (string.IsNullOrWhiteSpace(prompt))
+        if (string.IsNullOrWhiteSpace(prompt) && PendingImageAttachments.Count == 0)
         {
             return;
         }
@@ -577,13 +598,18 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
         ClearError();
         CancelEditingOnOtherMessages(null);
 
-        var userMessage = new ChatMessageViewModel(CopilotChatMessage.CreateUser(prompt));
+        var attachments = PendingImageAttachments.ToArray();
+        var userMessage = new ChatMessageViewModel(
+            CopilotChatMessage.CreateUser(prompt),
+            imageAttachments: attachments);
 
         session.Messages.Add(userMessage);
         NotifySessionStateChanged();
         session.RefreshTitleFromMessages();
         session.Touch();
         PendingUserMessage = string.Empty;
+        PendingImageAttachments.Clear();
+        OnPropertyChanged(nameof(HasPendingImageAttachments));
         MoveSessionToTop(session);
         await PersistSessionAsync(session);
         OnPropertyChanged(nameof(CurrentSessionTitle));
@@ -615,7 +641,69 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
         return !ConfigurationRequired &&
                !IsResponding &&
                !IsLoadingSessions &&
-               !string.IsNullOrWhiteSpace(PendingUserMessage);
+               (!string.IsNullOrWhiteSpace(PendingUserMessage) || PendingImageAttachments.Count > 0);
+    }
+
+    public bool HasPendingImageAttachments => PendingImageAttachments.Count > 0;
+
+    private async Task AddImagesAsync()
+    {
+        var filePaths = await _userInteractionService.SelectFilesAsync(
+            "选择图片",
+            "图片文件|*.png;*.jpg;*.jpeg;*.webp;*.gif|所有文件|*.*",
+            allowMultiple: true);
+        if (filePaths.Count == 0)
+        {
+            return;
+        }
+
+        ClearError();
+        foreach (var filePath in filePaths)
+        {
+            var extension = Path.GetExtension(filePath);
+            if (!SupportedImageMediaTypes.TryGetValue(extension, out var mediaType))
+            {
+                SetError($"不支持图片格式：{Path.GetFileName(filePath)}");
+                continue;
+            }
+
+            var fileInfo = new FileInfo(filePath);
+            var data = await File.ReadAllBytesAsync(filePath);
+            PendingImageAttachments.Add(new ChatImageAttachment(fileInfo.Name, mediaType, data));
+        }
+
+        OnPropertyChanged(nameof(HasPendingImageAttachments));
+        NotifyCommandStates();
+        StatusMessage = PendingImageAttachments.Count == 0
+            ? "未添加图片"
+            : $"已附加 {PendingImageAttachments.Count} 张图片";
+    }
+
+    private bool CanAddImages()
+    {
+        return !ConfigurationRequired &&
+               !IsResponding &&
+               !IsLoadingSessions;
+    }
+
+    private void RemoveImage(object? parameter)
+    {
+        if (parameter is not ChatImageAttachment attachment)
+        {
+            return;
+        }
+
+        PendingImageAttachments.Remove(attachment);
+        OnPropertyChanged(nameof(HasPendingImageAttachments));
+        NotifyCommandStates();
+        StatusMessage = PendingImageAttachments.Count == 0
+            ? "已移除全部图片"
+            : $"已附加 {PendingImageAttachments.Count} 张图片";
+    }
+
+    private bool CanRemoveImage(object? parameter)
+    {
+        return parameter is ChatImageAttachment && !IsResponding && !IsLoadingSessions;
     }
 
     private bool CanReloadSessions()
@@ -833,6 +921,8 @@ public sealed class ChatWorkspaceViewModel : ViewModelBase
         _cancelInlineEditCommand.NotifyCanExecuteChanged();
         _renameSessionCommand.NotifyCanExecuteChanged();
         _retryCommand.NotifyCanExecuteChanged();
+        _addImagesCommand.NotifyCanExecuteChanged();
+        _removeImageCommand.NotifyCanExecuteChanged();
     }
 
     private sealed record FailedSendContext(Guid SessionId, Guid UserMessageId, Guid AssistantMessageId);

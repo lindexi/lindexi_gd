@@ -34,6 +34,25 @@ public sealed class WpfUserInteractionService : IUserInteractionService
         return Task.FromResult(dialog.ShowDialog() == true ? dialog.FileName : null);
     }
 
+    public Task<IReadOnlyList<string>> SelectFilesAsync(
+        string title,
+        string filter,
+        bool allowMultiple,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var dialog = new OpenFileDialog
+        {
+            Title = title,
+            Filter = filter,
+            Multiselect = allowMultiple,
+            CheckFileExists = true,
+        };
+
+        IReadOnlyList<string> files = dialog.ShowDialog() == true ? dialog.FileNames : [];
+        return Task.FromResult(files);
+    }
+
     public Task ShowMessageAsync(string title, string message, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

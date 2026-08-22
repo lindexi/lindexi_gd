@@ -243,8 +243,13 @@ public sealed class SettingsViewModel : ViewModelBase
             StatusMessage = "正在重新加载 Agent 配置...";
             await _agentModelService.ReloadAsync();
             RefreshRegisteredModels(_settingsService.CurrentSettings.SelectedModelSpecifier);
+            if (SelectedModel is not null)
+            {
+                _agentModelService.SelectModel(SelectedModel.Specifier);
+            }
+
             _chatWorkspaceViewModel.RefreshConfigurationState();
-            StatusMessage = $"已加载 {RegisteredModels.Count} 个模型";
+            StatusMessage = $"已加载 {RegisteredModels.Count} 个模型，当前模型：{SelectedModel?.Specifier ?? "未选择"}";
             await _logger.InformationAsync("重新加载 Agent 模型配置");
         }
         catch (Exception exception)

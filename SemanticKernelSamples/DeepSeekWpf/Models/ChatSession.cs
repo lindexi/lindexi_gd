@@ -37,13 +37,15 @@ public sealed class ChatSession : ObservableObject
 
     public void RefreshTitleFromMessages()
     {
-        var firstUserMessage = Messages.FirstOrDefault(message =>
-            message.Role == ChatRole.User &&
-            !string.IsNullOrWhiteSpace(message.Content));
+        var firstUserMessage = Messages.FirstOrDefault(message => message.Role == ChatRole.User);
 
-        Title = firstUserMessage is null
-            ? "新对话"
-            : BuildTitle(firstUserMessage.Content);
+        Title = firstUserMessage switch
+        {
+            null => "新对话",
+            { Content.Length: > 0 } => BuildTitle(firstUserMessage.Content),
+            { ImageAttachments.Count: > 0 } => $"图片：{firstUserMessage.ImageAttachments[0].FileName}",
+            _ => "新对话",
+        };
     }
 
     private static string BuildTitle(string content)

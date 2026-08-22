@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Threading;
 using DeepSeekWpf.Services;
 using DeepSeekWpf.ViewModels;
@@ -49,7 +49,16 @@ public partial class App : Application
             await modelService.ReloadAsync();
             if (!string.IsNullOrWhiteSpace(settingsService.CurrentSettings.SelectedModelSpecifier))
             {
-                modelService.SelectModel(settingsService.CurrentSettings.SelectedModelSpecifier);
+                try
+                {
+                    modelService.SelectModel(settingsService.CurrentSettings.SelectedModelSpecifier);
+                }
+                catch (ArgumentException exception)
+                {
+                    await _logger.WarningAsync(
+                        $"已保存的模型不再可用，将使用 Agent 配置中的主模型：{settingsService.CurrentSettings.SelectedModelSpecifier}",
+                        exception);
+                }
             }
 
             var workspaceViewModel = _host.Services.GetRequiredService<ChatWorkspaceViewModel>();
