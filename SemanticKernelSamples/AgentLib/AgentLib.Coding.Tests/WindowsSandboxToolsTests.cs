@@ -94,21 +94,6 @@ public sealed class WindowsSandboxToolsTests
         Assert.AreEqual(runner.RemotePushPath, runner.RemotePullPath);
     }
 
-    [TestMethod(DisplayName = "指定工作目录时应明确返回协议不支持")]
-    public async Task ExecuteAsync_WhenWorkingDirectoryIsSpecified_ReturnsNotSupportedError()
-    {
-        string workspacePath = CreateTestDirectory();
-        Directory.CreateDirectory(Path.Combine(workspacePath, "runner"));
-        var runner = new RecordingWinRemoteShellRunner();
-        var tools = new WindowsSandboxTools(workspacePath, runner);
-
-        string result = await tools.ExecuteAsync("runner", "TestRunner.exe", workingDirectoryRelativePath: "bin");
-
-        StringAssert.Contains(result, "NotSupportedException");
-        StringAssert.Contains(result, "不支持指定远端工作目录");
-        Assert.AreEqual(0, runner.Calls.Count);
-    }
-
     private static string CreateTestDirectory()
     {
         string path = Path.Combine(Path.GetTempPath(), "AgentLib.Coding.Tests", Guid.NewGuid().ToString("N"));

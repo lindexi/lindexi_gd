@@ -17,7 +17,7 @@ internal sealed class WindowsSandboxTools
 
     internal WindowsSandboxTools(string workspacePath, IWinRemoteShellRunner runner)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(workspacePath);
+        ThrowIfNullOrWhiteSpace(workspacePath, nameof(workspacePath));
         ArgumentNullException.ThrowIfNull(runner);
         _workspacePath = Path.GetFullPath(workspacePath);
         _runner = runner;
@@ -34,7 +34,7 @@ internal sealed class WindowsSandboxTools
             arguments => new ToolCallPresentation
             (
                 ToolCallPresentationFactory.GetString(arguments, "executableRelativePath"),
-                ToolCallPresentationFactory.GetString(arguments, "workingDirectoryRelativePath")
+                null
             )
         )
     ];
@@ -46,8 +46,6 @@ internal sealed class WindowsSandboxTools
         string sourceDirectory,
         [Description("要执行的文件相对于 sourceDirectory 的路径，例如 bin\\Debug\\net8.0\\TestRunner.exe。")]
         string executableRelativePath,
-        [Description("执行工作目录相对于 sourceDirectory 的路径。留空表示 sourceDirectory 根目录。")]
-        string? workingDirectoryRelativePath = null,
         [Description("传递给执行文件的命令行参数数组。留空表示不传参数。")]
         IReadOnlyList<string>? arguments = null,
         [Description("要从沙盒拉取的文件或文件夹相对路径。留空表示拉取整个远端任务目录。")]
@@ -65,7 +63,6 @@ internal sealed class WindowsSandboxTools
             (
                 sourceDirectory,
                 executableRelativePath,
-                workingDirectoryRelativePath,
                 arguments,
                 outputRelativePath,
                 localOutputDirectory,
@@ -83,7 +80,6 @@ internal sealed class WindowsSandboxTools
     (
         string sourceDirectory,
         string executableRelativePath,
-        string? workingDirectoryRelativePath,
         IReadOnlyList<string>? arguments,
         string? outputRelativePath,
         string? localOutputDirectory,
@@ -93,10 +89,6 @@ internal sealed class WindowsSandboxTools
     {
         string fullSourceDirectory = ResolveSourceDirectory(sourceDirectory);
         string executablePath = NormalizeRelativePath(executableRelativePath, nameof(executableRelativePath));
-        if (!string.IsNullOrWhiteSpace(workingDirectoryRelativePath))
-        {
-            throw new NotSupportedException("当前 WinRemoteShell exec 协议不支持指定远端工作目录。");
-        }
         string? outputPath = string.IsNullOrWhiteSpace(outputRelativePath)
             ? null
             : NormalizeRelativePath(outputRelativePath, nameof(outputRelativePath));
@@ -163,7 +155,7 @@ internal sealed class WindowsSandboxTools
 
     private string ResolveSourceDirectory(string sourceDirectory)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(sourceDirectory);
+        ThrowIfNullOrWhiteSpace(sourceDirectory, nameof(sourceDirectory));
         string fullPath = Path.GetFullPath(sourceDirectory, _workspacePath);
         EnsureInsideWorkspace(fullPath, nameof(sourceDirectory));
         if (!Directory.Exists(fullPath))
@@ -196,7 +188,7 @@ internal sealed class WindowsSandboxTools
 
     private static string NormalizeRelativePath(string path, string parameterName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ThrowIfNullOrWhiteSpace(path, parameterName);
         string normalized = path.Replace('/', '\\').Trim();
         if (Path.IsPathRooted(normalized)
             || normalized.Split('\\', StringSplitOptions.RemoveEmptyEntries).Any(segment => segment == ".."))
@@ -210,4 +202,11 @@ internal sealed class WindowsSandboxTools
     private static string CombineRemotePath(string root, string relativePath) =>
         string.IsNullOrEmpty(relativePath) ? root : $@"{root}\{relativePath}";
 
+    private static void ThrowIfNullOrWhiteSpace(string? value, string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", parameterName);
+        }
+    }
 }
