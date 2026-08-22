@@ -3,12 +3,11 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
-
 using CodingChatRoom.AvaloniaShell.Services;
 
 namespace CodingChatRoom.AvaloniaShell.ViewModels;
@@ -16,12 +15,18 @@ namespace CodingChatRoom.AvaloniaShell.ViewModels;
 public sealed class SettingsViewModel : ViewModelBase
 {
     private readonly CodingChatSettingsService? _settingsService;
+    private readonly IWindowsSandboxConnectionTester? _windowsSandboxConnectionTester;
     private readonly Action? _backAction;
     private readonly SimpleAsyncCommand _saveCommand;
+    private readonly SimpleAsyncCommand _testWindowsSandboxConnectionCommand;
+    private CancellationTokenSource? _sandboxConnectionTestCancellationTokenSource;
     private string? _primaryModel;
     private bool _isWindowsSandboxEnabled = true;
     private string _windowsSandboxToolPath = "WinRemoteShell.exe";
     private string _windowsSandboxServerAddress = "127.0.0.1:12399";
+    private string? _sandboxConnectionStatusMessage;
+    private bool _isSandboxConnectionStatusError;
+    private bool _isSandboxConnectionTestRunning;
     private bool _isCopilotInstructionsEnabled;
     private string? _copilotInstructionsPath;
     private string? _statusMessage;
@@ -30,6 +35,8 @@ public sealed class SettingsViewModel : ViewModelBase
     public SettingsViewModel()
     {
         _saveCommand = new SimpleAsyncCommand(static () => Task.CompletedTask, static () => false);
+        _testWindowsSandboxConnectionCommand = new SimpleAsyncCommand
+            (static () => Task.CompletedTask, static () => false);
         BackCommand = new SimpleCommand(static () => { }, static () => false);
         AddProviderCommand = new SimpleCommand(AddProvider);
         RemoveProviderCommand = new SimpleCommand<ProviderSettingsViewModel>(RemoveProvider);
@@ -37,12 +44,26 @@ public sealed class SettingsViewModel : ViewModelBase
     }
 
     internal SettingsViewModel(CodingChatSettingsService settingsService, Action backAction)
+        : this(settingsService, new WindowsSandboxConnectionTester(), backAction)
+    {
+    }
+
+    internal SettingsViewModel
+    (
+        CodingChatSettingsService settingsService,
+        IWindowsSandboxConnectionTester windowsSandboxConnectionTester,
+        Action backAction
+    )
     {
         ArgumentNullException.ThrowIfNull(settingsService);
+        ArgumentNullException.ThrowIfNull(windowsSandboxConnectionTester);
         ArgumentNullException.ThrowIfNull(backAction);
         _settingsService = settingsService;
+        _windowsSandboxConnectionTester = windowsSandboxConnectionTester;
         _backAction = backAction;
         _saveCommand = new SimpleAsyncCommand(SaveAsync);
+        _testWindowsSandboxConnectionCommand = new SimpleAsyncCommand
+            (TestWindowsSandboxConnectionAsync, CanTestWindowsSandboxConnection);
         BackCommand = new SimpleCommand(Back);
         AddProviderCommand = new SimpleCommand(AddProvider);
         RemoveProviderCommand = new SimpleCommand<ProviderSettingsViewModel>(RemoveProvider);
@@ -59,19 +80,70 @@ public sealed class SettingsViewModel : ViewModelBase
     public bool IsWindowsSandboxEnabled
     {
         get => _isWindowsSandboxEnabled;
-        set => SetField(ref _isWindowsSandboxEnabled, value);
+        set
+        {
+            if (SetField(ref _isWindowsSandboxEnabled, value))
+            {
+                _testWindowsSandboxConnectionCommand.RaiseCanExecuteChanged();
+            }
+        }
     }
 
     public string WindowsSandboxToolPath
     {
         get => _windowsSandboxToolPath;
-        set => SetField(ref _windowsSandboxToolPath, value);
+        set
+        {
+            if (SetField(ref _windowsSandboxToolPath, value))
+            {
+                _testWindowsSandboxConnectionCommand.RaiseCanExecuteChanged();
+            }
+        }
     }
 
     public string WindowsSandboxServerAddress
     {
         get => _windowsSandboxServerAddress;
-        set => SetField(ref _windowsSandboxServerAddress, value);
+        set
+        {
+            value = value.Trim();
+            if (SetField(ref _windowsSandboxServerAddress, value))
+            {
+                _testWindowsSandboxConnectionCommand.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    public string? SandboxConnectionStatusMessage
+    {
+        get => _sandboxConnectionStatusMessage;
+        private set
+        {
+            if (SetField(ref _sandboxConnectionStatusMessage, value))
+            {
+                OnPropertyChanged(nameof(HasSandboxConnectionStatusMessage));
+            }
+        }
+    }
+
+    public bool HasSandboxConnectionStatusMessage => !string.IsNullOrWhiteSpace(SandboxConnectionStatusMessage);
+
+    public bool IsSandboxConnectionStatusError
+    {
+        get => _isSandboxConnectionStatusError;
+        private set => SetField(ref _isSandboxConnectionStatusError, value);
+    }
+
+    public bool IsSandboxConnectionTestRunning
+    {
+        get => _isSandboxConnectionTestRunning;
+        private set
+        {
+            if (SetField(ref _isSandboxConnectionTestRunning, value))
+            {
+                _testWindowsSandboxConnectionCommand.RaiseCanExecuteChanged();
+            }
+        }
     }
 
     public bool IsCopilotInstructionsEnabled
@@ -107,6 +179,8 @@ public sealed class SettingsViewModel : ViewModelBase
     }
 
     public ICommand SaveCommand => _saveCommand;
+
+    public ICommand TestWindowsSandboxConnectionCommand => _testWindowsSandboxConnectionCommand;
 
     public ICommand BackCommand { get; }
 
@@ -164,6 +238,56 @@ public sealed class SettingsViewModel : ViewModelBase
         else
         {
             StatusMessage = null;
+        }
+    }
+
+    private bool CanTestWindowsSandboxConnection()
+        => IsWindowsSandboxEnabled
+           && !IsSandboxConnectionTestRunning
+           && !string.IsNullOrWhiteSpace(WindowsSandboxToolPath)
+           && !string.IsNullOrWhiteSpace(WindowsSandboxServerAddress);
+
+    private async Task TestWindowsSandboxConnectionAsync()
+    {
+        if (_windowsSandboxConnectionTester is null || !CanTestWindowsSandboxConnection())
+        {
+            return;
+        }
+
+        _sandboxConnectionTestCancellationTokenSource?.Cancel();
+        _sandboxConnectionTestCancellationTokenSource?.Dispose();
+        var cancellationTokenSource = new CancellationTokenSource();
+        _sandboxConnectionTestCancellationTokenSource = cancellationTokenSource;
+        IsSandboxConnectionTestRunning = true;
+        IsSandboxConnectionStatusError = false;
+        SandboxConnectionStatusMessage = "尝试连接沙箱中…";
+
+        try
+        {
+            WindowsSandboxConnectionTestResult result = await _windowsSandboxConnectionTester.TestAsync
+            (
+                WindowsSandboxToolPath,
+                WindowsSandboxServerAddress,
+                cancellationTokenSource.Token
+            ).ConfigureAwait(true);
+            if (_sandboxConnectionTestCancellationTokenSource == cancellationTokenSource)
+            {
+                IsSandboxConnectionStatusError = !result.IsSuccessful;
+                SandboxConnectionStatusMessage = result.Message;
+            }
+        }
+        catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
+        {
+        }
+        finally
+        {
+            if (_sandboxConnectionTestCancellationTokenSource == cancellationTokenSource)
+            {
+                _sandboxConnectionTestCancellationTokenSource = null;
+                IsSandboxConnectionTestRunning = false;
+            }
+
+            cancellationTokenSource.Dispose();
         }
     }
 
