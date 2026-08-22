@@ -1,4 +1,7 @@
 using Avalonia.Controls;
+using Avalonia.Interactivity;
+
+using CodingChatRoom.AvaloniaShell.ViewModels;
 
 namespace CodingChatRoom.AvaloniaShell.Views;
 
@@ -13,5 +16,14 @@ public partial class SettingsView : UserControl
     public SettingsView()
     {
         InitializeComponent();
+    }
+
+    private void OnWindowsSandboxServerAddressLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsViewModel viewModel
+            && viewModel.TestWindowsSandboxConnectionCommand.CanExecute(null))
+        {
+            viewModel.TestWindowsSandboxConnectionCommand.Execute(null);
+        }
     }
 }

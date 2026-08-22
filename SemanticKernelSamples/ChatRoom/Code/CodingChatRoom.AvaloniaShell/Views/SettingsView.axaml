@@ -109,10 +109,29 @@
                                 <TextBlock Text="连接地址" Classes="SettingsLabel" />
                                 <TextBox Classes="Rounded SettingsInput"
                                          Text="{Binding WindowsSandboxServerAddress}"
-                                         PlaceholderText="127.0.0.1:12399" />
-                                <TextBlock Text="使用 主机:端口 格式，例如 192.168.1.20:12399。"
+                                         PlaceholderText="127.0.0.1:12399"
+                                         LostFocus="OnWindowsSandboxServerAddressLostFocus" />
+                                <TextBlock Text="使用 主机:端口 格式，例如 192.168.1.20:12399。输入完成后将自动测试连接。"
                                            Classes="SettingsHint"
                                            TextWrapping="Wrap" />
+                                <Grid ColumnDefinitions="Auto,*"
+                                      ColumnSpacing="8"
+                                      IsVisible="{Binding HasSandboxConnectionStatusMessage}">
+                                    <ProgressBar Width="72"
+                                                 IsIndeterminate="True"
+                                                 IsVisible="{Binding IsSandboxConnectionTestRunning}"
+                                                 VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding SandboxConnectionStatusMessage}"
+                                               Foreground="{StaticResource SandboxTextBrush}"
+                                               IsVisible="{Binding !IsSandboxConnectionStatusError}"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding SandboxConnectionStatusMessage}"
+                                               Foreground="{StaticResource DangerBrush}"
+                                               IsVisible="{Binding IsSandboxConnectionStatusError}"
+                                               TextWrapping="Wrap" />
+                                </Grid>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
