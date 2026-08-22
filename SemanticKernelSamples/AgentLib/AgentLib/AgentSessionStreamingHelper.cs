@@ -125,6 +125,18 @@ public static class AgentSessionStreamingHelper
 
         static bool IsRetryableException(Exception exception)
         {
+            if (exception is AggregateException aggregateException)
+            {
+                var innerExceptions = aggregateException.InnerExceptions;
+                if (innerExceptions.Count>0)
+                {
+                    if (innerExceptions[0] is TaskCanceledException)
+                    {
+                        return true;
+                    }
+                }
+            }
+
             // 400 可能由不完整的工具调用历史引起，清理历史后允许进入有限重试。
             return exception is HttpRequestException { StatusCode: HttpStatusCode.BadRequest }
                 || exception is System.ClientModel.ClientResultException { Status: (int) HttpStatusCode.BadRequest }
