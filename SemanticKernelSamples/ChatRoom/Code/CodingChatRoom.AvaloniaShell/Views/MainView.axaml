@@ -35,7 +35,7 @@
             </StackPanel>
            </StackPanel>
           </Button>
-          <Button Grid.Column="1" Classes="Icon" IsVisible="{Binding !IsEditing}" VerticalAlignment="Top" ToolTip.Tip="{StaticResource MoreActionsText}">
+          <Button Grid.Column="1" Classes="Icon" Margin="0,11,0,0" IsVisible="{Binding !IsEditing}" VerticalAlignment="Top" ToolTip.Tip="{StaticResource MoreActionsText}">
            <PathIcon Width="16" Height="16" Data="M4,10 A2,2 0 1 0 4,14 A2,2 0 1 0 4,10 M12,10 A2,2 0 1 0 12,14 A2,2 0 1 0 12,10 M20,10 A2,2 0 1 0 20,14 A2,2 0 1 0 20,10" />
            <Button.Flyout><MenuFlyout>
             <MenuItem Header="{StaticResource RenameWorkTaskText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).RenameWorkTaskCommand}" CommandParameter="{Binding}" />

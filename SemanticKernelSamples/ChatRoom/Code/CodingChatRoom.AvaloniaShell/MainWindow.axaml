@@ -19,6 +19,7 @@
                       ConverterParameter="{StaticResource ApplicationTitle}">
             <Binding Path="ChatViewModel.NextRunWorkspacePath" />
             <Binding Path="ChatViewModel.CurrentSessionTitle" />
+            <Binding Path="ActiveWorkTask.DisplayName" />
         </MultiBinding>
     </Window.Title>
     <views:MainView />
