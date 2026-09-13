@@ -64,6 +64,10 @@ public sealed class FileCopilotChatSessionStore
                 session.ChatMessages,
                 agentSessionState));
             document.Root!.SetAttributeValue("WorkspacePath", session.WorkspacePath);
+            document.Root.SetAttributeValue("ResponsesLastResponseId", session.ResponsesLastResponseId);
+            document.Root.SetAttributeValue("ResponsesActiveResponseId", session.ResponsesActiveResponseId);
+            document.Root.SetAttributeValue("ResponsesMessageCount", session.ResponsesMessageCount);
+            document.Root.SetAttributeValue("ChatMessageCount", session.ChatMessageCount);
             await SaveDocumentAsync(filePath, document, cancellationToken).ConfigureAwait(false);
         }
         finally

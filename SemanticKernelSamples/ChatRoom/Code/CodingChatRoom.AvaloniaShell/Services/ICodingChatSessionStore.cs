@@ -71,6 +71,10 @@ internal sealed class FileCodingChatSessionStore : ICodingChatSessionStore
         {
             MainThreadDispatcher = _mainThreadDispatcher,
             WorkspacePath = persistenceData.WorkspacePath,
+            ResponsesLastResponseId = persistenceData.ResponsesLastResponseId,
+            ResponsesActiveResponseId = persistenceData.ResponsesActiveResponseId,
+            ResponsesMessageCount = persistenceData.ResponsesMessageCount,
+            ChatMessageCount = persistenceData.ChatMessageCount,
         };
         if (!string.IsNullOrWhiteSpace(persistenceData.Title))
         {

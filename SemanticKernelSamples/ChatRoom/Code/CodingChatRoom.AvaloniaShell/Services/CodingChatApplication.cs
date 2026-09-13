@@ -27,8 +27,9 @@ internal sealed class CodingChatApplication
     private readonly CopilotChatManager _chatManager;
     private readonly ICodingChatSessionStore _sessionStore;
     private readonly ICodingChatRunner _chatRunner;
+    private readonly ICodingChatRunner _responsesRunner;
     private readonly CodingWorkspaceController _workspaceController;
-    private readonly CodingAgent _codingAgent;
+    private ICodingChatRunner? _activeRunner;
     private CancellationTokenSource? _activeOperationCancellationTokenSource;
     private volatile bool _isLoopIterationEnabled;
     private bool _isLoopActive;
@@ -40,7 +41,8 @@ internal sealed class CodingChatApplication
         ICodingChatSessionStore sessionStore,
         ICodingChatRunner chatRunner,
         CodingWorkspaceController workspaceController,
-        CodingAgent codingAgent
+        CodingAgent codingAgent,
+        ICodingChatRunner? responsesRunner = null
     )
     {
         ArgumentNullException.ThrowIfNull(chatManager);
@@ -51,8 +53,8 @@ internal sealed class CodingChatApplication
         _chatManager = chatManager;
         _sessionStore = sessionStore;
         _chatRunner = chatRunner;
+        _responsesRunner = responsesRunner ?? chatRunner;
         _workspaceController = workspaceController;
-        _codingAgent = codingAgent;
         AddOrUpdateSummary(_chatManager.SelectedSession, insertAtTop: true);
     }
 
@@ -68,7 +70,7 @@ internal sealed class CodingChatApplication
                            || (!_isLoopActive && _operationPhase == CodingChatOperationPhase.Idle);
 
     public bool CanCompressConversation => !HasActiveOperation
-                                           && _chatManager.SelectedSession.AgentSession is not null;
+                                           && _chatManager.SelectedSession.ChatMessages.Count > 0;
 
     public bool IsCompressionActive => _operationPhase == CodingChatOperationPhase.Compressing;
 
@@ -243,10 +245,10 @@ internal sealed class CodingChatApplication
             throw new ArgumentException("消息内容不能为空。", nameof(contents));
         }
 
-        ICodingChatRunner chatRunner = _chatRunner;
+        ICodingChatRunner chatRunner = options?.UseResponsesApi == true ? _responsesRunner : _chatRunner;
         if (_operationPhase == CodingChatOperationPhase.Running)
         {
-            await chatRunner.InjectMessageAsync(runContents, cancellationToken);
+            await (_activeRunner ?? chatRunner).InjectMessageAsync(runContents, cancellationToken);
             return;
         }
 
@@ -282,6 +284,7 @@ internal sealed class CodingChatApplication
         CancellationToken cancellationToken)
     {
         SetOperationPhase(CodingChatOperationPhase.Running);
+        _activeRunner = chatRunner;
         CopilotChatSession session = _chatManager.SelectedSession;
         session.WorkspacePath = _workspaceController.NextRunWorkspacePath;
         Exception? runException = null;
@@ -312,6 +315,7 @@ internal sealed class CodingChatApplication
             }
             finally
             {
+                _activeRunner = null;
                 SetOperationPhase(CodingChatOperationPhase.Idle);
             }
         }
@@ -344,13 +348,15 @@ internal sealed class CodingChatApplication
                 try
                 {
                     await RunSingleMessageAsync(
-                        _chatRunner,
+                        options.UseResponsesApi ? _responsesRunner : _chatRunner,
                         [new TextContent(prompt)],
                         options,
                         operationCancellationTokenSource.Token);
                     if (options.EnableAutomaticCompression)
                     {
-                        await CompressConversationCoreAsync(operationCancellationTokenSource.Token);
+                        await CompressConversationCoreAsync(
+                            options.UseResponsesApi ? _responsesRunner : _chatRunner,
+                            operationCancellationTokenSource.Token);
                     }
                 }
                 catch (OperationCanceledException)
@@ -396,17 +402,19 @@ internal sealed class CodingChatApplication
             throw new InvalidOperationException("当前会话没有可压缩的对话历史，或已有操作正在运行。");
         }
 
-        await CompressConversationCoreAsync(cancellationToken);
+        await CompressConversationCoreAsync(_activeRunner ?? _chatRunner, cancellationToken);
     }
 
-    private async Task CompressConversationCoreAsync(CancellationToken cancellationToken)
+    private async Task CompressConversationCoreAsync(
+        ICodingChatRunner runner,
+        CancellationToken cancellationToken)
     {
         CopilotChatSession session = _chatManager.SelectedSession;
         SetOperationPhase(CodingChatOperationPhase.Compressing);
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await _chatManager.ReduceSessionAsync();
+            await runner.CompressAsync(session, cancellationToken);
             await _sessionStore.SaveSessionAsync(session, CancellationToken.None);
             AddOrUpdateSummary(session, insertAtTop: true);
         }
@@ -420,9 +428,11 @@ internal sealed class CodingChatApplication
     {
         IsLoopIterationEnabled = false;
         _activeOperationCancellationTokenSource?.Cancel();
+        _ = _activeRunner?.CancelAsync();
     }
 
-    public Task<bool> StopLanguageServerAsync() => _codingAgent.StopLanguageServerAsync();
+    public Task<bool> StopLanguageServerAsync() =>
+        (_activeRunner ?? _chatRunner).StopLanguageServerAsync();
 
     private void AddOrUpdateSummary(CopilotChatSession session, bool insertAtTop)
     {

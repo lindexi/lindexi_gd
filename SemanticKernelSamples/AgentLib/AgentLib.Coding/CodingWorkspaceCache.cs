@@ -66,15 +66,14 @@ internal sealed class CodingWorkspaceCache : IAsyncDisposable
             : [];
         if (additionalToolRegistrations.Count == 0 && optionalRegistrations.Length == 0)
         {
-            return new CodingRunWorkspaceContext(WorkspacePath, Tools, ToolRegistrationRegistry);
+            return new CodingRunWorkspaceContext(WorkspacePath, ToolRegistrations, ToolRegistrationRegistry);
         }
 
         ToolRegistration[] registrations =
             [.. ToolRegistrations, .. optionalRegistrations, .. additionalToolRegistrations];
-        AITool[] tools = [.. registrations.Select(static registration => registration.Tool)];
         return new CodingRunWorkspaceContext(
             WorkspacePath,
-            Array.AsReadOnly(tools),
+            Array.AsReadOnly(registrations),
             new ToolRegistrationRegistry(registrations));
     }
 
@@ -142,9 +141,12 @@ internal sealed class CodingWorkspaceCache : IAsyncDisposable
 
 internal sealed record CodingRunWorkspaceContext(
     string? WorkspacePath,
-    IReadOnlyList<AITool> Tools,
+    IReadOnlyList<ToolRegistration> ToolRegistrations,
     ToolRegistrationRegistry ToolRegistrationRegistry)
 {
+    public IReadOnlyList<AITool> Tools { get; } =
+        ToolRegistrations.Select(static registration => registration.Tool).ToArray();
+
     public static CodingRunWorkspaceContext Empty { get; } =
         new(null, [], ToolRegistrationRegistry.Empty);
 }

@@ -31,6 +31,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     private bool _isLoopIterationEnabled;
     private bool _isAutomaticCompressionEnabled = true;
     private bool _isDotNetRunEnabled;
+    private bool _useResponsesApi;
     private bool _isDisposed;
 
     /// <summary>
@@ -231,6 +232,15 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     {
         get => _isDotNetRunEnabled;
         set => SetField(ref _isDotNetRunEnabled, value);
+    }
+
+    /// <summary>
+    /// 获取或设置下一次运行是否使用 Responses API。
+    /// </summary>
+    public bool UseResponsesApi
+    {
+        get => _useResponsesApi;
+        set => SetField(ref _useResponsesApi, value);
     }
 
     /// <summary>
@@ -590,6 +600,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         var runOptions = new CodingChatRunOptions(
             IsAutomaticCompressionEnabled,
             IsDotNetRunEnabled,
+            UseResponsesApi,
             SelectedReasoningEffort?.Value);
         try
         {

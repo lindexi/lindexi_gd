@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.ClientModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AgentLib;
 using AgentLib.Coding;
 using AgentLib.Coding.Images;
+using AgentLib.Coding.Responses;
 using AgentLib.Coding.Sandboxes;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Logging;
 using CodingChatRoom.AvaloniaShell.Infrastructure;
+using OpenAI.Responses;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
@@ -91,13 +95,27 @@ internal static class CodingChatStartup
             mainThreadDispatcher
         );
         var chatRunner = new CodingAgentChatRunner(chatManager, codingAgent);
+        var responsesAgent = new ResponsesCodingAgent(
+            modelId => CreateResponsesClient(configuration, modelId),
+            new ResponsesCodingAgentOptions
+            {
+                AdditionalToolSources = additionalToolSources,
+                CopilotInstructionsPath = GetCopilotInstructionsPath(shellSettings),
+                MainThreadDispatcher = mainThreadDispatcher,
+            });
+        var responsesRunner = new ResponsesCodingChatRunner(
+            responsesAgent,
+            () => chatManager.SelectedSession,
+            () => endpointManager.PrimaryModel.ModelDefinition.ModelId
+                  ?? endpointManager.PrimaryModel.ModelDefinition.ModelName);
         var application = new CodingChatApplication
         (
             chatManager,
             sessionStore,
             chatRunner,
             workspaceController,
-            codingAgent
+            codingAgent,
+            responsesRunner
         );
 
         return new CodingChatRuntime
@@ -110,8 +128,23 @@ internal static class CodingChatStartup
             primaryModel,
             application,
             workspaceController,
-            settingsService
+            settingsService,
+            responsesAgent
         );
+    }
+
+    private static ResponsesClient CreateResponsesClient(
+        AgentApiManagerConfiguration configuration,
+        string modelId)
+    {
+        OpenAIProtocolLanguageModelConfiguration endpoint = configuration.OpenAIConfigurationList?
+            .FirstOrDefault(item => item.ModelDefinitions?.Any(definition =>
+                string.Equals(definition.ModelId ?? definition.ModelName, modelId, StringComparison.Ordinal)) == true)
+            ?? throw new InvalidOperationException($"未找到模型 {modelId} 对应的 OpenAI API 配置。");
+
+        return new ResponsesClient(
+            new ApiKeyCredential(endpoint.Key),
+            new ResponsesClientOptions { Endpoint = new Uri(endpoint.EndPoint) });
     }
 
     private static string? GetCopilotInstructionsPath(CodingChatShellSettings shellSettings)

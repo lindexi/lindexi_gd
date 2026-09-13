@@ -53,6 +53,7 @@
         <sys:String x:Key="LanguageServerInstallHint">直接执行 dotnet tool update -g roslyn-language-server。</sys:String>
         <sys:String x:Key="EnableDotNetRunText">启用 dotnet run</sys:String>
         <sys:String x:Key="EnableDotNetRunToolTip">下一次新对话运行时包含 dotnet run 工具；当前正在进行的运行不受影响</sys:String>
+        <sys:String x:Key="UseResponsesApiText">Responses API</sys:String>
         <sys:String x:Key="ReasoningEffortToolTip">选择模型的思考强度；默认表示使用模型服务的默认设置</sys:String>
         <sys:String x:Key="SendText">发送</sys:String>
         <sys:String x:Key="CompressConversationText">压缩对话</sys:String>
