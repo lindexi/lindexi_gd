@@ -72,6 +72,8 @@ public sealed class ShellControlStyleTests
         try
         {
             CollectionAssert.AreEqual(new[] { WindowTransparencyLevel.Mica, WindowTransparencyLevel.None }, window.TransparencyLevelHint.ToArray());
+            Assert.AreEqual(Colors.White, ((ISolidColorBrush) window.TransparencyBackgroundFallback).Color);
+            Assert.AreEqual(Colors.White, ((ISolidColorBrush) window.Background).Color);
         }
         finally { window.Close(); }
     }
