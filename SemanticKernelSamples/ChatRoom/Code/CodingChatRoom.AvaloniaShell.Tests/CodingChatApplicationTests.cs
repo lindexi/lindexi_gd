@@ -262,7 +262,7 @@ public sealed class CodingChatApplicationTests
 
         Task loopTask = application.RunLoopIterationAsync(
             "继续处理",
-            new CodingChatRunOptions(enableAutomaticCompression, false, false, null));
+            new CodingChatRunOptions(enableAutomaticCompression, false, null));
         await runner.Started.Task;
         application.IsLoopIterationEnabled = false;
         runner.Complete();

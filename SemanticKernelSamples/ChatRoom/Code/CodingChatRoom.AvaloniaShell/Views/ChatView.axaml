@@ -400,7 +400,6 @@
               <CheckBox x:Name="LoopIterationCheckBox" Content="{StaticResource LoopIterationText}" IsChecked="{Binding IsLoopIterationEnabled}" />
               <CheckBox x:Name="AutomaticCompressionCheckBox" Content="{StaticResource AutomaticCompressionText}" IsChecked="{Binding IsAutomaticCompressionEnabled}" />
               <CheckBox x:Name="EnableDotNetRunCheckBox" Content="{StaticResource EnableDotNetRunText}" IsChecked="{Binding IsDotNetRunEnabled}" ToolTip.Tip="{StaticResource EnableDotNetRunToolTip}" />
-              <ToggleButton x:Name="UseResponsesApiToggleButton" Content="{StaticResource UseResponsesApiText}" IsChecked="{Binding UseResponsesApi}" ToolTip.Tip="{StaticResource UseResponsesApiToolTip}" />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
               <Button x:Name="CompressConversationButton" Classes="Secondary" Content="{StaticResource CompressConversationText}" Command="{Binding CompressConversationCommand}" IsEnabled="{Binding CanCompressConversation}" />

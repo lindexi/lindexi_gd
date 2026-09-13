@@ -66,7 +66,7 @@ public sealed class CodingChatSendingTests
 
         Task sendTask = application.SendMessageAsync(
             "检查代码",
-            new CodingChatRunOptions(false, false, false, null));
+            new CodingChatRunOptions(false, false, null));
         await runner.Started.Task;
 
         Assert.IsFalse(runner.ObservedAutomaticCompressionEnabled);
@@ -85,7 +85,7 @@ public sealed class CodingChatSendingTests
 
         Task sendTask = application.SendMessageAsync(
             "运行应用",
-            new CodingChatRunOptions(true, true, false, null));
+            new CodingChatRunOptions(true, true, null));
         await runner.Started.Task;
 
         Assert.IsTrue(runner.ObservedDotNetRunEnabled);
@@ -104,7 +104,7 @@ public sealed class CodingChatSendingTests
 
         Task sendTask = application.SendMessageAsync(
             "深入检查代码",
-            new CodingChatRunOptions(true, false, false, ReasoningEffort.High));
+            new CodingChatRunOptions(true, false, ReasoningEffort.High));
         await runner.Started.Task;
 
         Assert.AreEqual(ReasoningEffort.High, runner.ObservedReasoningEffort);
