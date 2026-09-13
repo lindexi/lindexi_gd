@@ -59,7 +59,7 @@ public sealed class ChatOutputVisualTests
             ?? throw new InvalidOperationException("无法捕获聊天消息视觉测试截图。");
         string screenshotPath = GetScreenshotPath();
         Directory.CreateDirectory(Path.GetDirectoryName(screenshotPath)!);
-        bitmap.Save(screenshotPath, PngBitmapEncoderOptions.Default);
+        bitmap.Save(screenshotPath);
 
         Assert.IsFalse(ContainsBlueFocusBorder(bitmap, textBox, window));
 
@@ -172,9 +172,7 @@ public sealed class ChatOutputVisualTests
 
         using WriteableBitmap bitmap = window.CaptureRenderedFrame()
             ?? throw new InvalidOperationException("无法捕获用户消息选区视觉测试截图。");
-        bitmap.Save(
-            Path.Combine(AppContext.BaseDirectory, "UserChatOutputSelection.png"),
-            PngBitmapEncoderOptions.Default);
+        bitmap.Save(Path.Combine(AppContext.BaseDirectory, "UserChatOutputSelection.png"));
 
         var selectionBrush = textBox.SelectionBrush as ISolidColorBrush;
         var selectionForegroundBrush = textBox.SelectionForegroundBrush as ISolidColorBrush;
