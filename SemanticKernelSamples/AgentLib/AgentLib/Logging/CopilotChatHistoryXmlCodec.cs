@@ -79,10 +79,6 @@ internal static class CopilotChatHistoryXmlCodec
             StartedTime = startedTime,
             Title = rootElement.Attribute("Title")?.Value ?? string.Empty,
             WorkspacePath = rootElement.Attribute("WorkspacePath")?.Value,
-            ResponsesLastResponseId = rootElement.Attribute("ResponsesLastResponseId")?.Value,
-            ResponsesActiveResponseId = rootElement.Attribute("ResponsesActiveResponseId")?.Value,
-            ResponsesMessageCount = ParseOptionalInt(rootElement.Attribute("ResponsesMessageCount")?.Value) ?? 0,
-            ChatMessageCount = ParseOptionalInt(rootElement.Attribute("ChatMessageCount")?.Value) ?? 0,
             Messages = messages,
             AgentSessionState = agentSessionState,
         };

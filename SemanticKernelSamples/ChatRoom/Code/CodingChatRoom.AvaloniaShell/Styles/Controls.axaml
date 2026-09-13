@@ -19,19 +19,6 @@
     <Style Selector="Button.Primary">
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
-    <Style Selector="ToggleButton.Mode">
-        <Setter Property="MinHeight" Value="28" />
-        <Setter Property="Padding" Value="10,4" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="#C8CFDA" />
-        <Setter Property="Foreground" Value="#62738D" />
-    </Style>
-    <Style Selector="ToggleButton.Mode:checked">
-        <Setter Property="Background" Value="#E1E9FC" />
-        <Setter Property="BorderBrush" Value="#8DA9EA" />
-        <Setter Property="Foreground" Value="#254E9B" />
-    </Style>
     <Style Selector="Button.Flat, Button.Icon, Button.Navigation, Button.TaskSelect">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />

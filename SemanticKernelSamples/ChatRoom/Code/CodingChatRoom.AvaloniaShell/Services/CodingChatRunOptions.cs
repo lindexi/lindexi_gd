@@ -14,13 +14,11 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 internal readonly record struct CodingChatRunOptions(
     bool EnableAutomaticCompression,
     bool EnableDotNetRun,
-    bool UseResponsesApi,
     ReasoningEffort? ReasoningEffort)
 {
     public static CodingChatRunOptions Default { get; } = new(
         EnableAutomaticCompression: true,
         EnableDotNetRun: false,
-        UseResponsesApi: false,
         ReasoningEffort: null);
 }
 

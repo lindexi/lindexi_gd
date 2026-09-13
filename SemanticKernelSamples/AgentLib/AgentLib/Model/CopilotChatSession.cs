@@ -52,26 +52,6 @@ public sealed class CopilotChatSession : NotifyBase
     public string? WorkspacePath { get; set; }
 
     /// <summary>
-    /// 获取或设置 Responses API 最近完成的响应 ID。
-    /// </summary>
-    public string? ResponsesLastResponseId { get; set; }
-
-    /// <summary>
-    /// 获取或设置 Responses API 当前活动的响应 ID。
-    /// </summary>
-    public string? ResponsesActiveResponseId { get; set; }
-
-    /// <summary>
-    /// 获取或设置已同步到 Responses API 的可见消息数量。
-    /// </summary>
-    public int ResponsesMessageCount { get; set; }
-
-    /// <summary>
-    /// 获取或设置已同步到 Chat Agent 的可见消息数量。
-    /// </summary>
-    public int ChatMessageCount { get; set; }
-
-    /// <summary>
     /// 会话开始时间。
     /// </summary>
     public DateTimeOffset StartedTime { get; }
@@ -127,22 +107,6 @@ public sealed class CopilotChatSession : NotifyBase
     /// 如果设置了 <see cref="MainThreadDispatcher"/>，将调度到主线程执行。
     /// </summary>
     /// <param name="chatMessage">要添加的聊天消息。</param>
-    /// <summary>
-    /// 将消息追加到当前 Chat Agent 的内部历史。
-    /// </summary>
-    /// <param name="messages">要追加的消息。</param>
-    public void AppendAgentSessionMessages(IEnumerable<ChatMessage> messages)
-    {
-        ArgumentNullException.ThrowIfNull(messages);
-        if (AgentSession is null || !AgentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? history))
-        {
-            return;
-        }
-
-        history.AddRange(messages);
-        AgentSession.SetInMemoryChatHistory(history);
-    }
-
     public async Task AddMessageAsync(CopilotChatMessage chatMessage)
     {
         ArgumentNullException.ThrowIfNull(chatMessage);

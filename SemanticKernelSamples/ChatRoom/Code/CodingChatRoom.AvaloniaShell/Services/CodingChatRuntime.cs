@@ -15,7 +15,6 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 internal sealed class CodingChatRuntime : IAsyncDisposable
 {
     private readonly CodingAgent _codingAgent;
-    private readonly IAsyncDisposable? _responsesAgent;
 
     public CodingChatRuntime
     (
@@ -27,8 +26,7 @@ internal sealed class CodingChatRuntime : IAsyncDisposable
         ILanguageModel primaryModel,
         CodingChatApplication application,
         CodingWorkspaceController workspaceController,
-        CodingChatSettingsService settingsService,
-        IAsyncDisposable? responsesAgent = null
+        CodingChatSettingsService settingsService
     )
     {
         Paths = paths;
@@ -40,7 +38,6 @@ internal sealed class CodingChatRuntime : IAsyncDisposable
         Application = application;
         WorkspaceController = workspaceController;
         SettingsService = settingsService;
-        _responsesAgent = responsesAgent;
     }
 
     public CodingChatRoomPaths Paths { get; }
@@ -73,9 +70,5 @@ internal sealed class CodingChatRuntime : IAsyncDisposable
     {
         Application.StopActiveRun();
         await _codingAgent.DisposeAsync().ConfigureAwait(false);
-        if (_responsesAgent is not null)
-        {
-            await _responsesAgent.DisposeAsync().ConfigureAwait(false);
-        }
     }
 }

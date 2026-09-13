@@ -38,20 +38,6 @@ internal static class CodingSystemPrompt
         agentSession.SetInMemoryChatHistory(initializedMessages);
     }
 
-    internal static async Task<string> BuildInstructionsAsync(
-        string? copilotInstructionsPath,
-        CancellationToken cancellationToken)
-    {
-        string codePrompt = await BuildCodePromptAsync(copilotInstructionsPath, cancellationToken).ConfigureAwait(false);
-        return $"""
-               {SystemPrompt}
-
-               {codePrompt}
-
-               {SandboxPrompt}
-               """;
-    }
-
     private static async Task<string> BuildCodePromptAsync
     (
         string? copilotInstructionsPath,

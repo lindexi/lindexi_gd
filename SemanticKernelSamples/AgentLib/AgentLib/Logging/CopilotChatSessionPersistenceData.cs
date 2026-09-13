@@ -37,26 +37,6 @@ public sealed record CopilotChatSessionPersistenceData
     public string? WorkspacePath { get; init; }
 
     /// <summary>
-    /// 获取 Responses API 最近完成的响应 ID。
-    /// </summary>
-    public string? ResponsesLastResponseId { get; init; }
-
-    /// <summary>
-    /// 获取 Responses API 当前活动的响应 ID。
-    /// </summary>
-    public string? ResponsesActiveResponseId { get; init; }
-
-    /// <summary>
-    /// 获取已同步到 Responses API 的消息数量。
-    /// </summary>
-    public int ResponsesMessageCount { get; init; }
-
-    /// <summary>
-    /// 获取已同步到 Chat Agent 的消息数量。
-    /// </summary>
-    public int ChatMessageCount { get; init; }
-
-    /// <summary>
     /// 获取持久化的公开聊天消息。
     /// </summary>
     public required IReadOnlyList<CopilotChatMessage> Messages { get; init; }
