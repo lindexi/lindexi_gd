@@ -262,7 +262,7 @@
                                     <TextBlock Text="{Binding Author}" Classes="AuthorName" VerticalAlignment="Center" />
                                     <TextBlock Text="{Binding TimeText}" Classes="Timestamp" />
                                 </StackPanel>
-                                <Border Classes="MessageBubbleAssistant" Margin="24,0,0,0" HorizontalAlignment="Stretch">
+                                <Border Classes="MessageBubbleAssistant" HorizontalAlignment="Stretch">
                                     <Border.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="复制正文"
