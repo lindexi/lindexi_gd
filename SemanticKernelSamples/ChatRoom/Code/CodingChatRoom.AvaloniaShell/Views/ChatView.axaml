@@ -248,9 +248,9 @@
         <ScrollViewer x:Name="MessagesScrollViewer" IsVisible="{Binding !ShowWelcome}"
                       Grid.Row="1"
                       Background="{StaticResource BackgroundBrush}"
-                      Padding="28,24"
+                      Padding="32,24"
                       VerticalScrollBarVisibility="Auto">
-            <ItemsControl x:Name="MessagesItemsControl" MaxWidth="1000" HorizontalAlignment="Stretch" ItemsSource="{Binding Messages}">
+            <ItemsControl x:Name="MessagesItemsControl" HorizontalAlignment="Stretch" ItemsSource="{Binding Messages}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:MessageItemViewModel">
                         <Grid Margin="0,0,0,24">
