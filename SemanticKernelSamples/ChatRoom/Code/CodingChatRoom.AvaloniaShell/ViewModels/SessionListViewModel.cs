@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -14,9 +15,11 @@ namespace CodingChatRoom.AvaloniaShell.ViewModels;
 /// <summary>
 /// 提供按需加载、搜索和管理历史会话的页面。
 /// </summary>
-public sealed class SessionListViewModel : ViewModelBase
+public sealed class SessionListViewModel : ViewModelBase, IDisposable
 {
     private readonly CodingChatApplication? _application;
+    private readonly NotifyCollectionChangedEventHandler? _sessionsChangedHandler;
+    private readonly EventHandler? _stateChangedHandler;
     private string _searchText = string.Empty;
     private string? _errorMessage;
     private bool _isLoading;
@@ -75,8 +78,10 @@ public sealed class SessionListViewModel : ViewModelBase
     {
         ArgumentNullException.ThrowIfNull(application);
         _application = application;
-        application.Sessions.CollectionChanged += (_, _) => Refresh();
-        application.StateChanged += (_, _) => UpdateState();
+        _sessionsChangedHandler = (_, _) => Refresh();
+        _stateChangedHandler = (_, _) => UpdateState();
+        application.Sessions.CollectionChanged += _sessionsChangedHandler;
+        application.StateChanged += _stateChangedHandler;
         Refresh();
     }
 
@@ -192,6 +197,21 @@ public sealed class SessionListViewModel : ViewModelBase
             else if (previousIndex != index) Sessions.Move(previousIndex, index);
         }
         UpdateState();
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_application is null) return;
+        if (_sessionsChangedHandler is not null)
+        {
+            _application.Sessions.CollectionChanged -= _sessionsChangedHandler;
+        }
+
+        if (_stateChangedHandler is not null)
+        {
+            _application.StateChanged -= _stateChangedHandler;
+        }
     }
 
     private void UpdateState()

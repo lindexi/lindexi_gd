@@ -14,8 +14,9 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
     private bool _isEditing;
     private string _editedDisplayName = string.Empty;
 
-    internal WorkTaskItemViewModel(string name, ChatViewModel chat, SessionListViewModel sessions, CodingChatRuntime? runtime = null)
+    internal WorkTaskItemViewModel(string name, ChatViewModel chat, SessionListViewModel sessions, CodingChatRuntime? runtime = null, Guid? id = null)
     {
+        Id = id ?? Guid.NewGuid();
         _displayName = name;
         Chat = chat;
         Sessions = sessions;
@@ -24,7 +25,7 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
     }
 
     /// <summary>获取任务标识。</summary>
-    public Guid Id { get; } = Guid.NewGuid();
+    public Guid Id { get; }
     /// <summary>获取或设置独立于会话标题的任务名称。</summary>
     public string DisplayName { get => _displayName; set { if (!string.IsNullOrWhiteSpace(value)) SetField(ref _displayName, value.Trim()); } }
     /// <summary>获取任务聊天上下文。</summary>
@@ -38,10 +39,19 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
     /// <summary>获取或设置待确认的任务名称。</summary>
     public string EditedDisplayName { get => _editedDisplayName; set => SetField(ref _editedDisplayName, value); }
     /// <summary>获取包含压缩阶段的任务活动状态。</summary>
-    public bool IsWorking => Chat.IsRunning || Chat.IsCompressing || Chat.IsChangingWorkspace;
+    public bool IsWorking => Chat.IsRunning || Chat.IsCompressing || Chat.IsFinalizing || Chat.IsChangingWorkspace;
     internal CodingChatRuntime? Runtime { get; }
 
     internal void Detach() => Chat.PropertyChanged -= OnChatChanged;
 
-    private void OnChatChanged(object? sender, PropertyChangedEventArgs e) => OnPropertyChanged(nameof(IsWorking));
+    private void OnChatChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(IsWorking));
+        if (e.PropertyName is nameof(ChatViewModel.NextRunWorkspacePath)
+            or nameof(ChatViewModel.SelectedModel)
+            or nameof(ChatViewModel.SelectedReasoningEffort))
+        {
+            OnPropertyChanged(e.PropertyName);
+        }
+    }
 }

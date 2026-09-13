@@ -284,12 +284,15 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 获取是否正在运行。
     /// </summary>
-    public bool IsRunning => _application?.IsRunActive == true;
+    public bool IsRunning => _application?.IsRunActive == true || _application?.IsLoopActive == true;
 
     /// <summary>
     /// 获取当前是否正在压缩对话。
     /// </summary>
     public bool IsCompressing => _application?.IsCompressionActive == true;
+
+    /// <summary>获取当前是否正在完成最终保存。</summary>
+    public bool IsFinalizing => _application?.IsFinalizing == true;
 
     /// <summary>
     /// 获取或设置待应用的工作路径。
@@ -494,6 +497,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(CanStopLanguageServer));
         OnPropertyChanged(nameof(IsRunning));
         OnPropertyChanged(nameof(IsCompressing));
+        OnPropertyChanged(nameof(IsFinalizing));
         OnPropertyChanged(nameof(SendButtonText));
         RaiseCommandCanExecuteChanged();
     }
