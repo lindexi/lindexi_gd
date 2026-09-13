@@ -60,7 +60,8 @@ internal static class CodingAgentRunExtensions
 
         public IChatClient ChatClient => inner.ChatClient;
 
-        public AgentLib.IMainThreadDispatcher MainThreadDispatcher => inner.MainThreadDispatcher;
+        public AgentLib.IMainThreadDispatcher MainThreadDispatcher =>
+            inner.MainThreadDispatcher ?? throw new InvalidOperationException("主线程调度器尚未初始化。");
 
         public IReadOnlyList<AITool> DefaultTools => inner.DefaultTools;
 

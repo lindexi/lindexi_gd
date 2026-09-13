@@ -230,7 +230,7 @@ public sealed class CodingChatApplicationTests
         Assert.IsTrue(compressedMessages.Any(message => message.Text.Contains(summaryText, StringComparison.Ordinal)));
     }
 
-    [DataTestMethod(DisplayName = "循环迭代只应在启用自动压缩时执行轮末总结")]
+    [TestMethod(DisplayName = "循环迭代只应在启用自动压缩时执行轮末总结")]
     [DataRow(false, 0)]
     [DataRow(true, 1)]
     [Timeout(5000)]
@@ -323,7 +323,7 @@ public sealed class CodingChatApplicationTests
         Assert.HasCount(2, viewModel.Sessions);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("CUSTOM TITLE")]
     [DataRow("projects/sample")]
     public async Task HistorySearchShouldMatchTitleOrWorkspace(string query)
