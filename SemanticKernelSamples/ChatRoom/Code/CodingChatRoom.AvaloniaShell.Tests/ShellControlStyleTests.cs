@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
@@ -76,6 +77,16 @@ public sealed class ShellControlStyleTests
             Assert.AreEqual(Colors.White, ((ISolidColorBrush) window.Background).Color);
         }
         finally { window.Close(); }
+    }
+
+    [TestMethod]
+    public void MicaTransparencyShouldUseTransparentWindowBackground()
+    {
+        var converter = new Converters.WindowTransparencyBackgroundConverter();
+
+        var background = (ISolidColorBrush) converter.Convert(WindowTransparencyLevel.Mica, typeof(IBrush), null, CultureInfo.InvariantCulture);
+
+        Assert.AreEqual(Colors.Transparent, background.Color);
     }
 
     [TestMethod]

@@ -13,7 +13,7 @@
         MinHeight="720"
         TransparencyLevelHint="Mica, None"
         TransparencyBackgroundFallback="White"
-        Background="White">
+        Background="{Binding ActualTransparencyLevel, RelativeSource={RelativeSource Self}, Converter={StaticResource WindowTransparencyBackgroundConverter}}">
     <Window.Title>
         <MultiBinding Converter="{StaticResource WorkspaceTitleConverter}"
                       ConverterParameter="{StaticResource ApplicationTitle}">
