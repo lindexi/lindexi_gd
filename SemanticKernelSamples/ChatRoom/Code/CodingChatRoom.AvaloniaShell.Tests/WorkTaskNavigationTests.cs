@@ -28,6 +28,21 @@ public sealed class WorkTaskNavigationTests
     }
 
     [TestMethod]
+    public void EditingTaskNameShouldRefreshConfirmCommandState()
+    {
+        var shell = new MainViewModel();
+        var task = shell.ActiveWorkTask;
+        shell.RenameWorkTaskCommand.Execute(task);
+        task.EditedDisplayName = string.Empty;
+        int stateChangeCount = 0;
+        shell.SaveWorkTaskNameCommand.CanExecuteChanged += (_, _) => stateChangeCount++;
+
+        task.EditedDisplayName = "New task";
+
+        Assert.AreEqual(1, stateChangeCount);
+    }
+
+    [TestMethod]
     public void ConfirmingTaskNameShouldCloseEditor()
     {
         var shell = new MainViewModel();

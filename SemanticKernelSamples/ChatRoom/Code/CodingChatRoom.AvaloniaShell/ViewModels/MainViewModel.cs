@@ -191,6 +191,11 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private async void OnTaskPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         (DeleteWorkTaskCommand as SimpleAsyncCommand<WorkTaskItemViewModel>)?.RaiseCanExecuteChanged();
+        if (e.PropertyName == nameof(WorkTaskItemViewModel.EditedDisplayName))
+        {
+            (SaveWorkTaskNameCommand as SimpleAsyncCommand<WorkTaskItemViewModel>)?.RaiseCanExecuteChanged();
+        }
+
         if (e.PropertyName is nameof(WorkTaskItemViewModel.DisplayName)
             or nameof(ChatViewModel.NextRunWorkspacePath)
             or nameof(ChatViewModel.SelectedModel)
