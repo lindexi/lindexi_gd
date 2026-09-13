@@ -66,5 +66,9 @@ internal sealed class CodingChatRuntime : IAsyncDisposable
         }
     }
 
-    public ValueTask DisposeAsync() => _codingAgent.DisposeAsync();
+    public async ValueTask DisposeAsync()
+    {
+        Application.StopActiveRun();
+        await _codingAgent.DisposeAsync().ConfigureAwait(false);
+    }
 }

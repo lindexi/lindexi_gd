@@ -13,6 +13,15 @@ using Microsoft.Extensions.AI;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
+internal enum CodingChatOperationPhase
+{
+    Idle,
+    Running,
+    Compressing,
+    Finalizing,
+    WaitingToRetry,
+}
+
 internal sealed class CodingChatApplication
 {
     private readonly CopilotChatManager _chatManager;
@@ -20,10 +29,10 @@ internal sealed class CodingChatApplication
     private readonly ICodingChatRunner _chatRunner;
     private readonly CodingWorkspaceController _workspaceController;
     private readonly CodingAgent _codingAgent;
-    private CancellationTokenSource? _activeRunCancellationTokenSource;
+    private CancellationTokenSource? _activeOperationCancellationTokenSource;
     private volatile bool _isLoopIterationEnabled;
-    private bool _isCompressionActive;
-    private bool _isRunActive;
+    private bool _isLoopActive;
+    private CodingChatOperationPhase _operationPhase;
 
     public CodingChatApplication
     (
@@ -55,12 +64,13 @@ internal sealed class CodingChatApplication
 
     public bool CanChangeSession => !HasActiveOperation;
 
-    public bool CanSend => !_isCompressionActive;
+    public bool CanSend => _operationPhase == CodingChatOperationPhase.Running
+                           || (!_isLoopActive && _operationPhase == CodingChatOperationPhase.Idle);
 
     public bool CanCompressConversation => !HasActiveOperation
                                            && _chatManager.SelectedSession.AgentSession is not null;
 
-    public bool IsCompressionActive => _isCompressionActive;
+    public bool IsCompressionActive => _operationPhase == CodingChatOperationPhase.Compressing;
 
     public bool IsLoopIterationEnabled
     {
@@ -68,7 +78,11 @@ internal sealed class CodingChatApplication
         set => _isLoopIterationEnabled = value;
     }
 
-    public bool IsRunActive => _isRunActive;
+    public bool IsRunActive => _operationPhase == CodingChatOperationPhase.Running;
+
+    public bool IsLoopActive => _isLoopActive;
+
+    public bool IsFinalizing => _operationPhase == CodingChatOperationPhase.Finalizing;
 
     private readonly HashSet<Guid> _deletedSessionIds = [];
 
@@ -141,6 +155,7 @@ internal sealed class CodingChatApplication
         }
 
         CopilotChatSession previousSession = _chatManager.SelectedSession;
+        string? previousWorkspacePath = _workspaceController.NextRunWorkspacePath;
         bool sessionAlreadyLoaded = _chatManager.ChatSessions.Any(session => session.SessionId == sessionId);
         try
         {
@@ -157,12 +172,18 @@ internal sealed class CodingChatApplication
                 _chatManager.AddSession(targetSession, select: true);
             }
 
+            await _workspaceController
+                .ChangeWorkspaceAsync(targetSession.WorkspacePath, cancellationToken)
+                .ConfigureAwait(false);
             AddOrUpdateSummary(targetSession, insertAtTop: false);
             OnStateChanged();
         }
         catch
         {
             _chatManager.SelectedSession = previousSession;
+            await _workspaceController
+                .ChangeWorkspaceAsync(previousWorkspacePath, CancellationToken.None)
+                .ConfigureAwait(false);
             OnStateChanged();
             throw;
         }
@@ -223,42 +244,55 @@ internal sealed class CodingChatApplication
         }
 
         ICodingChatRunner chatRunner = _chatRunner;
-        if (_isCompressionActive)
-        {
-            throw new InvalidOperationException("对话压缩期间不能发送消息。");
-        }
-
-        if (_isRunActive)
+        if (_operationPhase == CodingChatOperationPhase.Running)
         {
             await chatRunner.InjectMessageAsync(runContents, cancellationToken);
             return;
         }
 
-        CancellationTokenSource runCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource
-            (cancellationToken);
-        _activeRunCancellationTokenSource = runCancellationTokenSource;
-        _isRunActive = true;
-        OnStateChanged();
+        if (_operationPhase != CodingChatOperationPhase.Idle || _isLoopActive)
+        {
+            throw new InvalidOperationException("当前任务已有活动操作。");
+        }
+
+        using CancellationTokenSource operationCancellationTokenSource =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _activeOperationCancellationTokenSource = operationCancellationTokenSource;
+        try
+        {
+            await RunSingleMessageAsync(
+                chatRunner,
+                runContents,
+                options ?? CodingChatRunOptions.Default,
+                operationCancellationTokenSource.Token);
+        }
+        finally
+        {
+            if (ReferenceEquals(_activeOperationCancellationTokenSource, operationCancellationTokenSource))
+            {
+                _activeOperationCancellationTokenSource = null;
+            }
+        }
+    }
+
+    private async Task RunSingleMessageAsync(
+        ICodingChatRunner chatRunner,
+        IReadOnlyList<AIContent> runContents,
+        CodingChatRunOptions options,
+        CancellationToken cancellationToken)
+    {
+        SetOperationPhase(CodingChatOperationPhase.Running);
         CopilotChatSession session = _chatManager.SelectedSession;
         session.WorkspacePath = _workspaceController.NextRunWorkspacePath;
         Exception? runException = null;
         try
         {
-            CodingAgentRunResult runResult = await chatRunner
-                .RunAsync
-                (
-                    runContents,
-                    _workspaceController.NextRunWorkspacePath,
-                    options ?? CodingChatRunOptions.Default,
-                    runCancellationTokenSource.Token
-                );
+            CodingAgentRunResult runResult = await chatRunner.RunAsync(
+                runContents,
+                _workspaceController.NextRunWorkspacePath,
+                options,
+                cancellationToken);
             await runResult.CompletionTask;
-            if (ReferenceEquals(_activeRunCancellationTokenSource, runCancellationTokenSource))
-            {
-                _activeRunCancellationTokenSource = null;
-                _isRunActive = false;
-                OnStateChanged();
-            }
         }
         catch (Exception exception)
         {
@@ -267,10 +301,10 @@ internal sealed class CodingChatApplication
         }
         finally
         {
+            SetOperationPhase(CodingChatOperationPhase.Finalizing);
             try
             {
-                await _sessionStore
-                    .SaveSessionAsync(session, CancellationToken.None);
+                await _sessionStore.SaveSessionAsync(session, CancellationToken.None);
                 AddOrUpdateSummary(session, insertAtTop: true);
             }
             catch when (runException is not null)
@@ -278,14 +312,7 @@ internal sealed class CodingChatApplication
             }
             finally
             {
-                if (ReferenceEquals(_activeRunCancellationTokenSource, runCancellationTokenSource))
-                {
-                    _activeRunCancellationTokenSource = null;
-                    _isRunActive = false;
-                }
-
-                runCancellationTokenSource.Dispose();
-                OnStateChanged();
+                SetOperationPhase(CodingChatOperationPhase.Idle);
             }
         }
     }
@@ -300,39 +327,65 @@ internal sealed class CodingChatApplication
             throw new ArgumentException("消息内容不能为空。", nameof(prompt));
         }
 
-        while (IsLoopIterationEnabled)
+        if (_activeOperationCancellationTokenSource is not null)
         {
-            try
-            {
-                await SendMessageAsync(
-                    prompt,
-                    options,
-                    cancellationToken);
-                if (options.EnableAutomaticCompression)
-                {
-                    await CompressConversationAsync(cancellationToken);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-            catch
-            {
-                if (!IsLoopIterationEnabled)
-                {
-                    return;
-                }
+            throw new InvalidOperationException("当前任务已有活动操作。");
+        }
 
+        using CancellationTokenSource operationCancellationTokenSource =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _activeOperationCancellationTokenSource = operationCancellationTokenSource;
+        _isLoopActive = true;
+        OnStateChanged();
+        try
+        {
+            while (IsLoopIterationEnabled)
+            {
                 try
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                    await RunSingleMessageAsync(
+                        _chatRunner,
+                        [new TextContent(prompt)],
+                        options,
+                        operationCancellationTokenSource.Token);
+                    if (options.EnableAutomaticCompression)
+                    {
+                        await CompressConversationCoreAsync(operationCancellationTokenSource.Token);
+                    }
                 }
                 catch (OperationCanceledException)
                 {
                     return;
                 }
+                catch
+                {
+                    if (!IsLoopIterationEnabled)
+                    {
+                        return;
+                    }
+
+                    try
+                    {
+                        SetOperationPhase(CodingChatOperationPhase.WaitingToRetry);
+                        await Task.Delay(TimeSpan.FromSeconds(10), operationCancellationTokenSource.Token);
+                        SetOperationPhase(CodingChatOperationPhase.Idle);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                }
             }
+        }
+        finally
+        {
+            if (ReferenceEquals(_activeOperationCancellationTokenSource, operationCancellationTokenSource))
+            {
+                _activeOperationCancellationTokenSource = null;
+            }
+
+            _isLoopActive = false;
+            SetOperationPhase(CodingChatOperationPhase.Idle);
         }
     }
 
@@ -343,27 +396,30 @@ internal sealed class CodingChatApplication
             throw new InvalidOperationException("当前会话没有可压缩的对话历史，或已有操作正在运行。");
         }
 
+        await CompressConversationCoreAsync(cancellationToken);
+    }
+
+    private async Task CompressConversationCoreAsync(CancellationToken cancellationToken)
+    {
         CopilotChatSession session = _chatManager.SelectedSession;
-        _isCompressionActive = true;
-        OnStateChanged();
+        SetOperationPhase(CodingChatOperationPhase.Compressing);
         try
         {
-            await _chatManager
-                .ReduceSessionAsync();
-            await _sessionStore
-                .SaveSessionAsync(session, CancellationToken.None);
+            cancellationToken.ThrowIfCancellationRequested();
+            await _chatManager.ReduceSessionAsync();
+            await _sessionStore.SaveSessionAsync(session, CancellationToken.None);
             AddOrUpdateSummary(session, insertAtTop: true);
         }
         finally
         {
-            _isCompressionActive = false;
-            OnStateChanged();
+            SetOperationPhase(CodingChatOperationPhase.Idle);
         }
     }
 
     public void StopActiveRun()
     {
-        _activeRunCancellationTokenSource?.Cancel();
+        IsLoopIterationEnabled = false;
+        _activeOperationCancellationTokenSource?.Cancel();
     }
 
     public Task<bool> StopLanguageServerAsync() => _codingAgent.StopLanguageServerAsync();
@@ -410,7 +466,14 @@ internal sealed class CodingChatApplication
         }
     }
 
-    private bool HasActiveOperation => _isRunActive || _isCompressionActive;
+    private bool HasActiveOperation => _isLoopActive || _operationPhase != CodingChatOperationPhase.Idle;
+
+    private void SetOperationPhase(CodingChatOperationPhase phase)
+    {
+        if (_operationPhase == phase) return;
+        _operationPhase = phase;
+        OnStateChanged();
+    }
 
     private void OnStateChanged() => StateChanged?.Invoke(this, EventArgs.Empty);
 }

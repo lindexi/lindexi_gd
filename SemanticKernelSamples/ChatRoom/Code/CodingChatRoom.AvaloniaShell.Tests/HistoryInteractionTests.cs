@@ -148,7 +148,7 @@ public sealed class HistoryInteractionTests
     public void HistoryNavigationShouldRemainEnabledWhileLoading(bool taskHistory)
     {
         var store = new StreamingStore();
-        var shell = new MainViewModel(CreateViewModel(store), new ChatViewModel());
+        var shell = MainViewModel.CreateForTests(CreateViewModel(store), new ChatViewModel());
         var command = taskHistory ? shell.OpenTaskHistoryCommand : shell.OpenHistoryCommand;
         try
         {
@@ -165,7 +165,7 @@ public sealed class HistoryInteractionTests
     public void HistoryNavigationShouldReopenBeforeLoadingCompletes(bool taskHistory)
     {
         var store = new StreamingStore();
-        var shell = new MainViewModel(CreateViewModel(store), new ChatViewModel());
+        var shell = MainViewModel.CreateForTests(CreateViewModel(store), new ChatViewModel());
         var command = taskHistory ? shell.OpenTaskHistoryCommand : shell.OpenHistoryCommand;
         try
         {
@@ -181,7 +181,7 @@ public sealed class HistoryInteractionTests
     public void ReenteringHistoryDuringLoadingShouldNotStartDuplicateRead()
     {
         var store = new StreamingStore();
-        var shell = new MainViewModel(CreateViewModel(store), new ChatViewModel());
+        var shell = MainViewModel.CreateForTests(CreateViewModel(store), new ChatViewModel());
         try
         {
             shell.OpenHistoryCommand.Execute(null);

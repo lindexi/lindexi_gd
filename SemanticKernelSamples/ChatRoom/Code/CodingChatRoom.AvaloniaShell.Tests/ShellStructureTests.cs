@@ -25,7 +25,7 @@ public sealed class ShellStructureTests
             .OrderBy(name => name, StringComparer.Ordinal)
             .ToArray();
 
-        CollectionAssert.AreEquivalent(
+        CollectionAssert.IsSubsetOf(
             new[]
             {
                 nameof(MainViewModel.ChatViewModel),

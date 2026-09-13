@@ -185,9 +185,9 @@ public sealed class CodingChatSendingTests
         await firstSend;
     }
 
-    [TestMethod(DisplayName = "运行结束中间态插话后仍应通过当前助手消息收到更新")]
+    [TestMethod(DisplayName = "最终保存期间不应启动第二条执行链")]
     [Timeout(5000)]
-    public async Task SendMessageAsyncWhileRunIsFinishingShouldUpdateCurrentAssistantMessage()
+    public async Task SendMessageAsyncWhileFinalizingShouldRejectSecondRun()
     {
         var manager = new CopilotChatManager();
         var store = new TestSessionStore { BlockSave = true };
@@ -196,19 +196,14 @@ public sealed class CodingChatSendingTests
         await application.InitializeAsync();
         Task firstSend = application.SendMessageAsync("第一条");
         await runner.Started.Task;
-        CopilotChatMessage assistantMessage = runner.AssistantMessage;
         runner.Complete("首轮完成");
         await store.SaveStarted.Task;
 
-        Task secondSend = application.SendMessageAsync("结束边界插话");
-        await runner.SecondRunStarted.Task;
-        CopilotChatMessage secondAssistantMessage = runner.AssistantMessage;
-        runner.Complete("结束边界回复");
-        store.ReleaseSave();
-        await Task.WhenAll(firstSend, secondSend);
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            () => application.SendMessageAsync("结束边界发送"));
 
-        Assert.AreEqual("首轮完成", assistantMessage.Content);
-        Assert.AreEqual("结束边界回复", secondAssistantMessage.Content);
+        store.ReleaseSave();
+        await firstSend;
     }
 
     [TestMethod(DisplayName = "停止活动发送应取消完整运行生命周期")]

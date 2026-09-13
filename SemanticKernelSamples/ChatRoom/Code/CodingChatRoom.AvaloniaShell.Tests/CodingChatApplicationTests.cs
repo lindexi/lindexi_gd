@@ -93,6 +93,45 @@ public sealed class CodingChatApplicationTests
         Assert.AreEqual(previousSessionId, application.SelectedSessionId);
     }
 
+    [TestMethod(DisplayName = "打开历史会话后应同步历史工作路径")]
+    public async Task OpenSessionAsyncShouldRestoreWorkspacePath()
+    {
+        string workspacePath = CreateTestDirectory();
+        CopilotChatSession persisted = CreateSession("历史会话", "消息", DateTimeOffset.Now);
+        persisted.WorkspacePath = workspacePath;
+        var workspaceController = new CodingWorkspaceController(new TestMainThreadDispatcher());
+        var application = CodingChatApplicationTestFactory.CreateApplication(
+            new CopilotChatManager(),
+            new TestSessionStore(persisted),
+            workspaceController: workspaceController);
+
+        await application.OpenSessionAsync(persisted.SessionId);
+
+        Assert.AreEqual(Path.GetFullPath(workspacePath), workspaceController.NextRunWorkspacePath);
+    }
+
+    [TestMethod(DisplayName = "历史工作路径无效时应保留原会话和原工作路径")]
+    public async Task OpenSessionAsyncWithInvalidWorkspacePathShouldKeepPreviousState()
+    {
+        string previousWorkspacePath = CreateTestDirectory();
+        CopilotChatSession persisted = CreateSession("历史会话", "消息", DateTimeOffset.Now);
+        persisted.WorkspacePath = Path.Join(CreateTestDirectory(), "missing");
+        var manager = new CopilotChatManager();
+        Guid previousSessionId = manager.SelectedSession.SessionId;
+        var workspaceController = new CodingWorkspaceController(new TestMainThreadDispatcher());
+        await workspaceController.ChangeWorkspaceAsync(previousWorkspacePath);
+        var application = CodingChatApplicationTestFactory.CreateApplication(
+            manager,
+            new TestSessionStore(persisted),
+            workspaceController: workspaceController);
+
+        await Assert.ThrowsExactlyAsync<DirectoryNotFoundException>(
+            () => application.OpenSessionAsync(persisted.SessionId));
+
+        Assert.AreEqual(previousSessionId, application.SelectedSessionId);
+        Assert.AreEqual(Path.GetFullPath(previousWorkspacePath), workspaceController.NextRunWorkspacePath);
+    }
+
     [TestMethod(DisplayName = "初始化历史摘要时不应加载历史会话内容")]
     [Timeout(5000)]
     public async Task InitializeAsyncShouldNotLoadHistorySessionContent()
@@ -232,6 +271,38 @@ public sealed class CodingChatApplicationTests
         Assert.AreEqual(expectedCompressionCount, compressionCount);
     }
 
+    [TestMethod(DisplayName = "停止应立即结束循环失败后的等待")]
+    [Timeout(5000)]
+    public async Task StopActiveRunShouldCancelLoopRetryDelay()
+    {
+        var runner = new ControllableRunner();
+        var application = CodingChatApplicationTestFactory.CreateApplication(
+            new CopilotChatManager(),
+            new TestSessionStore(),
+            runner);
+        application.IsLoopIterationEnabled = true;
+        var retryDelayStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        application.StateChanged += (_, _) =>
+        {
+            if (application.IsLoopActive && !application.IsRunActive)
+            {
+                retryDelayStarted.TrySetResult();
+            }
+        };
+
+        Task loopTask = application.RunLoopIterationAsync(
+            "继续处理",
+            CodingChatRunOptions.Default);
+        await runner.Started.Task;
+        runner.Fail(new InvalidOperationException("模拟失败"));
+        await retryDelayStarted.Task;
+
+        application.StopActiveRun();
+        await loopTask;
+
+        Assert.IsFalse(application.IsLoopActive);
+    }
+
     [TestMethod]
     public void HistoryShouldNotLoadWhenViewModelIsCreated()
     {
@@ -288,6 +359,13 @@ public sealed class CodingChatApplicationTests
         Assert.AreEqual(selectedId, application.SelectedSessionId);
     }
 
+    private static string CreateTestDirectory()
+    {
+        string path = Path.Join(Path.GetTempPath(), $"CodingChatRoom.HistoryWorkspace.{Guid.NewGuid():N}");
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
     private static CopilotChatSession CreateSession(string title, string content, DateTimeOffset startedTime)
     {
         var session = new CopilotChatSession(Guid.NewGuid(), startedTime);
@@ -310,6 +388,15 @@ public sealed class CodingChatApplicationTests
         };
         manager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider([model]));
         return manager;
+    }
+
+    private sealed class TestMainThreadDispatcher : AgentLib.IMainThreadDispatcher
+    {
+        public Task InvokeAsync(Func<Task> action) => action();
+
+        public Task<T> InvokeAsync<T>(Func<Task<T>> action) => action();
+
+        public bool CheckAccess() => true;
     }
 
     private sealed class TestSessionStore : ICodingChatSessionStore
@@ -395,5 +482,7 @@ public sealed class CodingChatApplicationTests
         }
 
         public void Complete() => _completion.TrySetResult(string.Empty);
+
+        public void Fail(Exception exception) => _completion.TrySetException(exception);
     }
 }

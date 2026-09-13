@@ -6,7 +6,7 @@ using Avalonia.Data.Converters;
 namespace CodingChatRoom.AvaloniaShell.Converters;
 
 /// <summary>
-/// 将应用标题、当前工作路径与会话标题组合为窗口标题。
+/// 将应用标题、当前任务名称、工作路径与会话标题组合为窗口标题。
 /// </summary>
 public sealed class WorkspaceTitleConverter : IMultiValueConverter
 {
@@ -17,8 +17,11 @@ public sealed class WorkspaceTitleConverter : IMultiValueConverter
         string? workspacePath = values.Count > 0 ? values[0] as string : null;
         string? sessionTitle = values.Count > 1 ? values[1] as string : null;
 
-        var titleParts = new List<string>(3);
+        string? taskName = values.Count > 2 ? values[2] as string : null;
+
+        var titleParts = new List<string>(4);
         AddTitlePart(titleParts, applicationTitle);
+        AddTitlePart(titleParts, taskName);
         AddTitlePart(titleParts, workspacePath);
         AddTitlePart(titleParts, sessionTitle);
         return string.Join(" - ", titleParts);

@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-
 using CodingChatRoom.AvaloniaShell.Infrastructure;
 using CodingChatRoom.AvaloniaShell.Services;
 using CodingChatRoom.AvaloniaShell.ViewModels;
@@ -13,8 +17,6 @@ namespace CodingChatRoom.AvaloniaShell;
 
 public partial class App : Application
 {
-    private CodingChatRuntime? _runtime;
-
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -33,30 +35,61 @@ public partial class App : Application
     private async void InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
     {
         CodingChatRoomPaths paths = CodingChatRoomPaths.CreateForCurrentUser();
+        var runtimes = new List<CodingChatRuntime>();
         try
         {
-            _runtime = await CodingChatStartup.InitializeAsync(
-                paths,
-                new AvaloniaMainThreadDispatcher()).ConfigureAwait(true);
+            var dispatcher = new AvaloniaMainThreadDispatcher();
+            var workTaskStore = new WorkTaskStore(paths);
+            IReadOnlyList<WorkTaskRecord> records = await workTaskStore.LoadAsync().ConfigureAwait(true);
+            var tasks = new List<WorkTaskItemViewModel>();
 
-            var mainViewModel = new MainViewModel(
-                new SessionListViewModel(_runtime.Application),
-                new ChatViewModel(
-                    _runtime.ChatManager,
-                    _runtime.Application,
-                    _runtime.WorkspaceController,
-                    $"当前模型：{_runtime.ModelDisplayName}"),
-                _runtime.SettingsService);
-            mainViewModel.ConfigureTaskFactory(() => CodingChatStartup.InitializeAsync(paths, new AvaloniaMainThreadDispatcher()));
-            var mainWindow = new MainWindow()
+            if (records.Count == 0)
+            {
+                CodingChatRuntime runtime = await CodingChatStartup.InitializeAsync(paths, dispatcher).ConfigureAwait(true);
+                runtimes.Add(runtime);
+                tasks.Add(MainViewModel.CreateRuntimeTask(runtime, new WorkTaskRecord(
+                    Guid.NewGuid(),
+                    GetDefaultTaskName(1),
+                    null,
+                    runtime.ModelDisplayName,
+                    null)));
+            }
+            else
+            {
+                foreach (WorkTaskRecord record in records)
+                {
+                    CodingChatRuntime runtime = await CodingChatStartup.InitializeAsync(paths, dispatcher).ConfigureAwait(true);
+                    runtimes.Add(runtime);
+                    WorkTaskItemViewModel task = MainViewModel.CreateRuntimeTask(runtime, record);
+                    await RestoreTaskConfigurationAsync(task, runtime, record).ConfigureAwait(true);
+                    tasks.Add(task);
+                }
+            }
+
+            var mainViewModel = MainViewModel.Create(
+                tasks,
+                runtimes[0].SettingsService,
+                workTaskStore,
+                () => CodingChatStartup.InitializeAsync(paths, new AvaloniaMainThreadDispatcher()));
+            if (records.Count == 0)
+            {
+                await workTaskStore.SaveAsync([CreateRecord(tasks[0])]).ConfigureAwait(true);
+            }
+
+            var mainWindow = new MainWindow
             {
                 DataContext = mainViewModel,
             };
             desktop.MainWindow = mainWindow;
             mainWindow.Show();
         }
-        catch (Exception exception)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException or JsonException)
         {
+            foreach (CodingChatRuntime runtime in runtimes)
+            {
+                await runtime.DisposeAsync().ConfigureAwait(true);
+            }
+
             Trace.TraceError($"CodingChatRoom 应用初始化失败：{exception}");
             var failureWindow = new StartupFailureWindow
             {
@@ -69,4 +102,40 @@ public partial class App : Application
             failureWindow.Show();
         }
     }
+
+    private static async Task RestoreTaskConfigurationAsync(
+        WorkTaskItemViewModel task,
+        CodingChatRuntime runtime,
+        WorkTaskRecord record)
+    {
+        if (!string.IsNullOrWhiteSpace(record.WorkspacePath))
+        {
+            await runtime.WorkspaceController.ChangeWorkspaceAsync(record.WorkspacePath).ConfigureAwait(true);
+        }
+
+        LanguageModelOptionViewModel? model = task.Chat.AvailableModels.FirstOrDefault(
+            option => string.Equals(option.DisplayName, record.ModelReference, StringComparison.Ordinal));
+        if (model is not null)
+        {
+            task.Chat.SelectedModel = model;
+        }
+
+        ReasoningEffortOptionViewModel? reasoningEffort = task.Chat.AvailableReasoningEfforts.FirstOrDefault(
+            option => option.Value == record.ReasoningEffort);
+        if (reasoningEffort is not null)
+        {
+            task.Chat.SelectedReasoningEffort = reasoningEffort;
+        }
+    }
+
+    private static WorkTaskRecord CreateRecord(WorkTaskItemViewModel task)
+        => new(
+            task.Id,
+            task.DisplayName,
+            task.Chat.NextRunWorkspacePath,
+            task.Chat.SelectedModel?.DisplayName,
+            task.Chat.SelectedReasoningEffort?.Value);
+
+    private static string GetDefaultTaskName(int number)
+        => $"{Current?.FindResource("WorkTaskText") ?? "工作任务"} {number}";
 }

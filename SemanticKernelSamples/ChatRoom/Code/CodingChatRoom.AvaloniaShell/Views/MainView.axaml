@@ -2,6 +2,9 @@
  xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels" xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
  x:Class="CodingChatRoom.AvaloniaShell.Views.MainView" x:DataType="vm:MainViewModel">
  <Grid ColumnDefinitions="280,*" Background="Transparent">
+  <Border Grid.ColumnSpan="2" Margin="20,8" Padding="12,8" VerticalAlignment="Top" Background="#FFF4CE" BorderBrush="#D6B656" BorderThickness="1" CornerRadius="6" ZIndex="10" IsVisible="{Binding HasErrorMessage}">
+   <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" Foreground="#5D4A00" />
+  </Border>
   <Border Background="Transparent">
    <Grid Margin="16,28,16,20" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="18">
     <Grid ColumnDefinitions="36,*" ColumnSpacing="10" Margin="4,0">
@@ -35,7 +38,7 @@
             </StackPanel>
            </StackPanel>
           </Button>
-          <Button Grid.Column="1" Classes="Icon" IsVisible="{Binding !IsEditing}" VerticalAlignment="Top" ToolTip.Tip="{StaticResource MoreActionsText}">
+          <Button Grid.Column="1" Classes="Icon" Margin="0,11,0,0" IsVisible="{Binding !IsEditing}" VerticalAlignment="Top" ToolTip.Tip="{StaticResource MoreActionsText}">
            <PathIcon Width="16" Height="16" Data="M4,10 A2,2 0 1 0 4,14 A2,2 0 1 0 4,10 M12,10 A2,2 0 1 0 12,14 A2,2 0 1 0 12,10 M20,10 A2,2 0 1 0 20,14 A2,2 0 1 0 20,10" />
            <Button.Flyout><MenuFlyout>
             <MenuItem Header="{StaticResource RenameWorkTaskText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).RenameWorkTaskCommand}" CommandParameter="{Binding}" />
