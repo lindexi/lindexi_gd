@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AgentLib;
 using AgentLib.Coding;
@@ -90,7 +91,10 @@ internal static class CodingChatStartup
             chatManager,
             mainThreadDispatcher
         );
-        var chatRunner = new CodingAgentChatRunner(chatManager, codingAgent);
+        var chatRunner = new CodingAgentChatRunner(
+            chatManager,
+            codingAgent,
+            () => CreateResponsesChatClient(configuration, endpointManager.PrimaryModel));
         var application = new CodingChatApplication
         (
             chatManager,
@@ -112,6 +116,19 @@ internal static class CodingChatStartup
             workspaceController,
             settingsService
         );
+    }
+
+    private static Microsoft.Extensions.AI.IChatClient CreateResponsesChatClient(
+        AgentApiManagerConfiguration configuration,
+        ILanguageModel model)
+    {
+        string modelId = model.ModelDefinition.ModelId ?? model.ModelDefinition.ModelName;
+        OpenAIProtocolLanguageModelConfiguration endpoint = configuration.OpenAIConfigurationList?
+            .FirstOrDefault(item => item.ModelDefinitions?.Any(definition =>
+                string.Equals(definition.ModelId ?? definition.ModelName, modelId, StringComparison.Ordinal)) == true)
+            ?? throw new InvalidOperationException($"未找到模型 {modelId} 对应的 OpenAI API 配置。");
+
+        return ResponsesChatClientFactory.Create(endpoint.EndPoint, endpoint.Key, modelId);
     }
 
     private static string? GetCopilotInstructionsPath(CodingChatShellSettings shellSettings)

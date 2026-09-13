@@ -29,14 +29,20 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
 {
     private readonly CopilotChatManager _chatManager;
     private readonly CodingAgent _codingAgent;
+    private readonly Func<IChatClient> _createResponsesChatClient;
     private CodingAgentRunResult? _activeRun;
 
-    public CodingAgentChatRunner(CopilotChatManager chatManager, CodingAgent codingAgent)
+    public CodingAgentChatRunner(
+        CopilotChatManager chatManager,
+        CodingAgent codingAgent,
+        Func<IChatClient> createResponsesChatClient)
     {
         ArgumentNullException.ThrowIfNull(chatManager);
         ArgumentNullException.ThrowIfNull(codingAgent);
+        ArgumentNullException.ThrowIfNull(createResponsesChatClient);
         _chatManager = chatManager;
         _codingAgent = codingAgent;
+        _createResponsesChatClient = createResponsesChatClient;
     }
 
     public async Task<CodingAgentRunResult> RunAsync(
@@ -55,6 +61,7 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
                 contents,
                 workspacePath,
                 options,
+                options.UseResponsesApi ? _createResponsesChatClient() : null,
                 cancellationToken)
             .ConfigureAwait(false);
         _activeRun = run;

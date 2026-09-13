@@ -14,11 +14,13 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 internal readonly record struct CodingChatRunOptions(
     bool EnableAutomaticCompression,
     bool EnableDotNetRun,
+    bool UseResponsesApi,
     ReasoningEffort? ReasoningEffort)
 {
     public static CodingChatRunOptions Default { get; } = new(
         EnableAutomaticCompression: true,
         EnableDotNetRun: false,
+        UseResponsesApi: false,
         ReasoningEffort: null);
 }
 
@@ -30,15 +32,26 @@ internal static class CodingAgentRunExtensions
         IReadOnlyList<AIContent> contents,
         string? workspacePath,
         CodingChatRunOptions options,
+        IChatClient? responsesChatClient,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(codingAgent);
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(contents);
 
+        if (options.UseResponsesApi)
+        {
+            context = new ConfiguredManualSendMessageContext(
+                context,
+                responsesChatClient ?? throw new InvalidOperationException("无法为当前模型创建 Responses API 客户端。"));
+        }
+
         if (options.ReasoningEffort is not null)
         {
-            context = new ConfiguredManualSendMessageContext(context, options.ReasoningEffort.Value);
+            context = new ConfiguredManualSendMessageContext(
+                context,
+                context.ChatClient,
+                options.ReasoningEffort.Value);
         }
 
         return codingAgent.RunAsync(
@@ -52,15 +65,16 @@ internal static class CodingAgentRunExtensions
 
     private sealed class ConfiguredManualSendMessageContext(
         IManualSendMessageContext inner,
-        ReasoningEffort reasoningEffort) : IManualSendMessageContext
+        IChatClient chatClient,
+        ReasoningEffort? reasoningEffort = null) : IManualSendMessageContext
     {
         public CopilotChatMessage UserChatMessage => inner.UserChatMessage;
 
         public CopilotChatMessage AssistantChatMessage => inner.AssistantChatMessage;
 
-        public IChatClient ChatClient => inner.ChatClient;
+        public IChatClient ChatClient => chatClient;
 
-        public AgentLib.IMainThreadDispatcher MainThreadDispatcher => inner.MainThreadDispatcher;
+        public AgentLib.IMainThreadDispatcher? MainThreadDispatcher => inner.MainThreadDispatcher;
 
         public IReadOnlyList<AITool> DefaultTools => inner.DefaultTools;
 
@@ -72,9 +86,12 @@ internal static class CodingAgentRunExtensions
                 agentOptions =>
                 {
                     configure?.Invoke(agentOptions);
-                    ChatOptions chatOptions = agentOptions.ChatOptions?.Clone() ?? new ChatOptions();
-                    chatOptions.Reasoning = new ReasoningOptions { Effort = reasoningEffort };
-                    agentOptions.ChatOptions = chatOptions;
+                    if (reasoningEffort is not null)
+                    {
+                        ChatOptions chatOptions = agentOptions.ChatOptions?.Clone() ?? new ChatOptions();
+                        chatOptions.Reasoning = new ReasoningOptions { Effort = reasoningEffort.Value };
+                        agentOptions.ChatOptions = chatOptions;
+                    }
                 },
                 cancellationToken);
         }
