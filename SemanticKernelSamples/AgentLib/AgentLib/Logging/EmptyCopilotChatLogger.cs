@@ -8,4 +8,9 @@ class EmptyCopilotChatLogger : ICopilotChatLogger
     {
         return Task.CompletedTask;
     }
+
+    public Task LogDiagnosticAsync(Guid sessionId, string category, string message, Exception? exception = null)
+    {
+        return Task.CompletedTask;
+    }
 }

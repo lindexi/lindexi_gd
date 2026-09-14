@@ -68,7 +68,21 @@ internal sealed class CodingChatRuntime : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        Guid sessionId = ChatManager.SelectedSession.SessionId;
+        await ChatLogger.LogDiagnosticAsync
+        (
+            sessionId,
+            "运行时释放",
+            $"开始释放工作任务运行时。活动运行={Application.IsRunActive}；循环活动={Application.IsLoopActive}；正在收尾={Application.IsFinalizing}。"
+        ).ConfigureAwait(false);
         Application.StopActiveRun();
+        await ChatLogger.LogDiagnosticAsync
+        (
+            sessionId,
+            "运行时释放",
+            "已请求取消活动运行，开始释放 CodingAgent。"
+        ).ConfigureAwait(false);
         await _codingAgent.DisposeAsync().ConfigureAwait(false);
+        await ChatLogger.LogDiagnosticAsync(sessionId, "运行时释放", "工作任务运行时释放完成。").ConfigureAwait(false);
     }
 }

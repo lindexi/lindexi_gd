@@ -112,7 +112,6 @@ internal sealed class CodingChatApplication
                 Sessions.Add(summary);
             }
         }
-
     }
 
     public async Task RenameSessionAsync(Guid sessionId, string title, CancellationToken cancellationToken = default)
@@ -120,7 +119,7 @@ internal sealed class CodingChatApplication
         EnsureCanChangeSession();
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
         CopilotChatSession session = _chatManager.ChatSessions.FirstOrDefault(item => item.SessionId == sessionId)
-            ?? await _sessionStore.LoadSessionAsync(sessionId, cancellationToken);
+                                     ?? await _sessionStore.LoadSessionAsync(sessionId, cancellationToken);
         string previousTitle = session.Title;
         try
         {
@@ -221,10 +220,12 @@ internal sealed class CodingChatApplication
             throw new ArgumentException("消息内容不能为空。", nameof(prompt));
         }
 
-        await SendMessageAsync(
+        await SendMessageAsync
+        (
             [new TextContent(prompt)],
             options,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
     public async Task SendMessageAsync
@@ -244,7 +245,30 @@ internal sealed class CodingChatApplication
         ICodingChatRunner chatRunner = _chatRunner;
         if (_operationPhase == CodingChatOperationPhase.Running)
         {
-            await chatRunner.InjectMessageAsync(runContents, cancellationToken);
+            Guid sessionId = _chatManager.SelectedSession.SessionId;
+            await _chatManager.ChatLogger.LogDiagnosticAsync
+            (
+                sessionId,
+                "运行",
+                $"开始提交插话。调用方取消={cancellationToken.IsCancellationRequested}。"
+            );
+            try
+            {
+                await chatRunner.InjectMessageAsync(runContents, cancellationToken);
+                await _chatManager.ChatLogger.LogDiagnosticAsync(sessionId, "运行", "插话提交完成。");
+            }
+            catch (Exception exception)
+            {
+                await _chatManager.ChatLogger.LogDiagnosticAsync
+                (
+                    sessionId,
+                    "运行",
+                    $"插话提交失败。调用方取消={cancellationToken.IsCancellationRequested}。",
+                    exception
+                );
+                throw;
+            }
+
             return;
         }
 
@@ -258,11 +282,13 @@ internal sealed class CodingChatApplication
         _activeOperationCancellationTokenSource = operationCancellationTokenSource;
         try
         {
-            await RunSingleMessageAsync(
+            await RunSingleMessageAsync
+            (
                 chatRunner,
                 runContents,
                 options ?? CodingChatRunOptions.Default,
-                operationCancellationTokenSource.Token);
+                operationCancellationTokenSource.Token
+            );
         }
         finally
         {
@@ -273,28 +299,46 @@ internal sealed class CodingChatApplication
         }
     }
 
-    private async Task RunSingleMessageAsync(
+    private async Task RunSingleMessageAsync
+    (
         ICodingChatRunner chatRunner,
         IReadOnlyList<AIContent> runContents,
         CodingChatRunOptions options,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         SetOperationPhase(CodingChatOperationPhase.Running);
         CopilotChatSession session = _chatManager.SelectedSession;
         session.WorkspacePath = _workspaceController.NextRunWorkspacePath;
+        await _chatManager.ChatLogger.LogDiagnosticAsync
+        (
+            session.SessionId,
+            "运行",
+            $"运行开始。工作路径={session.WorkspacePath ?? "未设置"}；自动压缩={options.EnableAutomaticCompression}；dotnet run={options.EnableDotNetRun}；思考强度={options.ReasoningEffort?.ToString() ?? "默认"}；调用方取消={cancellationToken.IsCancellationRequested}。"
+        );
         Exception? runException = null;
         try
         {
-            CodingAgentRunResult runResult = await chatRunner.RunAsync(
+            CodingAgentRunResult runResult = await chatRunner.RunAsync
+            (
                 runContents,
                 _workspaceController.NextRunWorkspacePath,
                 options,
-                cancellationToken);
+                cancellationToken
+            );
             await runResult.CompletionTask;
+            await _chatManager.ChatLogger.LogDiagnosticAsync(session.SessionId, "运行", "运行正常完成。");
         }
         catch (Exception exception)
         {
             runException = exception;
+            await _chatManager.ChatLogger.LogDiagnosticAsync
+            (
+                session.SessionId,
+                "运行",
+                $"运行异常结束。异常类型={exception.GetType().FullName}；运行令牌取消={cancellationToken.IsCancellationRequested}；活动取消源存在={_activeOperationCancellationTokenSource is not null}；活动取消源已取消={_activeOperationCancellationTokenSource?.IsCancellationRequested == true}；阶段={_operationPhase}。",
+                exception
+            );
             throw;
         }
         finally
@@ -302,23 +346,35 @@ internal sealed class CodingChatApplication
             SetOperationPhase(CodingChatOperationPhase.Finalizing);
             try
             {
+                await _chatManager.ChatLogger.LogDiagnosticAsync(session.SessionId, "会话保存", "开始保存运行后的会话。");
                 await _sessionStore.SaveSessionAsync(session, CancellationToken.None);
                 AddOrUpdateSummary(session, insertAtTop: true);
+                await _chatManager.ChatLogger.LogDiagnosticAsync(session.SessionId, "会话保存", "运行后的会话保存完成。");
             }
-            catch when (runException is not null)
+            catch (Exception saveException) when (runException is not null)
             {
+                await _chatManager.ChatLogger.LogDiagnosticAsync
+                (
+                    session.SessionId,
+                    "会话保存",
+                    "运行已经异常结束，随后保存会话时再次失败。将继续传播原始运行异常。",
+                    saveException
+                );
             }
             finally
             {
                 SetOperationPhase(CodingChatOperationPhase.Idle);
+                await _chatManager.ChatLogger.LogDiagnosticAsync(session.SessionId, "运行", "运行状态已恢复为空闲。");
             }
         }
     }
 
-    public async Task RunLoopIterationAsync(
+    public async Task RunLoopIterationAsync
+    (
         string prompt,
         CodingChatRunOptions options,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (string.IsNullOrWhiteSpace(prompt))
         {
@@ -341,11 +397,13 @@ internal sealed class CodingChatApplication
             {
                 try
                 {
-                    await RunSingleMessageAsync(
+                    await RunSingleMessageAsync
+                    (
                         _chatRunner,
                         [new TextContent(prompt)],
                         options,
-                        operationCancellationTokenSource.Token);
+                        operationCancellationTokenSource.Token
+                    );
                     if (options.EnableAutomaticCompression)
                     {
                         await CompressConversationCoreAsync(operationCancellationTokenSource.Token);
@@ -412,6 +470,18 @@ internal sealed class CodingChatApplication
         {
             SetOperationPhase(CodingChatOperationPhase.Idle);
         }
+    }
+
+    public async Task StopActiveRunByUserAsync()
+    {
+        CopilotChatSession session = _chatManager.SelectedSession;
+        await _chatManager.ChatLogger.LogDiagnosticAsync
+        (
+            session.SessionId,
+            "停止",
+            $"用户请求停止运行。阶段={_operationPhase}；循环活动={_isLoopActive}；活动取消源存在={_activeOperationCancellationTokenSource is not null}；活动取消源已取消={_activeOperationCancellationTokenSource?.IsCancellationRequested == true}。"
+        );
+        StopActiveRun();
     }
 
     public void StopActiveRun()
