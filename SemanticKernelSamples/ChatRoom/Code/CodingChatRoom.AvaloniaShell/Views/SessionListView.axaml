@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
+             xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
              x:Class="CodingChatRoom.AvaloniaShell.Views.SessionListView"
              x:DataType="vm:SessionListViewModel">
     <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16,0,16,16">
@@ -66,7 +67,8 @@
                                 </Grid>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <Button Content="{StaticResource OpenSessionText}"
-                                            Command="{Binding $parent[UserControl].DataContext.OpenSessionCommand}" CommandParameter="{Binding}" />
+                                            Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).OpenSessionCommand}"
+                                            CommandParameter="{Binding}" />
                                     <Button Content="{StaticResource DeleteSessionText}"
                                             Command="{Binding $parent[UserControl].DataContext.DeleteSessionCommand}" CommandParameter="{Binding}" />
                                 </StackPanel>
