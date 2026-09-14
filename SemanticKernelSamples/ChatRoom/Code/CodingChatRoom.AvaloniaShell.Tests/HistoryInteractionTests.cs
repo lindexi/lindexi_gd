@@ -24,8 +24,41 @@ public sealed class HistoryInteractionTests
         var vm = CreateViewModel(store);
         await vm.LoadAsync();
         var item = vm.Sessions.Single(item => item.SessionId == store.Session.SessionId);
-        vm.OpenSessionCommand.Execute(item);
+        var shell = MainViewModel.CreateForTests(vm, new ChatViewModel());
+        shell.OpenSessionCommand.Execute(item);
+        await WaitUntilAsync(() => vm.SelectedSession?.SessionId == item.SessionId);
         Assert.AreEqual(item.SessionId, vm.Sessions.Single(candidate => candidate.IsCurrent).SessionId);
+    }
+
+    [TestMethod]
+    public async Task SwitchingSessionShouldOnlyChangeActiveWorkTask()
+    {
+        Guid targetSessionId = Guid.NewGuid();
+        var firstStore = new StreamingStore(targetSessionId);
+        var secondStore = new StreamingStore(targetSessionId);
+        firstStore.Continue.TrySetResult();
+        secondStore.Continue.TrySetResult();
+        var firstManager = new CopilotChatManager();
+        var secondManager = new CopilotChatManager();
+        var firstSessions = new SessionListViewModel(
+            CodingChatApplicationTestFactory.CreateApplication(firstManager, firstStore));
+        var secondSessions = new SessionListViewModel(
+            CodingChatApplicationTestFactory.CreateApplication(secondManager, secondStore));
+        await firstSessions.LoadAsync();
+        await secondSessions.LoadAsync();
+        var shell = MainViewModel.CreateForTests(firstSessions, new ChatViewModel());
+        var secondTask = new WorkTaskItemViewModel("Second", new ChatViewModel(), secondSessions);
+        shell.WorkTasks.Add(secondTask);
+        shell.ActivateWorkTaskCommand.Execute(secondTask);
+        Guid firstSessionId = firstManager.SelectedSession.SessionId;
+        SessionItemViewModel targetSession = secondSessions.Sessions.Single(
+            item => item.SessionId == targetSessionId);
+
+        shell.OpenSessionCommand.Execute(targetSession);
+        await WaitUntilAsync(() => secondManager.SelectedSession.SessionId == targetSessionId);
+
+        Assert.AreEqual((firstSessionId, targetSessionId),
+            (firstManager.SelectedSession.SessionId, secondManager.SelectedSession.SessionId));
     }
 
     [TestMethod]
@@ -36,7 +69,9 @@ public sealed class HistoryInteractionTests
         var vm = CreateViewModel(store);
         await vm.LoadAsync();
         var item = vm.Sessions.Single(item => item.SessionId == store.Session.SessionId);
-        vm.OpenSessionCommand.Execute(item);
+        var shell = MainViewModel.CreateForTests(vm, new ChatViewModel());
+        shell.OpenSessionCommand.Execute(item);
+        await WaitUntilAsync(() => vm.SelectedSession?.SessionId == item.SessionId);
         vm.DeleteSessionCommand.Execute(item);
         Assert.AreEqual(vm.SelectedSession?.SessionId, vm.Sessions.Single(candidate => candidate.IsCurrent).SessionId);
     }
@@ -69,9 +104,10 @@ public sealed class HistoryInteractionTests
     {
         var store = new StreamingStore();
         var vm = CreateViewModel(store);
+        var shell = MainViewModel.CreateForTests(vm, new ChatViewModel());
         Task loading = vm.LoadAsync();
         var item = vm.Sessions.Single(item => item.SessionId == store.Session.SessionId);
-        bool enabled = vm.OpenSessionCommand.CanExecute(item)
+        bool enabled = shell.OpenSessionCommand.CanExecute(item)
             && vm.EditTitleCommand.CanExecute(item) && vm.DeleteSessionCommand.CanExecute(item);
         store.Continue.TrySetResult();
         await loading;
@@ -196,9 +232,28 @@ public sealed class HistoryInteractionTests
     private static SessionListViewModel CreateViewModel(StreamingStore store) => new(
         CodingChatApplicationTestFactory.CreateApplication(new CopilotChatManager(), store));
 
+    private static async Task WaitUntilAsync(Func<bool> condition)
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+        while (!condition())
+        {
+            await Task.Delay(10, cancellationTokenSource.Token);
+        }
+    }
+
     private sealed class StreamingStore : ICodingChatSessionStore
     {
-        public CopilotChatSession Session { get; } = new();
+        public StreamingStore()
+            : this(Guid.NewGuid())
+        {
+        }
+
+        public StreamingStore(Guid sessionId)
+        {
+            Session = new CopilotChatSession(sessionId, DateTimeOffset.Now);
+        }
+
+        public CopilotChatSession Session { get; }
         public TaskCompletionSource Continue { get; } = new();
         public int LoadCount { get; private set; }
 

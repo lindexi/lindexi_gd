@@ -27,7 +27,6 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
     private readonly System.Collections.Generic.Dictionary<Guid, SessionItemViewModel> _items = [];
     private bool _isOperating;
     private readonly SimpleAsyncCommand _createNewSessionCommand;
-    private readonly SimpleAsyncCommand<SessionItemViewModel> _openSessionCommand;
     private readonly SimpleAsyncCommand<SessionItemViewModel> _deleteSessionCommand;
     private readonly SimpleAsyncCommand<SessionItemViewModel> _saveTitleCommand;
 
@@ -40,14 +39,7 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
         {
             if (_application is null) return;
             await _application.CreateNewSessionAsync();
-            SessionOpened?.Invoke(this, EventArgs.Empty);
         }), () => CanChangeSession);
-        _openSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(item => RunOperationAsync(async () =>
-        {
-            if (_application is null || item is null) return;
-            await _application.OpenSessionAsync(item.SessionId);
-            SessionOpened?.Invoke(this, EventArgs.Empty);
-        }), CanExecute);
         _deleteSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(item => RunOperationAsync(async () =>
         {
             if (_application is not null && item is not null)
@@ -85,8 +77,6 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
         Refresh();
     }
 
-    internal event EventHandler? SessionOpened;
-
     public ObservableCollection<SessionItemViewModel> Sessions { get; } = [];
     public bool IsEmpty => !IsLoading && Sessions.Count == 0;
     public bool CanChangeSession => (_application?.CanChangeSession ?? false) && !_isOperating;
@@ -107,7 +97,6 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
         private set => SetField(ref _errorMessage, value);
     }
     public ICommand CreateNewSessionCommand => _createNewSessionCommand;
-    public ICommand OpenSessionCommand => _openSessionCommand;
     public ICommand DeleteSessionCommand => _deleteSessionCommand;
     public ICommand SaveTitleCommand => _saveTitleCommand;
     public ICommand EditTitleCommand { get; }
@@ -160,6 +149,22 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
             _isOperating = false;
             UpdateState();
         }
+    }
+
+    internal async Task<bool> OpenSessionAsync(SessionItemViewModel? item)
+    {
+        if (_application is null || item is null || !CanChangeSession)
+        {
+            return false;
+        }
+
+        bool opened = false;
+        await RunOperationAsync(async () =>
+        {
+            await _application.OpenSessionAsync(item.SessionId);
+            opened = true;
+        });
+        return opened;
     }
 
     private bool CanExecute(SessionItemViewModel? item) => item is not null && CanChangeSession;
@@ -224,7 +229,6 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(CanChangeSession));
         OnPropertyChanged(nameof(SelectedSession));
         _createNewSessionCommand.RaiseCanExecuteChanged();
-        _openSessionCommand.RaiseCanExecuteChanged();
         _deleteSessionCommand.RaiseCanExecuteChanged();
         _saveTitleCommand.RaiseCanExecuteChanged();
         (EditTitleCommand as SimpleCommand<SessionItemViewModel>)?.RaiseCanExecuteChanged();

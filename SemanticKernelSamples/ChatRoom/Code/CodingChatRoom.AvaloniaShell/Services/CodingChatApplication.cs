@@ -173,8 +173,7 @@ internal sealed class CodingChatApplication
             }
 
             await _workspaceController
-                .ChangeWorkspaceAsync(targetSession.WorkspacePath, cancellationToken)
-                .ConfigureAwait(false);
+                .ChangeWorkspaceAsync(targetSession.WorkspacePath, cancellationToken);
             AddOrUpdateSummary(targetSession, insertAtTop: false);
             OnStateChanged();
         }
@@ -182,8 +181,7 @@ internal sealed class CodingChatApplication
         {
             _chatManager.SelectedSession = previousSession;
             await _workspaceController
-                .ChangeWorkspaceAsync(previousWorkspacePath, CancellationToken.None)
-                .ConfigureAwait(false);
+                .ChangeWorkspaceAsync(previousWorkspacePath, CancellationToken.None);
             OnStateChanged();
             throw;
         }

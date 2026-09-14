@@ -21,7 +21,6 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private readonly WorkTaskStore? _workTaskStore;
     private readonly Func<Task<CodingChatRuntime>>? _createRuntimeAsync;
     private readonly SemaphoreSlim _saveGate = new(1, 1);
-    private readonly Dictionary<WorkTaskItemViewModel, EventHandler> _sessionOpenedHandlers = [];
     private WorkTaskItemViewModel _activeWorkTask;
     private string? _errorMessage;
     private bool _isSettingsOpen;
@@ -64,6 +63,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         OpenHistoryCommand = new SimpleAsyncCommand(() => OpenHistoryAsync(false), allowConcurrentExecutions: true);
         OpenTaskHistoryCommand = new SimpleAsyncCommand(() => OpenHistoryAsync(true), allowConcurrentExecutions: true);
         CloseHistoryCommand = new SimpleCommand(() => { IsHistoryOpen = false; IsSettingsOpen = false; });
+        OpenSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(OpenSessionAsync,
+            item => item is not null && SessionListViewModel.CanChangeSession);
         CreateWorkTaskCommand = new SimpleAsyncCommand(CreateWorkTaskAsync, () => _createRuntimeAsync is not null);
         ActivateWorkTaskCommand = new SimpleCommand<WorkTaskItemViewModel>(task => { if (task is not null) Activate(task); });
         RenameWorkTaskCommand = new SimpleCommand<WorkTaskItemViewModel>(StartRenamingTask);
@@ -145,6 +146,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     public ICommand OpenTaskHistoryCommand { get; }
     /// <summary>返回聊天。</summary>
     public ICommand CloseHistoryCommand { get; }
+    /// <summary>在当前工作任务中打开历史会话。</summary>
+    public ICommand OpenSessionCommand { get; }
     /// <summary>打开设置。</summary>
     public ICommand OpenSettingsCommand { get; }
 
@@ -171,19 +174,11 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
     private void Subscribe(WorkTaskItemViewModel task)
     {
-        EventHandler sessionOpened = (_, _) => Activate(task);
-        _sessionOpenedHandlers.Add(task, sessionOpened);
-        task.Sessions.SessionOpened += sessionOpened;
         task.PropertyChanged += OnTaskPropertyChanged;
     }
 
     private void Unsubscribe(WorkTaskItemViewModel task)
     {
-        if (_sessionOpenedHandlers.Remove(task, out EventHandler? sessionOpened))
-        {
-            task.Sessions.SessionOpened -= sessionOpened;
-        }
-
         task.PropertyChanged -= OnTaskPropertyChanged;
         task.Detach();
     }
@@ -215,6 +210,17 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         OnPropertyChanged(nameof(ActiveWorkTask));
         OnPropertyChanged(nameof(ChatViewModel));
         OnPropertyChanged(nameof(SessionListViewModel));
+        (OpenSessionCommand as SimpleAsyncCommand<SessionItemViewModel>)?.RaiseCanExecuteChanged();
+    }
+
+    private async Task OpenSessionAsync(SessionItemViewModel? item)
+    {
+        WorkTaskItemViewModel activeTask = ActiveWorkTask;
+        if (await activeTask.Sessions.OpenSessionAsync(item).ConfigureAwait(true))
+        {
+            IsHistoryOpen = false;
+            IsSettingsOpen = false;
+        }
     }
 
     private async Task CreateWorkTaskAsync()

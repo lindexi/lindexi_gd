@@ -169,12 +169,13 @@ public sealed class CodingChatApplicationTests
         var application = CodingChatApplicationTestFactory.CreateApplication(new CopilotChatManager(), new TestSessionStore(), runner);
         await application.InitializeAsync();
         var viewModel = new SessionListViewModel(application);
+        var shell = MainViewModel.CreateForTests(viewModel, new ChatViewModel());
 
         Task sendTask = application.SendMessageAsync("检查代码");
         await runner.Started.Task;
 
         Assert.IsFalse(viewModel.CreateNewSessionCommand.CanExecute(null));
-        Assert.IsFalse(viewModel.OpenSessionCommand.CanExecute(viewModel.Sessions[0]));
+        Assert.IsFalse(shell.OpenSessionCommand.CanExecute(viewModel.Sessions[0]));
         Assert.IsFalse(viewModel.DeleteSessionCommand.CanExecute(viewModel.Sessions[0]));
         runner.Complete();
         await sendTask;
