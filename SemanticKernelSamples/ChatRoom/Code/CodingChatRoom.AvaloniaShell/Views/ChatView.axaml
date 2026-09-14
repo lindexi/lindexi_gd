@@ -248,9 +248,9 @@
         <ScrollViewer x:Name="MessagesScrollViewer" IsVisible="{Binding !ShowWelcome}"
                       Grid.Row="1"
                       Background="{StaticResource BackgroundBrush}"
-                      Padding="28,24"
+                      Padding="32,0"
                       VerticalScrollBarVisibility="Auto">
-            <ItemsControl x:Name="MessagesItemsControl" MaxWidth="1000" HorizontalAlignment="Stretch" ItemsSource="{Binding Messages}">
+            <ItemsControl x:Name="MessagesItemsControl" HorizontalAlignment="Stretch" ItemsSource="{Binding Messages}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:MessageItemViewModel">
                         <Grid Margin="0,0,0,24">
@@ -262,7 +262,7 @@
                                     <TextBlock Text="{Binding Author}" Classes="AuthorName" VerticalAlignment="Center" />
                                     <TextBlock Text="{Binding TimeText}" Classes="Timestamp" />
                                 </StackPanel>
-                                <Border Classes="MessageBubbleAssistant" Margin="24,0,0,0" HorizontalAlignment="Stretch">
+                                <Border Classes="MessageBubbleAssistant" HorizontalAlignment="Stretch">
                                     <Border.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="复制正文"

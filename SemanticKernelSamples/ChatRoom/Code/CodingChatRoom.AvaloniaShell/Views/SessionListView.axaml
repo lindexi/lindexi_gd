@@ -8,7 +8,7 @@
             <TextBlock Text="{StaticResource SessionListTitle}" Classes="Title" />
             <Button Grid.Column="1" Content="{StaticResource RefreshHistoryText}" Command="{Binding ReloadCommand}" />
         </Grid>
-        <TextBox Grid.Row="1" Watermark="{StaticResource HistorySearchText}" Text="{Binding SearchText}" Margin="0,0,0,12" />
+        <TextBox Grid.Row="1" PlaceholderText="{StaticResource HistorySearchText}" Text="{Binding SearchText}" Margin="0,0,0,12" />
         <StackPanel Grid.Row="2" Spacing="6">
             <TextBlock Text="{StaticResource HistoryLoadingText}" IsVisible="{Binding IsLoading}" />
             <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" />
