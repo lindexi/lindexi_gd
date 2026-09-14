@@ -87,6 +87,46 @@ public sealed class CodingAgentTests
         Assert.IsInstanceOfType<CopilotChatTextItem>(context.UserChatMessage.MessageItems[2]);
     }
 
+    [TestMethod(DisplayName = "自动压缩不得延迟到下一轮首次模型响应之前")]
+    [Timeout(10000)]
+    public async Task AutomaticCompressionShouldCompleteBeforeNextConversationTurnStarts()
+    {
+        int compressionCount = 0;
+        int streamingCallCount = 0;
+        var client = new FakeChatClient
+        {
+            OnGetResponseAsync = (_, _, _) =>
+            {
+                compressionCount++;
+                return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "自动压缩摘要")]));
+            },
+            OnGetStreamingResponseAsync = (_, _, cancellationToken) =>
+                RespondAsync(
+                    Interlocked.Increment(ref streamingCallCount) == 1
+                        ? new string('A', 210_000)
+                        : "第二轮正常回答",
+                    cancellationToken),
+        };
+        CopilotChatManager chatManager = CreateChatManager(client);
+        await using var agent = CreateAgent(CreateProvider("workspace", []));
+
+        CodingAgentRunResult firstRun = await agent.RunAsync(
+            await chatManager.CreateManualSendMessageContextAsync(),
+            "第一轮问题",
+            "workspace");
+        await firstRun.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2));
+
+        Assert.AreEqual(1, compressionCount);
+
+        CodingAgentRunResult secondRun = await agent.RunAsync(
+            await chatManager.CreateManualSendMessageContextAsync(),
+            "第二轮问题",
+            "workspace");
+        await secondRun.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2));
+
+        Assert.AreEqual(1, compressionCount);
+    }
+
     [TestMethod(DisplayName = "运行期间注入消息应由实际运行的 Agent 继续处理")]
     [Timeout(10000)]
     public async Task InjectMessageAsyncShouldContinueTheActiveAgentRun()
@@ -795,6 +835,15 @@ public sealed class CodingAgentTests
         public void Dispose()
         {
         }
+    }
+
+    private static async IAsyncEnumerable<ChatResponseUpdate> RespondAsync(
+        string response,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return new ChatResponseUpdate(ChatRole.Assistant, [new TextContent(response)]);
+        await Task.CompletedTask;
     }
 
     private static async IAsyncEnumerable<ChatResponseUpdate> WaitThenRespondAsync(

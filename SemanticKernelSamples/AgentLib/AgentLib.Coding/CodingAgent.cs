@@ -158,6 +158,7 @@ public sealed class CodingAgent : IAsyncDisposable
                             new InMemoryChatHistoryProviderOptions
                             {
                                 ChatReducer = new ToolCallAwareChatReducer(reducer),
+                                ReducerTriggerEvent = InMemoryChatHistoryProviderOptions.ChatReducerTriggerEvent.AfterMessageAdded,
                             }
                         );
                     }
