@@ -41,9 +41,11 @@ public partial class App : Application
             var dispatcher = new AvaloniaMainThreadDispatcher();
             var workTaskStore = new WorkTaskStore(paths);
             IReadOnlyList<WorkTaskRecord> records = await workTaskStore.LoadAsync().ConfigureAwait(true);
+            WorkTaskRecord[] activeRecords = records.Where(record => !record.IsArchived).ToArray();
+            WorkTaskRecord[] archivedRecords = records.Where(record => record.IsArchived).ToArray();
             var tasks = new List<WorkTaskItemViewModel>();
 
-            if (records.Count == 0)
+            if (activeRecords.Length == 0)
             {
                 CodingChatRuntime runtime = await CodingChatStartup.InitializeAsync(paths, dispatcher).ConfigureAwait(true);
                 runtimes.Add(runtime);
@@ -56,7 +58,7 @@ public partial class App : Application
             }
             else
             {
-                foreach (WorkTaskRecord record in records)
+                foreach (WorkTaskRecord record in activeRecords)
                 {
                     CodingChatRuntime runtime = await CodingChatStartup.InitializeAsync(paths, dispatcher).ConfigureAwait(true);
                     runtimes.Add(runtime);
@@ -68,12 +70,13 @@ public partial class App : Application
 
             var mainViewModel = MainViewModel.Create(
                 tasks,
+                archivedRecords,
                 runtimes[0].SettingsService,
                 workTaskStore,
                 () => CodingChatStartup.InitializeAsync(paths, new AvaloniaMainThreadDispatcher()));
-            if (records.Count == 0)
+            if (activeRecords.Length == 0)
             {
-                await workTaskStore.SaveAsync([CreateRecord(tasks[0])]).ConfigureAwait(true);
+                await workTaskStore.SaveAsync([CreateRecord(tasks[0]), .. archivedRecords]).ConfigureAwait(true);
             }
 
             var mainWindow = new MainWindow
@@ -134,7 +137,8 @@ public partial class App : Application
             task.DisplayName,
             task.Chat.NextRunWorkspacePath,
             task.Chat.SelectedModel?.DisplayName,
-            task.Chat.SelectedReasoningEffort?.Value);
+            task.Chat.SelectedReasoningEffort?.Value,
+            false);
 
     private static string GetDefaultTaskName(int number)
         => $"{Current?.FindResource("WorkTaskText") ?? "工作任务"} {number}";

@@ -27,7 +27,8 @@ public sealed class WorkTaskStoreTests
             "Long running task",
             Path.GetFullPath(paths.RootDirectory),
             "test-provider/test-model",
-            ReasoningEffort.High);
+            ReasoningEffort.High,
+            true);
 
         await store.SaveAsync([record]);
         IReadOnlyList<WorkTaskRecord> loaded = await store.LoadAsync();

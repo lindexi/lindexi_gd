@@ -9,6 +9,11 @@
         <sys:String x:Key="WorkTaskText">工作任务</sys:String>
         <sys:String x:Key="NewWorkTaskText">新建工作任务</sys:String>
         <sys:String x:Key="ProductSubtitleText">专注每一个编程任务</sys:String>
+        <sys:String x:Key="ArchiveNavigationText">存档</sys:String>
+        <sys:String x:Key="ArchivedWorkTasksTitleText">存档工作任务</sys:String>
+        <sys:String x:Key="EmptyArchivedWorkTasksText">暂无已存档的工作任务</sys:String>
+        <sys:String x:Key="ArchiveWorkTaskText">移入存档</sys:String>
+        <sys:String x:Key="RestoreWorkTaskText">移出存档</sys:String>
         <sys:String x:Key="AllSessionsText">全部历史会话</sys:String>
         <sys:String x:Key="IdleText">空闲</sys:String>
         <sys:String x:Key="WorkingText">工作中</sys:String>
