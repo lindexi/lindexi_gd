@@ -26,7 +26,7 @@
                 </ListBox.Styles>
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:SessionItemViewModel">
-                        <Border Classes="Card" Padding="16" Margin="0,4">
+                        <Border Classes="Card" Padding="16" Margin="0,4" DoubleTapped="OnSessionDoubleTapped">
                             <StackPanel Spacing="8">
                                 <Grid ColumnDefinitions="*,Auto" MinHeight="32">
                                     <TextBlock Text="{Binding Title}" FontWeight="Bold" TextTrimming="CharacterEllipsis"

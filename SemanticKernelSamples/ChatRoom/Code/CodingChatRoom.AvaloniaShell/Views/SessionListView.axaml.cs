@@ -1,4 +1,7 @@
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.VisualTree;
+using CodingChatRoom.AvaloniaShell.ViewModels;
 
 namespace CodingChatRoom.AvaloniaShell.Views;
 
@@ -13,5 +16,18 @@ public partial class SessionListView : UserControl
     public SessionListView()
     {
         InitializeComponent();
+    }
+
+    private void OnSessionDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is not Border { DataContext: SessionItemViewModel { IsEditing: false } session }
+            || this.FindAncestorOfType<MainView>()?.DataContext is not MainViewModel mainViewModel
+            || !mainViewModel.OpenSessionCommand.CanExecute(session))
+        {
+            return;
+        }
+
+        mainViewModel.OpenSessionCommand.Execute(session);
+        e.Handled = true;
     }
 }

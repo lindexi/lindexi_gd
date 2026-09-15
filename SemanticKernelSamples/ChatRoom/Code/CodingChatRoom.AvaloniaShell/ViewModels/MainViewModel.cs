@@ -72,6 +72,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         OpenSettingsCommand = new SimpleAsyncCommand(OpenSettingsAsync, () => _settingsViewModel is not null);
         OpenHistoryCommand = new SimpleAsyncCommand(() => OpenHistoryAsync(false), allowConcurrentExecutions: true);
         OpenTaskHistoryCommand = new SimpleAsyncCommand(() => OpenHistoryAsync(true), allowConcurrentExecutions: true);
+        OpenLogDirectoryCommand = new SimpleCommand(OpenLogDirectory, () => ActiveWorkTask.Runtime is not null);
         OpenArchiveCommand = new SimpleCommand(OpenArchive);
         CloseHistoryCommand = new SimpleCommand(CloseNavigationPages);
         OpenSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>
@@ -248,6 +249,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     /// <summary>按任务路径打开历史。</summary>
     public ICommand OpenTaskHistoryCommand { get; }
 
+    /// <summary>使用系统文件管理器打开日志目录。</summary>
+    public ICommand OpenLogDirectoryCommand { get; }
+
     /// <summary>返回聊天。</summary>
     public ICommand CloseHistoryCommand { get; }
 
@@ -320,6 +324,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         OnPropertyChanged(nameof(ChatViewModel));
         OnPropertyChanged(nameof(SessionListViewModel));
         (OpenSessionCommand as SimpleAsyncCommand<SessionItemViewModel>)?.RaiseCanExecuteChanged();
+        (OpenLogDirectoryCommand as SimpleCommand)?.RaiseCanExecuteChanged();
     }
 
     private async Task OpenSessionAsync(SessionItemViewModel? item)
@@ -498,6 +503,34 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
     }
 
+    private void OpenLogDirectory()
+    {
+        string? logDirectory = ActiveWorkTask.Runtime?.Paths.LogDirectory;
+        if (string.IsNullOrWhiteSpace(logDirectory)) return;
+
+        try
+        {
+            Directory.CreateDirectory(logDirectory);
+            Guid sessionId = ChatViewModel.CurrentSessionId;
+            string? sessionLogFile = sessionId == Guid.Empty
+                ? null
+                : Directory.EnumerateFiles
+                    (logDirectory, $"*{sessionId:N}*.log", SearchOption.AllDirectories)
+                    .OrderByDescending(File.GetLastWriteTimeUtc)
+                    .FirstOrDefault();
+            using Process? process = Process.Start(new ProcessStartInfo
+            {
+                FileName = sessionLogFile ?? logDirectory,
+                UseShellExecute = true,
+            });
+            ErrorMessage = null;
+        }
+        catch (Exception exception) when (IsExpectedOperationException(exception))
+        {
+            ReportError($"打开日志失败：{exception.Message}", exception);
+        }
+    }
+
     private async Task OpenHistoryAsync(bool filterByPath)
     {
         SessionListViewModel sessions = SessionListViewModel;
@@ -635,7 +668,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
     private static bool IsExpectedOperationException(Exception exception)
         => exception is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException
-            or JsonException;
+            or Win32Exception or JsonException;
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()

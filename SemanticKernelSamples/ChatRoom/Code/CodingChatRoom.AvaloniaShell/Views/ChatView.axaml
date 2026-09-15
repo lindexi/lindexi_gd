@@ -171,7 +171,7 @@
                 Margin="32,12,32,8" Padding="16,12"
                 CornerRadius="8" Background="#B3FFFFFF"
                 BorderBrush="#10000000" BorderThickness="1">
-            <Grid ColumnDefinitions="*,Auto,32" RowDefinitions="Auto,Auto" RowSpacing="7"
+            <Grid ColumnDefinitions="*,Auto,72" RowDefinitions="Auto,Auto" RowSpacing="7"
                   ColumnSpacing="16">
                 <TextBlock Text="{StaticResource WorkDirectoryText}" Classes="Subtitle" FontSize="11" />
                 <Grid Grid.Column="1" ColumnDefinitions="220,96" ColumnSpacing="8">
@@ -229,11 +229,18 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
-                <Button x:Name="TaskHistoryButton" Grid.Row="1" Grid.Column="2" Classes="Secondary" Width="32" Height="32" Padding="7" VerticalAlignment="Bottom"
-                        ToolTip.Tip="{StaticResource SessionListTitle}" AutomationProperties.Name="{StaticResource SessionListTitle}"
-                        Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).OpenTaskHistoryCommand}">
-                    <PathIcon Width="16" Height="16" Data="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 M12,4 A8,8 0 1 1 12,20 A8,8 0 1 1 12,4 M11,6 L13,6 L13,12 L17,14 L16,16 L11,13 Z" />
-                </Button>
+                <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
+                    <Button x:Name="TaskHistoryButton" Classes="Secondary" Width="32" Height="32" Padding="7"
+                            ToolTip.Tip="{StaticResource SessionListTitle}" AutomationProperties.Name="{StaticResource SessionListTitle}"
+                            Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).OpenTaskHistoryCommand}">
+                        <PathIcon Width="16" Height="16" Data="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 M12,4 A8,8 0 1 1 12,20 A8,8 0 1 1 12,4 M11,6 L13,6 L13,12 L17,14 L16,16 L11,13 Z" />
+                    </Button>
+                    <Button x:Name="OpenLogDirectoryButton" Classes="Secondary" Width="32" Height="32" Padding="7"
+                            ToolTip.Tip="{StaticResource OpenLogDirectoryText}" AutomationProperties.Name="{StaticResource OpenLogDirectoryText}"
+                            Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).OpenLogDirectoryCommand}">
+                        <PathIcon Width="16" Height="16" Data="M5,2 L15,2 L20,7 L20,22 L5,22 Z M15,4 L15,8 L19,8 Z M8,11 L17,11 L17,13 L8,13 Z M8,15 L17,15 L17,17 L8,17 Z M8,19 L14,19 L14,21 L8,21 Z" />
+                    </Button>
+                </StackPanel>
             </Grid>
         </Border>
 
