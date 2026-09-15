@@ -46,6 +46,7 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(contents);
+        Guid sessionId = _chatManager.SelectedSession.SessionId;
         IManualSendMessageContext context = await _chatManager
             .CreateManualSendMessageContextAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -60,7 +61,7 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
         _activeRun = run;
         return new CodingAgentRunResult(
             run.AssistantChatMessage,
-            CompleteAndClearActiveRunAsync(run));
+            CompleteAndClearActiveRunAsync(run, sessionId));
     }
 
     public Task InjectMessageAsync(
@@ -73,11 +74,20 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
         return activeRun.InjectMessageAsync(contents, cancellationToken);
     }
 
-    private async Task<string?> CompleteAndClearActiveRunAsync(CodingAgentRunResult run)
+    private async Task<string?> CompleteAndClearActiveRunAsync(CodingAgentRunResult run, Guid sessionId)
     {
         try
         {
-            return await run.CompletionTask.ConfigureAwait(false);
+            try
+            {
+                return await run.CompletionTask.ConfigureAwait(false);
+            }
+            finally
+            {
+                await _chatManager.ChatLogger
+                    .LogMessageAsync(sessionId, run.AssistantChatMessage)
+                    .ConfigureAwait(false);
+            }
         }
         finally
         {

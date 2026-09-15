@@ -135,7 +135,7 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
     public async Task AppendMessagesToSessionAsync()
     {
         await ChatManager.AppendMessageAsync(Session, UserChatMessage);
-        await ChatManager.AppendMessageAsync(Session, AssistantChatMessage);
+        await Session.AddMessageAsync(AssistantChatMessage);
     }
 
     /// <inheritdoc />
