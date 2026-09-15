@@ -72,6 +72,29 @@ public class FileCopilotChatLoggerTests
         StringAssert.Contains(logContent, "第二条消息");
     }
 
+    [TestMethod]
+    [Description("诊断信息应与聊天消息写入同一个会话日志并保留完整异常")]
+    public async Task LogDiagnosticAsync_WhenCalled_AppendsDiagnosticAndExceptionToSessionLog()
+    {
+        string logPath = CreatePath("logs");
+        var logger = new FileCopilotChatLogger(logPath);
+        Guid sessionId = Guid.NewGuid();
+        var message = new CopilotChatMessage(ChatRole.User, "开始任务");
+        var exception = new InvalidOperationException("外层失败", new IOException("底层失败"));
+
+        await logger.LogMessageAsync(sessionId, message);
+        await logger.LogDiagnosticAsync(sessionId, "运行", "运行异常结束。", exception);
+
+        string logFile = GetSingleFile(logPath, "*.log");
+        string logContent = await File.ReadAllTextAsync(logFile);
+
+        StringAssert.Contains(logContent, "诊断/运行:");
+        StringAssert.Contains(logContent, "运行异常结束。");
+        StringAssert.Contains(logContent, typeof(InvalidOperationException).FullName!);
+        StringAssert.Contains(logContent, "外层失败");
+        StringAssert.Contains(logContent, "底层失败");
+    }
+
     private string CreatePath(string name)
     {
         _testRootPath ??= Path.Combine(Path.GetTempPath(), "AgentLib.Tests", Guid.NewGuid().ToString("N"));

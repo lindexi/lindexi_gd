@@ -43,26 +43,11 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
     public string ChatLogFolder { get; }
 
     /// <inheritdoc/>
-    public async Task LogMessageAsync(Guid sessionId, CopilotChatMessage chatMessage)
+    public Task LogMessageAsync(Guid sessionId, CopilotChatMessage chatMessage)
     {
         ArgumentNullException.ThrowIfNull(chatMessage);
-
-        await _writeLock.WaitAsync().ConfigureAwait(false);
-        try
+        return AppendAsync(sessionId, chatMessage.CreatedTime, builder =>
         {
-            string logFilePath = GetSessionLogFilePath(sessionId, chatMessage.CreatedTime);
-            bool isNewFile = !File.Exists(logFilePath);
-
-            var builder = new StringBuilder();
-            if (isNewFile)
-            {
-                builder.AppendLine($"SessionId: {sessionId}");
-                builder.AppendLine();
-            }
-
-            builder.Append('[')
-                .Append(chatMessage.CreatedTime.ToString("yyyy-MM-dd HH:mm:ss.fff zzz"))
-                .AppendLine("]");
             builder.Append(chatMessage.Author).AppendLine(":");
             builder.AppendLine(chatMessage.FullContent);
 
@@ -75,9 +60,45 @@ public sealed class FileCopilotChatLogger : ICopilotChatLogger
                 AppendUsageLine(builder, "思考", usageDetails.ReasoningTokenCount);
                 AppendUsageLine(builder, "缓存", usageDetails.CachedInputTokenCount);
             }
+        });
+    }
 
+    /// <inheritdoc/>
+    public Task LogDiagnosticAsync(Guid sessionId, string category, string message, Exception? exception = null)
+    {
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(category);
+        ArgumentHelper.ThrowIfNullOrWhiteSpace(message);
+        return AppendAsync(sessionId, DateTimeOffset.Now, builder =>
+        {
+            builder.Append("诊断/").Append(category).AppendLine(":");
+            builder.AppendLine(message);
+            if (exception is not null)
+            {
+                builder.AppendLine("异常:");
+                builder.AppendLine(exception.ToString());
+            }
+        });
+    }
+
+    private async Task AppendAsync(Guid sessionId, DateTimeOffset createdTime, Action<StringBuilder> appendContent)
+    {
+        await _writeLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            string logFilePath = GetSessionLogFilePath(sessionId, createdTime);
+            bool isNewFile = !File.Exists(logFilePath);
+            var builder = new StringBuilder();
+            if (isNewFile)
+            {
+                builder.AppendLine($"SessionId: {sessionId}");
+                builder.AppendLine();
+            }
+
+            builder.Append('[')
+                .Append(createdTime.ToString("yyyy-MM-dd HH:mm:ss.fff zzz"))
+                .AppendLine("]");
+            appendContent(builder);
             builder.AppendLine();
-
             await File.AppendAllTextAsync(logFilePath, builder.ToString(), Encoding.UTF8).ConfigureAwait(false);
         }
         finally

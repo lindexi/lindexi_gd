@@ -60,7 +60,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _modelStatusText = statusText;
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend, allowConcurrentExecutions: true);
         CompressConversationCommand = new SimpleAsyncCommand(CompressConversationAsync, () => CanCompressConversation);
-        StopCommand = new SimpleCommand(application.StopActiveRun, () => IsRunning);
+        StopCommand = new SimpleAsyncCommand(application.StopActiveRunByUserAsync, () => IsRunning);
         StopLanguageServerCommand = new SimpleAsyncCommand(StopLanguageServerAsync, () => CanStopLanguageServer);
         ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
@@ -86,7 +86,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _modelStatusText = statusText;
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend, allowConcurrentExecutions: true);
         CompressConversationCommand = new SimpleAsyncCommand(CompressConversationAsync, () => CanCompressConversation);
-        StopCommand = new SimpleCommand(application.StopActiveRun, () => IsRunning);
+        StopCommand = new SimpleAsyncCommand(application.StopActiveRunByUserAsync, () => IsRunning);
         StopLanguageServerCommand = new SimpleAsyncCommand(StopLanguageServerAsync, () => CanStopLanguageServer);
         ApplyWorkspaceCommand = new SimpleAsyncCommand(ApplyWorkspaceAsync, () => CanApplyWorkspace);
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
@@ -647,7 +647,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
             compressConversationCommand.RaiseCanExecuteChanged();
         }
 
-        if (StopCommand is SimpleCommand stopCommand)
+        if (StopCommand is SimpleAsyncCommand stopCommand)
         {
             stopCommand.RaiseCanExecuteChanged();
         }
