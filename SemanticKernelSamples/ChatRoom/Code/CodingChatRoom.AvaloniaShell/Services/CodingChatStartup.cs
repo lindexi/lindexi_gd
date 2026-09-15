@@ -21,7 +21,8 @@ internal static class CodingChatStartup
     public static async Task<CodingChatRuntime> InitializeAsync
     (
         CodingChatRoomPaths paths,
-        IMainThreadDispatcher mainThreadDispatcher
+        IMainThreadDispatcher mainThreadDispatcher,
+        WindowsSandboxToolSource? windowsSandboxToolSource = null
     )
     {
         ArgumentNullException.ThrowIfNull(paths);
@@ -52,7 +53,7 @@ internal static class CodingChatStartup
             AgentApiEndpointManager = endpointManager,
             MainThreadDispatcher = mainThreadDispatcher,
         };
-        var windowsSandboxToolSource = new WindowsSandboxToolSource
+        windowsSandboxToolSource ??= new WindowsSandboxToolSource
         (
             isEnabled: false,
             winRemoteShellPath: string.Empty,

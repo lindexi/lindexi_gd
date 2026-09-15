@@ -9,6 +9,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using AgentLib.Coding.Sandboxes;
 using CodingChatRoom.AvaloniaShell.Infrastructure;
 using CodingChatRoom.AvaloniaShell.Services;
 using CodingChatRoom.AvaloniaShell.ViewModels;
@@ -39,6 +40,7 @@ public partial class App : Application
         try
         {
             var dispatcher = new AvaloniaMainThreadDispatcher();
+            var windowsSandboxToolSource = new WindowsSandboxToolSource(false, string.Empty, string.Empty);
             var workTaskStore = new WorkTaskStore(paths);
             IReadOnlyList<WorkTaskRecord> records = await workTaskStore.LoadAsync().ConfigureAwait(true);
             WorkTaskRecord[] activeRecords = records.Where(record => !record.IsArchived).ToArray();
@@ -47,7 +49,9 @@ public partial class App : Application
 
             if (activeRecords.Length == 0)
             {
-                CodingChatRuntime runtime = await CodingChatStartup.InitializeAsync(paths, dispatcher).ConfigureAwait(true);
+                CodingChatRuntime runtime = await CodingChatStartup
+                    .InitializeAsync(paths, dispatcher, windowsSandboxToolSource)
+                    .ConfigureAwait(true);
                 runtimes.Add(runtime);
                 tasks.Add(MainViewModel.CreateRuntimeTask(runtime, new WorkTaskRecord(
                     Guid.NewGuid(),
@@ -60,7 +64,9 @@ public partial class App : Application
             {
                 foreach (WorkTaskRecord record in activeRecords)
                 {
-                    CodingChatRuntime runtime = await CodingChatStartup.InitializeAsync(paths, dispatcher).ConfigureAwait(true);
+                    CodingChatRuntime runtime = await CodingChatStartup
+                        .InitializeAsync(paths, dispatcher, windowsSandboxToolSource)
+                        .ConfigureAwait(true);
                     runtimes.Add(runtime);
                     WorkTaskItemViewModel task = MainViewModel.CreateRuntimeTask(runtime, record);
                     await RestoreTaskConfigurationAsync(task, runtime, record).ConfigureAwait(true);
@@ -73,7 +79,7 @@ public partial class App : Application
                 archivedRecords,
                 runtimes[0].SettingsService,
                 workTaskStore,
-                () => CodingChatStartup.InitializeAsync(paths, new AvaloniaMainThreadDispatcher()));
+                () => CodingChatStartup.InitializeAsync(paths, new AvaloniaMainThreadDispatcher(), windowsSandboxToolSource));
             if (activeRecords.Length == 0)
             {
                 await workTaskStore.SaveAsync([CreateRecord(tasks[0]), .. archivedRecords]).ConfigureAwait(true);
