@@ -24,9 +24,11 @@ internal sealed class CodingChatHistoryLoader
             IReadOnlyList<CopilotChatSessionSummary> summaries = await _application
                 .LoadSessionSummariesAsync()
                 .ConfigureAwait(false);
-            await Dispatcher.UIThread.InvokeAsync(
+            await Dispatcher.UIThread.InvokeAsync
+            (
                 () => _application.AddSessionSummaries(summaries),
-                DispatcherPriority.Render);
+                DispatcherPriority.Render
+            );
         }
         catch (Exception exception)
         {

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-
 using AgentLib.Model;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
@@ -24,11 +23,14 @@ internal static class TemporaryImageViewer
         ArgumentNullException.ThrowIfNull(image);
 
         string filePath = SaveToTemporaryFile(image);
-        Process.Start(new ProcessStartInfo
-        {
-            FileName = filePath,
-            UseShellExecute = true,
-        });
+        Process.Start
+        (
+            new ProcessStartInfo
+            {
+                FileName = filePath,
+                UseShellExecute = true,
+            }
+        );
     }
 
     internal static string SaveToTemporaryFile(CopilotChatImageItem image)

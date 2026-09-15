@@ -5,18 +5,18 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-
 using AgentLib;
-
 using CodingChatRoom.AvaloniaShell.Infrastructure;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
-internal sealed record WorkspaceChangeResult(
+internal sealed record WorkspaceChangeResult
+(
     string? PreviousPath,
     string? CurrentPath,
     bool Changed,
-    string Message);
+    string Message
+);
 
 internal sealed class CodingWorkspaceController : INotifyPropertyChanged
 {
@@ -33,9 +33,11 @@ internal sealed class CodingWorkspaceController : INotifyPropertyChanged
     {
     }
 
-    internal CodingWorkspaceController(
+    internal CodingWorkspaceController
+    (
         IMainThreadDispatcher mainThreadDispatcher,
-        StringComparer pathComparer)
+        StringComparer pathComparer
+    )
     {
         ArgumentNullException.ThrowIfNull(mainThreadDispatcher);
         ArgumentNullException.ThrowIfNull(pathComparer);
@@ -57,9 +59,11 @@ internal sealed class CodingWorkspaceController : INotifyPropertyChanged
 
     public bool IsChangingWorkspace => _isChangingWorkspace;
 
-    public async Task<WorkspaceChangeResult> ChangeWorkspaceAsync(
+    public async Task<WorkspaceChangeResult> ChangeWorkspaceAsync
+    (
         string? requestedPath,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         await _changeGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -105,27 +109,33 @@ internal sealed class CodingWorkspaceController : INotifyPropertyChanged
         workspacePath is null ? "工作路径：未设置" : $"工作路径：{workspacePath}";
 
     private Task PublishStateAsync(string? workspacePath, string statusText) =>
-        _mainThreadDispatcher.InvokeAsync(() =>
-        {
-            SetField(ref _nextRunWorkspacePath, workspacePath, nameof(NextRunWorkspacePath));
-            SetField(ref _workspaceInput, workspacePath ?? string.Empty, nameof(WorkspaceInput));
-            SetField(ref _statusText, statusText, nameof(StatusText));
-            return Task.CompletedTask;
-        });
+        _mainThreadDispatcher.InvokeAsync
+        (() =>
+            {
+                SetField(ref _nextRunWorkspacePath, workspacePath, nameof(NextRunWorkspacePath));
+                SetField(ref _workspaceInput, workspacePath ?? string.Empty, nameof(WorkspaceInput));
+                SetField(ref _statusText, statusText, nameof(StatusText));
+                return Task.CompletedTask;
+            }
+        );
 
     private Task PublishErrorAsync(string message) =>
-        _mainThreadDispatcher.InvokeAsync(() =>
-        {
-            SetField(ref _statusText, $"工作路径设置失败：{message}", nameof(StatusText));
-            return Task.CompletedTask;
-        });
+        _mainThreadDispatcher.InvokeAsync
+        (() =>
+            {
+                SetField(ref _statusText, $"工作路径设置失败：{message}", nameof(StatusText));
+                return Task.CompletedTask;
+            }
+        );
 
     private Task PublishChangingStateAsync(bool isChangingWorkspace) =>
-        _mainThreadDispatcher.InvokeAsync(() =>
-        {
-            SetField(ref _isChangingWorkspace, isChangingWorkspace, nameof(IsChangingWorkspace));
-            return Task.CompletedTask;
-        });
+        _mainThreadDispatcher.InvokeAsync
+        (() =>
+            {
+                SetField(ref _isChangingWorkspace, isChangingWorkspace, nameof(IsChangingWorkspace));
+                return Task.CompletedTask;
+            }
+        );
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {

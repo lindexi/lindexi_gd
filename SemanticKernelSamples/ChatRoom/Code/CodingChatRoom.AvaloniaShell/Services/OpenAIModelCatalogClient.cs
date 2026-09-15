@@ -29,10 +29,12 @@ internal sealed record OpenAIModelCatalogResult(IReadOnlyList<string> ModelIds, 
 
 internal sealed class OpenAIModelCatalogClient : IOpenAIModelCatalogClient
 {
-    public async Task<OpenAIModelCatalogResult> GetModelIdsAsync(
+    public async Task<OpenAIModelCatalogResult> GetModelIdsAsync
+    (
         string endPoint,
         string apiKey,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         if (string.IsNullOrWhiteSpace(endPoint))
         {

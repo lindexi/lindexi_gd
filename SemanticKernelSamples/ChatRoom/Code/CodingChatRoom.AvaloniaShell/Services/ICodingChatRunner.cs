@@ -2,26 +2,28 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
 using AgentLib;
 using AgentLib.Coding;
 using AgentLib.Model;
-
 using Microsoft.Extensions.AI;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
 internal interface ICodingChatRunner
 {
-    Task<CodingAgentRunResult> RunAsync(
+    Task<CodingAgentRunResult> RunAsync
+    (
         IReadOnlyList<AIContent> contents,
         string? workspacePath,
         CodingChatRunOptions options,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken
+    );
 
-    Task InjectMessageAsync(
+    Task InjectMessageAsync
+    (
         IReadOnlyList<AIContent> contents,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
         => throw new NotSupportedException();
 }
 
@@ -39,11 +41,13 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
         _codingAgent = codingAgent;
     }
 
-    public async Task<CodingAgentRunResult> RunAsync(
+    public async Task<CodingAgentRunResult> RunAsync
+    (
         IReadOnlyList<AIContent> contents,
         string? workspacePath,
         CodingChatRunOptions options,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(contents);
         Guid sessionId = _chatManager.SelectedSession.SessionId;
@@ -51,26 +55,32 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
             .CreateManualSendMessageContextAsync(cancellationToken)
             .ConfigureAwait(false);
         CodingAgentRunResult run = await _codingAgent
-            .RunAsync(
+            .RunAsync
+            (
                 context,
                 contents,
                 workspacePath,
                 options,
-                cancellationToken)
+                cancellationToken
+            )
             .ConfigureAwait(false);
         _activeRun = run;
-        return new CodingAgentRunResult(
+        return new CodingAgentRunResult
+        (
             run.AssistantChatMessage,
-            CompleteAndClearActiveRunAsync(run, sessionId));
+            CompleteAndClearActiveRunAsync(run, sessionId)
+        );
     }
 
-    public Task InjectMessageAsync(
+    public Task InjectMessageAsync
+    (
         IReadOnlyList<AIContent> contents,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(contents);
         CodingAgentRunResult activeRun = _activeRun
-            ?? throw new InvalidOperationException("当前没有正在运行的编程代理。");
+                                         ?? throw new InvalidOperationException("当前没有正在运行的编程代理。");
         return activeRun.InjectMessageAsync(contents, cancellationToken);
     }
 
