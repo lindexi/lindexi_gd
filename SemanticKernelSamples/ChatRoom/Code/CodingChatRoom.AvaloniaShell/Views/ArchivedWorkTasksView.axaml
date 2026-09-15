@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
+             xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
+             x:Class="CodingChatRoom.AvaloniaShell.Views.ArchivedWorkTasksView"
+             x:DataType="vm:MainViewModel">
+    <Grid RowDefinitions="Auto,*" Margin="16,0,16,16">
+        <TextBlock Text="{StaticResource ArchivedWorkTasksTitleText}" Classes="Title" Margin="0,0,0,12" />
+        <Grid Grid.Row="1">
+            <TextBlock Text="{StaticResource EmptyArchivedWorkTasksText}" Classes="Subtitle"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       IsVisible="{Binding IsArchiveEmpty}" />
+            <ListBox ItemsSource="{Binding ArchivedWorkTasks}" Background="Transparent"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </ListBox.Styles>
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ArchivedWorkTaskItemViewModel">
+                        <Border Classes="Card" Padding="16" Margin="0,4">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="Bold"
+                                               TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding DisplayName}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{StaticResource WorkDirectoryText}" Foreground="#62738D" />
+                                        <TextBlock Text="{Binding WorkspacePath}" Foreground="#62738D"
+                                                   TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding WorkspacePath}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{StaticResource ModelText}" FontSize="12" Foreground="#62738D" />
+                                        <TextBlock Text="{Binding ModelReference}" FontSize="12" Foreground="#62738D" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Button Content="{StaticResource RestoreWorkTaskText}"
+                                            Command="{Binding $parent[views:ArchivedWorkTasksView].((vm:MainViewModel)DataContext).RestoreWorkTaskCommand}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Classes="QuietDanger" Content="{StaticResource DeleteSessionText}"
+                                            Command="{Binding $parent[views:ArchivedWorkTasksView].((vm:MainViewModel)DataContext).DeleteArchivedWorkTaskCommand}"
+                                            CommandParameter="{Binding}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+    </Grid>
+</UserControl>

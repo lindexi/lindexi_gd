@@ -15,7 +15,8 @@ internal sealed record WorkTaskRecord
     string DisplayName,
     string? WorkspacePath,
     string? ModelReference,
-    ReasoningEffort? ReasoningEffort
+    ReasoningEffort? ReasoningEffort,
+    bool IsArchived = false
 );
 
 internal sealed class WorkTaskStore

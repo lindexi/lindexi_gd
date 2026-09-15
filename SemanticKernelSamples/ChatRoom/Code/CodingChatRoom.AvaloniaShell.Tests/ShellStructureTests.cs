@@ -33,6 +33,8 @@ public sealed class ShellStructureTests
                 nameof(MainViewModel.IsChatOpen),
                 nameof(MainViewModel.IsSettingsOpen),
                 nameof(MainViewModel.IsHistoryOpen),
+                nameof(MainViewModel.IsArchiveOpen),
+                nameof(MainViewModel.OpenArchiveCommand),
                 nameof(MainViewModel.OpenHistoryCommand),
                 nameof(MainViewModel.CloseHistoryCommand),
                 nameof(MainViewModel.OpenSettingsCommand),

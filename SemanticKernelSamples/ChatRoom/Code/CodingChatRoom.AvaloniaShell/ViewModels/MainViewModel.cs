@@ -25,21 +25,24 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private string? _errorMessage;
     private bool _isSettingsOpen;
     private bool _isHistoryOpen;
+    private bool _isArchiveOpen;
     private bool _isDisposed;
 
     /// <summary>创建未连接模型的设计期界面。</summary>
     public MainViewModel()
-        : this([CreatePlaceholderTask()], null, null, null)
+        : this([CreatePlaceholderTask()], [], null, null, null)
     {
     }
 
     private MainViewModel(
         IReadOnlyList<WorkTaskItemViewModel> tasks,
+        IReadOnlyList<WorkTaskRecord> archivedTasks,
         CodingChatSettingsService? settingsService,
         WorkTaskStore? workTaskStore,
         Func<Task<CodingChatRuntime>>? createRuntimeAsync)
     {
         ArgumentNullException.ThrowIfNull(tasks);
+        ArgumentNullException.ThrowIfNull(archivedTasks);
         if (tasks.Count == 0)
         {
             throw new ArgumentException("至少需要一个工作任务。", nameof(tasks));
@@ -47,7 +50,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
         _settingsViewModel = settingsService is null
             ? null
-            : new SettingsViewModel(settingsService, () => IsSettingsOpen = false);
+            : new SettingsViewModel(settingsService, CloseNavigationPages);
         _workTaskStore = workTaskStore;
         _createRuntimeAsync = createRuntimeAsync;
         _activeWorkTask = tasks[0];
@@ -59,10 +62,16 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             Subscribe(task);
         }
 
+        foreach (WorkTaskRecord record in archivedTasks)
+        {
+            ArchivedWorkTasks.Add(new ArchivedWorkTaskItemViewModel(record));
+        }
+
         OpenSettingsCommand = new SimpleAsyncCommand(OpenSettingsAsync, () => _settingsViewModel is not null);
         OpenHistoryCommand = new SimpleAsyncCommand(() => OpenHistoryAsync(false), allowConcurrentExecutions: true);
         OpenTaskHistoryCommand = new SimpleAsyncCommand(() => OpenHistoryAsync(true), allowConcurrentExecutions: true);
-        CloseHistoryCommand = new SimpleCommand(() => { IsHistoryOpen = false; IsSettingsOpen = false; });
+        OpenArchiveCommand = new SimpleCommand(OpenArchive);
+        CloseHistoryCommand = new SimpleCommand(CloseNavigationPages);
         OpenSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(OpenSessionAsync,
             item => item is not null && SessionListViewModel.CanChangeSession);
         CreateWorkTaskCommand = new SimpleAsyncCommand(CreateWorkTaskAsync, () => _createRuntimeAsync is not null);
@@ -70,12 +79,18 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         RenameWorkTaskCommand = new SimpleCommand<WorkTaskItemViewModel>(StartRenamingTask);
         SaveWorkTaskNameCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>(SaveTaskNameAsync,
             task => task is not null && !string.IsNullOrWhiteSpace(task.EditedDisplayName));
+        ArchiveWorkTaskCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>(ArchiveTaskAsync,
+            task => task is not null && !task.IsWorking && WorkTasks.Count > 1);
         DeleteWorkTaskCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>(DeleteTaskAsync,
             task => task is not null && !task.IsWorking && WorkTasks.Count > 1);
+        RestoreWorkTaskCommand = new SimpleAsyncCommand<ArchivedWorkTaskItemViewModel>(RestoreTaskAsync,
+            item => item is not null && _createRuntimeAsync is not null);
+        DeleteArchivedWorkTaskCommand = new SimpleAsyncCommand<ArchivedWorkTaskItemViewModel>(DeleteArchivedTaskAsync);
     }
 
     internal static MainViewModel Create(
         IReadOnlyList<WorkTaskItemViewModel> tasks,
+        IReadOnlyList<WorkTaskRecord> archivedTasks,
         CodingChatSettingsService settingsService,
         WorkTaskStore workTaskStore,
         Func<Task<CodingChatRuntime>> createRuntimeAsync)
@@ -83,7 +98,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(settingsService);
         ArgumentNullException.ThrowIfNull(workTaskStore);
         ArgumentNullException.ThrowIfNull(createRuntimeAsync);
-        return new MainViewModel(tasks, settingsService, workTaskStore, createRuntimeAsync);
+        ArgumentNullException.ThrowIfNull(archivedTasks);
+        return new MainViewModel(tasks, archivedTasks, settingsService, workTaskStore, createRuntimeAsync);
     }
 
     internal static MainViewModel CreateForTests(
@@ -95,6 +111,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(chat);
         return new MainViewModel(
             [new WorkTaskItemViewModel(GetTaskName(1), chat, sessions)],
+            [],
             settingsService,
             null,
             null);
@@ -102,6 +119,10 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
     /// <summary>获取工作任务列表。</summary>
     public ObservableCollection<WorkTaskItemViewModel> WorkTasks { get; } = [];
+    /// <summary>获取已存档工作任务。</summary>
+    public ObservableCollection<ArchivedWorkTaskItemViewModel> ArchivedWorkTasks { get; } = [];
+    /// <summary>获取存档列表是否为空。</summary>
+    public bool IsArchiveEmpty => ArchivedWorkTasks.Count == 0;
     /// <summary>获取当前任务。</summary>
     public WorkTaskItemViewModel ActiveWorkTask => _activeWorkTask;
     /// <summary>获取当前任务聊天。</summary>
@@ -125,9 +146,11 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     /// <summary>获取是否存在任务操作错误。</summary>
     public bool HasErrorMessage => !string.IsNullOrWhiteSpace(ErrorMessage);
     /// <summary>获取聊天页可见性。</summary>
-    public bool IsChatOpen => !IsHistoryOpen && !IsSettingsOpen;
+    public bool IsChatOpen => !IsHistoryOpen && !IsArchiveOpen && !IsSettingsOpen;
     /// <summary>获取历史页可见性。</summary>
     public bool IsHistoryOpen { get => _isHistoryOpen; private set { if (SetField(ref _isHistoryOpen, value)) OnPropertyChanged(nameof(IsChatOpen)); } }
+    /// <summary>获取存档页可见性。</summary>
+    public bool IsArchiveOpen { get => _isArchiveOpen; private set { if (SetField(ref _isArchiveOpen, value)) OnPropertyChanged(nameof(IsChatOpen)); } }
     /// <summary>获取设置页可见性。</summary>
     public bool IsSettingsOpen { get => _isSettingsOpen; private set { if (SetField(ref _isSettingsOpen, value)) OnPropertyChanged(nameof(IsChatOpen)); } }
     /// <summary>新建独立任务。</summary>
@@ -138,8 +161,16 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     public ICommand RenameWorkTaskCommand { get; }
     /// <summary>确认任务名称并退出编辑。</summary>
     public ICommand SaveWorkTaskNameCommand { get; }
+    /// <summary>将空闲任务移入存档。</summary>
+    public ICommand ArchiveWorkTaskCommand { get; }
     /// <summary>删除空闲任务，不删除历史文件。</summary>
     public ICommand DeleteWorkTaskCommand { get; }
+    /// <summary>打开存档页面。</summary>
+    public ICommand OpenArchiveCommand { get; }
+    /// <summary>从存档恢复工作任务。</summary>
+    public ICommand RestoreWorkTaskCommand { get; }
+    /// <summary>永久删除存档工作任务记录。</summary>
+    public ICommand DeleteArchivedWorkTaskCommand { get; }
     /// <summary>打开全部历史。</summary>
     public ICommand OpenHistoryCommand { get; }
     /// <summary>按任务路径打开历史。</summary>
@@ -185,6 +216,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
     private async void OnTaskPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        (ArchiveWorkTaskCommand as SimpleAsyncCommand<WorkTaskItemViewModel>)?.RaiseCanExecuteChanged();
         (DeleteWorkTaskCommand as SimpleAsyncCommand<WorkTaskItemViewModel>)?.RaiseCanExecuteChanged();
         if (e.PropertyName == nameof(WorkTaskItemViewModel.EditedDisplayName))
         {
@@ -205,8 +237,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         _activeWorkTask.IsActive = false;
         _activeWorkTask = task;
         task.IsActive = true;
-        IsHistoryOpen = false;
-        IsSettingsOpen = false;
+        CloseNavigationPages();
         OnPropertyChanged(nameof(ActiveWorkTask));
         OnPropertyChanged(nameof(ChatViewModel));
         OnPropertyChanged(nameof(SessionListViewModel));
@@ -218,8 +249,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         WorkTaskItemViewModel activeTask = ActiveWorkTask;
         if (await activeTask.Sessions.OpenSessionAsync(item).ConfigureAwait(true))
         {
-            IsHistoryOpen = false;
-            IsSettingsOpen = false;
+            CloseNavigationPages();
         }
     }
 
@@ -286,6 +316,80 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
     }
 
+    private async Task ArchiveTaskAsync(WorkTaskItemViewModel? task)
+    {
+        if (task is null || task.IsWorking || WorkTasks.Count <= 1) return;
+        ErrorMessage = null;
+        var archivedItem = new ArchivedWorkTaskItemViewModel(CreateRecord(task, true));
+        try
+        {
+            await SaveTasksAsync(WorkTasks.Where(item => !ReferenceEquals(item, task)),
+                [.. ArchivedWorkTasks.Select(item => item.Record), archivedItem.Record]).ConfigureAwait(true);
+            await DisposeTaskAsync(task).ConfigureAwait(true);
+            WorkTasks.Remove(task);
+            ArchivedWorkTasks.Add(archivedItem);
+            OnPropertyChanged(nameof(IsArchiveEmpty));
+            if (ReferenceEquals(task, _activeWorkTask)) Activate(WorkTasks[0]);
+        }
+        catch (Exception exception) when (IsExpectedOperationException(exception))
+        {
+            ReportError($"存档工作任务失败：{exception.Message}", exception);
+        }
+    }
+
+    private async Task RestoreTaskAsync(ArchivedWorkTaskItemViewModel? item)
+    {
+        if (item is null || _createRuntimeAsync is null) return;
+        ErrorMessage = null;
+        CodingChatRuntime? runtime = null;
+        WorkTaskItemViewModel? task = null;
+        try
+        {
+            runtime = await _createRuntimeAsync().ConfigureAwait(true);
+            task = CreateRuntimeTask(runtime, item.Record with { IsArchived = false });
+            await RestoreTaskConfigurationAsync(task, runtime, item.Record).ConfigureAwait(true);
+            await SaveTasksAsync([.. WorkTasks, task], ArchivedWorkTasks
+                .Where(archived => !ReferenceEquals(archived, item))
+                .Select(archived => archived.Record)).ConfigureAwait(true);
+            WorkTasks.Add(task);
+            Subscribe(task);
+            ArchivedWorkTasks.Remove(item);
+            OnPropertyChanged(nameof(IsArchiveEmpty));
+            Activate(task);
+        }
+        catch (Exception exception) when (IsExpectedOperationException(exception))
+        {
+            if (task is not null)
+            {
+                task.Chat.Dispose();
+                task.Sessions.Dispose();
+            }
+            if (runtime is not null)
+            {
+                await runtime.DisposeAsync().ConfigureAwait(true);
+            }
+            ReportError($"恢复工作任务失败：{exception.Message}", exception);
+        }
+    }
+
+    private async Task DeleteArchivedTaskAsync(ArchivedWorkTaskItemViewModel? item)
+    {
+        if (item is null) return;
+        ErrorMessage = null;
+        try
+        {
+            await SaveTasksAsync(WorkTasks, ArchivedWorkTasks
+                .Where(archived => !ReferenceEquals(archived, item))
+                .Select(archived => archived.Record)).ConfigureAwait(true);
+            ArchivedWorkTasks.Remove(item);
+            OnPropertyChanged(nameof(IsArchiveEmpty));
+        }
+        catch (Exception exception) when (IsExpectedOperationException(exception))
+        {
+            ReportError($"删除存档工作任务失败：{exception.Message}", exception);
+        }
+    }
+
     private async Task DeleteTaskAsync(WorkTaskItemViewModel? task)
     {
         if (task is null || task.IsWorking || WorkTasks.Count <= 1) return;
@@ -293,14 +397,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         try
         {
             await SaveTasksAsync(WorkTasks.Where(item => !ReferenceEquals(item, task))).ConfigureAwait(true);
-            if (task.Runtime is not null)
-            {
-                await task.Runtime.DisposeAsync().ConfigureAwait(true);
-            }
-
-            Unsubscribe(task);
-            task.Chat.Dispose();
-            task.Sessions.Dispose();
+            await DisposeTaskAsync(task).ConfigureAwait(true);
             WorkTasks.Remove(task);
             if (ReferenceEquals(task, _activeWorkTask)) Activate(WorkTasks[0]);
         }
@@ -314,14 +411,30 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     {
         SessionListViewModel sessions = SessionListViewModel;
         sessions.SearchText = filterByPath ? ChatViewModel.NextRunWorkspacePath ?? string.Empty : string.Empty;
+        IsArchiveOpen = false;
         IsSettingsOpen = false;
         IsHistoryOpen = true;
         await sessions.LoadAsync().ConfigureAwait(true);
     }
 
+    private void OpenArchive()
+    {
+        IsHistoryOpen = false;
+        IsSettingsOpen = false;
+        IsArchiveOpen = true;
+    }
+
+    private void CloseNavigationPages()
+    {
+        IsArchiveOpen = false;
+        IsHistoryOpen = false;
+        IsSettingsOpen = false;
+    }
+
     private async Task OpenSettingsAsync()
     {
         if (_settingsViewModel is null) return;
+        IsArchiveOpen = false;
         IsHistoryOpen = false;
         IsSettingsOpen = true;
         await _settingsViewModel.LoadAsync().ConfigureAwait(true);
@@ -340,26 +453,75 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
     }
 
-    private Task SaveTasksAsync(IEnumerable<WorkTaskItemViewModel>? tasks = null)
-        => SaveTasksCoreAsync((tasks ?? WorkTasks).ToArray());
+    private Task SaveTasksAsync(
+        IEnumerable<WorkTaskItemViewModel>? tasks = null,
+        IEnumerable<WorkTaskRecord>? archivedTasks = null)
+        => SaveTasksCoreAsync(
+            (tasks ?? WorkTasks).ToArray(),
+            (archivedTasks ?? ArchivedWorkTasks.Select(item => item.Record)).ToArray());
 
-    private async Task SaveTasksCoreAsync(IReadOnlyList<WorkTaskItemViewModel> tasks)
+    private async Task SaveTasksCoreAsync(
+        IReadOnlyList<WorkTaskItemViewModel> tasks,
+        IReadOnlyList<WorkTaskRecord> archivedTasks)
     {
         if (_workTaskStore is null) return;
         await _saveGate.WaitAsync().ConfigureAwait(true);
         try
         {
-            WorkTaskRecord[] records = tasks.Select(task => new WorkTaskRecord(
-                task.Id,
-                task.DisplayName,
-                task.Chat.NextRunWorkspacePath,
-                task.Chat.SelectedModel?.DisplayName,
-                task.Chat.SelectedReasoningEffort?.Value)).ToArray();
+            WorkTaskRecord[] records = [
+                .. tasks.Select(task => CreateRecord(task, false)),
+                .. archivedTasks.Select(record => record with { IsArchived = true }),
+            ];
             await _workTaskStore.SaveAsync(records).ConfigureAwait(true);
         }
         finally
         {
             _saveGate.Release();
+        }
+    }
+
+    private static WorkTaskRecord CreateRecord(WorkTaskItemViewModel task, bool isArchived)
+        => new(
+            task.Id,
+            task.DisplayName,
+            task.Chat.NextRunWorkspacePath,
+            task.Chat.SelectedModel?.DisplayName,
+            task.Chat.SelectedReasoningEffort?.Value,
+            isArchived);
+
+    private static async Task RestoreTaskConfigurationAsync(
+        WorkTaskItemViewModel task,
+        CodingChatRuntime runtime,
+        WorkTaskRecord record)
+    {
+        if (!string.IsNullOrWhiteSpace(record.WorkspacePath))
+        {
+            await runtime.WorkspaceController.ChangeWorkspaceAsync(record.WorkspacePath).ConfigureAwait(true);
+        }
+
+        LanguageModelOptionViewModel? model = task.Chat.AvailableModels.FirstOrDefault(
+            option => string.Equals(option.DisplayName, record.ModelReference, StringComparison.Ordinal));
+        if (model is not null)
+        {
+            task.Chat.SelectedModel = model;
+        }
+
+        ReasoningEffortOptionViewModel? reasoningEffort = task.Chat.AvailableReasoningEfforts.FirstOrDefault(
+            option => option.Value == record.ReasoningEffort);
+        if (reasoningEffort is not null)
+        {
+            task.Chat.SelectedReasoningEffort = reasoningEffort;
+        }
+    }
+
+    private async Task DisposeTaskAsync(WorkTaskItemViewModel task)
+    {
+        Unsubscribe(task);
+        task.Chat.Dispose();
+        task.Sessions.Dispose();
+        if (task.Runtime is not null)
+        {
+            await task.Runtime.DisposeAsync().ConfigureAwait(true);
         }
     }
 

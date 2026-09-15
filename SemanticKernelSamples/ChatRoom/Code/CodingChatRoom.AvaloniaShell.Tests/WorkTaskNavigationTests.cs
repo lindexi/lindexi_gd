@@ -6,6 +6,27 @@ namespace CodingChatRoom.AvaloniaShell.Tests;
 public sealed class WorkTaskNavigationTests
 {
     [TestMethod]
+    public void OpeningArchiveShouldShowArchiveInsteadOfChat()
+    {
+        var shell = new MainViewModel();
+
+        shell.OpenArchiveCommand.Execute(null);
+
+        Assert.IsTrue(shell.IsArchiveOpen);
+    }
+
+    [TestMethod]
+    public void ReturningFromArchiveShouldShowChat()
+    {
+        var shell = new MainViewModel();
+        shell.OpenArchiveCommand.Execute(null);
+
+        shell.CloseHistoryCommand.Execute(null);
+
+        Assert.IsTrue(shell.IsChatOpen);
+    }
+
+    [TestMethod]
     public void EditingTaskNameShouldNotCommitUntilConfirmed()
     {
         var shell = new MainViewModel();
