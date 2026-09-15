@@ -25,6 +25,7 @@
         <sys:String x:Key="InputShortcutText">Ctrl + Enter 发送 · Enter 换行</sys:String>
         <sys:String x:Key="ApplicationTitle">CodingChatRoom 编程助手</sys:String>
         <sys:String x:Key="SessionListTitle">历史会话</sys:String>
+        <sys:String x:Key="OpenLogDirectoryText">打开当前会话日志</sys:String>
         <sys:String x:Key="CurrentSessionText">当前会话</sys:String>
         <sys:String x:Key="NewSessionText">+ 新建会话</sys:String>
         <sys:String x:Key="EmptySessionListText">暂无匹配的历史会话</sys:String>
