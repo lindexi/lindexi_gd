@@ -33,6 +33,31 @@ public sealed class SettingsViewModelTests
         Assert.IsEmpty(sandboxToolSource.CreateTools(workspacePath));
     }
 
+    [TestMethod(DisplayName = "任一工作任务保存设置后所有任务应使用最新沙箱配置")]
+    public async Task SaveSettingsShouldUpdateSandboxConfigurationSharedByAllWorkTasks()
+    {
+        string rootDirectory = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        string workspacePath = Path.Join(rootDirectory, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        var sandboxToolSource = new WindowsSandboxToolSource("OldShell.exe", "127.0.0.1:12399");
+        var firstTaskSettingsService = new CodingChatSettingsService(
+            CodingChatRoomPaths.Create(rootDirectory),
+            sandboxToolSource);
+        _ = new CodingChatSettingsService(
+            CodingChatRoomPaths.Create(rootDirectory),
+            sandboxToolSource);
+        var shellSettings = new CodingChatShellSettings
+        {
+            IsWindowsSandboxEnabled = false,
+            WindowsSandboxToolPath = string.Empty,
+            WindowsSandboxServerAddress = string.Empty,
+        };
+
+        await firstTaskSettingsService.SaveAsync(new AgentApiManagerConfiguration(), shellSettings);
+
+        Assert.IsEmpty(sandboxToolSource.CreateTools(workspacePath));
+    }
+
     [TestMethod(DisplayName = "测试沙箱连接时应立即显示连接中提示")]
     [Timeout(5000)]
     public async Task WhenTestingSandboxConnectionThenConnectingMessageIsShownImmediately()

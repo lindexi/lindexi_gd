@@ -2,35 +2,39 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
 using AgentLib.Coding;
 using AgentLib.Model;
-
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
-internal readonly record struct CodingChatRunOptions(
+internal readonly record struct CodingChatRunOptions
+(
     bool EnableAutomaticCompression,
     bool EnableDotNetRun,
-    ReasoningEffort? ReasoningEffort)
+    ReasoningEffort? ReasoningEffort
+)
 {
-    public static CodingChatRunOptions Default { get; } = new(
+    public static CodingChatRunOptions Default { get; } = new
+    (
         EnableAutomaticCompression: true,
         EnableDotNetRun: false,
-        ReasoningEffort: null);
+        ReasoningEffort: null
+    );
 }
 
 internal static class CodingAgentRunExtensions
 {
-    public static Task<CodingAgentRunResult> RunAsync(
+    public static Task<CodingAgentRunResult> RunAsync
+    (
         this CodingAgent codingAgent,
         IManualSendMessageContext context,
         IReadOnlyList<AIContent> contents,
         string? workspacePath,
         CodingChatRunOptions options,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(codingAgent);
         ArgumentNullException.ThrowIfNull(context);
@@ -41,18 +45,22 @@ internal static class CodingAgentRunExtensions
             context = new ConfiguredManualSendMessageContext(context, options.ReasoningEffort.Value);
         }
 
-        return codingAgent.RunAsync(
+        return codingAgent.RunAsync
+        (
             context,
             contents,
             workspacePath,
             options.EnableAutomaticCompression,
             options.EnableDotNetRun,
-            cancellationToken);
+            cancellationToken
+        );
     }
 
-    private sealed class ConfiguredManualSendMessageContext(
+    private sealed class ConfiguredManualSendMessageContext
+    (
         IManualSendMessageContext inner,
-        ReasoningEffort reasoningEffort) : IManualSendMessageContext
+        ReasoningEffort reasoningEffort
+    ) : IManualSendMessageContext
     {
         public CopilotChatMessage UserChatMessage => inner.UserChatMessage;
 
@@ -64,11 +72,14 @@ internal static class CodingAgentRunExtensions
 
         public IReadOnlyList<AITool> DefaultTools => inner.DefaultTools;
 
-        public Task<ChatClientAgent> GetChatClientAgentAsync(
+        public Task<ChatClientAgent> GetChatClientAgentAsync
+        (
             Action<ChatClientAgentOptions>? configure = null,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default
+        )
         {
-            return inner.GetChatClientAgentAsync(
+            return inner.GetChatClientAgentAsync
+            (
                 agentOptions =>
                 {
                     configure?.Invoke(agentOptions);
@@ -76,7 +87,8 @@ internal static class CodingAgentRunExtensions
                     chatOptions.Reasoning = new ReasoningOptions { Effort = reasoningEffort };
                     agentOptions.ChatOptions = chatOptions;
                 },
-                cancellationToken);
+                cancellationToken
+            );
         }
 
         public Task<AgentSession> GetAgentSessionAsync(CancellationToken cancellationToken = default) =>

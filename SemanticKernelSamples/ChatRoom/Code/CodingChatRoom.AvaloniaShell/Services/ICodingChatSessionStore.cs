@@ -2,14 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
 using AgentLib;
 using AgentLib.Core;
 using AgentLib.Logging;
 using AgentLib.Model;
-
 using Microsoft.Agents.AI;
-
 using System.Text.Json;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
@@ -18,8 +15,11 @@ internal interface ICodingChatSessionStore
 {
     Task<IReadOnlyList<CopilotChatSessionSummary>> ListSessionsAsync(CancellationToken cancellationToken = default);
 
-    async IAsyncEnumerable<CopilotChatSessionSummary> EnumerateSessionsAsync(
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    async IAsyncEnumerable<CopilotChatSessionSummary> EnumerateSessionsAsync
+    (
+        [System.Runtime.CompilerServices.EnumeratorCancellation]
+        CancellationToken cancellationToken = default
+    )
     {
         foreach (var summary in await ListSessionsAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -41,11 +41,13 @@ internal sealed class FileCodingChatSessionStore : ICodingChatSessionStore
     private readonly IMainThreadDispatcher _mainThreadDispatcher;
     private readonly FileCopilotChatSessionStore _store;
 
-    public FileCodingChatSessionStore(
+    public FileCodingChatSessionStore
+    (
         string sessionDirectory,
         string logDirectory,
         CopilotChatManager chatManager,
-        IMainThreadDispatcher mainThreadDispatcher)
+        IMainThreadDispatcher mainThreadDispatcher
+    )
     {
         ArgumentNullException.ThrowIfNull(chatManager);
         ArgumentNullException.ThrowIfNull(mainThreadDispatcher);
@@ -54,15 +56,19 @@ internal sealed class FileCodingChatSessionStore : ICodingChatSessionStore
         _store = new FileCopilotChatSessionStore(sessionDirectory, logDirectory);
     }
 
-    public Task<IReadOnlyList<CopilotChatSessionSummary>> ListSessionsAsync(CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<CopilotChatSessionSummary>> ListSessionsAsync
+        (CancellationToken cancellationToken = default)
         => _store.ListSessionsAsync(cancellationToken);
 
-    public IAsyncEnumerable<CopilotChatSessionSummary> EnumerateSessionsAsync(CancellationToken cancellationToken = default)
+    public IAsyncEnumerable<CopilotChatSessionSummary> EnumerateSessionsAsync
+        (CancellationToken cancellationToken = default)
         => _store.EnumerateSessionsAsync(cancellationToken);
 
-    public async Task<CopilotChatSession> LoadSessionAsync(
+    public async Task<CopilotChatSession> LoadSessionAsync
+    (
         Guid sessionId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
         CopilotChatSessionPersistenceData persistenceData = await _store
             .LoadSessionAsync(sessionId, cancellationToken)
