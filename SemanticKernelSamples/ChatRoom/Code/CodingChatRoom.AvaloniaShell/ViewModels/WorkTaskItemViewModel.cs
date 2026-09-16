@@ -40,6 +40,8 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
     public string EditedDisplayName { get => _editedDisplayName; set => SetField(ref _editedDisplayName, value); }
     /// <summary>获取包含压缩阶段的任务活动状态。</summary>
     public bool IsWorking => Chat.IsRunning || Chat.IsCompressing || Chat.IsFinalizing || Chat.IsChangingWorkspace;
+    /// <summary>获取任务当前状态文本。</summary>
+    public string StatusText => IsWorking ? "工作中" : "空闲";
     internal CodingChatRuntime? Runtime { get; }
 
     internal void Detach() => Chat.PropertyChanged -= OnChatChanged;
@@ -47,6 +49,7 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
     private void OnChatChanged(object? sender, PropertyChangedEventArgs e)
     {
         OnPropertyChanged(nameof(IsWorking));
+        OnPropertyChanged(nameof(StatusText));
         if (e.PropertyName is nameof(ChatViewModel.NextRunWorkspacePath)
             or nameof(ChatViewModel.SelectedModel)
             or nameof(ChatViewModel.SelectedReasoningEffort))
