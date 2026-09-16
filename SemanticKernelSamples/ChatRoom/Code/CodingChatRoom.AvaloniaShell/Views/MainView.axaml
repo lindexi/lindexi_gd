@@ -6,7 +6,7 @@
    <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" Foreground="#5D4A00" />
   </Border>
   <Border Background="Transparent">
-   <Grid Margin="16,28,16,20" RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="16">
+   <Grid Margin="16,28,16,20" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" RowSpacing="12">
     <Grid ColumnDefinitions="36,*" ColumnSpacing="10" Margin="4,0">
      <Border Background="#E1E9FC" CornerRadius="10" Width="36" Height="36">
       <Image Width="26" Height="26" Source="avares://CodingChatRoom.AvaloniaShell/Assets/Icons/CodingChatRoom_48x48.png" />
@@ -19,24 +19,27 @@
     <Button Grid.Row="1" Classes="Primary accent" Height="40" HorizontalAlignment="Stretch" Command="{Binding CreateWorkTaskCommand}">
      <StackPanel Orientation="Horizontal" Spacing="10"><PathIcon Width="14" Height="14" Data="M11,3 L13,3 L13,11 L21,11 L21,13 L13,13 L13,21 L11,21 L11,13 L3,13 L3,11 L11,11 Z" /><TextBlock Text="{StaticResource NewWorkTaskText}" /></StackPanel>
     </Button>
-    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="6,2,6,-4">
-     <TextBlock Text="{StaticResource WorkTaskListText}" FontSize="12" FontWeight="SemiBold" Foreground="#62738D" />
-     <Border Grid.Column="1" MinWidth="24" Padding="7,2" CornerRadius="9" Background="#E8EEF8">
-      <TextBlock Text="{Binding WorkTasks.Count}" FontSize="11" Foreground="#496580" HorizontalAlignment="Center" />
-     </Border>
-    </Grid>
-    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Margin="-4,0,-4,0">
-     <ItemsControl ItemsSource="{Binding WorkTasks}" Margin="0,4,0,0">
+    <TextBox Grid.Row="2" Classes="Rounded" Margin="0,0,0,2"
+             PlaceholderText="{StaticResource WorkTaskSearchText}"
+             Text="{Binding WorkTaskSearchText, UpdateSourceTrigger=PropertyChanged}">
+     <TextBox.InnerLeftContent>
+      <PathIcon Width="15" Height="15" Margin="8,0,7,0" Foreground="#65758B"
+                Data="M10,3 A7,7 0 1 0 10,17 A7,7 0 1 0 10,3 M10,5 A5,5 0 1 1 10,15 A5,5 0 1 1 10,5 M14,14 L21,21 L19.5,22.5 L12.5,15.5 Z" />
+     </TextBox.InnerLeftContent>
+    </TextBox>
+    <TextBlock Grid.Row="3" Margin="6,2,6,0" Text="{StaticResource WorkTaskListText}" FontSize="12" FontWeight="SemiBold" Foreground="#62738D" />
+    <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" Margin="-4,0,-4,0">
+     <StackPanel>
+     <ItemsControl ItemsSource="{Binding FilteredWorkTasks}" Margin="0,4,0,0">
       <ItemsControl.ItemTemplate>
        <DataTemplate x:DataType="vm:WorkTaskItemViewModel">
-        <Border Classes="TaskTile" Classes.Active="{Binding IsActive}" Margin="4,0,4,6">
+        <Border Classes="TaskTile" Classes.Active="{Binding IsActive}" Margin="4,0,4,2">
          <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,36">
+          <Border Classes="TaskSelectionIndicator" IsVisible="{Binding IsActive}" />
           <Button Classes="TaskSelect" Classes.Active="{Binding IsActive}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).ActivateWorkTaskCommand}" CommandParameter="{Binding}">
-           <Grid ColumnDefinitions="34,*" ColumnSpacing="10">
-            <Border Width="30" Height="30" CornerRadius="8" Background="#EEF3FB" VerticalAlignment="Center">
-             <PathIcon Width="15" Height="15" Foreground="#5273A8" Data="M4,4 L20,4 L20,18 L13,18 L8,22 L8,18 L4,18 Z M6,6 L6,16 L10,16 L10,18 L12,16 L18,16 L18,6 Z" />
-            </Border>
-            <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+           <Grid ColumnDefinitions="20,*" ColumnSpacing="10">
+            <PathIcon Width="16" Height="16" Foreground="#52677F" VerticalAlignment="Center" Data="M4,4 L20,4 L20,18 L13,18 L8,22 L8,18 L4,18 Z M6,6 L6,16 L10,16 L10,18 L12,16 L18,16 L18,6 Z" />
+            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
              <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !IsEditing}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding DisplayName}" />
              <StackPanel Orientation="Horizontal" Spacing="7">
               <Ellipse Width="6" Height="6" Fill="#9BA9BC" IsVisible="{Binding !IsWorking}" />
@@ -49,11 +52,20 @@
           </Button>
           <Button Grid.Column="1" Classes="Icon TaskMore" IsVisible="{Binding !IsEditing}" VerticalAlignment="Center" ToolTip.Tip="{StaticResource MoreActionsText}">
            <PathIcon Width="16" Height="16" Data="M4,10 A2,2 0 1 0 4,14 A2,2 0 1 0 4,10 M12,10 A2,2 0 1 0 12,14 A2,2 0 1 0 12,10 M20,10 A2,2 0 1 0 20,14 A2,2 0 1 0 20,10" />
-           <Button.Flyout><MenuFlyout>
-            <MenuItem Header="{StaticResource RenameWorkTaskText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).RenameWorkTaskCommand}" CommandParameter="{Binding}" />
-            <MenuItem Header="{StaticResource ArchiveWorkTaskText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).ArchiveWorkTaskCommand}" CommandParameter="{Binding}" />
-            <MenuItem Header="{StaticResource DeleteSessionText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).DeleteWorkTaskCommand}" CommandParameter="{Binding}" />
-           </MenuFlyout></Button.Flyout>
+           <Button.Flyout>
+            <MenuFlyout FlyoutPresenterClasses="TaskMenuFlyout">
+             <MenuItem Classes="TaskMenuItem" Header="{StaticResource RenameWorkTaskText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).RenameWorkTaskCommand}" CommandParameter="{Binding}">
+              <MenuItem.Icon><PathIcon Width="16" Height="16" Data="M3,17.25 L3,21 L6.75,21 L17.81,9.94 L14.06,6.19 Z M20.71,7.04 C21.1,6.65 21.1,6.02 20.71,5.63 L18.37,3.29 C17.98,2.9 17.35,2.9 16.96,3.29 L15.13,5.12 L18.88,8.87 Z" /></MenuItem.Icon>
+             </MenuItem>
+             <MenuItem Classes="TaskMenuItem" Header="{StaticResource ArchiveWorkTaskText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).ArchiveWorkTaskCommand}" CommandParameter="{Binding}">
+              <MenuItem.Icon><PathIcon Width="16" Height="16" Data="M3,4 L21,4 L21,8 L20,8 L20,21 L4,21 L4,8 L3,8 Z M5,6 L19,6 L19,8 L5,8 Z M9,11 L15,11 L15,13 L9,13 Z" /></MenuItem.Icon>
+             </MenuItem>
+             <Separator Margin="4,4" />
+             <MenuItem Classes="TaskMenuItem Danger" Header="{StaticResource DeleteSessionText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).DeleteWorkTaskCommand}" CommandParameter="{Binding}">
+              <MenuItem.Icon><PathIcon Width="16" Height="16" Data="M8,3 L16,3 L17,5 L21,5 L21,7 L19,7 L18,21 L6,21 L5,7 L3,7 L3,5 L7,5 Z M8,7 L9,19 L15,19 L16,7 Z M10,9 L12,9 L12,17 L10,17 Z M14,9 L16,9 L16,17 L14,17 Z" /></MenuItem.Icon>
+             </MenuItem>
+            </MenuFlyout>
+           </Button.Flyout>
           </Button>
           <Grid Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" ColumnSpacing="4" Margin="10,7,4,7" VerticalAlignment="Center" IsVisible="{Binding IsEditing}">
            <TextBox Text="{Binding EditedDisplayName, UpdateSourceTrigger=PropertyChanged}" MinHeight="32" AutomationProperties.Name="{StaticResource RenameWorkTaskText}" />
@@ -64,8 +76,50 @@
        </DataTemplate>
       </ItemsControl.ItemTemplate>
      </ItemsControl>
+     <TextBlock Text="{StaticResource EmptyWorkTaskSearchText}" Margin="14,18" Foreground="#718198" TextWrapping="Wrap" HorizontalAlignment="Center" IsVisible="{Binding IsWorkTaskSearchEmpty}" />
+     <StackPanel Margin="0,10,0,0" IsVisible="{Binding HasFilteredArchivedWorkTasks}">
+      <TextBlock Text="{StaticResource ArchivedSearchResultsText}" Margin="10,0,10,6" FontSize="12" FontWeight="SemiBold" Foreground="#718198" />
+      <ItemsControl ItemsSource="{Binding FilteredArchivedWorkTasks}">
+       <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:ArchivedWorkTaskItemViewModel">
+         <Border Classes="TaskTile" Margin="4,0,4,2">
+          <Grid ColumnDefinitions="*,36">
+           <Button Classes="TaskSelect" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                   Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).RestoreWorkTaskCommand}" CommandParameter="{Binding}">
+            <Grid ColumnDefinitions="20,*" ColumnSpacing="10">
+             <PathIcon Width="16" Height="16" Foreground="#65758B" VerticalAlignment="Center"
+                       Data="M3,4 L21,4 L21,8 L20,8 L20,21 L4,21 L4,8 L3,8 Z M5,6 L19,6 L19,8 L5,8 Z M9,11 L15,11 L15,13 L9,13 Z" />
+             <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+              <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding DisplayName}" />
+              <Border Classes="ArchivedTaskBadge" HorizontalAlignment="Left">
+               <TextBlock Text="{StaticResource ArchivedTaskBadgeText}" FontSize="10" Foreground="#65758B" />
+              </Border>
+             </StackPanel>
+            </Grid>
+           </Button>
+           <Button Grid.Column="1" Classes="Icon TaskMore" VerticalAlignment="Center" ToolTip.Tip="{StaticResource MoreActionsText}">
+            <PathIcon Width="16" Height="16" Data="M4,10 A2,2 0 1 0 4,14 A2,2 0 1 0 4,10 M12,10 A2,2 0 1 0 12,14 A2,2 0 1 0 12,10 M20,10 A2,2 0 1 0 20,14 A2,2 0 1 0 20,10" />
+            <Button.Flyout>
+             <MenuFlyout FlyoutPresenterClasses="TaskMenuFlyout">
+              <MenuItem Classes="TaskMenuItem" Header="{StaticResource RestoreWorkTaskText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).RestoreWorkTaskCommand}" CommandParameter="{Binding}">
+               <MenuItem.Icon><PathIcon Width="16" Height="16" Data="M3,5 L21,5 L21,9 L20,9 L20,21 L4,21 L4,9 L3,9 Z M5,7 L19,7 L19,9 L5,9 Z M11,18 L13,18 L13,13 L16,16 L17.5,14.5 L12,9 L6.5,14.5 L8,16 L11,13 Z" /></MenuItem.Icon>
+              </MenuItem>
+              <Separator Margin="4,4" />
+              <MenuItem Classes="TaskMenuItem Danger" Header="{StaticResource DeleteSessionText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).DeleteArchivedWorkTaskCommand}" CommandParameter="{Binding}">
+               <MenuItem.Icon><PathIcon Width="16" Height="16" Data="M8,3 L16,3 L17,5 L21,5 L21,7 L19,7 L18,21 L6,21 L5,7 L3,7 L3,5 L7,5 Z M8,7 L9,19 L15,19 L16,7 Z M10,9 L12,9 L12,17 L10,17 Z M14,9 L16,9 L16,17 L14,17 Z" /></MenuItem.Icon>
+              </MenuItem>
+             </MenuFlyout>
+            </Button.Flyout>
+           </Button>
+          </Grid>
+         </Border>
+        </DataTemplate>
+       </ItemsControl.ItemTemplate>
+      </ItemsControl>
+     </StackPanel>
+     </StackPanel>
     </ScrollViewer>
-    <StackPanel Grid.Row="4" Spacing="6">
+    <StackPanel Grid.Row="5" Spacing="6">
      <Border Height="1" Background="#E0E7F1" Margin="8,0,8,10" />
      <Button Name="ArchiveButton" Classes="Navigation" Classes.Active="{Binding IsArchiveOpen}" Command="{Binding OpenArchiveCommand}"><StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Width="16" Height="16" Data="M3,4 L21,4 L21,8 L20,8 L20,21 L4,21 L4,8 L3,8 Z M5,6 L19,6 L19,8 L5,8 Z M9,11 L15,11 L15,13 L9,13 Z" /><TextBlock Text="{StaticResource ArchiveNavigationText}" /></StackPanel></Button>
      <Button Name="HistoryButton" Classes="Navigation" Classes.Active="{Binding IsHistoryOpen}" Command="{Binding OpenHistoryCommand}"><StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Width="16" Height="16" Data="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 M12,4 A8,8 0 1 1 12,20 A8,8 0 1 1 12,4 M11,6 L13,6 L13,12 L17,14 L16,16 L11,13 Z" /><TextBlock Text="{StaticResource AllSessionsText}" /></StackPanel></Button>

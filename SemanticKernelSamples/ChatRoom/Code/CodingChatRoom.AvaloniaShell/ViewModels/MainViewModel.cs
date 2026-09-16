@@ -27,6 +27,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private bool _isHistoryOpen;
     private bool _isArchiveOpen;
     private bool _isDisposed;
+    private string _workTaskSearchText = string.Empty;
 
     /// <summary>创建未连接模型的设计期界面。</summary>
     public MainViewModel()
@@ -68,6 +69,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         {
             ArchivedWorkTasks.Add(new ArchivedWorkTaskItemViewModel(record));
         }
+
+        RefreshWorkTaskFilter();
 
         OpenSettingsCommand = new SimpleAsyncCommand(OpenSettingsAsync, () => _settingsViewModel is not null);
         OpenHistoryCommand = new SimpleAsyncCommand(() => OpenHistoryAsync(false), allowConcurrentExecutions: true);
@@ -151,6 +154,31 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
     /// <summary>获取已存档工作任务。</summary>
     public ObservableCollection<ArchivedWorkTaskItemViewModel> ArchivedWorkTasks { get; } = [];
+
+    /// <summary>获取与侧栏搜索匹配的活动任务。</summary>
+    public ObservableCollection<WorkTaskItemViewModel> FilteredWorkTasks { get; } = [];
+
+    /// <summary>获取与侧栏搜索匹配的存档任务。</summary>
+    public ObservableCollection<ArchivedWorkTaskItemViewModel> FilteredArchivedWorkTasks { get; } = [];
+
+    /// <summary>获取或设置侧栏任务搜索文本。</summary>
+    public string WorkTaskSearchText
+    {
+        get => _workTaskSearchText;
+        set
+        {
+            if (SetField(ref _workTaskSearchText, value ?? string.Empty))
+            {
+                RefreshWorkTaskFilter();
+            }
+        }
+    }
+
+    /// <summary>获取搜索结果中是否包含存档任务。</summary>
+    public bool HasFilteredArchivedWorkTasks => FilteredArchivedWorkTasks.Count > 0;
+
+    /// <summary>获取侧栏搜索结果是否为空。</summary>
+    public bool IsWorkTaskSearchEmpty => FilteredWorkTasks.Count == 0 && FilteredArchivedWorkTasks.Count == 0;
 
     /// <summary>获取存档列表是否为空。</summary>
     public bool IsArchiveEmpty => ArchivedWorkTasks.Count == 0;
@@ -310,6 +338,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             or nameof(ChatViewModel.SelectedModel)
             or nameof(ChatViewModel.SelectedReasoningEffort))
         {
+            RefreshWorkTaskFilter();
             await SaveTasksAndReportAsync().ConfigureAwait(true);
         }
     }
@@ -357,6 +386,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             WorkTasks.Add(task);
             Subscribe(task);
             await SaveTasksAsync().ConfigureAwait(true);
+            RefreshWorkTaskFilter();
             Activate(task);
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
@@ -388,6 +418,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         {
             await SaveTasksAsync().ConfigureAwait(true);
             task.IsEditing = false;
+            RefreshWorkTaskFilter();
             ErrorMessage = null;
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
@@ -416,6 +447,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             await DisposeTaskAsync(task).ConfigureAwait(true);
             WorkTasks.Remove(task);
             ArchivedWorkTasks.Add(archivedItem);
+            RefreshWorkTaskFilter();
             OnPropertyChanged(nameof(IsArchiveEmpty));
             if (ReferenceEquals(task, _activeWorkTask)) Activate(WorkTasks[0]);
         }
@@ -445,6 +477,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             WorkTasks.Add(task);
             Subscribe(task);
             ArchivedWorkTasks.Remove(item);
+            RefreshWorkTaskFilter();
             OnPropertyChanged(nameof(IsArchiveEmpty));
             Activate(task);
         }
@@ -478,6 +511,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
                     .Select(archived => archived.Record)
             ).ConfigureAwait(true);
             ArchivedWorkTasks.Remove(item);
+            RefreshWorkTaskFilter();
             OnPropertyChanged(nameof(IsArchiveEmpty));
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
@@ -495,6 +529,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             await SaveTasksAsync(WorkTasks.Where(item => !ReferenceEquals(item, task))).ConfigureAwait(true);
             await DisposeTaskAsync(task).ConfigureAwait(true);
             WorkTasks.Remove(task);
+            RefreshWorkTaskFilter();
             if (ReferenceEquals(task, _activeWorkTask)) Activate(WorkTasks[0]);
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
@@ -502,6 +537,36 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             ReportError($"删除工作任务失败：{exception.Message}", exception);
         }
     }
+
+    private void RefreshWorkTaskFilter()
+    {
+        string searchText = WorkTaskSearchText.Trim();
+        FilteredWorkTasks.Clear();
+        FilteredArchivedWorkTasks.Clear();
+
+        foreach (WorkTaskItemViewModel task in WorkTasks.Where(task => MatchesWorkTaskSearch
+                 (task.DisplayName, task.Chat.NextRunWorkspacePath, searchText)))
+        {
+            FilteredWorkTasks.Add(task);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            foreach (ArchivedWorkTaskItemViewModel task in ArchivedWorkTasks.Where(task => MatchesWorkTaskSearch
+                     (task.DisplayName, task.WorkspacePath, searchText)))
+            {
+                FilteredArchivedWorkTasks.Add(task);
+            }
+        }
+
+        OnPropertyChanged(nameof(HasFilteredArchivedWorkTasks));
+        OnPropertyChanged(nameof(IsWorkTaskSearchEmpty));
+    }
+
+    private static bool MatchesWorkTaskSearch(string displayName, string? workspacePath, string searchText)
+        => string.IsNullOrWhiteSpace(searchText)
+            || displayName.Contains(searchText, StringComparison.CurrentCultureIgnoreCase)
+            || (workspacePath?.Contains(searchText, StringComparison.CurrentCultureIgnoreCase) ?? false);
 
     private void OpenLogDirectory()
     {

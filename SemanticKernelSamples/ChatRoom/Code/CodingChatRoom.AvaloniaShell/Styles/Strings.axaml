@@ -8,6 +8,10 @@
         <sys:String x:Key="WelcomeExamplesText">理解项目结构　·　排查代码问题　·　实现新的功能</sys:String>
         <sys:String x:Key="WorkTaskText">工作任务</sys:String>
         <sys:String x:Key="WorkTaskListText">工作任务</sys:String>
+        <sys:String x:Key="WorkTaskSearchText">搜索工作任务</sys:String>
+        <sys:String x:Key="ArchivedSearchResultsText">存档中的任务</sys:String>
+        <sys:String x:Key="ArchivedTaskBadgeText">已存档</sys:String>
+        <sys:String x:Key="EmptyWorkTaskSearchText">没有找到匹配的工作任务</sys:String>
         <sys:String x:Key="NewWorkTaskText">新建工作任务</sys:String>
         <sys:String x:Key="ProductSubtitleText">专注每一个编程任务</sys:String>
         <sys:String x:Key="ArchiveNavigationText">存档</sys:String>
