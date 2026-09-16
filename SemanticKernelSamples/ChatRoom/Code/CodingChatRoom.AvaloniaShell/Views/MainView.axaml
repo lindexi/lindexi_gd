@@ -23,22 +23,21 @@
      <ItemsControl ItemsSource="{Binding WorkTasks}">
       <ItemsControl.ItemTemplate>
        <DataTemplate x:DataType="vm:WorkTaskItemViewModel">
-        <Border Classes="TaskTile" Classes.Active="{Binding IsActive}" Margin="4,0,4,8">
+        <Border Classes="TaskTile" Classes.Active="{Binding IsActive}" Margin="4,0,4,4">
          <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,36">
-          <Border Width="3" Height="20" CornerRadius="2" Background="{DynamicResource SystemControlHighlightAccentBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,12,0,0" IsVisible="{Binding IsActive}" IsHitTestVisible="False" ZIndex="1" />
+          <Border Width="3" Height="24" CornerRadius="2" Background="{DynamicResource SystemControlHighlightAccentBrush}" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="{Binding IsActive}" IsHitTestVisible="False" ZIndex="1" />
           <Button Classes="TaskSelect" Classes.Active="{Binding IsActive}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).ActivateWorkTaskCommand}" CommandParameter="{Binding}">
-           <StackPanel Spacing="9">
-            <Grid Height="32"><TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !IsEditing}" VerticalAlignment="Center" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" /></Grid>
-            <TextBlock Text="{Binding Chat.WorkspaceStatusText}" FontSize="12" Foreground="#62738D" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Chat.NextRunWorkspacePath}" />
+           <StackPanel Spacing="5">
+            <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !IsEditing}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding DisplayName}" />
             <StackPanel Orientation="Horizontal" Spacing="7">
              <Ellipse Width="6" Height="6" Fill="#9BA9BC" IsVisible="{Binding !IsWorking}" />
              <Ellipse Width="6" Height="6" Fill="#4E78DC" IsVisible="{Binding IsWorking}" />
-             <TextBlock Text="{StaticResource IdleText}" FontSize="12" Foreground="#62738D" IsVisible="{Binding !IsWorking}" />
+             <TextBlock Text="{StaticResource IdleText}" FontSize="11" Foreground="#62738D" IsVisible="{Binding !IsWorking}" />
              <TextBlock Text="{StaticResource WorkingText}" FontSize="11" Foreground="#4E78DC" IsVisible="{Binding IsWorking}" />
             </StackPanel>
            </StackPanel>
           </Button>
-          <Button Grid.Column="1" Classes="Icon" Margin="0,11,0,0" IsVisible="{Binding !IsEditing}" VerticalAlignment="Top" ToolTip.Tip="{StaticResource MoreActionsText}">
+          <Button Grid.Column="1" Classes="Icon" IsVisible="{Binding !IsEditing}" VerticalAlignment="Center" ToolTip.Tip="{StaticResource MoreActionsText}">
            <PathIcon Width="16" Height="16" Data="M4,10 A2,2 0 1 0 4,14 A2,2 0 1 0 4,10 M12,10 A2,2 0 1 0 12,14 A2,2 0 1 0 12,10 M20,10 A2,2 0 1 0 20,14 A2,2 0 1 0 20,10" />
            <Button.Flyout><MenuFlyout>
             <MenuItem Header="{StaticResource RenameWorkTaskText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).RenameWorkTaskCommand}" CommandParameter="{Binding}" />
@@ -46,7 +45,7 @@
             <MenuItem Header="{StaticResource DeleteSessionText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).DeleteWorkTaskCommand}" CommandParameter="{Binding}" />
            </MenuFlyout></Button.Flyout>
           </Button>
-          <Grid Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" ColumnSpacing="4" Margin="14,10,4,0" VerticalAlignment="Top" IsVisible="{Binding IsEditing}">
+          <Grid Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" ColumnSpacing="4" Margin="10,7,4,7" VerticalAlignment="Center" IsVisible="{Binding IsEditing}">
            <TextBox Text="{Binding EditedDisplayName, UpdateSourceTrigger=PropertyChanged}" MinHeight="32" AutomationProperties.Name="{StaticResource RenameWorkTaskText}" />
            <Button Grid.Column="1" Content="{StaticResource ConfirmTaskNameText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).SaveWorkTaskNameCommand}" CommandParameter="{Binding}" />
           </Grid>

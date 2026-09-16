@@ -34,7 +34,8 @@
         <Setter Property="Padding" Value="12,10" />
     </Style>
     <Style Selector="Button.TaskSelect">
-        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="MinHeight" Value="52" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     </Style>
     <Style Selector="Button.Navigation.Active">
