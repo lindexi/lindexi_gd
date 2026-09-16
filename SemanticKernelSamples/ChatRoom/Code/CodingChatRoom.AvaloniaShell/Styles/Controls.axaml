@@ -34,16 +34,19 @@
         <Setter Property="Padding" Value="12,10" />
     </Style>
     <Style Selector="Button.TaskSelect">
-        <Setter Property="Padding" Value="10,8" />
-        <Setter Property="MinHeight" Value="58" />
+        <Setter Property="Padding" Value="12,7" />
+        <Setter Property="MinHeight" Value="52" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     </Style>
     <Style Selector="Button.TaskMore">
-        <Setter Property="Opacity" Value="0.65" />
+        <Setter Property="Opacity" Value="0" />
+    </Style>
+    <Style Selector="Border.TaskTile:pointerover Button.TaskMore, Border.TaskTile.Active Button.TaskMore, Button.TaskMore:focus">
+        <Setter Property="Opacity" Value="0.72" />
     </Style>
     <Style Selector="Button.TaskMore:pointerover">
         <Setter Property="Opacity" Value="1" />
-        <Setter Property="Background" Value="#DCE7F6" />
+        <Setter Property="Background" Value="#0F000000" />
     </Style>
     <Style Selector="Button.Navigation.Active">
         <Setter Property="Background" Value="#E8E8E8" />
@@ -56,19 +59,52 @@
         <Setter Property="Foreground" Value="#C42B1C" />
     </Style>
     <Style Selector="Border.TaskTile">
-        <Setter Property="Background" Value="#A6FFFFFF" />
-        <Setter Property="BorderBrush" Value="#DCE3EC" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="4" />
         <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Border.TaskTile:pointerover">
-        <Setter Property="Background" Value="#F7FAFE" />
-        <Setter Property="BorderBrush" Value="#C9D7E8" />
+        <Setter Property="Background" Value="#0A000000" />
     </Style>
     <Style Selector="Border.TaskTile.Active">
-        <Setter Property="Background" Value="#EAF2FC" />
-        <Setter Property="BorderBrush" Value="#8CB7E8" />
+        <Setter Property="Background" Value="#10000000" />
+    </Style>
+    <Style Selector="Border.ArchivedTaskBadge">
+        <Setter Property="Padding" Value="6,1" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="Background" Value="#10000000" />
+        <Setter Property="BorderBrush" Value="#18000000" />
         <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.TaskSelectionIndicator">
+        <Setter Property="Width" Value="3" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="ZIndex" Value="1" />
+    </Style>
+    <Style Selector="MenuFlyoutPresenter.TaskMenuFlyout">
+        <Setter Property="MinWidth" Value="180" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Background" Value="#FFFAFAFA" />
+        <Setter Property="BorderBrush" Value="#26000000" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="MenuItem.TaskMenuItem">
+        <Setter Property="MinHeight" Value="36" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="MenuItem.TaskMenuItem:pointerover">
+        <Setter Property="Background" Value="#0F000000" />
+    </Style>
+    <Style Selector="MenuItem.TaskMenuItem.Danger">
+        <Setter Property="Foreground" Value="#C42B1C" />
     </Style>
     <Style Selector="TextBox.Rounded, ComboBox">
         <Setter Property="CornerRadius" Value="4" />
