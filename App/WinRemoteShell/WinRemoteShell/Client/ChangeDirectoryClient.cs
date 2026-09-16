@@ -16,7 +16,7 @@ public static class ChangeDirectoryClient
         var request = new ChangeDirectoryRequest(path);
         using var content = JsonContent.Create(request, AppJsonSerializerContext.Default.ChangeDirectoryRequest);
         using var response = await client.PostAsync("cd", content, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessWithDetailsAsync(cancellationToken);
         return await response.Content.ReadFromJsonAsync(
             AppJsonSerializerContext.Default.WorkingDirectoryResponse,
             cancellationToken) ?? throw new InvalidDataException("The server returned an empty working directory.");

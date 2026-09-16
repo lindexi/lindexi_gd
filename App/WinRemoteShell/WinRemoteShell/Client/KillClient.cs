@@ -18,7 +18,7 @@ public static class KillClient
         var request = new KillProcessesRequest(processId, processName, killTree);
         using var content = JsonContent.Create(request, AppJsonSerializerContext.Default.KillProcessesRequest);
         using var response = await client.PostAsync("kill", content, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessWithDetailsAsync(cancellationToken);
         return await response.Content.ReadFromJsonAsync(
             AppJsonSerializerContext.Default.KillProcessesResponse,
             cancellationToken) ?? throw new InvalidDataException("The server returned an empty kill response.");

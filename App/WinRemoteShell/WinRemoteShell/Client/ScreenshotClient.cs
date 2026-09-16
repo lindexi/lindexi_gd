@@ -13,7 +13,7 @@ public static class ScreenshotClient
 
         using var client = new HttpClient { BaseAddress = server };
         using var response = await client.GetAsync("screenshot", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessWithDetailsAsync(cancellationToken);
         await using var content = await response.Content.ReadAsStreamAsync(cancellationToken);
         await using var file = File.Create(outputPath);
         await content.CopyToAsync(file, cancellationToken);

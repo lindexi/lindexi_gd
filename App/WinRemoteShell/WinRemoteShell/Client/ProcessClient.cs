@@ -11,7 +11,7 @@ public static class ProcessClient
 
         using var client = new HttpClient { BaseAddress = server };
         using var response = await client.GetAsync($"ps?details={includeDetails.ToString().ToLowerInvariant()}", cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessWithDetailsAsync(cancellationToken);
         return await response.Content.ReadFromJsonAsync(
             AppJsonSerializerContext.Default.ProcessListResponse,
             cancellationToken) ?? throw new InvalidDataException("The server returned an empty process list.");

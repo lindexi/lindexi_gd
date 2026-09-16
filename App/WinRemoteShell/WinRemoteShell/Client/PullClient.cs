@@ -25,12 +25,12 @@ public static class PullClient
             $"pull?source={encodedSource}",
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessWithDetailsAsync(cancellationToken);
         await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
         await TransferStream.ReceiveAsync(
             responseStream,
             output,
-            placeFileInExistingDirectory: true,
+            placeFileInTargetDirectory: Directory.Exists(output) || Path.EndsInDirectorySeparator(output),
             cancellationToken);
     }
 }

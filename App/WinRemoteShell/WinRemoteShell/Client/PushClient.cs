@@ -56,13 +56,22 @@ public static class PushClient
             cancellationToken);
         await using var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var reader = new StreamReader(responseStream);
+        var responseText = new System.Text.StringBuilder();
         while (await reader.ReadLineAsync(cancellationToken) is { } line)
         {
+            responseText.AppendLine(line);
             await output.WriteLineAsync(line.AsMemory(), cancellationToken);
             await output.FlushAsync(cancellationToken);
         }
 
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var serverError = responseText.ToString().TrimEnd();
+            var message = string.IsNullOrWhiteSpace(serverError)
+                ? $"The remote server returned {(int) response.StatusCode} ({response.ReasonPhrase}) without error details. The server may be an older WinRemoteShell version."
+                : $"The remote server returned {(int) response.StatusCode} ({response.ReasonPhrase}):{Environment.NewLine}{serverError}";
+            throw new HttpRequestException(message, null, response.StatusCode);
+        }
     }
 
     private sealed class TransferContent(TransferDefinition definition) : HttpContent

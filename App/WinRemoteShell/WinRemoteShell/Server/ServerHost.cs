@@ -27,6 +27,7 @@ public static class ServerHost
         builder.Services.AddSingleton<RemoteProcessManager>();
 
         var app = builder.Build();
+        app.Use(WriteUnhandledExceptionAsync);
         app.UseWebSockets();
         MapExec(app);
         MapList(app);
@@ -45,6 +46,29 @@ public static class ServerHost
     {
         await using var app = Create(port);
         await app.RunAsync(cancellationToken);
+    }
+
+    private static async Task WriteUnhandledExceptionAsync(HttpContext context, RequestDelegate next)
+    {
+        try
+        {
+            await next(context);
+        }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            if (!context.Response.HasStarted)
+            {
+                context.Response.Clear();
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                context.Response.ContentType = "text/plain; charset=utf-8";
+            }
+
+            await context.Response.WriteAsync(exception.ToString(), context.RequestAborted);
+            await context.Response.Body.FlushAsync(context.RequestAborted);
+        }
     }
 
     private static void MapExec(WebApplication app)
@@ -201,7 +225,9 @@ public static class ServerHost
             {
                 var target = Decode(context.Request.Headers["X-WinRS-Target"].ToString());
                 var workingDirectory = await cmd.GetWorkingDirectoryAsync(context.RequestAborted);
+                var targetEndsInDirectorySeparator = Path.EndsInDirectorySeparator(target);
                 target = Path.GetFullPath(target, workingDirectory);
+                var targetIsDirectory = targetEndsInDirectorySeparator || Directory.Exists(target);
 
                 var modeValue = context.Request.Headers["X-WinRS-Push-Mode"].ToString();
                 var mode = PushMode.Merge;
@@ -230,46 +256,66 @@ public static class ServerHost
                     return;
                 }
 
-                var targetExists = File.Exists(target) || Directory.Exists(target);
-                if (mode == PushMode.FailIfExists && targetExists)
+                if (deleteTarget)
                 {
-                    context.Response.StatusCode = StatusCodes.Status409Conflict;
-                    await WritePushResultAsync(context, "The push target already exists.", context.RequestAborted);
+                    var targetExists = File.Exists(target) || Directory.Exists(target);
+                    if (mode == PushMode.Replace && targetExists)
+                    {
+                        if (Directory.Exists(target))
+                        {
+                            Directory.Delete(target, true);
+                        }
+                        else
+                        {
+                            File.Delete(target);
+                        }
+
+                        await WritePushResultAsync(context, $"Deleted: {target}", context.RequestAborted);
+                    }
+
                     return;
                 }
 
-                if (mode == PushMode.Replace && targetExists)
+                async Task PrepareTargetAsync(string resolvedTarget, CancellationToken cancellationToken)
                 {
-                    if (Directory.Exists(target))
+                    var targetExists = File.Exists(resolvedTarget) || Directory.Exists(resolvedTarget);
+                    if (mode == PushMode.FailIfExists && targetExists)
                     {
-                        Directory.Delete(target, true);
+                        context.Response.StatusCode = StatusCodes.Status409Conflict;
+                        throw new IOException("The push target already exists.");
+                    }
+
+                    if (mode != PushMode.Replace || !targetExists)
+                    {
+                        return;
+                    }
+
+                    if (Directory.Exists(resolvedTarget))
+                    {
+                        Directory.Delete(resolvedTarget, true);
                     }
                     else
                     {
-                        File.Delete(target);
+                        File.Delete(resolvedTarget);
                     }
 
-                    await WritePushResultAsync(context, $"Deleted: {target}", context.RequestAborted);
-                }
-
-                if (deleteTarget)
-                {
-                    return;
+                    await WritePushResultAsync(context, $"Deleted: {resolvedTarget}", cancellationToken);
                 }
 
                 await TransferStream.ReceiveAsync(
                     context.Request.Body,
                     target,
-                    placeFileInExistingDirectory: false,
+                    placeFileInTargetDirectory: targetIsDirectory,
                     context.RequestAborted,
-                    (result, cancellationToken) => WritePushResultAsync(context, result, cancellationToken));
+                    (result, cancellationToken) => WritePushResultAsync(context, result, cancellationToken),
+                    PrepareTargetAsync);
             }
             catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
             {
             }
             catch (Exception exception) when (!context.RequestAborted.IsCancellationRequested)
             {
-                if (!context.Response.HasStarted)
+                if (!context.Response.HasStarted && context.Response.StatusCode < StatusCodes.Status400BadRequest)
                 {
                     context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                 }
@@ -341,7 +387,7 @@ public static class ServerHost
                 await TransferStream.ReceiveAsync(
                     context.Request.Body,
                     stagingDirectory,
-                    placeFileInExistingDirectory: false,
+                    placeFileInTargetDirectory: false,
                     context.RequestAborted,
                     (result, cancellationToken) => WritePushResultAsync(context, result, cancellationToken));
 

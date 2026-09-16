@@ -26,7 +26,7 @@ public static class ExecClient
         using var content = JsonContent.Create(request, AppJsonSerializerContext.Default.ExecRequest);
         using var message = new HttpRequestMessage(HttpMethod.Post, "exec") { Content = content };
         using var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessWithDetailsAsync(cancellationToken);
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var reader = new StreamReader(stream);
         while (await reader.ReadLineAsync(cancellationToken) is { } line)

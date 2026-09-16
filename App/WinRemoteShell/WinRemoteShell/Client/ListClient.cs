@@ -17,7 +17,7 @@ public static class ListClient
             ? "ls"
             : $"ls?path={Uri.EscapeDataString(path)}";
         using var response = await client.GetAsync(requestUri, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        await response.EnsureSuccessWithDetailsAsync(cancellationToken);
         return await response.Content.ReadFromJsonAsync(
             AppJsonSerializerContext.Default.DirectoryListingResponse,
             cancellationToken) ?? throw new InvalidDataException("The server returned an empty directory listing.");

@@ -48,9 +48,10 @@ internal static class TransferStream
     }
 
     internal static async Task ReceiveAsync(Stream stream, string target,
-        bool placeFileInExistingDirectory,
+        bool placeFileInTargetDirectory,
         CancellationToken cancellationToken,
-        Func<string, CancellationToken, Task>? reportAsync = null)
+        Func<string, CancellationToken, Task>? reportAsync = null,
+        Func<string, CancellationToken, Task>? prepareTargetAsync = null)
     {
         var header = await TransferProtocol.ReadHeaderAsync(stream, cancellationToken);
         var entries = new List<TransferManifestEntry>(header.EntryCount);
@@ -69,9 +70,14 @@ internal static class TransferStream
 
         ValidateManifest(header.RootType, entries);
         var targetRoot = Path.GetFullPath(target);
-        if (header.RootType == TransferRootType.File && placeFileInExistingDirectory && Directory.Exists(targetRoot))
+        if (header.RootType == TransferRootType.File && placeFileInTargetDirectory)
         {
             targetRoot = Path.Combine(targetRoot, entries[0].RelativePath);
+        }
+
+        if (prepareTargetAsync is not null)
+        {
+            await prepareTargetAsync(targetRoot, cancellationToken);
         }
 
         var destinationPaths = entries.ToDictionary(

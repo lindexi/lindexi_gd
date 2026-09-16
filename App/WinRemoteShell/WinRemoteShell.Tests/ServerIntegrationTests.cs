@@ -60,6 +60,20 @@ public sealed class ServerIntegrationTests
     }
 
     [TestMethod]
+    public async Task WhenMissingDirectoryIsListedThenCompleteServerExceptionIsReported()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var directory = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_Missing_{Guid.NewGuid():N}");
+
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(() =>
+            ListClient.ListAsync(host.Address, directory));
+
+        Assert.AreEqual(HttpStatusCode.InternalServerError, exception.StatusCode);
+        StringAssert.Contains(exception.Message, "System.IO.DirectoryNotFoundException");
+        StringAssert.Contains(exception.Message, directory);
+    }
+
+    [TestMethod]
     public async Task WhenRelativeDirectoryIsSpecifiedThenItIsResolvedFromWorkingDirectory()
     {
         await using var host = await TestServerHost.StartAsync();
@@ -404,7 +418,7 @@ public sealed class ServerIntegrationTests
     }
 
     [TestMethod]
-    public async Task WhenPushFailsOnServerThenCompleteServerExceptionIsReported()
+    public async Task WhenFileIsPushedToExistingDirectoryThenSourceFileNameIsApplied()
     {
         await using var host = await TestServerHost.StartAsync();
         var root = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
@@ -413,14 +427,47 @@ public sealed class ServerIntegrationTests
         var remoteDirectory = Path.Combine(root, "remote");
         await File.WriteAllTextAsync(source, "content");
         Directory.CreateDirectory(remoteDirectory);
+
+        await PushClient.PushAsync(host.Address, source, remoteDirectory);
+
+        Assert.AreEqual("content", await File.ReadAllTextAsync(Path.Combine(remoteDirectory, "source.txt")));
+    }
+
+    [TestMethod]
+    public async Task WhenFileIsPushedToDirectoryPathThenSourceFileNameIsApplied()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var root = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        var source = Path.Combine(root, "source.txt");
+        var remoteDirectory = Path.Combine(root, "remote") + Path.DirectorySeparatorChar;
+        await File.WriteAllTextAsync(source, "content");
+
+        await PushClient.PushAsync(host.Address, source, remoteDirectory);
+
+        Assert.AreEqual("content", await File.ReadAllTextAsync(Path.Combine(remoteDirectory, "source.txt")));
+    }
+
+    [TestMethod]
+    public async Task WhenPushFailsOnServerThenCompleteServerExceptionIsReported()
+    {
+        await using var host = await TestServerHost.StartAsync();
+        var root = Path.Combine(Path.GetTempPath(), $"WinRemoteShell_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        var source = Path.Combine(root, "source.txt");
+        var remoteParentFile = Path.Combine(root, "remote");
+        var remote = Path.Combine(remoteParentFile, "target.txt");
+        await File.WriteAllTextAsync(source, "content");
+        await File.WriteAllTextAsync(remoteParentFile, "not a directory");
         using var output = new StringWriter();
 
         var exception = await Assert.ThrowsAsync<HttpRequestException>(() =>
-            PushClient.PushAsync(host.Address, source, remoteDirectory, PushMode.Merge, output));
+            PushClient.PushAsync(host.Address, source, remote, PushMode.Merge, output));
 
         Assert.AreEqual(HttpStatusCode.InternalServerError, exception.StatusCode);
-        StringAssert.Contains(output.ToString(), "System.UnauthorizedAccessException");
-        StringAssert.Contains(output.ToString(), remoteDirectory);
+        StringAssert.Contains(exception.Message, "System.IO.IOException");
+        StringAssert.Contains(exception.Message, remoteParentFile);
+        StringAssert.Contains(output.ToString(), "System.IO.IOException");
     }
 
     [TestMethod]
