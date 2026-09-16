@@ -6,7 +6,7 @@
    <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" Foreground="#5D4A00" />
   </Border>
   <Border Background="Transparent">
-   <Grid Margin="16,28,16,20" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="18">
+   <Grid Margin="16,28,16,20" RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="16">
     <Grid ColumnDefinitions="36,*" ColumnSpacing="10" Margin="4,0">
      <Border Background="#E1E9FC" CornerRadius="10" Width="36" Height="36">
       <Image Width="26" Height="26" Source="avares://CodingChatRoom.AvaloniaShell/Assets/Icons/CodingChatRoom_48x48.png" />
@@ -19,25 +19,35 @@
     <Button Grid.Row="1" Classes="Primary accent" Height="40" HorizontalAlignment="Stretch" Command="{Binding CreateWorkTaskCommand}">
      <StackPanel Orientation="Horizontal" Spacing="10"><PathIcon Width="14" Height="14" Data="M11,3 L13,3 L13,11 L21,11 L21,13 L13,13 L13,21 L11,21 L11,13 L3,13 L3,11 L11,11 Z" /><TextBlock Text="{StaticResource NewWorkTaskText}" /></StackPanel>
     </Button>
-    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="-4,0,-4,0">
-     <ItemsControl ItemsSource="{Binding WorkTasks}">
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="6,2,6,-4">
+     <TextBlock Text="{StaticResource WorkTaskListText}" FontSize="12" FontWeight="SemiBold" Foreground="#62738D" />
+     <Border Grid.Column="1" MinWidth="24" Padding="7,2" CornerRadius="9" Background="#E8EEF8">
+      <TextBlock Text="{Binding WorkTasks.Count}" FontSize="11" Foreground="#496580" HorizontalAlignment="Center" />
+     </Border>
+    </Grid>
+    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Margin="-4,0,-4,0">
+     <ItemsControl ItemsSource="{Binding WorkTasks}" Margin="0,4,0,0">
       <ItemsControl.ItemTemplate>
        <DataTemplate x:DataType="vm:WorkTaskItemViewModel">
-        <Border Classes="TaskTile" Classes.Active="{Binding IsActive}" Margin="4,0,4,4">
+        <Border Classes="TaskTile" Classes.Active="{Binding IsActive}" Margin="4,0,4,6">
          <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,36">
-          <Border Width="3" Height="24" CornerRadius="2" Background="{DynamicResource SystemControlHighlightAccentBrush}" HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="{Binding IsActive}" IsHitTestVisible="False" ZIndex="1" />
           <Button Classes="TaskSelect" Classes.Active="{Binding IsActive}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).ActivateWorkTaskCommand}" CommandParameter="{Binding}">
-           <StackPanel Spacing="5">
-            <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !IsEditing}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding DisplayName}" />
-            <StackPanel Orientation="Horizontal" Spacing="7">
-             <Ellipse Width="6" Height="6" Fill="#9BA9BC" IsVisible="{Binding !IsWorking}" />
-             <Ellipse Width="6" Height="6" Fill="#4E78DC" IsVisible="{Binding IsWorking}" />
-             <TextBlock Text="{StaticResource IdleText}" FontSize="11" Foreground="#62738D" IsVisible="{Binding !IsWorking}" />
-             <TextBlock Text="{StaticResource WorkingText}" FontSize="11" Foreground="#4E78DC" IsVisible="{Binding IsWorking}" />
+           <Grid ColumnDefinitions="34,*" ColumnSpacing="10">
+            <Border Width="30" Height="30" CornerRadius="8" Background="#EEF3FB" VerticalAlignment="Center">
+             <PathIcon Width="15" Height="15" Foreground="#5273A8" Data="M4,4 L20,4 L20,18 L13,18 L8,22 L8,18 L4,18 Z M6,6 L6,16 L10,16 L10,18 L12,16 L18,16 L18,6 Z" />
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+             <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !IsEditing}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding DisplayName}" />
+             <StackPanel Orientation="Horizontal" Spacing="7">
+              <Ellipse Width="6" Height="6" Fill="#9BA9BC" IsVisible="{Binding !IsWorking}" />
+              <Ellipse Width="6" Height="6" Fill="#3978D4" IsVisible="{Binding IsWorking}" />
+              <TextBlock Text="{StaticResource IdleText}" FontSize="11" Foreground="#718198" IsVisible="{Binding !IsWorking}" />
+              <TextBlock Text="{StaticResource WorkingText}" FontSize="11" Foreground="#3978D4" IsVisible="{Binding IsWorking}" />
+             </StackPanel>
             </StackPanel>
-           </StackPanel>
+           </Grid>
           </Button>
-          <Button Grid.Column="1" Classes="Icon" IsVisible="{Binding !IsEditing}" VerticalAlignment="Center" ToolTip.Tip="{StaticResource MoreActionsText}">
+          <Button Grid.Column="1" Classes="Icon TaskMore" IsVisible="{Binding !IsEditing}" VerticalAlignment="Center" ToolTip.Tip="{StaticResource MoreActionsText}">
            <PathIcon Width="16" Height="16" Data="M4,10 A2,2 0 1 0 4,14 A2,2 0 1 0 4,10 M12,10 A2,2 0 1 0 12,14 A2,2 0 1 0 12,10 M20,10 A2,2 0 1 0 20,14 A2,2 0 1 0 20,10" />
            <Button.Flyout><MenuFlyout>
             <MenuItem Header="{StaticResource RenameWorkTaskText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).RenameWorkTaskCommand}" CommandParameter="{Binding}" />
@@ -55,7 +65,7 @@
       </ItemsControl.ItemTemplate>
      </ItemsControl>
     </ScrollViewer>
-    <StackPanel Grid.Row="3" Spacing="6">
+    <StackPanel Grid.Row="4" Spacing="6">
      <Border Height="1" Background="#E0E7F1" Margin="8,0,8,10" />
      <Button Name="ArchiveButton" Classes="Navigation" Classes.Active="{Binding IsArchiveOpen}" Command="{Binding OpenArchiveCommand}"><StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Width="16" Height="16" Data="M3,4 L21,4 L21,8 L20,8 L20,21 L4,21 L4,8 L3,8 Z M5,6 L19,6 L19,8 L5,8 Z M9,11 L15,11 L15,13 L9,13 Z" /><TextBlock Text="{StaticResource ArchiveNavigationText}" /></StackPanel></Button>
      <Button Name="HistoryButton" Classes="Navigation" Classes.Active="{Binding IsHistoryOpen}" Command="{Binding OpenHistoryCommand}"><StackPanel Orientation="Horizontal" Spacing="12"><PathIcon Width="16" Height="16" Data="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 M12,4 A8,8 0 1 1 12,20 A8,8 0 1 1 12,4 M11,6 L13,6 L13,12 L17,14 L16,16 L11,13 Z" /><TextBlock Text="{StaticResource AllSessionsText}" /></StackPanel></Button>

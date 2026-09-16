@@ -7,6 +7,7 @@
         <sys:String x:Key="WelcomeDescriptionText">选择工作目录与模型，描述目标，让编程助手与你一起完成。</sys:String>
         <sys:String x:Key="WelcomeExamplesText">理解项目结构　·　排查代码问题　·　实现新的功能</sys:String>
         <sys:String x:Key="WorkTaskText">工作任务</sys:String>
+        <sys:String x:Key="WorkTaskListText">工作任务</sys:String>
         <sys:String x:Key="NewWorkTaskText">新建工作任务</sys:String>
         <sys:String x:Key="ProductSubtitleText">专注每一个编程任务</sys:String>
         <sys:String x:Key="ArchiveNavigationText">存档</sys:String>

@@ -34,9 +34,16 @@
         <Setter Property="Padding" Value="12,10" />
     </Style>
     <Style Selector="Button.TaskSelect">
-        <Setter Property="Padding" Value="14,8" />
-        <Setter Property="MinHeight" Value="52" />
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="MinHeight" Value="58" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="Button.TaskMore">
+        <Setter Property="Opacity" Value="0.65" />
+    </Style>
+    <Style Selector="Button.TaskMore:pointerover">
+        <Setter Property="Opacity" Value="1" />
+        <Setter Property="Background" Value="#DCE7F6" />
     </Style>
     <Style Selector="Button.Navigation.Active">
         <Setter Property="Background" Value="#E8E8E8" />
@@ -49,12 +56,19 @@
         <Setter Property="Foreground" Value="#C42B1C" />
     </Style>
     <Style Selector="Border.TaskTile">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="#A6FFFFFF" />
+        <Setter Property="BorderBrush" Value="#DCE3EC" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Border.TaskTile:pointerover">
+        <Setter Property="Background" Value="#F7FAFE" />
+        <Setter Property="BorderBrush" Value="#C9D7E8" />
     </Style>
     <Style Selector="Border.TaskTile.Active">
-        <Setter Property="Background" Value="#E8E8E8" />
+        <Setter Property="Background" Value="#EAF2FC" />
+        <Setter Property="BorderBrush" Value="#8CB7E8" />
+        <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="TextBox.Rounded, ComboBox">
         <Setter Property="CornerRadius" Value="4" />
