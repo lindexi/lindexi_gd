@@ -3,6 +3,7 @@ using AgentLib.Model;
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -53,9 +54,10 @@ public sealed class FileCopilotChatSessionStore
         await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            Directory.CreateDirectory(_sessionDirectory);
+            string dayDirectory = Path.Join(_sessionDirectory, session.StartedTime.ToString("yyyyMMdd"));
+            Directory.CreateDirectory(dayDirectory);
             string filePath = FindSessionFile(session.SessionId)
-                              ?? Path.Join(_sessionDirectory, $"{session.StartedTime:yyyyMMdd_HHmmss}_{session.SessionId:N}.xml");
+                              ?? Path.Join(dayDirectory, $"{session.StartedTime:yyyyMMdd_HHmmss}_{session.SessionId:N}.xml");
             var document = new XDocument(CopilotChatHistoryXmlCodec.CreateRootElement(
                 session.SessionId,
                 session.StartedTime,
@@ -82,7 +84,7 @@ public sealed class FileCopilotChatSessionStore
         {
             summaries.Add(summary);
         }
-        return summaries.OrderByDescending(summary => summary.StartedTime).ToArray();
+        return summaries;
     }
 
     /// <summary>
@@ -92,7 +94,12 @@ public sealed class FileCopilotChatSessionStore
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         string[] files = await Task.Run(() => Directory.Exists(_sessionDirectory)
-            ? Directory.GetFiles(_sessionDirectory, "*.xml", SearchOption.TopDirectoryOnly)
+            ? Directory.GetFiles(_sessionDirectory, "*.xml", SearchOption.AllDirectories)
+                .Select(file => new { File = file, SortInfo = GetSessionFileSortInfo(file) })
+                .OrderByDescending(item => item.SortInfo.IsRecognized)
+                .ThenByDescending(item => item.SortInfo.SortKey, StringComparer.Ordinal)
+                .Select(item => item.File)
+                .ToArray()
             : Array.Empty<string>(), cancellationToken).ConfigureAwait(false);
         foreach (string file in files)
         {
@@ -100,16 +107,7 @@ public sealed class FileCopilotChatSessionStore
             CopilotChatSessionSummary summary;
             try
             {
-                CopilotChatSessionPersistenceData persistenceData = await Task.Run(
-                    () => LoadFileAsync(file, cancellationToken), cancellationToken).ConfigureAwait(false);
-                summary = new CopilotChatSessionSummary
-                {
-                    SessionId = persistenceData.SessionId,
-                    Title = persistenceData.Title,
-                    WorkspacePath = persistenceData.WorkspacePath,
-                    StartedTime = persistenceData.StartedTime,
-                    MessageCount = persistenceData.Messages.Count,
-                };
+                summary = await LoadSummaryAsync(file, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (exception is InvalidDataException or XmlException or JsonException or FormatException or FileNotFoundException or DirectoryNotFoundException)
             {
@@ -173,7 +171,81 @@ public sealed class FileCopilotChatSessionStore
             return null;
         }
 
-        return Directory.GetFiles(_sessionDirectory, $"*_{sessionId:N}.xml", SearchOption.TopDirectoryOnly).SingleOrDefault();
+        return Directory.GetFiles(_sessionDirectory, $"*_{sessionId:N}.xml", SearchOption.AllDirectories).SingleOrDefault();
+    }
+
+    private static (bool IsRecognized, string SortKey) GetSessionFileSortInfo(string filePath)
+    {
+        string fileName = Path.GetFileNameWithoutExtension(filePath);
+        string? directoryName = Path.GetFileName(Path.GetDirectoryName(filePath));
+        bool isRecognized = DateOnly.TryParseExact(directoryName, "yyyyMMdd", CultureInfo.InvariantCulture,
+                                DateTimeStyles.None, out _)
+                            && fileName.StartsWith($"{directoryName}_", StringComparison.Ordinal);
+        return isRecognized ? (true, fileName) : (false, fileName);
+    }
+
+    private static async Task<CopilotChatSessionSummary> LoadSummaryAsync(
+        string filePath,
+        CancellationToken cancellationToken)
+    {
+        await using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using XmlReader reader = XmlReader.Create(stream, new XmlReaderSettings
+        {
+            Async = true,
+            IgnoreComments = true,
+            IgnoreWhitespace = true,
+        });
+        bool foundRoot = false;
+        while (await reader.ReadAsync().WaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (reader.NodeType == XmlNodeType.Element && reader.Name == "CopilotChatSessionHistory")
+            {
+                foundRoot = true;
+                break;
+            }
+        }
+
+        if (!foundRoot)
+        {
+            throw new InvalidDataException("聊天历史文件缺少根节点。");
+        }
+
+        int formatVersion = int.TryParse(reader.GetAttribute("FormatVersion"), out int parsedFormatVersion)
+            ? parsedFormatVersion
+            : 1;
+        if (formatVersion is < 1 or > CurrentFormatVersion)
+        {
+            throw new InvalidDataException($"不支持的聊天历史格式版本：{formatVersion}。");
+        }
+
+        Guid sessionId = Guid.Parse(reader.GetAttribute("SessionId")
+                                    ?? throw new InvalidDataException("聊天历史文件缺少 SessionId。"));
+        string? startedTimeText = reader.GetAttribute("StartedTime") ?? reader.GetAttribute("CreatedTime");
+        if (!DateTimeOffset.TryParse(startedTimeText, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind,
+                out DateTimeOffset startedTime))
+        {
+            throw new InvalidDataException("聊天历史文件缺少有效的 StartedTime。");
+        }
+
+        string title = reader.GetAttribute("Title") ?? string.Empty;
+        string? workspacePath = reader.GetAttribute("WorkspacePath");
+        int messageCount = 0;
+        while (await reader.ReadAsync().WaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (reader.NodeType == XmlNodeType.Element && reader.Name == "Message")
+            {
+                messageCount++;
+            }
+        }
+
+        return new CopilotChatSessionSummary
+        {
+            SessionId = sessionId,
+            Title = title,
+            WorkspacePath = workspacePath,
+            StartedTime = startedTime,
+            MessageCount = messageCount,
+        };
     }
 
     private static async Task<CopilotChatSessionPersistenceData> LoadFileAsync(
