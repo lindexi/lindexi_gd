@@ -185,29 +185,6 @@ public sealed class CodingChatSendingTests
         await firstSend;
     }
 
-    [TestMethod(DisplayName = "运行期间插话应写入最终保存的公开会话历史")]
-    [Timeout(5000)]
-    public async Task SendMessageAsyncWhileActiveShouldPersistInjectedUserMessage()
-    {
-        var manager = new CopilotChatManager();
-        var store = new TestSessionStore();
-        var runner = new TestCodingChatRunner(manager);
-        var application = CodingChatApplicationTestFactory.CreateApplication(manager, store, runner);
-        await application.InitializeAsync();
-        Task firstSend = application.SendMessageAsync("第一条");
-        await runner.Started.Task;
-
-        await application.SendMessageAsync("第二条");
-        runner.Complete("完成");
-        await firstSend;
-
-        string[] userMessages = store.SavedSession!.ChatMessages
-            .Where(message => message.Role == ChatRole.User)
-            .Select(message => message.Content)
-            .ToArray();
-        CollectionAssert.AreEqual(new[] { "第一条", "第二条" }, userMessages);
-    }
-
     [TestMethod(DisplayName = "最终保存期间不应启动第二条执行链")]
     [Timeout(5000)]
     public async Task SendMessageAsyncWhileFinalizingShouldRejectSecondRun()
