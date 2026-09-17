@@ -245,7 +245,8 @@ internal sealed class CodingChatApplication
         ICodingChatRunner chatRunner = _chatRunner;
         if (_operationPhase == CodingChatOperationPhase.Running)
         {
-            Guid sessionId = _chatManager.SelectedSession.SessionId;
+            CopilotChatSession session = _chatManager.SelectedSession;
+            Guid sessionId = session.SessionId;
             await _chatManager.ChatLogger.LogDiagnosticAsync
             (
                 sessionId,
@@ -255,6 +256,9 @@ internal sealed class CodingChatApplication
             try
             {
                 await chatRunner.InjectMessageAsync(runContents, cancellationToken);
+                CopilotChatMessage injectedMessage = CopilotChatMessage.CreateUser(runContents);
+                await session.AddMessageAsync(injectedMessage);
+                await _chatManager.ChatLogger.LogMessageAsync(sessionId, injectedMessage);
                 await _chatManager.ChatLogger.LogDiagnosticAsync(sessionId, "运行", "插话提交完成。");
             }
             catch (Exception exception)
