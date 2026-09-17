@@ -115,34 +115,34 @@ public sealed class FileCopilotChatSessionStoreTests
         Assert.AreEqual(1, summaries[0].MessageCount);
     }
 
-    [TestMethod(DisplayName = "旧版无版本历史应按版本一兼容读取")]
+    [TestMethod(DisplayName = "历史枚举应按日期目录和文件名从新到旧返回")]
     [Timeout(10000, CooperativeCancellation = true)]
-    public async Task LoadSessionShouldSupportLegacyHistoryWithoutVersion()
+    public async Task EnumerateSessionsShouldReturnNewestDatedPathFirst()
     {
         using var temporaryDirectory = new TemporaryDirectory();
         var store = new FileCopilotChatSessionStore(temporaryDirectory.SessionPath, temporaryDirectory.LogPath);
-        Guid sessionId = Guid.NewGuid();
-        Directory.CreateDirectory(temporaryDirectory.SessionPath);
-        string filePath = Path.Join(temporaryDirectory.SessionPath, $"20260413_090000_{sessionId:N}.xml");
-        await File.WriteAllTextAsync(filePath, $$"""
-            <CopilotChatSessionHistory SessionId="{{sessionId}}" CreatedTime="2026-04-13T09:00:00.0000000+08:00">
-              <AgentSessionState><![CDATA[{"turn":1}]]></AgentSessionState>
-              <Messages>
-                <Message Role="user" Author="我" CreatedTime="2026-04-13T09:00:01.0000000+08:00" IsPresetInfo="false">
-                  <Content>旧消息</Content>
-                  <Reason></Reason>
-                  <MessageItems><TextItem Text="旧消息" /></MessageItems>
-                </Message>
-              </Messages>
-            </CopilotChatSessionHistory>
-            """);
+        Guid olderSessionId = Guid.NewGuid();
+        Guid newerSessionId = Guid.NewGuid();
+        string olderDirectory = Path.Join(temporaryDirectory.SessionPath, "20260412");
+        string newerDirectory = Path.Join(temporaryDirectory.SessionPath, "20260413");
+        Directory.CreateDirectory(olderDirectory);
+        Directory.CreateDirectory(newerDirectory);
+        await File.WriteAllTextAsync(Path.Join(olderDirectory, $"20260412_230000_{olderSessionId:N}.xml"),
+            CreateMinimalHistory(olderSessionId, "2026-04-12T23:00:00+08:00", "较早会话"));
+        await File.WriteAllTextAsync(Path.Join(newerDirectory, $"20260413_010000_{newerSessionId:N}.xml"),
+            CreateMinimalHistory(newerSessionId, "2026-04-13T01:00:00+08:00", "最近会话"));
+        Guid unknownSessionId = Guid.NewGuid();
+        await File.WriteAllTextAsync(Path.Join(temporaryDirectory.SessionPath, $"99999999_235959_{unknownSessionId:N}.xml"),
+            CreateMinimalHistory(unknownSessionId, "2099-12-31T23:59:59+08:00", "未知结构"));
 
-        CopilotChatSessionPersistenceData persistenceData = await store.LoadSessionAsync(sessionId);
+        var summaries = new List<CopilotChatSessionSummary>();
+        await foreach (CopilotChatSessionSummary summary in store.EnumerateSessionsAsync())
+        {
+            summaries.Add(summary);
+        }
 
-        Assert.AreEqual(1, persistenceData.FormatVersion);
-        Assert.AreEqual("旧消息", persistenceData.Title);
-        Assert.AreEqual("旧消息", persistenceData.Messages.Single().Content);
-        Assert.AreEqual("{\"turn\":1}", persistenceData.AgentSessionState?.GetRawText());
+        Assert.AreEqual((newerSessionId, olderSessionId, unknownSessionId),
+            (summaries[0].SessionId, summaries[1].SessionId, summaries[2].SessionId));
     }
 
     [TestMethod(DisplayName = "删除会话应同时删除历史文件和对应日志")]
@@ -180,7 +180,7 @@ public sealed class FileCopilotChatSessionStoreTests
 
         await store.SaveSessionAsync(session, agentSessionState: null);
 
-        Assert.HasCount(1, Directory.GetFiles(temporaryDirectory.SessionPath, "*.xml"));
+        Assert.HasCount(1, Directory.GetFiles(temporaryDirectory.SessionPath, "*.xml", SearchOption.AllDirectories));
         CopilotChatSessionPersistenceData persistenceData = await store.LoadSessionAsync(session.SessionId);
         Assert.HasCount(2, persistenceData.Messages);
     }
@@ -281,6 +281,13 @@ public sealed class FileCopilotChatSessionStoreTests
             savedDocument.Root?.Element("CData")?.Value);
         Assert.AreEqual($"{expectedValue}|{expectedValue}|{expectedValue}", actualValue);
     }
+
+    private static string CreateMinimalHistory(Guid sessionId, string startedTime, string title)
+        => $$"""
+            <CopilotChatSessionHistory FormatVersion="2" SessionId="{{sessionId}}" StartedTime="{{startedTime}}" Title="{{title}}">
+              <Messages />
+            </CopilotChatSessionHistory>
+            """;
 
     private static CopilotChatSession CreateSession(DateTimeOffset startedTime, string title, string content)
     {
