@@ -41,7 +41,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         IReadOnlyList<WorkTaskRecord> archivedTasks,
         CodingChatSettingsService? settingsService,
         WorkTaskStore? workTaskStore,
-        Func<Task<CodingChatRuntime>>? createRuntimeAsync
+        Func<Task<CodingChatRuntime>>? createRuntimeAsync,
+        string? initialMessage = null
     )
     {
         ArgumentNullException.ThrowIfNull(tasks);
@@ -56,6 +57,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             : new SettingsViewModel(settingsService, CloseNavigationPages);
         _workTaskStore = workTaskStore;
         _createRuntimeAsync = createRuntimeAsync;
+        _errorMessage = initialMessage;
         _activeWorkTask = tasks[0];
         _activeWorkTask.IsActive = true;
 
@@ -120,14 +122,15 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         IReadOnlyList<WorkTaskRecord> archivedTasks,
         CodingChatSettingsService settingsService,
         WorkTaskStore workTaskStore,
-        Func<Task<CodingChatRuntime>> createRuntimeAsync
+        Func<Task<CodingChatRuntime>> createRuntimeAsync,
+        string? initialMessage = null
     )
     {
         ArgumentNullException.ThrowIfNull(settingsService);
         ArgumentNullException.ThrowIfNull(workTaskStore);
         ArgumentNullException.ThrowIfNull(createRuntimeAsync);
         ArgumentNullException.ThrowIfNull(archivedTasks);
-        return new MainViewModel(tasks, archivedTasks, settingsService, workTaskStore, createRuntimeAsync);
+        return new MainViewModel(tasks, archivedTasks, settingsService, workTaskStore, createRuntimeAsync, initialMessage);
     }
 
     internal static MainViewModel CreateForTests
@@ -274,7 +277,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     /// <summary>打开全部历史。</summary>
     public ICommand OpenHistoryCommand { get; }
 
-    /// <summary>按任务路径打开历史。</summary>
+    /// <summary>按任务标识打开历史。</summary>
     public ICommand OpenTaskHistoryCommand { get; }
 
     /// <summary>使用系统文件管理器打开日志目录。</summary>
@@ -290,7 +293,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     public ICommand OpenSettingsCommand { get; }
 
     internal static WorkTaskItemViewModel CreateRuntimeTask(CodingChatRuntime runtime, WorkTaskRecord record)
-        => new
+    {
+        runtime.Application.SetWorkTask(record.Id, record.DisplayName);
+        return new WorkTaskItemViewModel
         (
             record.DisplayName,
             new ChatViewModel
@@ -299,6 +304,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             runtime,
             record.Id
         );
+    }
 
     private static WorkTaskItemViewModel CreatePlaceholderTask()
         => new(GetTaskName(1), new ChatViewModel(), new SessionListViewModel());
@@ -596,10 +602,10 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
     }
 
-    private async Task OpenHistoryAsync(bool filterByPath)
+    private async Task OpenHistoryAsync(bool filterByTask)
     {
         SessionListViewModel sessions = SessionListViewModel;
-        sessions.SearchText = filterByPath ? ChatViewModel.NextRunWorkspacePath ?? string.Empty : string.Empty;
+        sessions.SearchText = filterByTask ? ActiveWorkTask.Id.ToString() : string.Empty;
         IsArchiveOpen = false;
         IsSettingsOpen = false;
         IsHistoryOpen = true;

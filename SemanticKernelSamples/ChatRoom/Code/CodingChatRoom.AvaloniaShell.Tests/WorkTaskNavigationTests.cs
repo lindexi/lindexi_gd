@@ -99,6 +99,16 @@ public sealed class WorkTaskNavigationTests
     }
 
     [TestMethod]
+    public void OpeningTaskHistoryShouldSearchByTaskId()
+    {
+        var shell = new MainViewModel();
+
+        shell.OpenTaskHistoryCommand.Execute(null);
+
+        Assert.AreEqual(shell.ActiveWorkTask.Id.ToString(), shell.SessionListViewModel.SearchText);
+    }
+
+    [TestMethod]
     public void RenamingTaskShouldNotRenameItsSession()
     {
         var shell = new MainViewModel();

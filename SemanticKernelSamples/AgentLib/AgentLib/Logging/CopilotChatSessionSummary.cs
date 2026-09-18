@@ -23,6 +23,16 @@ public sealed record CopilotChatSessionSummary
     public string? WorkspacePath { get; init; }
 
     /// <summary>
+    /// 获取会话所属工作任务的唯一标识；旧会话未记录时为空。
+    /// </summary>
+    public Guid? WorkTaskId { get; init; }
+
+    /// <summary>
+    /// 获取会话所属工作任务的名称；旧会话未记录时为空。
+    /// </summary>
+    public string? WorkTaskName { get; init; }
+
+    /// <summary>
     /// 获取会话开始时间。
     /// </summary>
     public required DateTimeOffset StartedTime { get; init; }

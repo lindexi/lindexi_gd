@@ -29,6 +29,8 @@ internal sealed class CodingChatApplication
     private readonly ICodingChatRunner _chatRunner;
     private readonly CodingWorkspaceController _workspaceController;
     private readonly CodingAgent _codingAgent;
+    private Guid? _workTaskId;
+    private string? _workTaskName;
     private CancellationTokenSource? _activeOperationCancellationTokenSource;
     private volatile bool _isLoopIterationEnabled;
     private bool _isLoopActive;
@@ -83,6 +85,15 @@ internal sealed class CodingChatApplication
     public bool IsLoopActive => _isLoopActive;
 
     public bool IsFinalizing => _operationPhase == CodingChatOperationPhase.Finalizing;
+
+    internal void SetWorkTask(Guid workTaskId, string workTaskName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(workTaskName);
+        _workTaskId = workTaskId;
+        _workTaskName = workTaskName.Trim();
+        ApplyWorkTaskMetadata(_chatManager.SelectedSession);
+        AddOrUpdateSummary(_chatManager.SelectedSession, insertAtTop: false);
+    }
 
     private readonly HashSet<Guid> _deletedSessionIds = [];
 
@@ -140,6 +151,7 @@ internal sealed class CodingChatApplication
         cancellationToken.ThrowIfCancellationRequested();
         AddOrUpdateSummary(_chatManager.SelectedSession, insertAtTop: false);
         _chatManager.CreateNewSession();
+        ApplyWorkTaskMetadata(_chatManager.SelectedSession);
         AddOrUpdateSummary(_chatManager.SelectedSession, insertAtTop: true);
         OnStateChanged();
         return Task.CompletedTask;
@@ -171,6 +183,7 @@ internal sealed class CodingChatApplication
                 _chatManager.AddSession(targetSession, select: true);
             }
 
+            ApplyWorkTaskMetadata(targetSession);
             await _workspaceController
                 .ChangeWorkspaceAsync(targetSession.WorkspacePath, cancellationToken);
             AddOrUpdateSummary(targetSession, insertAtTop: false);
@@ -310,11 +323,12 @@ internal sealed class CodingChatApplication
         SetOperationPhase(CodingChatOperationPhase.Running);
         CopilotChatSession session = _chatManager.SelectedSession;
         session.WorkspacePath = _workspaceController.NextRunWorkspacePath;
+        ApplyWorkTaskMetadata(session);
         await _chatManager.ChatLogger.LogDiagnosticAsync
         (
             session.SessionId,
             "运行",
-            $"运行开始。工作路径={session.WorkspacePath ?? "未设置"}；自动压缩={options.EnableAutomaticCompression}；dotnet run={options.EnableDotNetRun}；思考强度={options.ReasoningEffort?.ToString() ?? "默认"}；调用方取消={cancellationToken.IsCancellationRequested}。"
+            $"运行开始。工作任务={session.WorkTaskName ?? "未设置"}；工作任务Id={session.WorkTaskId?.ToString() ?? "未设置"}；工作路径={session.WorkspacePath ?? "未设置"}；自动压缩={options.EnableAutomaticCompression}；dotnet run={options.EnableDotNetRun}；思考强度={options.ReasoningEffort?.ToString() ?? "默认"}；调用方取消={cancellationToken.IsCancellationRequested}。"
         );
         Exception? runException = null;
         try
@@ -492,6 +506,17 @@ internal sealed class CodingChatApplication
 
     public Task<bool> StopLanguageServerAsync() => _codingAgent.StopLanguageServerAsync();
 
+    private void ApplyWorkTaskMetadata(CopilotChatSession session)
+    {
+        if (_workTaskId is not Guid workTaskId || string.IsNullOrWhiteSpace(_workTaskName))
+        {
+            return;
+        }
+
+        session.WorkTaskId = workTaskId;
+        session.WorkTaskName = _workTaskName;
+    }
+
     private void AddOrUpdateSummary(CopilotChatSession session, bool insertAtTop)
     {
         CopilotChatSessionSummary? existing = Sessions.FirstOrDefault(item => item.SessionId == session.SessionId);
@@ -500,6 +525,8 @@ internal sealed class CodingChatApplication
             SessionId = session.SessionId,
             Title = session.Title,
             WorkspacePath = session.WorkspacePath,
+            WorkTaskId = session.WorkTaskId,
+            WorkTaskName = session.WorkTaskName,
             StartedTime = session.StartedTime,
             MessageCount = session.ChatMessages.Count(message => !message.IsPresetInfo),
         };

@@ -89,7 +89,8 @@ public partial class App : Application
                 runtimes[0].SettingsService,
                 workTaskStore,
                 () => CodingChatStartup.InitializeAsync
-                    (paths, new AvaloniaMainThreadDispatcher(), windowsSandboxToolSource)
+                    (paths, new AvaloniaMainThreadDispatcher(), windowsSandboxToolSource),
+                FormatWorkTaskRecoveryMessage(workTaskStore.LastRecoveryInfo)
             );
             if (activeRecords.Length == 0)
             {
@@ -151,6 +152,16 @@ public partial class App : Application
         {
             task.Chat.SelectedReasoningEffort = reasoningEffort;
         }
+    }
+
+    private static string? FormatWorkTaskRecoveryMessage(WorkTaskRecoveryInfo? recoveryInfo)
+    {
+        if (recoveryInfo is null)
+        {
+            return null;
+        }
+
+        return $"已自动修复工作任务配置：补充 {recoveryInfo.AssignedMissingIdCount} 个缺失 Id，修复 {recoveryInfo.ReassignedDuplicateIdCount} 个重复 Id。原配置已备份到：{recoveryInfo.BackupFilePath}";
     }
 
     private static WorkTaskRecord CreateRecord(WorkTaskItemViewModel task)

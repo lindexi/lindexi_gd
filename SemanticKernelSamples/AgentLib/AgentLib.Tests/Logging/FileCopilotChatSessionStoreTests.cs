@@ -25,6 +25,44 @@ public sealed class FileCopilotChatSessionStoreTests
         Assert.AreEqual(workspacePath, data.WorkspacePath);
     }
 
+    [TestMethod]
+    public async Task SaveAndLoadShouldPreserveWorkTaskMetadata()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Console.WriteLine(directory);
+        var store = new FileCopilotChatSessionStore(directory);
+        Guid workTaskId = Guid.NewGuid();
+        var session = new CopilotChatSession
+        {
+            WorkTaskId = workTaskId,
+            WorkTaskName = "Refactor history",
+        };
+
+        await store.SaveSessionAsync(session, null);
+        CopilotChatSessionPersistenceData data = await store.LoadSessionAsync(session.SessionId);
+
+        Assert.AreEqual((workTaskId, "Refactor history"), (data.WorkTaskId, data.WorkTaskName));
+    }
+
+    [TestMethod]
+    public async Task ListShouldIncludeWorkTaskMetadata()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Console.WriteLine(directory);
+        var store = new FileCopilotChatSessionStore(directory);
+        Guid workTaskId = Guid.NewGuid();
+        var session = new CopilotChatSession
+        {
+            WorkTaskId = workTaskId,
+            WorkTaskName = "Refactor history",
+        };
+
+        await store.SaveSessionAsync(session, null);
+        CopilotChatSessionSummary summary = (await store.ListSessionsAsync()).Single();
+
+        Assert.AreEqual((workTaskId, "Refactor history"), (summary.WorkTaskId, summary.WorkTaskName));
+    }
+
     [DataTestMethod]
     [DataRow(null)]
     [DataRow("/projects/sample")]
