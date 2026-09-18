@@ -23,7 +23,8 @@ static int Run(string[] args)
         Size = (uint)Marshal.SizeOf<StartupInfo>()
     };
 
-    if (!CreateProcess(
+    if (!CreateProcess
+        (
             applicationName: null,
             commandLine: targetCommandLine,
             processAttributes: 0,
@@ -33,7 +34,8 @@ static int Run(string[] args)
             environment: 0,
             currentDirectory: null,
             startupInfo,
-            out var processInformation))
+            out var processInformation
+        ))
     {
         throw new Win32Exception(Marshal.GetLastWin32Error());
     }
@@ -151,9 +153,13 @@ static void AppendQuotedArgument(StringBuilder commandLine, string argument)
     commandLine.Append('"');
 }
 
-[DllImport("kernel32.dll", EntryPoint = "CreateProcessW", ExactSpelling = true, SetLastError = true, CharSet = CharSet.Unicode)]
+[DllImport
+(
+    "kernel32.dll", EntryPoint = "CreateProcessW", ExactSpelling = true, SetLastError = true, CharSet = CharSet.Unicode
+)]
 [return: MarshalAs(UnmanagedType.Bool)]
-static extern bool CreateProcess(
+static extern bool CreateProcess
+(
     string? applicationName,
     StringBuilder commandLine,
     nint processAttributes,
@@ -163,13 +169,16 @@ static extern bool CreateProcess(
     nint environment,
     string? currentDirectory,
     in StartupInfo startupInfo,
-    out ProcessInformation processInformation);
+    out ProcessInformation processInformation
+);
 
 [DllImport("kernel32.dll", SetLastError = true)]
 [return: MarshalAs(UnmanagedType.Bool)]
-static extern bool CheckRemoteDebuggerPresent(
+static extern bool CheckRemoteDebuggerPresent
+(
     nint processHandle,
-    [MarshalAs(UnmanagedType.Bool)] out bool isDebuggerPresent);
+    [MarshalAs(UnmanagedType.Bool)] out bool isDebuggerPresent
+);
 
 [DllImport("kernel32.dll", SetLastError = true)]
 static extern uint ResumeThread(nint threadHandle);
