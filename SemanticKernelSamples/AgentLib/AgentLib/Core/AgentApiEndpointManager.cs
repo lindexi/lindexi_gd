@@ -13,6 +13,8 @@ public class AgentApiEndpointManager
     /// <param name="configuration">API 管理器配置。</param>
     public void LoadConfiguration(AgentApiManagerConfiguration configuration)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+
         if (configuration.OpenAIConfigurationList is not null)
         {
             foreach (var languageModelConfiguration in configuration.OpenAIConfigurationList)
@@ -34,6 +36,24 @@ public class AgentApiEndpointManager
 
             PrimaryModel = languageModel;
         }
+    }
+
+    /// <summary>
+    /// 清空现有模型并使用指定配置重新加载。
+    /// </summary>
+    /// <param name="configuration">新的 API 管理器配置。</param>
+    public void ReplaceConfiguration(AgentApiManagerConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var replacement = new AgentApiEndpointManager();
+        replacement.LoadConfiguration(configuration);
+        ILanguageModel replacementPrimaryModel = replacement.PrimaryModel;
+
+        SupportedModels.Clear();
+        SupportedModels.AddRange(replacement.SupportedModels);
+        _userSetPrimaryLanguageModel = replacementPrimaryModel;
+        _autoSetPrimaryLanguageModel = null;
     }
 
     /// <summary>
