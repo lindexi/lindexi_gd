@@ -181,6 +181,33 @@ public class AgentApiEndpointManagerTests
         Assert.Throws<ArgumentException>(() => manager.LoadConfiguration(configuration));
     }
 
+    [TestMethod]
+    [Description("替换配置时应移除旧模型并使用新配置的首选模型")]
+    public void ReplaceConfiguration_WhenCalled_ReplacesSupportedModels()
+    {
+        var manager = new AgentApiEndpointManager();
+        manager.RegisterLanguageModelProvider(CreateFakeProvider(("old", "Old", null)));
+        var configuration = new AgentApiManagerConfiguration
+        {
+            PrimaryModel = "new/New",
+            OpenAIConfigurationList =
+            [
+                new OpenAIProtocolLanguageModelConfiguration("https://example.com", "key")
+                {
+                    ModelDefinitions =
+                    [
+                        new ModelDefinition { Provider = "new", ModelName = "New" },
+                    ],
+                },
+            ],
+        };
+
+        manager.ReplaceConfiguration(configuration);
+
+        Assert.IsNull(manager.ResolveModel("old/Old"));
+        Assert.AreEqual("New", manager.PrimaryModel.ModelDefinition.ModelName);
+    }
+
     private static FakeLanguageModelProvider CreateFakeProvider(params (string Provider, string ModelName, string? ModelId)[] models)
     {
         var languageModels = new List<FakeLanguageModel>(models.Length);
