@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 #if !NET6_0
 using System.Text.Json.Serialization.Metadata;
 #endif
@@ -27,7 +27,8 @@ public record AgentApiManagerConfiguration
     /// <returns>表示异步操作的任务。</returns>
     public async Task SaveToFileAsync(FileInfo file)
     {
-        await using var fileStream = file.OpenWrite();
+        ArgumentNullException.ThrowIfNull(file);
+        await using var fileStream = new FileStream(file.FullName, FileMode.Create, FileAccess.Write, FileShare.None);
 #if NET6_0
         await JsonSerializer.SerializeAsync(fileStream, this);
 #else
