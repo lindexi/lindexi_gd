@@ -255,7 +255,9 @@
         <ScrollViewer x:Name="MessagesScrollViewer" IsVisible="{Binding !ShowWelcome}"
                       Grid.Row="1"
                       Background="{StaticResource BackgroundBrush}"
-                      Padding="32,0"
+                      Padding="32,0,16,0"
+                      AllowAutoHide="False"
+                      HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="MessagesItemsControl" HorizontalAlignment="Stretch" ItemsSource="{Binding Messages}">
                 <ItemsControl.ItemTemplate>
@@ -288,6 +290,7 @@
                                         IsVisible="{Binding HasUsageDetails}">
                                     <TextBlock Classes="UsageSummaryText"
                                                Text="{Binding UsageSummaryText}"
+                                               TextAlignment="Right"
                                                TextWrapping="Wrap" />
                                 </Border>
                             </StackPanel>
