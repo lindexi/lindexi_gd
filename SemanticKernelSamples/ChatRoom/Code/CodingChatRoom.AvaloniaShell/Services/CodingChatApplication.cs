@@ -459,24 +459,31 @@ internal sealed class CodingChatApplication
         }
     }
 
-    public async Task CompressConversationAsync(CancellationToken cancellationToken = default)
+    public Task CompressConversationAsync(CancellationToken cancellationToken = default)
+        => CompressConversationAsync(null, cancellationToken);
+
+    public async Task CompressConversationAsync(string? compressionRequest, CancellationToken cancellationToken = default)
     {
         if (!CanCompressConversation)
         {
             throw new InvalidOperationException("当前会话没有可压缩的对话历史，或已有操作正在运行。");
         }
 
-        await CompressConversationCoreAsync(cancellationToken);
+        await CompressConversationCoreAsync(cancellationToken, compressionRequest);
     }
 
-    private async Task CompressConversationCoreAsync(CancellationToken cancellationToken)
+    private async Task CompressConversationCoreAsync(CancellationToken cancellationToken, string? compressionRequest = null)
     {
         CopilotChatSession session = _chatManager.SelectedSession;
         SetOperationPhase(CodingChatOperationPhase.Compressing);
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await _chatManager.ReduceSessionAsync();
+            await _chatManager.ReduceSessionAsync(
+                chatReducer: null,
+                requestText: compressionRequest,
+                additionalPrompt: compressionRequest,
+                cancellationToken: cancellationToken);
             await _sessionStore.SaveSessionAsync(session, CancellationToken.None);
             AddOrUpdateSummary(session, insertAtTop: true);
         }

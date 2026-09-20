@@ -7,8 +7,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Threading;
 using AgentLib;
 using AgentLib.Model;
+using CodingChatRoom.AvaloniaShell.Abilities;
 using CodingChatRoom.AvaloniaShell.Services;
 using Microsoft.Extensions.AI;
 
@@ -22,10 +24,12 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     private readonly CopilotChatManager? _chatManager;
     private readonly CodingChatApplication? _application;
     private readonly CodingWorkspaceController? _workspaceController;
+    private readonly AbilityCatalog? _abilityCatalog;
     private string _modelStatusText;
     private CopilotChatSession? _subscribedSession;
     private LanguageModelOptionViewModel? _selectedModel;
     private ReasoningEffortOptionViewModel? _selectedReasoningEffort;
+    private AbilityOptionViewModel? _selectedAbility;
     private string _inputText = string.Empty;
     private string? _runStatusText;
     private bool _isLoopIterationEnabled;
@@ -46,6 +50,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
         PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
         InitializeReasoningEfforts();
+        RebuildAbilities();
     }
 
     internal ChatViewModel(
@@ -68,6 +73,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
         InitializeAvailableModels();
         InitializeReasoningEfforts();
+        RebuildAbilities();
         AttachSession(_chatManager.SelectedSession);
     }
 
@@ -75,7 +81,8 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         CopilotChatManager chatManager,
         CodingChatApplication application,
         CodingWorkspaceController workspaceController,
-        string statusText)
+        string statusText,
+        AbilityCatalog? abilityCatalog = null)
     {
         ArgumentNullException.ThrowIfNull(chatManager);
         ArgumentNullException.ThrowIfNull(application);
@@ -83,6 +90,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _chatManager = chatManager;
         _application = application;
         _workspaceController = workspaceController;
+        _abilityCatalog = abilityCatalog;
         _modelStatusText = statusText;
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend, allowConcurrentExecutions: true);
         CompressConversationCommand = new SimpleAsyncCommand(CompressConversationAsync, () => CanCompressConversation);
@@ -92,9 +100,14 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
         _application.StateChanged += OnApplicationStateChanged;
         _workspaceController.PropertyChanged += OnWorkspaceControllerPropertyChanged;
+        if (_abilityCatalog is not null)
+        {
+            _abilityCatalog.Changed += OnAbilityCatalogChanged;
+        }
         PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
         InitializeAvailableModels();
         InitializeReasoningEfforts();
+        RebuildAbilities();
         AttachSession(_chatManager.SelectedSession);
     }
 
@@ -167,6 +180,24 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// 获取发送按钮文本。
     /// </summary>
     public string SendButtonText => IsRunning ? "插话" : "发送";
+
+    /// <summary>获取可选择的发送前能力。</summary>
+    public ObservableCollection<AbilityOptionViewModel> AvailableAbilities { get; } = [];
+
+    /// <summary>获取或设置当前发送前能力。</summary>
+    public AbilityOptionViewModel? SelectedAbility
+    {
+        get => _selectedAbility;
+        set
+        {
+            if (value is not null && AvailableAbilities.Contains(value) && SetField(ref _selectedAbility, value))
+            {
+                OnPropertyChanged(nameof(SendButtonText));
+                OnPropertyChanged(nameof(CanSend));
+                RaiseCommandCanExecuteChanged();
+            }
+        }
+    }
 
     /// <summary>
     /// 获取消息投影集合。
@@ -261,10 +292,21 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 获取是否可发送消息。
     /// </summary>
-    public bool CanSend => _application?.CanSend == true
-                           && (IsLoopIterationEnabled
-                               ? !string.IsNullOrWhiteSpace(InputText)
-                               : !string.IsNullOrWhiteSpace(InputText) || PendingImages.Count > 0);
+    public bool CanSend
+    {
+        get
+        {
+            if (SelectedAbility?.IsCompression == true)
+            {
+                return _application?.CanCompressConversation == true && PendingImages.Count == 0;
+            }
+
+            return _application?.CanSend == true
+                   && (IsLoopIterationEnabled
+                       ? !string.IsNullOrWhiteSpace(InputText)
+                       : !string.IsNullOrWhiteSpace(InputText) || PendingImages.Count > 0);
+        }
+    }
 
     /// <summary>
     /// 获取当前对话是否可以压缩。
@@ -500,6 +542,11 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
             _workspaceController.PropertyChanged -= OnWorkspaceControllerPropertyChanged;
         }
 
+        if (_abilityCatalog is not null)
+        {
+            _abilityCatalog.Changed -= OnAbilityCatalogChanged;
+        }
+
         DetachSession();
         ClearMessages();
         PendingImages.CollectionChanged -= OnPendingImagesCollectionChanged;
@@ -545,7 +592,9 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private async Task CompressConversationAsync()
+    private Task CompressConversationAsync() => CompressConversationAsync(null);
+
+    private async Task CompressConversationAsync(string? compressionRequest)
     {
         if (_application is null || !CanCompressConversation)
         {
@@ -557,7 +606,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(StatusText));
         try
         {
-            await _application.CompressConversationAsync().ConfigureAwait(true);
+            await _application.CompressConversationAsync(compressionRequest).ConfigureAwait(true);
             _runStatusText = "对话压缩完成";
             await AddSystemMessageAsync(session, "对话压缩完成。").ConfigureAwait(true);
         }
@@ -579,15 +628,27 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
 
     private async Task SendAsync()
     {
-        if (_application is null || !CanSend)
+        if (_application is null || !CanSend || SelectedAbility is null)
         {
             return;
         }
 
-        var contents = new List<AIContent>(PendingImages.Count + 1);
-        if (!string.IsNullOrWhiteSpace(InputText))
+        AbilityOptionViewModel ability = SelectedAbility;
+        string originalInput = InputText;
+        if (ability.IsCompression)
         {
-            contents.Add(new TextContent(InputText));
+            string compressionRequest = ability.Definition.Expand(originalInput);
+            InputText = string.Empty;
+            SelectProgrammingAbility();
+            await CompressConversationAsync(compressionRequest).ConfigureAwait(true);
+            return;
+        }
+
+        string expandedInput = ability.Definition.Expand(originalInput);
+        var contents = new List<AIContent>(PendingImages.Count + 1);
+        if (!string.IsNullOrWhiteSpace(expandedInput))
+        {
+            contents.Add(new TextContent(expandedInput));
         }
 
         foreach (ImageAttachmentViewModel attachment in PendingImages)
@@ -596,12 +657,13 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         }
 
         CopilotChatSession? session = _subscribedSession;
-        string loopPrompt = InputText;
+        string loopPrompt = expandedInput;
         bool isInterruption = IsRunning;
         bool runLoopIteration = IsLoopIterationEnabled && !isInterruption;
 
         InputText = string.Empty;
         PendingImages.Clear();
+        SelectProgrammingAbility();
         _runStatusText = isInterruption ? "正在提交插话" : "正在运行";
         OnPropertyChanged(nameof(StatusText));
         var runOptions = new CodingChatRunOptions(
@@ -643,6 +705,58 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         {
             OnPropertyChanged(nameof(StatusText));
         }
+    }
+
+    /// <summary>在能力菜单打开时异步刷新目录，不阻塞菜单展示。</summary>
+    public void RefreshAbilities()
+    {
+        if (_abilityCatalog is not null)
+        {
+            _ = _abilityCatalog.RefreshAsync();
+        }
+    }
+
+    private void OnAbilityCatalogChanged(object? sender, EventArgs e)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            RebuildAbilities();
+        }
+        else
+        {
+            Dispatcher.UIThread.Post(RebuildAbilities);
+        }
+    }
+
+    private void RebuildAbilities()
+    {
+        string selectedId = SelectedAbility?.Id ?? AbilityCatalog.ProgrammingId;
+        AvailableAbilities.Clear();
+        AvailableAbilities.Add(new AbilityOptionViewModel(new AbilityDefinition(
+            AbilityCatalog.ProgrammingId, "编程", null, null)));
+        AbilityCollection abilities = _abilityCatalog?.Current ?? AbilityCollection.Empty;
+        AvailableAbilities.Add(new AbilityOptionViewModel(new AbilityDefinition(
+            AbilityCatalog.CompressionId,
+            abilities.CompressionDisplayName ?? "按照指令进行压缩",
+            abilities.CompressionPrompt,
+            null)));
+        foreach (AbilityDefinition ability in abilities.Items)
+        {
+            AvailableAbilities.Add(new AbilityOptionViewModel(ability));
+        }
+
+        _selectedAbility = AvailableAbilities.FirstOrDefault(item =>
+                               string.Equals(item.Id, selectedId, StringComparison.OrdinalIgnoreCase))
+                           ?? AvailableAbilities[0];
+        OnPropertyChanged(nameof(SelectedAbility));
+        OnPropertyChanged(nameof(SendButtonText));
+        OnPropertyChanged(nameof(CanSend));
+        RaiseCommandCanExecuteChanged();
+    }
+
+    private void SelectProgrammingAbility()
+    {
+        SelectedAbility = AvailableAbilities.First(item => item.Id == AbilityCatalog.ProgrammingId);
     }
 
     private void OnPendingImagesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

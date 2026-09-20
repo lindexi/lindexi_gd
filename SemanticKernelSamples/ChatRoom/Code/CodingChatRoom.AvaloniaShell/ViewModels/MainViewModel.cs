@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Controls;
+using CodingChatRoom.AvaloniaShell.Abilities;
 using CodingChatRoom.AvaloniaShell.Services;
 
 namespace CodingChatRoom.AvaloniaShell.ViewModels;
@@ -20,6 +21,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private readonly SettingsViewModel? _settingsViewModel;
     private readonly WorkTaskStore? _workTaskStore;
     private readonly Func<Task<CodingChatRuntime>>? _createRuntimeAsync;
+    private readonly AbilityCatalog? _abilityCatalog;
     private readonly SemaphoreSlim _saveGate = new(1, 1);
     private WorkTaskItemViewModel _activeWorkTask;
     private string? _errorMessage;
@@ -31,7 +33,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
     /// <summary>创建未连接模型的设计期界面。</summary>
     public MainViewModel()
-        : this([CreatePlaceholderTask()], [], null, null, null)
+        : this([CreatePlaceholderTask()], [], null, null, null, null)
     {
     }
 
@@ -42,6 +44,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         CodingChatSettingsService? settingsService,
         WorkTaskStore? workTaskStore,
         Func<Task<CodingChatRuntime>>? createRuntimeAsync,
+        AbilityCatalog? abilityCatalog,
         string? initialMessage = null
     )
     {
@@ -62,6 +65,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
         _workTaskStore = workTaskStore;
         _createRuntimeAsync = createRuntimeAsync;
+        _abilityCatalog = abilityCatalog;
         _errorMessage = initialMessage;
         _activeWorkTask = tasks[0];
         _activeWorkTask.IsActive = true;
@@ -128,14 +132,16 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         CodingChatSettingsService settingsService,
         WorkTaskStore workTaskStore,
         Func<Task<CodingChatRuntime>> createRuntimeAsync,
+        AbilityCatalog abilityCatalog,
         string? initialMessage = null
     )
     {
         ArgumentNullException.ThrowIfNull(settingsService);
         ArgumentNullException.ThrowIfNull(workTaskStore);
         ArgumentNullException.ThrowIfNull(createRuntimeAsync);
+        ArgumentNullException.ThrowIfNull(abilityCatalog);
         ArgumentNullException.ThrowIfNull(archivedTasks);
-        return new MainViewModel(tasks, archivedTasks, settingsService, workTaskStore, createRuntimeAsync, initialMessage);
+        return new MainViewModel(tasks, archivedTasks, settingsService, workTaskStore, createRuntimeAsync, abilityCatalog, initialMessage);
     }
 
     internal static MainViewModel CreateForTests
@@ -152,6 +158,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             [new WorkTaskItemViewModel(GetTaskName(1), chat, sessions)],
             [],
             settingsService,
+            null,
             null,
             null
         );
@@ -297,14 +304,17 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     /// <summary>打开设置。</summary>
     public ICommand OpenSettingsCommand { get; }
 
-    internal static WorkTaskItemViewModel CreateRuntimeTask(CodingChatRuntime runtime, WorkTaskRecord record)
+    internal static WorkTaskItemViewModel CreateRuntimeTask(
+        CodingChatRuntime runtime,
+        WorkTaskRecord record,
+        AbilityCatalog? abilityCatalog = null)
     {
         runtime.Application.SetWorkTask(record.Id, record.DisplayName);
         return new WorkTaskItemViewModel
         (
             record.DisplayName,
             new ChatViewModel
-                (runtime.ChatManager, runtime.Application, runtime.WorkspaceController, runtime.ModelDisplayName),
+                (runtime.ChatManager, runtime.Application, runtime.WorkspaceController, runtime.ModelDisplayName, abilityCatalog),
             new SessionListViewModel(runtime.Application),
             runtime,
             record.Id
@@ -393,7 +403,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
                 runtime.ModelDisplayName,
                 null
             );
-            task = CreateRuntimeTask(runtime, record);
+            task = CreateRuntimeTask(runtime, record, _abilityCatalog);
             WorkTasks.Add(task);
             Subscribe(task);
             await SaveTasksAsync().ConfigureAwait(true);
@@ -477,7 +487,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         try
         {
             runtime = await _createRuntimeAsync().ConfigureAwait(true);
-            task = CreateRuntimeTask(runtime, item.Record with { IsArchived = false });
+            task = CreateRuntimeTask(runtime, item.Record with { IsArchived = false }, _abilityCatalog);
             await RestoreTaskConfigurationAsync(task, runtime, item.Record).ConfigureAwait(true);
             await SaveTasksAsync
             (

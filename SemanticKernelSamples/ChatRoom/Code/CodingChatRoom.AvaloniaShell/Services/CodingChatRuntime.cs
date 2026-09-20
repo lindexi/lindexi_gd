@@ -14,47 +14,23 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 /// </summary>
 internal sealed class CodingChatRuntime : IAsyncDisposable
 {
-    private readonly CodingAgent _codingAgent;
+    public required CodingChatRoomPaths Paths { get; init; }
 
-    public CodingChatRuntime
-    (
-        CodingChatRoomPaths paths,
-        AgentApiEndpointManager endpointManager,
-        FileCopilotChatLogger chatLogger,
-        CopilotChatManager chatManager,
-        CodingAgent codingAgent,
-        ILanguageModel primaryModel,
-        CodingChatApplication application,
-        CodingWorkspaceController workspaceController,
-        CodingChatSettingsService settingsService
-    )
-    {
-        Paths = paths;
-        EndpointManager = endpointManager;
-        ChatLogger = chatLogger;
-        ChatManager = chatManager;
-        _codingAgent = codingAgent;
-        PrimaryModel = primaryModel;
-        Application = application;
-        WorkspaceController = workspaceController;
-        SettingsService = settingsService;
-    }
+    public required AgentApiEndpointManager EndpointManager { get; init; }
 
-    public CodingChatRoomPaths Paths { get; }
+    public required FileCopilotChatLogger ChatLogger { get; init; }
 
-    public AgentApiEndpointManager EndpointManager { get; }
+    public required CopilotChatManager ChatManager { get; init; }
 
-    public FileCopilotChatLogger ChatLogger { get; }
+    public required CodingAgent CodingAgent { get; init; }
 
-    public CopilotChatManager ChatManager { get; }
+    public required ILanguageModel PrimaryModel { get; init; }
 
-    public ILanguageModel PrimaryModel { get; }
+    public required CodingChatApplication Application { get; init; }
 
-    public CodingChatApplication Application { get; }
+    public required CodingWorkspaceController WorkspaceController { get; init; }
 
-    public CodingWorkspaceController WorkspaceController { get; }
-
-    public CodingChatSettingsService SettingsService { get; }
+    public required CodingChatSettingsService SettingsService { get; init; }
 
     public string ModelDisplayName
     {
@@ -82,7 +58,7 @@ internal sealed class CodingChatRuntime : IAsyncDisposable
             "运行时释放",
             "已请求取消活动运行，开始释放 CodingAgent。"
         ).ConfigureAwait(false);
-        await _codingAgent.DisposeAsync().ConfigureAwait(false);
+        await CodingAgent.DisposeAsync().ConfigureAwait(false);
         await ChatLogger.LogDiagnosticAsync(sessionId, "运行时释放", "工作任务运行时释放完成。").ConfigureAwait(false);
     }
 }
