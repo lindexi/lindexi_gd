@@ -67,6 +67,7 @@ public sealed class SettingsViewModel : ViewModelBase
         BackCommand = new SimpleCommand(Back);
         AddProviderCommand = new SimpleCommand(AddProvider);
         RemoveProviderCommand = new SimpleCommand<ProviderSettingsViewModel>(RemoveProvider);
+        Providers.Add(CreateEmptyProvider());
     }
 
     public ObservableCollection<ProviderSettingsViewModel> Providers { get; } = [];
@@ -211,9 +212,14 @@ public sealed class SettingsViewModel : ViewModelBase
 
     private void Load(CodingChatSettingsSnapshot snapshot)
     {
+        IsWindowsSandboxEnabled = snapshot.ShellSettings.IsWindowsSandboxEnabled;
+        WindowsSandboxToolPath = snapshot.ShellSettings.WindowsSandboxToolPath;
+        WindowsSandboxServerAddress = snapshot.ShellSettings.WindowsSandboxServerAddress;
+        IsCopilotInstructionsEnabled = snapshot.ShellSettings.IsCopilotInstructionsEnabled;
+        CopilotInstructionsPath = snapshot.ShellSettings.CopilotInstructionsPath;
+
         Providers.Clear();
         PrimaryModel = snapshot.ModelConfiguration?.PrimaryModel;
-
         if (snapshot.ModelConfiguration?.OpenAIConfigurationList is { } configurations)
         {
             foreach (OpenAIProtocolLanguageModelConfiguration configuration in configurations)
@@ -227,15 +233,9 @@ public sealed class SettingsViewModel : ViewModelBase
             Providers.Add(CreateEmptyProvider());
         }
 
-        IsWindowsSandboxEnabled = snapshot.ShellSettings.IsWindowsSandboxEnabled;
-        WindowsSandboxToolPath = snapshot.ShellSettings.WindowsSandboxToolPath;
-        WindowsSandboxServerAddress = snapshot.ShellSettings.WindowsSandboxServerAddress;
-        IsCopilotInstructionsEnabled = snapshot.ShellSettings.IsCopilotInstructionsEnabled;
-        CopilotInstructionsPath = snapshot.ShellSettings.CopilotInstructionsPath;
-
         if (!string.IsNullOrWhiteSpace(snapshot.ModelConfigurationError))
         {
-            SetStatus($"现有模型配置无法读取，请修正后保存：{snapshot.ModelConfigurationError}", isError: true);
+            SetStatus($"现有模型配置无法读取：{snapshot.ModelConfigurationError}", isError: true);
         }
         else
         {

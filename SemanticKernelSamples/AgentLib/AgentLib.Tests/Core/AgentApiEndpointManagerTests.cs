@@ -208,6 +208,26 @@ public class AgentApiEndpointManagerTests
         Assert.AreEqual("New", manager.PrimaryModel.ModelDefinition.ModelName);
     }
 
+    [TestMethod]
+    [Description("保存较短配置时应完整截断并重写旧文件")]
+    public async Task SaveToFileAsync_WhenNewContentIsShorter_TruncatesOldFile()
+    {
+        string filePath = Path.Join(Path.GetTempPath(), $"AgentConfiguration.{Guid.NewGuid():N}.json");
+        var file = new FileInfo(filePath);
+        await File.WriteAllTextAsync(filePath, new string('x', 4096));
+        var configuration = new AgentApiManagerConfiguration
+        {
+            PrimaryModel = null,
+            OpenAIConfigurationList = [],
+        };
+
+        await configuration.SaveToFileAsync(file);
+        AgentApiManagerConfiguration loaded = await AgentApiManagerConfiguration.FromJsonFileAsync(file);
+
+        Assert.IsNull(loaded.PrimaryModel);
+        Assert.IsEmpty(loaded.OpenAIConfigurationList);
+    }
+
     private static FakeLanguageModelProvider CreateFakeProvider(params (string Provider, string ModelName, string? ModelId)[] models)
     {
         var languageModels = new List<FakeLanguageModel>(models.Length);

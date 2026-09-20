@@ -58,6 +58,47 @@ public sealed class SettingsViewModelTests
         Assert.IsEmpty(sandboxToolSource.CreateTools(workspacePath));
     }
 
+    [TestMethod(DisplayName = "模型配置损坏时应清空上次加载的模型并显示错误")]
+    public async Task InvalidModelConfigurationShouldClearPreviouslyLoadedModels()
+    {
+        string rootDirectory = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        CodingChatRoomPaths paths = CodingChatRoomPaths.Create(rootDirectory);
+        paths.EnsureDirectories();
+        var configuration = new AgentApiManagerConfiguration
+        {
+            PrimaryModel = "test/model",
+            OpenAIConfigurationList =
+            [
+                new OpenAIProtocolLanguageModelConfiguration("https://example.com", "key")
+                {
+                    ModelDefinitions =
+                    [
+                        new AgentLib.Core.AgentApiManagers.Contexts.ModelDefinition
+                        {
+                            Provider = "test",
+                            ModelName = "model",
+                        },
+                    ],
+                },
+            ],
+        };
+        await configuration.SaveToFileAsync(paths.ConfigurationFile);
+        var settingsService = new CodingChatSettingsService(
+            paths,
+            new WindowsSandboxToolSource(false, string.Empty, string.Empty));
+        var viewModel = new SettingsViewModel(settingsService, static () => { });
+        await viewModel.LoadAsync();
+        await File.WriteAllTextAsync(paths.ConfigurationFile.FullName, "{ invalid json");
+
+        await viewModel.LoadAsync();
+
+        Assert.IsNull(viewModel.PrimaryModel);
+        Assert.HasCount(1, viewModel.Providers);
+        Assert.AreNotEqual("https://example.com", viewModel.Providers[0].EndPoint);
+        Assert.IsTrue(viewModel.IsStatusError);
+        StringAssert.StartsWith(viewModel.StatusMessage, "现有模型配置无法读取：");
+    }
+
     [TestMethod(DisplayName = "测试沙箱连接时应立即显示连接中提示")]
     [Timeout(5000)]
     public async Task WhenTestingSandboxConnectionThenConnectingMessageIsShownImmediately()
