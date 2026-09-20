@@ -340,24 +340,41 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
 
     private void InitializeAvailableModels()
     {
+        RefreshAvailableModels();
+    }
+
+    internal void RefreshAvailableModels(string? preferredModelDisplayName = null)
+    {
         if (_chatManager is null)
         {
             return;
         }
 
+        preferredModelDisplayName ??= _selectedModel?.DisplayName;
+        AvailableModels.Clear();
         foreach (var model in _chatManager.AgentApiEndpointManager.GetSupportedModels())
         {
             AvailableModels.Add(new LanguageModelOptionViewModel(model));
         }
 
-        if (AvailableModels.Count == 0)
+        LanguageModelOptionViewModel? selectedModel = AvailableModels.FirstOrDefault
+            (option => string.Equals(option.DisplayName, preferredModelDisplayName, StringComparison.Ordinal));
+        selectedModel ??= AvailableModels.FirstOrDefault
+            (option => ReferenceEquals(option.Model, _chatManager.AgentApiEndpointManager.PrimaryModel));
+
+        _selectedModel = selectedModel;
+        if (selectedModel is not null)
         {
-            return;
+            _chatManager.AgentApiEndpointManager.PrimaryModel = selectedModel.Model;
+            _modelStatusText = $"当前模型：{selectedModel.DisplayName}";
+        }
+        else
+        {
+            _modelStatusText = "没有可用模型";
         }
 
-        var primaryModel = _chatManager.AgentApiEndpointManager.PrimaryModel;
-        _selectedModel = AvailableModels.First(option => ReferenceEquals(option.Model, primaryModel));
-        _modelStatusText = $"当前模型：{_selectedModel.DisplayName}";
+        OnPropertyChanged(nameof(SelectedModel));
+        OnPropertyChanged(nameof(StatusText));
     }
 
     /// <summary>

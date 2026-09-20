@@ -113,3 +113,9 @@ internal sealed record CodingChatSettingsSnapshot
     CodingChatShellSettings ShellSettings,
     string? ModelConfigurationError
 );
+
+internal sealed class CodingChatSettingsSavedEventArgs(CodingChatSettingsSnapshot settings) : EventArgs
+{
+    public CodingChatSettingsSnapshot Settings { get; } = settings
+        ?? throw new ArgumentNullException(nameof(settings));
+}

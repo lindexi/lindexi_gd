@@ -4,6 +4,7 @@ using System.ComponentModel;
 using AgentLib;
 using AgentLib.Coding;
 using AgentLib.Core.AgentApiManagers.Contexts;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Logging;
 using AgentLib.Model;
@@ -174,6 +175,36 @@ public sealed class ChatViewModelTests
 
         Assert.AreSame(secondModel, manager.AgentApiEndpointManager.PrimaryModel);
         Assert.AreEqual("当前模型：fake/Second", viewModel.StatusText);
+    }
+
+    [TestMethod(DisplayName = "刷新模型列表时应保留仍然存在的当前模型")]
+    public void RefreshAvailableModelsShouldKeepExistingSelection()
+    {
+        var manager = CreateManagerWithModels("First", "Second");
+        var application = CodingChatApplicationTestFactory.CreateApplication(manager, new EmptySessionStore());
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：fake/First");
+        viewModel.SelectedModel = viewModel.AvailableModels[1];
+        manager.AgentApiEndpointManager.ReplaceConfiguration(CreateModelConfiguration("First", "Second", "First"));
+
+        viewModel.RefreshAvailableModels("fake/Second");
+
+        Assert.AreEqual("fake/Second", viewModel.SelectedModel?.DisplayName);
+        Assert.AreEqual("Second", manager.AgentApiEndpointManager.PrimaryModel.ModelDefinition.ModelName);
+    }
+
+    [TestMethod(DisplayName = "刷新模型列表时当前模型已删除应回退到配置首选模型")]
+    public void RefreshAvailableModelsShouldFallBackToConfiguredPrimaryModel()
+    {
+        var manager = CreateManagerWithModels("First", "Second");
+        var application = CodingChatApplicationTestFactory.CreateApplication(manager, new EmptySessionStore());
+        using var viewModel = new ChatViewModel(manager, application, "当前模型：fake/First");
+        viewModel.SelectedModel = viewModel.AvailableModels[1];
+        manager.AgentApiEndpointManager.ReplaceConfiguration(CreateModelConfiguration("First", "Third", "Third"));
+
+        viewModel.RefreshAvailableModels("fake/Second");
+
+        Assert.AreEqual("fake/Third", viewModel.SelectedModel?.DisplayName);
+        Assert.AreEqual("Third", manager.AgentApiEndpointManager.PrimaryModel.ModelDefinition.ModelName);
     }
 
     [TestMethod(DisplayName = "审批入口应复用聊天管理器完成决策")]
@@ -569,6 +600,43 @@ public sealed class ChatViewModelTests
         Directory.CreateDirectory(path);
         return path;
     }
+
+    private static CopilotChatManager CreateManagerWithModels(params string[] modelNames)
+    {
+        var manager = new CopilotChatManager();
+        var models = modelNames.Select(modelName => new FakeLanguageModel(new FakeChatClient())
+        {
+            ModelDefinition = new ModelDefinition
+            {
+                Provider = "fake",
+                ModelId = modelName,
+                ModelName = modelName,
+            },
+        }).ToArray();
+        manager.AgentApiEndpointManager.RegisterLanguageModelProvider(new FakeLanguageModelProvider(models));
+        manager.AgentApiEndpointManager.PrimaryModel = models[0];
+        return manager;
+    }
+
+    private static AgentApiManagerConfiguration CreateModelConfiguration(
+        string firstModel,
+        string secondModel,
+        string primaryModel)
+        => new()
+        {
+            PrimaryModel = $"fake/{primaryModel}",
+            OpenAIConfigurationList =
+            [
+                new OpenAIProtocolLanguageModelConfiguration("https://example.com", "key")
+                {
+                    ModelDefinitions =
+                    [
+                        new ModelDefinition { Provider = "fake", ModelName = firstModel },
+                        new ModelDefinition { Provider = "fake", ModelName = secondModel },
+                    ],
+                },
+            ],
+        };
 
     private static CopilotChatManager CreateChatManager(FakeChatClient chatClient)
     {

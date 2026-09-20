@@ -55,6 +55,11 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         _settingsViewModel = settingsService is null
             ? null
             : new SettingsViewModel(settingsService, CloseNavigationPages);
+        if (_settingsViewModel is not null)
+        {
+            _settingsViewModel.SettingsSaved += OnSettingsSaved;
+        }
+
         _workTaskStore = workTaskStore;
         _createRuntimeAsync = createRuntimeAsync;
         _errorMessage = initialMessage;
@@ -635,6 +640,21 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         await _settingsViewModel.LoadAsync().ConfigureAwait(true);
     }
 
+    private void OnSettingsSaved(object? sender, CodingChatSettingsSavedEventArgs e)
+    {
+        if (e.Settings.ModelConfiguration is not { } modelConfiguration)
+        {
+            return;
+        }
+
+        foreach (WorkTaskItemViewModel task in WorkTasks)
+        {
+            string? selectedModelDisplayName = task.Chat.SelectedModel?.DisplayName;
+            task.Runtime?.EndpointManager.ReplaceConfiguration(modelConfiguration);
+            task.Chat.RefreshAvailableModels(selectedModelDisplayName);
+        }
+    }
+
     private async Task SaveTasksAndReportAsync()
     {
         try
@@ -746,6 +766,11 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     {
         if (_isDisposed) return;
         _isDisposed = true;
+        if (_settingsViewModel is not null)
+        {
+            _settingsViewModel.SettingsSaved -= OnSettingsSaved;
+        }
+
         foreach (WorkTaskItemViewModel task in WorkTasks)
         {
             Unsubscribe(task);

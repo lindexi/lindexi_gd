@@ -71,6 +71,8 @@ public sealed class SettingsViewModel : ViewModelBase
 
     public ObservableCollection<ProviderSettingsViewModel> Providers { get; } = [];
 
+    internal event EventHandler<CodingChatSettingsSavedEventArgs>? SettingsSaved;
+
     public string? PrimaryModel
     {
         get => _primaryModel;
@@ -319,7 +321,9 @@ public sealed class SettingsViewModel : ViewModelBase
             };
 
             await _settingsService.SaveAsync(modelConfiguration, shellSettings).ConfigureAwait(true);
-            SetStatus("设置已保存。沙箱配置将在下一次对话运行时生效；模型和系统提示词将在下次启动时生效。", isError: false);
+            var settings = new CodingChatSettingsSnapshot(modelConfiguration, shellSettings, null);
+            SettingsSaved?.Invoke(this, new CodingChatSettingsSavedEventArgs(settings));
+            SetStatus("设置已保存。模型列表和沙箱配置已立即生效；系统提示词将在下次启动时生效。", isError: false);
         }
         catch (ArgumentException exception)
         {
