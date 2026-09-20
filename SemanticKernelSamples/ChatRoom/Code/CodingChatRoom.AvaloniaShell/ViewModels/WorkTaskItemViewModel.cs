@@ -27,7 +27,17 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
     /// <summary>获取任务标识。</summary>
     public Guid Id { get; }
     /// <summary>获取或设置独立于会话标题的任务名称。</summary>
-    public string DisplayName { get => _displayName; set { if (!string.IsNullOrWhiteSpace(value)) SetField(ref _displayName, value.Trim()); } }
+    public string DisplayName
+    {
+        get => _displayName;
+        set
+        {
+            if (!string.IsNullOrWhiteSpace(value) && SetField(ref _displayName, value.Trim()))
+            {
+                Runtime?.Application.SetWorkTask(Id, _displayName);
+            }
+        }
+    }
     /// <summary>获取任务聊天上下文。</summary>
     public ChatViewModel Chat { get; }
     /// <summary>获取任务历史导航上下文。</summary>

@@ -77,6 +77,8 @@ internal sealed class FileCodingChatSessionStore : ICodingChatSessionStore
         {
             MainThreadDispatcher = _mainThreadDispatcher,
             WorkspacePath = persistenceData.WorkspacePath,
+            WorkTaskId = persistenceData.WorkTaskId,
+            WorkTaskName = persistenceData.WorkTaskName,
         };
         if (!string.IsNullOrWhiteSpace(persistenceData.Title))
         {

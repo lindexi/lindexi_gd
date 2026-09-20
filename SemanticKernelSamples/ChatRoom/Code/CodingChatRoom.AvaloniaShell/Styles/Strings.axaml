@@ -34,7 +34,7 @@
         <sys:String x:Key="CurrentSessionText">当前会话</sys:String>
         <sys:String x:Key="NewSessionText">+ 新建会话</sys:String>
         <sys:String x:Key="EmptySessionListText">暂无匹配的历史会话</sys:String>
-        <sys:String x:Key="HistorySearchText">搜索标题或工作路径</sys:String>
+        <sys:String x:Key="HistorySearchText">搜索工作路径、任务名称或任务 Id</sys:String>
         <sys:String x:Key="HistoryLoadingText">正在加载历史会话…</sys:String>
         <sys:String x:Key="BackToChatText">返回聊天</sys:String>
         <sys:String x:Key="EditSessionTitleText">编辑标题</sys:String>

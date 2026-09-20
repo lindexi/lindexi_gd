@@ -66,6 +66,8 @@ public sealed class FileCopilotChatSessionStore
                 session.ChatMessages,
                 agentSessionState));
             document.Root!.SetAttributeValue("WorkspacePath", session.WorkspacePath);
+            document.Root.SetAttributeValue("WorkTaskId", session.WorkTaskId);
+            document.Root.SetAttributeValue("WorkTaskName", session.WorkTaskName);
             await SaveDocumentAsync(filePath, document, cancellationToken).ConfigureAwait(false);
         }
         finally
@@ -229,6 +231,10 @@ public sealed class FileCopilotChatSessionStore
 
         string title = reader.GetAttribute("Title") ?? string.Empty;
         string? workspacePath = reader.GetAttribute("WorkspacePath");
+        Guid? workTaskId = Guid.TryParse(reader.GetAttribute("WorkTaskId"), out Guid parsedWorkTaskId)
+            ? parsedWorkTaskId
+            : null;
+        string? workTaskName = reader.GetAttribute("WorkTaskName");
         int messageCount = 0;
         while (await reader.ReadAsync().WaitAsync(cancellationToken).ConfigureAwait(false))
         {
@@ -243,6 +249,8 @@ public sealed class FileCopilotChatSessionStore
             SessionId = sessionId,
             Title = title,
             WorkspacePath = workspacePath,
+            WorkTaskId = workTaskId,
+            WorkTaskName = workTaskName,
             StartedTime = startedTime,
             MessageCount = messageCount,
         };

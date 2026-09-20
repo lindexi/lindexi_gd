@@ -37,6 +37,16 @@ public sealed record CopilotChatSessionPersistenceData
     public string? WorkspacePath { get; init; }
 
     /// <summary>
+    /// 获取持久化的可选工作任务标识。
+    /// </summary>
+    public Guid? WorkTaskId { get; init; }
+
+    /// <summary>
+    /// 获取持久化的可选工作任务名称。
+    /// </summary>
+    public string? WorkTaskName { get; init; }
+
+    /// <summary>
     /// 获取持久化的公开聊天消息。
     /// </summary>
     public required IReadOnlyList<CopilotChatMessage> Messages { get; init; }

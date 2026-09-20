@@ -338,6 +338,38 @@ public sealed class CodingChatApplicationTests
         Assert.AreEqual(session.SessionId, viewModel.Sessions.Single().SessionId);
     }
 
+    [DataTestMethod]
+    [DataRow("Refactor history")]
+    public async Task HistorySearchShouldMatchWorkTaskName(string query)
+    {
+        var session = new CopilotChatSession
+        {
+            WorkTaskId = Guid.NewGuid(),
+            WorkTaskName = query,
+        };
+        var application = CodingChatApplicationTestFactory.CreateApplication(new CopilotChatManager(), new TestSessionStore(session));
+        var viewModel = new SessionListViewModel(application);
+        await viewModel.LoadAsync();
+
+        viewModel.SearchText = query;
+
+        Assert.AreEqual(session.SessionId, viewModel.Sessions.Single().SessionId);
+    }
+
+    [TestMethod]
+    public async Task HistorySearchShouldMatchWorkTaskId()
+    {
+        Guid workTaskId = Guid.NewGuid();
+        var session = new CopilotChatSession { WorkTaskId = workTaskId, WorkTaskName = "Task" };
+        var application = CodingChatApplicationTestFactory.CreateApplication(new CopilotChatManager(), new TestSessionStore(session));
+        var viewModel = new SessionListViewModel(application);
+        await viewModel.LoadAsync();
+
+        viewModel.SearchText = workTaskId.ToString();
+
+        Assert.AreEqual(session.SessionId, viewModel.Sessions.Single().SessionId);
+    }
+
     [TestMethod]
     public async Task RenameShouldPersistTitleWithoutSwitchingSession()
     {
@@ -428,6 +460,8 @@ public sealed class CodingChatApplicationTests
                     SessionId = session.SessionId,
                     Title = session.Title,
                     WorkspacePath = session.WorkspacePath,
+                    WorkTaskId = session.WorkTaskId,
+                    WorkTaskName = session.WorkTaskName,
                     StartedTime = session.StartedTime,
                     MessageCount = session.ChatMessages.Count,
                 })

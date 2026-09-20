@@ -52,6 +52,16 @@ public sealed class CopilotChatSession : NotifyBase
     public string? WorkspacePath { get; set; }
 
     /// <summary>
+    /// 获取或设置会话所属工作任务的唯一标识。
+    /// </summary>
+    public Guid? WorkTaskId { get; set; }
+
+    /// <summary>
+    /// 获取或设置会话所属工作任务的名称。
+    /// </summary>
+    public string? WorkTaskName { get; set; }
+
+    /// <summary>
     /// 会话开始时间。
     /// </summary>
     public DateTimeOffset StartedTime { get; }

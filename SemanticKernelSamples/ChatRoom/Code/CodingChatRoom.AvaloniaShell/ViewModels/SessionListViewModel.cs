@@ -187,9 +187,14 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
             {
                 item.Update(summary);
             }
-            if (query.Length == 0 || summary.Title.Contains(query, StringComparison.OrdinalIgnoreCase)
-                || (summary.WorkspacePath?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false))
+            if (query.Length == 0
+                || summary.Title.Contains(query, StringComparison.OrdinalIgnoreCase)
+                || (summary.WorkspacePath?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (summary.WorkTaskName?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (summary.WorkTaskId?.ToString().Contains(query, StringComparison.OrdinalIgnoreCase) ?? false))
+            {
                 visible.Add(item);
+            }
         }
         var visibleIds = visible.Select(item => item.SessionId).ToHashSet();
         for (int index = Sessions.Count - 1; index >= 0; index--)
@@ -260,6 +265,8 @@ public sealed class SessionItemViewModel : ViewModelBase
         Title = summary.Title;
         _editedTitle = Title;
         WorkspacePath = summary.WorkspacePath;
+        WorkTaskId = summary.WorkTaskId;
+        WorkTaskName = summary.WorkTaskName;
         StartedTime = summary.StartedTime;
         MessageCount = summary.MessageCount;
     }
@@ -267,6 +274,11 @@ public sealed class SessionItemViewModel : ViewModelBase
     public Guid SessionId { get; }
     public string Title { get; private set; }
     public string? WorkspacePath { get; private set; }
+    public Guid? WorkTaskId { get; private set; }
+    public string? WorkTaskName { get; private set; }
+    public string WorkTaskText => WorkTaskId is Guid workTaskId
+        ? $"{WorkTaskName ?? "未命名任务"} ({workTaskId})"
+        : WorkTaskName ?? string.Empty;
     public DateTimeOffset StartedTime { get; }
     public int MessageCount { get; private set; }
 
@@ -282,6 +294,14 @@ public sealed class SessionItemViewModel : ViewModelBase
         {
             WorkspacePath = summary.WorkspacePath;
             OnPropertyChanged(nameof(WorkspacePath));
+        }
+        if (WorkTaskId != summary.WorkTaskId || WorkTaskName != summary.WorkTaskName)
+        {
+            WorkTaskId = summary.WorkTaskId;
+            WorkTaskName = summary.WorkTaskName;
+            OnPropertyChanged(nameof(WorkTaskId));
+            OnPropertyChanged(nameof(WorkTaskName));
+            OnPropertyChanged(nameof(WorkTaskText));
         }
         if (MessageCount != summary.MessageCount)
         {
