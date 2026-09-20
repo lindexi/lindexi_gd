@@ -20,7 +20,8 @@ public sealed class CodingChatRoomPaths
         ShellSettingsFile = new FileInfo(Path.Join(RootDirectory, ShellSettingsFileName));
         WorkTasksFile = new FileInfo(Path.Join(RootDirectory, WorkTasksFileName));
         LogDirectory = Path.Join(RootDirectory, "Logs");
-        SessionDirectory = Path.Join(RootDirectory, "Sessions");
+        SessionDirectory = new DirectoryInfo(Path.Join(RootDirectory, "Sessions"));
+        AbilitiesDirectory = new DirectoryInfo(Path.Join(RootDirectory, "Abilities"));
     }
 
     /// <summary>
@@ -51,7 +52,12 @@ public sealed class CodingChatRoomPaths
     /// <summary>
     /// 获取可恢复会话目录。
     /// </summary>
-    public string SessionDirectory { get; }
+    public DirectoryInfo SessionDirectory { get; }
+
+    /// <summary>
+    /// 获取发送前能力目录。
+    /// </summary>
+    public DirectoryInfo AbilitiesDirectory { get; }
 
     /// <summary>
     /// 为当前用户创建生产路径对象。
@@ -78,6 +84,7 @@ public sealed class CodingChatRoomPaths
     {
         Directory.CreateDirectory(RootDirectory);
         Directory.CreateDirectory(LogDirectory);
-        Directory.CreateDirectory(SessionDirectory);
+        SessionDirectory.Create();
+        AbilitiesDirectory.Create();
     }
 }

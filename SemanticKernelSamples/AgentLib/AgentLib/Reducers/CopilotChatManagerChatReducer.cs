@@ -8,12 +8,14 @@ namespace AgentLib.Reducers;
 /// </summary>
 public class CopilotChatManagerChatReducer : IChatReducer
 {
-    public CopilotChatManagerChatReducer(IChatClient chatClient)
+    public CopilotChatManagerChatReducer(IChatClient chatClient, string? additionalPrompt = null)
     {
         _chatClient = chatClient;
+        _additionalPrompt = additionalPrompt;
     }
 
     private readonly IChatClient _chatClient;
+    private readonly string? _additionalPrompt;
 
     public async Task<IEnumerable<ChatMessage>> ReduceAsync(IEnumerable<ChatMessage> messages, CancellationToken cancellationToken)
     {
@@ -42,7 +44,10 @@ public class CopilotChatManagerChatReducer : IChatReducer
         // 前后都应该加上系统提示词
         input.Insert(0, new ChatMessage(ChatRole.System, "你是一个总结助手，将以下的对话内容进行总结。请不要回答任何的问题，只做总结对话的工作"));
 
-        input.Add(new ChatMessage(ChatRole.System, DefaultSummarizationPrompt));
+        string summarizationPrompt = string.IsNullOrWhiteSpace(_additionalPrompt)
+            ? DefaultSummarizationPrompt
+            : $"{DefaultSummarizationPrompt}\n\nAdditional requirements for this compression:\n{_additionalPrompt}";
+        input.Add(new ChatMessage(ChatRole.System, summarizationPrompt));
 
         var chatResponse = await _chatClient.GetResponseAsync(input, cancellationToken: cancellationToken);
         var result = firstSystemPromptMessage;

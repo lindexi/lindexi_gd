@@ -3,12 +3,9 @@ using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Logging;
 using AgentLib.Model;
 using AgentLib.Tools;
-
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -34,7 +31,7 @@ public class CopilotChatManager : NotifyBase
     private CancellationTokenSource? _currentChatCancellationTokenSource;
     private readonly CopilotToolManager _toolManager;
     private readonly SessionTitleGenerator _titleGenerator;
-    private IMainThreadDispatcher? _mainThreadDispatcher;
+    private readonly IMainThreadDispatcher? _mainThreadDispatcher;
 
     /// <summary>
     /// 使用空日志记录器创建管理器。
@@ -355,8 +352,11 @@ public class CopilotChatManager : NotifyBase
         approvalToolItem.Reject(reason);
     }
 
-    public async Task AddConversationAsync(string userText, string assistantText,
-        bool isPresetInfo = true, CancellationToken cancellationToken = default)
+    public async Task AddConversationAsync
+    (
+        string userText, string assistantText,
+        bool isPresetInfo = true, CancellationToken cancellationToken = default
+    )
     {
         ArgumentHelper.ThrowIfNullOrWhiteSpace(userText);
         ArgumentNullException.ThrowIfNull(assistantText);
@@ -377,9 +377,11 @@ public class CopilotChatManager : NotifyBase
     /// <param name="contents">用户输入的多模态内容集合。</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public Task SendMessageInNewSessionAsync(IReadOnlyList<AIContent> contents, CancellationToken cancellationToken = default)
+    public Task SendMessageInNewSessionAsync
+        (IReadOnlyList<AIContent> contents, CancellationToken cancellationToken = default)
     {
-        return SendMessageAsync(contents, withHistory: true, createNewSession: true, tools: null, toolMode: null, cancellationToken);
+        return SendMessageAsync
+            (contents, withHistory: true, createNewSession: true, tools: null, toolMode: null, cancellationToken);
     }
 
     /// <summary>
@@ -404,8 +406,12 @@ public class CopilotChatManager : NotifyBase
     /// <param name="toolMode">工具模式</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns></returns>
-    public async Task SendMessageAsync(IReadOnlyList<AIContent> contents, bool withHistory = true, bool createNewSession = false, IReadOnlyList<AITool>? tools = null,
-        ChatToolMode? toolMode = null, CancellationToken cancellationToken = default)
+    public async Task SendMessageAsync
+    (
+        IReadOnlyList<AIContent> contents, bool withHistory = true, bool createNewSession = false,
+        IReadOnlyList<AITool>? tools = null,
+        ChatToolMode? toolMode = null, CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(contents);
         if (contents.Count == 0)
@@ -413,14 +419,17 @@ public class CopilotChatManager : NotifyBase
             return;
         }
 
-        SendMessageResult sendMessageResult = SendMessage(new SendMessageRequest(contents)
-        {
-            WithHistory = withHistory,
-            CreateNewSession = createNewSession,
-            Tools = tools ?? [],
-            ToolMode = toolMode,
-            CancellationToken = cancellationToken,
-        });
+        SendMessageResult sendMessageResult = SendMessage
+        (
+            new SendMessageRequest(contents)
+            {
+                WithHistory = withHistory,
+                CreateNewSession = createNewSession,
+                Tools = tools ?? [],
+                ToolMode = toolMode,
+                CancellationToken = cancellationToken,
+            }
+        );
         await sendMessageResult.RunTask;
     }
 
@@ -455,14 +464,16 @@ public class CopilotChatManager : NotifyBase
         }
 
         CopilotChatSession currentSession = SelectedSession;
-        CancellationTokenSource currentChatCancellationTokenSource = CreateCurrentChatCancellationTokenSource(request.CancellationToken);
+        CancellationTokenSource currentChatCancellationTokenSource = CreateCurrentChatCancellationTokenSource
+            (request.CancellationToken);
         CancellationToken currentChatCancellationToken = currentChatCancellationTokenSource.Token;
         _currentChatCancellationTokenSource = currentChatCancellationTokenSource;
         WasLastChatCanceled = false;
         IsChatting = true;
 
         CopilotChatMessage userChatMessage = CopilotChatMessage.CreateUser(request.Contents);
-        CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
+        CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant
+            (CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
         OnBeforeSendStreaming(currentSession, assistantChatMessage);
 
         CopilotChatContext chatContext = new(currentSession.ChatMessages, assistantChatMessage);
@@ -476,7 +487,8 @@ public class CopilotChatManager : NotifyBase
         {
             currentChatCancellationToken.ThrowIfCancellationRequested();
 
-            IChatClient chatClient = request.ChatClient ?? await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
+            IChatClient chatClient =
+                request.ChatClient ?? await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
 
             var chatClientAgentOptions = new ChatClientAgentOptions()
             {
@@ -489,28 +501,37 @@ public class CopilotChatManager : NotifyBase
 
             if (request.ChatReducer is not null)
             {
-                chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
-                {
-                    ChatReducer = new ToolCallAwareChatReducer(request.ChatReducer),
-                });
-                chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = request.RequirePerServiceCallChatHistoryPersistence;
+                chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider
+                (
+                    new InMemoryChatHistoryProviderOptions()
+                    {
+                        ChatReducer = new ToolCallAwareChatReducer(request.ChatReducer),
+                    }
+                );
+                chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence =
+                    request.RequirePerServiceCallChatHistoryPersistence;
             }
             else
             {
                 // 当未指定 ChatReducer 时，自动启用内置的 ToolCall 压缩器。
                 // 压缩器与聊天逻辑无关，始终使用 AgentApiEndpointManager.PrimaryModel 获取 IChatClient。
                 IChatClient reducerChatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
-                chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()
-                {
-                    ChatReducer = new ToolCallAwareChatReducer(new CopilotChatManagerToolCallChatReducer(reducerChatClient))
-                });
+                chatClientAgentOptions.ChatHistoryProvider = new InMemoryChatHistoryProvider
+                (
+                    new InMemoryChatHistoryProviderOptions()
+                    {
+                        ChatReducer = new ToolCallAwareChatReducer
+                            (new CopilotChatManagerToolCallChatReducer(reducerChatClient))
+                    }
+                );
                 chatClientAgentOptions.RequirePerServiceCallChatHistoryPersistence = true;
             }
 
             IReadOnlyList<AIContextProvider>? aiContextProviders = request.AIContextProviders ?? AIContextProviders;
             if (aiContextProviders is { Count: > 0 })
             {
-                chatClientAgentOptions.AIContextProviders = aiContextProviders as IList<AIContextProvider> ?? aiContextProviders.ToList();
+                chatClientAgentOptions.AIContextProviders =
+                    aiContextProviders as IList<AIContextProvider> ?? aiContextProviders.ToList();
             }
 
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(chatClientAgentOptions);
@@ -525,7 +546,8 @@ public class CopilotChatManager : NotifyBase
 
         Task<SendMessageRunState> runTask = RunAsync();
 
-        return new SendMessageResult(userChatMessage, assistantChatMessage, toolList, createChatClientAgentTask, runTask);
+        return new SendMessageResult
+            (userChatMessage, assistantChatMessage, toolList, createChatClientAgentTask, runTask);
 
         async Task<SendMessageRunState> RunAsync()
         {
@@ -542,11 +564,16 @@ public class CopilotChatManager : NotifyBase
                 ChatMessage userChatMessageContent = userChatMessage.ToChatMessage();
                 IEnumerable<ChatMessage> runMessages = string.IsNullOrWhiteSpace(request.SystemPrompt)
                     ? [userChatMessageContent]
-                    : [
+                    :
+                    [
                         new ChatMessage(ChatRole.System, request.SystemPrompt), userChatMessageContent
                     ];
-                await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgentCreatedResult.ChatClientAgent.RunStreamingAsync(
-                    runMessages, chatClientAgentCreatedResult.AgentSession, cancellationToken: currentChatCancellationToken))
+                await foreach (AgentResponseUpdate agentRunResponseUpdate in chatClientAgentCreatedResult
+                                   .ChatClientAgent.RunStreamingAsync
+                                   (
+                                       runMessages, chatClientAgentCreatedResult.AgentSession,
+                                       cancellationToken: currentChatCancellationToken
+                                   ))
                 {
                     if (isFirst)
                     {
@@ -569,7 +596,8 @@ public class CopilotChatManager : NotifyBase
             }
             catch (Exception exception)
             {
-                CopilotChatMessage exceptionMessage = CopilotChatMessage.CreateAssistant(exception.ToString(), isPresetInfo: true);
+                CopilotChatMessage exceptionMessage = CopilotChatMessage.CreateAssistant
+                    (exception.ToString(), isPresetInfo: true);
                 await AppendMessageAsync(currentSession, exceptionMessage);
                 return new SendMessageRunState(IsSuccess: false, WasCanceled: false);
             }
@@ -603,13 +631,15 @@ public class CopilotChatManager : NotifyBase
     /// </summary>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>手动发送消息的上下文。</returns>
-    public async Task<IManualSendMessageContext> CreateManualSendMessageContextAsync(CancellationToken cancellationToken = default)
+    public async Task<IManualSendMessageContext> CreateManualSendMessageContextAsync
+        (CancellationToken cancellationToken = default)
     {
         // 默认工具不经过 HumanApprovalTool 包装，调用方自行决定是否包装
         IReadOnlyList<AITool> defaultTools = _toolManager.CreateDefaultTools(chatContext: null);
 
         CopilotChatMessage userChatMessage = CopilotChatMessage.CreateUser(string.Empty);
-        CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
+        CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant
+            (CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
 
         IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
 
@@ -636,7 +666,8 @@ public class CopilotChatManager : NotifyBase
     /// 自定义 System Prompt。为 <see langword="null"/> 时使用默认 Prompt。
     /// </param>
     /// <param name="cancellationToken">取消令牌。</param>
-    public Task GenerateSessionTitleAsync(CopilotChatSession? session = null, string? systemPrompt = null, CancellationToken cancellationToken = default)
+    public Task GenerateSessionTitleAsync
+        (CopilotChatSession? session = null, string? systemPrompt = null, CancellationToken cancellationToken = default)
     {
         return _titleGenerator.GenerateTitleAsync(session ?? SelectedSession, systemPrompt, cancellationToken);
     }
@@ -644,12 +675,24 @@ public class CopilotChatManager : NotifyBase
     /// <summary>
     /// 压缩对话，如果没有传压缩器，则采用内置的压缩逻辑
     /// </summary>
-    /// <param name="chatReducer"></param>
     /// <returns></returns>
-    public async Task ReduceSessionAsync(IChatReducer? chatReducer = null)
+    public async Task ReduceSessionAsync
+    (
+        IChatReducer? chatReducer,
+        string? requestText,
+        string? additionalPrompt = null,
+        CancellationToken cancellationToken = default
+    )
     {
         CopilotChatSession currentSession = SelectedSession;
-        List<ChatMessage> resultList = await ReduceAgentSessionAsync(currentSession.AgentSession, chatReducer);
+        if (chatReducer is null && !string.IsNullOrWhiteSpace(additionalPrompt))
+        {
+            IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
+            chatReducer = new CopilotChatManagerChatReducer(chatClient, additionalPrompt);
+        }
+
+        List<ChatMessage> resultList = await ReduceAgentSessionAsync
+            (currentSession.AgentSession, chatReducer, cancellationToken);
 
         // 从压缩结果中提取 Assistant 角色的完整内容（含文本、图片、音频等多模态），保留原始 AIContent
         List<AIContent> assistantContents = resultList
@@ -659,7 +702,10 @@ public class CopilotChatManager : NotifyBase
 
         if (assistantContents.Count > 0)
         {
-            var userMessage = CopilotChatMessage.CreateUser("总结对话");
+            var userMessage = CopilotChatMessage.CreateUser
+            (
+                string.IsNullOrWhiteSpace(requestText) ? "总结对话" : requestText
+            );
             userMessage.IsPresetInfo = true;
             await AppendMessageAsync(currentSession, userMessage);
 
@@ -677,14 +723,20 @@ public class CopilotChatManager : NotifyBase
     /// <param name="agentSession">要压缩的 Agent 会话。</param>
     /// <param name="chatReducer">自定义压缩器；为 <see langword="null"/> 时使用默认压缩器。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    public async Task ReduceAgentSessionOnlyAsync(AgentSession? agentSession = null, IChatReducer? chatReducer = null,
-        CancellationToken cancellationToken = default)
+    public async Task ReduceAgentSessionOnlyAsync
+    (
+        AgentSession? agentSession = null, IChatReducer? chatReducer = null,
+        CancellationToken cancellationToken = default
+    )
     {
         await ReduceAgentSessionAsync(agentSession ?? SelectedSession.AgentSession, chatReducer, cancellationToken);
     }
 
-    private async Task<List<ChatMessage>> ReduceAgentSessionAsync(AgentSession? agentSession, IChatReducer? chatReducer = null,
-        CancellationToken cancellationToken = default)
+    private async Task<List<ChatMessage>> ReduceAgentSessionAsync
+    (
+        AgentSession? agentSession, IChatReducer? chatReducer = null,
+        CancellationToken cancellationToken = default
+    )
     {
         if (agentSession is null)
         {
@@ -712,8 +764,11 @@ public class CopilotChatManager : NotifyBase
         return resultList;
     }
 
-    private List<AITool> ResolveTools(IReadOnlyList<AITool> tools, CopilotChatContext? chatContext = null,
-        CancellationToken cancellationToken = default)
+    private List<AITool> ResolveTools
+    (
+        IReadOnlyList<AITool> tools, CopilotChatContext? chatContext = null,
+        CancellationToken cancellationToken = default
+    )
     {
         List<AITool> toolList = new(tools.Count);
         foreach (AITool tool in tools)
@@ -721,8 +776,11 @@ public class CopilotChatManager : NotifyBase
             toolList.Add(HumanApprovalTool.BindRuntimeTool(tool, chatContext, cancellationToken));
         }
 
-        toolList.AddRange(_toolManager.CreateDefaultTools(chatContext, cancellationToken)
-            .Select(tool => HumanApprovalTool.BindRuntimeTool(tool, chatContext, cancellationToken)));
+        toolList.AddRange
+        (
+            _toolManager.CreateDefaultTools(chatContext, cancellationToken)
+                .Select(tool => HumanApprovalTool.BindRuntimeTool(tool, chatContext, cancellationToken))
+        );
 
         if (chatContext is not null)
         {
@@ -738,9 +796,11 @@ public class CopilotChatManager : NotifyBase
         return toolList;
     }
 
-    internal void AppendAssistantResponseUpdate(
+    internal void AppendAssistantResponseUpdate
+    (
         CopilotChatMessage copilotChatMessage,
-        AgentResponseUpdate responseUpdate)
+        AgentResponseUpdate responseUpdate
+    )
     {
         ArgumentNullException.ThrowIfNull(copilotChatMessage);
         ArgumentNullException.ThrowIfNull(responseUpdate);
@@ -818,7 +878,8 @@ public class CopilotChatManager : NotifyBase
     /// <param name="session">目标会话。</param>
     /// <param name="chatMessage">要追加的聊天消息。</param>
     /// <param name="cancellationToken">取消令牌。</param>
-    internal async Task AppendMessageAsync(CopilotChatSession session, CopilotChatMessage chatMessage, CancellationToken cancellationToken = default)
+    internal async Task AppendMessageAsync
+        (CopilotChatSession session, CopilotChatMessage chatMessage, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -826,8 +887,11 @@ public class CopilotChatManager : NotifyBase
         await ChatLogger.LogMessageAsync(session.SessionId, chatMessage);
     }
 
-    private static async Task<AgentSession> GetOrCreateAgentSessionAsync(ChatClientAgent chatClientAgent, CopilotChatSession currentSession,
-        CancellationToken cancellationToken)
+    private static async Task<AgentSession> GetOrCreateAgentSessionAsync
+    (
+        ChatClientAgent chatClientAgent, CopilotChatSession currentSession,
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(chatClientAgent);
         ArgumentNullException.ThrowIfNull(currentSession);
@@ -881,5 +945,4 @@ public class CopilotChatManager : NotifyBase
             _manager.IsChatting = false;
         }
     }
-
 }
