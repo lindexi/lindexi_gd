@@ -698,6 +698,12 @@ public class CopilotChatManager : NotifyBase
         userMessage.IsPresetInfo = true;
         await AppendMessageAsync(currentSession, userMessage, cancellationToken);
 
+        var assistantMessage = new CopilotChatMessage(ChatRole.Assistant, "压缩中...")
+        {
+            IsPresetInfo = true
+        };
+        await AppendMessageAsync(currentSession, assistantMessage, cancellationToken);
+
         List<ChatMessage> resultList = await ReduceAgentSessionAsync
             (currentSession.AgentSession, chatReducer, cancellationToken);
 
@@ -707,13 +713,18 @@ public class CopilotChatManager : NotifyBase
             .SelectMany(m => m.Contents)
             .ToList();
 
-        if (assistantContents.Count > 0)
+        assistantMessage.ClearMessageItems();
+        foreach (AIContent content in assistantContents)
         {
-            var assistantMessage = new CopilotChatMessage(ChatRole.Assistant, assistantContents)
+            switch (content)
             {
-                IsPresetInfo = true
-            };
-            await AppendMessageAsync(currentSession, assistantMessage, cancellationToken);
+                case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
+                    assistantMessage.MessageItems.Add(new CopilotChatTextItem(textContent.Text));
+                    break;
+                case DataContent dataContent when dataContent.Data is { Length: > 0 }:
+                    assistantMessage.MessageItems.Add(CopilotChatMessage.CreateDataItem(dataContent));
+                    break;
+            }
         }
     }
 
