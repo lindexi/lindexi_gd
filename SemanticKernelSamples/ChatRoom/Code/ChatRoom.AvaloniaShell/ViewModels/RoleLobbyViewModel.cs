@@ -341,11 +341,6 @@ public sealed class RoleLobbyViewModel : ViewModelBase
     public event EventHandler? BackRequested;
 
     /// <summary>
-    /// 编辑模板请求事件。参数为模板 ID。
-    /// </summary>
-    public event EventHandler<string>? EditTemplateRequested;
-
-    /// <summary>
     /// 使用指定的服务创建角色大厅 ViewModel。
     /// </summary>
     /// <param name="templateService">角色模板服务。</param>

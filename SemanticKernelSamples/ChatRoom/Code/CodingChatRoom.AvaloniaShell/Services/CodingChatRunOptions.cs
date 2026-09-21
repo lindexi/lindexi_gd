@@ -68,7 +68,7 @@ internal static class CodingAgentRunExtensions
 
         public IChatClient ChatClient => inner.ChatClient;
 
-        public AgentLib.IMainThreadDispatcher MainThreadDispatcher => inner.MainThreadDispatcher;
+        public AgentLib.IMainThreadDispatcher? MainThreadDispatcher => inner.MainThreadDispatcher;
 
         public IReadOnlyList<AITool> DefaultTools => inner.DefaultTools;
 
