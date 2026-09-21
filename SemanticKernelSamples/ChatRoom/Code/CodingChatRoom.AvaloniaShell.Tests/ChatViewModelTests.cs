@@ -530,15 +530,20 @@ public sealed class ChatViewModelTests
         await compressionStarted.Task;
 
         Assert.IsTrue(viewModel.IsCompressing);
-        Assert.AreEqual("总结对话", viewModel.Messages[^1].Content);
-        Assert.IsTrue(viewModel.Messages[^1].IsUserMessage);
+        Assert.AreEqual("总结对话", viewModel.Messages[^2].Content);
+        Assert.IsTrue(viewModel.Messages[^2].IsUserMessage);
+        Assert.AreEqual("压缩中...", viewModel.Messages[^1].Content);
+        Assert.IsTrue(viewModel.Messages[^1].IsAssistantMessage);
+        MessageItemViewModel compressionMessage = viewModel.Messages[^1];
         Assert.IsFalse(viewModel.Messages.Any(message => message.Content.Contains(summaryText, StringComparison.Ordinal)));
 
         releaseCompression.TrySetResult();
+        await WaitUntilAsync(() => compressionMessage.Content.Contains(summaryText, StringComparison.Ordinal));
         await WaitUntilAsync(() => viewModel.Messages[^1].Content == "对话压缩完成。");
 
         Assert.IsTrue(agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? compressedMessages));
         Assert.IsTrue(compressedMessages.Any(message => message.Text.Contains(summaryText, StringComparison.Ordinal)));
+        Assert.AreEqual(summaryText, compressionMessage.Content);
         Assert.IsTrue(viewModel.Messages[^1].IsSystemMessage);
     }
 

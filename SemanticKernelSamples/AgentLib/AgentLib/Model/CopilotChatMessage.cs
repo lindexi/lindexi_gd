@@ -42,18 +42,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         Role = role;
         MessageItems.CollectionChanged += MessageItems_CollectionChanged;
 
-        foreach (AIContent content in contents)
-        {
-            switch (content)
-            {
-                case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
-                    MessageItems.Add(new CopilotChatTextItem(textContent.Text));
-                    break;
-                case DataContent dataContent when dataContent.Data is { Length: > 0 }:
-                    MessageItems.Add(CreateDataItem(dataContent));
-                    break;
-            }
-        }
+        AppendContents(contents);
 
         CreatedTime = DateTimeOffset.Now;
         TimeText = CreatedTime.ToString("HH:mm");
@@ -548,6 +537,43 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         _toolItemsByCallId.Clear();
         _subAgentItemsByCallId.Clear();
         _invokeSubAgentCallIds.Clear();
+    }
+
+    /// <summary>
+    /// 追加支持展示的 AI 内容片段。
+    /// </summary>
+    /// <param name="contents">要追加的 AI 内容。</param>
+    internal void AppendContents(IEnumerable<AIContent> contents)
+    {
+        ArgumentNullException.ThrowIfNull(contents);
+
+        foreach (AIContent content in contents)
+        {
+            switch (content)
+            {
+                case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
+                    MessageItems.Add(new CopilotChatTextItem(textContent.Text));
+                    break;
+                case TextReasoningContent reasoningContent when !string.IsNullOrEmpty(reasoningContent.Text):
+                    MessageItems.Add(new CopilotChatReasoningItem(reasoningContent.Text));
+                    break;
+                case DataContent dataContent when dataContent.Data is { Length: > 0 }:
+                    MessageItems.Add(CreateDataItem(dataContent));
+                    break;
+                case FunctionCallContent functionCallContent:
+                    AppendFunctionCall(functionCallContent);
+                    break;
+                case FunctionResultContent functionResultContent:
+                    AppendFunctionResult(functionResultContent);
+                    break;
+                case UsageContent usageContent:
+                    AppendUsageDetails(usageContent);
+                    break;
+                case ErrorContent errorContent when !string.IsNullOrWhiteSpace(errorContent.Message):
+                    MessageItems.Add(new CopilotChatTextItem(errorContent.Message));
+                    break;
+            }
+        }
     }
 
     /// <summary>
