@@ -76,9 +76,7 @@ public partial class RightSlideBar : UserControl
         if (dataContext is SimpleWriteMainViewModel mainViewModel)
         {
             CopilotViewModel copilotViewModel = CopilotSlideBar.ViewModel;
-            copilotViewModel.ChatLogger = new FileCopilotChatLogger(
-                mainViewModel.AppPathManager.CopilotChatLogDirectory,
-                mainViewModel.AppPathManager.CopilotChatHistoryDirectory);
+            copilotViewModel.ChatLogger = new FileCopilotChatLogger(mainViewModel.AppPathManager.CopilotChatLogDirectory);
 
             var editorTabToolProvider = new EditorTabToolProvider(mainViewModel.EditorViewModel);
             copilotViewModel.AdditionalDefaultTools.AddRange(editorTabToolProvider.CreateTools());

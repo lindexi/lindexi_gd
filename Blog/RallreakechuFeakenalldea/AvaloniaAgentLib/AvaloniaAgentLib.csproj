@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\SemanticKernelLib\SemanticKernelSamples\AgentLib\AgentLib\AgentLib.csproj" />
-    <ProjectReference Include="..\..\..\..\SemanticKernelLib\SemanticKernelSamples\Microsoft.Agents.AI.Extensions\src\Microsoft.Extensions.AI.DeepSeek\Microsoft.Extensions.AI.DeepSeek.csproj" />
+    <ProjectReference Include="..\..\SemanticKernelSamples\AgentLib\AgentLib\AgentLib.csproj" />
+    <ProjectReference Include="..\..\SemanticKernelSamples\Microsoft.Agents.AI.Extensions\src\Microsoft.Extensions.AI.DeepSeek\Microsoft.Extensions.AI.DeepSeek.csproj" />
   </ItemGroup>
 
   <ItemGroup>
