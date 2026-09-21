@@ -67,9 +67,6 @@ Abilities/
 ├─ CodeReview/
 │  ├─ Ability.xml
 │  └─ Prompt.md
-├─ RefactorDesign/
-│  ├─ Ability.xml
-│  └─ Prompt.md
 ├─ Compress/
 │  ├─ Ability.xml
 │  └─ Prompt.md
@@ -87,7 +84,7 @@ Abilities/
 - 用户自定义 Markdown 文件名可以不是 `Prompt.md`，但程序写入的默认文件必须用帕斯卡命名。
 - Markdown 采用 UTF-8，兼容 BOM。
 - 不要求目录名等于显示名称或 ID。
-- 目录名对程序提供的默认能力使用帕斯卡命名：`CodeReview`、`RefactorDesign`、`Compress`。
+- 目录名对程序提供的默认能力使用帕斯卡命名：`CodeReview`、`Compress`。
 
 ### 3.1 没有 XML 时
 
@@ -221,15 +218,14 @@ XML 如果格式错误或目标文件不存在，**不回退到无 XML 规则**�
 
 ### 5.3 随应用提供的普通模板
 
-默认还提供两个普通磁盘能力：
+默认提供一个普通磁盘能力：
 
 | ID | 目录 | 中文名称 | 行为 |
 |---|---|---|---|
 | `code-review` | `CodeReview` | 代码审查 | 普通提示词发送 |
-| `refactor-design` | `RefactorDesign` | 代码重构设计 | 普通提示词发送 |
 
-它们使用与用户能力相同的文件夹、`Ability.xml`、`Prompt.md` 结构。  
-这两个 ID **不是**内置保留项；用户删除后，菜单中不再出现，也不会在后续启动中被重建。
+它使用与用户能力相同的文件夹、`Ability.xml`、`Prompt.md` 结构。  
+该 ID **不是**内置保留项；用户删除后，菜单中不再出现，也不会在后续启动中被重建。
 
 `Compress` 目录随应用一次性写入，只作为内置压缩的可编辑模板来源。
 
@@ -237,8 +233,8 @@ XML 如果格式错误或目标文件不存在，**不回退到无 XML 规则**�
 
 为避免删除文件后又被自动创建，明确采用一次性初始化：
 
-- 在 `CodingChatShellSettings` 中记录默认能力已初始化。
-- 未初始化时，将 `CodeReview`、`RefactorDesign`、`Compress` 写入能力目录。
+- 在能力目录中使用独立初始化标记，不污染 Shell 设置。
+- 未初始化时，将 `CodeReview`、`Compress` 写入能力目录。
 - 已存在目录不覆盖、不补写，不假设其中内容仍属于程序默认文件。
 - 初始化成功后保存标记。
 - 初始化失败记录错误，允许下次启动重试。
@@ -484,7 +480,7 @@ XML 如果格式错误或目标文件不存在，**不回退到无 XML 规则**�
 | 位置 | 责任 |
 |---|---|
 | `CodingChatRoomPaths` | 提供 `AbilitiesDirectory` |
-| `CodingChatShellSettings` 与启动流程 | 默认能力一次性初始化及标记 |
+| 能力默认文件安装器 | 默认能力一次性初始化及独立标记 |
 | 能力定义数据类型 | 保存 ID、名称映射、模板正文、来源目录、是否内置 |
 | 能力目录服务 | 异步扫描、XML 校验、去重、快照发布；把有效 `compress` 模板绑定到内置压缩项 |
 | 提示词处理组件 | 字面量替换与请求快照构造 |
@@ -512,7 +508,7 @@ XML 如果格式错误或目标文件不存在，**不回退到无 XML 规则**�
 - 程序写入的默认文件名为 `Ability.xml` 和 `Prompt.md`。
 - 重复 ID、无效 XML、越界路径、外部实体、超限文件均正确拒绝。
 - 用户文件不被初始化和升级覆盖。
-- 删除 `CodeReview` / `RefactorDesign` 后不会在后续启动中被重新创建。
+- 删除 `CodeReview` 后不会在后续启动中被重新创建。
 - 删除 `Compress` 后，内置压缩菜单项仍在，并回退程序默认要求。
 - 目录声称 `programming` 时不出现第二个“编程”。
 

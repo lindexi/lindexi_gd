@@ -86,7 +86,7 @@ internal static class CodingChatStartup
         var workspaceController = new CodingWorkspaceController(mainThreadDispatcher);
         var sessionStore = new FileCodingChatSessionStore
         (
-            paths.SessionDirectory,
+            paths.SessionDirectory.FullName,
             paths.LogDirectory,
             chatManager,
             mainThreadDispatcher
@@ -102,17 +102,17 @@ internal static class CodingChatStartup
         );
 
         return new CodingChatRuntime
-        (
-            paths,
-            endpointManager,
-            chatLogger,
-            chatManager,
-            codingAgent,
-            primaryModel,
-            application,
-            workspaceController,
-            settingsService
-        );
+        {
+            Paths = paths,
+            EndpointManager = endpointManager,
+            ChatLogger = chatLogger,
+            ChatManager = chatManager,
+            CodingAgent = codingAgent,
+            PrimaryModel = primaryModel,
+            Application = application,
+            WorkspaceController = workspaceController,
+            SettingsService = settingsService,
+        };
     }
 
     private static string? GetCopilotInstructionsPath(CodingChatShellSettings shellSettings)

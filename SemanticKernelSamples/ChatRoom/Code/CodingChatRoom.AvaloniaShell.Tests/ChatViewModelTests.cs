@@ -496,15 +496,21 @@ public sealed class ChatViewModelTests
             (countAfterAgentSessionChanged, notificationCount > 0, viewModel.CompressConversationCommand.CanExecute(null)));
     }
 
-    [TestMethod(DisplayName = "压缩命令应压缩当前对话并显示完成消息")]
+    [TestMethod(DisplayName = "压缩命令应立即显示用户消息并在压缩完成后显示完成消息")]
     [Timeout(5000)]
-    public async Task CompressConversationCommandShouldReduceCurrentHistoryAndShowCompletionMessage()
+    public async Task CompressConversationCommandShouldShowUserMessageBeforeCompressionCompletes()
     {
+        var compressionStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseCompression = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         const string summaryText = "压缩后的编程对话摘要";
         var chatClient = new FakeChatClient
         {
-            OnGetResponseAsync = (_, _, _) =>
-                Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, summaryText)])),
+            OnGetResponseAsync = async (_, _, cancellationToken) =>
+            {
+                compressionStarted.TrySetResult();
+                await releaseCompression.Task.WaitAsync(cancellationToken);
+                return new ChatResponse([new ChatMessage(ChatRole.Assistant, summaryText)]);
+            },
         };
         CopilotChatManager manager = CreateChatManager(chatClient);
         IManualSendMessageContext context = await manager.CreateManualSendMessageContextAsync();
@@ -521,6 +527,14 @@ public sealed class ChatViewModelTests
 
         Assert.IsTrue(viewModel.CompressConversationCommand.CanExecute(null));
         viewModel.CompressConversationCommand.Execute(null);
+        await compressionStarted.Task;
+
+        Assert.IsTrue(viewModel.IsCompressing);
+        Assert.AreEqual("总结对话", viewModel.Messages[^1].Content);
+        Assert.IsTrue(viewModel.Messages[^1].IsUserMessage);
+        Assert.IsFalse(viewModel.Messages.Any(message => message.Content.Contains(summaryText, StringComparison.Ordinal)));
+
+        releaseCompression.TrySetResult();
         await WaitUntilAsync(() => viewModel.Messages[^1].Content == "对话压缩完成。");
 
         Assert.IsTrue(agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? compressedMessages));

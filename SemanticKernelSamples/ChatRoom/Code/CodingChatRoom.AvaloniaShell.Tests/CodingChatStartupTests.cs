@@ -22,7 +22,8 @@ public sealed class CodingChatStartupTests
             Path.Join(paths.RootDirectory, "AgentConfiguration.json"),
             paths.ConfigurationFile.FullName);
         Assert.AreEqual(Path.Join(paths.RootDirectory, "Logs"), paths.LogDirectory);
-        Assert.AreEqual(Path.Join(paths.RootDirectory, "Sessions"), paths.SessionDirectory);
+        Assert.AreEqual(Path.Join(paths.RootDirectory, "Sessions"), paths.SessionDirectory.FullName);
+        Assert.AreEqual(Path.Join(paths.RootDirectory, "Abilities"), paths.AbilitiesDirectory.FullName);
     }
 
     [TestMethod(DisplayName = "目录初始化不应生成配置文件")]
@@ -36,7 +37,8 @@ public sealed class CodingChatStartupTests
 
         Assert.IsTrue(Directory.Exists(paths.RootDirectory));
         Assert.IsTrue(Directory.Exists(paths.LogDirectory));
-        Assert.IsTrue(Directory.Exists(paths.SessionDirectory));
+        Assert.IsTrue(paths.SessionDirectory.Exists);
+        Assert.IsTrue(paths.AbilitiesDirectory.Exists);
         Assert.IsFalse(paths.ConfigurationFile.Exists);
     }
 

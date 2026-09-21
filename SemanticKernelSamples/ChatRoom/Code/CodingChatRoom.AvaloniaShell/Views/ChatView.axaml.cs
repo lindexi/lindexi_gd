@@ -189,6 +189,14 @@ public partial class ChatView : UserControl
         }
     }
 
+    private void AbilitySelector_OnDropDownOpened(object? sender, EventArgs e)
+    {
+        if (DataContext is ChatViewModel viewModel)
+        {
+            viewModel.RefreshAbilities();
+        }
+    }
+
     private void RemoveImageButton_OnClick(object? sender, RoutedEventArgs e)
     {
         if (sender is Button { CommandParameter: ImageAttachmentViewModel attachment }

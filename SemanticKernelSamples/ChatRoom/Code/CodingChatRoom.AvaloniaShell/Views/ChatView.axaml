@@ -387,11 +387,22 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                <Button Grid.Row="2"
-                        Grid.Column="0"
-                        Classes="Secondary"
-                        Content="{StaticResource AddImageText}"
-                        Click="AddImageButton_OnClick" />
+                <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <ComboBox x:Name="AbilitySelector"
+                              MinWidth="150"
+                              ItemsSource="{Binding AvailableAbilities}"
+                              SelectedItem="{Binding SelectedAbility}"
+                              DropDownOpened="AbilitySelector_OnDropDownOpened">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:AbilityOptionViewModel">
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Classes="Secondary"
+                            Content="{StaticResource AddImageText}"
+                            Click="AddImageButton_OnClick" />
+                </StackPanel>
                 <TextBox Grid.Row="1" Grid.ColumnSpan="3" x:Name="MessageInputTextBox"
                          Classes="ComposerInput" Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
                          PlaceholderText="{StaticResource MessageInputPlaceholder}" />

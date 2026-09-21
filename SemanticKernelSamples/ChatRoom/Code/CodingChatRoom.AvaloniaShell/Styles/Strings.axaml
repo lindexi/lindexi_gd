@@ -49,6 +49,8 @@
         <sys:String x:Key="ChatTitle">编程助手</sys:String>
         <sys:String x:Key="ChatDescription">会话、工作区和模型发送能力将在后续阶段接入。</sys:String>
         <sys:String x:Key="MessageInputPlaceholder">描述你想完成的任务，或继续追问…</sys:String>
+        <sys:String x:Key="ProgrammingAbilityText">编程</sys:String>
+        <sys:String x:Key="CompressWithInstructionsAbilityText">按照指令进行压缩</sys:String>
         <sys:String x:Key="AddImageText">添加图片</sys:String>
         <sys:String x:Key="RemoveImageText">移除图片</sys:String>
         <sys:String x:Key="OpenImageExternallyText">点击使用系统图片查看器打开</sys:String>
