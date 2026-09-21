@@ -691,6 +691,13 @@ public class CopilotChatManager : NotifyBase
             chatReducer = new CopilotChatManagerChatReducer(chatClient, additionalPrompt);
         }
 
+        var userMessage = CopilotChatMessage.CreateUser
+        (
+            string.IsNullOrWhiteSpace(requestText) ? "总结对话" : requestText
+        );
+        userMessage.IsPresetInfo = true;
+        await AppendMessageAsync(currentSession, userMessage, cancellationToken);
+
         List<ChatMessage> resultList = await ReduceAgentSessionAsync
             (currentSession.AgentSession, chatReducer, cancellationToken);
 
@@ -702,18 +709,11 @@ public class CopilotChatManager : NotifyBase
 
         if (assistantContents.Count > 0)
         {
-            var userMessage = CopilotChatMessage.CreateUser
-            (
-                string.IsNullOrWhiteSpace(requestText) ? "总结对话" : requestText
-            );
-            userMessage.IsPresetInfo = true;
-            await AppendMessageAsync(currentSession, userMessage);
-
             var assistantMessage = new CopilotChatMessage(ChatRole.Assistant, assistantContents)
             {
                 IsPresetInfo = true
             };
-            await AppendMessageAsync(currentSession, assistantMessage);
+            await AppendMessageAsync(currentSession, assistantMessage, cancellationToken);
         }
     }
 
