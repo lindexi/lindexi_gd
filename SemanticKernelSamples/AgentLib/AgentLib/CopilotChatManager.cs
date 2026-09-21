@@ -714,18 +714,7 @@ public class CopilotChatManager : NotifyBase
             .ToList();
 
         assistantMessage.ClearMessageItems();
-        foreach (AIContent content in assistantContents)
-        {
-            switch (content)
-            {
-                case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
-                    assistantMessage.MessageItems.Add(new CopilotChatTextItem(textContent.Text));
-                    break;
-                case DataContent dataContent when dataContent.Data is { Length: > 0 }:
-                    assistantMessage.MessageItems.Add(CopilotChatMessage.CreateDataItem(dataContent));
-                    break;
-            }
-        }
+        assistantMessage.AppendContents(assistantContents);
     }
 
     /// <summary>

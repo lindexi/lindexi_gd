@@ -377,4 +377,25 @@ public class CopilotChatMessageTests
 
         Assert.AreEqual("XY", message.Reason);
     }
+
+    [TestMethod]
+    [Description("从 AI 内容构造消息时应映射推理、工具调用、工具结果、用量和错误内容")]
+    public void Constructor_WhenGivenSupportedAiContents_MapsAllSupportedContentTypes()
+    {
+        var contents = new AIContent[]
+        {
+            new TextReasoningContent("分析过程"),
+            new FunctionCallContent("call-1", "ReadFile", new Dictionary<string, object?> { ["Path"] = "a.txt" }),
+            new FunctionResultContent("call-1", "文件内容"),
+            new UsageContent(new UsageDetails { TotalTokenCount = 42 }),
+            new ErrorContent("模型返回错误"),
+        };
+
+        var message = new CopilotChatMessage(ChatRole.Assistant, contents);
+
+        Assert.AreEqual("分析过程", message.Reason);
+        Assert.IsTrue(message.MessageItems.OfType<CopilotChatToolItem>().Any());
+        Assert.AreEqual(42, message.TotalUsageDetails?.TotalTokenCount);
+        StringAssert.Contains(message.Content, "模型返回错误");
+    }
 }
