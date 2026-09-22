@@ -34,6 +34,18 @@ public sealed class CodingWorkspaceControllerTests
         StringAssert.Contains(controller.StatusText, "不存在");
     }
 
+    [TestMethod(DisplayName = "禁用路径校验时应允许不存在的目录")]
+    public async Task ChangeWorkspaceAsync_WhenValidationIsDisabled_AllowsMissingDirectory()
+    {
+        string missingPath = Path.Join(CreateTestDirectory(), "missing");
+        var controller = CreateController();
+
+        await controller.ChangeWorkspaceAsync(missingPath, validatePath: false);
+
+        Assert.AreEqual(Path.GetFullPath(missingPath), controller.NextRunWorkspacePath);
+        Assert.AreEqual(controller.NextRunWorkspacePath, controller.WorkspaceInput);
+    }
+
     [TestMethod(DisplayName = "相同规范化路径不应标记为变化")]
     public async Task ChangeWorkspaceAsync_WhenNormalizedPathIsUnchanged_ReturnsUnchanged()
     {

@@ -62,7 +62,8 @@ internal sealed class CodingWorkspaceController : INotifyPropertyChanged
     public async Task<WorkspaceChangeResult> ChangeWorkspaceAsync
     (
         string? requestedPath,
-        CancellationToken cancellationToken = default
+        CancellationToken cancellationToken = default,
+        bool validatePath = true
     )
     {
         await _changeGate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -78,7 +79,7 @@ internal sealed class CodingWorkspaceController : INotifyPropertyChanged
                 return new WorkspaceChangeResult(previousPath, normalizedPath, false, noChangeMessage);
             }
 
-            if (normalizedPath is not null && !Directory.Exists(normalizedPath))
+            if (validatePath && normalizedPath is not null && !Directory.Exists(normalizedPath))
             {
                 throw new DirectoryNotFoundException($"指定的工作路径不存在：{normalizedPath}");
             }
