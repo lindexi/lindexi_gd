@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -43,9 +43,12 @@
               <Style Selector="Border.Tab-Main-Style">
                   <Setter Property="Background" Value="{StaticResource Brush.Background.TabBar}" />
               </Style>
+              <Style Selector="ListBoxItem:pointerover Border.Tab-Main-Style">
+                  <Setter Property="Background" Value="{StaticResource Brush.Background.TabHover}" />
+              </Style>
               <Style Selector="ListBoxItem:selected Border.Tab-Main-Style">
                   <Setter Property="Background" Value="{StaticResource Brush.Background.TabSelected}" />
-                  <!-- <Setter Property="CornerRadius" Value="5 5 0 0"></Setter> -->
+                  <Setter Property="BorderBrush" Value="{StaticResource Brush.Border.TabSelected}" />
               </Style>
           </ListBox.Styles>
           <ListBox.ItemsPanel>
@@ -64,7 +67,7 @@
                           Margin="0,3,2,0" 
                           Padding="5,2,0,0"
                           BorderThickness="0 0 1 0"
-                           BorderBrush="{StaticResource Brush.Border.Subtle}">
+                          BorderBrush="{StaticResource Brush.Border.Subtle}">
                       <!-- 以下设置无效 -->
                       <!-- <Border.Styles> -->
                       <!--     <Style Selector="Border:selected"> -->

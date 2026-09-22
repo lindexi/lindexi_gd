@@ -16,7 +16,9 @@
         <SolidColorBrush x:Key="Brush.Background.TreeItemSelected" Color="#FF23407A" />
         <SolidColorBrush x:Key="Brush.Background.TreeItemSelectedInactive" Color="#FF3A3A3A" />
         <SolidColorBrush x:Key="Brush.Background.TabBar" Color="#FF0E0E0E" />
-        <SolidColorBrush x:Key="Brush.Background.TabSelected" Color="#FF2E2E2E" />
+        <SolidColorBrush x:Key="Brush.Background.TabHover" Color="#FF202020" />
+        <SolidColorBrush x:Key="Brush.Background.TabSelected" Color="#FF353535" />
+        <SolidColorBrush x:Key="Brush.Border.TabSelected" Color="#FF6A6A6A" />
 
         <SolidColorBrush x:Key="Brush.Foreground.Primary" Color="#FFFFFFFF" />
         <SolidColorBrush x:Key="Brush.Foreground.Secondary" Color="#FFD9D9D9" />
