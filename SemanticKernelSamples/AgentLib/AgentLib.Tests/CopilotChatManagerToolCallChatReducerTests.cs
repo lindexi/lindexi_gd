@@ -424,7 +424,7 @@ public class CopilotChatManagerToolCallChatReducerTests
         Assert.IsNotNull(agentSession, "AgentSession 应存在");
 
         // 触发压缩（通过手动调用 ReduceSessionAsync 来验证内置 reducer 被使用）
-        await context.ChatManager.ReduceSessionAsync(chatReducer: null);
+        await context.ChatManager.ReduceSessionAsync(chatReducer: null, requestText: null);
 
         Assert.IsTrue(reducerCalled, "内置压缩器应被调用");
     }
@@ -456,7 +456,7 @@ public class CopilotChatManagerToolCallChatReducerTests
         await result.RunTask;
 
         // 同时手动触发压缩，双重验证外部 reducer 确实被调用
-        await context.ChatManager.ReduceSessionAsync(chatReducer: externalReducer);
+        await context.ChatManager.ReduceSessionAsync(chatReducer: externalReducer, requestText: null);
 
         Assert.IsTrue(externalReducerCalled, "外部压缩器应被调用");
     }

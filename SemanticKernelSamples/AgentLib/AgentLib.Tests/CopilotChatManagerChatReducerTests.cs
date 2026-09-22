@@ -20,7 +20,7 @@ public class CopilotChatManagerChatReducerTests
         var primaryChatClient = new FakeChatClient();
         var context = CopilotChatManagerTestContext.Create(primaryChatClient);
 
-        await context.ChatManager.ReduceSessionAsync();
+        await context.ChatManager.ReduceSessionAsync(chatReducer: null, requestText: null);
     }
 
     [TestMethod]
@@ -45,7 +45,7 @@ public class CopilotChatManagerChatReducerTests
         await context.ChatManager.SendMessageAsync(contents: [new TextContent("第一轮对话")], withHistory: true);
         await context.ChatManager.SendMessageAsync(contents: [new TextContent("第二轮对话")], withHistory: true);
 
-        await context.ChatManager.ReduceSessionAsync();
+        await context.ChatManager.ReduceSessionAsync(chatReducer: null, requestText: null);
 
         Assert.IsNotNull(capturedMessages, "Reducer 应该收到消息");
         Assert.IsGreaterThanOrEqualTo(2, capturedMessages.Count, "消息数量应至少包含历史对话");
@@ -73,7 +73,7 @@ public class CopilotChatManagerChatReducerTests
         await context.ChatManager.SendMessageAsync(contents: [new TextContent("第一轮对话")], withHistory: true);
         await context.ChatManager.SendMessageAsync(contents: [new TextContent("第二轮对话")], withHistory: true);
 
-        await context.ChatManager.ReduceSessionAsync();
+        await context.ChatManager.ReduceSessionAsync(chatReducer: null, requestText: null);
 
         var agentSession = context.ChatManager.SelectedSession.AgentSession;
         Assert.IsNotNull(agentSession, "AgentSession 应存在");
