@@ -730,10 +730,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         WorkTaskRecord record
     )
     {
-        if (!string.IsNullOrWhiteSpace(record.WorkspacePath))
-        {
-            await runtime.WorkspaceController.ChangeWorkspaceAsync(record.WorkspacePath).ConfigureAwait(true);
-        }
+        await runtime.WorkspaceController
+            .ChangeWorkspaceAsync(record.WorkspacePath, validatePath: false)
+            .ConfigureAwait(true);
 
         LanguageModelOptionViewModel? model = task.Chat.AvailableModels.FirstOrDefault
             (option => string.Equals(option.DisplayName, record.ModelReference, StringComparison.Ordinal));

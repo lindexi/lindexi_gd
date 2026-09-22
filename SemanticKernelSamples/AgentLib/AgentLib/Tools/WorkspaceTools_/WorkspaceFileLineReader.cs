@@ -98,6 +98,10 @@ public readonly struct WorkspaceFileLineReader(int maxCharacters, int maxRemaini
                             leftover.Append(lineSpan);
                             line = leftover.ToString();
                             leftover.Clear();
+                            if (line.EndsWith('\r'))
+                            {
+                                line = line[..^1];
+                            }
                         }
                         else
                         {
@@ -118,6 +122,10 @@ public readonly struct WorkspaceFileLineReader(int maxCharacters, int maxRemaini
                             contentPhaseComplete = true;
                             break;
                         }
+                    }
+                    else
+                    {
+                        leftover.Clear();
                     }
 
                     window = window[(newlineIndex + 1)..];
