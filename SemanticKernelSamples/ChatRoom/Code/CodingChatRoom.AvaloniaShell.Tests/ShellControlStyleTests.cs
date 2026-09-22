@@ -41,7 +41,7 @@ public sealed class ShellControlStyleTests
             window.UpdateLayout();
             var create = view.FindControl<Button>("NewSessionButton") ?? throw new InvalidOperationException("New session missing.");
             var lsp = view.FindControl<Button>("StopLanguageServerButton") ?? throw new InvalidOperationException("LSP missing.");
-            Assert.IsTrue(create.Bounds.Left >= lsp.Bounds.Right);
+            Assert.IsGreaterThanOrEqualTo(lsp.Bounds.Right, create.Bounds.Left);
         }
         finally { window.Close(); }
     }
@@ -74,7 +74,9 @@ public sealed class ShellControlStyleTests
         {
             CollectionAssert.AreEqual(new[] { WindowTransparencyLevel.Mica, WindowTransparencyLevel.None }, window.TransparencyLevelHint.ToArray());
             Assert.AreEqual(Colors.White, ((ISolidColorBrush) window.TransparencyBackgroundFallback).Color);
-            Assert.AreEqual(Colors.White, ((ISolidColorBrush) window.Background).Color);
+            var background = window.Background as ISolidColorBrush
+                ?? throw new InvalidOperationException("Window background is not a solid brush.");
+            Assert.AreEqual(Colors.White, background.Color);
         }
         finally { window.Close(); }
     }
@@ -170,7 +172,7 @@ public sealed class ShellControlStyleTests
             var button = view.FindControl<Button>("CompressConversationButton") ?? throw new InvalidOperationException("Button missing.");
             Point checkboxOrigin = checkbox.TranslatePoint(default, view) ?? throw new InvalidOperationException("Checkbox position missing.");
             Point buttonOrigin = button.TranslatePoint(default, view) ?? throw new InvalidOperationException("Button position missing.");
-            Assert.IsTrue(checkboxOrigin.X + checkbox.Bounds.Width <= buttonOrigin.X);
+            Assert.IsLessThanOrEqualTo(buttonOrigin.X, checkboxOrigin.X + checkbox.Bounds.Width);
         }
         finally { window.Close(); }
     }
@@ -185,7 +187,7 @@ public sealed class ShellControlStyleTests
             window.Show();
             window.UpdateLayout();
             var panel = view.FindControl<Border>("ComposerPanel") ?? throw new InvalidOperationException("Composer missing.");
-            Assert.IsTrue(panel.Bounds.Height <= 150, $"Composer height: {panel.Bounds.Height}");
+            Assert.IsLessThanOrEqualTo(150, panel.Bounds.Height, $"Composer height: {panel.Bounds.Height}");
         }
         finally { window.Close(); }
     }

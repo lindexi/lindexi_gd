@@ -93,7 +93,7 @@ public sealed class DotNetCliToolsTests
         StringAssert.Contains(result, "可使用 read_last_log_lines 按行读取");
     }
 
-    [DataTestMethod(DisplayName = "发布工具应拒绝未严格以 dotnet publish 开头的命令")]
+    [TestMethod(DisplayName = "发布工具应拒绝未严格以 dotnet publish 开头的命令")]
     [DataRow(" dotnet publish Sample.csproj")]
     [DataRow("Dotnet publish Sample.csproj")]
     [DataRow("dotnet publisher Sample.csproj")]
@@ -124,7 +124,7 @@ public sealed class DotNetCliToolsTests
         StringAssert.Contains(log, "命令: dotnet run --project Sample.csproj");
     }
 
-    [DataTestMethod(DisplayName = "运行工具应拒绝未严格以 dotnet run 开头的命令")]
+    [TestMethod(DisplayName = "运行工具应拒绝未严格以 dotnet run 开头的命令")]
     [DataRow(" dotnet run --project Sample.csproj")]
     [DataRow("Dotnet run --project Sample.csproj")]
     [DataRow("dotnet runner Sample.csproj")]
@@ -141,7 +141,7 @@ public sealed class DotNetCliToolsTests
         StringAssert.Contains(result, "命令行必须严格以 dotnet run 开头");
     }
 
-    [DataTestMethod(DisplayName = "运行工具应拒绝无效的超时秒数")]
+    [TestMethod(DisplayName = "运行工具应拒绝无效的超时秒数")]
     [DataRow(0)]
     [DataRow(86401)]
     [Timeout(5000)]

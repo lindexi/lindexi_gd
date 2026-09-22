@@ -63,7 +63,7 @@ public sealed class WindowsSandboxToolsTests
         StringAssert.Contains(result, "沙箱执行失败");
         StringAssert.Contains(result, "ArgumentException");
         StringAssert.Contains(result, "路径必须位于代码工作区内");
-        Assert.AreEqual(0, runner.Calls.Count);
+        Assert.IsEmpty(runner.Calls);
     }
 
     [TestMethod(DisplayName = "AITool 调用失败时应返回具体错误而不是抛出异常")]
