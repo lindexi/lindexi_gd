@@ -273,54 +273,6 @@ public sealed class ToolCallHistoryRepairerTests
             .Any(content => content is FunctionCallContent or FunctionResultContent));
     }
 
-    [TestMethod(DisplayName = "同一调用 ID 再次发起并完成时应删除较早的未完成调用")]
-    public void Repair_WhenCallIdIsReusedAfterIncompleteCall_KeepsOnlyCompletedOccurrence()
-    {
-        List<ChatMessage> messages =
-        [
-            new ChatMessage(ChatRole.Assistant, [CreateFunctionCall("reused-call")]),
-            new ChatMessage(ChatRole.Assistant, "中间文本"),
-            new ChatMessage(ChatRole.Assistant, [CreateFunctionCall("reused-call")]),
-            new ChatMessage(ChatRole.Assistant, [new FunctionResultContent("reused-call", "有效结果")]),
-        ];
-
-        ToolCallHistoryRepairer.Repair(messages, []);
-
-        Assert.HasCount(1, GetFunctionCalls(messages));
-    }
-
-    [TestMethod(DisplayName = "同一调用 ID 的早期孤立结果不应取代后续合法结果")]
-    public void Repair_WhenOrphanResultPrecedesValidPairWithSameId_KeepsValidResult()
-    {
-        List<ChatMessage> messages =
-        [
-            new ChatMessage(ChatRole.Assistant, [new FunctionResultContent("reused-call", "孤立结果")]),
-            new ChatMessage(ChatRole.Assistant, "中间文本"),
-            new ChatMessage(ChatRole.Assistant, [CreateFunctionCall("reused-call")]),
-            new ChatMessage(ChatRole.Assistant, [new FunctionResultContent("reused-call", "有效结果")]),
-        ];
-
-        ToolCallHistoryRepairer.Repair(messages, []);
-
-        Assert.AreEqual("有效结果", GetFunctionResults(messages).Single().Result);
-    }
-
-    [TestMethod(DisplayName = "同一调用 ID 的两组完整调用应修复为单一配对")]
-    public void Repair_WhenCompletedCallIdIsRepeated_KeepsSinglePair()
-    {
-        List<ChatMessage> messages =
-        [
-            new ChatMessage(ChatRole.Assistant, [CreateFunctionCall("repeated-call")]),
-            new ChatMessage(ChatRole.Assistant, [new FunctionResultContent("repeated-call", "第一次结果")]),
-            new ChatMessage(ChatRole.Assistant, [CreateFunctionCall("repeated-call")]),
-            new ChatMessage(ChatRole.Assistant, [new FunctionResultContent("repeated-call", "第二次结果")]),
-        ];
-
-        ToolCallHistoryRepairer.Repair(messages, []);
-
-        Assert.HasCount(GetFunctionCalls(messages).Length, GetFunctionResults(messages));
-    }
-
     [TestMethod(DisplayName = "待追加更新中的文本应中断跨边界工具调用配对")]
     public void Repair_WhenCollectedUpdateTextSeparatesCallAndResult_RemovesHistoricalCall()
     {

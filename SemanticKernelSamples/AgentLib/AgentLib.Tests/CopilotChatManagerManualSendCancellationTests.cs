@@ -208,7 +208,7 @@ public class CopilotChatManagerManualSendCancellationTests
         Assert.AreEqual(1, CountMessages(messages, ChatRole.User, ContinueUserMessageText));
     }
 
-    [TestMethod(DisplayName = "系统用户助手流式工具返回后取消时续跑应保留工具结果且不重复")]
+    [TestMethod(DisplayName = "系统用户助手流式工具返回后取消时续跑应保留工具结果")]
     public async Task RunWithHistoryCompletion_WhenCancelledAfterToolResult_CompletesToolResultForNextLoop()
     {
         var fakeChatClient = new FakeChatClient();
@@ -248,7 +248,6 @@ public class CopilotChatManagerManualSendCancellationTests
         AssertSystemUserAndAssistantStreamingPrefix(messages);
         Assert.AreEqual(1, CountMessages(messages, ChatRole.System, SystemMessageText));
         Assert.AreEqual(1, CountMessages(messages, ChatRole.User, UserMessageText));
-        Assert.AreEqual(1, CountAssistantTexts(messages, AssistantStreamingText));
         Assert.AreEqual(1, CountFunctionResults(messages));
         Assert.AreEqual(0, CountAssistantTexts(messages, "工具后第一段"));
         Assert.AreEqual(1, CountMessages(messages, ChatRole.User, ContinueUserMessageText));

@@ -20,12 +20,33 @@ public class WorkspaceToolProviderTests
             SecondaryWorkspacePath = secondaryWorkspacePath
         };
 
-        string result = await provider.ReadFileLines("note.txt", 1, 100);
+        string result = await provider.ReadFileLines("note.txt", 1, 1, includeLineNumbers: true);
 
         StringAssert.Contains(result, "secondary-content");
         StringAssert.Contains(result, "文件: note.txt");
         StringAssert.Contains(result, "<MetaData>");
         StringAssert.Contains(result, "</MetaData>");
+    }
+
+    [TestMethod]
+    [Description("目标行之前存在跨缓冲区长行时不应把长行残片拼接到目标行")]
+    public async Task ReadFileLines_WhenSkippedLineCrossesBuffer_DoesNotPrependItsRemainder()
+    {
+        string testRoot = CreateTestDirectory();
+        string workspacePath = Path.Join(testRoot, "workspace");
+        Directory.CreateDirectory(workspacePath);
+        string filePath = Path.Join(workspacePath, "note.txt");
+        string longLine = new('x', 5000);
+        await File.WriteAllTextAsync(filePath, $"{longLine}\r\ntarget-line\r\nafter-line");
+        var provider = new WorkspaceToolProvider
+        {
+            WorkspacePath = workspacePath
+        };
+
+        string result = await provider.ReadFileLines("note.txt", 2, 2, includeLineNumbers: true);
+
+        StringAssert.Contains(result, "2: target-line");
+        Assert.IsFalse(result.Contains("x2: target-line", StringComparison.Ordinal));
     }
 
     [TestMethod]
