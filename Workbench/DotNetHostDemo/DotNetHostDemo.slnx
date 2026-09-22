@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Components/">
+    <Project Path="ManagedComponent.Alpha/ManagedComponent.Alpha.csproj" />
+    <Project Path="ManagedComponent.Beta/ManagedComponent.Beta.csproj" />
+  </Folder>
+  <Folder Name="/Hosts/">
+    <Project Path="FrameworkHost/FrameworkHost.csproj" />
+    <Project Path="NativeAotHost/NativeAotHost.csproj" />
+    <Project Path="NativeAotRouter/NativeAotRouter.csproj" />
+  </Folder>
+</Solution>

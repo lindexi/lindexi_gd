@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishAot>true</PublishAot>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AppHostPath>$(NetCoreTargetingPackRoot)\Microsoft.NETCore.App.Host.win-x64\$(BundledNETCoreAppPackageVersion)\runtimes\win-x64\native</AppHostPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetHost.Win32Metadata" Version="10.0.2.1" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.269" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\ComponentEntryPoint.cs" Link="ComponentEntryPoint.cs" />
+    <Compile Include="..\Shared\HostFxrRunner.cs" Link="HostFxrRunner.cs" />
+    <AdditionalFiles Include="..\Shared\NativeMethods.txt" Link="NativeMethods.txt" />
+    <ProjectReference Include="..\ManagedComponent.Alpha\ManagedComponent.Alpha.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\ManagedComponent.Beta\ManagedComponent.Beta.csproj" ReferenceOutputAssembly="false" />
+    <ReferenceCopyLocalPaths Include="$(AppHostPath)\nethost.dll" />
+  </ItemGroup>
+
+  <Target Name="CopyManagedComponents" AfterTargets="Build;Publish">
+    <ItemGroup>
+      <ManagedComponentFiles Include="..\ManagedComponent.Alpha\bin\$(Configuration)\net10.0\ManagedComponent.Alpha.dll" />
+      <ManagedComponentFiles Include="..\ManagedComponent.Alpha\bin\$(Configuration)\net10.0\ManagedComponent.Alpha.runtimeconfig.json" />
+      <ManagedComponentFiles Include="..\ManagedComponent.Beta\bin\$(Configuration)\net10.0\ManagedComponent.Beta.dll" />
+      <ManagedComponentFiles Include="..\ManagedComponent.Beta\bin\$(Configuration)\net10.0\ManagedComponent.Beta.runtimeconfig.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ManagedComponentFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ManagedComponentFiles)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" Condition="'$(PublishDir)' != ''" />
+  </Target>
+</Project>

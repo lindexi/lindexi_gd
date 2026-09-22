@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net481</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AppHostPath>$(NetCoreTargetingPackRoot)\Microsoft.NETCore.App.Host.win-x64\$(BundledNETCoreAppPackageVersion)\runtimes\win-x64\native</AppHostPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNetHost.Win32Metadata" Version="10.0.2.1" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.269" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\ComponentEntryPoint.cs" Link="ComponentEntryPoint.cs" />
+    <Compile Include="..\Shared\HostFxrRunner.cs" Link="HostFxrRunner.cs" />
+    <AdditionalFiles Include="..\Shared\NativeMethods.txt" Link="NativeMethods.txt" />
+    <ReferenceCopyLocalPaths Include="$(AppHostPath)\nethost.dll" />
+  </ItemGroup>
+
+  <Target Name="BuildManagedComponent" BeforeTargets="Build">
+    <MSBuild Projects="..\ManagedComponent.Alpha\ManagedComponent.Alpha.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
+  </Target>
+
+  <Target Name="CopyManagedComponent" AfterTargets="Build">
+    <ItemGroup>
+      <ManagedComponentFiles Include="..\ManagedComponent.Alpha\bin\$(Configuration)\net10.0\ManagedComponent.Alpha.dll" />
+      <ManagedComponentFiles Include="..\ManagedComponent.Alpha\bin\$(Configuration)\net10.0\ManagedComponent.Alpha.runtimeconfig.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ManagedComponentFiles)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>
