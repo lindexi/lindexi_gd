@@ -422,6 +422,14 @@ internal sealed class CodingChatApplication
                     {
                         await CompressConversationCoreAsync(operationCancellationTokenSource.Token);
                     }
+                    else if (IsLoopIterationEnabled)
+                    {
+                        await _chatManager.ReduceAgentSessionOnlyAsync
+                        (
+                            chatReducer: LoopIterationChatReducer.Instance,
+                            cancellationToken: operationCancellationTokenSource.Token
+                        );
+                    }
                 }
                 catch (OperationCanceledException)
                 {
