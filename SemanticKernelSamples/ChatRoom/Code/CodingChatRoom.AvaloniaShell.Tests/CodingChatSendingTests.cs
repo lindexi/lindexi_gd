@@ -161,7 +161,7 @@ public sealed class CodingChatSendingTests
 
         Assert.IsFalse(application.IsRunActive);
         Assert.AreEqual("已完成", runner.AssistantMessage.Content);
-        Assert.AreEqual(1, store.SaveCount);
+        Assert.AreEqual(2, store.SaveCount);
         Assert.AreEqual(manager.SelectedSession.SessionId, application.Sessions[0].SessionId);
         Assert.AreEqual(2, application.Sessions[0].MessageCount);
     }
@@ -441,6 +441,8 @@ public sealed class CodingChatSendingTests
 
         public int SaveCount { get; private set; }
 
+        private int SaveAttemptCount { get; set; }
+
         public CopilotChatSession? SavedSession { get; private set; }
 
         public Task<IReadOnlyList<CopilotChatSessionSummary>> ListSessionsAsync(CancellationToken cancellationToken = default)
@@ -454,9 +456,10 @@ public sealed class CodingChatSendingTests
 
         public async Task SaveSessionAsync(CopilotChatSession session, CancellationToken cancellationToken = default)
         {
-            SaveStarted.TrySetResult();
-            if (BlockSave)
+            SaveAttemptCount++;
+            if (BlockSave && SaveAttemptCount > 1)
             {
+                SaveStarted.TrySetResult();
                 await _continueSave.Task.WaitAsync(cancellationToken);
             }
 

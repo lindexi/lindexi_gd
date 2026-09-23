@@ -340,6 +340,14 @@ internal sealed class CodingChatApplication
                 options,
                 cancellationToken
             );
+            try
+            {
+                await _sessionStore.SaveSessionAsync(session, CancellationToken.None);
+            }
+            catch
+            {
+            }
+
             await runResult.CompletionTask;
             await _chatManager.ChatLogger.LogDiagnosticAsync(session.SessionId, "运行", "运行正常完成。");
         }
