@@ -6,9 +6,9 @@ using CodingChatRoom.AvaloniaShell.Services;
 
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
-internal static class CodingChatApplicationTestFactory
+internal static class CodingWorkTaskControllerTestFactory
 {
-    public static CodingChatApplication CreateApplication(
+    public static CodingWorkTaskController CreateApplication(
         CopilotChatManager chatManager,
         ICodingChatSessionStore sessionStore,
         ICodingChatRunner? chatRunner = null,
@@ -20,7 +20,7 @@ internal static class CodingChatApplicationTestFactory
         codingAgent ??= new CodingAgent();
         chatRunner ??= new CodingAgentChatRunner(chatManager, codingAgent);
         workspaceController ??= new CodingWorkspaceController(new ImmediateMainThreadDispatcher());
-        return new CodingChatApplication(
+        return new CodingWorkTaskController(
             chatManager,
             sessionStore,
             chatRunner,

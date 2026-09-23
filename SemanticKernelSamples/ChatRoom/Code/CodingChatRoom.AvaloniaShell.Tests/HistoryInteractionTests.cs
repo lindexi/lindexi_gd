@@ -4,6 +4,8 @@ using AgentLib.Model;
 using CodingChatRoom.AvaloniaShell.Services;
 using CodingChatRoom.AvaloniaShell.ViewModels;
 
+using CodingChatApplicationTestFactory = global::CodingChatRoom.AvaloniaShell.Tests.CodingWorkTaskControllerTestFactory;
+
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
 [TestClass]

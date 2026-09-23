@@ -16,9 +16,9 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 /// <summary>
 /// 按固定路径和严格失败策略创建 CodingChatRoom 核心运行时。
 /// </summary>
-internal static class CodingChatStartup
+internal static class CodingWorkTaskRuntimeFactory
 {
-    public static async Task<CodingChatRuntime> InitializeAsync
+    public static async Task<CodingWorkTaskRuntime> InitializeAsync
     (
         CodingChatRoomPaths paths,
         IMainThreadDispatcher mainThreadDispatcher,
@@ -92,7 +92,7 @@ internal static class CodingChatStartup
             mainThreadDispatcher
         );
         var chatRunner = new CodingAgentChatRunner(chatManager, codingAgent);
-        var application = new CodingChatApplication
+        var controller = new CodingWorkTaskController
         (
             chatManager,
             sessionStore,
@@ -101,7 +101,7 @@ internal static class CodingChatStartup
             codingAgent
         );
 
-        return new CodingChatRuntime
+        return new CodingWorkTaskRuntime
         {
             Paths = paths,
             EndpointManager = endpointManager,
@@ -109,7 +109,7 @@ internal static class CodingChatStartup
             ChatManager = chatManager,
             CodingAgent = codingAgent,
             PrimaryModel = primaryModel,
-            Application = application,
+            Controller = controller,
             WorkspaceController = workspaceController,
             SettingsService = settingsService,
         };

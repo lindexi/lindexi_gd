@@ -9,24 +9,6 @@ using Microsoft.Extensions.AI;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
-internal interface ICodingChatRunner
-{
-    Task<CodingAgentRunResult> RunAsync
-    (
-        IReadOnlyList<AIContent> contents,
-        string? workspacePath,
-        CodingChatRunOptions options,
-        CancellationToken cancellationToken
-    );
-
-    Task InjectMessageAsync
-    (
-        IReadOnlyList<AIContent> contents,
-        CancellationToken cancellationToken
-    )
-        => throw new NotSupportedException();
-}
-
 internal sealed class CodingAgentChatRunner : ICodingChatRunner
 {
     private readonly CopilotChatManager _chatManager;

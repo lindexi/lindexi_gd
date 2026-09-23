@@ -14,7 +14,7 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
     private bool _isEditing;
     private string _editedDisplayName = string.Empty;
 
-    internal WorkTaskItemViewModel(string name, ChatViewModel chat, SessionListViewModel sessions, CodingChatRuntime? runtime = null, Guid? id = null)
+    internal WorkTaskItemViewModel(string name, ChatViewModel chat, SessionListViewModel sessions, CodingWorkTaskRuntime? runtime = null, Guid? id = null)
     {
         Id = id ?? Guid.NewGuid();
         _displayName = name;
@@ -34,7 +34,7 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
         {
             if (!string.IsNullOrWhiteSpace(value) && SetField(ref _displayName, value.Trim()))
             {
-                Runtime?.Application.SetWorkTask(Id, _displayName);
+                Runtime?.Controller.SetWorkTask(Id, _displayName);
             }
         }
     }
@@ -52,7 +52,7 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
     public bool IsWorking => Chat.IsRunning || Chat.IsCompressing || Chat.IsFinalizing || Chat.IsChangingWorkspace;
     /// <summary>获取任务当前状态文本。</summary>
     public string StatusText => IsWorking ? "工作中" : "空闲";
-    internal CodingChatRuntime? Runtime { get; }
+    internal CodingWorkTaskRuntime? Runtime { get; }
 
     internal void Detach() => Chat.PropertyChanged -= OnChatChanged;
 

@@ -9,6 +9,8 @@ using CodingChatRoom.AvaloniaShell.Services;
 
 using Microsoft.Extensions.AI;
 
+using CodingChatApplicationTestFactory = global::CodingChatRoom.AvaloniaShell.Tests.CodingWorkTaskControllerTestFactory;
+
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
 [TestClass]

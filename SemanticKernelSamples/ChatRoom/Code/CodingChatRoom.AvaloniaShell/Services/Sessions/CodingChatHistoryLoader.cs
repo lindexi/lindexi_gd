@@ -9,24 +9,24 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 
 internal sealed class CodingChatHistoryLoader
 {
-    private readonly CodingChatApplication _application;
+    private readonly CodingWorkTaskController _workTaskController;
 
-    public CodingChatHistoryLoader(CodingChatApplication application)
+    public CodingChatHistoryLoader(CodingWorkTaskController workTaskController)
     {
-        ArgumentNullException.ThrowIfNull(application);
-        _application = application;
+        ArgumentNullException.ThrowIfNull(workTaskController);
+        _workTaskController = workTaskController;
     }
 
     public async Task LoadAsync()
     {
         try
         {
-            IReadOnlyList<CopilotChatSessionSummary> summaries = await _application
+            IReadOnlyList<CopilotChatSessionSummary> summaries = await _workTaskController
                 .LoadSessionSummariesAsync()
                 .ConfigureAwait(false);
             await Dispatcher.UIThread.InvokeAsync
             (
-                () => _application.AddSessionSummaries(summaries),
+                () => _workTaskController.AddSessionSummaries(summaries),
                 DispatcherPriority.Render
             );
         }

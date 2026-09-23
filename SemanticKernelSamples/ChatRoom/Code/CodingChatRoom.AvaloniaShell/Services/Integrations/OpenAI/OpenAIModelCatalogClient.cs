@@ -12,25 +12,6 @@ using System.ClientModel;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
-internal interface IOpenAIModelCatalogClient
-{
-    Task<OpenAIModelCatalogResult> GetModelIdsAsync
-    (
-        string endPoint,
-        string apiKey,
-        CancellationToken cancellationToken = default
-    );
-}
-
-internal sealed record OpenAIModelCatalogResult(IReadOnlyList<string> ModelIds, string? ErrorMessage)
-{
-    public bool IsSuccessful => ErrorMessage is null;
-
-    public static OpenAIModelCatalogResult Success(IReadOnlyList<string> modelIds) => new(modelIds, null);
-
-    public static OpenAIModelCatalogResult Failure(string message) => new([], message);
-}
-
 internal sealed class OpenAIModelCatalogClient : IOpenAIModelCatalogClient
 {
     public async Task<OpenAIModelCatalogResult> GetModelIdsAsync

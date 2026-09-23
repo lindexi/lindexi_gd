@@ -37,7 +37,7 @@ public partial class App : Application
     private async void InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
     {
         CodingChatRoomPaths paths = CodingChatRoomPaths.CreateForCurrentUser();
-        var runtimes = new List<CodingChatRuntime>();
+        var runtimes = new List<CodingWorkTaskRuntime>();
         try
         {
             var dispatcher = new AvaloniaMainThreadDispatcher();
@@ -53,7 +53,7 @@ public partial class App : Application
 
             if (activeRecords.Length == 0)
             {
-                CodingChatRuntime runtime = await CodingChatStartup
+                CodingWorkTaskRuntime runtime = await CodingWorkTaskRuntimeFactory
                     .InitializeAsync(paths, dispatcher, windowsSandboxToolSource)
                     .ConfigureAwait(true);
                 runtimes.Add(runtime);
@@ -77,7 +77,7 @@ public partial class App : Application
             {
                 foreach (WorkTaskRecord record in activeRecords)
                 {
-                    CodingChatRuntime runtime = await CodingChatStartup
+                    CodingWorkTaskRuntime runtime = await CodingWorkTaskRuntimeFactory
                         .InitializeAsync(paths, dispatcher, windowsSandboxToolSource)
                         .ConfigureAwait(true);
                     runtimes.Add(runtime);
@@ -93,7 +93,7 @@ public partial class App : Application
                 archivedRecords,
                 runtimes[0].SettingsService,
                 workTaskStore,
-                () => CodingChatStartup.InitializeAsync
+                () => CodingWorkTaskRuntimeFactory.InitializeAsync
                     (paths, new AvaloniaMainThreadDispatcher(), windowsSandboxToolSource),
                 abilityCatalog,
                 FormatWorkTaskRecoveryMessage(workTaskStore.LastRecoveryInfo)
@@ -113,7 +113,7 @@ public partial class App : Application
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
                                               or InvalidOperationException or ArgumentException or JsonException)
         {
-            foreach (CodingChatRuntime runtime in runtimes)
+            foreach (CodingWorkTaskRuntime runtime in runtimes)
             {
                 await runtime.DisposeAsync().ConfigureAwait(true);
             }
@@ -136,7 +136,7 @@ public partial class App : Application
     private static async Task RestoreTaskConfigurationAsync
     (
         WorkTaskItemViewModel task,
-        CodingChatRuntime runtime,
+        CodingWorkTaskRuntime runtime,
         WorkTaskRecord record
     )
     {

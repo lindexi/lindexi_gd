@@ -19,6 +19,8 @@ using CodingChatRoom.AvaloniaShell.Services;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
+using CodingChatApplicationTestFactory = global::CodingChatRoom.AvaloniaShell.Tests.CodingWorkTaskControllerTestFactory;
+
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
 [TestClass]
@@ -230,7 +232,7 @@ public sealed class ChatViewModelTests
         var manager = new CopilotChatManager();
         var runner = new ImmediateRunner(manager);
         await using var agent = new CodingAgent();
-        var application = new CodingChatApplication(
+        var application = new CodingWorkTaskController(
             manager,
             new EmptySessionStore(),
             runner,

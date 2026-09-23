@@ -12,7 +12,7 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 /// <summary>
 /// 保存由 Shell 组合根创建的核心运行时对象。
 /// </summary>
-internal sealed class CodingChatRuntime : IAsyncDisposable
+internal sealed class CodingWorkTaskRuntime : IAsyncDisposable
 {
     public required CodingChatRoomPaths Paths { get; init; }
 
@@ -26,7 +26,7 @@ internal sealed class CodingChatRuntime : IAsyncDisposable
 
     public required ILanguageModel PrimaryModel { get; init; }
 
-    public required CodingChatApplication Application { get; init; }
+    public required CodingWorkTaskController Controller { get; init; }
 
     public required CodingWorkspaceController WorkspaceController { get; init; }
 
@@ -49,9 +49,9 @@ internal sealed class CodingChatRuntime : IAsyncDisposable
         (
             sessionId,
             "运行时释放",
-            $"开始释放工作任务运行时。活动运行={Application.IsRunActive}；循环活动={Application.IsLoopActive}；正在收尾={Application.IsFinalizing}。"
+            $"开始释放工作任务运行时。活动运行={Controller.IsRunActive}；循环活动={Controller.IsLoopActive}；正在收尾={Controller.IsFinalizing}。"
         ).ConfigureAwait(false);
-        Application.StopActiveRun();
+        Controller.StopActiveRun();
         await ChatLogger.LogDiagnosticAsync
         (
             sessionId,
