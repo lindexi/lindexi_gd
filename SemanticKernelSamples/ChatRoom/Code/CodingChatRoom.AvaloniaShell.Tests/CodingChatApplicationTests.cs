@@ -272,6 +272,29 @@ public sealed class CodingChatApplicationTests
         Assert.AreEqual(expectedCompressionCount, compressionCount);
     }
 
+    [TestMethod(DisplayName = "循环迭代关闭自动压缩时下一轮应移除上一轮模型历史")]
+    [Timeout(5000)]
+    public async Task RunLoopIterationAsyncWithoutCompressionShouldRemovePreviousIterationHistory()
+    {
+        CopilotChatManager manager = CreateChatManager(new FakeChatClient());
+        IManualSendMessageContext context = await manager.CreateManualSendMessageContextAsync();
+        AgentSession agentSession = await context.GetAgentSessionAsync();
+        agentSession.SetInMemoryChatHistory([new ChatMessage(ChatRole.System, "系统提示")]);
+        Guid sessionId = manager.SelectedSession.SessionId;
+        CodingChatApplication? application = null;
+        var runner = new LoopHistoryRunner(agentSession, () => application!.IsLoopIterationEnabled = false);
+        application = CodingChatApplicationTestFactory.CreateApplication(manager, new TestSessionStore(), runner);
+        application.IsLoopIterationEnabled = true;
+
+        await application.RunLoopIterationAsync(
+            "继续处理",
+            new CodingChatRunOptions(false, false, null));
+
+        CollectionAssert.AreEqual(new[] { 1, 1 }, runner.HistoryCountsBeforeRun);
+        Assert.AreEqual(sessionId, application.SelectedSessionId);
+        Assert.HasCount(1, application.Sessions);
+    }
+
     [TestMethod(DisplayName = "停止应立即结束循环失败后的等待")]
     [Timeout(5000)]
     public async Task StopActiveRunShouldCancelLoopRetryDelay()
@@ -495,6 +518,32 @@ public sealed class CodingChatApplicationTests
             SaveCount++;
             LastSavedSession = session;
             return Task.CompletedTask;
+        }
+    }
+
+    private sealed class LoopHistoryRunner(AgentSession agentSession, Action stopLoop) : ICodingChatRunner
+    {
+        public List<int> HistoryCountsBeforeRun { get; } = [];
+
+        public Task<CodingAgentRunResult> RunAsync(
+            IReadOnlyList<AIContent> contents,
+            string? workspacePath,
+            CodingChatRunOptions options,
+            CancellationToken cancellationToken)
+        {
+            Assert.IsTrue(agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? history));
+            HistoryCountsBeforeRun.Add(history.Count);
+            history.Add(new ChatMessage(ChatRole.User, "本轮用户消息"));
+            history.Add(new ChatMessage(ChatRole.Assistant, "本轮助手消息"));
+            agentSession.SetInMemoryChatHistory(history);
+            if (HistoryCountsBeforeRun.Count == 2)
+            {
+                stopLoop();
+            }
+
+            return Task.FromResult(new CodingAgentRunResult(
+                CopilotChatMessage.CreateAssistant(string.Empty, isPresetInfo: false),
+                Task.FromResult<string?>(string.Empty)));
         }
     }
 

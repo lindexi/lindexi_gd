@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -85,6 +86,7 @@ public sealed class SimpleAsyncCommand : ICommand
     private readonly Func<Task> _execute;
     private readonly Func<bool>? _canExecute;
     private readonly bool _allowConcurrentExecutions;
+    private readonly Action<Exception> _exceptionHandler;
     private bool _isExecuting;
 
     /// <summary>
@@ -93,12 +95,14 @@ public sealed class SimpleAsyncCommand : ICommand
     public SimpleAsyncCommand(
         Func<Task> execute,
         Func<bool>? canExecute = null,
-        bool allowConcurrentExecutions = false)
+        bool allowConcurrentExecutions = false,
+        Action<Exception>? exceptionHandler = null)
     {
         ArgumentNullException.ThrowIfNull(execute);
         _execute = execute;
         _canExecute = canExecute;
         _allowConcurrentExecutions = allowConcurrentExecutions;
+        _exceptionHandler = exceptionHandler ?? TraceUnhandledException;
     }
 
     /// <inheritdoc />
@@ -109,7 +113,9 @@ public sealed class SimpleAsyncCommand : ICommand
         => (_allowConcurrentExecutions || !_isExecuting) && (_canExecute?.Invoke() ?? true);
 
     /// <inheritdoc />
-    public async void Execute(object? parameter)
+    public async void Execute(object? parameter) => await ExecuteAsync(parameter).ConfigureAwait(true);
+
+    internal async Task ExecuteAsync(object? parameter = null)
     {
         if (!CanExecute(parameter))
         {
@@ -122,6 +128,10 @@ public sealed class SimpleAsyncCommand : ICommand
         {
             await _execute().ConfigureAwait(true);
         }
+        catch (Exception exception)
+        {
+            ReportException(exception);
+        }
         finally
         {
             _isExecuting = false;
@@ -133,6 +143,22 @@ public sealed class SimpleAsyncCommand : ICommand
     /// 通知绑定目标重新计算命令状态。
     /// </summary>
     public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+
+    private void ReportException(Exception exception)
+    {
+        try
+        {
+            _exceptionHandler(exception);
+        }
+        catch (Exception handlerException)
+        {
+            Trace.TraceError($"异步命令错误处理失败：{handlerException}");
+            TraceUnhandledException(exception);
+        }
+    }
+
+    private static void TraceUnhandledException(Exception exception)
+        => Trace.TraceError($"异步命令执行失败：{exception}");
 }
 
 /// <summary>
@@ -142,16 +168,21 @@ public sealed class SimpleAsyncCommand<T> : ICommand
 {
     private readonly Func<T?, Task> _execute;
     private readonly Func<T?, bool>? _canExecute;
+    private readonly Action<Exception> _exceptionHandler;
     private bool _isExecuting;
 
     /// <summary>
     /// 使用指定异步执行委托创建命令。
     /// </summary>
-    public SimpleAsyncCommand(Func<T?, Task> execute, Func<T?, bool>? canExecute = null)
+    public SimpleAsyncCommand(
+        Func<T?, Task> execute,
+        Func<T?, bool>? canExecute = null,
+        Action<Exception>? exceptionHandler = null)
     {
         ArgumentNullException.ThrowIfNull(execute);
         _execute = execute;
         _canExecute = canExecute;
+        _exceptionHandler = exceptionHandler ?? TraceUnhandledException;
     }
 
     /// <inheritdoc />
@@ -162,7 +193,9 @@ public sealed class SimpleAsyncCommand<T> : ICommand
         => parameter is T or null && !_isExecuting && (_canExecute?.Invoke((T?) parameter) ?? true);
 
     /// <inheritdoc />
-    public async void Execute(object? parameter)
+    public async void Execute(object? parameter) => await ExecuteAsync(parameter).ConfigureAwait(true);
+
+    internal async Task ExecuteAsync(object? parameter = null)
     {
         if (!CanExecute(parameter))
         {
@@ -175,6 +208,10 @@ public sealed class SimpleAsyncCommand<T> : ICommand
         {
             await _execute((T?) parameter).ConfigureAwait(true);
         }
+        catch (Exception exception)
+        {
+            ReportException(exception);
+        }
         finally
         {
             _isExecuting = false;
@@ -186,4 +223,20 @@ public sealed class SimpleAsyncCommand<T> : ICommand
     /// 通知绑定目标重新计算命令状态。
     /// </summary>
     public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+
+    private void ReportException(Exception exception)
+    {
+        try
+        {
+            _exceptionHandler(exception);
+        }
+        catch (Exception handlerException)
+        {
+            Trace.TraceError($"异步命令错误处理失败：{handlerException}");
+            TraceUnhandledException(exception);
+        }
+    }
+
+    private static void TraceUnhandledException(Exception exception)
+        => Trace.TraceError($"异步命令执行失败：{exception}");
 }

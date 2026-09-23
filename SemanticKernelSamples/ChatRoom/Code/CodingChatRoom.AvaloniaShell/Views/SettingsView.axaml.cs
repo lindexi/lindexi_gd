@@ -61,9 +61,9 @@ public partial class SettingsView : UserControl
                 await process.WaitForExitAsync();
             }
         }
-        catch
+        catch (Exception exception)
         {
-            // 忽略
+            Trace.TraceError($"安装或更新语言服务器失败：{exception}");
         }
     }
 
@@ -74,8 +74,15 @@ public partial class SettingsView : UserControl
             return;
         }
 
-        var dataTransfer = new DataTransfer();
-        dataTransfer.Add(DataTransferItem.CreateText("dotnet tool update -g roslyn-language-server"));
-        await clipboard.SetDataAsync(dataTransfer);
+        try
+        {
+            var dataTransfer = new DataTransfer();
+            dataTransfer.Add(DataTransferItem.CreateText("dotnet tool update -g roslyn-language-server"));
+            await clipboard.SetDataAsync(dataTransfer);
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError($"复制语言服务器安装命令失败：{exception}");
+        }
     }
 }

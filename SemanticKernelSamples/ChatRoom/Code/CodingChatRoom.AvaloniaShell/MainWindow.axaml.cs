@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Avalonia.Controls;
 using CodingChatRoom.AvaloniaShell.ViewModels;
 
@@ -23,7 +24,17 @@ public partial class MainWindow : Window
 
         e.Cancel = true;
         _isClosing = true;
-        await viewModel.DisposeAsync().ConfigureAwait(true);
-        Close();
+        try
+        {
+            await viewModel.DisposeAsync().ConfigureAwait(true);
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError($"关闭应用时释放资源失败：{exception}");
+        }
+        finally
+        {
+            Close();
+        }
     }
 }

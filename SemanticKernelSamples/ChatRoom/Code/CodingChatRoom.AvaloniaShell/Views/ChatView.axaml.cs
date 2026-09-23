@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -100,7 +101,14 @@ public partial class ChatView : UserControl
     {
         if (sender is MenuItem { CommandParameter: MessageItemViewModel message })
         {
-            await SetClipboardTextAsync(message.Content);
+            try
+            {
+                await SetClipboardTextAsync(message.Content);
+            }
+            catch (Exception exception)
+            {
+                Trace.TraceError($"复制消息内容失败：{exception}");
+            }
         }
     }
 
@@ -108,7 +116,14 @@ public partial class ChatView : UserControl
     {
         if (sender is MenuItem { CommandParameter: MessageItemViewModel message })
         {
-            await SetClipboardTextAsync(message.FullContent);
+            try
+            {
+                await SetClipboardTextAsync(message.FullContent);
+            }
+            catch (Exception exception)
+            {
+                Trace.TraceError($"复制完整消息失败：{exception}");
+            }
         }
     }
 
@@ -158,12 +173,22 @@ public partial class ChatView : UserControl
             return;
         }
 
-        var files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        IReadOnlyList<IStorageFile> files;
+        try
         {
-            Title = "选择要附加的图片",
-            AllowMultiple = true,
-            FileTypeFilter = [ImageFileType],
-        });
+            files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "选择要附加的图片",
+                AllowMultiple = true,
+                FileTypeFilter = [ImageFileType],
+            });
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError($"打开图片选择器失败：{exception}");
+            await viewModel.AddSystemNoticeAsync($"无法打开图片选择器：{exception.Message}");
+            return;
+        }
         foreach (IStorageFile file in files)
         {
             try
@@ -211,9 +236,16 @@ public partial class ChatView : UserControl
         if (e.Key == Key.V && e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
             e.Handled = true;
-            if (!await TryPasteClipboardImageAsync() && sender is TextBox textBox)
+            try
             {
-                textBox.Paste();
+                if (!await TryPasteClipboardImageAsync() && sender is TextBox textBox)
+                {
+                    textBox.Paste();
+                }
+            }
+            catch (Exception exception)
+            {
+                Trace.TraceError($"粘贴剪贴板内容失败：{exception}");
             }
 
             return;
