@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentLib;
@@ -51,17 +50,10 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
     )
     {
         ArgumentNullException.ThrowIfNull(contents);
-        CopilotChatSession session = _chatManager.SelectedSession;
-        Guid sessionId = session.SessionId;
+        Guid sessionId = _chatManager.SelectedSession.SessionId;
         IManualSendMessageContext context = await _chatManager
             .CreateManualSendMessageContextAsync(cancellationToken)
             .ConfigureAwait(false);
-        Task messagesAppendedTask = WaitForMessageAsync
-        (
-            session,
-            context.AssistantChatMessage,
-            cancellationToken
-        );
         CodingAgentRunResult run = await _codingAgent
             .RunAsync
             (
@@ -73,8 +65,6 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
             )
             .ConfigureAwait(false);
         _activeRun = run;
-        Task completedTask = await Task.WhenAny(messagesAppendedTask, run.CompletionTask).ConfigureAwait(false);
-        await completedTask.ConfigureAwait(false);
         return new CodingAgentRunResult
         (
             run.AssistantChatMessage,
@@ -115,43 +105,6 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
             {
                 _activeRun = null;
             }
-        }
-    }
-
-    private static async Task WaitForMessageAsync
-    (
-        CopilotChatSession session,
-        CopilotChatMessage message,
-        CancellationToken cancellationToken
-    )
-    {
-        if (session.ChatMessages.Contains(message))
-        {
-            return;
-        }
-
-        var appended = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs args)
-        {
-            if (args.NewItems?.Contains(message) == true)
-            {
-                appended.TrySetResult();
-            }
-        }
-
-        session.ChatMessages.CollectionChanged += OnCollectionChanged;
-        try
-        {
-            if (session.ChatMessages.Contains(message))
-            {
-                return;
-            }
-
-            await appended.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            session.ChatMessages.CollectionChanged -= OnCollectionChanged;
         }
     }
 }
