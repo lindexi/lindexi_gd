@@ -7,16 +7,6 @@ using System.Threading.Tasks;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
-internal interface IWindowsSandboxConnectionTester
-{
-    Task<WindowsSandboxConnectionTestResult> TestAsync
-    (
-        string toolPath,
-        string serverAddress,
-        CancellationToken cancellationToken = default
-    );
-}
-
 internal sealed class WindowsSandboxConnectionTester : IWindowsSandboxConnectionTester
 {
     private static readonly TimeSpan s_testTimeout = TimeSpan.FromSeconds(15);
@@ -115,5 +105,3 @@ internal sealed class WindowsSandboxConnectionTester : IWindowsSandboxConnection
         }
     }
 }
-
-internal sealed record WindowsSandboxConnectionTestResult(bool IsSuccessful, string Message);
