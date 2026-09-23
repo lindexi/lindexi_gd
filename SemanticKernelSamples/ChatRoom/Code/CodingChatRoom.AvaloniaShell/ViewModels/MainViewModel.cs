@@ -20,7 +20,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 {
     private readonly SettingsViewModel? _settingsViewModel;
     private readonly WorkTaskStore? _workTaskStore;
-    private readonly Func<Task<CodingChatRuntime>>? _createRuntimeAsync;
+    private readonly Func<Task<CodingWorkTaskRuntime>>? _createRuntimeAsync;
     private readonly AbilityCatalog? _abilityCatalog;
     private readonly SemaphoreSlim _saveGate = new(1, 1);
     private WorkTaskItemViewModel _activeWorkTask;
@@ -43,7 +43,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         IReadOnlyList<WorkTaskRecord> archivedTasks,
         CodingChatSettingsService? settingsService,
         WorkTaskStore? workTaskStore,
-        Func<Task<CodingChatRuntime>>? createRuntimeAsync,
+        Func<Task<CodingWorkTaskRuntime>>? createRuntimeAsync,
         AbilityCatalog? abilityCatalog,
         string? initialMessage = null
     )
@@ -141,7 +141,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         IReadOnlyList<WorkTaskRecord> archivedTasks,
         CodingChatSettingsService settingsService,
         WorkTaskStore workTaskStore,
-        Func<Task<CodingChatRuntime>> createRuntimeAsync,
+        Func<Task<CodingWorkTaskRuntime>> createRuntimeAsync,
         AbilityCatalog abilityCatalog,
         string? initialMessage = null
     )
@@ -315,17 +315,17 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     public ICommand OpenSettingsCommand { get; }
 
     internal static WorkTaskItemViewModel CreateRuntimeTask(
-        CodingChatRuntime runtime,
+        CodingWorkTaskRuntime runtime,
         WorkTaskRecord record,
         AbilityCatalog? abilityCatalog = null)
     {
-        runtime.Application.SetWorkTask(record.Id, record.DisplayName);
+        runtime.Controller.SetWorkTask(record.Id, record.DisplayName);
         return new WorkTaskItemViewModel
         (
             record.DisplayName,
             new ChatViewModel
-                (runtime.ChatManager, runtime.Application, runtime.WorkspaceController, runtime.ModelDisplayName, abilityCatalog),
-            new SessionListViewModel(runtime.Application),
+                (runtime.ChatManager, runtime.Controller, runtime.WorkspaceController, runtime.ModelDisplayName, abilityCatalog),
+            new SessionListViewModel(runtime.Controller),
             runtime,
             record.Id
         );
@@ -407,7 +407,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     {
         if (_createRuntimeAsync is null) return;
         ErrorMessage = null;
-        CodingChatRuntime? runtime = null;
+        CodingWorkTaskRuntime? runtime = null;
         WorkTaskItemViewModel? task = null;
         try
         {
@@ -499,7 +499,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     {
         if (item is null || _createRuntimeAsync is null) return;
         ErrorMessage = null;
-        CodingChatRuntime? runtime = null;
+        CodingWorkTaskRuntime? runtime = null;
         WorkTaskItemViewModel? task = null;
         try
         {
@@ -743,7 +743,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private static async Task RestoreTaskConfigurationAsync
     (
         WorkTaskItemViewModel task,
-        CodingChatRuntime runtime,
+        CodingWorkTaskRuntime runtime,
         WorkTaskRecord record
     )
     {

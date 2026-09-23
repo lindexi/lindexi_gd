@@ -8,7 +8,7 @@ using CodingChatRoom.AvaloniaShell.Services;
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
 [TestClass]
-public sealed class CodingChatStartupTests
+public sealed class CodingWorkTaskRuntimeFactoryTests
 {
     [TestMethod(DisplayName = "路径对象应只在指定根目录下计算固定文件和子目录")]
     [Timeout(5000)]
@@ -50,7 +50,7 @@ public sealed class CodingChatStartupTests
         CodingChatRoomPaths paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
 
         FileNotFoundException exception = await Assert.ThrowsAsync<FileNotFoundException>(
-            () => CodingChatStartup.InitializeAsync(paths, new ImmediateMainThreadDispatcher()));
+            () => CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new ImmediateMainThreadDispatcher()));
 
         StringAssert.Contains(exception.Message, paths.ConfigurationFile.FullName);
         Assert.IsFalse(paths.ConfigurationFile.Exists);
@@ -66,7 +66,7 @@ public sealed class CodingChatStartupTests
         await File.WriteAllTextAsync(paths.ConfigurationFile.FullName, "{ invalid json");
 
         await Assert.ThrowsExactlyAsync<System.Text.Json.JsonException>(
-            () => CodingChatStartup.InitializeAsync(paths, new ImmediateMainThreadDispatcher()));
+            () => CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new ImmediateMainThreadDispatcher()));
     }
 
     [TestMethod(DisplayName = "空 Key 的提供商配置应正常启动")]
@@ -78,7 +78,7 @@ public sealed class CodingChatStartupTests
         paths.EnsureDirectories();
         await CreateConfiguration(primaryModel: null, key: string.Empty).SaveToFileAsync(paths.ConfigurationFile);
 
-        await using CodingChatRuntime runtime = await CodingChatStartup.InitializeAsync(
+        await using CodingWorkTaskRuntime runtime = await CodingWorkTaskRuntimeFactory.InitializeAsync(
             paths,
             new ImmediateMainThreadDispatcher());
 
@@ -96,7 +96,7 @@ public sealed class CodingChatStartupTests
             .SaveToFileAsync(paths.ConfigurationFile);
 
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(
-            () => CodingChatStartup.InitializeAsync(paths, new ImmediateMainThreadDispatcher()));
+            () => CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new ImmediateMainThreadDispatcher()));
 
         StringAssert.Contains(exception.Message, "missing-model");
     }
@@ -111,7 +111,7 @@ public sealed class CodingChatStartupTests
         await CreateConfiguration(primaryModel: "test-model", key: "test-key")
             .SaveToFileAsync(paths.ConfigurationFile);
 
-        await using CodingChatRuntime runtime = await CodingChatStartup.InitializeAsync(
+        await using CodingWorkTaskRuntime runtime = await CodingWorkTaskRuntimeFactory.InitializeAsync(
             paths,
             new ImmediateMainThreadDispatcher());
 

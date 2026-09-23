@@ -13,10 +13,12 @@ using CodingChatRoom.AvaloniaShell.ViewModels;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
+using CodingChatApplicationTestFactory = global::CodingChatRoom.AvaloniaShell.Tests.CodingWorkTaskControllerTestFactory;
+
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
 [TestClass]
-public sealed class CodingChatApplicationTests
+public sealed class CodingWorkTaskControllerTests
 {
     [TestMethod(DisplayName = "应用创建时应立即提供一个可复用空会话")]
     [Timeout(5000)]
@@ -281,7 +283,7 @@ public sealed class CodingChatApplicationTests
         AgentSession agentSession = await context.GetAgentSessionAsync();
         agentSession.SetInMemoryChatHistory([new ChatMessage(ChatRole.System, "系统提示")]);
         Guid sessionId = manager.SelectedSession.SessionId;
-        CodingChatApplication? application = null;
+        CodingWorkTaskController? application = null;
         var runner = new LoopHistoryRunner(agentSession, () => application!.IsLoopIterationEnabled = false);
         application = CodingChatApplicationTestFactory.CreateApplication(manager, new TestSessionStore(), runner);
         application.IsLoopIterationEnabled = true;

@@ -22,7 +22,7 @@ namespace CodingChatRoom.AvaloniaShell.ViewModels;
 public sealed class ChatViewModel : ViewModelBase, IDisposable
 {
     private readonly CopilotChatManager? _chatManager;
-    private readonly CodingChatApplication? _application;
+    private readonly CodingWorkTaskController? _workTaskController;
     private readonly CodingWorkspaceController? _workspaceController;
     private readonly AbilityCatalog? _abilityCatalog;
     private string _modelStatusText;
@@ -55,21 +55,21 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
 
     internal ChatViewModel(
         CopilotChatManager chatManager,
-        CodingChatApplication application,
+        CodingWorkTaskController workTaskController,
         string statusText)
     {
         ArgumentNullException.ThrowIfNull(chatManager);
-        ArgumentNullException.ThrowIfNull(application);
+        ArgumentNullException.ThrowIfNull(workTaskController);
         _chatManager = chatManager;
-        _application = application;
+        _workTaskController = workTaskController;
         _modelStatusText = statusText;
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend, allowConcurrentExecutions: true);
         CompressConversationCommand = new SimpleAsyncCommand(CompressConversationAsync, () => CanCompressConversation);
-        StopCommand = new SimpleAsyncCommand(application.StopActiveRunByUserAsync, () => IsRunning);
+        StopCommand = new SimpleAsyncCommand(workTaskController.StopActiveRunByUserAsync, () => IsRunning);
         StopLanguageServerCommand = new SimpleAsyncCommand(StopLanguageServerAsync, () => CanStopLanguageServer);
         ApplyWorkspaceCommand = new SimpleCommand(static () => { }, static () => false);
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
-        _application.StateChanged += OnApplicationStateChanged;
+        _workTaskController.StateChanged += OnWorkTaskControllerStateChanged;
         PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
         InitializeAvailableModels();
         InitializeReasoningEfforts();
@@ -79,26 +79,26 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
 
     internal ChatViewModel(
         CopilotChatManager chatManager,
-        CodingChatApplication application,
+        CodingWorkTaskController workTaskController,
         CodingWorkspaceController workspaceController,
         string statusText,
         AbilityCatalog? abilityCatalog = null)
     {
         ArgumentNullException.ThrowIfNull(chatManager);
-        ArgumentNullException.ThrowIfNull(application);
+        ArgumentNullException.ThrowIfNull(workTaskController);
         ArgumentNullException.ThrowIfNull(workspaceController);
         _chatManager = chatManager;
-        _application = application;
+        _workTaskController = workTaskController;
         _workspaceController = workspaceController;
         _abilityCatalog = abilityCatalog;
         _modelStatusText = statusText;
         SendCommand = new SimpleAsyncCommand(SendAsync, () => CanSend, allowConcurrentExecutions: true);
         CompressConversationCommand = new SimpleAsyncCommand(CompressConversationAsync, () => CanCompressConversation);
-        StopCommand = new SimpleAsyncCommand(application.StopActiveRunByUserAsync, () => IsRunning);
+        StopCommand = new SimpleAsyncCommand(workTaskController.StopActiveRunByUserAsync, () => IsRunning);
         StopLanguageServerCommand = new SimpleAsyncCommand(StopLanguageServerAsync, () => CanStopLanguageServer);
         ApplyWorkspaceCommand = new SimpleAsyncCommand(ApplyWorkspaceAsync, () => CanApplyWorkspace);
         _chatManager.PropertyChanged += OnChatManagerPropertyChanged;
-        _application.StateChanged += OnApplicationStateChanged;
+        _workTaskController.StateChanged += OnWorkTaskControllerStateChanged;
         _workspaceController.PropertyChanged += OnWorkspaceControllerPropertyChanged;
         if (_abilityCatalog is not null)
         {
@@ -235,9 +235,9 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         {
             if (SetField(ref _isLoopIterationEnabled, value))
             {
-                if (_application is not null)
+                if (_workTaskController is not null)
                 {
-                    _application.IsLoopIterationEnabled = value;
+                    _workTaskController.IsLoopIterationEnabled = value;
                 }
 
                 OnPropertyChanged(nameof(CanSend));
@@ -298,10 +298,10 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         {
             if (SelectedAbility?.IsCompression == true)
             {
-                return _application?.CanCompressConversation == true && PendingImages.Count == 0;
+                return _workTaskController?.CanCompressConversation == true && PendingImages.Count == 0;
             }
 
-            return _application?.CanSend == true
+            return _workTaskController?.CanSend == true
                    && (IsLoopIterationEnabled
                        ? !string.IsNullOrWhiteSpace(InputText)
                        : !string.IsNullOrWhiteSpace(InputText) || PendingImages.Count > 0);
@@ -311,12 +311,12 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 获取当前对话是否可以压缩。
     /// </summary>
-    public bool CanCompressConversation => _application?.CanCompressConversation == true;
+    public bool CanCompressConversation => _workTaskController?.CanCompressConversation == true;
 
     /// <summary>
     /// 获取当前是否可以停止 Roslyn Language Server。
     /// </summary>
-    public bool CanStopLanguageServer => _application is not null && !IsRunning && !IsCompressing;
+    public bool CanStopLanguageServer => _workTaskController is not null && !IsRunning && !IsCompressing;
 
     /// <summary>
     /// 获取是否存在待发送图片。
@@ -326,15 +326,15 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 获取是否正在运行。
     /// </summary>
-    public bool IsRunning => _application?.IsRunActive == true || _application?.IsLoopActive == true;
+    public bool IsRunning => _workTaskController?.IsRunActive == true || _workTaskController?.IsLoopActive == true;
 
     /// <summary>
     /// 获取当前是否正在压缩对话。
     /// </summary>
-    public bool IsCompressing => _application?.IsCompressionActive == true;
+    public bool IsCompressing => _workTaskController?.IsCompressionActive == true;
 
     /// <summary>获取当前是否正在完成最终保存。</summary>
-    public bool IsFinalizing => _application?.IsFinalizing == true;
+    public bool IsFinalizing => _workTaskController?.IsFinalizing == true;
 
     /// <summary>
     /// 获取或设置待应用的工作路径。
@@ -532,9 +532,9 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
             _chatManager.PropertyChanged -= OnChatManagerPropertyChanged;
         }
 
-        if (_application is not null)
+        if (_workTaskController is not null)
         {
-            _application.StateChanged -= OnApplicationStateChanged;
+            _workTaskController.StateChanged -= OnWorkTaskControllerStateChanged;
         }
 
         if (_workspaceController is not null)
@@ -554,7 +554,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         _isDisposed = true;
     }
 
-    private void OnApplicationStateChanged(object? sender, EventArgs e)
+    private void OnWorkTaskControllerStateChanged(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(CanSend));
         OnPropertyChanged(nameof(CanCompressConversation));
@@ -568,14 +568,14 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
 
     private async Task StopLanguageServerAsync()
     {
-        if (_application is null || !CanStopLanguageServer)
+        if (_workTaskController is null || !CanStopLanguageServer)
         {
             return;
         }
 
         try
         {
-            bool stopped = await _application.StopLanguageServerAsync().ConfigureAwait(true);
+            bool stopped = await _workTaskController.StopLanguageServerAsync().ConfigureAwait(true);
             _runStatusText = stopped
                 ? "LSP 服务已结束，将在下次调用符号工具时重新启动"
                 : "当前没有正在运行的 LSP 服务";
@@ -596,7 +596,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
 
     private async Task CompressConversationAsync(string? compressionRequest)
     {
-        if (_application is null || !CanCompressConversation)
+        if (_workTaskController is null || !CanCompressConversation)
         {
             return;
         }
@@ -606,7 +606,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(StatusText));
         try
         {
-            await _application.CompressConversationAsync(compressionRequest).ConfigureAwait(true);
+            await _workTaskController.CompressConversationAsync(compressionRequest).ConfigureAwait(true);
             _runStatusText = "对话压缩完成";
             await AddSystemMessageAsync(session, "对话压缩完成。").ConfigureAwait(true);
         }
@@ -628,7 +628,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
 
     private async Task SendAsync()
     {
-        if (_application is null || !CanSend || SelectedAbility is null)
+        if (_workTaskController is null || !CanSend || SelectedAbility is null)
         {
             return;
         }
@@ -674,13 +674,13 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         {
             if (runLoopIteration)
             {
-                await _application
+                await _workTaskController
                     .RunLoopIterationAsync(loopPrompt, runOptions)
                     .ConfigureAwait(true);
             }
             else
             {
-                await _application
+                await _workTaskController
                     .SendMessageAsync(contents, runOptions)
                     .ConfigureAwait(true);
             }

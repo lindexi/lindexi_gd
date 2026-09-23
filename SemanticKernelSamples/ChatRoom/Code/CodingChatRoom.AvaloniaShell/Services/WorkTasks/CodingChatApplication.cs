@@ -13,7 +13,7 @@ using Microsoft.Extensions.AI;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
-internal enum CodingChatOperationPhase
+internal enum CodingWorkTaskOperationPhase
 {
     Idle,
     Running,
@@ -22,7 +22,7 @@ internal enum CodingChatOperationPhase
     WaitingToRetry,
 }
 
-internal sealed class CodingChatApplication
+internal sealed class CodingWorkTaskController
 {
     private readonly CopilotChatManager _chatManager;
     private readonly ICodingChatSessionStore _sessionStore;
@@ -34,9 +34,9 @@ internal sealed class CodingChatApplication
     private CancellationTokenSource? _activeOperationCancellationTokenSource;
     private volatile bool _isLoopIterationEnabled;
     private bool _isLoopActive;
-    private CodingChatOperationPhase _operationPhase;
+    private CodingWorkTaskOperationPhase _operationPhase;
 
-    public CodingChatApplication
+    public CodingWorkTaskController
     (
         CopilotChatManager chatManager,
         ICodingChatSessionStore sessionStore,
@@ -66,13 +66,13 @@ internal sealed class CodingChatApplication
 
     public bool CanChangeSession => !HasActiveOperation;
 
-    public bool CanSend => _operationPhase == CodingChatOperationPhase.Running
-                           || (!_isLoopActive && _operationPhase == CodingChatOperationPhase.Idle);
+    public bool CanSend => _operationPhase == CodingWorkTaskOperationPhase.Running
+                           || (!_isLoopActive && _operationPhase == CodingWorkTaskOperationPhase.Idle);
 
     public bool CanCompressConversation => !HasActiveOperation
                                            && _chatManager.SelectedSession.AgentSession is not null;
 
-    public bool IsCompressionActive => _operationPhase == CodingChatOperationPhase.Compressing;
+    public bool IsCompressionActive => _operationPhase == CodingWorkTaskOperationPhase.Compressing;
 
     public bool IsLoopIterationEnabled
     {
@@ -80,11 +80,11 @@ internal sealed class CodingChatApplication
         set => _isLoopIterationEnabled = value;
     }
 
-    public bool IsRunActive => _operationPhase == CodingChatOperationPhase.Running;
+    public bool IsRunActive => _operationPhase == CodingWorkTaskOperationPhase.Running;
 
     public bool IsLoopActive => _isLoopActive;
 
-    public bool IsFinalizing => _operationPhase == CodingChatOperationPhase.Finalizing;
+    public bool IsFinalizing => _operationPhase == CodingWorkTaskOperationPhase.Finalizing;
 
     internal void SetWorkTask(Guid workTaskId, string workTaskName)
     {
@@ -256,7 +256,7 @@ internal sealed class CodingChatApplication
         }
 
         ICodingChatRunner chatRunner = _chatRunner;
-        if (_operationPhase == CodingChatOperationPhase.Running)
+        if (_operationPhase == CodingWorkTaskOperationPhase.Running)
         {
             Guid sessionId = _chatManager.SelectedSession.SessionId;
             await _chatManager.ChatLogger.LogDiagnosticAsync
@@ -285,7 +285,7 @@ internal sealed class CodingChatApplication
             return;
         }
 
-        if (_operationPhase != CodingChatOperationPhase.Idle || _isLoopActive)
+        if (_operationPhase != CodingWorkTaskOperationPhase.Idle || _isLoopActive)
         {
             throw new InvalidOperationException("当前任务已有活动操作。");
         }
@@ -320,7 +320,7 @@ internal sealed class CodingChatApplication
         CancellationToken cancellationToken
     )
     {
-        SetOperationPhase(CodingChatOperationPhase.Running);
+        SetOperationPhase(CodingWorkTaskOperationPhase.Running);
         CopilotChatSession session = _chatManager.SelectedSession;
         session.WorkspacePath = _workspaceController.NextRunWorkspacePath;
         ApplyWorkTaskMetadata(session);
@@ -357,7 +357,7 @@ internal sealed class CodingChatApplication
         }
         finally
         {
-            SetOperationPhase(CodingChatOperationPhase.Finalizing);
+            SetOperationPhase(CodingWorkTaskOperationPhase.Finalizing);
             try
             {
                 await _chatManager.ChatLogger.LogDiagnosticAsync(session.SessionId, "会话保存", "开始保存运行后的会话。");
@@ -377,7 +377,7 @@ internal sealed class CodingChatApplication
             }
             finally
             {
-                SetOperationPhase(CodingChatOperationPhase.Idle);
+                SetOperationPhase(CodingWorkTaskOperationPhase.Idle);
                 await _chatManager.ChatLogger.LogDiagnosticAsync(session.SessionId, "运行", "运行状态已恢复为空闲。");
             }
         }
@@ -444,9 +444,9 @@ internal sealed class CodingChatApplication
 
                     try
                     {
-                        SetOperationPhase(CodingChatOperationPhase.WaitingToRetry);
+                        SetOperationPhase(CodingWorkTaskOperationPhase.WaitingToRetry);
                         await Task.Delay(TimeSpan.FromSeconds(10), operationCancellationTokenSource.Token);
-                        SetOperationPhase(CodingChatOperationPhase.Idle);
+                        SetOperationPhase(CodingWorkTaskOperationPhase.Idle);
                     }
                     catch (OperationCanceledException)
                     {
@@ -463,7 +463,7 @@ internal sealed class CodingChatApplication
             }
 
             _isLoopActive = false;
-            SetOperationPhase(CodingChatOperationPhase.Idle);
+            SetOperationPhase(CodingWorkTaskOperationPhase.Idle);
         }
     }
 
@@ -483,7 +483,7 @@ internal sealed class CodingChatApplication
     private async Task CompressConversationCoreAsync(CancellationToken cancellationToken, string? compressionRequest = null)
     {
         CopilotChatSession session = _chatManager.SelectedSession;
-        SetOperationPhase(CodingChatOperationPhase.Compressing);
+        SetOperationPhase(CodingWorkTaskOperationPhase.Compressing);
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -497,7 +497,7 @@ internal sealed class CodingChatApplication
         }
         finally
         {
-            SetOperationPhase(CodingChatOperationPhase.Idle);
+            SetOperationPhase(CodingWorkTaskOperationPhase.Idle);
         }
     }
 
@@ -576,9 +576,9 @@ internal sealed class CodingChatApplication
         }
     }
 
-    private bool HasActiveOperation => _isLoopActive || _operationPhase != CodingChatOperationPhase.Idle;
+    private bool HasActiveOperation => _isLoopActive || _operationPhase != CodingWorkTaskOperationPhase.Idle;
 
-    private void SetOperationPhase(CodingChatOperationPhase phase)
+    private void SetOperationPhase(CodingWorkTaskOperationPhase phase)
     {
         if (_operationPhase == phase) return;
         _operationPhase = phase;

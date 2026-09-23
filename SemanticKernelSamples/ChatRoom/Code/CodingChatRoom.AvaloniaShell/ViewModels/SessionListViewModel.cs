@@ -17,7 +17,7 @@ namespace CodingChatRoom.AvaloniaShell.ViewModels;
 /// </summary>
 public sealed class SessionListViewModel : ViewModelBase, IDisposable
 {
-    private readonly CodingChatApplication? _application;
+    private readonly CodingWorkTaskController? _workTaskController;
     private readonly NotifyCollectionChangedEventHandler? _sessionsChangedHandler;
     private readonly EventHandler? _stateChangedHandler;
     private string _searchText = string.Empty;
@@ -37,19 +37,19 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
     {
         _createNewSessionCommand = new SimpleAsyncCommand(() => RunOperationAsync(async () =>
         {
-            if (_application is null) return;
-            await _application.CreateNewSessionAsync();
+            if (_workTaskController is null) return;
+            await _workTaskController.CreateNewSessionAsync();
         }), () => CanChangeSession);
         _deleteSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>(item => RunOperationAsync(async () =>
         {
-            if (_application is not null && item is not null)
-                await _application.DeleteSessionAsync(item.SessionId);
+            if (_workTaskController is not null && item is not null)
+                await _workTaskController.DeleteSessionAsync(item.SessionId);
         }), CanExecute);
         _saveTitleCommand = new SimpleAsyncCommand<SessionItemViewModel>(item => RunOperationAsync(async () =>
         {
-            if (_application is not null && item is not null && !string.IsNullOrWhiteSpace(item.EditedTitle))
+            if (_workTaskController is not null && item is not null && !string.IsNullOrWhiteSpace(item.EditedTitle))
             {
-                await _application.RenameSessionAsync(item.SessionId, item.EditedTitle);
+                await _workTaskController.RenameSessionAsync(item.SessionId, item.EditedTitle);
                 item.IsEditing = false;
             }
         }), CanExecute);
@@ -66,21 +66,21 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
         ReloadCommand = new SimpleAsyncCommand(() => LoadCoreAsync(), () => !IsLoading);
     }
 
-    internal SessionListViewModel(CodingChatApplication application) : this()
+    internal SessionListViewModel(CodingWorkTaskController workTaskController) : this()
     {
-        ArgumentNullException.ThrowIfNull(application);
-        _application = application;
+        ArgumentNullException.ThrowIfNull(workTaskController);
+        _workTaskController = workTaskController;
         _sessionsChangedHandler = (_, _) => Refresh();
         _stateChangedHandler = (_, _) => UpdateState();
-        application.Sessions.CollectionChanged += _sessionsChangedHandler;
-        application.StateChanged += _stateChangedHandler;
+        workTaskController.Sessions.CollectionChanged += _sessionsChangedHandler;
+        workTaskController.StateChanged += _stateChangedHandler;
         Refresh();
     }
 
     public ObservableCollection<SessionItemViewModel> Sessions { get; } = [];
     public bool IsEmpty => !IsLoading && Sessions.Count == 0;
-    public bool CanChangeSession => (_application?.CanChangeSession ?? false) && !_isOperating;
-    public SessionItemViewModel? SelectedSession => Sessions.FirstOrDefault(item => item.SessionId == _application?.SelectedSessionId);
+    public bool CanChangeSession => (_workTaskController?.CanChangeSession ?? false) && !_isOperating;
+    public SessionItemViewModel? SelectedSession => Sessions.FirstOrDefault(item => item.SessionId == _workTaskController?.SelectedSessionId);
     public string SearchText
     {
         get => _searchText;
@@ -110,12 +110,12 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
 
     private async Task LoadCoreAsync()
     {
-        if (_application is null || IsLoading) return;
+        if (_workTaskController is null || IsLoading) return;
         IsLoading = true;
         ErrorMessage = null;
         try
         {
-            await _application.InitializeAsync();
+            await _workTaskController.InitializeAsync();
             _hasLoaded = true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException or System.Text.Json.JsonException or System.Xml.XmlException)
@@ -153,7 +153,7 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
 
     internal async Task<bool> OpenSessionAsync(SessionItemViewModel? item)
     {
-        if (_application is null || item is null || !CanChangeSession)
+        if (_workTaskController is null || item is null || !CanChangeSession)
         {
             return false;
         }
@@ -161,7 +161,7 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
         bool opened = false;
         await RunOperationAsync(async () =>
         {
-            await _application.OpenSessionAsync(item.SessionId);
+            await _workTaskController.OpenSessionAsync(item.SessionId);
             opened = true;
         });
         return opened;
@@ -171,12 +171,12 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
 
     private void Refresh()
     {
-        if (_application is null) return;
+        if (_workTaskController is null) return;
         string query = SearchText.Trim();
-        var activeIds = _application.Sessions.Select(summary => summary.SessionId).ToHashSet();
+        var activeIds = _workTaskController.Sessions.Select(summary => summary.SessionId).ToHashSet();
         foreach (Guid id in _items.Keys.Where(id => !activeIds.Contains(id)).ToArray()) _items.Remove(id);
         var visible = new System.Collections.Generic.List<SessionItemViewModel>();
-        foreach (CopilotChatSessionSummary summary in _application.Sessions)
+        foreach (CopilotChatSessionSummary summary in _workTaskController.Sessions)
         {
             if (!_items.TryGetValue(summary.SessionId, out var item))
             {
@@ -212,15 +212,15 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_application is null) return;
+        if (_workTaskController is null) return;
         if (_sessionsChangedHandler is not null)
         {
-            _application.Sessions.CollectionChanged -= _sessionsChangedHandler;
+            _workTaskController.Sessions.CollectionChanged -= _sessionsChangedHandler;
         }
 
         if (_stateChangedHandler is not null)
         {
-            _application.StateChanged -= _stateChangedHandler;
+            _workTaskController.StateChanged -= _stateChangedHandler;
         }
     }
 
@@ -228,7 +228,7 @@ public sealed class SessionListViewModel : ViewModelBase, IDisposable
     {
         foreach (SessionItemViewModel item in _items.Values)
         {
-            item.IsCurrent = item.SessionId == _application?.SelectedSessionId;
+            item.IsCurrent = item.SessionId == _workTaskController?.SelectedSessionId;
         }
         OnPropertyChanged(nameof(IsEmpty));
         OnPropertyChanged(nameof(CanChangeSession));
