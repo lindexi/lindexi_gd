@@ -1,36 +1,39 @@
 #:property TargetFramework=net10.0
 
-using System.Collections.ObjectModel;
+return FileOrganizer.Run(args);
 
-return ServicesFileOrganizer.Run(args);
-
-internal static class ServicesFileOrganizer
+internal static class FileOrganizer
 {
     private const string ApplyOption = "--apply";
     private const string SourceOption = "--source";
 
-    private static readonly ReadOnlyDictionary<string, string> s_destinations = new
-    (
-        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["CodingAgentChatRunner.cs"] = "Chat",
-            ["CodingChatRunOptions.cs"] = "Chat",
-            ["ICodingChatRunner.cs"] = "Chat",
-            ["LoopIterationChatReducer.cs"] = "Chat",
-            ["CodingChatHistoryLoader.cs"] = "Sessions",
-            ["ICodingChatSessionStore.cs"] = "Sessions",
-            ["CodingChatSettingsService.cs"] = "Settings",
-            ["CodingChatShellSettings.cs"] = "Settings",
-            ["CodingChatApplication.cs"] = "WorkTasks",
-            ["CodingChatRuntime.cs"] = "WorkTasks",
-            ["CodingChatStartup.cs"] = "WorkTasks",
-            ["WorkTaskStore.cs"] = "WorkTasks",
-            ["CodingWorkspaceController.cs"] = "Workspace",
-            ["OpenAIModelCatalogClient.cs"] = Path.Combine("Integrations", "OpenAI"),
-            ["WindowsSandboxConnectionTester.cs"] = Path.Combine("Integrations", "WindowsSandbox"),
-            ["TemporaryImageViewer.cs"] = "Shell",
-        }
-    );
+    private static readonly IReadOnlyList<FileMove> s_moves =
+    [
+        new("CodingChatRoom.AvaloniaShell/Services/CodingAgentChatRunner.cs", "CodingChatRoom.AvaloniaShell/Services/Chat/CodingAgentChatRunner.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/CodingChatRunOptions.cs", "CodingChatRoom.AvaloniaShell/Services/Chat/CodingChatRunOptions.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/ICodingChatRunner.cs", "CodingChatRoom.AvaloniaShell/Services/Chat/ICodingChatRunner.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/LoopIterationChatReducer.cs", "CodingChatRoom.AvaloniaShell/Services/Chat/LoopIterationChatReducer.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/CodingChatHistoryLoader.cs", "CodingChatRoom.AvaloniaShell/Services/Sessions/CodingChatHistoryLoader.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/ICodingChatSessionStore.cs", "CodingChatRoom.AvaloniaShell/Services/Sessions/ICodingChatSessionStore.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/CodingChatSettingsService.cs", "CodingChatRoom.AvaloniaShell/Services/Settings/CodingChatSettingsService.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/CodingChatShellSettings.cs", "CodingChatRoom.AvaloniaShell/Services/Settings/CodingChatShellSettings.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/WorkTaskStore.cs", "CodingChatRoom.AvaloniaShell/Services/WorkTasks/WorkTaskStore.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/CodingWorkspaceController.cs", "CodingChatRoom.AvaloniaShell/Services/Workspace/CodingWorkspaceController.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/OpenAIModelCatalogClient.cs", "CodingChatRoom.AvaloniaShell/Services/Integrations/OpenAI/OpenAIModelCatalogClient.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/WindowsSandboxConnectionTester.cs", "CodingChatRoom.AvaloniaShell/Services/Integrations/WindowsSandbox/WindowsSandboxConnectionTester.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/TemporaryImageViewer.cs", "CodingChatRoom.AvaloniaShell/Services/Shell/TemporaryImageViewer.cs"),
+
+        new("CodingChatRoom.AvaloniaShell/Services/CodingChatApplication.cs", "CodingChatRoom.AvaloniaShell/Services/WorkTasks/CodingWorkTaskController.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/WorkTasks/CodingChatApplication.cs", "CodingChatRoom.AvaloniaShell/Services/WorkTasks/CodingWorkTaskController.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/CodingChatRuntime.cs", "CodingChatRoom.AvaloniaShell/Services/WorkTasks/CodingWorkTaskRuntime.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/WorkTasks/CodingChatRuntime.cs", "CodingChatRoom.AvaloniaShell/Services/WorkTasks/CodingWorkTaskRuntime.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/CodingChatStartup.cs", "CodingChatRoom.AvaloniaShell/Services/WorkTasks/CodingWorkTaskRuntimeFactory.cs"),
+        new("CodingChatRoom.AvaloniaShell/Services/WorkTasks/CodingChatStartup.cs", "CodingChatRoom.AvaloniaShell/Services/WorkTasks/CodingWorkTaskRuntimeFactory.cs"),
+
+        new("CodingChatRoom.AvaloniaShell.Tests/CodingChatApplicationTests.cs", "CodingChatRoom.AvaloniaShell.Tests/CodingWorkTaskControllerTests.cs"),
+        new("CodingChatRoom.AvaloniaShell.Tests/CodingChatApplicationTestFactory.cs", "CodingChatRoom.AvaloniaShell.Tests/CodingWorkTaskControllerTestFactory.cs"),
+        new("CodingChatRoom.AvaloniaShell.Tests/CodingChatStartupTests.cs", "CodingChatRoom.AvaloniaShell.Tests/CodingWorkTaskRuntimeFactoryTests.cs"),
+    ];
 
     public static int Run(string[] args)
     {
@@ -42,26 +45,26 @@ internal static class ServicesFileOrganizer
                 return 0;
             }
 
-            string sourceDirectory = Path.GetFullPath(options.SourceDirectory);
-            if (!Directory.Exists(sourceDirectory))
+            string codeDirectory = Path.GetFullPath(options.SourceDirectory);
+            if (!Directory.Exists(codeDirectory))
             {
-                Console.Error.WriteLine($"源目录不存在：{sourceDirectory}");
+                Console.Error.WriteLine($"Code 目录不存在：{codeDirectory}");
                 return 2;
             }
 
-            IReadOnlyList<MoveOperation> operations = CreatePlan(sourceDirectory);
-            PrintPlan(sourceDirectory, operations, options.ApplyChanges);
+            IReadOnlyList<MoveOperation> operations = CreatePlan(codeDirectory);
+            PrintPlan(codeDirectory, operations, options.ApplyChanges);
             if (!options.ApplyChanges)
             {
                 Console.WriteLine();
-                Console.WriteLine($"当前为预览模式。确认无误后添加 {ApplyOption} 执行移动。");
+                Console.WriteLine($"当前为预览模式。确认无误后添加 {ApplyOption} 执行移动和改名。");
                 return 0;
             }
 
             ValidatePlan(operations);
             ApplyPlan(operations);
             Console.WriteLine();
-            Console.WriteLine($"已移动 {operations.Count(operation => operation.Status == MoveStatus.Pending)} 个文件。");
+            Console.WriteLine($"已移动或改名 {operations.Count(operation => operation.Status == MoveStatus.Pending)} 个文件。");
             return 0;
         }
         catch (ArgumentException exception)
@@ -100,7 +103,7 @@ internal static class ServicesFileOrganizer
             {
                 if (++index >= args.Length || string.IsNullOrWhiteSpace(args[index]))
                 {
-                    throw new ArgumentException($"{SourceOption} 后必须提供目录路径。");
+                    throw new ArgumentException($"{SourceOption} 后必须提供 Code 目录路径。");
                 }
 
                 sourceDirectory = args[index];
@@ -110,72 +113,78 @@ internal static class ServicesFileOrganizer
             if (argument is "--help" or "-h" or "/?")
             {
                 PrintUsage();
-                return new Options(ResolveDefaultSourceDirectory(), false, ShowHelp: true);
+                return new Options(ResolveDefaultCodeDirectory(), false, true);
             }
 
             throw new ArgumentException($"无法识别参数：{argument}");
         }
 
-        return new Options(sourceDirectory ?? ResolveDefaultSourceDirectory(), applyChanges, ShowHelp: false);
+        return new Options(sourceDirectory ?? ResolveDefaultCodeDirectory(), applyChanges, false);
     }
 
-    private static string ResolveDefaultSourceDirectory()
+    private static string ResolveDefaultCodeDirectory()
     {
         string currentDirectory = Environment.CurrentDirectory;
-        string directCandidate = Path.Combine(currentDirectory, "CodingChatRoom.AvaloniaShell", "Services");
-        if (Directory.Exists(directCandidate))
+        if (Directory.Exists(Path.Combine(currentDirectory, "CodingChatRoom.AvaloniaShell")))
         {
-            return directCandidate;
+            return currentDirectory;
         }
 
-        string parentCandidate = Path.GetFullPath
-        (
-            Path.Combine(currentDirectory, "..", "CodingChatRoom.AvaloniaShell", "Services")
-        );
-        return parentCandidate;
+        string parentDirectory = Path.GetFullPath(Path.Combine(currentDirectory, ".."));
+        return Directory.Exists(Path.Combine(parentDirectory, "CodingChatRoom.AvaloniaShell"))
+            ? parentDirectory
+            : currentDirectory;
     }
 
-    private static IReadOnlyList<MoveOperation> CreatePlan(string sourceDirectory)
+    private static IReadOnlyList<MoveOperation> CreatePlan(string codeDirectory)
     {
-        var operations = new List<MoveOperation>(s_destinations.Count);
-        foreach ((string fileName, string relativeDestinationDirectory) in s_destinations)
+        var operations = new List<MoveOperation>(s_moves.Count);
+        var claimedDestinations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (FileMove move in s_moves)
         {
-            string sourcePath = Path.Combine(sourceDirectory, fileName);
-            string destinationPath = Path.Combine(sourceDirectory, relativeDestinationDirectory, fileName);
-            MoveStatus status = File.Exists(sourcePath)
-                ? MoveStatus.Pending
-                : File.Exists(destinationPath)
-                    ? MoveStatus.AlreadyOrganized
-                    : MoveStatus.Missing;
+            string sourcePath = Path.GetFullPath(Path.Combine(codeDirectory, move.SourceRelativePath));
+            string destinationPath = Path.GetFullPath(Path.Combine(codeDirectory, move.DestinationRelativePath));
+            MoveStatus status;
+            if (File.Exists(sourcePath) && claimedDestinations.Add(destinationPath))
+            {
+                status = MoveStatus.Pending;
+            }
+            else if (File.Exists(destinationPath))
+            {
+                status = MoveStatus.AlreadyOrganized;
+            }
+            else
+            {
+                status = MoveStatus.Missing;
+            }
+
             operations.Add(new MoveOperation(sourcePath, destinationPath, status));
         }
 
         return operations;
     }
 
-    private static void PrintPlan
-    (
-        string sourceDirectory,
-        IReadOnlyList<MoveOperation> operations,
-        bool applyChanges
-    )
+    private static void PrintPlan(string codeDirectory, IReadOnlyList<MoveOperation> operations, bool applyChanges)
     {
-        Console.WriteLine($"源目录：{sourceDirectory}");
+        Console.WriteLine($"Code 目录：{codeDirectory}");
         Console.WriteLine($"模式：{(applyChanges ? "执行" : "预览")}");
         Console.WriteLine();
 
         foreach (MoveOperation operation in operations)
         {
-            string source = Path.GetRelativePath(sourceDirectory, operation.SourcePath);
-            string destination = Path.GetRelativePath(sourceDirectory, operation.DestinationPath);
             string status = operation.Status switch
             {
-                MoveStatus.Pending => "移动",
-                MoveStatus.AlreadyOrganized => "已整理",
+                MoveStatus.Pending => "移动/改名",
+                MoveStatus.AlreadyOrganized => "已完成",
                 MoveStatus.Missing => "未找到",
-                _ => throw new InvalidOperationException("未知的移动状态。"),
+                _ => throw new InvalidOperationException("未知文件状态。"),
             };
-            Console.WriteLine($"[{status}] {source} -> {destination}");
+            Console.WriteLine
+            (
+                $"[{status}] {Path.GetRelativePath(codeDirectory, operation.SourcePath)} -> " +
+                Path.GetRelativePath(codeDirectory, operation.DestinationPath)
+            );
         }
     }
 
@@ -206,11 +215,11 @@ internal static class ServicesFileOrganizer
         Console.WriteLine("用法：");
         Console.WriteLine("  dotnet run ServicesFileOrganizer.cs");
         Console.WriteLine("  dotnet run ServicesFileOrganizer.cs -- --apply");
-        Console.WriteLine("  dotnet run ServicesFileOrganizer.cs -- --source <Services目录> [--apply]");
+        Console.WriteLine("  dotnet run ServicesFileOrganizer.cs -- --source <Code目录> [--apply]");
     }
 
     private sealed record Options(string SourceDirectory, bool ApplyChanges, bool ShowHelp);
-
+    private sealed record FileMove(string SourceRelativePath, string DestinationRelativePath);
     private sealed record MoveOperation(string SourcePath, string DestinationPath, MoveStatus Status);
 
     private enum MoveStatus
