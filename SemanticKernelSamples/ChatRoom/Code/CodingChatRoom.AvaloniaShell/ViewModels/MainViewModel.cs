@@ -83,18 +83,23 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
         RefreshWorkTaskFilter();
 
-        OpenSettingsCommand = new SimpleAsyncCommand(OpenSettingsAsync, () => _settingsViewModel is not null);
-        OpenHistoryCommand = new SimpleAsyncCommand(() => OpenHistoryAsync(false), allowConcurrentExecutions: true);
-        OpenTaskHistoryCommand = new SimpleAsyncCommand(() => OpenHistoryAsync(true), allowConcurrentExecutions: true);
+        OpenSettingsCommand = new SimpleAsyncCommand(OpenSettingsAsync, () => _settingsViewModel is not null,
+            exceptionHandler: HandleCommandException);
+        OpenHistoryCommand = new SimpleAsyncCommand(() => OpenHistoryAsync(false), allowConcurrentExecutions: true,
+            exceptionHandler: HandleCommandException);
+        OpenTaskHistoryCommand = new SimpleAsyncCommand(() => OpenHistoryAsync(true), allowConcurrentExecutions: true,
+            exceptionHandler: HandleCommandException);
         OpenLogDirectoryCommand = new SimpleCommand(OpenLogDirectory, () => ActiveWorkTask.Runtime is not null);
         OpenArchiveCommand = new SimpleCommand(OpenArchive);
         CloseHistoryCommand = new SimpleCommand(CloseNavigationPages);
         OpenSessionCommand = new SimpleAsyncCommand<SessionItemViewModel>
         (
             OpenSessionAsync,
-            item => item is not null && SessionListViewModel.CanChangeSession
+            item => item is not null && SessionListViewModel.CanChangeSession,
+            HandleCommandException
         );
-        CreateWorkTaskCommand = new SimpleAsyncCommand(CreateWorkTaskAsync, () => _createRuntimeAsync is not null);
+        CreateWorkTaskCommand = new SimpleAsyncCommand(CreateWorkTaskAsync, () => _createRuntimeAsync is not null,
+            exceptionHandler: HandleCommandException);
         ActivateWorkTaskCommand = new SimpleCommand<WorkTaskItemViewModel>
         (task =>
             {
@@ -105,24 +110,29 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         SaveWorkTaskNameCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>
         (
             SaveTaskNameAsync,
-            task => task is not null && !string.IsNullOrWhiteSpace(task.EditedDisplayName)
+            task => task is not null && !string.IsNullOrWhiteSpace(task.EditedDisplayName),
+            HandleCommandException
         );
         ArchiveWorkTaskCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>
         (
             ArchiveTaskAsync,
-            task => task is not null && !task.IsWorking && WorkTasks.Count > 1
+            task => task is not null && !task.IsWorking && WorkTasks.Count > 1,
+            HandleCommandException
         );
         DeleteWorkTaskCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>
         (
             DeleteTaskAsync,
-            task => task is not null && !task.IsWorking && WorkTasks.Count > 1
+            task => task is not null && !task.IsWorking && WorkTasks.Count > 1,
+            HandleCommandException
         );
         RestoreWorkTaskCommand = new SimpleAsyncCommand<ArchivedWorkTaskItemViewModel>
         (
             RestoreTaskAsync,
-            item => item is not null && _createRuntimeAsync is not null
+            item => item is not null && _createRuntimeAsync is not null,
+            HandleCommandException
         );
-        DeleteArchivedWorkTaskCommand = new SimpleAsyncCommand<ArchivedWorkTaskItemViewModel>(DeleteArchivedTaskAsync);
+        DeleteArchivedWorkTaskCommand = new SimpleAsyncCommand<ArchivedWorkTaskItemViewModel>
+            (DeleteArchivedTaskAsync, exceptionHandler: HandleCommandException);
     }
 
     internal static MainViewModel Create
@@ -359,8 +369,15 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             or nameof(ChatViewModel.SelectedModel)
             or nameof(ChatViewModel.SelectedReasoningEffort))
         {
-            RefreshWorkTaskFilter();
-            await SaveTasksAndReportAsync().ConfigureAwait(true);
+            try
+            {
+                RefreshWorkTaskFilter();
+                await SaveTasksAndReportAsync().ConfigureAwait(true);
+            }
+            catch (Exception exception)
+            {
+                ReportError($"更新工作任务失败：{exception.Message}", exception);
+            }
         }
     }
 
@@ -765,6 +782,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         Trace.TraceError(exception.ToString());
         ErrorMessage = message;
     }
+
+    private void HandleCommandException(Exception exception)
+        => ReportError($"操作失败：{exception.Message}", exception);
 
     private static bool IsExpectedOperationException(Exception exception)
         => exception is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException

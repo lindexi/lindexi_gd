@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 using Avalonia.Controls;
@@ -44,6 +45,12 @@ public partial class OpenAIModelCatalogView : UserControl
             ModelsList.IsVisible = result.ModelIds.Count > 0;
             StatusText.IsVisible = result.ModelIds.Count == 0;
             StatusText.Text = result.ModelIds.Count == 0 ? "没有可导入的模型。" : null;
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError($"导入 OpenAI 模型列表失败：{exception}");
+            ModelsList.ItemsSource = null;
+            ShowStatus("获取模型列表时发生意外错误。请检查日志并重试。", isError: true);
         }
         finally
         {

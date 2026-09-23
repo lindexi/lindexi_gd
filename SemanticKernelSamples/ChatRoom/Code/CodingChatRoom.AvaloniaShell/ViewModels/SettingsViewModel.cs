@@ -61,9 +61,9 @@ public sealed class SettingsViewModel : ViewModelBase
         _settingsService = settingsService;
         _windowsSandboxConnectionTester = windowsSandboxConnectionTester;
         _backAction = backAction;
-        _saveCommand = new SimpleAsyncCommand(SaveAsync);
+        _saveCommand = new SimpleAsyncCommand(SaveAsync, exceptionHandler: HandleCommandException);
         _testWindowsSandboxConnectionCommand = new SimpleAsyncCommand
-            (TestWindowsSandboxConnectionAsync, CanTestWindowsSandboxConnection);
+            (TestWindowsSandboxConnectionAsync, CanTestWindowsSandboxConnection, exceptionHandler: HandleCommandException);
         BackCommand = new SimpleCommand(Back);
         AddProviderCommand = new SimpleCommand(AddProvider);
         RemoveProviderCommand = new SimpleCommand<ProviderSettingsViewModel>(RemoveProvider);
@@ -371,6 +371,12 @@ public sealed class SettingsViewModel : ViewModelBase
     {
         IsStatusError = isError;
         StatusMessage = message;
+    }
+
+    private void HandleCommandException(Exception exception)
+    {
+        System.Diagnostics.Trace.TraceError($"设置操作失败：{exception}");
+        SetStatus($"设置操作失败：{exception.Message}", isError: true);
     }
 
     private static ProviderSettingsViewModel CreateEmptyProvider()
