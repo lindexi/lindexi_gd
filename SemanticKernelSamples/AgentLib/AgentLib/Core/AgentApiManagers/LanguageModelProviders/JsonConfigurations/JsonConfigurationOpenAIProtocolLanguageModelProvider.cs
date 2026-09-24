@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 #if !NET6_0
 using System.Text.Json.Serialization.Metadata;
 #endif
@@ -9,7 +9,11 @@ namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 /// <summary>
 /// 基于 JSON 配置的 OpenAI 协议语言模型提供商，从 <see cref="OpenAIProtocolLanguageModelConfiguration"/> 读取模型定义。
 /// </summary>
-public class JsonConfigurationOpenAIProtocolLanguageModelProvider(OpenAIProtocolLanguageModelConfiguration configuration) : OpenAIProtocolLanguageModelProviderBase(configuration.EndPoint, configuration.Key)
+public class JsonConfigurationOpenAIProtocolLanguageModelProvider
+(
+    OpenAIProtocolLanguageModelConfiguration configuration,
+    IHttpClientProvider? httpClientProvider = null
+) : OpenAIProtocolLanguageModelProviderBase(configuration.EndPoint, configuration.Key, httpClientProvider)
 {
     protected override IReadOnlyList<ModelDefinition> GetModelDefinitions()
     {
@@ -70,10 +74,14 @@ public class JsonConfigurationOpenAIProtocolLanguageModelProvider(OpenAIProtocol
     /// <param name="configuration">OpenAI 协议语言模型配置。</param>
     /// <returns>提供商实例。</returns>
     /// <exception cref="ArgumentNullException">配置为 <see langword="null"/> 时抛出。</exception>
-    public static JsonConfigurationOpenAIProtocolLanguageModelProvider FromConfiguration(OpenAIProtocolLanguageModelConfiguration? configuration)
+    public static JsonConfigurationOpenAIProtocolLanguageModelProvider FromConfiguration
+    (
+        OpenAIProtocolLanguageModelConfiguration? configuration,
+        IHttpClientProvider? httpClientProvider = null
+    )
     {
         ArgumentNullException.ThrowIfNull(configuration);
-        return new JsonConfigurationOpenAIProtocolLanguageModelProvider(configuration);
+        return new JsonConfigurationOpenAIProtocolLanguageModelProvider(configuration, httpClientProvider);
     }
 
 #if !NET6_0
