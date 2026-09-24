@@ -139,6 +139,54 @@
                 </Border>
 
                 <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="20">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                            <Border Classes="SectionIcon">
+                                <TextBlock Text="NET"
+                                           FontSize="9"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryDarkBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="{StaticResource NetworkProxySettingsTitle}"
+                                           Classes="SettingsSectionTitle" />
+                                <TextBlock Text="{StaticResource NetworkProxySettingsDescription}"
+                                           Classes="Subtitle"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="2"
+                                          IsChecked="{Binding IsNetworkProxyEnabled}"
+                                          OnContent="{StaticResource NetworkProxyEnabledText}"
+                                          OffContent="{StaticResource NetworkProxyDisabledText}"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <StackPanel Spacing="14" IsEnabled="{Binding IsNetworkProxyEnabled}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{StaticResource NetworkProxyAddressLabel}" Classes="SettingsLabel" />
+                                <TextBox Classes="Rounded SettingsInput"
+                                         Text="{Binding NetworkProxyAddress}"
+                                         PlaceholderText="{StaticResource NetworkProxyAddressPlaceholder}" />
+                                <TextBlock Text="{StaticResource NetworkProxyAddressHint}"
+                                           Classes="SettingsHint"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <CheckBox IsChecked="{Binding BypassProxyOnLocal}"
+                                          Content="{StaticResource BypassProxyOnLocalText}" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{StaticResource BypassProxyOnLocalHint}"
+                                           Classes="SettingsHint"
+                                           TextWrapping="Wrap"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="SettingsCard" Padding="24">
                     <StackPanel Spacing="16">
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
                             <Border Classes="SectionIcon">

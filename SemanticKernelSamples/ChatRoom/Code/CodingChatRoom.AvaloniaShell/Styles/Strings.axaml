@@ -58,6 +58,15 @@
         <sys:String x:Key="AutomaticCompressionText">自动压缩对话</sys:String>
         <sys:String x:Key="StopLanguageServerText">结束 LSP 服务</sys:String>
         <sys:String x:Key="StopLanguageServerToolTip">结束当前工作区的 LSP 服务；运行结束后可用，下次调用符号工具时自动重新启动</sys:String>
+        <sys:String x:Key="NetworkProxySettingsTitle">网络代理</sys:String>
+        <sys:String x:Key="NetworkProxySettingsDescription">为 OpenAI 兼容模型服务配置 HTTP 或 HTTPS 代理。</sys:String>
+        <sys:String x:Key="NetworkProxyEnabledText">已启用</sys:String>
+        <sys:String x:Key="NetworkProxyDisabledText">已禁用</sys:String>
+        <sys:String x:Key="NetworkProxyAddressLabel">代理地址</sys:String>
+        <sys:String x:Key="NetworkProxyAddressPlaceholder">http://127.0.0.1:7890</sys:String>
+        <sys:String x:Key="NetworkProxyAddressHint">支持 HTTP 和 HTTPS 代理地址；保存后下一次模型请求立即使用新配置。</sys:String>
+        <sys:String x:Key="BypassProxyOnLocalText">本地地址不使用代理</sys:String>
+        <sys:String x:Key="BypassProxyOnLocalHint">访问 localhost、127.0.0.1 或局域网本机服务时直接连接。</sys:String>
         <sys:String x:Key="LanguageServerSettingsTitle">LSP 编程服务</sys:String>
         <sys:String x:Key="LanguageServerSettingsDescription">安装或更新代码符号查询所需的 Roslyn Language Server。</sys:String>
         <sys:String x:Key="InstallOrUpdateLanguageServerText">安装或更新 LSP</sys:String>
