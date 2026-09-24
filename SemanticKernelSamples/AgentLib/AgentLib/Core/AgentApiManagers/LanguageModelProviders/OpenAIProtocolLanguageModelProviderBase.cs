@@ -1,11 +1,16 @@
-﻿using AgentLib.Core.AgentApiManagers.Contexts;
+using AgentLib.Core.AgentApiManagers.Contexts;
 
 namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 /// <summary>
 /// OpenAI 协议语言模型基类，封装两个实现共享的消息构造、工具定义和响应解析逻辑。
 /// </summary>
-public abstract class OpenAIProtocolLanguageModelProviderBase(string endPoint, string key) : ILanguageModelProvider
+public abstract class OpenAIProtocolLanguageModelProviderBase
+(
+    string endPoint,
+    string key,
+    IHttpClientProvider? httpClientProvider = null
+) : ILanguageModelProvider
 {
     /// <summary>
     /// API 终结点地址。
@@ -30,7 +35,7 @@ public abstract class OpenAIProtocolLanguageModelProviderBase(string endPoint, s
         foreach (ModelDefinition modelDefinition in modelDefinitions)
         {
             var apiEndpoint = GetApiEndpointForModel(modelDefinition);
-            result.Add(new OpenAILanguageModel(modelDefinition, apiEndpoint));
+            result.Add(new OpenAILanguageModel(modelDefinition, apiEndpoint, httpClientProvider));
         }
         return result;
     }

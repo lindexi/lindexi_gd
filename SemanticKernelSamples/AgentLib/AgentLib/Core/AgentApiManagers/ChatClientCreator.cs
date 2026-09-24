@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.AI;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.DeepSeek;
 
 using OpenAI;
@@ -6,6 +6,7 @@ using OpenAI.Chat;
 
 using System;
 using System.ClientModel;
+using System.ClientModel.Primitives;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,11 @@ namespace AgentLib.Core.AgentApiManagers;
 
 internal static class ChatClientCreator
 {
-    public static IChatClient CreateChatClient(ApiEndpoint apiEndpoint)
+    public static IChatClient CreateChatClient
+    (
+        ApiEndpoint apiEndpoint,
+        IHttpClientProvider? httpClientProvider = null
+    )
     {
         if (apiEndpoint.IsDeepSeek())
         {
@@ -24,7 +29,7 @@ internal static class ChatClientCreator
             return chatClient;
         }
 
-        return OpenAIClientCreator.CreateOpenAIClient(apiEndpoint);
+        return OpenAIClientCreator.CreateOpenAIClient(apiEndpoint, httpClientProvider);
     }
 
     /// <summary>
@@ -38,14 +43,22 @@ internal static class ChatClientCreator
     }
 }
 
-file static class OpenAIClientCreator
+internal static class OpenAIClientCreator
 {
-    public static IChatClient CreateOpenAIClient(ApiEndpoint apiEndpoint)
+    public static IChatClient CreateOpenAIClient
+    (
+        ApiEndpoint apiEndpoint,
+        IHttpClientProvider? httpClientProvider
+    )
     {
-        var openAiClient = new OpenAIClient(new ApiKeyCredential(apiEndpoint.Key), new OpenAIClientOptions()
+        var options = new OpenAIClientOptions
         {
-            Endpoint = new Uri(apiEndpoint.EndPoint)
-        });
+            Endpoint = new Uri(apiEndpoint.EndPoint),
+        };
+        HttpClient httpClient = httpClientProvider?.HttpClient ?? new HttpClient();
+        options.Transport = new HttpClientPipelineTransport(httpClient);
+
+        var openAiClient = new OpenAIClient(new ApiKeyCredential(apiEndpoint.Key), options);
 
         ChatClient chatClient = openAiClient.GetChatClient(apiEndpoint.ModelId);
         return chatClient.AsIChatClient();

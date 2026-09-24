@@ -92,23 +92,8 @@ public partial class ChatView : UserControl
 
     private void ScrollToEndAfterLayout()
     {
-        if (!_autoScrollState.TryScheduleScroll())
-        {
-            return;
-        }
-
         Dispatcher.UIThread.Post(
-            () =>
-            {
-                try
-                {
-                    MessagesScrollViewer.ScrollToEnd();
-                }
-                finally
-                {
-                    _autoScrollState.CompleteScheduledScroll();
-                }
-            },
+            MessagesScrollViewer.ScrollToEnd,
             DispatcherPriority.Background);
     }
 

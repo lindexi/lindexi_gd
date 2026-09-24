@@ -1,3 +1,6 @@
+using System.Net;
+
+using AgentLib.Core.AgentApiManagers;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 namespace AgentLib.Core;
@@ -5,8 +8,34 @@ namespace AgentLib.Core;
 /// <summary>
 /// 管理 API 终结点和语言模型提供商的注册、查询与选择。
 /// </summary>
-public class AgentApiEndpointManager
+public class AgentApiEndpointManager : IHttpClientProvider
 {
+    private readonly DynamicWebProxy _dynamicWebProxy = new();
+
+    /// <summary>
+    /// 创建 API 终结点管理器。
+    /// </summary>
+    public AgentApiEndpointManager()
+    {
+        HttpClient = new HttpClient(new SocketsHttpHandler
+        {
+            Proxy = _dynamicWebProxy,
+            UseProxy = true,
+        });
+    }
+
+    /// <inheritdoc />
+    public HttpClient? HttpClient { get; set; }
+
+    /// <summary>
+    /// 获取或设置模型网络请求使用的代理；为 <see langword="null"/> 时直连。
+    /// </summary>
+    public IWebProxy? WebProxy
+    {
+        get => _dynamicWebProxy.Proxy;
+        set => _dynamicWebProxy.Proxy = value;
+    }
+
     /// <summary>
     /// 从配置加载语言模型提供商并注册。
     /// </summary>
@@ -20,7 +49,7 @@ public class AgentApiEndpointManager
             foreach (var languageModelConfiguration in configuration.OpenAIConfigurationList)
             {
                 var provider = JsonConfigurationOpenAIProtocolLanguageModelProvider
-                    .FromConfiguration(languageModelConfiguration);
+                    .FromConfiguration(languageModelConfiguration, this);
                 RegisterLanguageModelProvider(provider);
             }
         }
@@ -46,7 +75,11 @@ public class AgentApiEndpointManager
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
-        var replacement = new AgentApiEndpointManager();
+        var replacement = new AgentApiEndpointManager
+        {
+            HttpClient = HttpClient,
+            WebProxy = WebProxy,
+        };
         replacement.LoadConfiguration(configuration);
         ILanguageModel replacementPrimaryModel = replacement.PrimaryModel;
 
