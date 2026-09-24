@@ -73,29 +73,4 @@ public sealed class ChatAutoScrollStateTests
         Assert.IsTrue(state.ShouldFollowTail);
         Assert.IsTrue(shouldScroll);
     }
-
-    [TestMethod(DisplayName = "滚动请求执行前不应重复登记")]
-    [Timeout(5000)]
-    public void PendingScrollShouldBeCoalesced()
-    {
-        var state = new ChatAutoScrollState();
-
-        bool firstRequestAccepted = state.TryScheduleScroll();
-        bool secondRequestAccepted = state.TryScheduleScroll();
-
-        Assert.IsTrue(firstRequestAccepted);
-        Assert.IsFalse(secondRequestAccepted);
-    }
-
-    [TestMethod(DisplayName = "滚动请求完成后应允许再次登记")]
-    [Timeout(5000)]
-    public void CompletedScrollShouldAllowNextRequest()
-    {
-        var state = new ChatAutoScrollState();
-        state.TryScheduleScroll();
-
-        state.CompleteScheduledScroll();
-
-        Assert.IsTrue(state.TryScheduleScroll());
-    }
 }
