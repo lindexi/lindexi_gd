@@ -47,9 +47,12 @@ public partial class MainWindow : Window
         }
 
         ToolTitleTextBlock.Text = button.Tag as string;
-        ToolDescriptionTextBlock.Text = ResourceText(button == PingButton ? "PingDescription"
+        ToolDescriptionTextBlock.Text = ResourceText
+        (
+            button == PingButton ? "PingDescription"
             : button == TcpPingButton ? "TcpDescription"
-            : button == TraceRouteButton ? "TraceDescription" : "DnsDescription");
+            : button == TraceRouteButton ? "TraceDescription" : "DnsDescription"
+        );
         PortPanel.IsVisible = button == TcpPingButton;
         if (EmptyStatePanel.IsVisible)
         {
@@ -111,7 +114,8 @@ public partial class MainWindow : Window
                 OutputTextBox.Text = PingButton.IsChecked == true
                     ? await _diagnosticService.PingAsync(target, cancellation.Token)
                     : TcpPingButton.IsChecked == true
-                        ? await _diagnosticService.TcpPingAsync(target, decimal.ToInt32(PortNumericUpDown.Value ?? 443), cancellation.Token)
+                        ? await _diagnosticService.TcpPingAsync
+                            (target, decimal.ToInt32(PortNumericUpDown.Value ?? 443), cancellation.Token)
                         : await _diagnosticService.QueryAsync(target, cancellation.Token);
             }
 
@@ -123,7 +127,8 @@ public partial class MainWindow : Window
             AppendOutputLine(ResourceText("CancelledText"));
             SetStatus(ResourceText("CancelledText"), ReadyBrush);
         }
-        catch (Exception exception) when (exception is SocketException or InvalidOperationException or ArgumentException or PingException)
+        catch (Exception exception) when (exception is SocketException or InvalidOperationException or ArgumentException
+                                              or PingException)
         {
             ShowError(exception.Message);
         }
@@ -177,10 +182,13 @@ public partial class MainWindow : Window
         OperationProgressBar.IsVisible = !enabled;
     }
 
-    private void UpdateElapsed() => ElapsedTextBlock.Text = string.Format(
-        CultureInfo.CurrentCulture, ResourceText("ElapsedFormat"), _stopwatch.Elapsed.TotalSeconds);
+    private void UpdateElapsed() => ElapsedTextBlock.Text = string.Format
+    (
+        CultureInfo.CurrentCulture, ResourceText("ElapsedFormat"), _stopwatch.Elapsed.TotalSeconds
+    );
 
-    private Task AppendOutputLineAsync(string line) => Dispatcher.UIThread.InvokeAsync(() => AppendOutputLine(line)).GetTask();
+    private Task AppendOutputLineAsync
+        (string line) => Dispatcher.UIThread.InvokeAsync(() => AppendOutputLine(line)).GetTask();
 
     private void AppendOutputLine(string line)
     {

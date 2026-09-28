@@ -14,11 +14,11 @@ using System.Text.Json.Serialization;
 
 namespace IpTrace;
 
-internal sealed class NetworkDiagnosticService : IDisposable
+internal sealed partial class NetworkDiagnosticService : IDisposable
 {
     private const int PingTimeoutMilliseconds = 3_000;
     private const int TraceTimeoutMilliseconds = 2_000;
-    private const int MaximumHops = 30;
+    private const int MaximumHops = 100;
     private static readonly byte[] TracePayload = "IpTrace"u8.ToArray();
 
     private readonly HttpClient _httpClient = new()
@@ -82,14 +82,18 @@ internal sealed class NetworkDiagnosticService : IDisposable
         for (var attempt = 1; attempt <= 4; attempt++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var reply = await ping.SendPingAsync(target, TimeSpan.FromMilliseconds(PingTimeoutMilliseconds), cancellationToken: cancellationToken)
+            var reply = await ping.SendPingAsync
+                    (target, TimeSpan.FromMilliseconds(PingTimeoutMilliseconds), cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
 
             if (reply.Status == IPStatus.Success)
             {
                 destination = reply.Address;
                 successfulRoundTrips.Add(reply.RoundtripTime);
-                lines.Add($"来自 {reply.Address} 的回复: 时间={reply.RoundtripTime}ms TTL={reply.Options?.Ttl.ToString(CultureInfo.InvariantCulture) ?? "--"}");
+                lines.Add
+                (
+                    $"来自 {reply.Address} 的回复: 时间={reply.RoundtripTime}ms TTL={reply.Options?.Ttl.ToString(CultureInfo.InvariantCulture) ?? "--"}"
+                );
             }
             else
             {
@@ -99,10 +103,16 @@ internal sealed class NetworkDiagnosticService : IDisposable
 
         lines.Add(string.Empty);
         lines.Add($"{destination ?? IPAddress.None} 的 Ping 统计信息:");
-        lines.Add($"  数据包: 已发送 = 4，已接收 = {successfulRoundTrips.Count}，丢失 = {4 - successfulRoundTrips.Count} ({(4 - successfulRoundTrips.Count) * 25}% 丢失)");
+        lines.Add
+        (
+            $"  数据包: 已发送 = 4，已接收 = {successfulRoundTrips.Count}，丢失 = {4 - successfulRoundTrips.Count} ({(4 - successfulRoundTrips.Count) * 25}% 丢失)"
+        );
         if (successfulRoundTrips.Count > 0)
         {
-            lines.Add($"  往返时间: 最短 = {successfulRoundTrips.Min()}ms，最长 = {successfulRoundTrips.Max()}ms，平均 = {successfulRoundTrips.Average():F0}ms");
+            lines.Add
+            (
+                $"  往返时间: 最短 = {successfulRoundTrips.Min()}ms，最长 = {successfulRoundTrips.Max()}ms，平均 = {successfulRoundTrips.Average():F0}ms"
+            );
         }
 
         return string.Join(Environment.NewLine, lines);
@@ -147,28 +157,36 @@ internal sealed class NetworkDiagnosticService : IDisposable
         lines.Add($"TCPing 统计: 成功 = {successfulRoundTrips.Count}，失败 = {4 - successfulRoundTrips.Count}");
         if (successfulRoundTrips.Count > 0)
         {
-            lines.Add($"往返时间: 最短 = {successfulRoundTrips.Min():F1}ms，最长 = {successfulRoundTrips.Max():F1}ms，平均 = {successfulRoundTrips.Average():F1}ms");
+            lines.Add
+            (
+                $"往返时间: 最短 = {successfulRoundTrips.Min():F1}ms，最长 = {successfulRoundTrips.Max():F1}ms，平均 = {successfulRoundTrips.Average():F1}ms"
+            );
         }
 
         return string.Join(Environment.NewLine, lines);
     }
 
-    internal async Task TraceRouteAsync(
+    internal async Task TraceRouteAsync
+    (
         string target,
         Func<string, Task> reportLineAsync,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(reportLineAsync);
 
         var addresses = await Dns.GetHostAddressesAsync(target, cancellationToken).ConfigureAwait(false);
-        var destination = addresses.FirstOrDefault(static address => address.AddressFamily == AddressFamily.InterNetwork)
-            ?? addresses.FirstOrDefault()
-            ?? throw new InvalidOperationException($"未找到 {target} 的 IP 地址。");
+        var destination = addresses.FirstOrDefault
+                              (static address => address.AddressFamily == AddressFamily.InterNetwork)
+                          ?? addresses.FirstOrDefault()
+                          ?? throw new InvalidOperationException($"未找到 {target} 的 IP 地址。");
 
         await reportLineAsync($"通过最多 {MaximumHops} 个跃点跟踪到 {target} [{destination}] 的路由：").ConfigureAwait(false);
         await reportLineAsync(string.Empty).ConfigureAwait(false);
         await reportLineAsync("跃点  延迟       IP 地址                                  位置").ConfigureAwait(false);
-        await reportLineAsync("────  ─────────  ───────────────────────────────────────  ─────────────────────────").ConfigureAwait(false);
+        await reportLineAsync
+            ("────  ─────────  ───────────────────────────────────────  ─────────────────────────").ConfigureAwait
+            (false);
 
         using var ping = new Ping();
         for (var ttl = 1; ttl <= MaximumHops; ttl++)
@@ -180,12 +198,18 @@ internal sealed class NetworkDiagnosticService : IDisposable
 
             try
             {
-                reply = await ping.SendPingAsync(destination, TimeSpan.FromMilliseconds(TraceTimeoutMilliseconds), TracePayload, options, cancellationToken)
+                reply = await ping.SendPingAsync
+                    (
+                        destination, TimeSpan.FromMilliseconds(TraceTimeoutMilliseconds), TracePayload, options,
+                        cancellationToken
+                    )
                     .ConfigureAwait(false);
             }
             catch (PingException exception)
             {
-                await reportLineAsync($"{ttl,4}  {"*",-9}  {exception.InnerException?.Message ?? exception.Message}").ConfigureAwait(false);
+                await reportLineAsync
+                    ($"{ttl,4}  {"*",-9}  {exception.InnerException?.Message ?? exception.Message}").ConfigureAwait
+                    (false);
                 continue;
             }
 
@@ -229,20 +253,27 @@ internal sealed class NetworkDiagnosticService : IDisposable
 
         try
         {
-            using var response = await _httpClient.GetAsync($"geoip/{Uri.EscapeDataString(address.ToString())}", cancellationToken).ConfigureAwait(false);
+            using var response = await _httpClient.GetAsync
+                ($"geoip/{Uri.EscapeDataString(address.ToString())}", cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 return "位置查询失败";
             }
 
             await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-            var geo = await JsonSerializer.DeserializeAsync<GeoIpResponse>(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var geo = await JsonSerializer.DeserializeAsync
+                (stream, GeoIpJsonContext.Default.GeoIpResponse, cancellationToken).ConfigureAwait(false);
             if (geo is null)
             {
                 return "未知";
             }
 
-            var place = string.Join(" · ", new[] { geo.Country, geo.Region, geo.City }.Where(static value => !string.IsNullOrWhiteSpace(value)).Distinct());
+            var place = string.Join
+            (
+                " · ",
+                new[] { geo.Country, geo.Region, geo.City }.Where
+                    (static value => !string.IsNullOrWhiteSpace(value)).Distinct()
+            );
             var organization = !string.IsNullOrWhiteSpace(geo.Organization) ? geo.Organization : geo.Isp;
             return string.IsNullOrWhiteSpace(organization) ? place : $"{place}  ({organization})";
         }
@@ -265,10 +296,10 @@ internal sealed class NetworkDiagnosticService : IDisposable
 
         var bytes = address.GetAddressBytes();
         return bytes[0] == 10
-            || bytes[0] == 127
-            || bytes[0] == 192 && bytes[1] == 168
-            || bytes[0] == 172 && bytes[1] is >= 16 and <= 31
-            || bytes[0] == 169 && bytes[1] == 254;
+               || bytes[0] == 127
+               || bytes[0] == 192 && bytes[1] == 168
+               || bytes[0] == 172 && bytes[1] is >= 16 and <= 31
+               || bytes[0] == 169 && bytes[1] == 254;
     }
 
     private static string GetAddressType(IPAddress address) =>
@@ -282,10 +313,17 @@ internal sealed class NetworkDiagnosticService : IDisposable
         _ => status.ToString()
     };
 
-    private sealed record GeoIpResponse(
+    [JsonSerializable(typeof(GeoIpResponse))]
+    private partial class GeoIpJsonContext : JsonSerializerContext;
+
+    private sealed record GeoIpResponse
+    (
         [property: JsonPropertyName("region")] string? Region,
-        [property: JsonPropertyName("organization")] string? Organization,
+        [property: JsonPropertyName("organization")]
+        string? Organization,
         [property: JsonPropertyName("isp")] string? Isp,
         [property: JsonPropertyName("city")] string? City,
-        [property: JsonPropertyName("country")] string? Country);
+        [property: JsonPropertyName("country")]
+        string? Country
+    );
 }
