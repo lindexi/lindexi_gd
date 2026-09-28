@@ -23,6 +23,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 namespace SimpleWrite.Views.Components;
@@ -128,9 +129,16 @@ public partial class RightSlideBar : UserControl
             var configurationManager = mainViewModel.ConfigurationManager; var copilotPatternProvider = new CopilotPatternProvider(copilotViewModel, configurationManager);
             copilotPatternProvider.AddCopilotPatterns(mainViewModel.CommandPatternManager);
 
-            // 加载 Skills 技能文件夹
+            // 加载 Skills 技能文件夹。只读技能工具无需人工审批，脚本执行仍保留默认审批。
             var skillsDirectory = Directory.CreateDirectory(Path.Join(mainViewModel.AppPathManager.CopilotAbilityDirectory.Path, "Skills"));
-            copilotViewModel.AddSkillFolder(skillsDirectory);
+            var skillsProvider = new AgentSkillsProvider(skillsDirectory.FullName, options: new AgentSkillsProviderOptions
+            {
+                DisableLoadSkillApproval = true,
+                DisableReadSkillResourceApproval = true,
+            });
+            copilotViewModel.AIContextProviders = copilotViewModel.AIContextProviders is { Count: > 0 }
+                ? [.. copilotViewModel.AIContextProviders, skillsProvider]
+                : [skillsProvider];
         }
         else
         {
