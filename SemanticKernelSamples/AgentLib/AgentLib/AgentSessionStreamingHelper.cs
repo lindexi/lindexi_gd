@@ -15,6 +15,11 @@ public static class AgentSessionStreamingHelper
     private const int MaxRetryCount = 5;
 
     /// <summary>
+    /// 最大超时重试次数，为什么超时重试不一样？因为可能是网络问题，需要多等等
+    /// </summary>
+    private const int MaxTimeoutRetryCount = 10;
+
+    /// <summary>
     /// 运行流式 Agent 调用。
     /// 每个 <see cref="AgentResponseUpdate"/> 逐一 yield 给调用方。
     /// 调用方可在 <c>await foreach</c> 循环中自由 <c>break</c> 或触发取消；
@@ -44,6 +49,8 @@ public static class AgentSessionStreamingHelper
         {
             IReadOnlyList<ChatMessage> currentInputMessages = inputMessages;
             var retryCount = 0;
+            var timeoutRetryCount = 0;
+
             while (true)
             {
                 IAsyncEnumerator<AgentResponseUpdate> enumerator = agent.RunStreamingAsync
@@ -69,7 +76,7 @@ public static class AgentSessionStreamingHelper
                         }
 
                         // 有过正常的情况，重置重试次数
-                        retryCount = 0;
+                        ResetRetryCount();
 
                         AgentResponseUpdate update = enumerator.Current;
                         collectedUpdates.Add(update);
@@ -87,34 +94,65 @@ public static class AgentSessionStreamingHelper
                     break;
                 }
 
-                if (IsRetryableServerError(streamingException, out var delayTime))
+                var canRetry = await CanRetry();
+                if (canRetry)
                 {
-                    // 明确的服务器错误，做等待，然后重试
-                    await Task.Delay(delayTime, cancellationToken);
-                    // 不计入重试
-                    retryCount--;
+                    cancellationToken.ThrowIfCancellationRequested();
+                    CompleteRunHistory(session, inputMessages, collectedUpdates);
+                    collectedUpdates.Clear();
+                    currentInputMessages = [];
+                    continue;
                 }
                 else
                 {
-                    // 能重试的条件： 重试次数在范围内 + 可重试的异常类型
-                    bool canRetry = retryCount < MaxRetryCount;
-                    canRetry &= (IsRetryableException(streamingException) || IsNetworkTimeout());
-                    if (canRetry)
-                    {
-                        // 啥都不做，继续往下走，进行重试
-                    }
-                    else
-                    {
-                        ExceptionDispatchInfo.Capture(streamingException).Throw();
-                        yield break; // 理论上不会进入此分支，只是为了做明确的打断
-                    }
+                    ExceptionDispatchInfo.Capture(streamingException).Throw();
+                    yield break; // 理论上不会进入此分支，只是为了做明确的打断
                 }
 
-                cancellationToken.ThrowIfCancellationRequested();
-                CompleteRunHistory(session, inputMessages, collectedUpdates);
-                collectedUpdates.Clear();
-                currentInputMessages = [];
-                retryCount++;
+                void ResetRetryCount()
+                {
+                    retryCount = 0;
+                    timeoutRetryCount = 0;
+                }
+
+                async Task<bool> CanRetry()
+                {
+                    if (IsRetryableServerError(streamingException, out var delayTime))
+                    {
+                        // 明确的服务器错误，做等待，然后重试
+                        await Task.Delay(delayTime, cancellationToken);
+                        return true;
+                    }
+
+                    // 能重试的条件： 重试次数在范围内 + 可重试的异常类型
+                    if (IsRetryableException(streamingException))
+                    {
+                        if (retryCount < MaxRetryCount)
+                        {
+                            retryCount++;
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (IsNetworkTimeout())
+                    {
+                        if (timeoutRetryCount < MaxTimeoutRetryCount)
+                        {
+                            timeoutRetryCount++;
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+
+                    return false;
+                }
 
                 bool IsNetworkTimeout()
                 {
