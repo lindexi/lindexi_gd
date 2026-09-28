@@ -117,6 +117,76 @@ public class CopilotChatManagerChatReducerTests
     }
 
     [TestMethod]
+    [Description("ToolCallAwareChatReducer 在工具结果未紧邻调用时应跳过压缩")]
+    public async Task ToolCallAwareReducer_WhenFunctionResultIsNotAdjacent_SkipsInnerReducer()
+    {
+        var primaryChatClient = new FakeChatClient();
+        bool innerReducerCalled = false;
+        primaryChatClient.OnGetResponseAsync = (_, _, _) =>
+        {
+            innerReducerCalled = true;
+            return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "摘要")]));
+        };
+
+        var decorator = new ToolCallAwareChatReducer(new CopilotChatManagerChatReducer(primaryChatClient));
+        var messages = new List<ChatMessage>
+        {
+            new(ChatRole.User, "请读取内容"),
+            new(ChatRole.Assistant,
+            [
+                new FunctionCallContent("call_001", "ReadFile", new Dictionary<string, object?>())
+            ]),
+            new(ChatRole.Assistant, "中间消息"),
+            new(ChatRole.Tool,
+            [
+                new FunctionResultContent("call_001", "文件内容")
+            ]),
+        };
+
+        IEnumerable<ChatMessage> result = await decorator.ReduceAsync(messages, CancellationToken.None);
+
+        Assert.IsFalse(innerReducerCalled);
+        CollectionAssert.AreEqual(messages, result.ToList());
+    }
+
+    [TestMethod]
+    [Description("ToolCallAwareChatReducer 在并行工具结果未紧邻完整覆盖时应跳过压缩")]
+    public async Task ToolCallAwareReducer_WhenParallelResultsAreNotAdjacentAndComplete_SkipsInnerReducer()
+    {
+        var primaryChatClient = new FakeChatClient();
+        bool innerReducerCalled = false;
+        primaryChatClient.OnGetResponseAsync = (_, _, _) =>
+        {
+            innerReducerCalled = true;
+            return Task.FromResult(new ChatResponse([new ChatMessage(ChatRole.Assistant, "摘要")]));
+        };
+
+        var decorator = new ToolCallAwareChatReducer(new CopilotChatManagerChatReducer(primaryChatClient));
+        var messages = new List<ChatMessage>
+        {
+            new(ChatRole.Assistant,
+            [
+                new FunctionCallContent("call_001", "ReadFile", new Dictionary<string, object?>()),
+                new FunctionCallContent("call_002", "ListDirectory", new Dictionary<string, object?>()),
+            ]),
+            new(ChatRole.Tool,
+            [
+                new FunctionResultContent("call_001", "文件内容")
+            ]),
+            new(ChatRole.Assistant, "中间消息"),
+            new(ChatRole.Tool,
+            [
+                new FunctionResultContent("call_002", "目录内容")
+            ]),
+        };
+
+        IEnumerable<ChatMessage> result = await decorator.ReduceAsync(messages, CancellationToken.None);
+
+        Assert.IsFalse(innerReducerCalled);
+        CollectionAssert.AreEqual(messages, result.ToList());
+    }
+
+    [TestMethod]
     [Description("ToolCallAwareChatReducer 在工具调用已完成（有 FunctionResultContent）时应委托给内部 reducer")]
     public async Task ToolCallAwareReducer_WhenToolCallCompleted_DelegatesToInnerReducer()
     {

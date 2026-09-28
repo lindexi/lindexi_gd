@@ -1,6 +1,5 @@
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
@@ -13,7 +12,7 @@ namespace AgentLib;
 /// </summary>
 public static class AgentSessionStreamingHelper
 {
-    private const int MaxRetryCount = 3;
+    private const int MaxRetryCount = 5;
 
     /// <summary>
     /// 运行流式 Agent 调用。
@@ -26,11 +25,13 @@ public static class AgentSessionStreamingHelper
     /// <param name="session">代理会话，其历史将在退出时自动补全。</param>
     /// <param name="cancellationToken">取消令牌。取消时，已收集的助手更新会被补全进会话历史。</param>
     /// <returns>流式响应更新序列。</returns>
-    public static async IAsyncEnumerable<AgentResponseUpdate> RunWithHistoryCompletionAsync(
+    public static async IAsyncEnumerable<AgentResponseUpdate> RunWithHistoryCompletionAsync
+    (
         this ChatClientAgent agent,
         IReadOnlyList<ChatMessage> inputMessages,
         AgentSession session,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default
+    )
     {
         ArgumentNullException.ThrowIfNull(agent);
         ArgumentNullException.ThrowIfNull(inputMessages);
@@ -45,8 +46,10 @@ public static class AgentSessionStreamingHelper
             var retryCount = 0;
             while (true)
             {
-                IAsyncEnumerator<AgentResponseUpdate> enumerator = agent.RunStreamingAsync(
-                    currentInputMessages, session, cancellationToken: cancellationToken)
+                IAsyncEnumerator<AgentResponseUpdate> enumerator = agent.RunStreamingAsync
+                    (
+                        currentInputMessages, session, cancellationToken: cancellationToken
+                    )
                     .GetAsyncEnumerator(cancellationToken);
                 Exception? streamingException = null;
                 try
@@ -91,10 +94,20 @@ public static class AgentSessionStreamingHelper
                     // 不计入重试
                     retryCount--;
                 }
-                else if (!IsRetryableException(streamingException) || retryCount >= MaxRetryCount)
+                else
                 {
-                    ExceptionDispatchInfo.Capture(streamingException).Throw();
-                    yield break; // 理论上不会进入此分支，只是为了做明确的打断
+                    // 能重试的条件： 重试次数在范围内 + 可重试的异常类型
+                    bool canRetry = retryCount < MaxRetryCount;
+                    canRetry &= (IsRetryableException(streamingException) || IsNetworkTimeout());
+                    if (canRetry)
+                    {
+                        // 啥都不做，继续往下走，进行重试
+                    }
+                    else
+                    {
+                        ExceptionDispatchInfo.Capture(streamingException).Throw();
+                        yield break; // 理论上不会进入此分支，只是为了做明确的打断
+                    }
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -102,6 +115,20 @@ public static class AgentSessionStreamingHelper
                 collectedUpdates.Clear();
                 currentInputMessages = [];
                 retryCount++;
+
+                bool IsNetworkTimeout()
+                {
+                    // SDK 的网络读取超时也使用 TaskCanceledException，不能把普通取消误判为超时。
+                    if (streamingException is TaskCanceledException
+                        // 非用户取消的情况
+                        && !cancellationToken.IsCancellationRequested
+                       )
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
             }
         }
         finally
@@ -128,7 +155,7 @@ public static class AgentSessionStreamingHelper
             if (exception is AggregateException aggregateException)
             {
                 var innerExceptions = aggregateException.InnerExceptions;
-                if (innerExceptions.Count>0)
+                if (innerExceptions.Count > 0)
                 {
                     if (innerExceptions[0] is TaskCanceledException)
                     {
@@ -139,10 +166,10 @@ public static class AgentSessionStreamingHelper
 
             // 400 可能由不完整的工具调用历史引起，清理历史后允许进入有限重试。
             return exception is HttpRequestException { StatusCode: HttpStatusCode.BadRequest }
-                || exception is System.ClientModel.ClientResultException { Status: (int) HttpStatusCode.BadRequest }
-                || exception is HttpRequestException
-                or IOException
-                or TimeoutException;
+                   || exception is System.ClientModel.ClientResultException { Status: (int)HttpStatusCode.BadRequest }
+                   || exception is HttpRequestException
+                       or IOException
+                       or TimeoutException;
         }
 
         static bool IsRetryableServerError(Exception exception, out TimeSpan delayTime)
@@ -152,12 +179,14 @@ public static class AgentSessionStreamingHelper
             // 服务器级错误，不累计错误，但是要做等待的重试
             if (exception is System.ClientModel.ClientResultException clientResultException)
             {
-                if (clientResultException.Message.Contains("HTTP 500 (server_error: internal_server_error)", StringComparison.Ordinal))
+                if (clientResultException.Message.Contains
+                        ("HTTP 500 (server_error: internal_server_error)", StringComparison.Ordinal))
                 {
                     return true;
                 }
 
-                if (clientResultException.Message.Contains("HTTP 503 (server_error: internal_server_error)", StringComparison.Ordinal))
+                if (clientResultException.Message.Contains
+                        ("HTTP 503 (server_error: internal_server_error)", StringComparison.Ordinal))
                 {
                     // 未登录异常，等待时间稍微久一点
                     delayTime = TimeSpan.FromSeconds(3);
@@ -172,10 +201,12 @@ public static class AgentSessionStreamingHelper
 
     private readonly record struct MoveNextResult(bool HasNext, Exception? Exception);
 
-    private static void CompleteRunHistory(
+    private static void CompleteRunHistory
+    (
         AgentSession session,
         IReadOnlyList<ChatMessage> inputMessages,
-        IReadOnlyList<AgentResponseUpdate> collectedUpdates)
+        IReadOnlyList<AgentResponseUpdate> collectedUpdates
+    )
     {
         if (!session.TryGetInMemoryChatHistory(out List<ChatMessage>? chatMessageList))
         {
@@ -189,7 +220,8 @@ public static class AgentSessionStreamingHelper
             chatMessageList.AddRange(inputMessages);
         }
 
-        List<ChatMessage> updateChatMessageList = CollectAssistantContents(chatMessageList, collectedUpdates, completedFunctionCallIds);
+        List<ChatMessage> updateChatMessageList = CollectAssistantContents
+            (chatMessageList, collectedUpdates, completedFunctionCallIds);
         if (updateChatMessageList.Count == 0 || EndsWithAssistantContents(chatMessageList, updateChatMessageList))
         {
             session.SetInMemoryChatHistory(chatMessageList);
@@ -211,10 +243,12 @@ public static class AgentSessionStreamingHelper
         session.SetInMemoryChatHistory(chatMessageList);
     }
 
-    private static List<ChatMessage> CollectAssistantContents(
+    private static List<ChatMessage> CollectAssistantContents
+    (
         IReadOnlyList<ChatMessage> chatMessageList,
         IReadOnlyList<AgentResponseUpdate> collectedUpdates,
-        HashSet<string> completedFunctionCallIds)
+        HashSet<string> completedFunctionCallIds
+    )
     {
         HashSet<string> existingFunctionCallIds = GetExistingFunctionCallIds(chatMessageList);
         HashSet<string> existingFunctionResultIds = GetExistingFunctionResultIds(chatMessageList);
@@ -299,7 +333,8 @@ public static class AgentSessionStreamingHelper
         return result;
     }
 
-    private static bool ContainsMessageSequence(IReadOnlyList<ChatMessage> messageList, IReadOnlyList<ChatMessage> expectedSequence)
+    private static bool ContainsMessageSequence
+        (IReadOnlyList<ChatMessage> messageList, IReadOnlyList<ChatMessage> expectedSequence)
     {
         if (expectedSequence.Count == 0)
         {
@@ -318,7 +353,8 @@ public static class AgentSessionStreamingHelper
             {
                 ChatMessage actual = messageList[startIndex + i];
                 ChatMessage expected = expectedSequence[i];
-                if (actual.Role != expected.Role || !string.Equals(actual.Text, expected.Text, StringComparison.Ordinal))
+                if (actual.Role != expected.Role || !string.Equals
+                        (actual.Text, expected.Text, StringComparison.Ordinal))
                 {
                     matched = false;
                     break;
@@ -334,7 +370,8 @@ public static class AgentSessionStreamingHelper
         return false;
     }
 
-    private static bool EndsWithAssistantContents(IReadOnlyList<ChatMessage> messageList, IReadOnlyList<ChatMessage> updateChatMessageList)
+    private static bool EndsWithAssistantContents
+        (IReadOnlyList<ChatMessage> messageList, IReadOnlyList<ChatMessage> updateChatMessageList)
     {
         if (messageList.Count == 0 || messageList[^1].Role != ChatRole.Assistant)
         {
