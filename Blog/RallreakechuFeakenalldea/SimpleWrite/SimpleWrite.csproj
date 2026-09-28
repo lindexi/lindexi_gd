@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -7,7 +7,7 @@
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\LightTextEditorPlus\LightTextEditorPlus\LightTextEditorPlus.Avalonia\Platform\AvaloniaTextEditorDispatcherRequiring.cs" Link="Utils\AvaloniaTextEditorDispatcherRequiring.cs" />
+    <Compile Include="..\..\LightTextEditorPlus\LightTextEditorPlus.Avalonia\Platform\AvaloniaTextEditorDispatcherRequiring.cs" Link="Utils\AvaloniaTextEditorDispatcherRequiring.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,8 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\LightTextEditorPlus\LightTextEditorPlus\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj" />
-    <ProjectReference Include="..\..\..\..\LightTextEditorPlus\LightTextEditorPlus\LightTextEditorPlus.Highlighters\LightTextEditorPlus.Highlighters.Avalonia.csproj" />
+    <ProjectReference Include="..\..\LightTextEditorPlus\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj" />
+    <ProjectReference Include="..\..\LightTextEditorPlus\LightTextEditorPlus.Highlighters\LightTextEditorPlus.Highlighters.Avalonia.csproj" />
     <ProjectReference Include="..\AvaloniaAgentLib\AvaloniaAgentLib.csproj" />
   </ItemGroup>
 </Project>
