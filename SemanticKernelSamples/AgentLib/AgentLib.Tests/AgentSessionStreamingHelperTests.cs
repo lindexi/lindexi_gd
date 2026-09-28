@@ -23,6 +23,7 @@ public class AgentSessionStreamingHelperTests
     [DataRow("HttpRequestException")]
     [DataRow("IOException")]
     [DataRow("TimeoutException")]
+    [DataRow("NetworkTimeout")]
     [Timeout(10000)]
     public async Task RunWithHistoryCompletion_WhenTransientExceptionOccurs_RetriesWithCollectedHistory(string exceptionType)
     {
@@ -279,6 +280,69 @@ public class AgentSessionStreamingHelperTests
         Assert.AreSame(expectedException, actualException);
     }
 
+    [TestMethod]
+    [Timeout(10000, CooperativeCancellation = true)]
+    public async Task RunWithHistoryCompletion_WhenCancellationIsNotNetworkTimeout_DoesNotRetry()
+    {
+        var fakeChatClient = new FakeChatClient();
+        var callCount = 0;
+        fakeChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) =>
+        {
+            Interlocked.Increment(ref callCount);
+            return CreateFailingStreamAsync(cancellationToken, new TaskCanceledException("The operation was canceled."));
+        };
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+
+        await Assert.ThrowsExactlyAsync<TaskCanceledException>(() =>
+            CollectUpdatesAsync(agent.RunWithHistoryCompletionAsync(CreateInputMessages(), session))).ConfigureAwait(false);
+
+        Assert.AreEqual(1, callCount);
+    }
+
+    [TestMethod]
+    [Timeout(10000, CooperativeCancellation = true)]
+    public async Task RunWithHistoryCompletion_WhenNetworkTimeoutOccursAfterRunCancellation_DoesNotRetry()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var fakeChatClient = new FakeChatClient();
+        var callCount = 0;
+        fakeChatClient.OnGetStreamingResponseAsync = (_, _, _) =>
+        {
+            Interlocked.Increment(ref callCount);
+            cancellationTokenSource.Cancel();
+            return CreateFailingStreamAsync(CancellationToken.None, CreateException("NetworkTimeout"));
+        };
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            CollectUpdatesAsync(agent.RunWithHistoryCompletionAsync(
+                CreateInputMessages(), session, cancellationTokenSource.Token))).ConfigureAwait(false);
+
+        Assert.AreEqual(1, callCount);
+    }
+
+    [TestMethod]
+    [Timeout(10000, CooperativeCancellation = true)]
+    public async Task RunWithHistoryCompletion_WhenNetworkTimeoutRetriesAreExhausted_DoesNotRetryAgain()
+    {
+        var fakeChatClient = new FakeChatClient();
+        var callCount = 0;
+        fakeChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) =>
+        {
+            Interlocked.Increment(ref callCount);
+            return CreateFailingStreamAsync(cancellationToken, CreateException("NetworkTimeout"));
+        };
+        ChatClientAgent agent = CreateAgent(fakeChatClient);
+        AgentSession session = await agent.CreateSessionAsync().ConfigureAwait(false);
+
+        await Assert.ThrowsExactlyAsync<TaskCanceledException>(() =>
+            CollectUpdatesAsync(agent.RunWithHistoryCompletionAsync(CreateInputMessages(), session))).ConfigureAwait(false);
+
+        Assert.AreEqual(4, callCount);
+    }
+
     private static async Task<ChatMessage[]> RunWithHistoryAsync(IReadOnlyList<ChatMessage> history)
     {
         var fakeChatClient = new FakeChatClient();
@@ -306,6 +370,10 @@ public class AgentSessionStreamingHelperTests
             "HttpRequestException" => new HttpRequestException("HTTP 请求失败"),
             "IOException" => new IOException("I/O 失败"),
             "TimeoutException" => new TimeoutException("请求超时"),
+            "NetworkTimeout" => new TaskCanceledException(
+                "The operation was cancelled because it exceeded the configured timeout of 0:01:40. " +
+                "The default timeout can be adjusted by passing a custom ClientPipelineOptions.NetworkTimeout value to the client's constructor.",
+                new TaskCanceledException("The operation was canceled.", new IOException("Unable to read data from the transport connection."))),
             _ => throw new ArgumentOutOfRangeException(nameof(exceptionType), exceptionType, "未知异常类型。"),
         };
     }
