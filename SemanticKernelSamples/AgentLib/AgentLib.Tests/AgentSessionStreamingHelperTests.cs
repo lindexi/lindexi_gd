@@ -24,7 +24,7 @@ public class AgentSessionStreamingHelperTests
     [DataRow("IOException")]
     [DataRow("TimeoutException")]
     [DataRow("NetworkTimeout")]
-    [Timeout(10000)]
+    [Timeout(10000, CooperativeCancellation = true)]
     public async Task RunWithHistoryCompletion_WhenTransientExceptionOccurs_RetriesWithCollectedHistory(string exceptionType)
     {
         var fakeChatClient = new FakeChatClient();
@@ -53,7 +53,7 @@ public class AgentSessionStreamingHelperTests
     }
 
     [TestMethod(DisplayName = "HTTP 400 后应移除未配对工具调用并重试")]
-    [Timeout(10000)]
+    [Timeout(10000, CooperativeCancellation = true)]
     public async Task RunWithHistoryCompletion_WhenBadRequestOccurs_RemovesUnpairedToolCallAndRetries()
     {
         var fakeChatClient = new FakeChatClient();
@@ -83,7 +83,7 @@ public class AgentSessionStreamingHelperTests
     }
 
     [TestMethod(DisplayName = "工具结果应通过 Tool 角色发送")]
-    [Timeout(10000)]
+    [Timeout(10000, CooperativeCancellation = true)]
     public async Task RunWithHistoryCompletion_WhenFunctionResultUsesAssistantRole_NormalizesRoleToTool()
     {
         var fakeChatClient = new FakeChatClient();
@@ -201,7 +201,7 @@ public class AgentSessionStreamingHelperTests
     }
 
     [TestMethod(DisplayName = "暂时性异常重试耗尽后应抛出最后一次异常")]
-    [Timeout(10000)]
+    [Timeout(10000, CooperativeCancellation = true)]
     public async Task RunWithHistoryCompletion_WhenRetriesAreExhausted_ThrowsLastException()
     {
         var fakeChatClient = new FakeChatClient();
@@ -232,7 +232,7 @@ public class AgentSessionStreamingHelperTests
     }
 
     [TestMethod(DisplayName = "暂时性异常之间收到正常输出后应重新计算重试次数")]
-    [Timeout(10000)]
+    [Timeout(10000, CooperativeCancellation = true)]
     public async Task RunWithHistoryCompletion_WhenUpdateIsReceived_ResetsRetryCount()
     {
         var fakeChatClient = new FakeChatClient();
@@ -260,7 +260,7 @@ public class AgentSessionStreamingHelperTests
     }
 
     [TestMethod(DisplayName = "非暂时性异常应保持原样传播且不重试")]
-    [Timeout(10000)]
+    [Timeout(10000, CooperativeCancellation = true)]
     public async Task RunWithHistoryCompletion_WhenExceptionIsNotTransient_DoesNotRetry()
     {
         var fakeChatClient = new FakeChatClient();

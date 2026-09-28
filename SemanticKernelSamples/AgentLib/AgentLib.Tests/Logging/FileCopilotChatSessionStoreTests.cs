@@ -11,7 +11,7 @@ namespace AgentLib.Tests.Logging;
 [TestClass]
 public sealed class FileCopilotChatSessionStoreTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("/projects/sample")]
     public async Task SaveAndLoadShouldPreserveOptionalWorkspace(string? workspacePath)
@@ -63,7 +63,7 @@ public sealed class FileCopilotChatSessionStoreTests
         Assert.AreEqual((workTaskId, "Refactor history"), (summary.WorkTaskId, summary.WorkTaskName));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("/projects/sample")]
     public async Task ListShouldIncludeOptionalWorkspace(string? workspacePath)

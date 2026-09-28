@@ -8,7 +8,7 @@ namespace AgentLib.Tests;
 public sealed class ManualSendMessageContextThreadingTests
 {
     [TestMethod(DisplayName = "手动发送上下文应原样暴露管理器的主线程调度器")]
-    [Timeout(10_000)]
+    [Timeout(10_000, CooperativeCancellation = true)]
     public async Task CreateManualSendMessageContextAsync_ShouldExposeManagerDispatcher()
     {
         var dispatcher = new RecordingMainThreadDispatcher();
