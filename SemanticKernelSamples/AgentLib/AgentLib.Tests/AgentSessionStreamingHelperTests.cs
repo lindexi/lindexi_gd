@@ -211,6 +211,8 @@ public class AgentSessionStreamingHelperTests
             new("第二次失败"),
             new("第三次失败"),
             new("第四次失败"),
+            new("第五次失败"),
+            new("第六次失败"),
         ];
         var callCount = 0;
         fakeChatClient.OnGetStreamingResponseAsync = (_, _, cancellationToken) =>
@@ -225,7 +227,7 @@ public class AgentSessionStreamingHelperTests
         HttpRequestException actualException = await Assert.ThrowsExactlyAsync<HttpRequestException>(() =>
             CollectUpdatesAsync(agent.RunWithHistoryCompletionAsync(CreateInputMessages(), session))).ConfigureAwait(false);
 
-        Assert.AreEqual(4, callCount);
+        Assert.AreEqual(6, callCount);
         Assert.AreSame(expectedExceptions[^1], actualException);
     }
 
@@ -282,7 +284,7 @@ public class AgentSessionStreamingHelperTests
 
     [TestMethod]
     [Timeout(10000, CooperativeCancellation = true)]
-    public async Task RunWithHistoryCompletion_WhenCancellationIsNotNetworkTimeout_DoesNotRetry()
+    public async Task RunWithHistoryCompletion_WhenTaskCanceledWithoutRunCancellation_RetriesUntilExhausted()
     {
         var fakeChatClient = new FakeChatClient();
         var callCount = 0;
@@ -297,7 +299,7 @@ public class AgentSessionStreamingHelperTests
         await Assert.ThrowsExactlyAsync<TaskCanceledException>(() =>
             CollectUpdatesAsync(agent.RunWithHistoryCompletionAsync(CreateInputMessages(), session))).ConfigureAwait(false);
 
-        Assert.AreEqual(1, callCount);
+        Assert.AreEqual(11, callCount);
     }
 
     [TestMethod]
@@ -340,7 +342,7 @@ public class AgentSessionStreamingHelperTests
         await Assert.ThrowsExactlyAsync<TaskCanceledException>(() =>
             CollectUpdatesAsync(agent.RunWithHistoryCompletionAsync(CreateInputMessages(), session))).ConfigureAwait(false);
 
-        Assert.AreEqual(4, callCount);
+        Assert.AreEqual(11, callCount);
     }
 
     private static async Task<ChatMessage[]> RunWithHistoryAsync(IReadOnlyList<ChatMessage> history)
