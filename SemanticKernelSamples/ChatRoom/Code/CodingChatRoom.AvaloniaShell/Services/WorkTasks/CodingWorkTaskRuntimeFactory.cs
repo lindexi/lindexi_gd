@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using AgentLib;
 using AgentLib.Coding;
@@ -69,6 +70,7 @@ internal static class CodingWorkTaskRuntimeFactory
             shellSettings.WindowsSandboxToolPath,
             shellSettings.WindowsSandboxServerAddress
         );
+        endpointManager.WebProxy = CreateWebProxy(shellSettings);
         var additionalToolSources = new List<ICodingWorkspaceToolSource>
         {
             new CodingImageAnalysisToolSource(chatManager),
@@ -112,6 +114,19 @@ internal static class CodingWorkTaskRuntimeFactory
             Controller = controller,
             WorkspaceController = workspaceController,
             SettingsService = settingsService,
+        };
+    }
+
+    internal static IWebProxy? CreateWebProxy(CodingChatShellSettings shellSettings)
+    {
+        if (!shellSettings.IsNetworkProxyEnabled || string.IsNullOrWhiteSpace(shellSettings.NetworkProxyAddress))
+        {
+            return null;
+        }
+
+        return new WebProxy(shellSettings.NetworkProxyAddress)
+        {
+            BypassProxyOnLocal = shellSettings.BypassProxyOnLocal,
         };
     }
 

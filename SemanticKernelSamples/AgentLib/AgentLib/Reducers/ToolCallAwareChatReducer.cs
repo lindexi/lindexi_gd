@@ -55,40 +55,41 @@ public sealed class ToolCallAwareChatReducer : IChatReducer
     }
 
     /// <summary>
-    /// 检查消息列表中是否存在未配对的 <see cref="FunctionCallContent"/>。
-    /// 通过 <see cref="FunctionCallContent.CallId"/> 与 <see cref="FunctionResultContent.CallId"/> 进行配对。
+    /// 检查消息列表中的工具调用是否满足聊天协议要求：每条 Assistant 工具调用消息后，
+    /// 必须紧邻连续的 Tool 消息，并覆盖该消息中的全部调用 ID。
     /// </summary>
     private static bool HasPendingFunctionCalls(List<ChatMessage> messages)
     {
-        HashSet<string?> callIds = [];
-
-        foreach (var message in messages)
+        for (int messageIndex = 0; messageIndex < messages.Count; messageIndex++)
         {
-            foreach (var content in message.Contents)
+            ChatMessage message = messages[messageIndex];
+            string[] callIds = [.. message.Contents
+                .OfType<FunctionCallContent>()
+                .Select(call => call.CallId)
+                .Where(callId => !string.IsNullOrWhiteSpace(callId))];
+            if (callIds.Length == 0)
             {
-                if (content is FunctionCallContent functionCall)
+                continue;
+            }
+
+            var pendingCallIds = new HashSet<string>(callIds, StringComparer.Ordinal);
+            int resultMessageIndex = messageIndex + 1;
+            while (resultMessageIndex < messages.Count && messages[resultMessageIndex].Role == ChatRole.Tool)
+            {
+                foreach (FunctionResultContent result in messages[resultMessageIndex].Contents.OfType<FunctionResultContent>())
                 {
-                    callIds.Add(functionCall.CallId);
+                    pendingCallIds.Remove(result.CallId);
                 }
+
+                resultMessageIndex++;
+            }
+
+            if (pendingCallIds.Count > 0)
+            {
+                return true;
             }
         }
 
-        if (callIds.Count == 0)
-        {
-            return false;
-        }
-
-        foreach (var message in messages)
-        {
-            foreach (var content in message.Contents)
-            {
-                if (content is FunctionResultContent functionResult)
-                {
-                    callIds.Remove(functionResult.CallId);
-                }
-            }
-        }
-
-        return callIds.Count > 0;
+        return false;
     }
 }

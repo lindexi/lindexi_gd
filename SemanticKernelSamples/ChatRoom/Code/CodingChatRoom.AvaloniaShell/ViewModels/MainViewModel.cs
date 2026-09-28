@@ -677,7 +677,12 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         foreach (WorkTaskItemViewModel task in WorkTasks)
         {
             string? selectedModelDisplayName = task.Chat.SelectedModel?.DisplayName;
-            task.Runtime?.EndpointManager.ReplaceConfiguration(modelConfiguration);
+            if (task.Runtime is { } runtime)
+            {
+                runtime.EndpointManager.WebProxy = CodingWorkTaskRuntimeFactory
+                    .CreateWebProxy(e.Settings.ShellSettings);
+                runtime.EndpointManager.ReplaceConfiguration(modelConfiguration);
+            }
             task.Chat.RefreshAvailableModels(selectedModelDisplayName);
         }
     }

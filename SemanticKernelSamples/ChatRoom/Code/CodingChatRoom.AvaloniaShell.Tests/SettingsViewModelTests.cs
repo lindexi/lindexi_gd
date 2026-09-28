@@ -10,6 +10,52 @@ namespace CodingChatRoom.AvaloniaShell.Tests;
 [TestClass]
 public sealed class SettingsViewModelTests
 {
+    [TestMethod(DisplayName = "网络代理设置保存后应可重新加载")]
+    public async Task NetworkProxySettingsShouldPersist()
+    {
+        string rootDirectory = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        var settingsService = new CodingChatSettingsService(
+            CodingChatRoomPaths.Create(rootDirectory),
+            new WindowsSandboxToolSource(false, string.Empty, string.Empty));
+        var shellSettings = new CodingChatShellSettings
+        {
+            IsNetworkProxyEnabled = true,
+            NetworkProxyAddress = "http://127.0.0.1:7890",
+            BypassProxyOnLocal = false,
+        };
+
+        await settingsService.SaveAsync(new AgentApiManagerConfiguration(), shellSettings);
+        CodingChatShellSettings loaded = await settingsService.LoadShellSettingsAsync();
+
+        Assert.AreEqual(shellSettings, loaded);
+    }
+
+    [TestMethod(DisplayName = "启用网络代理时应创建对应 WebProxy")]
+    public void EnabledNetworkProxyShouldCreateWebProxy()
+    {
+        var settings = new CodingChatShellSettings
+        {
+            IsNetworkProxyEnabled = true,
+            NetworkProxyAddress = "http://127.0.0.1:7890",
+            BypassProxyOnLocal = true,
+        };
+
+        var proxy = CodingWorkTaskRuntimeFactory.CreateWebProxy(settings);
+
+        Assert.AreEqual(new Uri("http://127.0.0.1:7890"), proxy?.GetProxy(new Uri("https://example.com")));
+    }
+
+    [TestMethod(DisplayName = "禁用网络代理时不应创建代理")]
+    public void DisabledNetworkProxyShouldNotCreateWebProxy()
+    {
+        var settings = new CodingChatShellSettings
+        {
+            NetworkProxyAddress = "http://127.0.0.1:7890",
+        };
+
+        Assert.IsNull(CodingWorkTaskRuntimeFactory.CreateWebProxy(settings));
+    }
+
     [TestMethod(DisplayName = "保存设置后应立即更新下一轮使用的沙盒工具配置")]
     public async Task SaveSettingsShouldUpdateRuntimeSandboxToolSource()
     {

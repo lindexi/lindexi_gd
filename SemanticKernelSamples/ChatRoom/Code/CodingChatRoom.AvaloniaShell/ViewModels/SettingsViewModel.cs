@@ -27,6 +27,9 @@ public sealed class SettingsViewModel : ViewModelBase
     private string? _sandboxConnectionStatusMessage;
     private bool _isSandboxConnectionStatusError;
     private bool _isSandboxConnectionTestRunning;
+    private bool _isNetworkProxyEnabled;
+    private string? _networkProxyAddress;
+    private bool _bypassProxyOnLocal = true;
     private bool _isCopilotInstructionsEnabled;
     private string? _copilotInstructionsPath;
     private string? _statusMessage;
@@ -115,6 +118,24 @@ public sealed class SettingsViewModel : ViewModelBase
                 _testWindowsSandboxConnectionCommand.RaiseCanExecuteChanged();
             }
         }
+    }
+
+    public bool IsNetworkProxyEnabled
+    {
+        get => _isNetworkProxyEnabled;
+        set => SetField(ref _isNetworkProxyEnabled, value);
+    }
+
+    public string? NetworkProxyAddress
+    {
+        get => _networkProxyAddress;
+        set => SetField(ref _networkProxyAddress, value);
+    }
+
+    public bool BypassProxyOnLocal
+    {
+        get => _bypassProxyOnLocal;
+        set => SetField(ref _bypassProxyOnLocal, value);
     }
 
     public string? SandboxConnectionStatusMessage
@@ -215,6 +236,9 @@ public sealed class SettingsViewModel : ViewModelBase
         IsWindowsSandboxEnabled = snapshot.ShellSettings.IsWindowsSandboxEnabled;
         WindowsSandboxToolPath = snapshot.ShellSettings.WindowsSandboxToolPath;
         WindowsSandboxServerAddress = snapshot.ShellSettings.WindowsSandboxServerAddress;
+        IsNetworkProxyEnabled = snapshot.ShellSettings.IsNetworkProxyEnabled;
+        NetworkProxyAddress = snapshot.ShellSettings.NetworkProxyAddress;
+        BypassProxyOnLocal = snapshot.ShellSettings.BypassProxyOnLocal;
         IsCopilotInstructionsEnabled = snapshot.ShellSettings.IsCopilotInstructionsEnabled;
         CopilotInstructionsPath = snapshot.ShellSettings.CopilotInstructionsPath;
 
@@ -304,6 +328,7 @@ public sealed class SettingsViewModel : ViewModelBase
         StatusMessage = null;
         try
         {
+            string? networkProxyAddress = ValidateNetworkProxyAddress();
             var modelConfiguration = new AgentApiManagerConfiguration
             {
                 PrimaryModel = PrimaryModel,
@@ -314,6 +339,9 @@ public sealed class SettingsViewModel : ViewModelBase
                 IsWindowsSandboxEnabled = IsWindowsSandboxEnabled,
                 WindowsSandboxToolPath = WindowsSandboxToolPath,
                 WindowsSandboxServerAddress = WindowsSandboxServerAddress,
+                IsNetworkProxyEnabled = IsNetworkProxyEnabled,
+                NetworkProxyAddress = networkProxyAddress,
+                BypassProxyOnLocal = BypassProxyOnLocal,
                 IsCopilotInstructionsEnabled = IsCopilotInstructionsEnabled,
                 CopilotInstructionsPath = string.IsNullOrWhiteSpace(CopilotInstructionsPath)
                     ? null
@@ -323,7 +351,7 @@ public sealed class SettingsViewModel : ViewModelBase
             await _settingsService.SaveAsync(modelConfiguration, shellSettings).ConfigureAwait(true);
             var settings = new CodingChatSettingsSnapshot(modelConfiguration, shellSettings, null);
             SettingsSaved?.Invoke(this, new CodingChatSettingsSavedEventArgs(settings));
-            SetStatus("设置已保存。模型列表和沙箱配置已立即生效；系统提示词将在下次启动时生效。", isError: false);
+            SetStatus("设置已保存。模型列表、网络代理和沙箱配置已立即生效；系统提示词将在下次启动时生效。", isError: false);
         }
         catch (ArgumentException exception)
         {
@@ -349,6 +377,28 @@ public sealed class SettingsViewModel : ViewModelBase
         {
             IsBusy = false;
         }
+    }
+
+    private string? ValidateNetworkProxyAddress()
+    {
+        if (!IsNetworkProxyEnabled)
+        {
+            return string.IsNullOrWhiteSpace(NetworkProxyAddress) ? null : NetworkProxyAddress.Trim();
+        }
+
+        if (string.IsNullOrWhiteSpace(NetworkProxyAddress))
+        {
+            throw new ArgumentException("启用网络代理时必须填写代理地址。");
+        }
+
+        string address = NetworkProxyAddress.Trim();
+        if (!Uri.TryCreate(address, UriKind.Absolute, out Uri? proxyUri)
+            || (proxyUri.Scheme != Uri.UriSchemeHttp && proxyUri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new ArgumentException("代理地址必须是有效的 HTTP 或 HTTPS 绝对地址。");
+        }
+
+        return address;
     }
 
     private void Back()
