@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Code/">
     <Project Path="Code/MathGraph/MathGraph.csproj" />
+    <Project Path="Code/MathGraph.Tests/MathGraph.Tests.csproj" />
   </Folder>
 </Solution>
