@@ -1,0 +1,17 @@
+<Application x:Class="CompassIcon.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <sys:String x:Key="AppTitle">蓝色罗盘图标绘制与导出</sys:String>
+        <sys:String x:Key="Description">WPF 矢量绘制 · 启动自动导出 · 透明背景</sys:String>
+        <sys:String x:Key="PngDescription">PNG：16、24、32、48、64、128、256、512、1024 像素</sys:String>
+        <sys:String x:Key="IcoDescription">ICO：包含 16、24、32、48、64、128、256 像素</sys:String>
+        <sys:String x:Key="OutputTitle">输出目录（exe 所在文件夹）</sys:String>
+        <sys:String x:Key="ExportButton">重新导出全部图片</sys:String>
+        <sys:String x:Key="ReadyStatus">等待自动导出</sys:String>
+        <sys:String x:Key="ExportCompleted">全部 PNG 和 ICO 已导出。</sys:String>
+        <sys:String x:Key="ExportFailed">图片导出失败：</sys:String>
+    </Application.Resources>
+</Application>

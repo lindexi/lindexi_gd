@@ -1,0 +1,37 @@
+<Window x:Class="CompassIcon.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{DynamicResource AppTitle}" Width="900" Height="820"
+        MinWidth="620" MinHeight="650" Background="#F2F6FC"
+        WindowStartupLocation="CenterScreen" ContentRendered="Window_ContentRendered">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="IconArtwork.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Margin="0,0,0,16">
+            <TextBlock Text="{DynamicResource AppTitle}" FontSize="26" FontWeight="Bold" />
+            <TextBlock Text="{DynamicResource Description}" Margin="0,8,0,0" Foreground="#536279" />
+        </StackPanel>
+        <Border Grid.Row="1" Background="#080C14" CornerRadius="12">
+            <Image Source="{StaticResource CompassArtwork}" Stretch="Uniform" Margin="12" />
+        </Border>
+        <StackPanel Grid.Row="2" Margin="0,16,0,0">
+            <TextBlock Text="{DynamicResource PngDescription}" />
+            <TextBlock Text="{DynamicResource IcoDescription}" Margin="0,6,0,0" />
+            <TextBlock Text="{DynamicResource OutputTitle}" Margin="0,12,0,4" FontWeight="SemiBold" />
+            <TextBox x:Name="OutputPathTextBox" IsReadOnly="True" Background="Transparent" BorderThickness="0" TextWrapping="Wrap" />
+            <Button x:Name="ExportButton" Content="{DynamicResource ExportButton}" Click="ExportButton_Click"
+                    HorizontalAlignment="Left" Padding="18,8" Margin="0,12,0,8" />
+            <TextBlock x:Name="StatusTextBlock" Text="{DynamicResource ReadyStatus}" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</Window>
