@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../MathGraph/MathGraph.csproj" />
+    <ProjectReference Include="..\MathGraph\MathGraphs.csproj" />
   </ItemGroup>
 
 </Project>

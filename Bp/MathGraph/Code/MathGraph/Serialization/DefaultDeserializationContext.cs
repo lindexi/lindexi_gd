@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace MathGraph.Serialization;
+namespace MathGraphs.Serialization;
 
 class DefaultDeserializationContext : IDeserializationContext
 {

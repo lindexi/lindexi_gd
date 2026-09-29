@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using MathGraph.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MathGraph.Tests;

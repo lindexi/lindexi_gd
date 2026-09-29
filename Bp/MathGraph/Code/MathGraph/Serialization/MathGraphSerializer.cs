@@ -1,8 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
 
-namespace MathGraph.Serialization;
+namespace MathGraphs.Serialization;
 
+/// <summary>
+/// 图的序列化器，提供图的序列化和反序列化功能
+/// </summary>
+/// <typeparam name="TElementInfo"></typeparam>
+/// <typeparam name="TEdgeInfo"></typeparam>
 public class MathGraphSerializer<TElementInfo, TEdgeInfo>
 {
     public MathGraphSerializer(MathGraph<TElementInfo, TEdgeInfo> mathGraph,
@@ -23,7 +28,8 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
         int Index,
         List<int> InList,
         List<int> OutList,
-        List<EdgeSerializationContext> EdgeList);
+        List<EdgeSerializationContext> EdgeList
+    );
 
     public readonly record struct EdgeSerializationContext
     (
@@ -157,45 +163,34 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
 
         foreach (var serializationContext in list)
         {
-            var mathGraphElement = dictionary[serializationContext.Index];
-            foreach (var inIndex in serializationContext.InList)
-            {
-                mathGraphElement.AddInElement(dictionary[inIndex]);
-            }
-
-            foreach (var outIndex in serializationContext.OutList)
-            {
-                mathGraphElement.AddOutElement(dictionary[outIndex]);
-            }
-
             foreach (var edgeSerializationContext in serializationContext.EdgeList)
             {
                 MathGraphElement<TElementInfo, TEdgeInfo> a = dictionary[edgeSerializationContext.AElementIndex];
                 MathGraphElement<TElementInfo, TEdgeInfo> b = dictionary[edgeSerializationContext.BElementIndex];
-                MathGraphEdge<TElementInfo, TEdgeInfo> edge;
-
                 var edgeInfo = Deserialize<TEdgeInfo?>(edgeSerializationContext.EdgeInfo,
                     edgeSerializationContext.EdgeInfoType);
 
                 if (edgeSerializationContext.EdgeType == EdgeType.Unidirectional)
                 {
-                    edge = new MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>(a, b)
-                    {
-                        EdgeInfo = edgeInfo,
-                    };
-                    a.AddEdge(edge);
+                    _mathGraph.AddEdge(a, b, edgeInfo);
                 }
                 else if (edgeSerializationContext.EdgeType == EdgeType.Bidirectional)
                 {
-                    edge = new MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo>(a, b)
-                    {
-                        EdgeInfo = edgeInfo,
-                    };
-                    a.AddEdge(edge);
+                    _mathGraph.AddBidirectionalEdge(a, b, edgeInfo);
                 }
                 else
                 {
                     throw new InvalidOperationException();
+                }
+            }
+
+            var mathGraphElement = dictionary[serializationContext.Index];
+            foreach (var outIndex in serializationContext.OutList)
+            {
+                var outElement = dictionary[outIndex];
+                if (!mathGraphElement.OutElementList.Contains(outElement))
+                {
+                    _mathGraph.AddEdge(mathGraphElement, outElement);
                 }
             }
         }
