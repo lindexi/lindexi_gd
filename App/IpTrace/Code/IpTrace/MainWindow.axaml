@@ -2,13 +2,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="IpTrace.MainWindow"
         Title="IpTrace · 网络诊断"
+        Icon="avares://IpTrace/Assets/IpTrace.ico"
         Width="1100" Height="780" MinWidth="860" MinHeight="660"
         FontFamily="Segoe UI,Microsoft YaHei UI,Microsoft YaHei,sans-serif"
         FontSize="14" Background="Transparent"
         TransparencyLevelHint="Mica, None"
         TransparencyBackgroundFallback="#F3F3F3">
     <Window.Resources>
-        <x:String x:Key="DnsDescription">查询域名对应的 IPv4 和 IPv6 地址，检查名称解析是否正常。</x:String>
+        <x:String x:Key="DnsDescription">查询域名对应的 IPv4 和 IPv6 地址，并通过 api.ip.sb 查询公网地址的归属地及运营商。</x:String>
         <x:String x:Key="PingDescription">发送 4 次 ICMP 请求，检查网络连通性、往返延迟和丢包情况。</x:String>
         <x:String x:Key="TcpDescription">连接指定 TCP 端口，检查服务是否可达及建立连接所需的时间。</x:String>
         <x:String x:Key="TraceDescription">逐跳追踪网络路径。公网节点地理位置由 api.ip.sb 提供。</x:String>
@@ -33,6 +34,7 @@
             <Setter Property="CornerRadius" Value="8" />
         </Style>
         <Style Selector="Button">
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="CornerRadius" Value="4" />
             <Setter Property="MinHeight" Value="34" />
             <Setter Property="Padding" Value="16,6" />

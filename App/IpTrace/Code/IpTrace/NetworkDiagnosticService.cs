@@ -66,7 +66,9 @@ internal sealed partial class NetworkDiagnosticService : IDisposable
 
         foreach (var address in addresses.Distinct())
         {
-            lines.Add($"  {GetAddressType(address),-6}  {address}");
+            cancellationToken.ThrowIfCancellationRequested();
+            var location = await GetLocationAsync(address, cancellationToken).ConfigureAwait(false);
+            lines.Add($"  {GetAddressType(address),-6}  {address,-39}  {location}");
         }
 
         return string.Join(Environment.NewLine, lines);
