@@ -1,4 +1,4 @@
-﻿[submodule "dotnet-imgup"]
+﻿﻿[submodule "dotnet-imgup"]
 	path = dotnet-imgup
 	url = https://github.com/rohith/dotnet-imgup.git
 [submodule "Blazui"]
@@ -19,6 +19,3 @@
 [submodule "CloudFileUriTool"]
 	path = CloudFileUriTool
 	url = https://github.com/Kybs0/CloudFileUriTool.git
-[submodule "App/LightNotePad/Lib/LightTextEditorPlus"]
-	path = App/LightNotePad/Lib/LightTextEditorPlus
-	url = git@github.com:dotnet-campus/LightTextEditorPlus.git
