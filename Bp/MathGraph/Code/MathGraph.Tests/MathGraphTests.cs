@@ -1,7 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using MathGraphs.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace MathGraph.Tests;
+namespace MathGraphs.Tests;
 
 [TestClass]
 public class MathGraphTests
@@ -208,9 +209,17 @@ public class MathGraphTests
             AssertElementListEqual(a.InElementList, b.InElementList);
             AssertElementListEqual(a.OutElementList, b.OutElementList);
             Assert.AreEqual(a.EdgeList.Count, b.EdgeList.Count);
-            for (var j = 0; j < a.EdgeList.Count; j++)
+            // 入边和出边在反序列化时的插入顺序可能不同，按结构匹配并保留重复边计数。
+            var remainingEdges = b.EdgeList.ToList();
+            foreach (var expectedEdge in a.EdgeList)
             {
-                AssertEdgeEqual(a.EdgeList[j], b.EdgeList[j]);
+                var index = remainingEdges.FindIndex(actualEdge =>
+                    expectedEdge.GetType() == actualEdge.GetType() &&
+                    EqualityComparer<TEdgeInfo?>.Default.Equals(expectedEdge.EdgeInfo, actualEdge.EdgeInfo) &&
+                    GetEndpoints(expectedEdge) == GetEndpoints(actualEdge));
+                Assert.IsTrue(index >= 0);
+                AssertEdgeEqual(expectedEdge, remainingEdges[index]);
+                remainingEdges.RemoveAt(index);
             }
         }
     }
@@ -237,6 +246,17 @@ public class MathGraphTests
             return;
         }
         Assert.AreEqual(expected.Value, actual.Value);
+    }
+
+    private static (string, string) GetEndpoints<TElementInfo, TEdgeInfo>(MathGraphEdge<TElementInfo, TEdgeInfo> edge)
+    {
+        return edge switch
+        {
+            MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> directed => (directed.From.Id, directed.To.Id),
+            MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo> bidirectional =>
+                (bidirectional.AElement.Id, bidirectional.BElement.Id),
+            _ => throw new InvalidOperationException()
+        };
     }
 
     private static void AssertEdgeEqual<TElementInfo, TEdgeInfo>(MathGraphEdge<TElementInfo, TEdgeInfo> expected,
