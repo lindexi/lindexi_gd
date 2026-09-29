@@ -29,4 +29,5 @@
   <Project Path="RallreakechuFeakenalldea.Desktop/RallreakechuFeakenalldea.Desktop.csproj" />
   <Project Path="RallreakechuFeakenalldea/RallreakechuFeakenalldea.csproj" />
   <Project Path="SimpleWrite/SimpleWrite.csproj" />
+  <Project Path="SimpleWrite.Tests/SimpleWrite.Tests.csproj" />
 </Solution>
