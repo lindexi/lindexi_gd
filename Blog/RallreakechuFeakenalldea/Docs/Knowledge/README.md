@@ -14,6 +14,8 @@
 | Copilot 流式思考、工具调用和正文为何改成消息片段集合 | `Design/Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` |
 | Copilot 工具调用如何接入人工审批按钮与执行等待 | `Design/Copilot-Streaming-Message-Items-And-Workspace-Tools-Async.md` |
 | 代码着色三分类与扩展名路由如何工作 | `Avalonia/Code-Highlighting-Categories-And-Extensions.md` |
+| Markdown 输入卡顿如何调查与自动化测量 | `Avalonia/Markdown-Highlighting-Performance.md` |
+| 如何在其他项目复用文本着色性能优化经验 | `Workflow/Text-Highlighting-Performance-Optimization-Playbook.md` |
 | Copilot 派生命令为什么会进入新会话 | `Design/Copilot-New-Session-Command-Behavior.md` |
 | Copilot 如何拿到当前工作路径默认工具 | `Design/Copilot-Workspace-Default-Tools.md` |
 | Copilot 主副工作区路径如何协同 | `Design/Copilot-Workspace-Primary-And-Secondary-Paths.md` |
