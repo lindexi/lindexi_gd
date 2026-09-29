@@ -1,4 +1,4 @@
-﻿﻿[submodule "dotnet-imgup"]
+[submodule "dotnet-imgup"]
 	path = dotnet-imgup
 	url = https://github.com/rohith/dotnet-imgup.git
 [submodule "Blazui"]
