@@ -6,7 +6,33 @@
     <PublishAot>true</PublishAot>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets/IpTrace.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <DefineConstants>$(DefineConstants);EMBED_NATIVE_LIBRARIES</DefineConstants>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+  </PropertyGroup>
+
+  <Target Name="EmbedNativeLibraries" BeforeTargets="AssignTargetPaths" DependsOnTargets="ResolvePackageAssets" Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <ItemGroup>
+      <EmbeddedNativeLibrary Include="@(NativeCopyLocalItems)" Condition="'%(Filename)%(Extension)' == 'libSkiaSharp.dll' Or '%(Filename)%(Extension)' == 'libHarfBuzzSharp.dll' Or '%(Filename)%(Extension)' == 'av_libglesv2.dll'" />
+      <EmbeddedResource Include="@(EmbeddedNativeLibrary)">
+        <LogicalName>IpTrace.Native.%(Filename)%(Extension)</LogicalName>
+      </EmbeddedResource>
+    </ItemGroup>
+    <Error Condition="'@(EmbeddedNativeLibrary->Count())' != '3'" Text="Expected exactly three Windows x64 native libraries to embed." />
+  </Target>
+
+  <Target Name="RemoveEmbeddedLibrariesFromPublish" AfterTargets="ComputeFilesToPublish" Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Filename)%(Extension)' == 'libSkiaSharp.dll' Or '%(Filename)%(Extension)' == 'libHarfBuzzSharp.dll' Or '%(Filename)%(Extension)' == 'av_libglesv2.dll' Or '%(Extension)' == '.pdb'" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/IpTrace.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.0" />
