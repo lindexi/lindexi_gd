@@ -1,0 +1,10 @@
+﻿<Project>
+
+  <PropertyGroup>
+    <UseArtifactsOutput Condition="'$(UseArtifactsOutput)' == ''">true</UseArtifactsOutput>
+
+    <!-- 语言属性 -->
+    <LangVersion>latest</LangVersion>
+   </PropertyGroup>
+
+</Project>
