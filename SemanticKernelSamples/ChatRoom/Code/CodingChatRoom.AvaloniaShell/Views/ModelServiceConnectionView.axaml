@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
+             x:Class="CodingChatRoom.AvaloniaShell.Views.ModelServiceConnectionView"
+             x:DataType="vm:ProviderSettingsViewModel"
+             FontFamily="{StaticResource ShellFont}" FontSize="13">
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource ShellFont}" />
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="FontFamily" Value="{StaticResource ShellFont}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ToggleButton">
+            <Setter Property="FontFamily" Value="{StaticResource ShellFont}" />
+        </Style>
+    </UserControl.Styles>
+    <Grid ColumnDefinitions="*,*" ColumnSpacing="24">
+        <StackPanel Spacing="6">
+            <TextBlock Text="{DynamicResource SetupEndpointText}" Classes="SettingsLabel" />
+            <TextBox Text="{Binding EndPoint, UpdateSourceTrigger=PropertyChanged}" Classes="Rounded SettingsInput"
+                     FontSize="13" PlaceholderText="https://api.openai.com/v1" />
+            <TextBlock Text="{DynamicResource SetupEndpointHint}" Classes="SettingsHint" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Spacing="6">
+            <TextBlock Text="{DynamicResource SetupKeyText}" Classes="SettingsLabel" />
+            <TextBox Text="{Binding ApiKey, UpdateSourceTrigger=PropertyChanged}" Classes="Rounded SettingsInput"
+                     FontSize="13" PasswordChar="●" RevealPassword="{Binding IsKeyVisible}">
+                <TextBox.InnerRightContent>
+                    <ToggleButton IsChecked="{Binding IsKeyVisible}" Width="32" Height="32" Padding="7" Margin="2,0"
+                                  Background="Transparent" BorderThickness="0"
+                                  ToolTip.Tip="{DynamicResource SetupRevealKeyText}"
+                                  AutomationProperties.Name="{DynamicResource SetupRevealKeyText}">
+                        <Path Data="M 1,10 C 6,1 14,1 19,10 C 14,19 6,19 1,10 Z M 13,10 A 3,3 0 1 1 7,10 A 3,3 0 1 1 13,10"
+                              Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" Width="18" Height="18" Stretch="Uniform" />
+                    </ToggleButton>
+                </TextBox.InnerRightContent>
+            </TextBox>
+            <TextBlock Text="{DynamicResource SetupKeyHint}" Classes="SettingsHint" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

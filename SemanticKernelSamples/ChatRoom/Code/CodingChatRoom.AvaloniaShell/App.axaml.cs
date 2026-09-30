@@ -36,7 +36,13 @@ public partial class App : Application
 
     private async void InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
     {
-        CodingChatRoomPaths paths = CodingChatRoomPaths.CreateForCurrentUser();
+        CodingChatStartupOptions startup = CodingChatStartupOptions.FromArguments(desktop.Args);
+        CodingChatRoomPaths paths = startup.Paths;
+        await InitializeMainWindowAsync(desktop, paths);
+    }
+
+    private static async Task InitializeMainWindowAsync(IClassicDesktopStyleApplicationLifetime desktop, CodingChatRoomPaths paths)
+    {
         var runtimes = new List<CodingWorkTaskRuntime>();
         try
         {
@@ -103,6 +109,7 @@ public partial class App : Application
                 await workTaskStore.SaveAsync([CreateRecord(tasks[0]), .. archivedRecords]).ConfigureAwait(true);
             }
 
+            await mainViewModel.InitializeSettingsAsync();
             var mainWindow = new MainWindow
             {
                 DataContext = mainViewModel,

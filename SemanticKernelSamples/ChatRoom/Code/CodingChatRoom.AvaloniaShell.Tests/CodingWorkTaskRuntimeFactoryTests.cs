@@ -42,18 +42,14 @@ public sealed class CodingWorkTaskRuntimeFactoryTests
         Assert.IsFalse(paths.ConfigurationFile.Exists);
     }
 
-    [TestMethod(DisplayName = "配置缺失时启动应报告固定完整路径")]
+    [TestMethod(DisplayName = "配置缺失时应创建无模型运行时")]
     [Timeout(5000)]
-    public async Task MissingConfigurationShouldFailWithFixedFullPath()
+    public async Task MissingConfigurationShouldCreateEmptyRuntime()
     {
         using var temporaryDirectory = new TemporaryDirectory();
         CodingChatRoomPaths paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
-
-        FileNotFoundException exception = await Assert.ThrowsAsync<FileNotFoundException>(
-            () => CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new ImmediateMainThreadDispatcher()));
-
-        StringAssert.Contains(exception.Message, paths.ConfigurationFile.FullName);
-        Assert.IsFalse(paths.ConfigurationFile.Exists);
+        await using var runtime = await CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new ImmediateMainThreadDispatcher());
+        Assert.IsEmpty(runtime.EndpointManager.GetSupportedModels());
     }
 
     [TestMethod(DisplayName = "损坏配置时启动应直接失败")]

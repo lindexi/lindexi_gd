@@ -14,6 +14,7 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 /// </summary>
 internal sealed class CodingWorkTaskRuntime : IAsyncDisposable
 {
+
     public required CodingChatRoomPaths Paths { get; init; }
 
     public required AgentApiEndpointManager EndpointManager { get; init; }
@@ -24,7 +25,7 @@ internal sealed class CodingWorkTaskRuntime : IAsyncDisposable
 
     public required CodingAgent CodingAgent { get; init; }
 
-    public required ILanguageModel PrimaryModel { get; init; }
+    public required ILanguageModel? PrimaryModel { get; init; }
 
     public required CodingWorkTaskController Controller { get; init; }
 
@@ -36,10 +37,29 @@ internal sealed class CodingWorkTaskRuntime : IAsyncDisposable
     {
         get
         {
+            if (PrimaryModel is null) return string.Empty;
             string provider = PrimaryModel.ModelDefinition.Provider;
             string modelName = PrimaryModel.ModelDefinition.ModelName;
             return string.IsNullOrWhiteSpace(provider) ? modelName : $"{provider}/{modelName}";
         }
+    }
+
+    internal void ApplyModelConfiguration(AgentApiManagerConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        if (configuration.OpenAIConfigurationList is null || !System.Linq.Enumerable.Any(configuration.OpenAIConfigurationList,
+                provider => provider.ModelDefinitions is { Count: > 0 }))
+        {
+            var models = System.Linq.Enumerable.ToArray(EndpointManager.GetSupportedModels());
+            EndpointManager.UnregisterLanguageModelProvider(new RegisteredModels(models));
+            return;
+        }
+        EndpointManager.ReplaceConfiguration(configuration);
+    }
+
+    private sealed class RegisteredModels(System.Collections.Generic.IReadOnlyList<ILanguageModel> models) : ILanguageModelProvider
+    {
+        public System.Collections.Generic.IReadOnlyList<ILanguageModel> GetSupportedModels() => models;
     }
 
     public async ValueTask DisposeAsync()

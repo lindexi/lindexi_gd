@@ -2,41 +2,32 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
              x:Class="CodingChatRoom.AvaloniaShell.Views.OpenAIModelCatalogView"
-             x:DataType="vm:ProviderSettingsViewModel">
-    <StackPanel x:Name="CatalogPanel" Spacing="8" IsVisible="False">
-        <TextBlock x:Name="StatusText"
-                   Classes="SettingsHint"
-                   IsVisible="False"
-                   TextWrapping="Wrap" />
-
-        <ScrollViewer MaxHeight="240"
-                      HorizontalScrollBarVisibility="Disabled"
-                      VerticalScrollBarVisibility="Auto">
-            <ItemsControl x:Name="ModelsList">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
+             x:DataType="vm:ModelCatalogViewModel" x:CompileBindings="True">
+    <StackPanel x:Name="CatalogPanel" x:DataType="vm:ModelCatalogViewModel" Spacing="12">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBlock Text="{DynamicResource SetupModelsLabel}" Classes="SettingsSectionTitle" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="{DynamicResource SetupDiscoverAction}" Command="{Binding LoadCommand}" />
+        </Grid>
+        <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="3" />
+        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Classes="SettingsHint" />
+        <ScrollViewer MaxHeight="200" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Models}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="x:String">
-                        <Border Classes="AvailableModelItem"
-                                Margin="0,0,8,8"
-                                Loaded="OnModelItemLoaded">
-                            <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6">
-                                <TextBlock Text="{Binding}"
-                                           MaxWidth="260"
-                                           VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis" />
-                                <Button Grid.Column="1"
-                                        Classes="Flat CompactModelAdd"
-                                        Content="添加"
-                                        Click="OnAddClick" />
-                            </Grid>
-                        </Border>
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,4">
+                            <TextBlock Text="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <Button Grid.Column="1" Content="{DynamicResource SetupAddModel}"
+                                    Command="{Binding $parent[ItemsControl].((vm:ModelCatalogViewModel)DataContext).AddCommand}"
+                                    CommandParameter="{Binding}" />
+                        </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+        <TextBlock Text="{DynamicResource SetupManualHint}" TextWrapping="Wrap" />
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBox Text="{Binding ModelId, UpdateSourceTrigger=PropertyChanged}" Classes="Rounded SettingsInput" VerticalContentAlignment="Center" PlaceholderText="{DynamicResource SetupModelIdText}" />
+            <Button Grid.Column="1" Content="{DynamicResource SetupAddModel}" Command="{Binding AddManualCommand}" />
+        </Grid>
     </StackPanel>
 </UserControl>

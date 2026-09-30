@@ -220,6 +220,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     /// <summary>获取全局设置。</summary>
     public SettingsViewModel? SettingsViewModel => _settingsViewModel;
 
+    internal Task InitializeSettingsAsync() => _settingsViewModel?.LoadAsync() ?? Task.CompletedTask;
+
     /// <summary>获取任务操作错误。</summary>
     public string? ErrorMessage
     {
@@ -664,7 +666,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         IsArchiveOpen = false;
         IsHistoryOpen = false;
         IsSettingsOpen = true;
-        await _settingsViewModel.LoadAsync().ConfigureAwait(true);
+        await Task.CompletedTask;
     }
 
     private void OnSettingsSaved(object? sender, CodingChatSettingsSavedEventArgs e)
@@ -681,7 +683,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             {
                 runtime.EndpointManager.WebProxy = CodingWorkTaskRuntimeFactory
                     .CreateWebProxy(e.Settings.ShellSettings);
-                runtime.EndpointManager.ReplaceConfiguration(modelConfiguration);
+                runtime.ApplyModelConfiguration(modelConfiguration);
             }
             task.Chat.RefreshAvailableModels(selectedModelDisplayName);
         }

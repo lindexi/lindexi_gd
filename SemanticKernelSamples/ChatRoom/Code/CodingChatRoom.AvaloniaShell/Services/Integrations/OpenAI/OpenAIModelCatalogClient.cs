@@ -26,11 +26,6 @@ internal sealed class OpenAIModelCatalogClient : IOpenAIModelCatalogClient
             return OpenAIModelCatalogResult.Failure("请先填写模型服务地址。");
         }
 
-        if (string.IsNullOrWhiteSpace(apiKey))
-        {
-            return OpenAIModelCatalogResult.Failure("请先填写 API 密钥。");
-        }
-
         if (!Uri.TryCreate(endPoint, UriKind.Absolute, out Uri? endpointUri))
         {
             return OpenAIModelCatalogResult.Failure("模型服务地址格式无效。");
@@ -40,7 +35,7 @@ internal sealed class OpenAIModelCatalogClient : IOpenAIModelCatalogClient
         {
             Endpoint = endpointUri,
         };
-        var client = new OpenAIClient(new ApiKeyCredential(apiKey), options);
+        var client = new OpenAIClient(new ApiKeyCredential(string.IsNullOrEmpty(apiKey) ? "unused" : apiKey), options);
         OpenAIModelClient modelClient = client.GetOpenAIModelClient();
         ClientResult<OpenAIModelCollection> result;
         try

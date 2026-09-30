@@ -129,7 +129,27 @@
   <Border Grid.Column="1" Margin="0,8,8,8" CornerRadius="8" Background="{StaticResource BackgroundBrush}" BorderBrush="#12000000" BorderThickness="1" ClipToBounds="True">
   <Grid>
    <Panel IsVisible="{Binding IsChatOpen}">
-    <views:ChatView DataContext="{Binding ChatViewModel}" />
+    <Panel IsEnabled="{Binding !!ChatViewModel.AvailableModels.Count}"><views:ChatView DataContext="{Binding ChatViewModel}" /></Panel>
+    <Border IsVisible="{Binding !ChatViewModel.AvailableModels.Count}" Background="#38000000" Padding="24,32">
+     <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+             CornerRadius="12" MaxWidth="1040" BoxShadow="0 8 28 0 #20000000">
+      <Grid RowDefinitions="Auto,*,Auto" DataContext="{Binding SettingsViewModel}" x:DataType="vm:SettingsViewModel">
+       <StackPanel Margin="24,20,24,16" Spacing="6">
+        <TextBlock Text="{DynamicResource ModelSetupTitle}" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+        <TextBlock Text="{DynamicResource ModelSetupRequiredText}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+       </StackPanel>
+       <Border Grid.Row="1" Background="{StaticResource SettingsMutedSurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1">
+        <ScrollViewer x:Name="ModelSetupScrollViewer" HorizontalScrollBarVisibility="Disabled" Padding="0">
+         <Border Padding="20,12"><views:ModelSettingsView /></Border>
+        </ScrollViewer>
+       </Border>
+       <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="16" Margin="24,16">
+        <TextBlock Text="{Binding StatusMessage}" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center" />
+        <Button Grid.Column="1" Content="{DynamicResource SaveModelSettingsText}" Command="{Binding SaveCommand}" Classes="Primary accent SaveSettings" IsEnabled="{Binding !IsBusy}" />
+       </Grid>
+      </Grid>
+     </Border>
+    </Border>
    </Panel>
    <Grid RowDefinitions="Auto,*" IsVisible="{Binding IsArchiveOpen}">
     <Button Classes="Flat" Margin="24,16" HorizontalAlignment="Left" Content="{StaticResource BackToChatText}" Command="{Binding CloseHistoryCommand}" />
