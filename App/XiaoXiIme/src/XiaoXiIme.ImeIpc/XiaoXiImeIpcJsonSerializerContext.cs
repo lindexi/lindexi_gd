@@ -6,7 +6,7 @@ namespace XiaoXiIme.ImeIpc;
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     UseStringEnumConverter = true,
-    Converters = [typeof(ImeSessionIdJsonConverter), typeof(JsonCamelCaseStringEnumConverter)])]
+    Converters = [typeof(ImeSessionIdJsonConverter)])]
 [JsonSerializable(typeof(ImeCandidate))]
 [JsonSerializable(typeof(ImeCandidate[]))]
 [JsonSerializable(typeof(ImeCandidateWindowState))]

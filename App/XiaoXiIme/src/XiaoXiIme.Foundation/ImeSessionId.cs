@@ -42,7 +42,7 @@ public sealed class ImeSessionIdJsonConverter : JsonConverter<ImeSessionId>
         return reader.TokenType switch
         {
             JsonTokenType.Null => ImeSessionId.Unspecified,
-            JsonTokenType.String => new ImeSessionId(reader.GetString()),
+            JsonTokenType.String => new ImeSessionId(reader.GetString() ?? string.Empty),
             _ => throw new JsonException($"Unexpected token {reader.TokenType} when reading {nameof(ImeSessionId)}."),
         };
     }

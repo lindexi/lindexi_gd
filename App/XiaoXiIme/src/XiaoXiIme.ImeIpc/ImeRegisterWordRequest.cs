@@ -16,7 +16,7 @@ public sealed record ImeRegisterWordRequest(
     public ImeSessionId EffectiveSessionId => SessionId.Effective;
 }
 
-[JsonConverter(typeof(JsonCamelCaseStringEnumConverter))]
+[JsonConverter(typeof(JsonCamelCaseStringEnumConverter<ImeRegisterWordAction>))]
 public enum ImeRegisterWordAction
 {
     Register,
