@@ -1,3 +1,3 @@
-﻿# XiaoXiIme.ImeIpc.Tests
+# XiaoXiIme.ImeIpc.Tests
 
-小希输入法 IPC 协议与序列化测试项目。当前覆盖：稳定路由名、默认选项、AOT JSON 序列化器配置、按键请求、快照响应、UI 状态响应、Host 状态响应和显式无参数请求 DTO。
+小希输入法 IPC 协议与序列化测试项目。当前覆盖：稳定路由名、默认选项、AOT JSON 序列化器配置、按键请求、快照响应、UI 状态响应、Host 状态响应、显式无参数请求 DTO，以及会话作用域和未指定会话的 `ImeSnapshotRequest`/`ImeUiStateRequest`/`ImeProcessKeyRequest` JSON 往返，包括 `ImeKey.SelectCandidate(0)`。`ImeResetSessionRequest`/`ImeResetSessionResponse` 覆盖指定会话与 `ResetAll` 的 AOT 往返。`ImeSetCompositionRequest`/`ImeSetCompositionResponse` 覆盖整串替换组合的 AOT 往返。`ImeConversionListRequest`/`ImeConversionListResponse` 覆盖独立查询候选和 `ReverseConversion` 反查 reading 的 AOT 往返。`ImeRegisterWordRequest`/`ImeRegisterWordResponse` 覆盖注册、注销和枚举用户词的 AOT 往返。`ImeSessionId` 通过公开字符串转换器接入源生成上下文，空会话序列化为 `null`。枚举通过公开的 `JsonCamelCaseStringEnumConverter` 写成 camelCase，例如 `candidateSelection` 与 `reverseConversion`。

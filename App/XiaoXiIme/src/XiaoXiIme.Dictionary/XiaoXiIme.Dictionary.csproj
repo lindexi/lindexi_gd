@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,6 +8,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\XiaoXiIme.Foundation\XiaoXiIme.Foundation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Sources\xiaoxiime-project-terms.phonetic.tsv">
+      <LogicalName>XiaoXiIme.Dictionary.xiaoxiime-project-terms.phonetic.tsv</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

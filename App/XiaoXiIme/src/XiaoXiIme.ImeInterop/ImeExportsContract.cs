@@ -1,25 +1,24 @@
-using System.Runtime.InteropServices;
-
 namespace XiaoXiIme.ImeInterop;
 
 public static class ImeExportsContract
 {
     public const string ModuleFileExtension = ".ime";
-    public const string ImeMenuClassName = "XiaoXiImeMenuWindow";
-    public const string ImeUiClassName = "XiaoXiImeUiWindow";
+    public const int ImeUiClassBufferLength = 16;
+    public const string ImeUiClassName = "XiaoXiImeUIWnd";
+    public const string ImeDisplayName = "XiaoXi IME";
+    public const string UserWordStyleDescription = "User";
 
     public static ImeInquireInfo CreateDefaultInquireInfo()
     {
         return new ImeInquireInfo
         {
-            Size = (uint)Marshal.SizeOf<ImeInquireInfo>(),
-            ImeVersion = ImeConstants.ImeVersion0400,
-            ImeProperty = ImeConstants.ImePropAtCaret | ImeConstants.ImePropUnicode | ImeConstants.ImePropCompleteOnUnselect,
-            ConversionCaps = ImeConstants.ImeCmodeNative | ImeConstants.ImeCmodeFullShape | ImeConstants.ImeCmodeNoConversion,
+            PrivateDataSize = 0,
+            Property = ImeConstants.ImePropKbdCharFirst | ImeConstants.ImePropSpecialUi | ImeConstants.ImePropCandidateListStartsAtOne | ImeConstants.ImePropUnicode,
+            ConversionCaps = ImeConstants.ImeCmodeNative | ImeConstants.ImeCmodeFullShape,
             SentenceCaps = 0,
             UiCaps = 0,
-            SetCompositionStringCaps = ImeConstants.SCSCapsCompStr | ImeConstants.SCSCapsMakeRead,
-            SelectCaps = ImeConstants.SelectCapsConversion,
+            SetCompositionStringCaps = ImeConstants.SCSCapsCompStr,
+            SelectCaps = 0,
         };
     }
 }

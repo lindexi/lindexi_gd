@@ -7,16 +7,27 @@ public sealed record ImeUiState(
     ImeCandidateWindowState CandidateWindow,
     ImeGuideline Guideline,
     int AnchorX = 0,
-    int AnchorY = 0)
+    int AnchorY = 0,
+    ImeAboutState? About = null,
+    string? DiagnosticText = null,
+    bool IsHostUnavailable = false,
+    bool IsUsingFallbackDictionary = false)
 {
+    public ImeAboutState EffectiveAbout => About ?? ImeAboutState.SeWzc;
+
     public static ImeUiState Empty { get; } = new(
         CandidateWindowVisible: false,
         CompositionText.Empty,
         Array.Empty<ImeCandidate>(),
         ImeCandidateWindowState.Empty,
-        ImeGuideline.Empty);
+        ImeGuideline.Empty,
+        About: ImeAboutState.SeWzc);
 
-    public static ImeUiState FromSnapshot(ImeSessionSnapshot snapshot)
+    public static ImeUiState FromSnapshot(
+        ImeSessionSnapshot snapshot,
+        string? diagnosticText = null,
+        bool isHostUnavailable = false,
+        bool isUsingFallbackDictionary = false)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
@@ -25,6 +36,10 @@ public sealed record ImeUiState(
             snapshot.Composition,
             snapshot.Candidates,
             snapshot.CandidateWindow,
-            snapshot.EffectiveGuideline);
+            snapshot.EffectiveGuideline,
+            About: ImeAboutState.SeWzc,
+            DiagnosticText: diagnosticText,
+            IsHostUnavailable: isHostUnavailable,
+            IsUsingFallbackDictionary: isUsingFallbackDictionary);
     }
 }

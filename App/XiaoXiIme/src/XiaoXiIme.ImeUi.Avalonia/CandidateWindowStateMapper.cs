@@ -4,6 +4,8 @@ namespace XiaoXiIme.ImeUi.Avalonia;
 
 public static class CandidateWindowStateMapper
 {
+    private const int CandidatePageCapacity = 9;
+
     public static CandidateWindowViewState Map(ImeUiState uiState)
     {
         ArgumentNullException.ThrowIfNull(uiState);
@@ -16,14 +18,17 @@ public static class CandidateWindowStateMapper
                 GuidelineText = uiState.Guideline.Text,
                 AnchorX = uiState.AnchorX,
                 AnchorY = uiState.AnchorY,
+                AttributionText = uiState.EffectiveAbout.Notice,
+                DiagnosticText = uiState.DiagnosticText ?? string.Empty,
             };
         }
 
         var candidateCount = uiState.Candidates.Count;
         var pageSize = NormalizePageSize(uiState.CandidateWindow.PageSize, candidateCount);
         var selection = Math.Clamp(uiState.CandidateWindow.Selection, 0, candidateCount - 1);
-        var pageStart = NormalizePageStart(uiState.CandidateWindow.PageStart, selection, pageSize, candidateCount);
-        var pageEnd = Math.Min(candidateCount, pageStart + pageSize);
+        var pageStart = NormalizePageStart(uiState.CandidateWindow.PageStart, selection, candidateCount);
+        pageSize = Math.Min(pageSize, candidateCount - pageStart);
+        var pageEnd = pageStart + pageSize;
         var candidates = new List<CandidateWindowCandidateViewModel>(pageEnd - pageStart);
 
         for (var index = pageStart; index < pageEnd; index++)
@@ -44,11 +49,13 @@ public static class CandidateWindowStateMapper
             selection,
             pageStart,
             pageSize,
-            CurrentPage: (pageStart / pageSize) + 1,
-            TotalPages: (candidateCount + pageSize - 1) / pageSize,
+            CurrentPage: (pageStart / CandidatePageCapacity) + 1,
+            TotalPages: (candidateCount + CandidatePageCapacity - 1) / CandidatePageCapacity,
             uiState.Guideline.Text,
             uiState.AnchorX,
-            uiState.AnchorY);
+            uiState.AnchorY,
+            uiState.EffectiveAbout.Notice,
+            uiState.DiagnosticText ?? string.Empty);
     }
 
     private static int NormalizePageSize(int pageSize, int candidateCount)
@@ -60,25 +67,25 @@ public static class CandidateWindowStateMapper
 
         if (pageSize <= 0)
         {
-            return Math.Min(9, candidateCount);
+            return Math.Min(CandidatePageCapacity, candidateCount);
         }
 
         return Math.Min(pageSize, candidateCount);
     }
 
-    private static int NormalizePageStart(int pageStart, int selection, int pageSize, int candidateCount)
+    private static int NormalizePageStart(int pageStart, int selection, int candidateCount)
     {
-        if (pageSize <= 0 || candidateCount <= 0)
+        if (candidateCount <= 0)
         {
             return 0;
         }
 
-        if (selection < pageStart || selection >= pageStart + pageSize)
+        if (selection < pageStart || selection >= pageStart + CandidatePageCapacity)
         {
-            pageStart = (selection / pageSize) * pageSize;
+            pageStart = (selection / CandidatePageCapacity) * CandidatePageCapacity;
         }
 
-        var lastPageStart = ((candidateCount - 1) / pageSize) * pageSize;
+        var lastPageStart = ((candidateCount - 1) / CandidatePageCapacity) * CandidatePageCapacity;
         return Math.Clamp(pageStart, 0, lastPageStart);
     }
 }

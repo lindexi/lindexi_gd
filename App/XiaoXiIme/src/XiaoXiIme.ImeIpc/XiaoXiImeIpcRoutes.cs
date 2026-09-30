@@ -1,4 +1,4 @@
-﻿namespace XiaoXiIme.ImeIpc;
+namespace XiaoXiIme.ImeIpc;
 
 public static class XiaoXiImeIpcRoutes
 {
@@ -9,6 +9,14 @@ public static class XiaoXiImeIpcRoutes
     public const string GetUiState = "XiaoXiIme.GetUiState";
 
     public const string GetHostStatus = "XiaoXiIme.GetHostStatus";
+
+    public const string ResetSession = "XiaoXiIme.ResetSession";
+
+    public const string SetComposition = "XiaoXiIme.SetComposition";
+
+    public const string QueryConversionList = "XiaoXiIme.QueryConversionList";
+
+    public const string RegisterWord = "XiaoXiIme.RegisterWord";
 
     public const string NotifySnapshotChanged = "XiaoXiIme.SnapshotChanged";
 }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,6 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.7" />
+    <PackageReference Include="Avalonia.Headless" Version="11.3.7" />
+    <PackageReference Include="Avalonia.Skia" Version="11.3.7" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -19,11 +22,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\XiaoXiIme.Dictionary\XiaoXiIme.Dictionary.csproj" />
     <ProjectReference Include="..\..\src\XiaoXiIme.Foundation\XiaoXiIme.Foundation.csproj" />
     <ProjectReference Include="..\..\src\XiaoXiIme.ImeHost\XiaoXiIme.ImeHost.csproj" />
     <ProjectReference Include="..\..\src\XiaoXiIme.ImeIpc\XiaoXiIme.ImeIpc.csproj" />
     <ProjectReference Include="..\..\src\XiaoXiIme.ImeModule\XiaoXiIme.ImeModule.csproj" />
     <ProjectReference Include="..\..\src\XiaoXiIme.ImeUi.Avalonia\XiaoXiIme.ImeUi.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\data\dictionaries\phonetic\sewzc-default.phonetic.tsv" Link="DictionarySources\phonetic\sewzc-default.phonetic.tsv" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\data\dictionaries\phonetic\xiaoxiime-project-terms.phonetic.tsv" Link="DictionarySources\phonetic\xiaoxiime-project-terms.phonetic.tsv" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\data\dictionaries\shape\sewzc-moqi.shape.tsv" Link="DictionarySources\shape\sewzc-moqi.shape.tsv" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\data\dictionaries\symbols\sewzc-default.symbols.tsv" Link="DictionarySources\symbols\sewzc-default.symbols.tsv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

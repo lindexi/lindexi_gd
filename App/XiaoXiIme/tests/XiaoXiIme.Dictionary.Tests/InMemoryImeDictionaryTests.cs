@@ -1,4 +1,4 @@
-﻿using XiaoXiIme.Foundation;
+using XiaoXiIme.Foundation;
 
 namespace XiaoXiIme.Dictionary.Tests;
 
@@ -33,6 +33,17 @@ public class InMemoryImeDictionaryTests
     }
 
     [Fact]
+    public void Query_WhenPhraseReadingContainsSyllableSpacesThenContinuousInputMatches()
+    {
+        var dictionary = new InMemoryImeDictionary([new ImeCandidate("你好", "ni hao", 100)]);
+
+        var candidates = dictionary.Query("nihao");
+
+        Assert.Single(candidates);
+        Assert.Equal("你好", candidates[0].Text);
+    }
+
+    [Fact]
     public void Query_RespectsMaxCount()
     {
         var dictionary = new InMemoryImeDictionary(
@@ -56,6 +67,34 @@ public class InMemoryImeDictionaryTests
         Assert.Empty(dictionary.Query("   "));
         Assert.Empty(dictionary.Query("missing"));
         Assert.Empty(dictionary.Query("ni", maxCount: 0));
+    }
+
+    [Fact]
+    public void QueryByText_WhenExactTextThenReturnsCanonicalReadingBeforeAbbreviation()
+    {
+        var dictionary = new InMemoryImeDictionary(
+        [
+            new ImeCandidate("小希", "xx", 100),
+            new ImeCandidate("小希", "xiao xi", 100),
+            new ImeCandidate("你", "ni", 100),
+        ]);
+
+        var candidates = dictionary.QueryByText("小希");
+
+        Assert.Collection(
+            candidates,
+            candidate =>
+            {
+                Assert.Equal("小希", candidate.Text);
+                Assert.Equal("xiao xi", candidate.Reading);
+            },
+            candidate =>
+            {
+                Assert.Equal("小希", candidate.Text);
+                Assert.Equal("xx", candidate.Reading);
+            });
+        Assert.Empty(dictionary.QueryByText(""));
+        Assert.Empty(dictionary.QueryByText("missing"));
     }
 
     [Fact]

@@ -11,8 +11,22 @@ public sealed record CandidateWindowViewState(
     int TotalPages,
     string GuidelineText,
     int AnchorX,
-    int AnchorY)
+    int AnchorY,
+    string AttributionText = "",
+    string DiagnosticText = "")
 {
+    public string PageText => TotalPages > 1 ? $"{CurrentPage}/{TotalPages}" : string.Empty;
+
+    public bool HasPageText => !string.IsNullOrWhiteSpace(PageText);
+
+    public bool HasGuideline => !string.IsNullOrWhiteSpace(GuidelineText);
+
+    public bool HasAttribution => !string.IsNullOrWhiteSpace(AttributionText);
+
+    public bool HasDiagnostic => !string.IsNullOrWhiteSpace(DiagnosticText);
+
+    public bool HasFooter => HasGuideline || HasAttribution || HasDiagnostic;
+
     public static CandidateWindowViewState Hidden { get; } = new(
         IsVisible: false,
         CompositionText: string.Empty,

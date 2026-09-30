@@ -1,98 +1,119 @@
-﻿using System.Reflection;
-using System.Text;
+using DotNetCampus.Cli;
+using XiaoXiIme.Cli;
+using XiaoXiIme.ImeIpc;
 
-var command = args.Length > 0 ? args[0] : "help";
-
-switch (command.ToLowerInvariant())
+if (args.Length == 0)
 {
-    case "install-checklist":
-        PrintInstallChecklist(args.Skip(1).ToArray());
-        return 0;
-    case "uninstall-checklist":
-        PrintUninstallChecklist();
-        return 0;
-    case "publish-checklist":
-        PrintPublishChecklist();
-        return 0;
-    case "export-checklist":
-        PrintExportChecklist(args.Skip(1).ToArray());
-        return 0;
-    case "help":
-    case "--help":
-    case "-h":
-        PrintHelp();
-        return 0;
-    default:
-        Console.Error.WriteLine($"Unknown command: {command}");
-        PrintHelp();
-        return 1;
+    args = ["--help"];
 }
 
-static void PrintHelp()
+return await CommandLine.Parse(args)
+    .AddHelpHandler()
+    .AddHandler<InstallOptions>(Install)
+    .AddHandler<UninstallOptions>(Uninstall)
+    .AddHandler<SystemTestPlanOptions>(PrintSystemTestPlan)
+    .AddHandler<SystemTestRunOptions>(RunSystemTests)
+    .AddHandler<PayloadBuildOptions>(options => IntegrationPayloadBuilder.BuildAsync(options, Console.Out, Console.Error))
+    .AddHandler<IntegrationRunOptions>(options => IntegrationTestRunner.RunAsync(options, Console.Out, Console.Error, static () => new WindowsImeInstaller()))
+    .AddHandler<NativeImeLoadProbeOptions>(options => NativeImeLoadProbe.Run(options, Console.Out, Console.Error))
+    .AddHandler<DictionaryUpdateOptions>(options => LocalDictionaryCommands.Update(options, Console.Out, Console.Error))
+    .AddHandler<DictionaryRollbackOptions>(options => LocalDictionaryCommands.Rollback(options, Console.Out, Console.Error))
+    .AddHandler<DictionaryConvertSeWzcOptions>(options => LocalDictionaryCommands.ConvertSeWzc(options, Console.Out, Console.Error))
+    .AddHandler<DictionaryBuildPackagesOptions>(options => LocalDictionaryCommands.BuildPackages(options, Console.Out, Console.Error))
+    .AddHandler<DictionaryInspectOptions>(options => LocalDictionaryCommands.Inspect(options, Console.Out, Console.Error))
+    .RunAsync();
+
+static int Install(InstallOptions options)
 {
-    Console.WriteLine("XiaoXiIme.Cli");
-    Console.WriteLine();
-    Console.WriteLine("Commands:");
-    Console.WriteLine("  publish-checklist                 Print Native AOT publish verification steps.");
-    Console.WriteLine("  export-checklist [ime-file]        Print export verification commands for an IME binary.");
-    Console.WriteLine("  install-checklist [ime-file]       Print manual Windows IME installation checklist.");
-    Console.WriteLine("  uninstall-checklist                Print manual Windows IME uninstall and rollback checklist.");
+    if (!string.Equals(options.Confirm, SystemTestRunner.VmConfirmation, StringComparison.Ordinal))
+    {
+        Console.Error.WriteLine($"Installation refused. Pass --confirm {SystemTestRunner.VmConfirmation} only inside a disposable VM.");
+        return 3;
+    }
+
+    var manifestPath = IntegrationTestRunner.ResolveManifestPath(options.Payload, AppContext.BaseDirectory, Environment.CurrentDirectory);
+    if (manifestPath is null)
+    {
+        Console.Error.WriteLine("Payload manifest was not found.");
+        return 4;
+    }
+
+    var root = Path.GetDirectoryName(manifestPath)!;
+    var manifest = IntegrationPayloadManifest.Load(manifestPath);
+    var verificationError = IntegrationTestRunner.VerifyPayload(root, manifest);
+    if (verificationError is not null)
+    {
+        Console.Error.WriteLine(verificationError);
+        return 5;
+    }
+    if (!manifest.NativeComponents.TryGetValue("x64", out var x64Components)
+        || !manifest.NativeComponents.TryGetValue("x86", out var x86Components))
+    {
+        Console.Error.WriteLine("The payload does not contain both x64 and x86 IME components.");
+        return 5;
+    }
+
+    var x64ImePath = Path.GetFullPath(Path.Combine(root, x64Components.ImeFile.Replace('/', Path.DirectorySeparatorChar)));
+    var x86ImePath = Path.GetFullPath(Path.Combine(root, x86Components.ImeFile.Replace('/', Path.DirectorySeparatorChar)));
+    var result = new WindowsImeInstaller().InstallPair(x64ImePath, x86ImePath, "XiaoXi IME");
+    (result.Succeeded ? Console.Out : Console.Error).WriteLine(result.Message);
+    if (!result.Succeeded)
+    {
+        return 6;
+    }
+
+    var hostStart = ImeHostProcessManager.StartDetached(Path.Combine(root, manifest.ImeHostExecutable.Replace('/', Path.DirectorySeparatorChar)));
+    (hostStart.Succeeded ? Console.Out : Console.Error).WriteLine(hostStart.Message);
+    return hostStart.Succeeded ? 0 : 7;
 }
 
-static void PrintPublishChecklist()
+static int Uninstall(UninstallOptions options)
 {
-    Console.WriteLine("Native AOT publish checklist");
-    Console.WriteLine("1. Run: dotnet publish src\\XiaoXiIme.ImeModule\\XiaoXiIme.ImeModule.csproj -c Release -r win-x64 --self-contained true -p:PublishAot=true");
-    Console.WriteLine("2. Verify publish output exists under src\\XiaoXiIme.ImeModule\\bin\\Release\\net10.0\\win-x64\\publish\\.");
-    Console.WriteLine("3. Verify the native shared library exports traditional IME entry points: ImeInquire, ImeProcessKey, ImeToAsciiEx, ImeSelect, NotifyIME.");
-    Console.WriteLine("4. Copy or rename the published native library to the planned .ime file name only after export verification.");
-    Console.WriteLine("5. Record all Native AOT warnings; known dotnetCampus.Ipc package warnings must not be confused with project-side reflection paths.");
+    if (!string.Equals(options.Confirm, SystemTestRunner.VmConfirmation, StringComparison.Ordinal))
+    {
+        Console.Error.WriteLine($"Uninstallation refused. Pass --confirm {SystemTestRunner.VmConfirmation} only inside a disposable VM.");
+        return 3;
+    }
+
+    ImeHostProcessManager.StopExisting(XiaoXiImeIpcOptions.DefaultServerName);
+    var result = new WindowsImeInstaller().UninstallExisting("XiaoXi IME", "XiaoXiIme.ime");
+    (result.Succeeded ? Console.Out : Console.Error).WriteLine(result.Message);
+    if (result.Succeeded)
+    {
+        Console.Out.WriteLine(UserDictionaryUninstall.Complete(options.PurgeUserData));
+    }
+
+    return result.Succeeded ? 0 : 6;
 }
 
-static void PrintExportChecklist(string[] args)
+static int PrintSystemTestPlan(SystemTestPlanOptions options)
 {
-    var imeFile = args.Length > 0 ? args[0] : "src\\XiaoXiIme.ImeModule\\bin\\Release\\net10.0\\win-x64\\publish\\XiaoXiIme.ImeModule.dll";
-    var commands = new StringBuilder()
-        .AppendLine("Export verification checklist")
-        .AppendLine("This command does not inspect or modify the system. Run one of the following checks manually before registration.")
-        .AppendLine($"Target binary: {imeFile}")
-        .AppendLine("1. Visual Studio Developer Command Prompt:")
-        .AppendLine($"   dumpbin /exports \"{imeFile}\"")
-        .AppendLine("2. PowerShell with Visual Studio tools on PATH:")
-        .AppendLine($"   dumpbin /exports \"{imeFile}\" | Select-String \"ImeInquire|ImeProcessKey|ImeToAsciiEx|ImeSelect|NotifyIME\"")
-        .AppendLine("3. Required export names:")
-        .AppendLine("   ImeInquire, ImeProcessKey, ImeToAsciiEx, ImeSelect, NotifyIME")
-        .AppendLine("4. Do not call ImmInstallIME until all required exports are present.");
-
-    Console.Write(commands.ToString());
+    var plan = SystemTestPlan.CreateDefault();
+    if (options.Json)
+    {
+        Console.WriteLine(plan.ToJson());
+        return 0;
+    }
+    Console.WriteLine(plan.Name);
+    foreach (var step in plan.Steps)
+    {
+        Console.WriteLine($"[{step.Id}] {step.Area}: {step.Description}");
+    }
+    return 0;
 }
 
-static void PrintInstallChecklist(string[] args)
+static Task<int> RunSystemTests(SystemTestRunOptions options)
 {
-    var imeFile = args.Length > 0 ? args[0] : "<published XiaoXiIme .ime path>";
-    Console.WriteLine("Manual Windows IME install checklist");
-    Console.WriteLine("Administrative privileges are required. This command does not modify the system.");
-    Console.WriteLine($"1. Confirm the IME file exists: {imeFile}");
-    Console.WriteLine("2. Copy the IME file to a stable installation directory, typically %SystemRoot%\\System32, using an elevated shell.");
-    Console.WriteLine("3. Register the IME by calling ImmInstallIME with the installed .ime path and display name 'XiaoXi IME'.");
-    Console.WriteLine("4. Record the returned HKL / layout id.");
-    Console.WriteLine("5. Verify HKLM\\SYSTEM\\CurrentControlSet\\Control\\Keyboard Layouts\\<layout id> contains the IME metadata.");
-    Console.WriteLine("6. If required, add current-user and .DEFAULT Keyboard Layout\\Preload entries that reference the layout id.");
-    Console.WriteLine("7. Sign out/sign in or restart input services if the layout does not appear immediately.");
-    Console.WriteLine("8. Switch to XiaoXi IME from Windows input method UI and run the manual smoke test.");
-}
-
-static void PrintUninstallChecklist()
-{
-    Console.WriteLine("Manual Windows IME uninstall and rollback checklist");
-    Console.WriteLine("Administrative privileges are required. This command does not modify the system.");
-    Console.WriteLine("1. Switch away from XiaoXi IME in all user sessions.");
-    Console.WriteLine("2. Unload the recorded HKL with UnloadKeyboardLayout where possible.");
-    Console.WriteLine("3. Remove current-user Keyboard Layout\\Preload entries that reference the XiaoXi layout id.");
-    Console.WriteLine("4. Remove HKEY_USERS\\.DEFAULT\\Keyboard Layout\\Preload entries that reference the XiaoXi layout id if they were added.");
-    Console.WriteLine("5. Remove Control Panel\\International\\User Profile entries that reference the layout id if present.");
-    Console.WriteLine("6. Remove HKLM\\SYSTEM\\CurrentControlSet\\Control\\Keyboard Layouts\\<layout id> after backing it up.");
-    Console.WriteLine("7. Delete the installed .ime file only after the layout is unloaded and no process locks it.");
-    Console.WriteLine("8. Restart affected applications or Windows if the layout remains visible.");
-    Console.WriteLine($"9. Keep this CLI version for audit: {Assembly.GetExecutingAssembly().GetName().Version}");
+    if (string.IsNullOrWhiteSpace(options.AbiHost) || string.IsNullOrWhiteSpace(options.TsfDll))
+    {
+        Console.Error.WriteLine("system-test-run requires <abi-host> and <tsf-dll>.");
+        return Task.FromResult(2);
+    }
+    var reportPath = options.Report ?? Path.Combine(Environment.CurrentDirectory, "artifacts", "system-tests", "report.json");
+    SystemTestCommand[] commands =
+    [
+        new("tsf-abi", Path.GetFullPath(options.AbiHost), ["abi", Path.GetFullPath(options.TsfDll)]),
+        new("tsf-com-activation", Path.GetFullPath(options.AbiHost), ["com-activation", Path.GetFullPath(options.TsfDll)]),
+    ];
+    return SystemTestRunner.RunAsync(commands, reportPath, string.Equals(options.Confirm, SystemTestRunner.VmConfirmation, StringComparison.Ordinal), Console.Out, Console.Error);
 }

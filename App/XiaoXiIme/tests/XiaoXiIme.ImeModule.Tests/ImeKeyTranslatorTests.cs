@@ -16,6 +16,22 @@ public class ImeKeyTranslatorTests
         Assert.Equal(expectedCharacter, key.Character);
     }
 
+    [Fact]
+    public void Translate_ShiftAlphabetKey_ReturnsUppercaseCharacter()
+    {
+        var key = ImeKeyTranslator.Translate(ImeConstants.VkA, ImeKeyTranslator.ShiftModifier);
+
+        Assert.Equal('A', key.Character);
+    }
+
+    [Fact]
+    public void Translate_SlashKey_ReturnsSlashCharacter()
+    {
+        var key = ImeKeyTranslator.Translate(ImeConstants.VkOem2);
+
+        Assert.Equal('/', key.Character);
+    }
+
     [Theory]
     [InlineData(ImeConstants.Vk1, 0)]
     [InlineData(ImeConstants.Vk9, 8)]

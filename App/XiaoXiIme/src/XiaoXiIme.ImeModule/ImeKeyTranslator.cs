@@ -5,6 +5,8 @@ namespace XiaoXiIme.ImeModule;
 
 public static class ImeKeyTranslator
 {
+    public const uint ShiftModifier = 0x01;
+
     public static ImeKey Translate(ushort virtualKey, uint modifiers = 0)
     {
         return virtualKey switch
@@ -22,7 +24,9 @@ public static class ImeKeyTranslator
             ImeConstants.VkLeft => ImeKey.MoveCompositionCaretLeft(),
             ImeConstants.VkRight => ImeKey.MoveCompositionCaretRight(),
             >= ImeConstants.Vk0 and <= ImeConstants.Vk9 => ImeKey.SelectCandidate(virtualKey == ImeConstants.Vk0 ? 9 : virtualKey - ImeConstants.Vk0 - 1),
-            >= ImeConstants.VkA and <= ImeConstants.VkZ => ImeKey.FromCharacter((char)('a' + virtualKey - ImeConstants.VkA)),
+            >= ImeConstants.VkA and <= ImeConstants.VkZ => ImeKey.FromCharacter((char)(
+                ((modifiers & ShiftModifier) != 0 ? 'A' : 'a') + virtualKey - ImeConstants.VkA)),
+            ImeConstants.VkOem2 when (modifiers & ShiftModifier) == 0 => ImeKey.FromCharacter('/'),
             _ => new ImeKey(ImeKeyKind.Other),
         };
     }

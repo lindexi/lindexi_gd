@@ -1,0 +1,73 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:XiaoXiIme.ImeUi.Avalonia"
+        x:Class="XiaoXiIme.ImeUi.Avalonia.CandidateWindow"
+        x:DataType="local:CandidateWindowViewState"
+        Title="XiaoXiIme Candidate Window"
+        SizeToContent="WidthAndHeight"
+        MinWidth="320"
+        MaxWidth="760"
+        CanResize="False"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Topmost="True"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        FontFamily="Microsoft YaHei UI, Segoe UI, Inter">
+  <Border Margin="8"
+          Padding="8,6"
+          CornerRadius="8"
+          Background="#FFFFFFFF"
+          BorderBrush="#26000000"
+          BorderThickness="1"
+          BoxShadow="0 4 14 0 #26000000">
+    <StackPanel Spacing="4">
+      <Grid Margin="4,0"
+            ColumnDefinitions="*,Auto">
+        <TextBlock Text="{Binding CompositionText}"
+                   VerticalAlignment="Center"
+                   FontSize="14"
+                   Foreground="#2563EB" />
+        <TextBlock Grid.Column="1"
+                   Margin="16,0,2,0"
+                   Text="{Binding PageText}"
+                   IsVisible="{Binding HasPageText}"
+                   VerticalAlignment="Center"
+                   FontSize="12"
+                   Foreground="#666666" />
+      </Grid>
+
+      <Border Height="1"
+              Background="#12000000" />
+
+      <ItemsControl ItemsSource="{Binding Candidates}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal"
+                        Spacing="4" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="local:CandidateWindowCandidateViewModel">
+            <Border Padding="10,5"
+                    CornerRadius="5"
+                    Background="{Binding Background}">
+              <StackPanel Orientation="Horizontal"
+                          Spacing="5">
+                <TextBlock Text="{Binding DisplayIndex}"
+                           VerticalAlignment="Center"
+                           FontSize="12"
+                           Foreground="{Binding IndexForeground}" />
+                <TextBlock Text="{Binding Text}"
+                           VerticalAlignment="Center"
+                           FontSize="17"
+                           Foreground="{Binding Foreground}" />
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </Border>
+</Window>

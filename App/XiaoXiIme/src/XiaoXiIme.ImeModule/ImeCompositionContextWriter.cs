@@ -92,6 +92,34 @@ public sealed unsafe class ImeCompositionContextWriter
         return WriteCandidateInfo(candidateInfo, candidates, candidateWindow ?? ImeCandidateWindowState.Empty);
     }
 
+    public static uint GetRequiredConversionListSize(IReadOnlyList<ImeCandidate> candidates, bool writeReading = false)
+    {
+        ArgumentNullException.ThrowIfNull(candidates);
+        return GetRequiredCandidateListSize(candidates, writeReading);
+    }
+
+    public bool TryWriteConversionList(
+        void* destination,
+        uint bufferLength,
+        IReadOnlyList<ImeCandidate> candidates,
+        bool writeReading = false)
+    {
+        ArgumentNullException.ThrowIfNull(candidates);
+        if (destination is null || bufferLength == 0)
+        {
+            return false;
+        }
+
+        var requiredSize = GetRequiredCandidateListSize(candidates, writeReading);
+        if (requiredSize > bufferLength)
+        {
+            return false;
+        }
+
+        Unsafe.InitBlockUnaligned(destination, 0, requiredSize);
+        return WriteCandidateList((CandidateList*)destination, candidates, ImeCandidateWindowState.Empty, writeReading);
+    }
+
     public bool TryWriteGuideLineForTesting(GuideLine* guideLine, ImeSessionSnapshot snapshot)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
@@ -413,7 +441,7 @@ public sealed unsafe class ImeCompositionContextWriter
         }
     }
 
-    private static uint GetRequiredCandidateListSize(IReadOnlyList<ImeCandidate> candidates)
+    private static uint GetRequiredCandidateListSize(IReadOnlyList<ImeCandidate> candidates, bool writeReading = false)
     {
         checked
         {
@@ -426,7 +454,8 @@ public sealed unsafe class ImeCompositionContextWriter
 
             foreach (var candidate in candidates)
             {
-                size += (uint)Encoding.Unicode.GetByteCount(candidate.Text) + sizeof(char);
+                var value = writeReading ? candidate.Reading : candidate.Text;
+                size += (uint)Encoding.Unicode.GetByteCount(value) + sizeof(char);
             }
 
             return size;
@@ -504,8 +533,19 @@ public sealed unsafe class ImeCompositionContextWriter
         }
 
         candidateInfo->Offset[0] = (uint)Unsafe.SizeOf<CandidateInfo>();
-        var candidateList = (CandidateList*)((byte*)candidateInfo + candidateInfo->Offset[0]);
-        var candidateListSize = GetRequiredCandidateListSize(candidates);
+        return WriteCandidateList(
+            (CandidateList*)((byte*)candidateInfo + candidateInfo->Offset[0]),
+            candidates,
+            candidateWindow);
+    }
+
+    private static bool WriteCandidateList(
+        CandidateList* candidateList,
+        IReadOnlyList<ImeCandidate> candidates,
+        ImeCandidateWindowState candidateWindow,
+        bool writeReading = false)
+    {
+        var candidateListSize = GetRequiredCandidateListSize(candidates, writeReading);
         candidateList->Size = candidateListSize;
         candidateList->Style = ImeConstants.CandidateListStyleReading;
         candidateList->Count = (uint)candidates.Count;
@@ -522,7 +562,7 @@ public sealed unsafe class ImeCompositionContextWriter
         for (var i = 0; i < candidates.Count; i++)
         {
             candidateList->Offset[i] = textOffset;
-            var candidateText = candidates[i].Text;
+            var candidateText = writeReading ? candidates[i].Reading : candidates[i].Text;
             var target = (char*)((byte*)candidateList + textOffset);
             candidateText.AsSpan().CopyTo(new Span<char>(target, candidateText.Length));
             target[candidateText.Length] = '\0';

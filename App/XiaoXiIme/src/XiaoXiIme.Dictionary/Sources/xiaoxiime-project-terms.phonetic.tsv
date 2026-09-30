@@ -1,0 +1,12 @@
+# XiaoXiIme first-party phonetic terms. Format matches the phonetic TSV contract.
+# This file is not SeWZC data; convert writes it as an independent native source.
+小希	xiao xi	10000000
+小希	xx	10000000
+小希输入法	xiao xi shu ru fa	10000000
+XiaoXiIme	xiao xi ai mu yi	10000000
+输入法核心	shu ru fa he xin	10000000
+候选窗口	hou xuan chuang kou	10000000
+用户词库	yong hu ci ku	10000000
+词库编译	ci ku bian yi	10000000
+TSF	ti e si e fu	10000000
+IME	ai mu yi	10000000

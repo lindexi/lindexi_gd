@@ -1,5 +1,8 @@
-﻿namespace XiaoXiIme.Foundation;
+using System.Text.Json.Serialization;
 
+namespace XiaoXiIme.Foundation;
+
+[JsonConverter(typeof(JsonCamelCaseStringEnumConverter))]
 public enum ImeKeyKind
 {
     Character,

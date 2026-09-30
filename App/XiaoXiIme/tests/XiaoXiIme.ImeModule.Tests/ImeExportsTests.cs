@@ -1,36 +1,126 @@
 using XiaoXiIme.ImeInterop;
 using XiaoXiIme.Foundation;
+using XiaoXiIme.ImeIpc;
+using System.Runtime.InteropServices;
 
 namespace XiaoXiIme.ImeModule.Tests;
 
 public class ImeExportsTests
 {
     [Fact]
+    public void ImeInquireInfo_MatchesNativeImeInfoLayout()
+    {
+        Assert.Equal(7 * sizeof(uint), Marshal.SizeOf<ImeInquireInfo>());
+    }
+
+    [Fact]
+    public void InputContext_MatchesNativeLayout()
+    {
+        Assert.Equal(IntPtr.Size == 8 ? 352 : 320, Marshal.SizeOf<InputContext>());
+        Assert.Equal(IntPtr.Size == 8 ? 288 : 280, Marshal.OffsetOf<InputContext>(nameof(InputContext.HCompStr)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 328 : 300, Marshal.OffsetOf<InputContext>(nameof(InputContext.HMessageBuffer)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 336 : 304, Marshal.OffsetOf<InputContext>(nameof(InputContext.FdwInit)).ToInt32());
+    }
+
+    [Fact]
+    public void TransMsgTypes_MatchNativeLayout()
+    {
+        Assert.Equal(IntPtr.Size == 8 ? 24 : 12, Marshal.SizeOf<TransMsg>());
+        Assert.Equal(0, Marshal.OffsetOf<TransMsg>(nameof(TransMsg.Message)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 8 : 4, Marshal.OffsetOf<TransMsg>(nameof(TransMsg.WParam)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 16 : 8, Marshal.OffsetOf<TransMsg>(nameof(TransMsg.LParam)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 8 : 4, Marshal.OffsetOf<TransMsgList>(nameof(TransMsgList.Message)).ToInt32());
+    }
+
+    [Fact]
+    public void RegisterWord_MatchesNativeLayout()
+    {
+        Assert.Equal(IntPtr.Size == 8 ? 16 : 8, Marshal.SizeOf<RegisterWord>());
+        Assert.Equal(0, Marshal.OffsetOf<RegisterWord>(nameof(RegisterWord.Reading)).ToInt32());
+        Assert.Equal(IntPtr.Size == 8 ? 8 : 4, Marshal.OffsetOf<RegisterWord>(nameof(RegisterWord.Word)).ToInt32());
+    }
+
+    [Fact]
+    public void StyleBuf_MatchesNativeLayout()
+    {
+        Assert.Equal(4 + (ImeConstants.StyleDescriptionBufferLength * sizeof(char)), Marshal.SizeOf<StyleBuf>());
+        Assert.Equal(0, Marshal.OffsetOf<StyleBuf>(nameof(StyleBuf.Style)).ToInt32());
+        Assert.Equal(4, Marshal.OffsetOf<StyleBuf>(nameof(StyleBuf.Description)).ToInt32());
+    }
+
+    [Fact]
+    public void KeystrokeDiagnosticSnapshot_MatchesExportContract()
+    {
+        Assert.Equal(76, Marshal.SizeOf<ImeKeystrokeDiagnosticSnapshot>());
+        Assert.Equal(0, Marshal.OffsetOf<ImeKeystrokeDiagnosticSnapshot>(nameof(ImeKeystrokeDiagnosticSnapshot.Version)).ToInt32());
+        Assert.Equal(52, Marshal.OffsetOf<ImeKeystrokeDiagnosticSnapshot>(nameof(ImeKeystrokeDiagnosticSnapshot.LastReturnValue)).ToInt32());
+        Assert.Equal(68, Marshal.OffsetOf<ImeKeystrokeDiagnosticSnapshot>(nameof(ImeKeystrokeDiagnosticSnapshot.LastToAsciiError)).ToInt32());
+        Assert.Equal(72, Marshal.OffsetOf<ImeKeystrokeDiagnosticSnapshot>(nameof(ImeKeystrokeDiagnosticSnapshot.LastToAsciiStage)).ToInt32());
+    }
+
+    [Fact]
+    public void KeystrokeDiagnostics_ResetAndRecord_ReturnsLatestTrace()
+    {
+        const uint vkX = 0x58;
+        ImeKeystrokeDiagnostics.Reset();
+
+        ImeKeystrokeDiagnostics.RecordImeProcessKey(ImeConstants.VkA, true);
+        ImeKeystrokeDiagnostics.RecordImeProcessKey(vkX, true);
+        ImeKeystrokeDiagnostics.RecordImeToAsciiEx(ImeConstants.VkA, true, false, 2, 2);
+        ImeKeystrokeDiagnostics.RecordImeToAsciiEx(vkX, true, true, 2, 2);
+
+        var snapshot = ImeKeystrokeDiagnostics.GetSnapshot();
+
+        Assert.Equal(ImeKeystrokeDiagnosticSnapshot.CurrentVersion, snapshot.Version);
+        Assert.Equal(2u, snapshot.ImeProcessKeyCallCount);
+        Assert.Equal(2u, snapshot.ImeToAsciiExCallCount);
+        Assert.Equal(vkX, snapshot.LastProcessVirtualKey);
+        Assert.Equal(1u, snapshot.LastProcessHandled);
+        Assert.Equal(vkX, snapshot.LastToAsciiVirtualKey);
+        Assert.Equal(1u, snapshot.LastToAsciiHandled);
+        Assert.Equal(1u, snapshot.LastCompositionWriteSucceeded);
+        Assert.Equal(2u, snapshot.LastMessageCount);
+        Assert.Equal(2u, snapshot.LastReturnValue);
+
+        ImeKeystrokeDiagnostics.Reset();
+        snapshot = ImeKeystrokeDiagnostics.GetSnapshot();
+        Assert.Equal(0u, snapshot.ImeProcessKeyCallCount);
+        Assert.Equal(0u, snapshot.ImeToAsciiExCallCount);
+    }
+
+    [Fact]
     public void CreateInquireInfoForTesting_ReturnsMinimalImeMetadata()
     {
         var info = ImeExports.CreateInquireInfoForTesting();
 
-        Assert.NotEqual(0u, info.Size);
-        Assert.Equal(ImeConstants.ImeVersion0400, info.ImeVersion);
-        Assert.True((info.ImeProperty & ImeConstants.ImePropUnicode) != 0);
-        Assert.True((info.ImeProperty & ImeConstants.ImePropAtCaret) != 0);
-        Assert.True((info.ImeProperty & ImeConstants.ImePropCompleteOnUnselect) != 0);
+        Assert.Equal(0u, info.PrivateDataSize);
+        Assert.True((info.Property & ImeConstants.ImePropKbdCharFirst) != 0);
+        Assert.True((info.Property & ImeConstants.ImePropSpecialUi) != 0);
+        Assert.True((info.Property & ImeConstants.ImePropUnicode) != 0);
+        Assert.True((info.Property & ImeConstants.ImePropCandidateListStartsAtOne) != 0);
+        Assert.Equal(0u, info.Property & ImeConstants.ImePropAtCaret);
+        Assert.Equal(0u, info.Property & ImeConstants.ImePropCompleteOnUnselect);
         Assert.True((info.ConversionCaps & ImeConstants.ImeCmodeNative) != 0);
-        Assert.True((info.SetCompositionStringCaps & ImeConstants.SCSCapsMakeRead) != 0);
-        Assert.True((info.SelectCaps & ImeConstants.SelectCapsConversion) != 0);
+        Assert.Equal(0u, info.ConversionCaps & ImeConstants.ImeCmodeNoConversion);
+        Assert.Equal(ImeConstants.SCSCapsCompStr, info.SetCompositionStringCaps);
+        Assert.Equal(0u, info.SelectCaps);
     }
 
     [Fact]
-    public unsafe void ImeInquireManaged_WritesClassNamesAndReturnsSize()
+    public void ImeUiClassName_FitsImm32Buffer()
+    {
+        Assert.True(ImeExportsContract.ImeUiClassName.Length < ImeExportsContract.ImeUiClassBufferLength);
+    }
+
+    [Fact]
+    public unsafe void ImeInquireManaged_WritesUiClassNameAndReturnsTrue()
     {
         var info = stackalloc ImeInquireInfo[1];
-        var className = stackalloc char[80];
+        var className = stackalloc char[ImeExportsContract.ImeUiClassBufferLength];
 
-        var size = ImeExports.ImeInquireManaged(info, className, 0);
+        var result = ImeExports.ImeInquireManaged(info, className, 0);
 
-        Assert.Equal(info->Size, size);
-        Assert.Equal(ImeExportsContract.ImeMenuClassName, new string(info->ImeMenuClassName));
-
+        Assert.Equal(1, result);
         Assert.Equal(ImeExportsContract.ImeUiClassName, new string(className));
     }
 
@@ -39,7 +129,7 @@ public class ImeExportsTests
     {
         var result = ImeExports.ImeInquireManaged(null, null, 0);
 
-        Assert.Equal(0u, result);
+        Assert.Equal(0, result);
     }
 
     [Fact]
@@ -47,6 +137,31 @@ public class ImeExportsTests
     {
         Assert.True(ImeModuleRuntime.ShouldProcessVirtualKey(ImeConstants.VkA));
         Assert.False(ImeModuleRuntime.ShouldProcessVirtualKey(ImeConstants.VkTab));
+    }
+
+    [Fact]
+    public unsafe void ImeProcessKeyManaged_ReturnsFalseForKeyUp()
+    {
+        var keyUpData = unchecked((nint)0x80000000);
+        var processKeyCalled = false;
+        ImeModuleRuntime.SetProcessKeyHandlerForTesting(_ =>
+        {
+            processKeyCalled = true;
+            return new ImeProcessResult(ImeSessionSnapshot.Empty, null, true);
+        });
+
+        try
+        {
+            var result = ImeExports.ImeProcessKeyManaged(1, ImeConstants.VkA, keyUpData, null);
+
+            Assert.False(result);
+            Assert.False(processKeyCalled);
+        }
+        finally
+        {
+            ImeModuleRuntime.SetProcessKeyHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
     }
 
     [Fact]
@@ -58,7 +173,7 @@ public class ImeExportsTests
         {
             var result = ImeExports.ImeProcessKeyManaged(1, ImeConstants.VkTab, 0, null);
 
-            Assert.Equal(0u, result);
+            Assert.False(result);
         }
         finally
         {
@@ -86,6 +201,810 @@ public class ImeExportsTests
     }
 
     [Fact]
+    public unsafe void ImeSelectManaged_WhenDeselectedThenCancelsCompositionAndClearsHimc()
+    {
+        ImeKey? received = null;
+        ImeModuleRuntime.SetProcessKeyHandlerForTesting(key =>
+        {
+            received = key;
+            return new ImeProcessResult(ImeSessionSnapshot.Empty, null, true);
+        });
+        using var himc = new InMemoryImmContext();
+        ImeExports.SetCompositionContextWriterForTesting(himc.CreateWriter());
+        var composition = himc.CompositionString;
+        composition->Size = (uint)sizeof(CompositionString);
+        composition->CompStrOffset = (uint)sizeof(CompositionString);
+        composition->CompStrLength = 4;
+
+        try
+        {
+            var result = ImeExports.ImeSelectManaged(himc.Handle, 0);
+
+            Assert.Equal(1, result);
+            Assert.Equal(ImeKeyKind.Escape, received?.Kind);
+            Assert.Equal(0u, himc.CompositionString->CompStrLength);
+            Assert.Equal(0u, himc.CandidateInfo->Count);
+            Assert.False(ImeModuleRuntime.GetSnapshotForTesting(ImeSessionId.FromHimc(himc.Handle)).IsComposing);
+        }
+        finally
+        {
+            ImeExports.SetCompositionContextWriterForTesting(null);
+            ImeModuleRuntime.SetProcessKeyHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeSetActiveContextManaged_WhenDeactivatedThenCancelsCompositionAndClearsHimc()
+    {
+        ImeKey? received = null;
+        ImeModuleRuntime.SetProcessKeyHandlerForTesting(key =>
+        {
+            received = key;
+            return new ImeProcessResult(ImeSessionSnapshot.Empty, null, true);
+        });
+        using var himc = new InMemoryImmContext();
+        ImeExports.SetCompositionContextWriterForTesting(himc.CreateWriter());
+        var composition = himc.CompositionString;
+        composition->Size = (uint)sizeof(CompositionString);
+        composition->CompStrOffset = (uint)sizeof(CompositionString);
+        composition->CompStrLength = 4;
+
+        try
+        {
+            var result = ImeExports.ImeSetActiveContextManaged(himc.Handle, 0);
+
+            Assert.Equal(1, result);
+            Assert.Equal(ImeKeyKind.Escape, received?.Kind);
+            Assert.Equal(0u, himc.CompositionString->CompStrLength);
+            Assert.Equal(0u, himc.CandidateInfo->Count);
+            Assert.False(ImeModuleRuntime.GetSnapshotForTesting(ImeSessionId.FromHimc(himc.Handle)).IsComposing);
+        }
+        finally
+        {
+            ImeExports.SetCompositionContextWriterForTesting(null);
+            ImeModuleRuntime.SetProcessKeyHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public void ImeDestroyManaged_WhenCalledThenResetsCachedSessions()
+    {
+        ImeModuleRuntime.SetProcessKeyHandlerForTesting(_ => new ImeProcessResult(ImeSessionSnapshot.Empty, null, true));
+        ImeModuleRuntime.SetSnapshotForTesting(ImeSessionId.FromHimc(0x11), new ImeSessionSnapshot(
+            new CompositionText("xiaoxiaimuyi", "xiaoxiaimuyi", 12),
+            [new ImeCandidate("XiaoXiIme", "xiao xi ai mu yi")],
+            new ImeCandidateWindowState(0, 0, 1),
+            IsComposing: true));
+
+        try
+        {
+            Assert.Equal(1, ImeExports.ImeDestroyManaged(0));
+            Assert.False(ImeModuleRuntime.GetSnapshotForTesting(ImeSessionId.FromHimc(0x11)).IsComposing);
+        }
+        finally
+        {
+            ImeModuleRuntime.SetProcessKeyHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeSetCompositionStringManaged_WhenScsSetStrThenWritesCompositionWithoutCommit()
+    {
+        string? received = null;
+        ImeModuleRuntime.SetCompositionHandlerForTesting(composition =>
+        {
+            received = composition;
+            return new ImeProcessResult(
+                new ImeSessionSnapshot(
+                    new CompositionText(composition, composition, composition.Length),
+                    [new ImeCandidate("XiaoXiIme", "xiao xi ai mu yi")],
+                    new ImeCandidateWindowState(0, 0, 1),
+                    IsComposing: true),
+                null,
+                true);
+        });
+        using var himc = new InMemoryImmContext();
+        ImeExports.SetCompositionContextWriterForTesting(himc.CreateWriter());
+        var composition = "xiaoxiaimuyi";
+        fixed (char* compositionPointer = composition)
+        {
+            try
+            {
+                var result = ImeExports.ImeSetCompositionStringManaged(
+                    himc.Handle,
+                    ImeConstants.ScsSetStr,
+                    compositionPointer,
+                    (uint)(composition.Length * sizeof(char)),
+                    null,
+                    0);
+
+                Assert.Equal(1, result);
+                Assert.Equal(composition, received);
+                Assert.Equal(composition, himc.ReadCompositionText());
+                Assert.Equal("XiaoXiIme", himc.ReadFirstCandidateText());
+                Assert.Equal(0u, himc.CompositionString->ResultStrLength);
+            }
+            finally
+            {
+                ImeExports.SetCompositionContextWriterForTesting(null);
+                ImeModuleRuntime.SetCompositionHandlerForTesting(null);
+                ImeModuleRuntime.SetBridgeForTesting(null);
+            }
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeSetCompositionStringManaged_WhenEmptyThenClearsHimcWithoutResultString()
+    {
+        ImeModuleRuntime.SetCompositionHandlerForTesting(_ => new ImeProcessResult(ImeSessionSnapshot.Empty, null, true));
+        using var himc = new InMemoryImmContext();
+        ImeExports.SetCompositionContextWriterForTesting(himc.CreateWriter());
+        var composition = himc.CompositionString;
+        composition->Size = (uint)sizeof(CompositionString);
+        composition->CompStrOffset = (uint)sizeof(CompositionString);
+        composition->CompStrLength = 4;
+
+        try
+        {
+            var result = ImeExports.ImeSetCompositionStringManaged(
+                himc.Handle,
+                ImeConstants.ScsSetStr,
+                null,
+                0,
+                null,
+                0);
+
+            Assert.Equal(1, result);
+            Assert.Equal(0u, himc.CompositionString->CompStrLength);
+            Assert.Equal(0u, himc.CompositionString->ResultStrLength);
+            Assert.Equal(0u, himc.CandidateInfo->Count);
+        }
+        finally
+        {
+            ImeExports.SetCompositionContextWriterForTesting(null);
+            ImeModuleRuntime.SetCompositionHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeSetCompositionStringManaged_WhenIndexIsUnsupportedThenReturnsZero()
+    {
+        var called = false;
+        ImeModuleRuntime.SetCompositionHandlerForTesting(composition =>
+        {
+            called = true;
+            return new ImeProcessResult(ImeSessionSnapshot.Empty, null, true);
+        });
+        var composition = "xiaoxiaimuyi";
+        fixed (char* compositionPointer = composition)
+        {
+            try
+            {
+                var result = ImeExports.ImeSetCompositionStringManaged(
+                    1,
+                    ImeConstants.SCSCapsMakeRead,
+                    compositionPointer,
+                    (uint)(composition.Length * sizeof(char)),
+                    null,
+                    0);
+
+                Assert.Equal(0, result);
+                Assert.False(called);
+            }
+            finally
+            {
+                ImeModuleRuntime.SetCompositionHandlerForTesting(null);
+                ImeModuleRuntime.SetBridgeForTesting(null);
+            }
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeConversionListManaged_WhenGclConversionThenWritesCandidateListWithoutChangingComposition()
+    {
+        ImeModuleRuntime.SetConversionListHandlerForTesting(_ => [new ImeCandidate("XiaoXiIme", "xiao xi ai mu yi")]);
+        var source = "xiaoxiaimuyi";
+        var buffer = new byte[256];
+        fixed (char* sourcePointer = source)
+        fixed (byte* destination = buffer)
+        {
+            try
+            {
+                var required = ImeExports.ImeConversionListManaged(
+                    1,
+                    sourcePointer,
+                    null,
+                    0,
+                    ImeConstants.GclConversion);
+                Assert.True(required > 0);
+
+                var written = ImeExports.ImeConversionListManaged(
+                    1,
+                    sourcePointer,
+                    destination,
+                    (uint)buffer.Length,
+                    ImeConstants.GclConversion);
+                Assert.Equal(required, written);
+
+                var candidateList = (CandidateList*)destination;
+                Assert.Equal(1u, candidateList->Count);
+                Assert.Equal("XiaoXiIme", new string((char*)(destination + candidateList->Offset[0])));
+            }
+            finally
+            {
+                ImeModuleRuntime.SetConversionListHandlerForTesting(null);
+                ImeModuleRuntime.SetBridgeForTesting(null);
+            }
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeConversionListManaged_WhenGclReverseConversionThenWritesCanonicalReading()
+    {
+        var conversionCalled = false;
+        ImeModuleRuntime.SetConversionListHandlerForTesting(_ =>
+        {
+            conversionCalled = true;
+            return [new ImeCandidate("XiaoXiIme", "xx")];
+        });
+        ImeModuleRuntime.SetReverseConversionListHandlerForTesting(_ => [new ImeCandidate("XiaoXiIme", "xiao xi ai mu yi")]);
+        var source = "XiaoXiIme";
+        var buffer = new byte[256];
+        fixed (char* sourcePointer = source)
+        fixed (byte* destination = buffer)
+        {
+            try
+            {
+                var required = ImeExports.ImeConversionListManaged(
+                    1,
+                    sourcePointer,
+                    null,
+                    0,
+                    ImeConstants.GclReverseConversion);
+                Assert.True(required > 0);
+
+                var written = ImeExports.ImeConversionListManaged(
+                    1,
+                    sourcePointer,
+                    destination,
+                    (uint)buffer.Length,
+                    ImeConstants.GclReverseConversion);
+                Assert.Equal(required, written);
+
+                var candidateList = (CandidateList*)destination;
+                Assert.Equal(1u, candidateList->Count);
+                Assert.Equal("xiao xi ai mu yi", new string((char*)(destination + candidateList->Offset[0])));
+                Assert.False(conversionCalled);
+            }
+            finally
+            {
+                ImeModuleRuntime.SetReverseConversionListHandlerForTesting(null);
+                ImeModuleRuntime.SetConversionListHandlerForTesting(null);
+                ImeModuleRuntime.SetBridgeForTesting(null);
+            }
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeConversionListManaged_WhenGclReverseLengthThenReturnsRequiredSizeWithoutWritingDestination()
+    {
+        var conversionCalled = false;
+        ImeModuleRuntime.SetConversionListHandlerForTesting(_ =>
+        {
+            conversionCalled = true;
+            return [new ImeCandidate("XiaoXiIme", "xx")];
+        });
+        ImeModuleRuntime.SetReverseConversionListHandlerForTesting(_ => [new ImeCandidate("XiaoXiIme", "xiao xi ai mu yi")]);
+        var source = "XiaoXiIme";
+        var buffer = new byte[256];
+        Array.Fill(buffer, (byte)0xCC);
+        fixed (char* sourcePointer = source)
+        fixed (byte* destination = buffer)
+        {
+            try
+            {
+                var required = ImeExports.ImeConversionListManaged(
+                    1,
+                    sourcePointer,
+                    destination,
+                    (uint)buffer.Length,
+                    ImeConstants.GclReverseLength);
+
+                Assert.True(required > 0);
+                Assert.Equal(
+                    ImeCompositionContextWriter.GetRequiredConversionListSize(
+                        [new ImeCandidate("XiaoXiIme", "xiao xi ai mu yi")],
+                        writeReading: true),
+                    required);
+                Assert.All(buffer, value => Assert.Equal((byte)0xCC, value));
+                Assert.False(conversionCalled);
+            }
+            finally
+            {
+                ImeModuleRuntime.SetReverseConversionListHandlerForTesting(null);
+                ImeModuleRuntime.SetConversionListHandlerForTesting(null);
+                ImeModuleRuntime.SetBridgeForTesting(null);
+            }
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeConversionListManaged_WhenFlagIsUnsupportedThenReturnsZero()
+    {
+        var conversionCalled = false;
+        var reverseCalled = false;
+        ImeModuleRuntime.SetConversionListHandlerForTesting(_ =>
+        {
+            conversionCalled = true;
+            return [new ImeCandidate("XiaoXiIme", "xiao xi ai mu yi")];
+        });
+        ImeModuleRuntime.SetReverseConversionListHandlerForTesting(_ =>
+        {
+            reverseCalled = true;
+            return [new ImeCandidate("XiaoXiIme", "xiao xi ai mu yi")];
+        });
+        var source = "xiaoxiaimuyi";
+        fixed (char* sourcePointer = source)
+        {
+            try
+            {
+                var result = ImeExports.ImeConversionListManaged(
+                    1,
+                    sourcePointer,
+                    null,
+                    0,
+                    ImeConstants.NiChangeCandidateList);
+
+                Assert.Equal(0u, result);
+                Assert.False(conversionCalled);
+                Assert.False(reverseCalled);
+            }
+            finally
+            {
+                ImeModuleRuntime.SetReverseConversionListHandlerForTesting(null);
+                ImeModuleRuntime.SetConversionListHandlerForTesting(null);
+                ImeModuleRuntime.SetBridgeForTesting(null);
+            }
+        }
+    }
+
+    [Fact]
+    public void ImeConstants_MatchWindowsSdkNotifyImeActions()
+    {
+        Assert.Equal(0x0012u, ImeConstants.NiSelectCandidateStr);
+        Assert.Equal(0x0013u, ImeConstants.NiChangeCandidateList);
+        Assert.Equal(0x0015u, ImeConstants.NiCompositionStr);
+        Assert.Equal(0x0003u, ImeConstants.GclReverseLength);
+    }
+
+    [Fact]
+    public unsafe void ImeEscapeManaged_WhenQuerySupportThenReportsImeName()
+    {
+        uint requested = ImeConstants.ImeEscImeName;
+        var result = ImeExports.ImeEscapeManaged(0, ImeConstants.ImeEscQuerySupport, &requested);
+
+        Assert.Equal((nint)1, result);
+    }
+
+    [Fact]
+    public unsafe void ImeEscapeManaged_WhenQuerySupportThenRejectsUnsupportedEscape()
+    {
+        uint requested = ImeConstants.GclConversion;
+        var result = ImeExports.ImeEscapeManaged(0, ImeConstants.ImeEscQuerySupport, &requested);
+
+        Assert.Equal((nint)0, result);
+    }
+
+    [Fact]
+    public unsafe void ImeEscapeManaged_WhenImeNameThenWritesDisplayName()
+    {
+        var name = stackalloc char[ImeConstants.ImeNameBufferLength];
+        var result = ImeExports.ImeEscapeManaged(0, ImeConstants.ImeEscImeName, name);
+
+        Assert.Equal((nint)1, result);
+        Assert.Equal(ImeExportsContract.ImeDisplayName, new string(name));
+    }
+
+    [Fact]
+    public unsafe void ImeEscapeManaged_WhenEscapeIsUnsupportedThenReturnsZero()
+    {
+        var result = ImeExports.ImeEscapeManaged(0, ImeConstants.GclConversion, null);
+
+        Assert.Equal((nint)0, result);
+    }
+
+    [Fact]
+    public unsafe void ImeConfigureManaged_WhenRegisterWordThenRegistersWithoutChangingComposition()
+    {
+        ImeRegisterWordRequest? received = null;
+        ImeModuleRuntime.SetRegisterWordHandlerForTesting(request =>
+        {
+            received = request;
+            return new ImeRegisterWordResponse(true, []);
+        });
+        using var himc = new InMemoryImmContext();
+        ImeExports.SetCompositionContextWriterForTesting(himc.CreateWriter());
+        var composition = himc.CompositionString;
+        composition->Size = (uint)sizeof(CompositionString);
+        composition->CompStrOffset = (uint)sizeof(CompositionString);
+        composition->CompStrLength = 24;
+        var reading = "peizhi";
+        var text = "配置词";
+
+        try
+        {
+            fixed (char* readingPointer = reading)
+            fixed (char* textPointer = text)
+            {
+                var registerWord = stackalloc RegisterWord[1];
+                registerWord->Reading = readingPointer;
+                registerWord->Word = textPointer;
+                var result = ImeExports.ImeConfigureManaged(0, 0, ImeConstants.ImeConfigRegisterWord, registerWord);
+
+                Assert.Equal(1, result);
+                Assert.Equal(ImeRegisterWordAction.Register, received?.Action);
+                Assert.Equal(reading, received?.Reading);
+                Assert.Equal(text, received?.Text);
+                Assert.Equal(24u, himc.CompositionString->CompStrLength);
+                Assert.Equal(0u, himc.CompositionString->ResultStrLength);
+            }
+        }
+        finally
+        {
+            ImeExports.SetCompositionContextWriterForTesting(null);
+            ImeModuleRuntime.SetRegisterWordHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeConfigureManaged_WhenModeIsUnsupportedThenReturnsZero()
+    {
+        var called = false;
+        ImeModuleRuntime.SetRegisterWordHandlerForTesting(_ =>
+        {
+            called = true;
+            return new ImeRegisterWordResponse(true, []);
+        });
+
+        try
+        {
+            var result = ImeExports.ImeConfigureManaged(0, 0, ImeConstants.ImeConfigGeneral, null);
+
+            Assert.Equal(0, result);
+            Assert.False(called);
+        }
+        finally
+        {
+            ImeModuleRuntime.SetRegisterWordHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeGetRegisterWordStyleManaged_WhenBufferIsProvidedThenWritesUserStyle()
+    {
+        var style = stackalloc StyleBuf[1];
+        var count = ImeExports.ImeGetRegisterWordStyleManaged(1, style);
+
+        Assert.Equal(1u, count);
+        Assert.Equal(ImeConstants.ImeRegWordStyleUserFirst, style->Style);
+        Assert.Equal(ImeExportsContract.UserWordStyleDescription, new string(style->Description));
+    }
+
+    [Fact]
+    public unsafe void ImeGetRegisterWordStyleManaged_WhenCountIsZeroThenReportsOneStyle()
+    {
+        var count = ImeExports.ImeGetRegisterWordStyleManaged(0, null);
+
+        Assert.Equal(1u, count);
+    }
+
+    [Fact]
+    public unsafe void ImeRegisterWordManaged_WhenUserStyleThenRegistersWithoutChangingComposition()
+    {
+        ImeRegisterWordRequest? received = null;
+        ImeModuleRuntime.SetRegisterWordHandlerForTesting(request =>
+        {
+            received = request;
+            return new ImeRegisterWordResponse(true, []);
+        });
+        using var himc = new InMemoryImmContext();
+        ImeExports.SetCompositionContextWriterForTesting(himc.CreateWriter());
+        var composition = himc.CompositionString;
+        composition->Size = (uint)sizeof(CompositionString);
+        composition->CompStrOffset = (uint)sizeof(CompositionString);
+        composition->CompStrLength = 24;
+        var reading = "zidingyi";
+        var text = "自定义";
+
+        try
+        {
+            fixed (char* readingPointer = reading)
+            fixed (char* textPointer = text)
+            {
+                var result = ImeExports.ImeRegisterWordManaged(readingPointer, ImeConstants.ImeRegWordStyleUserFirst, textPointer);
+
+                Assert.Equal(1, result);
+                Assert.Equal(ImeRegisterWordAction.Register, received?.Action);
+                Assert.Equal(reading, received?.Reading);
+                Assert.Equal(text, received?.Text);
+                Assert.Equal(24u, himc.CompositionString->CompStrLength);
+                Assert.Equal(0u, himc.CompositionString->ResultStrLength);
+            }
+        }
+        finally
+        {
+            ImeExports.SetCompositionContextWriterForTesting(null);
+            ImeModuleRuntime.SetRegisterWordHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeRegisterWordManaged_WhenStyleIsUnsupportedThenReturnsZero()
+    {
+        var called = false;
+        ImeModuleRuntime.SetRegisterWordHandlerForTesting(_ =>
+        {
+            called = true;
+            return new ImeRegisterWordResponse(true, []);
+        });
+        var reading = "zidingyi";
+        var text = "自定义";
+
+        try
+        {
+            fixed (char* readingPointer = reading)
+            fixed (char* textPointer = text)
+            {
+                var result = ImeExports.ImeRegisterWordManaged(readingPointer, ImeConstants.ImeRegWordStyleEudc, textPointer);
+
+                Assert.Equal(0, result);
+                Assert.False(called);
+            }
+        }
+        finally
+        {
+            ImeModuleRuntime.SetRegisterWordHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeUnregisterWordManaged_WhenUserStyleThenUnregistersWord()
+    {
+        ImeRegisterWordRequest? received = null;
+        ImeModuleRuntime.SetRegisterWordHandlerForTesting(request =>
+        {
+            received = request;
+            return new ImeRegisterWordResponse(true, []);
+        });
+        var reading = "zidingyi";
+        var text = "自定义";
+
+        try
+        {
+            fixed (char* readingPointer = reading)
+            fixed (char* textPointer = text)
+            {
+                var result = ImeExports.ImeUnregisterWordManaged(readingPointer, 0, textPointer);
+
+                Assert.Equal(1, result);
+                Assert.Equal(ImeRegisterWordAction.Unregister, received?.Action);
+                Assert.Equal(reading, received?.Reading);
+                Assert.Equal(text, received?.Text);
+            }
+        }
+        finally
+        {
+            ImeModuleRuntime.SetRegisterWordHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeEnumRegisterWordManaged_WhenUserWordsExistThenInvokesCallback()
+    {
+        ImeModuleRuntime.SetRegisterWordHandlerForTesting(_ =>
+            new ImeRegisterWordResponse(true, [new ImeRegisterWordEntry("zidingyi", "自定义")]));
+        string? reading = null;
+        string? text = null;
+        uint style = 0;
+        ImeExports.SetRegisterWordEnumProcForTesting((readingPointer, callbackStyle, textPointer, _) =>
+        {
+            reading = new string(readingPointer);
+            text = new string(textPointer);
+            style = callbackStyle;
+            return 1;
+        });
+
+        try
+        {
+            var count = ImeExports.ImeEnumRegisterWordManaged(0, null, 0, null, null);
+
+            Assert.Equal(1u, count);
+            Assert.Equal("zidingyi", reading);
+            Assert.Equal("自定义", text);
+            Assert.Equal(ImeConstants.ImeRegWordStyleUserFirst, style);
+        }
+        finally
+        {
+            ImeExports.SetRegisterWordEnumProcForTesting(null);
+            ImeModuleRuntime.SetRegisterWordHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void NotifyImeManaged_WhenCancelThenClearsCompositionWithoutCommit()
+    {
+        ImeKey? received = null;
+        ImeModuleRuntime.SetProcessKeyHandlerForTesting(key =>
+        {
+            received = key;
+            return new ImeProcessResult(ImeSessionSnapshot.Empty, null, true);
+        });
+        using var himc = new InMemoryImmContext();
+        ImeExports.SetCompositionContextWriterForTesting(himc.CreateWriter());
+        var composition = himc.CompositionString;
+        composition->Size = (uint)sizeof(CompositionString);
+        composition->CompStrOffset = (uint)sizeof(CompositionString);
+        composition->CompStrLength = 4;
+
+        try
+        {
+            var result = ImeExports.NotifyImeManaged(himc.Handle, ImeConstants.NiCompositionStr, 0, ImeConstants.CpsCancel);
+
+            Assert.Equal(1, result);
+            Assert.Equal(ImeKeyKind.Escape, received?.Kind);
+            Assert.Equal(0u, himc.CompositionString->CompStrLength);
+            Assert.Equal(0u, himc.CompositionString->ResultStrLength);
+            Assert.Equal(0u, himc.CandidateInfo->Count);
+        }
+        finally
+        {
+            ImeExports.SetCompositionContextWriterForTesting(null);
+            ImeModuleRuntime.SetProcessKeyHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void NotifyImeManaged_WhenCompleteThenWritesResultString()
+    {
+        ImeKey? received = null;
+        ImeModuleRuntime.SetProcessKeyHandlerForTesting(key =>
+        {
+            received = key;
+            return new ImeProcessResult(ImeSessionSnapshot.Empty, "XiaoXiIme", true);
+        });
+        using var himc = new InMemoryImmContext();
+        ImeExports.SetCompositionContextWriterForTesting(himc.CreateWriter());
+
+        try
+        {
+            var result = ImeExports.NotifyImeManaged(himc.Handle, ImeConstants.NiCompositionStr, 0, ImeConstants.CpsComplete);
+
+            Assert.Equal(1, result);
+            Assert.Equal(ImeKeyKind.Space, received?.Kind);
+            Assert.Equal("XiaoXiIme", himc.ReadResultText());
+            Assert.Equal(0u, himc.CompositionString->CompStrLength);
+        }
+        finally
+        {
+            ImeExports.SetCompositionContextWriterForTesting(null);
+            ImeModuleRuntime.SetProcessKeyHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void NotifyImeManaged_WhenRevertThenWritesReading()
+    {
+        ImeKey? received = null;
+        ImeModuleRuntime.SetProcessKeyHandlerForTesting(key =>
+        {
+            received = key;
+            return new ImeProcessResult(ImeSessionSnapshot.Empty, "xiaoxiaimuyi", true);
+        });
+        using var himc = new InMemoryImmContext();
+        ImeExports.SetCompositionContextWriterForTesting(himc.CreateWriter());
+
+        try
+        {
+            var result = ImeExports.NotifyImeManaged(himc.Handle, ImeConstants.NiCompositionStr, 0, ImeConstants.CpsRevert);
+
+            Assert.Equal(1, result);
+            Assert.Equal(ImeKeyKind.Enter, received?.Kind);
+            Assert.Equal("xiaoxiaimuyi", himc.ReadResultText());
+            Assert.Equal(0u, himc.CompositionString->CompStrLength);
+        }
+        finally
+        {
+            ImeExports.SetCompositionContextWriterForTesting(null);
+            ImeModuleRuntime.SetProcessKeyHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void NotifyImeManaged_WhenSelectCandidateThenWritesResultString()
+    {
+        ImeKey? received = null;
+        ImeModuleRuntime.SetProcessKeyHandlerForTesting(key =>
+        {
+            received = key;
+            return new ImeProcessResult(ImeSessionSnapshot.Empty, "XiaoXiIme", true);
+        });
+        using var himc = new InMemoryImmContext();
+        ImeExports.SetCompositionContextWriterForTesting(himc.CreateWriter());
+
+        try
+        {
+            var result = ImeExports.NotifyImeManaged(himc.Handle, ImeConstants.NiSelectCandidateStr, 0, 0);
+
+            Assert.Equal(1, result);
+            Assert.Equal(ImeKeyKind.CandidateSelection, received?.Kind);
+            Assert.Equal(0, received?.CandidateIndex);
+            Assert.Equal("XiaoXiIme", himc.ReadResultText());
+            Assert.Equal(0u, himc.CompositionString->CompStrLength);
+        }
+        finally
+        {
+            ImeExports.SetCompositionContextWriterForTesting(null);
+            ImeModuleRuntime.SetProcessKeyHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
+    public unsafe void ImeProcessKeyManaged_WhenVirtualKeyContainsCharacterThenUsesLowWordVirtualKey()
+    {
+        const uint virtualKeyWithCharacter = 0x00780058;
+        ImeKeystrokeDiagnostics.Reset();
+
+        var handled = ImeExports.ImeProcessKeyManaged(0, virtualKeyWithCharacter, 0, null);
+        var diagnostics = ImeKeystrokeDiagnostics.GetSnapshot();
+
+        Assert.True(handled);
+        Assert.Equal(0x58u, diagnostics.LastProcessVirtualKey);
+    }
+
+    [Fact]
+    public unsafe void ImeToAsciiExManaged_WhenVirtualKeyContainsCharacterThenUsesLowWordVirtualKey()
+    {
+        const uint virtualKeyWithCharacter = 0x00780058;
+        ImeKey? received = null;
+        ImeModuleRuntime.SetProcessKeyHandlerForTesting(key =>
+        {
+            received = key;
+            return new ImeProcessResult(ImeSessionSnapshot.Empty, null, true);
+        });
+        ImeKeystrokeDiagnostics.Reset();
+
+        try
+        {
+            var result = ImeExports.ImeToAsciiExManaged(virtualKeyWithCharacter, 0, null, 0, 0, 0);
+            var diagnostics = ImeKeystrokeDiagnostics.GetSnapshot();
+
+            Assert.Equal(1u, result);
+            Assert.Equal(ImeKeyKind.Character, received?.Kind);
+            Assert.Equal('x', received?.Character);
+            Assert.Equal(0x58u, diagnostics.LastToAsciiVirtualKey);
+        }
+        finally
+        {
+            ImeModuleRuntime.SetProcessKeyHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
     public unsafe void ImeToAsciiExManaged_WritesMessagesForComposingResult()
     {
         ImeModuleRuntime.SetProcessKeyHandlerForTesting(_ => new ImeProcessResult(
@@ -97,7 +1016,7 @@ public class ImeExportsTests
                 Guideline: new ImeGuideline(ImeGuidelineLevel.NoCandidate, "无候选：x")),
             CommitText: null,
             Handled: true));
-        var buffer = stackalloc byte[sizeof(uint) + (sizeof(TransMsg) * 2)];
+        var buffer = stackalloc byte[sizeof(TransMsgList) + sizeof(TransMsg)];
         var list = (TransMsgList*)buffer;
 
         try
@@ -138,7 +1057,7 @@ public class ImeExportsTests
     [Fact]
     public void BuildMessages_CommitText_ReturnsResultAndEndCompositionMessages()
     {
-        var result = new ImeToAsciiResult(true, "小", ImeSessionSnapshot.Empty);
+        var result = new ImeToAsciiResult(true, "小希", ImeSessionSnapshot.Empty);
 
         var messages = ImeTransMsgBuilder.BuildMessages(result);
 
@@ -182,7 +1101,7 @@ public class ImeExportsTests
             new TransMsg { Message = ImeConstants.WmImeStartComposition },
             new TransMsg { Message = ImeConstants.WmImeComposition, LParam = (nint)ImeConstants.GcsCompStr },
         };
-        var buffer = stackalloc byte[sizeof(uint) + (sizeof(TransMsg) * 2)];
+        var buffer = stackalloc byte[sizeof(TransMsgList) + sizeof(TransMsg)];
         var list = (TransMsgList*)buffer;
 
         var written = ImeTransMsgWriter.Write((nint)list, messages);
@@ -247,15 +1166,15 @@ public class ImeExportsTests
         var buffer = stackalloc byte[512];
         var compositionString = (CompositionString*)buffer;
 
-        var written = writer.TryWriteResultStringForTesting(compositionString, "小");
+        var written = writer.TryWriteResultStringForTesting(compositionString, "小希");
 
         Assert.True(written);
-        Assert.Equal(2u, compositionString->ResultStrLength);
+        Assert.Equal(4u, compositionString->ResultStrLength);
         Assert.Equal(8u, compositionString->ResultClauseLength);
-        Assert.Equal("小", new string((char*)(buffer + compositionString->ResultStrOffset), 0, 1));
+        Assert.Equal("小希", new string((char*)(buffer + compositionString->ResultStrOffset), 0, 2));
         var clauses = (uint*)(buffer + compositionString->ResultClauseOffset);
         Assert.Equal(0u, clauses[0]);
-        Assert.Equal(2u, clauses[1]);
+        Assert.Equal(4u, clauses[1]);
     }
 
     [Fact]
@@ -608,56 +1527,6 @@ public class ImeExportsTests
         public nint ResizeCandidateInfo(nint candidateInfo, uint size) => 0;
         public nint ResizeGuideLine(nint guideLine, uint size) => 0;
         public nint ResizePrivateData(nint privateData, uint size) => 0;
-        public bool GenerateMessage(HImc inputContext) => true;
-    }
-
-    private sealed class InMemoryImmContextAccessor : IImmContextAccessor
-    {
-        private readonly nint _inputContext;
-        private readonly nint _compositionString;
-        private readonly nint _compositionHandle;
-        private readonly nint _candidateInfo;
-        private readonly nint _candidateHandle;
-        private readonly nint _guideLine;
-        private readonly nint _guideLineHandle;
-        private readonly nint _privateData;
-        private readonly nint _privateHandle;
-
-        public InMemoryImmContextAccessor(nint inputContext, nint compositionString, nint compositionHandle)
-            : this(inputContext, compositionString, compositionHandle, 0, 0, 0, 0, 0, 0)
-        {
-        }
-
-        public InMemoryImmContextAccessor(nint inputContext, nint compositionString, nint compositionHandle, nint candidateInfo, nint candidateHandle, nint guideLine, nint guideLineHandle, nint privateData, nint privateHandle)
-        {
-            _inputContext = inputContext;
-            _compositionString = compositionString;
-            _compositionHandle = compositionHandle;
-            _candidateInfo = candidateInfo;
-            _candidateHandle = candidateHandle;
-            _guideLine = guideLine;
-            _guideLineHandle = guideLineHandle;
-            _privateData = privateData;
-            _privateHandle = privateHandle;
-        }
-
-        public bool FailResize { get; init; }
-
-        public nint LockInputContext(HImc inputContext) => inputContext.Value == 0 ? 0 : _inputContext;
-
-        public bool UnlockInputContext(HImc inputContext) => true;
-        public nint LockCompositionString(nint compositionString) => compositionString == _compositionHandle ? _compositionString : 0;
-        public bool UnlockCompositionString(nint compositionString) => true;
-        public nint LockCandidateInfo(nint candidateInfo) => candidateInfo == _candidateHandle ? _candidateInfo : 0;
-        public bool UnlockCandidateInfo(nint candidateInfo) => true;
-        public nint LockGuideLine(nint guideLine) => guideLine == _guideLineHandle ? _guideLine : 0;
-        public bool UnlockGuideLine(nint guideLine) => true;
-        public nint LockPrivateData(nint privateData) => privateData == _privateHandle ? _privateData : 0;
-        public bool UnlockPrivateData(nint privateData) => true;
-        public nint ResizeCompositionString(nint compositionString, uint size) => FailResize ? 0 : compositionString;
-        public nint ResizeCandidateInfo(nint candidateInfo, uint size) => FailResize ? 0 : candidateInfo;
-        public nint ResizeGuideLine(nint guideLine, uint size) => FailResize ? 0 : guideLine;
-        public nint ResizePrivateData(nint privateData, uint size) => FailResize ? 0 : privateData;
         public bool GenerateMessage(HImc inputContext) => true;
     }
 }

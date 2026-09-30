@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="EmptyReading" xml:space="preserve">
+    <value>Reading cannot be empty.</value>
+  </data>
+  <data name="EmptyText" xml:space="preserve">
+    <value>Text cannot be empty.</value>
+  </data>
+  <data name="InvalidColumnCount" xml:space="preserve">
+    <value>Expected exactly three tab-separated columns.</value>
+  </data>
+  <data name="InvalidDecomposition" xml:space="preserve"><value>Decomposition cannot be empty or exceed the supported length.</value></data>
+  <data name="InvalidDictionarySourceLine" xml:space="preserve"><value>{0}({1}): {2}</value></data>
+  <data name="InvalidShapeCode" xml:space="preserve"><value>Shape code must contain only supported lowercase ASCII letters and digits.</value></data>
+  <data name="InvalidShapeText" xml:space="preserve"><value>Shape text must be exactly one Han Unicode scalar.</value></data>
+  <data name="InvalidSymbolCandidate" xml:space="preserve"><value>Symbol candidate cannot be empty or exceed the supported length.</value></data>
+  <data name="InvalidSymbolColumnCount" xml:space="preserve"><value>Expected an input followed by at least one tab-separated candidate.</value></data>
+  <data name="InvalidSymbolInput" xml:space="preserve"><value>Symbol input must be non-empty ASCII without whitespace.</value></data>
+  <data name="InvalidFrequency" xml:space="preserve">
+    <value>Frequency must be a non-negative integer.</value>
+  </data>
+  <data name="InvalidPhoneticSourceLine" xml:space="preserve">
+    <value>{0}({1}): {2}</value>
+  </data>
+  <data name="InvalidReading" xml:space="preserve">
+    <value>Reading must contain only lowercase ASCII letters and spaces between syllables.</value>
+  </data>
+  <data name="LineTooLong" xml:space="preserve">
+    <value>The source line exceeds the maximum supported length.</value>
+  </data>
+  <data name="ReadingTooLong" xml:space="preserve">
+    <value>Reading exceeds the maximum supported length.</value>
+  </data>
+  <data name="TextTooLong" xml:space="preserve">
+    <value>Text exceeds the maximum supported length.</value>
+  </data>
+  <data name="InvalidCandidateData" xml:space="preserve"><value>The candidate shard contains invalid data.</value></data>
+  <data name="InvalidCandidateId" xml:space="preserve"><value>An index references an invalid candidate identifier.</value></data>
+  <data name="InvalidCompilerEntry" xml:space="preserve"><value>A compiler entry contains invalid text, reading, or frequency.</value></data>
+  <data name="UnsupportedInputSchemeReading" xml:space="preserve"><value>Reading '{0}' cannot be projected to input scheme '{1}'.</value></data>
+  <data name="InvalidCompilerParameters" xml:space="preserve"><value>The dictionary compiler parameters are not supported.</value></data>
+  <data name="InvalidDictionaryPackage" xml:space="preserve"><value>Dictionary package '{0}' is invalid: {1}</value></data>
+  <data name="InvalidIndexData" xml:space="preserve"><value>The dictionary index contains invalid or duplicate keys.</value></data>
+  <data name="InvalidManifest" xml:space="preserve"><value>The dictionary manifest is empty or invalid.</value></data>
+  <data name="InvalidManifestLength" xml:space="preserve"><value>The dictionary manifest is missing or exceeds the supported length.</value></data>
+  <data name="InvalidPackageCount" xml:space="preserve"><value>A shard count does not match the dictionary manifest.</value></data>
+  <data name="InvalidPackageKind" xml:space="preserve"><value>The dictionary package kind is not supported.</value></data>
+  <data name="InvalidShardLength" xml:space="preserve"><value>A dictionary shard is missing or its length is invalid.</value></data>
+  <data name="InvalidShardMagic" xml:space="preserve"><value>A dictionary shard has an invalid magic header.</value></data>
+  <data name="InvalidShardPath" xml:space="preserve"><value>A dictionary shard path is not a safe package-relative path.</value></data>
+  <data name="InvalidShardSet" xml:space="preserve"><value>The dictionary package contains missing or duplicate shard roles.</value></data>
+  <data name="PackageCountTooLarge" xml:space="preserve"><value>A dictionary package count exceeds the supported limit.</value></data>
+  <data name="PackageStringTooLong" xml:space="preserve"><value>A dictionary package string exceeds the supported UTF-8 length.</value></data>
+  <data name="UnsupportedPackageVersion" xml:space="preserve"><value>The dictionary package format version is not supported.</value></data>
+  <data name="UnsupportedShardVersion" xml:space="preserve"><value>The dictionary shard version is not supported.</value></data>
+  <data name="InvalidUserDictionary" xml:space="preserve"><value>The user dictionary file is invalid or uses an unsupported format.</value></data>
+  <data name="InvalidUserDictionaryPath" xml:space="preserve"><value>The user dictionary path is invalid.</value></data>
+  <data name="UserDictionaryEntryCountTooLarge" xml:space="preserve"><value>The user dictionary contains too many entries.</value></data>
+</root>

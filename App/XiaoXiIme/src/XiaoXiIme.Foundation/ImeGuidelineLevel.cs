@@ -1,5 +1,8 @@
+using System.Text.Json.Serialization;
+
 namespace XiaoXiIme.Foundation;
 
+[JsonConverter(typeof(JsonCamelCaseStringEnumConverter))]
 public enum ImeGuidelineLevel
 {
     None,

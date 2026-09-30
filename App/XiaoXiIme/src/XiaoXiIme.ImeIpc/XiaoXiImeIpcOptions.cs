@@ -1,4 +1,4 @@
-﻿namespace XiaoXiIme.ImeIpc;
+namespace XiaoXiIme.ImeIpc;
 
 public sealed record XiaoXiImeIpcOptions(
     string ServerName,
@@ -11,6 +11,8 @@ public sealed record XiaoXiImeIpcOptions(
     public static TimeSpan DefaultConnectTimeout { get; } = TimeSpan.FromMilliseconds(500);
 
     public static TimeSpan DefaultRequestTimeout { get; } = TimeSpan.FromMilliseconds(500);
+
+    public static TimeSpan DefaultReadyTimeout { get; } = TimeSpan.FromSeconds(5);
 
     public static XiaoXiImeIpcOptions Default { get; } = new(DefaultServerName);
 
