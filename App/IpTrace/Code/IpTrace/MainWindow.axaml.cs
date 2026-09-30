@@ -5,6 +5,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -28,6 +29,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        UpdateWindowBackground();
         _elapsedTimer.Tick += (_, _) => UpdateElapsed();
         Closed += (_, _) =>
         {
@@ -35,6 +37,24 @@ public partial class MainWindow : Window
             _operationCancellation?.Cancel();
             _diagnosticService.Dispose();
         };
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == ActualTransparencyLevelProperty)
+        {
+            UpdateWindowBackground();
+        }
+    }
+
+    private void UpdateWindowBackground()
+    {
+        // 透明提示不保证平台实际提供 Mica，其他级别均使用不透明背景。
+        Background = ActualTransparencyLevel == WindowTransparencyLevel.Mica
+            ? Brushes.Transparent
+            : Brushes.White;
     }
 
     private string ResourceText(string key) => (string)Resources[key]!;

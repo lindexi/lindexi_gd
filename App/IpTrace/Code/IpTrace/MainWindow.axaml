@@ -5,9 +5,9 @@
         Icon="avares://IpTrace/Assets/IpTrace.ico"
         Width="1100" Height="780" MinWidth="860" MinHeight="660"
         FontFamily="Segoe UI,Microsoft YaHei UI,Microsoft YaHei,sans-serif"
-        FontSize="14" Background="Transparent"
+        FontSize="14" Background="White"
         TransparencyLevelHint="Mica, None"
-        TransparencyBackgroundFallback="#F3F3F3">
+        TransparencyBackgroundFallback="White">
     <Window.Resources>
         <x:String x:Key="DnsDescription">查询域名对应的 IPv4 和 IPv6 地址，并通过 api.ip.sb 查询公网地址的归属地及运营商。</x:String>
         <x:String x:Key="PingDescription">发送 4 次 ICMP 请求，检查网络连通性、往返延迟和丢包情况。</x:String>
