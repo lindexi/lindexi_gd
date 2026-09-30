@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using Avalonia.Controls;
 using Avalonia.Animation;
@@ -13,7 +13,7 @@ namespace SimpleWrite.Views.Components;
 public partial class SimpleWriteSideBar : UserControl
 {
     private const double DefaultExpandedWidth = 200;
-    private const double CollapsedWidth = 32;
+    private const double CollapsedWidth = 2;
 
     private bool _isExpanded = true;
     private bool _isInitialized;
@@ -82,6 +82,7 @@ public partial class SimpleWriteSideBar : UserControl
         SidebarContentHost.IsVisible = isExpanded;
         Width = isExpanded ? _expandedWidth : CollapsedWidth;
         ToggleChevronTextBlock.Text = isExpanded ? "❮" : "❯";
+        ToggleSidebarButton.Margin = isExpanded ? new Thickness(0) : new Thickness(0, 0, -35, 0);
         ToolTip.SetTip(ToggleSidebarButton, isExpanded ? "收起侧边栏" : "展开侧边栏");
     }
 }
