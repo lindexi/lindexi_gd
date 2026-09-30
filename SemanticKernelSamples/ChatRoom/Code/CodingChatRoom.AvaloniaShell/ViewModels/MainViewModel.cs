@@ -107,6 +107,12 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             }
         );
         RenameWorkTaskCommand = new SimpleCommand<WorkTaskItemViewModel>(StartRenamingTask);
+        ToggleWorkTaskPinCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>
+        (
+            ToggleTaskPinAsync,
+            task => task is not null && WorkTasks.Contains(task),
+            HandleCommandException
+        );
         SaveWorkTaskNameCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>
         (
             SaveTaskNameAsync,
@@ -280,6 +286,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     /// <summary>编辑任务名。</summary>
     public ICommand RenameWorkTaskCommand { get; }
 
+    /// <summary>切换工作任务的置顶状态并保存。</summary>
+    public ICommand ToggleWorkTaskPinCommand { get; }
+
     /// <summary>确认任务名称并退出编辑。</summary>
     public ICommand SaveWorkTaskNameCommand { get; }
 
@@ -330,7 +339,10 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             new SessionListViewModel(runtime.Controller),
             runtime,
             record.Id
-        );
+        )
+        {
+            IsPinned = record.IsPinned && !record.IsArchived,
+        };
     }
 
     private static WorkTaskItemViewModel CreatePlaceholderTask()
@@ -472,6 +484,27 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
     }
 
+    private async Task ToggleTaskPinAsync(WorkTaskItemViewModel? task)
+    {
+        if (task is null || !WorkTasks.Contains(task)) return;
+        bool wasPinned = task.IsPinned;
+        task.IsPinned = !wasPinned;
+        try
+        {
+            await SaveTasksAsync().ConfigureAwait(true);
+            ErrorMessage = null;
+        }
+        catch (Exception exception) when (IsExpectedOperationException(exception))
+        {
+            task.IsPinned = wasPinned;
+            throw;
+        }
+        finally
+        {
+            RefreshWorkTaskFilter();
+        }
+    }
+
     private async Task ArchiveTaskAsync(WorkTaskItemViewModel? task)
     {
         if (task is null || task.IsWorking || WorkTasks.Count <= 1) return;
@@ -506,7 +539,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         try
         {
             runtime = await _createRuntimeAsync().ConfigureAwait(true);
-            task = CreateRuntimeTask(runtime, item.Record with { IsArchived = false }, _abilityCatalog);
+            task = CreateRuntimeTask(runtime, item.Record with { IsArchived = false, IsPinned = false }, _abilityCatalog);
             await RestoreTaskConfigurationAsync(task, runtime, item.Record).ConfigureAwait(true);
             await SaveTasksAsync
             (
@@ -585,7 +618,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         FilteredArchivedWorkTasks.Clear();
 
         foreach (WorkTaskItemViewModel task in WorkTasks.Where(task => MatchesWorkTaskSearch
-                 (task.DisplayName, task.Chat.NextRunWorkspacePath, searchText)))
+                 (task.DisplayName, task.Chat.NextRunWorkspacePath, searchText)).OrderByDescending(task => task.IsPinned))
         {
             FilteredWorkTasks.Add(task);
         }
@@ -726,7 +759,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             WorkTaskRecord[] records =
             [
                 .. tasks.Select(task => CreateRecord(task, false)),
-                .. archivedTasks.Select(record => record with { IsArchived = true }),
+                .. archivedTasks.Select(record => record with { IsArchived = true, IsPinned = false }),
             ];
             await _workTaskStore.SaveAsync(records).ConfigureAwait(true);
         }
@@ -744,7 +777,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             task.Chat.NextRunWorkspacePath,
             task.Chat.SelectedModel?.DisplayName,
             task.Chat.SelectedReasoningEffort?.Value,
-            isArchived
+            isArchived,
+            task.IsPinned && !isArchived
         );
 
     private static async Task RestoreTaskConfigurationAsync
