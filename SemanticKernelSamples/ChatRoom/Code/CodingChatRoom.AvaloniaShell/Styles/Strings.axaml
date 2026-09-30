@@ -3,7 +3,6 @@
         xmlns:sys="clr-namespace:System;assembly=System.Runtime">
     <Styles.Resources>
         <sys:String x:Key="PinWorkTaskText">置顶</sys:String>
-        <sys:String x:Key="UnpinWorkTaskText">取消置顶</sys:String>
         <sys:String x:Key="ModelSetupTitle">添加一个模型，开始聊天</sys:String>
         <sys:String x:Key="ModelSetupRequiredText">填写服务地址和密钥，添加模型后保存。工作任务、存档和设置仍可正常使用。</sys:String>
         <sys:String x:Key="SaveModelSettingsText">保存模型配置</sys:String>

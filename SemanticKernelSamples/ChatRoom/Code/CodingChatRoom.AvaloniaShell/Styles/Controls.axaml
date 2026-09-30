@@ -64,9 +64,6 @@
         <Setter Property="CornerRadius" Value="4" />
         <Setter Property="BorderThickness" Value="1" />
     </Style>
-    <Style Selector="Border.TaskTile.Pinned">
-        <Setter Property="Background" Value="#06000000" />
-    </Style>
     <Style Selector="Border.TaskTile:pointerover">
         <Setter Property="Background" Value="#0A000000" />
     </Style>

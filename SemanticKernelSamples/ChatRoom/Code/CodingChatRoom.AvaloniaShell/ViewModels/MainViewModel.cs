@@ -30,6 +30,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private bool _isArchiveOpen;
     private bool _isDisposed;
     private string _workTaskSearchText = string.Empty;
+    private readonly List<Guid> _workTaskDisplayOrder = [];
 
     /// <summary>创建未连接模型的设计期界面。</summary>
     public MainViewModel()
@@ -107,11 +108,10 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             }
         );
         RenameWorkTaskCommand = new SimpleCommand<WorkTaskItemViewModel>(StartRenamingTask);
-        ToggleWorkTaskPinCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>
+        PinWorkTaskCommand = new SimpleCommand<WorkTaskItemViewModel>
         (
-            ToggleTaskPinAsync,
-            task => task is not null && WorkTasks.Contains(task),
-            HandleCommandException
+            MoveTaskToTop,
+            task => task is not null && WorkTasks.Contains(task)
         );
         SaveWorkTaskNameCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>
         (
@@ -286,8 +286,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     /// <summary>编辑任务名。</summary>
     public ICommand RenameWorkTaskCommand { get; }
 
-    /// <summary>切换工作任务的置顶状态并保存。</summary>
-    public ICommand ToggleWorkTaskPinCommand { get; }
+    /// <summary>将工作任务移到当前列表顶部，不保存显示顺序。</summary>
+    public ICommand PinWorkTaskCommand { get; }
 
     /// <summary>确认任务名称并退出编辑。</summary>
     public ICommand SaveWorkTaskNameCommand { get; }
@@ -339,10 +339,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             new SessionListViewModel(runtime.Controller),
             runtime,
             record.Id
-        )
-        {
-            IsPinned = record.IsPinned && !record.IsArchived,
-        };
+        );
     }
 
     private static WorkTaskItemViewModel CreatePlaceholderTask()
@@ -365,6 +362,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
     private void Unsubscribe(WorkTaskItemViewModel task)
     {
+        _workTaskDisplayOrder.Remove(task.Id);
         task.PropertyChanged -= OnTaskPropertyChanged;
         task.Detach();
     }
@@ -435,10 +433,10 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
                 null
             );
             task = CreateRuntimeTask(runtime, record, _abilityCatalog);
-            WorkTasks.Add(task);
+            WorkTasks.Insert(0, task);
             Subscribe(task);
             await SaveTasksAsync().ConfigureAwait(true);
-            RefreshWorkTaskFilter();
+            MoveTaskToTop(task);
             Activate(task);
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
@@ -484,25 +482,12 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
     }
 
-    private async Task ToggleTaskPinAsync(WorkTaskItemViewModel? task)
+    private void MoveTaskToTop(WorkTaskItemViewModel? task)
     {
         if (task is null || !WorkTasks.Contains(task)) return;
-        bool wasPinned = task.IsPinned;
-        task.IsPinned = !wasPinned;
-        try
-        {
-            await SaveTasksAsync().ConfigureAwait(true);
-            ErrorMessage = null;
-        }
-        catch (Exception exception) when (IsExpectedOperationException(exception))
-        {
-            task.IsPinned = wasPinned;
-            throw;
-        }
-        finally
-        {
-            RefreshWorkTaskFilter();
-        }
+        _workTaskDisplayOrder.Remove(task.Id);
+        _workTaskDisplayOrder.Insert(0, task.Id);
+        RefreshWorkTaskFilter();
     }
 
     private async Task ArchiveTaskAsync(WorkTaskItemViewModel? task)
@@ -539,7 +524,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         try
         {
             runtime = await _createRuntimeAsync().ConfigureAwait(true);
-            task = CreateRuntimeTask(runtime, item.Record with { IsArchived = false, IsPinned = false }, _abilityCatalog);
+            task = CreateRuntimeTask(runtime, item.Record with { IsArchived = false }, _abilityCatalog);
             await RestoreTaskConfigurationAsync(task, runtime, item.Record).ConfigureAwait(true);
             await SaveTasksAsync
             (
@@ -618,7 +603,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         FilteredArchivedWorkTasks.Clear();
 
         foreach (WorkTaskItemViewModel task in WorkTasks.Where(task => MatchesWorkTaskSearch
-                 (task.DisplayName, task.Chat.NextRunWorkspacePath, searchText)).OrderByDescending(task => task.IsPinned))
+                 (task.DisplayName, task.Chat.NextRunWorkspacePath, searchText)).OrderBy(task => _workTaskDisplayOrder.IndexOf(task.Id) is >= 0 and var index ? index : int.MaxValue))
         {
             FilteredWorkTasks.Add(task);
         }
@@ -759,7 +744,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             WorkTaskRecord[] records =
             [
                 .. tasks.Select(task => CreateRecord(task, false)),
-                .. archivedTasks.Select(record => record with { IsArchived = true, IsPinned = false }),
+                .. archivedTasks.Select(record => record with { IsArchived = true }),
             ];
             await _workTaskStore.SaveAsync(records).ConfigureAwait(true);
         }
@@ -777,8 +762,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             task.Chat.NextRunWorkspacePath,
             task.Chat.SelectedModel?.DisplayName,
             task.Chat.SelectedReasoningEffort?.Value,
-            isArchived,
-            task.IsPinned && !isArchived
+            isArchived
         );
 
     private static async Task RestoreTaskConfigurationAsync

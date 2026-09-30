@@ -33,7 +33,7 @@
      <ItemsControl ItemsSource="{Binding FilteredWorkTasks}" Margin="0,4,0,0">
       <ItemsControl.ItemTemplate>
        <DataTemplate x:DataType="vm:WorkTaskItemViewModel">
-        <Border Classes="TaskTile" Classes.Pinned="{Binding IsPinned}" Classes.Active="{Binding IsActive}" Classes.Working="{Binding IsWorking}" Margin="4,0,4,2">
+        <Border Classes="TaskTile" Classes.Active="{Binding IsActive}" Classes.Working="{Binding IsWorking}" Margin="4,0,4,2">
          <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,36">
           <Border Classes="TaskSelectionIndicator" IsVisible="{Binding IsActive}" />
           <Button Classes="TaskSelect" Classes.Active="{Binding IsActive}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).ActivateWorkTaskCommand}" CommandParameter="{Binding}">
@@ -55,11 +55,8 @@
            <PathIcon Width="16" Height="16" Data="M4,10 A2,2 0 1 0 4,14 A2,2 0 1 0 4,10 M12,10 A2,2 0 1 0 12,14 A2,2 0 1 0 12,10 M20,10 A2,2 0 1 0 20,14 A2,2 0 1 0 20,10" />
            <Button.Flyout>
             <MenuFlyout FlyoutPresenterClasses="TaskMenuFlyout">
-             <MenuItem Classes="TaskMenuItem" Header="{StaticResource PinWorkTaskText}" IsVisible="{Binding !IsPinned}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).ToggleWorkTaskPinCommand}" CommandParameter="{Binding}">
+             <MenuItem Classes="TaskMenuItem" Header="{StaticResource PinWorkTaskText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).PinWorkTaskCommand}" CommandParameter="{Binding}">
               <MenuItem.Icon><PathIcon Width="16" Height="16" Data="M7,2 L17,2 L17,4 L16,4 L16,10 L19,13 L19,15 L13,15 L13,22 L11,22 L11,15 L5,15 L5,13 L8,10 L8,4 L7,4 Z" /></MenuItem.Icon>
-             </MenuItem>
-             <MenuItem Classes="TaskMenuItem" Header="{StaticResource UnpinWorkTaskText}" IsVisible="{Binding IsPinned}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).ToggleWorkTaskPinCommand}" CommandParameter="{Binding}">
-              <MenuItem.Icon><PathIcon Width="16" Height="16" Data="M7,2 L17,2 L17,4 L16,4 L16,10 L19,13 L19,14 L14,9 L14,4 L9,4 Z M8,8 L10,10 L7,13 L13,13 L15,15 L13,15 L13,22 L11,22 L11,15 L5,15 L5,13 L8,10 Z M3,2 L22,21 L20.5,22.5 L1.5,3.5 Z" /></MenuItem.Icon>
              </MenuItem>
              <MenuItem Classes="TaskMenuItem" Header="{StaticResource RenameWorkTaskText}" Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).RenameWorkTaskCommand}" CommandParameter="{Binding}">
               <MenuItem.Icon><PathIcon Width="16" Height="16" Data="M3,17.25 L3,21 L6.75,21 L17.81,9.94 L14.06,6.19 Z M20.71,7.04 C21.1,6.65 21.1,6.02 20.71,5.63 L18.37,3.29 C17.98,2.9 17.35,2.9 16.96,3.29 L15.13,5.12 L18.88,8.87 Z" /></MenuItem.Icon>

@@ -17,8 +17,7 @@ internal sealed record WorkTaskRecord
     string? WorkspacePath,
     string? ModelReference,
     ReasoningEffort? ReasoningEffort,
-    bool IsArchived = false,
-    bool IsPinned = false
+    bool IsArchived = false
 );
 
 internal sealed record WorkTaskRecoveryInfo
