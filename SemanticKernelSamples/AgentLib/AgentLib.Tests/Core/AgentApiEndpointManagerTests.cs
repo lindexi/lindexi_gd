@@ -225,6 +225,7 @@ public class AgentApiEndpointManagerTests
         AgentApiManagerConfiguration loaded = await AgentApiManagerConfiguration.FromJsonFileAsync(file);
 
         Assert.IsNull(loaded.PrimaryModel);
+        Assert.IsNotNull(loaded.OpenAIConfigurationList);
         Assert.IsEmpty(loaded.OpenAIConfigurationList);
     }
 

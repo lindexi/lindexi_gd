@@ -31,22 +31,13 @@ internal static class CodingWorkTaskRuntimeFactory
 
         paths.EnsureDirectories();
         paths.ConfigurationFile.Refresh();
-        if (!paths.ConfigurationFile.Exists)
-        {
-            throw new FileNotFoundException
-            (
-                $"未找到 CodingChatRoom 模型配置文件：{paths.ConfigurationFile.FullName}",
-                paths.ConfigurationFile.FullName
-            );
-        }
-
-        AgentApiManagerConfiguration configuration = await AgentApiManagerConfiguration
-            .FromJsonFileAsync(paths.ConfigurationFile)
-            .ConfigureAwait(false);
+        AgentApiManagerConfiguration configuration = paths.ConfigurationFile.Exists
+            ? await AgentApiManagerConfiguration.FromJsonFileAsync(paths.ConfigurationFile).ConfigureAwait(false)
+            : new AgentApiManagerConfiguration();
 
         var endpointManager = new AgentApiEndpointManager();
         endpointManager.LoadConfiguration(configuration);
-        ILanguageModel primaryModel = endpointManager.PrimaryModel;
+        ILanguageModel? primaryModel = endpointManager.GetSupportedModels().Count > 0 ? endpointManager.PrimaryModel : null;
 
         var chatLogger = new FileCopilotChatLogger(paths.LogDirectory);
         var chatManager = new CopilotChatManager(chatLogger)
@@ -62,7 +53,7 @@ internal static class CodingWorkTaskRuntimeFactory
         );
         var settingsService = new CodingChatSettingsService(paths, windowsSandboxToolSource);
         CodingChatShellSettings shellSettings = await settingsService
-            .LoadShellSettingsAsync()
+            .LoadInitialShellSettingsAsync()
             .ConfigureAwait(false);
         windowsSandboxToolSource.UpdateConfiguration
         (

@@ -36,7 +36,7 @@ internal sealed class CodingChatSettingsService
     {
         _paths.EnsureDirectories();
 
-        CodingChatShellSettings shellSettings = await LoadShellSettingsAsync(cancellationToken).ConfigureAwait(false);
+        CodingChatShellSettings shellSettings = await LoadInitialShellSettingsAsync(cancellationToken).ConfigureAwait(false);
         AgentApiManagerConfiguration? modelConfiguration = null;
         string? modelConfigurationError = null;
 
@@ -87,6 +87,14 @@ internal sealed class CodingChatSettingsService
             shellSettings.WindowsSandboxToolPath,
             shellSettings.WindowsSandboxServerAddress
         );
+    }
+
+    internal async Task<CodingChatShellSettings> LoadInitialShellSettingsAsync(CancellationToken cancellationToken = default)
+    {
+        _paths.ShellSettingsFile.Refresh();
+        return _paths.ShellSettingsFile.Exists
+            ? await LoadShellSettingsAsync(cancellationToken).ConfigureAwait(false)
+            : new CodingChatShellSettings { IsWindowsSandboxEnabled = false };
     }
 
     public async Task<CodingChatShellSettings> LoadShellSettingsAsync(CancellationToken cancellationToken = default)

@@ -329,10 +329,16 @@ public sealed class SettingsViewModel : ViewModelBase
         try
         {
             string? networkProxyAddress = ValidateNetworkProxyAddress();
+            var configurations = Providers.Where(provider => provider.Models.Count > 0)
+                .Select(provider => provider.ToConfiguration()).ToArray();
+            configurations = configurations.Where(configuration => configuration.ModelDefinitions?.Count > 0).ToArray();
+            var definitions = configurations.SelectMany(configuration => configuration.ModelDefinitions ?? []).ToArray();
+            string? primaryModel = definitions.Any(model => $"{model.Provider}/{model.ModelName}" == PrimaryModel || model.ModelName == PrimaryModel)
+                ? PrimaryModel : definitions.FirstOrDefault() is { } first ? $"{first.Provider}/{first.ModelName}" : null;
             var modelConfiguration = new AgentApiManagerConfiguration
             {
-                PrimaryModel = PrimaryModel,
-                OpenAIConfigurationList = Providers.Select(provider => provider.ToConfiguration()).ToArray(),
+                PrimaryModel = primaryModel,
+                OpenAIConfigurationList = configurations,
             };
             var shellSettings = new CodingChatShellSettings
             {
@@ -348,6 +354,15 @@ public sealed class SettingsViewModel : ViewModelBase
                     : CopilotInstructionsPath.Trim(),
             };
 
+            var validationManager = new AgentLib.Core.AgentApiEndpointManager();
+            try
+            {
+                validationManager.LoadConfiguration(modelConfiguration);
+            }
+            finally
+            {
+                validationManager.HttpClient?.Dispose();
+            }
             await _settingsService.SaveAsync(modelConfiguration, shellSettings).ConfigureAwait(true);
             var settings = new CodingChatSettingsSnapshot(modelConfiguration, shellSettings, null);
             SettingsSaved?.Invoke(this, new CodingChatSettingsSavedEventArgs(settings));
@@ -411,7 +426,7 @@ public sealed class SettingsViewModel : ViewModelBase
 
     private void RemoveProvider(ProviderSettingsViewModel? provider)
     {
-        if (provider is not null && Providers.Count > 1)
+        if (provider is not null)
         {
             Providers.Remove(provider);
         }
@@ -435,7 +450,6 @@ public sealed class SettingsViewModel : ViewModelBase
         {
             EndPoint = "https://api.openai.com/v1",
         };
-        provider.Models.Add(new ModelSettingsViewModel());
         return provider;
     }
 }
@@ -444,6 +458,13 @@ public sealed class ProviderSettingsViewModel : ViewModelBase
 {
     private string _endPoint = string.Empty;
     private string _apiKey = string.Empty;
+    private bool _isKeyVisible;
+
+    public bool IsKeyVisible
+    {
+        get => _isKeyVisible;
+        set => SetField(ref _isKeyVisible, value);
+    }
 
     public ProviderSettingsViewModel()
     {
@@ -473,7 +494,8 @@ public sealed class ProviderSettingsViewModel : ViewModelBase
     {
         return new OpenAIProtocolLanguageModelConfiguration(EndPoint, ApiKey)
         {
-            ModelDefinitions = Models.Select(model => model.ToDefinition()).ToArray(),
+            ModelDefinitions = Models.Where(model => !string.IsNullOrWhiteSpace(model.ModelName))
+                .Select(model => model.ToDefinition()).ToArray(),
         };
     }
 
@@ -493,11 +515,6 @@ public sealed class ProviderSettingsViewModel : ViewModelBase
             }
         }
 
-        if (viewModel.Models.Count == 0)
-        {
-            viewModel.Models.Add(new ModelSettingsViewModel());
-        }
-
         return viewModel;
     }
 
@@ -505,7 +522,7 @@ public sealed class ProviderSettingsViewModel : ViewModelBase
 
     private void RemoveModel(ModelSettingsViewModel? model)
     {
-        if (model is not null && Models.Count > 1)
+        if (model is not null)
         {
             Models.Remove(model);
         }

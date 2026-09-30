@@ -117,7 +117,7 @@ public class CopilotChatManagerManualSendCancellationTests
     }
 
     [TestMethod(DisplayName = "手动发送的工具调用未完成时不应触发压缩模型")]
-    [Timeout(10000)]
+    [Timeout(10000, CooperativeCancellation = true)]
     public async Task ManualSend_WhenToolCallIsPending_DoesNotInvokeReducerChatClient()
     {
         var fakeChatClient = new FakeChatClient();
