@@ -12,6 +12,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="InvalidSourceHeader" xml:space="preserve"><value>Expected a YAML metadata mapping enclosed by --- and ... with scalar name, version, description and sort fields.</value></data>
+  <data name="UnsupportedSourceSort" xml:space="preserve"><value>Only by_weight source sorting is supported.</value></data>
   <data name="EmptyReading" xml:space="preserve">
     <value>Reading cannot be empty.</value>
   </data>

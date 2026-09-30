@@ -46,7 +46,7 @@ dotnet run --project .\src\XiaoXiIme.Cli\XiaoXiIme.Cli.csproj -- payload-build -
 .\app\cli\XiaoXiIme.Cli.exe integration-run . --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS --skip-tsf --report .\results\integration.json
 ```
 
-`payload-build` 只支持 `--output` 和 `--no-build`，不会直接运行集成测试。构建负载与执行 `integration-run` 是两个独立生命周期。
+`payload-build` 支持 `--output`、`--no-build`、`--dictionary-source` 和 `--staging-directory`，不会直接运行集成测试。构建负载与执行 `integration-run` 是两个独立生命周期。
 
 若只需保留安装供人工体验：
 

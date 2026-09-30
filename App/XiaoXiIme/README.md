@@ -100,7 +100,7 @@ dotnet publish src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj -c Release -r 
 
 尚未完成：
 
-- 正式词库高层按键测试后置；候选排序与选择、全拼/小鹤编译 package 的 ImeContext 参数化覆盖已完成。
+- 实际发布 package 的正式词库按键与候选交互仍待验收；已有正式词库全拼/小鹤 IPC 逐键输入、首候选、空格提交及前缀转精确测试代码，候选排序与选择、全拼/小鹤编译 package 的 ImeContext 参数化覆盖已完成。
 - 候选窗口分页/选中交互已完成；真实定位、屏幕边界和多 DPI 视觉测试后置。
 - 传统 IME 完整自动化、多应用、多会话及组合/取消/提交验证。
 - 用户词库学习、注册、删除、持久化和损坏恢复的完整链路测试。

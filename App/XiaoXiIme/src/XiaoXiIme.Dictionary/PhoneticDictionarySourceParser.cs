@@ -33,6 +33,18 @@ public static class PhoneticDictionarySourceParser
     /// Parses, normalizes, merges, and deterministically sorts phonetic source entries.
     /// </summary>
     public static IReadOnlyList<PhoneticDictionaryEntry> Parse(TextReader reader, string filePath)
+        => ParseDocument(reader, filePath).Entries;
+
+    /// <summary>
+    /// Parses optional YAML metadata and normalized phonetic entries.
+    /// </summary>
+    public static DictionarySourceDocument<PhoneticDictionaryEntry> ParseDocument(TextReader reader, string filePath)
+    {
+        using var source = new DictionarySourceReader(reader, filePath);
+        return new(source.Metadata, ParseEntries(source, filePath));
+    }
+
+    private static IReadOnlyList<PhoneticDictionaryEntry> ParseEntries(TextReader reader, string filePath)
     {
         ArgumentNullException.ThrowIfNull(reader);
 
