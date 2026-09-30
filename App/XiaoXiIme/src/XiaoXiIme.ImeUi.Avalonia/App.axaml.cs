@@ -14,7 +14,12 @@ public sealed partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { Args: null or { Length: 0 } } standalone)
+        {
+            standalone.MainWindow = new DictionaryDebugWindow();
+            standalone.ShutdownMode = global::Avalonia.Controls.ShutdownMode.OnMainWindowClose;
+        }
+        else if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var options = desktop.Args is { Length: > 0 }
                 ? new XiaoXiImeIpcOptions(desktop.Args[0])

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="WindowTitle" xml:space="preserve"><value>小希词库调试</value></data>
+  <data name="LoadingTitle" xml:space="preserve"><value>小希词库调试 — 正在加载词库</value></data>
+  <data name="LoadFailedTitle" xml:space="preserve"><value>小希词库调试 — 词库加载失败</value></data>
+  <data name="OutputLabel" xml:space="preserve"><value>提交结果（点击此处后输入拼音）</value></data>
+  <data name="LogLabel" xml:space="preserve"><value>调试日志（Ctrl+A 全选，Ctrl+C 复制）</value></data>
+  <data name="PackagePath" xml:space="preserve"><value>词库 package 路径：{0}</value></data>
+  <data name="LoadSucceeded" xml:space="preserve"><value>词库加载成功，可以在上方输入区调试。</value></data>
+  <data name="PackageHint" xml:space="preserve"><value>仅加载预编译 package。可用环境变量 XIAOXIIME_DEBUG_PACKAGE 指定 package 目录；修改后重新启动应用。</value></data>
+</root>
