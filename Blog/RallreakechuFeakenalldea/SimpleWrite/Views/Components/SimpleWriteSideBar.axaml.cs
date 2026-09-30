@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Avalonia.Controls;
 using Avalonia.Animation;
@@ -14,6 +14,7 @@ public partial class SimpleWriteSideBar : UserControl
 {
     private const double DefaultExpandedWidth = 200;
     private const double CollapsedWidth = 2;
+    private const double ToggleOverlayWidth = 35;
 
     private bool _isExpanded = true;
     private bool _isInitialized;
@@ -80,9 +81,10 @@ public partial class SimpleWriteSideBar : UserControl
         _isExpanded = isExpanded;
 
         SidebarContentHost.IsVisible = isExpanded;
-        Width = isExpanded ? _expandedWidth : CollapsedWidth;
+        // 父控件包含整个按钮以支持命中；负边距保持编辑区仅让出原来的 2 像素。
+        Margin = isExpanded ? new Thickness(0) : new Thickness(0, 0, -ToggleOverlayWidth, 0);
+        Width = isExpanded ? _expandedWidth : CollapsedWidth + ToggleOverlayWidth;
         ToggleChevronTextBlock.Text = isExpanded ? "❮" : "❯";
-        ToggleSidebarButton.Margin = isExpanded ? new Thickness(0) : new Thickness(0, 0, -35, 0);
         ToolTip.SetTip(ToggleSidebarButton, isExpanded ? "收起侧边栏" : "展开侧边栏");
     }
 }
