@@ -1,5 +1,0 @@
-﻿CaretThickness
-CaretBlinkTime
-CaretBrush
-ShowCaretAndSelectionInReadonlyMode
-SelectionBrush

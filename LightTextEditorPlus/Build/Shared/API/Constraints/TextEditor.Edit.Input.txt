@@ -1,7 +1,0 @@
-AppendText
-AppendRun
-EditAndReplace
-EditAndReplaceRun
-Backspace
-Delete
-Remove

@@ -1,3 +1,0 @@
-// 可基类重写方法
-BuildCustomTextEditorUndoRedoProvider
-BuildCustomTextLogger

@@ -1,3 +1,0 @@
-﻿// 布局完成事件
-InternalLayoutCompleted
-LayoutCompleted
