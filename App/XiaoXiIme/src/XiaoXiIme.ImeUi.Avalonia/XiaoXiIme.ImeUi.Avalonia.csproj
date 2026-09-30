@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\XiaoXiIme.Foundation\XiaoXiIme.Foundation.csproj" />
+    <ProjectReference Include="..\XiaoXiIme.ImeCore\XiaoXiIme.ImeCore.csproj" />
     <ProjectReference Include="..\XiaoXiIme.ImeIpc\XiaoXiIme.ImeIpc.csproj" />
   </ItemGroup>
 
