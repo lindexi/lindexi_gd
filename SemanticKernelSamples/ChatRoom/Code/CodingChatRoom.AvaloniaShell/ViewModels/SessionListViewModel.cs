@@ -312,5 +312,5 @@ public sealed class SessionItemViewModel : ViewModelBase
     }
     public string EditedTitle { get => _editedTitle; set => SetField(ref _editedTitle, value); }
     public bool IsEditing { get => _isEditing; set => SetField(ref _isEditing, value); }
-    public string Subtitle => string.Create(CultureInfo.CurrentCulture, $"{MessageCount} 条消息 · {StartedTime:MM-dd HH:mm}");
+    public string Subtitle => string.Create(CultureInfo.CurrentCulture, $"{MessageCount} 条消息 | {StartedTime:yyyy-MM-dd HH:mm:ss}");
 }

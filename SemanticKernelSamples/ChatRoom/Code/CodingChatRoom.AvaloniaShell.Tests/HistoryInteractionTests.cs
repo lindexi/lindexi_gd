@@ -12,6 +12,22 @@ namespace CodingChatRoom.AvaloniaShell.Tests;
 public sealed class HistoryInteractionTests
 {
     [TestMethod]
+    public void SessionSubtitleShouldIncludeMessageCountAndFullTimestamp()
+    {
+        var item = new SessionItemViewModel(new CopilotChatSessionSummary
+        {
+            SessionId = Guid.NewGuid(),
+            Title = "History",
+            StartedTime = new DateTimeOffset(2026, 9, 30, 15, 10, 42, TimeSpan.Zero),
+            MessageCount = 4,
+        });
+
+        string expected = string.Create(System.Globalization.CultureInfo.CurrentCulture,
+            $"4 条消息 | {item.StartedTime:yyyy-MM-dd HH:mm:ss}");
+        Assert.AreEqual(expected, item.Subtitle);
+    }
+
+    [TestMethod]
     public void InitialSessionShouldBeMarkedCurrent()
     {
         var vm = CreateViewModel(new StreamingStore());

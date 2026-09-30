@@ -22,14 +22,16 @@
                 <ListBox.Styles>
                     <Style Selector="ListBoxItem">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Padding" Value="4,2" />
+                        <Setter Property="Margin" Value="0" />
                     </Style>
                 </ListBox.Styles>
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:SessionItemViewModel">
-                        <Border Classes="Card" Padding="16" Margin="0,4" DoubleTapped="OnSessionDoubleTapped">
+                        <Border Classes="Card" Padding="16,12" Margin="0,4" DoubleTapped="OnSessionDoubleTapped">
                             <StackPanel Spacing="8">
                                 <Grid ColumnDefinitions="*,Auto" MinHeight="32">
-                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
+                                    <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                                                VerticalAlignment="Center" IsVisible="{Binding !IsEditing}"
                                                ToolTip.Tip="{Binding Title}" />
                                     <Grid ColumnDefinitions="*,Auto,Auto" IsVisible="{Binding IsEditing}">
@@ -59,21 +61,33 @@
                                         </Button>
                                     </StackPanel>
                                 </Grid>
-                                <TextBlock Text="{Binding Subtitle}" Classes="Subtitle" />
-                                <TextBlock Text="{Binding WorkTaskText}" Classes="Subtitle" TextWrapping="Wrap"
-                                           ToolTip.Tip="{Binding WorkTaskText}" />
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <TextBlock Text="{StaticResource SessionWorkspaceText}" Classes="Subtitle" />
-                                    <TextBlock Grid.Column="1" Text="{Binding WorkspacePath}" Classes="Subtitle" TextWrapping="Wrap"
-                                               ToolTip.Tip="{Binding WorkspacePath}" />
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Classes="Subtitle" TextTrimming="CharacterEllipsis">
+                                            <ToolTip.Tip>
+                                                <TextBlock><Run Text="{Binding WorkTaskText}" /><Run Text=" | " /><Run Text="{Binding Subtitle}" /></TextBlock>
+                                            </ToolTip.Tip>
+                                            <Run Text="{Binding WorkTaskText}" /><Run Text=" | " /><Run Text="{Binding Subtitle}" />
+                                        </TextBlock>
+                                        <Grid ColumnDefinitions="Auto,*">
+                                            <TextBlock Text="{StaticResource SessionWorkspaceText}" Classes="Subtitle" />
+                                            <TextBlock Grid.Column="1" Text="{Binding WorkspacePath}" Classes="Subtitle"
+                                                       TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding WorkspacePath}" />
+                                        </Grid>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
+                                        <Button Content="{StaticResource OpenSessionText}"
+                                                Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).OpenSessionCommand}"
+                                                CommandParameter="{Binding}" />
+                                        <Button Classes="Icon Danger" Width="32" Height="32" Padding="7"
+                                                ToolTip.Tip="{StaticResource DeleteSessionText}"
+                                                AutomationProperties.Name="{StaticResource DeleteSessionText}"
+                                                Command="{Binding $parent[UserControl].DataContext.DeleteSessionCommand}" CommandParameter="{Binding}">
+                                            <PathIcon Width="16" Height="16"
+                                                      Data="M8,3 L16,3 L17,5 L21,5 L21,7 L19,7 L18,21 L6,21 L5,7 L3,7 L3,5 L7,5 Z M8,7 L9,19 L15,19 L16,7 Z M10,9 L12,9 L12,17 L10,17 Z M14,9 L16,9 L16,17 L14,17 Z" />
+                                        </Button>
+                                    </StackPanel>
                                 </Grid>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <Button Content="{StaticResource OpenSessionText}"
-                                            Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).OpenSessionCommand}"
-                                            CommandParameter="{Binding}" />
-                                    <Button Content="{StaticResource DeleteSessionText}"
-                                            Command="{Binding $parent[UserControl].DataContext.DeleteSessionCommand}" CommandParameter="{Binding}" />
-                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </DataTemplate>

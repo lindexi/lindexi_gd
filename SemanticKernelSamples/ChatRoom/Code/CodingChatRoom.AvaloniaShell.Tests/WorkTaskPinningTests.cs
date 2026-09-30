@@ -1,6 +1,7 @@
 using System.Text.Json;
-using Avalonia.Controls;
-using Avalonia.Media;
+using AgentLib;
+using CodingChatRoom.AvaloniaShell.Abilities;
+using CodingChatRoom.AvaloniaShell.Infrastructure;
 using CodingChatRoom.AvaloniaShell.Services;
 using CodingChatRoom.AvaloniaShell.ViewModels;
 
@@ -10,118 +11,137 @@ namespace CodingChatRoom.AvaloniaShell.Tests;
 public sealed class WorkTaskPinningTests
 {
     [TestMethod]
-    public void NewTaskShouldNotBePinned()
-    {
-        var shell = new MainViewModel();
-
-        Assert.IsFalse(shell.ActiveWorkTask.IsPinned);
-    }
-
-    [TestMethod]
-    public void PinningShouldMoveTaskAboveUnpinnedTasksWithoutChangingSelection()
+    public void PinningShouldMoveTaskToTopWithoutChangingSelection()
     {
         var shell = new MainViewModel();
         var first = shell.ActiveWorkTask;
         var second = new MainViewModel().ActiveWorkTask;
         shell.WorkTasks.Add(second);
 
-        shell.ToggleWorkTaskPinCommand.Execute(second);
+        shell.PinWorkTaskCommand.Execute(second);
 
-        Assert.AreEqual((second, first, true),
-            (shell.FilteredWorkTasks[0], shell.ActiveWorkTask, second.IsPinned));
+        Assert.AreEqual((second, first), (shell.FilteredWorkTasks[0], shell.ActiveWorkTask));
     }
 
     [TestMethod]
-    public void UnpinningShouldRestoreOriginalOrder()
+    public void PinningAgainShouldKeepTaskAtTop()
     {
         var shell = new MainViewModel();
         var first = shell.ActiveWorkTask;
         var second = new MainViewModel().ActiveWorkTask;
         shell.WorkTasks.Add(second);
-        shell.ToggleWorkTaskPinCommand.Execute(second);
+        shell.PinWorkTaskCommand.Execute(second);
 
-        shell.ToggleWorkTaskPinCommand.Execute(second);
-
-        CollectionAssert.AreEqual(new[] { first, second }, shell.FilteredWorkTasks.ToArray());
-    }
-
-    [TestMethod]
-    public void SearchingShouldPreservePinnedFirstOrder()
-    {
-        var shell = new MainViewModel();
-        var first = shell.ActiveWorkTask;
-        first.DisplayName = "Match first";
-        var second = new MainViewModel().ActiveWorkTask;
-        second.DisplayName = "Match second";
-        shell.WorkTasks.Add(second);
-        shell.ToggleWorkTaskPinCommand.Execute(second);
-
-        shell.WorkTaskSearchText = "Match";
+        shell.PinWorkTaskCommand.Execute(second);
 
         CollectionAssert.AreEqual(new[] { second, first }, shell.FilteredWorkTasks.ToArray());
     }
 
     [TestMethod]
-    public void MultiplePinnedTasksShouldKeepOriginalRelativeOrder()
+    public void LastMovedTaskShouldPrecedePreviouslyMovedTasks()
+    {
+        var shell = new MainViewModel();
+        var first = shell.ActiveWorkTask;
+        var second = new MainViewModel().ActiveWorkTask;
+        var third = new MainViewModel().ActiveWorkTask;
+        shell.WorkTasks.Add(second);
+        shell.WorkTasks.Add(third);
+        shell.PinWorkTaskCommand.Execute(second);
+
+        shell.PinWorkTaskCommand.Execute(third);
+
+        CollectionAssert.AreEqual(new[] { third, second, first }, shell.FilteredWorkTasks.ToArray());
+    }
+
+    [TestMethod]
+    public void SearchChangesShouldPreserveTemporaryOrder()
     {
         var shell = new MainViewModel();
         var first = shell.ActiveWorkTask;
         var second = new MainViewModel().ActiveWorkTask;
         shell.WorkTasks.Add(second);
-        shell.ToggleWorkTaskPinCommand.Execute(second);
+        shell.PinWorkTaskCommand.Execute(second);
+        shell.WorkTaskSearchText = "No match";
 
-        shell.ToggleWorkTaskPinCommand.Execute(first);
+        shell.WorkTaskSearchText = string.Empty;
 
-        CollectionAssert.AreEqual(new[] { first, second }, shell.FilteredWorkTasks.ToArray());
+        CollectionAssert.AreEqual(new[] { second, first }, shell.FilteredWorkTasks.ToArray());
     }
 
     [TestMethod]
-    public void ArchivingShouldDiscardPinnedState()
+    public void PinningShouldNotChangePersistenceOrder()
     {
         var shell = new MainViewModel();
-        var task = shell.ActiveWorkTask;
-        shell.WorkTasks.Add(new MainViewModel().ActiveWorkTask);
-        shell.ToggleWorkTaskPinCommand.Execute(task);
+        var first = shell.ActiveWorkTask;
+        var second = new MainViewModel().ActiveWorkTask;
+        shell.WorkTasks.Add(second);
 
-        shell.ArchiveWorkTaskCommand.Execute(task);
+        shell.PinWorkTaskCommand.Execute(second);
 
-        Assert.IsFalse(shell.ArchivedWorkTasks.Single().Record.IsPinned);
+        CollectionAssert.AreEqual(new[] { first, second }, shell.WorkTasks.ToArray());
     }
 
     [TestMethod]
-    public void MissingPinConfigurationShouldDefaultToFalse()
+    public void LegacyPinStateShouldBeIgnoredAndNotSerialized()
     {
-        var record = JsonSerializer.Deserialize<WorkTaskRecord>("""{"DisplayName":"Legacy"}""");
+        var record = JsonSerializer.Deserialize<WorkTaskRecord>("""{"DisplayName":"Legacy","IsPinned":true}""");
 
-        Assert.IsFalse(record?.IsPinned ?? true);
+        using var document = JsonDocument.Parse(JsonSerializer.Serialize(record));
+
+        Assert.IsFalse(document.RootElement.TryGetProperty("IsPinned", out _));
     }
 
     [TestMethod]
-    public void SerializationShouldPreservePinnedState()
+    public async Task CreatingTaskShouldPlaceItAbovePreviouslyMovedTask()
     {
-        var record = new WorkTaskRecord(Guid.NewGuid(), "Pinned", null, null, null, IsPinned: true);
+        await using var shell = await CreateShellAsync();
+        shell.PinWorkTaskCommand.Execute(shell.ActiveWorkTask);
 
-        var restored = JsonSerializer.Deserialize<WorkTaskRecord>(JsonSerializer.Serialize(record));
+        await ((SimpleAsyncCommand)shell.CreateWorkTaskCommand).ExecuteAsync();
 
-        Assert.AreEqual(record, restored);
+        Assert.AreEqual((2, shell.ActiveWorkTask, shell.ActiveWorkTask),
+            (shell.WorkTasks.Count, shell.WorkTasks[0], shell.FilteredWorkTasks[0]));
     }
 
-    [DataTestMethod]
-    [DataRow(false, false, "#06000000")]
-    [DataRow(true, false, "#10000000")]
-    [DataRow(false, true, "#0A3978D4")]
-    [DataRow(true, true, "#183978D4")]
-    public void PinnedBackgroundShouldYieldToActiveAndWorkingStates(bool active, bool working, string expected)
+    [TestMethod]
+    public async Task SavingAfterPinningShouldNotPersistTemporaryOrder()
     {
-        var tile = new Border { Classes = { "TaskTile", "Pinned" } };
-        tile.Classes.Set("Active", active);
-        tile.Classes.Set("Working", working);
-        tile.Styles.Add(new Avalonia.Markup.Xaml.Styling.StyleInclude(new Uri("avares://CodingChatRoom.AvaloniaShell/"))
-        {
-            Source = new Uri("avares://CodingChatRoom.AvaloniaShell/Styles/Controls.axaml"),
-        });
-        tile.ApplyStyling();
+        var paths = CreatePaths();
+        await using var shell = await CreateShellAsync(paths);
+        var first = shell.ActiveWorkTask;
+        await ((SimpleAsyncCommand)shell.CreateWorkTaskCommand).ExecuteAsync();
+        var second = shell.ActiveWorkTask;
+        shell.PinWorkTaskCommand.Execute(first);
+        shell.RenameWorkTaskCommand.Execute(first);
+        first.EditedDisplayName = "Renamed";
 
-        Assert.AreEqual(Color.Parse(expected), ((ISolidColorBrush?) tile.Background)?.Color);
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.SaveWorkTaskNameCommand).ExecuteAsync(first);
+        var saved = await new WorkTaskStore(paths).LoadAsync();
+
+        CollectionAssert.AreEqual(new[] { second.Id, first.Id }, saved.Select(task => task.Id).ToArray());
+    }
+
+    private static CodingChatRoomPaths CreatePaths()
+    {
+        var paths = CodingChatRoomPaths.Create(Path.Join(Path.GetTempPath(), "CodingChatRoom-Pinning", Guid.NewGuid().ToString("N")));
+        Console.WriteLine(paths.RootDirectory);
+        return paths;
+    }
+
+    private static async Task<MainViewModel> CreateShellAsync(CodingChatRoomPaths? paths = null)
+    {
+        paths ??= CreatePaths();
+        var runtime = await CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new Dispatcher());
+        var abilities = new AbilityCatalog(paths.AbilitiesDirectory);
+        var task = MainViewModel.CreateRuntimeTask(runtime, new WorkTaskRecord(Guid.NewGuid(), "First", null, null, null), abilities);
+        return MainViewModel.Create([task], [], runtime.SettingsService, new WorkTaskStore(paths),
+            () => CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new Dispatcher()), abilities);
+    }
+
+    private sealed class Dispatcher : IMainThreadDispatcher
+    {
+        public Task InvokeAsync(Func<Task> action) => action();
+        public Task<T> InvokeAsync<T>(Func<Task<T>> action) => action();
+        public bool CheckAccess() => true;
     }
 }
