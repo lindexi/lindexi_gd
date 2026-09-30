@@ -188,6 +188,18 @@ dotnet test tests/XiaoXiIme.TsfModule.Tests/XiaoXiIme.TsfModule.Tests.csproj --l
 → 拉回 TRX、日志和 JSON 结果
 ```
 
+## 当前测试覆盖边界
+
+现有托管测试和管理员沙箱冒烟主要验证基础合同与单场景可达性。以下产品级验证仍需单独建设：
+
+- 正式词库高层按键、候选排序/选择以及全拼/小鹤完整覆盖；
+- 候选窗口真实定位、屏幕边界、交互和多 DPI 视觉测试；
+- 传统 IME 多应用、多会话及组合/取消/提交全链路；
+- 用户词库持久化、损坏恢复和 Host/IPC/UI 生命周期异常；
+- 正式 package 性能、长时间输入、安装升级卸载及 x86/x64 目标应用矩阵。
+
+TRX 全绿或 `integration-run` 的单 EDIT `xx -> 小希` 冒烟通过，不得作为这些项目已经完成的依据。
+
 ## Native AOT 和系统级测试的边界
 
 沙箱内存在 .NET 10 SDK，并不意味着所有 Native AOT 发布一定可用。发布下列项目通常还需要 Visual C++ 链接器和对应架构工具链：

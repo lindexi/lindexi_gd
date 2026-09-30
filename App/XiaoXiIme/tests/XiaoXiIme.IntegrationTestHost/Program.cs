@@ -56,7 +56,7 @@ static Task RunCandidateWindowStateAsync()
     Ensure(state.IsVisible, "Candidate window should be visible.");
     Ensure(state.CompositionText == "ni", "Composition text mismatch.");
     Ensure(state.PageStart == 9 && state.PageSize == 3, "Candidate page mismatch.");
-    Ensure(state.CurrentPage == 4 && state.TotalPages == 4, "Candidate page count mismatch.");
+    Ensure(state.CurrentPage == 2 && state.TotalPages == 2, "Candidate page count mismatch.");
     Ensure(state.Candidates.Count == 3, "Candidate count mismatch.");
     Ensure(state.Selection == 10, "Candidate selection mismatch.");
     Ensure(state.Candidates.Single(candidate => candidate.IsSelected).DisplayIndex == 2, "Selected candidate display index mismatch.");

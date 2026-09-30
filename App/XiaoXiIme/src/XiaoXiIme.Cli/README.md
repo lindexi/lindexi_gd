@@ -9,7 +9,7 @@
 - `system-test-plan [--json]`：输出覆盖传统 IME、TSF、Host、IPC、UI、安装和回滚的全局系统测试计划。
 - `system-test-run <abi-host> <tsf-dll> --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：仅在可还原 VM 中执行隔离 ABI/COM 测试并生成 JSON 报告。
 - `payload-build [--output <directory>] [--no-build] [--dictionary-source <directory>]`：在开发机上构建或收集 x86/x64 组件并生成负载，不修改 Windows 输入法配置。
-- `integration-run [payload-directory] --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS [--skip-tsf] [--report <file>]`：仅在可还原 VM 中执行完整验证，并始终在结束时清理输入法。
+- `integration-run [payload-directory] --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS [--skip-tsf] [--report <file>]`：仅在可还原 VM 中执行当前基础系统集成与真实按键冒烟，并始终在结束时清理输入法；它不是多应用、多会话、升级卸载或双架构目标应用的完整验收。
 - `install [payload-directory] --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：校验负载，安装 x64/x86 输入法，启动 `app/host/XiaoXiIme.ImeHost.exe`，并等待 IPC `GetHostStatus` 报告运行中后才视为安装成功。
 - `uninstall --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS`：卸载输入法并清理已部署文件。
 - `dictionary-update <source-directory> <package-directory> [--scheme fullPinyin|xiaoheDoublePinyin]`：递归读取 XiaoXiIme 自有 `*.phonetic.tsv`、可选 `*.shape.tsv`/`*.symbols.tsv`，暂存编译并验证后更新 package，旧版本保留为同级 `.previous` 目录。源路径、长度、最后修改时间和编译参数未变时复用现有 package，不创建 `.previous`。
@@ -91,7 +91,7 @@ integration-payload/
 2. 仅卸载注册表中明确归属于 `XiaoXi IME` / `XiaoXiIme.ime` 的旧布局。
 3. 将 x64/x86 原生 IME 分别以资源中声明的 `XiaoXiIme.ime` 部署到 `System32`/`SysWOW64`，并使用 x64 系统路径调用 `ImmInstallIME`。
 4. 未传入 `--skip-tsf` 时，分别使用 x86/x64 ABI Host 验证对应架构的 TSF ABI/vtable 和隔离 COM 激活。
-5. 执行负载中的自包含集成测试宿主，覆盖 Host、IPC 和上层逻辑；真实按键场景通过 `SendInput` 自动向测试窗口注入 `xx`，并验证 EDIT 控件精确上屏一次“小希”。
+5. 执行负载中的自包含集成测试宿主，覆盖部分 Host、IPC 和上层逻辑；真实按键基础冒烟通过 `SendInput` 自动向单个测试 EDIT 注入 `xx`，并验证控件精确上屏一次“小希”。
 6. 输出单行 JSON 控制台事件并写入完整 JSON 报告。
 7. 卸载测试输入法并清理部署文件。
 
