@@ -11,6 +11,7 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
 {
     private string _displayName;
     private bool _isActive;
+    private bool _isPinned;
     private bool _isEditing;
     private string _editedDisplayName = string.Empty;
 
@@ -44,6 +45,8 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
     public SessionListViewModel Sessions { get; }
     /// <summary>获取或设置导航选中状态。</summary>
     public bool IsActive { get => _isActive; internal set => SetField(ref _isActive, value); }
+    /// <summary>获取任务是否置顶。</summary>
+    public bool IsPinned { get => _isPinned; internal set => SetField(ref _isPinned, value); }
     /// <summary>获取或设置名称编辑状态。</summary>
     public bool IsEditing { get => _isEditing; set => SetField(ref _isEditing, value); }
     /// <summary>获取或设置待确认的任务名称。</summary>
