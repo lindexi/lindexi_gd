@@ -9,6 +9,8 @@ internal static class DictionaryResources
         "XiaoXiIme.Dictionary.DictionaryResources",
         typeof(DictionaryResources).Assembly);
 
+    internal static string InvalidSourceHeader => GetString(nameof(InvalidSourceHeader));
+    internal static string UnsupportedSourceSort => GetString(nameof(UnsupportedSourceSort));
     internal static string EmptyReading => GetString(nameof(EmptyReading));
     internal static string EmptyText => GetString(nameof(EmptyText));
     internal static string InvalidColumnCount => GetString(nameof(InvalidColumnCount));

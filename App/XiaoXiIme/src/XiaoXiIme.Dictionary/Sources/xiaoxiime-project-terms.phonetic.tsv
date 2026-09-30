@@ -1,3 +1,9 @@
+---
+name: xiaoxiime-project-terms
+version: "1"
+description: XiaoXiIme first-party phonetic terms.
+sort: by_weight
+...
 # XiaoXiIme first-party phonetic terms. Format matches the phonetic TSV contract.
 # This file is not SeWZC data; convert writes it as an independent native source.
 小希	xiao xi	10000000

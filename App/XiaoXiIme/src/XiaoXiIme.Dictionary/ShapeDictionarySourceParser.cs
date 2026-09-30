@@ -16,6 +16,18 @@ public static class ShapeDictionarySourceParser
     /// Parses, normalizes, merges, and deterministically sorts shape source entries.
     /// </summary>
     public static IReadOnlyList<ShapeDictionaryEntry> Parse(TextReader reader, string filePath)
+        => ParseDocument(reader, filePath).Entries;
+
+    /// <summary>
+    /// Parses optional YAML metadata and normalized shape entries.
+    /// </summary>
+    public static DictionarySourceDocument<ShapeDictionaryEntry> ParseDocument(TextReader reader, string filePath)
+    {
+        using var source = new DictionarySourceReader(reader, filePath);
+        return new(source.Metadata, ParseEntries(source, filePath));
+    }
+
+    private static IReadOnlyList<ShapeDictionaryEntry> ParseEntries(TextReader reader, string filePath)
     {
         ArgumentNullException.ThrowIfNull(reader);
         ValidateFilePath(filePath);

@@ -14,6 +14,18 @@ public static class SymbolDictionarySourceParser
     /// Parses, merges, and deterministically sorts symbol source entries.
     /// </summary>
     public static IReadOnlyList<SymbolDictionaryEntry> Parse(TextReader reader, string filePath)
+        => ParseDocument(reader, filePath).Entries;
+
+    /// <summary>
+    /// Parses optional YAML metadata and normalized symbol entries.
+    /// </summary>
+    public static DictionarySourceDocument<SymbolDictionaryEntry> ParseDocument(TextReader reader, string filePath)
+    {
+        using var source = new DictionarySourceReader(reader, filePath);
+        return new(source.Metadata, ParseEntries(source, filePath));
+    }
+
+    private static IReadOnlyList<SymbolDictionaryEntry> ParseEntries(TextReader reader, string filePath)
     {
         ArgumentNullException.ThrowIfNull(reader);
         if (string.IsNullOrWhiteSpace(filePath))
