@@ -124,11 +124,21 @@ public sealed class ShellStructureTests
         Assert.IsNotNull(checkBoxField);
     }
 
-    [TestMethod(DisplayName = "聊天视图模型默认应启用自动压缩")]
+    [TestMethod(DisplayName = "聊天视图模型默认不应启用自动压缩")]
     [Timeout(5000)]
-    public void ChatViewModelShouldEnableAutomaticCompressionByDefault()
+    public void ChatViewModelShouldDisableAutomaticCompressionByDefault()
     {
         var viewModel = new ChatViewModel();
+
+        Assert.IsFalse(viewModel.IsAutomaticCompressionEnabled);
+    }
+
+    [TestMethod(DisplayName = "聊天视图模型应允许手动启用自动压缩")]
+    public void ChatViewModelShouldAllowEnablingAutomaticCompression()
+    {
+        var viewModel = new ChatViewModel();
+
+        viewModel.IsAutomaticCompressionEnabled = true;
 
         Assert.IsTrue(viewModel.IsAutomaticCompressionEnabled);
     }
