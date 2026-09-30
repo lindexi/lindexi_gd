@@ -28,10 +28,10 @@
                 </ListBox.Styles>
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="vm:SessionItemViewModel">
-                        <Border Classes="Card" Padding="12,8" Margin="0,2" DoubleTapped="OnSessionDoubleTapped">
-                            <StackPanel Spacing="4">
+                        <Border Classes="Card" Padding="16,12" Margin="0,4" DoubleTapped="OnSessionDoubleTapped">
+                            <StackPanel Spacing="8">
                                 <Grid ColumnDefinitions="*,Auto" MinHeight="32">
-                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
+                                    <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                                                VerticalAlignment="Center" IsVisible="{Binding !IsEditing}"
                                                ToolTip.Tip="{Binding Title}" />
                                     <Grid ColumnDefinitions="*,Auto,Auto" IsVisible="{Binding IsEditing}">
@@ -61,8 +61,8 @@
                                         </Button>
                                     </StackPanel>
                                 </Grid>
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                                    <StackPanel Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20">
+                                    <StackPanel Spacing="6">
                                         <TextBlock Classes="Subtitle" TextTrimming="CharacterEllipsis">
                                             <ToolTip.Tip>
                                                 <TextBlock><Run Text="{Binding WorkTaskText}" /><Run Text=" | " /><Run Text="{Binding Subtitle}" /></TextBlock>
@@ -75,7 +75,7 @@
                                                        TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding WorkspacePath}" />
                                         </Grid>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Bottom">
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
                                         <Button Content="{StaticResource OpenSessionText}"
                                                 Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).OpenSessionCommand}"
                                                 CommandParameter="{Binding}" />
