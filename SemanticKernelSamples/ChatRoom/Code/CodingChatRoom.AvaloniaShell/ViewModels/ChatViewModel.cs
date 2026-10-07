@@ -33,7 +33,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     private string _inputText = string.Empty;
     private string? _runStatusText;
     private bool _isLoopIterationEnabled;
-    private bool _isAutomaticCompressionEnabled = true;
+    private bool _isAutomaticCompressionEnabled;
     private bool _isDotNetRunEnabled;
     private bool _isDisposed;
 
