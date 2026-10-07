@@ -641,7 +641,8 @@ public class CopilotChatManager : NotifyBase
         CopilotChatMessage assistantChatMessage = CopilotChatMessage.CreateAssistant
             (CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
 
-        IChatClient chatClient = await AgentApiEndpointManager.PrimaryModel.GetChatClientAsync();
+        ILanguageModel languageModel = AgentApiEndpointManager.PrimaryModel;
+        IChatClient chatClient = await languageModel.GetChatClientAsync();
 
         return new ManualSendMessageContext
         {
@@ -650,6 +651,7 @@ public class CopilotChatManager : NotifyBase
             Session = SelectedSession,
             DefaultTools = defaultTools,
             ChatClient = chatClient,
+            LanguageModel = languageModel,
             UserChatMessage = userChatMessage,
             AssistantChatMessage = assistantChatMessage,
         };

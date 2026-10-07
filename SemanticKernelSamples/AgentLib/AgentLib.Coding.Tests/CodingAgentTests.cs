@@ -760,7 +760,11 @@ public sealed class CodingAgentTests
             CopilotChatMessage.PlaceholderContent,
             isPresetInfo: false);
 
-        public IChatClient ChatClient { get; } = new FakeChatClient();
+        private readonly FakeChatClient _chatClient = new();
+
+        public IChatClient ChatClient => _chatClient;
+
+        public AgentLib.Core.AgentApiManagers.LanguageModelProviders.ILanguageModel LanguageModel => new FakeLanguageModel(_chatClient);
 
         public IMainThreadDispatcher? MainThreadDispatcher => null;
 
