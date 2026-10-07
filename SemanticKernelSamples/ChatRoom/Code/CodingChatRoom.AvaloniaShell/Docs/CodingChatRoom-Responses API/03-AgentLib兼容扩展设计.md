@@ -4,7 +4,7 @@
 
 ### AgentLib
 
-`AgentLib` 必须完全保持公开 API 兼容：
+`AgentLib` 原则上保持公开 API 兼容。本轮已明确允许的例外是为 `IManualSendMessageContext` 新增 `LanguageModel` 属性，并同步修改仓库内实现与包装器；该例外不扩大到其他接口。其余约束如下：
 
 - 不删除公开类型或成员；
 - 不修改现有公开签名、默认值和参数语义；
@@ -75,6 +75,39 @@
 - 不修改管理器、JSON 配置结构、Provider 创建路线及 Shell。
 - 增加 JSON 加载、配置替换、端点、共享 HTTP 传输与凭据测试，并验证原 Chat 客户端仍可获取。
 - SDK Responses API 当前标记为实验性，仅在直接使用它的文件中明确接受 `OPENAI001` 诊断，不修改项目级告警设置。
+
+## 手动执行上下文入口：已确认并实现
+
+### 保留现有创建逻辑
+
+使用 `CreateManualSendMessageContextAsync` 获取外部执行的上下文，不把 Responses 请求、工具循环和协议状态放入 `CopilotChatManager`。上下文提供执行资源和会话侧接入能力，不负责执行协议。
+
+- 保留方法名称、异步签名及创建时获取 `IChatClient` 的现有逻辑，不改为同步创建。
+- 保留 `IManualSendMessageContext.ChatClient`；直接获取客户端是自然且高频的使用方式，不为了 Responses 移除该属性或迫使上层大面积改动。
+- `GetChatClientAgentAsync()`、`GetAgentSessionAsync()` 的实现不变，包括原有延迟创建与压缩器选模逻辑。
+- 不扩展 `CopilotChatMessage`，其 Responses 信息承载方式另行讨论。
+
+### 仅新增 LanguageModel 属性
+
+`IManualSendMessageContext` 新增只读 `ILanguageModel LanguageModel`，`ManualSendMessageContext` 保存创建时选取的模型引用。
+
+创建方法先读取一次 `AgentApiEndpointManager.PrimaryModel`，用该对象获取 `ChatClient`，并将同一个对象赋给 `LanguageModel`。不在上下文创建完成后由调用方重新读取首选模型，也不复制模型配置。
+
+Responses 执行器后续可从 `context.LanguageModel` 获取 `IResponsesClientProvider`，无需让管理器承担 Responses 执行逻辑。现有上下文包装器直接透传 `LanguageModel`。
+
+### 创建取消与执行取消分离
+
+撤销此前“将创建方法的取消令牌保存为上下文属性”的决定：
+
+- `CreateManualSendMessageContextAsync` 的 `cancellationToken` 参数属于创建操作，不应隐含成为上下文后续工作的生命周期令牌。
+- `IManualSendMessageContext` 和 `ManualSendMessageContext` 不提供或保存 `CancellationToken` 属性；包装器也不透传该属性。
+- 后续执行由调用方在相应执行方法中明确传入取消令牌，不自动继承、关联或复用创建令牌。
+- 保留创建方法的现有签名及两个 Agent 辅助方法各自的取消参数；本次不改变它们的实现。
+- 保存令牌本身不会自动取消工作，但暴露该属性会诱导后续代码使用错误的生命周期语义，因此从接口中移除，而不是要求调用方规避。
+
+### 验证范围
+
+已通过公开入口验证模型引用固定、现有 `ChatClient` 可直接获取，以及创建完成后取消创建令牌不影响后续 Agent 初始化。取消令牌存储相关的旧测试已移除。Shell 上下文包装器与 CodingAgent 测试实现已同步调整。
 
 ## 共享工作区运行时
 
