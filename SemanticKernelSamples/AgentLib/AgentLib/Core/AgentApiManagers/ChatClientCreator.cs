@@ -1,9 +1,9 @@
+#pragma warning disable OPENAI001 // Responses SDK API 当前标记为实验性。
+
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.DeepSeek;
-
 using OpenAI;
 using OpenAI.Chat;
-
 using System;
 using System.ClientModel;
 using System.ClientModel.Primitives;
@@ -51,6 +51,22 @@ internal static class OpenAIClientCreator
         IHttpClientProvider? httpClientProvider
     )
     {
+        var openAiClient = CreateClient(apiEndpoint, httpClientProvider);
+        ChatClient chatClient = openAiClient.GetChatClient(apiEndpoint.ModelId);
+        return chatClient.AsIChatClient();
+    }
+
+    public static OpenAI.Responses.ResponsesClient CreateResponsesClient
+    (
+        ApiEndpoint apiEndpoint,
+        IHttpClientProvider? httpClientProvider
+    )
+    {
+        return CreateClient(apiEndpoint, httpClientProvider).GetResponsesClient();
+    }
+
+    private static OpenAIClient CreateClient(ApiEndpoint apiEndpoint, IHttpClientProvider? httpClientProvider)
+    {
         var options = new OpenAIClientOptions
         {
             Endpoint = new Uri(apiEndpoint.EndPoint),
@@ -58,9 +74,6 @@ internal static class OpenAIClientCreator
         HttpClient httpClient = httpClientProvider?.HttpClient ?? new HttpClient();
         options.Transport = new HttpClientPipelineTransport(httpClient);
 
-        var openAiClient = new OpenAIClient(new ApiKeyCredential(apiEndpoint.Key), options);
-
-        ChatClient chatClient = openAiClient.GetChatClient(apiEndpoint.ModelId);
-        return chatClient.AsIChatClient();
+        return new OpenAIClient(new ApiKeyCredential(apiEndpoint.Key), options);
     }
 }
