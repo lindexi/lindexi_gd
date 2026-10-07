@@ -19,6 +19,13 @@ namespace AgentLib.Model;
 public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 {
     /// <summary>
+    /// 此消息的 Responses 信息，首次访问时创建；访问不会修改消息内容。
+    /// </summary>
+    public CopilotChatMessageResponseInfo ResponseInfo => _responseInfo ??= new(this);
+
+    private CopilotChatMessageResponseInfo? _responseInfo;
+
+    /// <summary>
     /// 助手消息的占位符文本，在流式响应开始前显示，收到首个更新后自动清除。
     /// </summary>
     public const string PlaceholderContent = "...";
@@ -530,10 +537,11 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     {
         foreach (INotifyPropertyChanged messageItem in MessageItems.OfType<INotifyPropertyChanged>())
         {
-            messageItem.PropertyChanged -= MessageItem_PropertyChanged;
+            UnsubscribeMessageItem(messageItem);
         }
 
         MessageItems.Clear();
+        _responseInfo = null;
         _toolItemsByCallId.Clear();
         _subAgentItemsByCallId.Clear();
         _invokeSubAgentCallIds.Clear();
@@ -587,16 +595,12 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
             return;
         }
 
-        if (MessageItems.LastOrDefault() is CopilotChatTextItem lastTextItem)
+        if (MessageItems.LastOrDefault() is not CopilotChatTextItem lastTextItem)
         {
-            lastTextItem.Text += text;
+            lastTextItem = new CopilotChatTextItem(string.Empty);
+            MessageItems.Add(lastTextItem);
         }
-        else
-        {
-            MessageItems.Add(new CopilotChatTextItem(text));
-        }
-
-        TextAppended?.Invoke(this, text);
+        lastTextItem.AppendText(text);
     }
 
     /// <summary>
@@ -610,16 +614,12 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
             return;
         }
 
-        if (MessageItems.LastOrDefault() is CopilotChatReasoningItem lastReasoningItem)
+        if (MessageItems.LastOrDefault() is not CopilotChatReasoningItem lastReasoningItem)
         {
-            lastReasoningItem.Text += text;
+            lastReasoningItem = new CopilotChatReasoningItem(string.Empty);
+            MessageItems.Add(lastReasoningItem);
         }
-        else
-        {
-            MessageItems.Add(new CopilotChatReasoningItem(text));
-        }
-
-        ReasoningAppended?.Invoke(this, text);
+        lastReasoningItem.AppendText(text);
     }
 
     /// <summary>
@@ -1060,7 +1060,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         {
             foreach (INotifyPropertyChanged messageItem in e.OldItems.OfType<INotifyPropertyChanged>())
             {
-                messageItem.PropertyChanged -= MessageItem_PropertyChanged;
+                UnsubscribeMessageItem(messageItem);
             }
         }
 
@@ -1069,11 +1069,24 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
             foreach (INotifyPropertyChanged messageItem in e.NewItems.OfType<INotifyPropertyChanged>())
             {
                 messageItem.PropertyChanged += MessageItem_PropertyChanged;
+                if (messageItem is CopilotChatTextItem text) text.TextAppended += TextItem_TextAppended;
+                if (messageItem is CopilotChatReasoningItem reasoning) reasoning.TextAppended += ReasoningItem_TextAppended;
             }
         }
 
         OnMessageItemsChanged();
     }
+
+    private void UnsubscribeMessageItem(INotifyPropertyChanged item)
+    {
+        item.PropertyChanged -= MessageItem_PropertyChanged;
+        if (item is CopilotChatTextItem text) text.TextAppended -= TextItem_TextAppended;
+        if (item is CopilotChatReasoningItem reasoning) reasoning.TextAppended -= ReasoningItem_TextAppended;
+    }
+
+    private void TextItem_TextAppended(object? sender, string text) => TextAppended?.Invoke(this, text);
+
+    private void ReasoningItem_TextAppended(object? sender, string text) => ReasoningAppended?.Invoke(this, text);
 
     private void MessageItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
