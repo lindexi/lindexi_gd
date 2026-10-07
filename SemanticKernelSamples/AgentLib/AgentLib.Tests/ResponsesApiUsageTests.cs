@@ -223,8 +223,7 @@ public sealed class ResponsesApiUsageTests
         }, "add");
         var tools = new Dictionary<string, AIFunction> { [function.Name] = function };
         var request = new CreateResponseOptions { Model = context.LanguageModel.ModelDefinition.ModelId };
-        request.Tools.Add(ResponseTool.CreateFunctionTool(function.Name,
-            BinaryData.FromString(function.JsonSchema.GetRawText()), false));
+        request.Tools.Add(AgentLib.Tools.ResponsesToolHelper.CreateTool(function));
         request.InputItems.Add(ResponseItem.CreateUserMessageItem("Calculate 2 + 3 using add."));
         context.UserChatMessage.AppendText("Calculate 2 + 3 using add.");
         await context.AppendMessagesToSessionAsync();
@@ -235,11 +234,7 @@ public sealed class ResponsesApiUsageTests
             var first = (await client.CreateResponseAsync(request)).Value;
             responseInfo.AppendResponse(first);
             var call = first.OutputItems.OfType<FunctionCallResponseItem>().Single();
-            var arguments = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(call.FunctionArguments.ToString());
-            Assert.IsNotNull(arguments);
-            var result = await tools[call.FunctionName].InvokeAsync(new AIFunctionArguments(
-                arguments.ToDictionary(pair => pair.Key, pair => (object?)pair.Value)));
-            var output = ResponseItem.CreateFunctionCallOutputItem(call.CallId, JsonSerializer.Serialize(result));
+            var output = await AgentLib.Tools.ResponsesToolHelper.InvokeAsync(tools[call.FunctionName], call);
             responseInfo.AppendToolResult(output);
             var continuation = new CreateResponseOptions
             {

@@ -200,6 +200,99 @@ public sealed class MiniMaxResponsesLiveApiTests
             "Raw HTTP request sent store=true but the response reported store=false; SDK serialization is not involved.");
     }
 
+    [TestMethod]
+    public async Task WorkspaceReadFile_ModelRequestsToolAndReportsFileContentAsync()
+    {
+        if (!File.Exists(KeyFilePath)) return;
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+        string workspace = Path.Combine(Path.GetTempPath(), "ResponsesWorkspace", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(workspace);
+        string marker = Guid.NewGuid().ToString("N");
+        string fileContent = $"Experiment label: {marker}";
+        await File.WriteAllTextAsync(Path.Combine(workspace, "sample.txt"), fileContent, cancellation.Token);
+        string reportPath = Path.Combine(workspace, "read-file-report.json");
+        Console.WriteLine($"Workspace: {workspace}");
+        using var recorder = new RequestRecorder();
+        using var httpClient = new HttpClient(recorder);
+        var manager = await CreateManagerAsync(httpClient, cancellation.Token);
+        manager.WorkspacePath = workspace;
+        var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
+        var function = context.DefaultTools.OfType<AIFunction>().Single(tool => tool.Name == "ReadFileLines");
+        var functions = new Dictionary<string, AIFunction> { [function.Name] = function };
+        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        context.UserChatMessage.AppendText("The workspace contains sample.txt. Call ReadFileLines to read line 1 of that file, then report its exact contents. Do not guess the contents.");
+        await context.AppendMessagesToSessionAsync();
+        var request = new CreateResponseOptions
+        {
+            Model = context.LanguageModel.ModelDefinition.ModelId,
+            Instructions = "Use the provided file-reading tool with relative path sample.txt, startLine 1 and endLine 1. After receiving its result, report the file contents verbatim.",
+            StoredOutputEnabled = false,
+            MaxOutputTokenCount = 2048,
+        };
+        request.Tools.Add(AgentLib.Tools.ResponsesToolHelper.CreateTool(function));
+        request.InputItems.Add(ResponseItem.CreateUserMessageItem(context.UserChatMessage.Content));
+        FunctionCallResponseItem? call = null;
+        FunctionCallOutputResponseItem? output = null;
+        ResponseResult? first = null;
+        ResponseResult? second = null;
+        try
+        {
+            using var run = context.StartChatting();
+            first = (await client.CreateResponseAsync(request, cancellation.Token)).Value;
+            context.AssistantChatMessage.ResponseInfo.AppendResponse(first);
+            call = first.OutputItems.OfType<FunctionCallResponseItem>().Single();
+            Assert.AreEqual("ReadFileLines", call.FunctionName);
+            using var arguments = JsonDocument.Parse(call.FunctionArguments.ToString());
+            Assert.AreEqual("sample.txt", arguments.RootElement.GetProperty("filePath").GetString());
+            output = await AgentLib.Tools.ResponsesToolHelper.InvokeAsync(functions[call.FunctionName], call, cancellation.Token);
+            context.AssistantChatMessage.ResponseInfo.AppendToolResult(output);
+            StringAssert.Contains(output.FunctionOutput, fileContent);
+            var continuation = new CreateResponseOptions
+            {
+                Model = request.Model,
+                Instructions = request.Instructions,
+                StoredOutputEnabled = false,
+                MaxOutputTokenCount = 2048,
+            };
+            continuation.Tools.Add(request.Tools.Single());
+            foreach (var item in request.InputItems) continuation.InputItems.Add(item);
+            foreach (var item in first.OutputItems) continuation.InputItems.Add(item);
+            continuation.InputItems.Add(output);
+            second = (await client.CreateResponseAsync(continuation, cancellation.Token)).Value;
+            context.AssistantChatMessage.ResponseInfo.AppendResponse(second);
+
+            Assert.AreEqual(ResponseStatus.Completed, second.Status);
+            StringAssert.Contains(second.GetOutputText(), fileContent);
+            Assert.IsFalse(recorder.Requests[0].GetRawText().Contains(marker, StringComparison.Ordinal));
+            var submitted = recorder.Requests[1].GetProperty("input").EnumerateArray()
+                .Single(item => item.GetProperty("type").GetString() == "function_call_output");
+            Assert.AreEqual(call.CallId, submitted.GetProperty("call_id").GetString());
+            StringAssert.Contains(submitted.GetProperty("output").GetString(), fileContent);
+            var displayedTool = context.AssistantChatMessage.MessageItems.OfType<CopilotChatToolItem>().Single();
+            Assert.AreEqual(call.CallId, displayedTool.CallId);
+            Assert.AreEqual("ReadFileLines", displayedTool.ToolName);
+            StringAssert.Contains(displayedTool.OutputText, fileContent);
+            Assert.IsNotNull(first.Usage);
+            Assert.IsNotNull(second.Usage);
+            Assert.AreEqual((long)first.Usage.TotalTokenCount + second.Usage.TotalTokenCount,
+                context.AssistantChatMessage.TotalUsageDetails?.TotalTokenCount);
+        }
+        finally
+        {
+            await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new
+            {
+                RecordedAt = DateTimeOffset.UtcNow, Workspace = workspace, FileContent = fileContent,
+                Requests = recorder.Requests,
+                Responses = recorder.ResponseBodies,
+                ToolName = call?.FunctionName, Arguments = call?.FunctionArguments.ToString(), CallId = call?.CallId,
+                ToolOutput = output?.FunctionOutput,
+                SecondResponseId = second?.Id,
+                FinalText = second?.GetOutputText(),
+            }, new JsonSerializerOptions { WriteIndented = true }), CancellationToken.None);
+            Console.WriteLine($"Read file report: {reportPath}");
+        }
+    }
+
     private static async Task<CopilotChatManager> CreateManagerAsync(HttpClient httpClient, CancellationToken cancellationToken,
         string endpoint = "https://api.minimaxi.com/v1")
     {
@@ -232,6 +325,7 @@ public sealed class MiniMaxResponsesLiveApiTests
     {
         public List<JsonElement> Requests { get; } = [];
         public List<string> RequestUris { get; } = [];
+        public List<string> ResponseBodies { get; } = [];
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -244,7 +338,9 @@ public sealed class MiniMaxResponsesLiveApiTests
                 Console.WriteLine(json.RootElement.GetRawText());
             }
             var response = await base.SendAsync(request, cancellationToken);
-            Console.WriteLine($"RESPONSE {(int)response.StatusCode}\n{await response.Content.ReadAsStringAsync(cancellationToken)}");
+            string body = await response.Content.ReadAsStringAsync(cancellationToken);
+            ResponseBodies.Add(body);
+            Console.WriteLine($"RESPONSE {(int)response.StatusCode}\n{body}");
             return response;
         }
     }
