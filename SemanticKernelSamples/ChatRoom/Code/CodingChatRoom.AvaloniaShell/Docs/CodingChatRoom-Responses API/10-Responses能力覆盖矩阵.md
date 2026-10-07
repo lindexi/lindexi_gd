@@ -9,13 +9,13 @@
 | Instructions 与 Items | 原生使用，不转换成 Chat Completions messages |
 | 文本流 | 按 delta 实时投影并处理 completed/incomplete/failed |
 | 图片输入 | 使用 input image content part，保持与文本顺序 |
-| `previous_response_id` | 用于多轮状态链 |
-| Conversations | SDK 与服务支持时为本地会话绑定 conversation |
-| `store=true` | 保存远端标识并支持重启续聊 |
-| `store=false` | 保存继续上下文所需 Items 和 encrypted reasoning |
+| `previous_response_id` | 引用上一轮响应 id；显式历史路线不依赖其补齐上下文 |
+| Conversations | 当前接入未验证，不承诺可用 |
+| `store=true` | 请求保存响应，不据此省略本地历史或承诺重启续聊 |
+| 客户端历史 | 显式提交所需原生 Items，保持稳定前缀；完整持久化另行实现 |
 | Reasoning effort | 映射现有思考强度 |
 | Reasoning summary | 请求并流式展示“思考摘要” |
-| Cached/reasoning token | 映射到现有用量模型 |
+| Cached/reasoning token | 映射到现有用量模型；以 cached input / input 计算命中率，累计比率按 token 加权 |
 | 自定义函数工具 | 复用 AgentLib `AIFunction`，完成 call/output 循环 |
 | Parallel tool calls | 按 API 语义执行同批调用并稳定排序结果 |
 | Web Search | 原生注册工具，投影状态、来源、annotations 和 citations |

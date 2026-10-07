@@ -56,7 +56,10 @@ public sealed class ResponsesLiveApiTests
 
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         var manager = await CreateManagerAsync(cancellation.Token);
-        using var httpClient = manager.AgentApiEndpointManager.HttpClient;
+        manager.AgentApiEndpointManager.HttpClient?.Dispose();
+        using var recorder = new ContinuationRequestHandler();
+        using var httpClient = new HttpClient(recorder);
+        manager.AgentApiEndpointManager.HttpClient = httpClient;
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
         var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
         var invocations = new List<string>();
@@ -102,11 +105,16 @@ public sealed class ResponsesLiveApiTests
                 StoredOutputEnabled = true,
                 MaxOutputTokenCount = 1024,
             };
+            continuation.Tools.Add(request.Tools.Single());
+            foreach (var item in first.OutputItems)
+            {
+                continuation.InputItems.Add(item);
+            }
             continuation.InputItems.Add(output);
             var second = (await client.CreateResponseAsync(continuation, cancellation.Token)).Value;
             info.AppendResponse(second);
 
-            Assert.AreEqual(first.Id, second.PreviousResponseId);
+            Assert.AreEqual(first.Id, recorder.PreviousResponseId);
             Assert.IsNotNull(first.Usage);
             Assert.IsNotNull(second.Usage);
             Assert.AreEqual((long)first.Usage.TotalTokenCount + second.Usage.TotalTokenCount,
@@ -119,6 +127,20 @@ public sealed class ResponsesLiveApiTests
         var displayedTool = context.AssistantChatMessage.MessageItems.OfType<CopilotChatToolItem>().Single();
         Assert.AreEqual(JsonSerializer.Serialize(toolValue), displayedTool.OutputText);
         Assert.AreEqual(toolValue, context.AssistantChatMessage.Content.Trim());
+    }
+
+    private sealed class ContinuationRequestHandler() : DelegatingHandler(new HttpClientHandler())
+    {
+        public string? PreviousResponseId { get; private set; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(request.Content);
+            using var json = JsonDocument.Parse(await request.Content.ReadAsStringAsync(cancellationToken));
+            PreviousResponseId = json.RootElement.TryGetProperty("previous_response_id", out var id)
+                ? id.GetString() : null;
+            return await base.SendAsync(request, cancellationToken);
+        }
     }
 
     private static async Task<CopilotChatManager> CreateManagerAsync(CancellationToken cancellationToken)

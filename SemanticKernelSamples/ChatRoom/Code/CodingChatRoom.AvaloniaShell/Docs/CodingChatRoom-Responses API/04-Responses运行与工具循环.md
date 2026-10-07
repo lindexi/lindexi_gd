@@ -6,8 +6,9 @@
 
 - `Model`：当前选中模型名；
 - `Instructions`：统一编程提示词；
-- `InputItems`：本轮用户输入或工具结果 Items；
-- `PreviousResponseId` 或 conversation：来自会话协议状态；
+- `InputItems`：客户端维护的所需原生历史，加本轮用户输入或工具结果 Items；
+- `StoredOutputEnabled`：请求参数，不作为远端已保存历史的保证；
+- `PreviousResponseId`：引用时取上一轮返回的 `id`；显式历史路线不依赖该字段补齐上下文，不据此省略所需历史；
 - `ReasoningOptions`：映射现有思考强度并请求 reasoning summary；
 - `ParallelToolCallsEnabled=true`；
 - `Tools`：本地函数工具和 Web Search；
@@ -42,7 +43,7 @@
 3. 按 call id 创建 UI 工具项。
 4. 按 API 返回的并行工具语义调用对应 `AIFunction`。
 5. 每个结果生成 function call output Item。
-6. 使用刚完成的 response id 发起后续 response。
+6. 在客户端历史中保留原生输出（包括 function call 和所需推理项），追加对应 call id 的 function call output，再发起后续 response。不假定 store=true 加 response id 足以替代这些内容。
 7. 直到没有待执行的本地函数调用。
 
 并行结果按原 `OutputIndex` 稳定排序，保证展示和日志一致。
