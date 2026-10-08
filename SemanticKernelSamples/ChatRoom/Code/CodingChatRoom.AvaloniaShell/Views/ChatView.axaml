@@ -417,11 +417,16 @@
             </Grid>
           </Border>
           <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="12">
-            <StackPanel Orientation="Horizontal" Spacing="16">
-              <CheckBox x:Name="LoopIterationCheckBox" Content="{StaticResource LoopIterationText}" IsChecked="{Binding IsLoopIterationEnabled}" />
-              <CheckBox x:Name="AutomaticCompressionCheckBox" Content="{StaticResource AutomaticCompressionText}" IsChecked="{Binding IsAutomaticCompressionEnabled}" />
-              <CheckBox x:Name="EnableDotNetRunCheckBox" Content="{StaticResource EnableDotNetRunText}" IsChecked="{Binding IsDotNetRunEnabled}" ToolTip.Tip="{StaticResource EnableDotNetRunToolTip}" />
-            </StackPanel>
+            <WrapPanel x:Name="RunOptionsPanel" Orientation="Horizontal" ItemSpacing="16" LineSpacing="8">
+              <CheckBox x:Name="LoopIterationCheckBox" MinHeight="32" Content="{StaticResource LoopIterationText}" IsChecked="{Binding IsLoopIterationEnabled}" />
+              <CheckBox x:Name="AutomaticCompressionCheckBox" MinHeight="32" Content="{StaticResource AutomaticCompressionText}" IsChecked="{Binding IsAutomaticCompressionEnabled}" />
+              <CheckBox x:Name="EnableDotNetRunCheckBox" MinHeight="32" Content="{StaticResource EnableDotNetRunText}" IsChecked="{Binding IsDotNetRunEnabled}" ToolTip.Tip="{StaticResource EnableDotNetRunToolTip}" />
+              <ToggleButton x:Name="ResponsesApiToggleButton" Classes="ApiMode"
+                            Content="{StaticResource ResponsesApiText}"
+                            IsChecked="{Binding IsResponsesApiEnabled, Mode=TwoWay}"
+                            ToolTip.Tip="{StaticResource ResponsesApiToolTip}"
+                            AutomationProperties.Name="{StaticResource ResponsesApiText}" />
+            </WrapPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
               <Button x:Name="CompressConversationButton" Classes="Secondary" Content="{StaticResource CompressConversationText}" Command="{Binding CompressConversationCommand}" IsEnabled="{Binding CanCompressConversation}" />
               <Button x:Name="StopLanguageServerButton" Classes="Secondary" Content="{StaticResource StopLanguageServerText}" Command="{Binding StopLanguageServerCommand}" ToolTip.Tip="{StaticResource StopLanguageServerToolTip}" />
