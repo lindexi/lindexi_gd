@@ -23,7 +23,7 @@ public sealed class FileCopilotChatSessionStore
     /// <summary>
     /// 当前会话历史格式版本。
     /// </summary>
-    public const int CurrentFormatVersion = 2;
+    public const int CurrentFormatVersion = 3;
 
     private static readonly Encoding Utf8EncodingWithoutBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -65,6 +65,7 @@ public sealed class FileCopilotChatSessionStore
                 CurrentFormatVersion,
                 session.ChatMessages,
                 agentSessionState));
+            CopilotChatHistoryXmlCodec.AppendResponsesSession(document.Root!, session.ExistingResponsesSession);
             document.Root!.SetAttributeValue("WorkspacePath", session.WorkspacePath);
             document.Root.SetAttributeValue("WorkTaskId", session.WorkTaskId);
             document.Root.SetAttributeValue("WorkTaskName", session.WorkTaskName);

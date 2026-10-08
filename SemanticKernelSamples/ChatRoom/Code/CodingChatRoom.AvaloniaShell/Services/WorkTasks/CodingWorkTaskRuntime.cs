@@ -25,6 +25,15 @@ internal sealed class CodingWorkTaskRuntime : IAsyncDisposable
 
     public required CodingAgent CodingAgent { get; init; }
 
+    public string? CopilotInstructionsPath { get; init; }
+
+    private ResponsesCodingChatRunner? _responsesRunner;
+
+    public required CodingAgentChatRunner CodingRunner { get; init; }
+
+    internal ResponsesCodingChatRunner ResponsesRunner => _responsesRunner ??= new ResponsesCodingChatRunner(
+        ChatManager, new ResponsesCodingAgent(CodingAgent, CopilotInstructionsPath));
+
     public required ILanguageModel? PrimaryModel { get; init; }
 
     public required CodingWorkTaskController Controller { get; init; }

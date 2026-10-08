@@ -58,6 +58,8 @@ internal sealed class CodingWorkTaskController
         AddOrUpdateSummary(_chatManager.SelectedSession, insertAtTop: true);
     }
 
+    internal ICodingChatRunner CodingRunner => _chatRunner;
+
     public event EventHandler? StateChanged;
 
     public ObservableCollection<CopilotChatSessionSummary> Sessions { get; } = [];
@@ -237,7 +239,7 @@ internal sealed class CodingWorkTaskController
         (
             [new TextContent(prompt)],
             options,
-            cancellationToken
+            cancellationToken: cancellationToken
         );
     }
 
@@ -245,6 +247,7 @@ internal sealed class CodingWorkTaskController
     (
         IReadOnlyList<AIContent> contents,
         CodingChatRunOptions? options = null,
+        ICodingChatRunner? runner = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -255,7 +258,7 @@ internal sealed class CodingWorkTaskController
             throw new ArgumentException("消息内容不能为空。", nameof(contents));
         }
 
-        ICodingChatRunner chatRunner = _chatRunner;
+        ICodingChatRunner chatRunner = runner ?? _chatRunner;
         if (_operationPhase == CodingWorkTaskOperationPhase.Running)
         {
             Guid sessionId = _chatManager.SelectedSession.SessionId;
@@ -387,6 +390,7 @@ internal sealed class CodingWorkTaskController
     (
         string prompt,
         CodingChatRunOptions options,
+        ICodingChatRunner? runner = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -404,6 +408,7 @@ internal sealed class CodingWorkTaskController
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _activeOperationCancellationTokenSource = operationCancellationTokenSource;
         _isLoopActive = true;
+        ICodingChatRunner chatRunner = runner ?? _chatRunner;
         OnStateChanged();
         try
         {
@@ -413,7 +418,7 @@ internal sealed class CodingWorkTaskController
                 {
                     await RunSingleMessageAsync
                     (
-                        _chatRunner,
+                        chatRunner,
                         [new TextContent(prompt)],
                         options,
                         operationCancellationTokenSource.Token

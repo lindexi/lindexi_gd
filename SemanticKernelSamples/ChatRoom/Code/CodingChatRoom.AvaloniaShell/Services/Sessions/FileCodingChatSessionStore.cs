@@ -54,6 +54,7 @@ internal sealed class FileCodingChatSessionStore : ICodingChatSessionStore
             WorkspacePath = persistenceData.WorkspacePath,
             WorkTaskId = persistenceData.WorkTaskId,
             WorkTaskName = persistenceData.WorkTaskName,
+            ResponsesSession = persistenceData.ResponsesSession,
         };
         if (!string.IsNullOrWhiteSpace(persistenceData.Title))
         {

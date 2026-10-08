@@ -10,9 +10,9 @@ public sealed class CodingPromptProviderTests
 
         CollectionAssert.AreEqual(new[]
         {
-            CodingSystemPrompt.SystemPrompt,
-            CodingSystemPrompt.CodePrompt,
-            CodingSystemPrompt.SandboxPrompt,
+            CodingPromptProvider.SystemPrompt,
+            CodingPromptProvider.CodePrompt,
+            CodingPromptProvider.SandboxPrompt,
         }, prompts.ToArray());
     }
 
@@ -23,7 +23,7 @@ public sealed class CodingPromptProviderTests
     {
         IReadOnlyList<string> prompts = await CodingPromptProvider.BuildAsync(path, CancellationToken.None);
 
-        Assert.AreEqual(CodingSystemPrompt.CodePrompt, prompts[1]);
+        Assert.AreEqual(CodingPromptProvider.CodePrompt, prompts[1]);
     }
 
     [TestMethod]
@@ -55,7 +55,7 @@ public sealed class CodingPromptProviderTests
 
         IReadOnlyList<string> prompts = await CodingPromptProvider.BuildAsync(path, CancellationToken.None);
 
-        Assert.AreEqual($"{CodingSystemPrompt.CodePrompt}{Environment.NewLine}{Environment.NewLine}```markdown {path}{Environment.NewLine}{instructions}{Environment.NewLine}```", prompts[1]);
+        Assert.AreEqual($"{CodingPromptProvider.CodePrompt}{Environment.NewLine}{Environment.NewLine}```markdown {path}{Environment.NewLine}{instructions}{Environment.NewLine}```", prompts[1]);
     }
 
     [TestMethod]
@@ -69,6 +69,6 @@ public sealed class CodingPromptProviderTests
 
         IReadOnlyList<string> prompts = await CodingPromptProvider.BuildAsync(path, CancellationToken.None);
 
-        Assert.AreEqual(CodingSystemPrompt.CodePrompt, prompts[1]);
+        Assert.AreEqual(CodingPromptProvider.CodePrompt, prompts[1]);
     }
 }

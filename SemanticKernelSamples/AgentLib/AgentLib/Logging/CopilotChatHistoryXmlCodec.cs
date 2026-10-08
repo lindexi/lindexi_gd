@@ -10,6 +10,8 @@ using System.Linq;
 using System.Text.Json;
 using System.Xml.Linq;
 
+#pragma warning disable OPENAI001, SCME0001
+
 namespace AgentLib.Logging;
 
 internal static class CopilotChatHistoryXmlCodec
@@ -85,7 +87,51 @@ internal static class CopilotChatHistoryXmlCodec
             WorkTaskName = rootElement.Attribute("WorkTaskName")?.Value,
             Messages = messages,
             AgentSessionState = agentSessionState,
+            ResponsesSession = ReadResponsesSession(rootElement),
         };
+    }
+
+    internal static void AppendResponsesSession(XElement root, CopilotResponsesSession? session)
+    {
+        if (session is null) return;
+        root.Add(new XElement("ProtocolStates", new XElement("ResponsesState",
+            session.Items.Select(item => new XElement("Item",
+                System.ClientModel.Primitives.ModelReaderWriter.Write(item).ToString())))));
+    }
+
+    private static CopilotResponsesSession? ReadResponsesSession(XElement root)
+    {
+        XElement? state = root.Element("ProtocolStates")?.Element("ResponsesState");
+        if (state is null) return null;
+        var session = new CopilotResponsesSession();
+        foreach (XElement element in state.Elements("Item"))
+        {
+            var item = ReadResponseItem(element.Value);
+            session.AppendItem(item);
+        }
+        return session;
+    }
+
+    private static OpenAI.Responses.ResponseItem ReadResponseItem(string json)
+    {
+        using JsonDocument document = JsonDocument.Parse(json);
+        JsonElement root = document.RootElement;
+        // SDK 2.14 只接受字符串 FunctionOutput；存储恢复时保留原生多模态 output 的 JSON Patch。
+        if (root.GetProperty("type").GetString() == "function_call_output"
+            && root.TryGetProperty("output", out JsonElement output)
+            && output.ValueKind == JsonValueKind.Array)
+        {
+            var properties = root.EnumerateObject().ToDictionary(
+                property => property.Name,
+                property => property.Name == "output" ? (object)string.Empty : property.Value.Clone());
+            var item = System.ClientModel.Primitives.ModelReaderWriter.Read<OpenAI.Responses.ResponseItem>(
+                BinaryData.FromObjectAsJson(properties))
+                ?? throw new InvalidDataException("Responses 历史 Item 不能为空。");
+            item.Patch.Set("$.output"u8, BinaryData.FromString(output.GetRawText()));
+            return item;
+        }
+        return System.ClientModel.Primitives.ModelReaderWriter.Read<OpenAI.Responses.ResponseItem>(BinaryData.FromString(json))
+            ?? throw new InvalidDataException("Responses 历史 Item 不能为空。");
     }
 
     private static CopilotChatMessage ReadMessage(XElement messageElement)

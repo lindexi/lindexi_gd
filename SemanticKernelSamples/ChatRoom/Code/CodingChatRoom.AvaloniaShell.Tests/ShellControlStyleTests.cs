@@ -193,6 +193,48 @@ public sealed class ShellControlStyleTests
     }
 
     [TestMethod]
+    [DataRow(640)]
+    [DataRow(1160)]
+    public void MessageContentShouldFitInsideScrollViewport(int width)
+    {
+        using var chat = new ChatViewModel();
+        chat.Messages.Add(new MessageItemViewModel(AgentLib.Model.CopilotChatMessage.CreateAssistant(
+            string.Concat(Enumerable.Repeat("Long message text should wrap inside the viewport. ", 40)), isPresetInfo: false)));
+        var view = new ChatView { DataContext = chat };
+        var window = new Window { Width = width, Height = 620, Content = view };
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+            var scroll = view.FindControl<ScrollViewer>("MessagesScrollViewer")
+                ?? throw new InvalidOperationException("Message scroll missing.");
+            var items = view.FindControl<ItemsControl>("MessagesItemsControl")
+                ?? throw new InvalidOperationException("Message items missing.");
+            var presenter = scroll.GetVisualDescendants().OfType<ScrollContentPresenter>().First();
+            var origin = items.TranslatePoint(default, presenter)
+                ?? throw new InvalidOperationException("Message position missing.");
+
+            var viewOrigin = items.TranslatePoint(default, view)
+                ?? throw new InvalidOperationException("Message position missing.");
+            var output = items.GetVisualDescendants().OfType<TextBox>()
+                .Single(textBox => textBox.Classes.Contains("ChatOutput"));
+            var outputOrigin = output.TranslatePoint(default, presenter)
+                ?? throw new InvalidOperationException("Assistant output position missing.");
+            var textPresenter = output.GetVisualDescendants().OfType<TextPresenter>().Single();
+            var innerScroll = output.GetVisualDescendants().OfType<ScrollViewer>().Single();
+            Console.WriteLine($"Output={output.Bounds.Width}, text={textPresenter.Bounds.Width}, layout={textPresenter.TextLayout.Width}, inner viewport={innerScroll.Viewport.Width}, extent={innerScroll.Extent.Width}, horizontal={innerScroll.HorizontalScrollBarVisibility}");
+            Assert.IsTrue(textPresenter.TextLayout.Width <= innerScroll.Viewport.Width + 0.5,
+                $"Text layout={textPresenter.TextLayout.Width}, inner viewport={innerScroll.Viewport.Width}");
+            Assert.IsTrue(origin.X >= 32 && origin.X + items.Bounds.Width <= presenter.Bounds.Width - 16 + 0.5
+                && outputOrigin.X + output.Bounds.Width <= presenter.Bounds.Width - 16 + 0.5
+                && scroll.Margin == default(Thickness)
+                && viewOrigin.X >= 32 && viewOrigin.X + items.Bounds.Width <= view.Bounds.Width - 16 + 0.5,
+                $"Content x={origin.X}, width={items.Bounds.Width}, viewport={presenter.Bounds.Width}, view x={viewOrigin.X}");
+        }
+        finally { window.Close(); }
+    }
+
+    [TestMethod]
     public void PresetGreetingShouldUseWelcomeLayout()
     {
         using var chat = new ChatViewModel();

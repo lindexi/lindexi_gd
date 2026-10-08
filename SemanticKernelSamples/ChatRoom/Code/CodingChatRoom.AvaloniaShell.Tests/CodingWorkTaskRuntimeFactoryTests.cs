@@ -10,6 +10,29 @@ namespace CodingChatRoom.AvaloniaShell.Tests;
 [TestClass]
 public sealed class CodingWorkTaskRuntimeFactoryTests
 {
+    [TestMethod]
+    public async Task ResponsesRunnerShouldBeReusedWithinTaskRuntime()
+    {
+        using var temporaryDirectory = new TemporaryDirectory();
+        var paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
+        await using var runtime = await CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new ImmediateMainThreadDispatcher());
+
+        Assert.AreSame(runtime.ResponsesRunner, runtime.ResponsesRunner);
+    }
+
+    [TestMethod]
+    public async Task ResponsesRunnerShouldBeOwnedByEachTaskRuntime()
+    {
+        using var firstDirectory = new TemporaryDirectory();
+        using var secondDirectory = new TemporaryDirectory();
+        await using var first = await CodingWorkTaskRuntimeFactory.InitializeAsync(
+            CodingChatRoomPaths.Create(firstDirectory.Path), new ImmediateMainThreadDispatcher());
+        await using var second = await CodingWorkTaskRuntimeFactory.InitializeAsync(
+            CodingChatRoomPaths.Create(secondDirectory.Path), new ImmediateMainThreadDispatcher());
+
+        Assert.AreNotSame(first.ResponsesRunner, second.ResponsesRunner);
+    }
+
     [TestMethod(DisplayName = "路径对象应只在指定根目录下计算固定文件和子目录")]
     [Timeout(5000)]
     public void PathsShouldUseOnlyTheSpecifiedRootDirectory()
