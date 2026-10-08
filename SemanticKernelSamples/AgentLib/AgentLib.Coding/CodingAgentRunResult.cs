@@ -13,6 +13,7 @@ public sealed record CodingAgentRunResult
 {
     private readonly MessageInjectingChatClient? _messageInjector;
     private readonly AgentSession? _session;
+    private readonly ResponsesCodingAgentRunner? _responsesRunner;
 
     /// <summary>
     /// 创建不支持消息注入的运行结果。
@@ -42,6 +43,12 @@ public sealed record CodingAgentRunResult
         _session = session;
     }
 
+    internal CodingAgentRunResult(CopilotChatMessage assistantChatMessage, Task<string?> completionTask,
+        ResponsesCodingAgentRunner responsesRunner) : this(assistantChatMessage, completionTask)
+    {
+        _responsesRunner = responsesRunner;
+    }
+
     /// <summary>
     /// 获取可直接绑定以观察流式更新的助手消息。
     /// </summary>
@@ -67,6 +74,11 @@ public sealed record CodingAgentRunResult
         if (contents.Count == 0)
         {
             throw new ArgumentException("消息内容不能为空。", nameof(contents));
+        }
+
+        if (_responsesRunner is not null)
+        {
+            return _responsesRunner.InjectMessageAsync(contents, cancellationToken);
         }
 
         MessageInjectingChatClient messageInjector = _messageInjector

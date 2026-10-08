@@ -177,6 +177,23 @@ public sealed class ResponsesWorkflowLiveTests
     }
 
     [TestMethod]
+    public async Task SendCommandDuringActiveResponseShouldQueueInterruptionAsync()
+    {
+        if (!File.Exists(KeyPath)) return;
+        await using var scenario = await Scenario.CreateAsync();
+        scenario.Chat.InputText = "请用一段话介绍 C# async，不调用工具。";
+        Task sending = ((SimpleAsyncCommand)scenario.Chat.SendCommand).ExecuteAsync();
+        await scenario.Recorder.RequestStarted.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        scenario.Chat.InputText = "请调整回答，只回复代码测试标识 INTERRUPT-731，不调用工具。";
+        await ((SimpleAsyncCommand)scenario.Chat.SendCommand).ExecuteAsync();
+        await sending.WaitAsync(TimeSpan.FromMinutes(3));
+
+        StringAssert.Contains(scenario.LastAnswer, "INTERRUPT-731");
+        Assert.IsTrue(scenario.Runtime.ChatManager.SelectedSession.ChatMessages.Any(message =>
+            message.Role == ChatRole.User && message.Content.Contains("INTERRUPT-731", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
     public async Task CompressionCommandShouldBeAvailableForResponsesHistoryAsync()
     {
         if (!File.Exists(KeyPath)) return;

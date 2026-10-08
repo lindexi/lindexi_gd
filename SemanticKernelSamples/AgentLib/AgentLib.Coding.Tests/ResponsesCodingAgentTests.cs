@@ -71,6 +71,39 @@ public sealed class ResponsesCodingAgentTests
             .GetProperty("output").GetString());
     }
 
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task InjectedMessagesShouldContinueAtRequestBoundary(bool toolCall)
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"responses-injection-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(path);
+        using var handler = new StreamingHandler { ReturnToolCall = toolCall, BlockFirstRequest = true };
+        using var http = new HttpClient(handler);
+        var manager = new CopilotChatManager();
+        manager.AgentApiEndpointManager.HttpClient?.Dispose();
+        manager.AgentApiEndpointManager.HttpClient = http;
+        manager.AgentApiEndpointManager.LoadConfiguration(AgentApiManagerConfiguration.FromJsonString("""
+            {"PrimaryModel":"demo","OpenAIConfigurationList":[{"EndPoint":"https://example.com/v1","Key":"test-key",
+            "ModelDefinitions":[{"ModelName":"demo","ModelId":"model-id","Provider":"test"}]}]}
+            """));
+        await using var coding = new CodingAgent(new CodingAgentOptions { AdditionalToolSources = [new TestToolSource()] });
+        var agent = new ResponsesCodingAgent(coding);
+        var run = await agent.RunAsync(await manager.CreateManualSendMessageContextAsync(),
+            [new TextContent("initial")], manager.SelectedSession.ResponsesSession, path);
+        await handler.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await run.InjectMessageAsync([new TextContent("interrupt-one")]);
+        await run.InjectMessageAsync([new TextContent("interrupt-two")]);
+        handler.Release.TrySetResult();
+        await run.CompletionTask.WaitAsync(TimeSpan.FromSeconds(5));
+
+        using var request = JsonDocument.Parse(handler.Requests[1]);
+        string[] userTexts = request.RootElement.GetProperty("input").EnumerateArray()
+            .Where(item => item.GetProperty("type").GetString() == "message" && item.GetProperty("role").GetString() == "user")
+            .Select(item => item.GetProperty("content")[0].GetProperty("text").GetString()!).ToArray();
+        CollectionAssert.AreEqual(new[] { "initial", "interrupt-one", "interrupt-two" }, userTexts);
+    }
+
     private sealed class TestToolSource : ICodingWorkspaceToolSource
     {
         public IReadOnlyList<AITool> CreateTools(string workspacePath) =>
@@ -82,10 +115,18 @@ public sealed class ResponsesCodingAgentTests
         public List<string> Requests { get; } = new();
         public bool ReturnToolCall { get; init; }
         public bool NullTerminalAnnotations { get; init; }
+        public bool BlockFirstRequest { get; init; }
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Requests.Add(await request.Content!.ReadAsStringAsync(cancellationToken));
+            if (BlockFirstRequest && Requests.Count == 1)
+            {
+                Started.TrySetResult();
+                await Release.Task.WaitAsync(cancellationToken);
+            }
             string id = $"resp_{Requests.Count}";
             string response = JsonSerializer.Serialize(new
             {
