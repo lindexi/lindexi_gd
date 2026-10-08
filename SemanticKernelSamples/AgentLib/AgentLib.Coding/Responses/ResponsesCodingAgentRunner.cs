@@ -118,25 +118,50 @@ internal sealed class ResponsesCodingAgentRunner
     private async Task<ResponseResult> ReceiveResponseAsync(CreateResponseOptions request)
     {
         ResponseResult? response = null;
-        await foreach (StreamingResponseUpdate update in Client
-            .CreateResponseStreamingAsync(request, CancellationToken).ConfigureAwait(false))
+        var receivedItems = new SortedDictionary<int, ResponseItem>();
+        ResponseResult? startedResponse = null;
+        try
         {
-            await DispatchAsync(() => MessageContext.AssistantChatMessage.ResponseInfo
-                .AppendResponseUpdate(update)).ConfigureAwait(false);
-            switch (update)
+            await foreach (StreamingResponseUpdate update in Client
+                .CreateResponseStreamingAsync(request, CancellationToken).ConfigureAwait(false))
             {
-                case StreamingResponseCompletedUpdate completed:
-                    response = completed.Response;
-                    break;
-                case StreamingResponseIncompleteUpdate incomplete:
-                    response = incomplete.Response;
-                    break;
-                case StreamingResponseFailedUpdate failed:
-                    response = failed.Response;
-                    break;
-                case StreamingResponseErrorUpdate error:
-                    throw new InvalidOperationException(error.Message);
+                await DispatchAsync(() => MessageContext.AssistantChatMessage.ResponseInfo
+                    .AppendResponseUpdate(update)).ConfigureAwait(false);
+                switch (update)
+                {
+                    case StreamingResponseCreatedUpdate created:
+                        startedResponse = created.Response;
+                        break;
+                    case StreamingResponseOutputItemDoneUpdate done:
+                        receivedItems[done.OutputIndex] = done.Item;
+                        break;
+                    case StreamingResponseCompletedUpdate completed:
+                        response = completed.Response;
+                        break;
+                    case StreamingResponseIncompleteUpdate incomplete:
+                        response = incomplete.Response;
+                        break;
+                    case StreamingResponseFailedUpdate failed:
+                        response = failed.Response;
+                        break;
+                    case StreamingResponseErrorUpdate error:
+                        throw new InvalidOperationException(error.Message);
+                }
             }
+        }
+        catch (InvalidOperationException exception) when (
+            exception.Message == "The requested operation requires an element of type 'Array', but the target element has type 'Null'."
+            && exception.StackTrace?.Contains("StreamingResponseCompletedUpdate.DeserializeStreamingResponseCompletedUpdate", StringComparison.Ordinal) == true
+            && exception.StackTrace.Contains("InternalItemContentOutputText.DeserializeInternalItemContentOutputText", StringComparison.Ordinal))
+        {
+            CancellationToken.ThrowIfCancellationRequested();
+            System.Diagnostics.Trace.TraceWarning($"Responses 已知终态解析异常，按完成处理；终态用量可能缺失。{exception}");
+            response = new ResponseResult { Id = startedResponse?.Id, Status = ResponseStatus.Completed };
+            foreach (ResponseItem item in receivedItems.Values)
+            {
+                response.OutputItems.Add(item);
+            }
+            await DispatchAsync(() => MessageContext.AssistantChatMessage.ResponseInfo.AppendResponse(response)).ConfigureAwait(false);
         }
         return response ?? throw new InvalidOperationException("Responses 流未返回终态响应。");
     }
