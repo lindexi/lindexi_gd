@@ -33,6 +33,15 @@ public sealed class CopilotChatReasoningItem : NotifyBase, ICopilotChatMessageIt
 
     private string _text = string.Empty;
 
+    internal event EventHandler<string>? TextAppended;
+
+    internal void AppendText(string delta)
+    {
+        if (string.IsNullOrEmpty(delta)) return;
+        Text += delta;
+        TextAppended?.Invoke(this, delta);
+    }
+
     /// <summary>
     /// 是否有推理文本。
     /// </summary>

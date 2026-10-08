@@ -1,5 +1,9 @@
 # Responses 能力覆盖矩阵
 
+## 当前状态与目标的区别
+
+已验证原生请求、显式历史、本地函数执行闭环、提示词缓存用量和内置 Web Search 调用记录。引用 UI、完整取消、压缩、Shell 接入及协议持久化不因此视为完成。
+
 ## 判定规则
 
 “支持”必须具备请求构造、响应解析、消息投影、错误处理和测试。只有 Web Search 属于本方案要求第一等支持的 SDK 托管工具。
@@ -9,16 +13,16 @@
 | Instructions 与 Items | 原生使用，不转换成 Chat Completions messages |
 | 文本流 | 按 delta 实时投影并处理 completed/incomplete/failed |
 | 图片输入 | 使用 input image content part，保持与文本顺序 |
-| `previous_response_id` | 用于多轮状态链 |
-| Conversations | SDK 与服务支持时为本地会话绑定 conversation |
-| `store=true` | 保存远端标识并支持重启续聊 |
-| `store=false` | 保存继续上下文所需 Items 和 encrypted reasoning |
+| `previous_response_id` | 引用上一轮响应 id；显式历史路线不依赖其补齐上下文 |
+| Conversations | 当前接入未验证，不承诺可用 |
+| `store=true` | 请求保存响应，不据此省略本地历史或承诺重启续聊 |
+| 客户端历史 | 显式提交所需原生 Items，保持稳定前缀；完整持久化另行实现 |
 | Reasoning effort | 映射现有思考强度 |
 | Reasoning summary | 请求并流式展示“思考摘要” |
-| Cached/reasoning token | 映射到现有用量模型 |
+| Cached/reasoning token | 映射到现有用量模型；以 cached input / input 计算命中率，累计比率按 token 加权 |
 | 自定义函数工具 | 复用 AgentLib `AIFunction`，完成 call/output 循环 |
 | Parallel tool calls | 按 API 语义执行同批调用并稳定排序结果 |
-| Web Search | 原生注册工具，投影状态、来源、annotations 和 citations |
+| Web Search | 显式注册内置工具，由服务端执行；以原生调用项验证，完整引用 UI 为后续目标 |
 | Annotations/citations | 保留 URL、标题及其与答案文本的引用关系 |
 | Server-side cancel | 已取得 response id 且 SDK 支持时取消远端 response |
 | Compact | 自动压缩开启时使用 Responses 可续接上下文管理能力 |

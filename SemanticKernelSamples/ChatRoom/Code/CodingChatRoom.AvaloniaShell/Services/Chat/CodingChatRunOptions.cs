@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentLib.Coding;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -67,6 +68,8 @@ internal static class CodingAgentRunExtensions
         public CopilotChatMessage AssistantChatMessage => inner.AssistantChatMessage;
 
         public IChatClient ChatClient => inner.ChatClient;
+
+        public ILanguageModel LanguageModel => inner.LanguageModel;
 
         public AgentLib.IMainThreadDispatcher? MainThreadDispatcher => inner.MainThreadDispatcher;
 

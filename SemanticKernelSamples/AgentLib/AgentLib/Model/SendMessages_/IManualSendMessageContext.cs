@@ -1,4 +1,5 @@
 using AgentLib;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -28,6 +29,11 @@ public interface IManualSendMessageContext
     /// 底层聊天客户端。
     /// </summary>
     IChatClient ChatClient { get; }
+
+    /// <summary>
+    /// 创建上下文时用于获取聊天客户端的语言模型。
+    /// </summary>
+    ILanguageModel LanguageModel { get; }
 
     /// <summary>
     /// Gets the optional UI-thread dispatcher configured on the owning <see cref="CopilotChatManager" />.

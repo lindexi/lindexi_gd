@@ -1,4 +1,5 @@
 using AgentLib;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -51,6 +52,9 @@ internal sealed class ManualSendMessageContext : IManualSendMessageContext
 
     /// <inheritdoc />
     public required IChatClient ChatClient { get; init; }
+
+    /// <inheritdoc />
+    public required ILanguageModel LanguageModel { get; init; }
 
     /// <inheritdoc />
     public IMainThreadDispatcher? MainThreadDispatcher => ChatManager.MainThreadDispatcher;

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace AgentLib.Model;
 
 /// <summary>
@@ -36,6 +32,15 @@ public sealed class CopilotChatTextItem : NotifyBase, ICopilotChatMessageItem
     }
 
     private string _text = string.Empty;
+
+    internal event EventHandler<string>? TextAppended;
+
+    internal void AppendText(string delta)
+    {
+        if (string.IsNullOrEmpty(delta)) return;
+        Text += delta;
+        TextAppended?.Invoke(this, delta);
+    }
 
     /// <summary>
     /// 是否有文本内容。
