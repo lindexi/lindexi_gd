@@ -10,6 +10,7 @@ using System.Windows.Input;
 using Avalonia.Threading;
 using AgentLib;
 using AgentLib.Model;
+using AgentLib.Coding;
 using CodingChatRoom.AvaloniaShell.Abilities;
 using CodingChatRoom.AvaloniaShell.Services;
 using Microsoft.Extensions.AI;
