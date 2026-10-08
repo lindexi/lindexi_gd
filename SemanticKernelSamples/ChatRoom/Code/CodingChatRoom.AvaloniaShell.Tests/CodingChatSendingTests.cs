@@ -477,7 +477,7 @@ public sealed class CodingChatSendingTests
 
         public CopilotChatMessage AssistantMessage { get; private set; } = CreateAssistantMessage();
 
-        public async Task<CodingAgentRunResult> RunAsync(
+        public async Task<ICodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CodingChatRunOptions options,
@@ -505,7 +505,7 @@ public sealed class CodingChatSendingTests
                 SecondRunStarted.TrySetResult();
             }
 
-            return new CodingAgentRunResult(AssistantMessage, CompleteAsync(cancellationToken));
+            return new CompletedCodingAgentRunResult(AssistantMessage, CompleteAsync(cancellationToken));
         }
 
         public Task InjectMessageAsync(

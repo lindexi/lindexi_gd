@@ -9,7 +9,7 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 
 internal interface ICodingChatRunner
 {
-    Task<CodingAgentRunResult> RunAsync
+    Task<ICodingAgentRunResult> RunAsync
     (
         IReadOnlyList<AIContent> contents,
         string? workspacePath,

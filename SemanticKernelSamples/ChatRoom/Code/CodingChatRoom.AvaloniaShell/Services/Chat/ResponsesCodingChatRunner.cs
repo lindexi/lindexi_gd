@@ -4,22 +4,28 @@ using System.Threading;
 using System.Threading.Tasks;
 using AgentLib;
 using AgentLib.Coding;
+using AgentLib.Model;
 using Microsoft.Extensions.AI;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
 internal sealed class ResponsesCodingChatRunner(CopilotChatManager chatManager, ResponsesCodingAgent agent) : ICodingChatRunner
 {
-    private CodingAgentRunResult? _activeRun;
+    private ICodingAgentRunResult? _activeRun;
+    private CopilotChatSession? _activeSession;
 
     public async Task InjectMessageAsync(IReadOnlyList<AIContent> contents, CancellationToken cancellationToken)
     {
         var run = _activeRun ?? throw new InvalidOperationException("当前没有正在运行的 Responses 代理。");
         await run.InjectMessageAsync(contents, cancellationToken).ConfigureAwait(false);
-        await chatManager.AppendMessageAsync(AgentLib.Model.CopilotChatMessage.CreateUser(contents), cancellationToken).ConfigureAwait(false);
+
+        var session = _activeSession ?? throw new InvalidOperationException("当前没有活动 Responses 会话。");
+        var message = CopilotChatMessage.CreateUser(contents);
+        await session.AddMessageAsync(message).ConfigureAwait(false);
+        await chatManager.ChatLogger.LogMessageAsync(session.SessionId, message).ConfigureAwait(false);
     }
 
-    public async Task<CodingAgentRunResult> RunAsync(IReadOnlyList<AIContent> contents,
+    public async Task<ICodingAgentRunResult> RunAsync(IReadOnlyList<AIContent> contents,
         string? workspacePath, CodingChatRunOptions options, CancellationToken cancellationToken)
     {
         var session = chatManager.SelectedSession;
@@ -29,10 +35,11 @@ internal sealed class ResponsesCodingChatRunner(CopilotChatManager chatManager, 
         var run = await agent.RunAsync(context, contents, conversation, workspacePath,
             options, cancellationToken).ConfigureAwait(false);
         _activeRun = run;
-        return new CodingAgentRunResult(run.AssistantChatMessage, CompleteAsync(run, sessionId));
+        _activeSession = session;
+        return new CompletedCodingAgentRunResult(run.AssistantChatMessage, CompleteAsync(run, sessionId));
     }
 
-    private async Task<string?> CompleteAsync(CodingAgentRunResult run, Guid sessionId)
+    private async Task<string?> CompleteAsync(ICodingAgentRunResult run, Guid sessionId)
     {
         try
         {
@@ -47,6 +54,7 @@ internal sealed class ResponsesCodingChatRunner(CopilotChatManager chatManager, 
             finally
             {
                 _activeRun = null;
+                _activeSession = null;
             }
         }
     }

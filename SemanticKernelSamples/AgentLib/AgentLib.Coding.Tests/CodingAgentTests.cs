@@ -49,7 +49,7 @@ public sealed class CodingAgentTests
             new TextContent("后"),
         ];
 
-        CodingAgentRunResult result = await agent.RunAsync(
+        ICodingAgentRunResult result = await agent.RunAsync(
             context,
             contents,
             "coding-workspace",
@@ -110,7 +110,7 @@ public sealed class CodingAgentTests
         await using var agent = CreateAgent(CreateProvider("workspace", []));
         IManualSendMessageContext context = await chatManager.CreateManualSendMessageContextAsync();
 
-        CodingAgentRunResult result = await agent.RunAsync(context, "开始任务", "workspace");
+        ICodingAgentRunResult result = await agent.RunAsync(context, "开始任务", "workspace");
         await firstCallStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
 
         await result.InjectMessageAsync([new TextContent("人类插话")]);
@@ -135,7 +135,7 @@ public sealed class CodingAgentTests
         await using var agent = CreateAgent(CreateProvider("workspace", []));
         IManualSendMessageContext context = await chatManager.CreateManualSendMessageContextAsync();
 
-        CodingAgentRunResult result = await agent.RunAsync(context, "检查顺序", "workspace");
+        ICodingAgentRunResult result = await agent.RunAsync(context, "检查顺序", "workspace");
         Assert.AreEqual("正文一正文二", await result.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
 
         Assert.HasCount(4, result.AssistantChatMessage.MessageItems);
@@ -161,13 +161,13 @@ public sealed class CodingAgentTests
         await using var agent = CreateAgent(CreateProvider("workspace", []));
         IManualSendMessageContext firstContext = await chatManager.CreateManualSendMessageContextAsync();
 
-        CodingAgentRunResult first = await agent.RunAsync(firstContext, "第一轮", "workspace");
+        ICodingAgentRunResult first = await agent.RunAsync(firstContext, "第一轮", "workspace");
         await first.CompletionTask;
         object? firstSession = chatManager.SelectedSession.AgentSession;
         Assert.IsNotNull(firstSession);
 
         IManualSendMessageContext secondContext = await chatManager.CreateManualSendMessageContextAsync();
-        CodingAgentRunResult second = await agent.RunAsync(secondContext, "第二轮", "workspace");
+        ICodingAgentRunResult second = await agent.RunAsync(secondContext, "第二轮", "workspace");
         await second.CompletionTask;
 
         Assert.AreSame(firstSession, chatManager.SelectedSession.AgentSession);
@@ -189,12 +189,12 @@ public sealed class CodingAgentTests
         CopilotChatManager chatManager = CreateChatManager(client);
         await using var agent = CreateAgent(CreateProvider("workspace", []));
 
-        CodingAgentRunResult first = await agent.RunAsync(
+        ICodingAgentRunResult first = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "第一轮",
             "workspace");
         await first.CompletionTask;
-        CodingAgentRunResult second = await agent.RunAsync(
+        ICodingAgentRunResult second = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "第二轮",
             "workspace");
@@ -224,7 +224,7 @@ public sealed class CodingAgentTests
         CopilotChatManager chatManager = CreateChatManager(client);
         await using var agent = CreateAgent(CreateProvider("workspace", []), instructionsPath);
 
-        CodingAgentRunResult result = await agent.RunAsync(
+        ICodingAgentRunResult result = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "测试自定义指令",
             "workspace");
@@ -258,14 +258,14 @@ public sealed class CodingAgentTests
         CopilotChatManager firstChatManager = CreateChatManager(client);
         CopilotChatManager secondChatManager = CreateChatManager(client);
         await using var agent = CreateAgent(CreateProvider("workspace", []));
-        CodingAgentRunResult first = await agent.RunAsync(
+        ICodingAgentRunResult first = await agent.RunAsync(
             await firstChatManager.CreateManualSendMessageContextAsync(),
             "第一轮",
             "workspace");
         await streamStarted.Task.WaitAsync(TimeSpan.FromSeconds(2));
         IManualSendMessageContext secondContext = await secondChatManager.CreateManualSendMessageContextAsync();
 
-        CodingAgentRunResult second = await agent.RunAsync(
+        ICodingAgentRunResult second = await agent.RunAsync(
             secondContext,
             "第二轮",
             "workspace");
@@ -295,7 +295,7 @@ public sealed class CodingAgentTests
             new ThrowingReadOnlyList(),
             "workspace"));
 
-        CodingAgentRunResult nextRun = await agent.RunAsync(
+        ICodingAgentRunResult nextRun = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "后续任务",
             "workspace");
@@ -347,7 +347,7 @@ public sealed class CodingAgentTests
             AdditionalToolSources = [new WorkspaceNamedToolSource()],
         });
 
-        CodingAgentRunResult firstRun = await agent.RunAsync(
+        ICodingAgentRunResult firstRun = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "第一轮",
             firstPath);
@@ -359,7 +359,7 @@ public sealed class CodingAgentTests
         releaseFirstStream.TrySetResult();
         Assert.AreEqual("完成", await firstRun.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
 
-        CodingAgentRunResult secondRun = await agent.RunAsync(
+        ICodingAgentRunResult secondRun = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "第二轮",
             secondPath);
@@ -399,7 +399,7 @@ public sealed class CodingAgentTests
             AdditionalToolSources = [sandboxToolSource],
         });
 
-        CodingAgentRunResult firstRun = await agent.RunAsync(
+        ICodingAgentRunResult firstRun = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "第一轮",
             workspacePath);
@@ -408,7 +408,7 @@ public sealed class CodingAgentTests
         Assert.IsTrue(firstRunTools!.Any(tool => tool.Name == "execute_in_windows_sandbox"));
         releaseFirstRun.TrySetResult();
         Assert.AreEqual("完成", await firstRun.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
-        CodingAgentRunResult secondRun = await agent.RunAsync(
+        ICodingAgentRunResult secondRun = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "第二轮",
             workspacePath);
@@ -429,7 +429,7 @@ public sealed class CodingAgentTests
         await using var agent = CreateAgent(CreateProvider("workspace", []));
         IManualSendMessageContext context = await chatManager.CreateManualSendMessageContextAsync();
 
-        CodingAgentRunResult result = await agent.RunAsync(context, "任务", "workspace");
+        ICodingAgentRunResult result = await agent.RunAsync(context, "任务", "workspace");
 
         Assert.IsNull(await result.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
         Assert.IsTrue(string.IsNullOrEmpty(result.AssistantChatMessage.Content));
@@ -453,7 +453,7 @@ public sealed class CodingAgentTests
         CopilotChatManager chatManager = CreateChatManager(client);
         await using var agent = CreateAgent(CreateProvider(workspacePath, []));
         using var cancellationTokenSource = new CancellationTokenSource();
-        CodingAgentRunResult canceledRun = await agent.RunAsync(
+        ICodingAgentRunResult canceledRun = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "取消任务",
             workspacePath,
@@ -463,7 +463,7 @@ public sealed class CodingAgentTests
 
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             await canceledRun.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
-        CodingAgentRunResult nextRun = await agent.RunAsync(
+        ICodingAgentRunResult nextRun = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "后续任务",
             workspacePath);
@@ -486,14 +486,14 @@ public sealed class CodingAgentTests
         };
         CopilotChatManager chatManager = CreateChatManager(client);
         await using var agent = CreateAgent(CreateProvider(workspacePath, []));
-        CodingAgentRunResult failedRun = await agent.RunAsync(
+        ICodingAgentRunResult failedRun = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "失败任务",
             workspacePath);
 
         InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(async () =>
             await failedRun.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
-        CodingAgentRunResult nextRun = await agent.RunAsync(
+        ICodingAgentRunResult nextRun = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "后续任务",
             workspacePath);
@@ -518,7 +518,7 @@ public sealed class CodingAgentTests
         };
         CopilotChatManager chatManager = CreateChatManager(client);
         var agent = CreateAgent(CreateProvider("workspace", []));
-        CodingAgentRunResult run = await agent.RunAsync(
+        ICodingAgentRunResult run = await agent.RunAsync(
             await chatManager.CreateManualSendMessageContextAsync(),
             "任务",
             "workspace");

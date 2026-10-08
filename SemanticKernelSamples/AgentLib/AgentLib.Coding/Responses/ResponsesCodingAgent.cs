@@ -28,7 +28,7 @@ public sealed class ResponsesCodingAgent
     /// <summary>
     /// 启动流式运行，使用调用方持有的对话历史；不迁移 Chat 协议状态。
     /// </summary>
-    public async Task<CodingAgentRunResult> RunAsync(IManualSendMessageContext context,
+    public async Task<ICodingAgentRunResult> RunAsync(IManualSendMessageContext context,
         IReadOnlyList<AIContent> contents, CopilotResponsesSession conversation,
         string? workspacePath, CodingChatRunOptions? options = null,
         CancellationToken cancellationToken = default)
@@ -59,7 +59,7 @@ public sealed class ResponsesCodingAgent
             CancellationToken = cancellationToken,
             ReasoningEffort = runOptions.ReasoningEffort,
         };
-        return new CodingAgentRunResult(context.AssistantChatMessage, runner.RunAsync(), runner);
+        return new ResponsesCodingAgentRunResult(runner);
     }
 
     internal static ResponseContentPart CreateInputPart(AIContent content) => content switch

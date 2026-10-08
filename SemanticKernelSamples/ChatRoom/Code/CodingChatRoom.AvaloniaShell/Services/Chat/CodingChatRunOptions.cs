@@ -12,7 +12,7 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 
 internal static class CodingAgentRunExtensions
 {
-    public static Task<CodingAgentRunResult> RunAsync
+    public static Task<ICodingAgentRunResult> RunAsync
     (
         this CodingAgent codingAgent,
         IManualSendMessageContext context,

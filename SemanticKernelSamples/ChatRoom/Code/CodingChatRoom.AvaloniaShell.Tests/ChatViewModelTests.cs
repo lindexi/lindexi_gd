@@ -701,7 +701,7 @@ public sealed class ChatViewModelTests
 
         public IReadOnlyList<AIContent>? ObservedContents { get; private set; }
 
-        public async Task<CodingAgentRunResult> RunAsync(
+        public async Task<ICodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CodingChatRunOptions options,
@@ -713,18 +713,18 @@ public sealed class ChatViewModelTests
             var assistantMessage = CopilotChatMessage.CreateAssistant("完成", isPresetInfo: false);
             await manager.SelectedSession.AddMessageAsync(assistantMessage);
             Completed.TrySetResult();
-            return new CodingAgentRunResult(assistantMessage, Task.FromResult<string?>("完成"));
+            return new CompletedCodingAgentRunResult(assistantMessage, Task.FromResult<string?>("完成"));
         }
     }
 
     private sealed class FailingRunner(Exception exception) : ICodingChatRunner
     {
-        public Task<CodingAgentRunResult> RunAsync(
+        public Task<ICodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CodingChatRunOptions options,
             CancellationToken cancellationToken) =>
-            Task.FromException<CodingAgentRunResult>(exception);
+            Task.FromException<ICodingAgentRunResult>(exception);
     }
 
     private sealed class CompletingRunner(CopilotChatManager manager) : ICodingChatRunner
@@ -741,7 +741,7 @@ public sealed class ChatViewModelTests
 
         public bool ObservedAutomaticCompressionEnabled { get; private set; }
 
-        public async Task<CodingAgentRunResult> RunAsync(
+        public async Task<ICodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CodingChatRunOptions options,
@@ -755,7 +755,7 @@ public sealed class ChatViewModelTests
             var assistantMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
             await manager.SelectedSession.AddMessageAsync(assistantMessage);
             Started.TrySetResult();
-            return new CodingAgentRunResult(assistantMessage, _completion.Task);
+            return new CompletedCodingAgentRunResult(assistantMessage, _completion.Task);
         }
 
         public void Complete() => _completion.TrySetResult("完成");
@@ -775,7 +775,7 @@ public sealed class ChatViewModelTests
 
         public string? InjectedText { get; private set; }
 
-        public async Task<CodingAgentRunResult> RunAsync(
+        public async Task<ICodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CodingChatRunOptions options,
@@ -787,7 +787,7 @@ public sealed class ChatViewModelTests
             var assistantMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
             await manager.SelectedSession.AddMessageAsync(assistantMessage);
             Started.TrySetResult();
-            return new CodingAgentRunResult(assistantMessage, WaitForCancellationAsync(cancellationToken));
+            return new CompletedCodingAgentRunResult(assistantMessage, WaitForCancellationAsync(cancellationToken));
         }
 
         public Task InjectMessageAsync(

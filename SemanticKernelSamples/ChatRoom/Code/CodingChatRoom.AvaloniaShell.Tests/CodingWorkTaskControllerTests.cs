@@ -527,7 +527,7 @@ public sealed class CodingWorkTaskControllerTests
     {
         public List<int> HistoryCountsBeforeRun { get; } = [];
 
-        public Task<CodingAgentRunResult> RunAsync(
+        public Task<ICodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CodingChatRunOptions options,
@@ -543,7 +543,7 @@ public sealed class CodingWorkTaskControllerTests
                 stopLoop();
             }
 
-            return Task.FromResult(new CodingAgentRunResult(
+            return Task.FromResult<ICodingAgentRunResult>(new CompletedCodingAgentRunResult(
                 CopilotChatMessage.CreateAssistant(string.Empty, isPresetInfo: false),
                 Task.FromResult<string?>(string.Empty)));
         }
@@ -555,14 +555,14 @@ public sealed class CodingWorkTaskControllerTests
 
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public Task<CodingAgentRunResult> RunAsync(
+        public Task<ICodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CodingChatRunOptions options,
             CancellationToken cancellationToken)
         {
             Started.TrySetResult();
-            return Task.FromResult(new CodingAgentRunResult(
+            return Task.FromResult<ICodingAgentRunResult>(new CompletedCodingAgentRunResult(
                 CopilotChatMessage.CreateAssistant(string.Empty, isPresetInfo: false),
                 _completion.Task.WaitAsync(cancellationToken)));
         }

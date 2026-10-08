@@ -336,7 +336,7 @@ internal sealed class CodingWorkTaskController
         Exception? runException = null;
         try
         {
-            CodingAgentRunResult runResult = await chatRunner.RunAsync
+            ICodingAgentRunResult runResult = await chatRunner.RunAsync
             (
                 runContents,
                 _workspaceController.NextRunWorkspacePath,
