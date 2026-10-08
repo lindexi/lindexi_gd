@@ -101,6 +101,8 @@ internal static class CodingWorkTaskRuntimeFactory
             ChatLogger = chatLogger,
             ChatManager = chatManager,
             CodingAgent = codingAgent,
+            CodingRunner = chatRunner,
+            CopilotInstructionsPath = GetCopilotInstructionsPath(shellSettings),
             PrimaryModel = primaryModel,
             Controller = controller,
             WorkspaceController = workspaceController,

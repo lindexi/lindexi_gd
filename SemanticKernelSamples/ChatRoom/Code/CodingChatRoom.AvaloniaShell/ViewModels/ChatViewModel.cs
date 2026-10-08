@@ -25,6 +25,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     private readonly CodingWorkTaskController? _workTaskController;
     private readonly CodingWorkspaceController? _workspaceController;
     private readonly AbilityCatalog? _abilityCatalog;
+    private readonly CodingWorkTaskRuntime? _runtime;
     private string _modelStatusText;
     private CopilotChatSession? _subscribedSession;
     private LanguageModelOptionViewModel? _selectedModel;
@@ -110,6 +111,12 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         InitializeReasoningEfforts();
         RebuildAbilities();
         AttachSession(_chatManager.SelectedSession);
+    }
+
+    internal ChatViewModel(CodingWorkTaskRuntime runtime, AbilityCatalog? abilityCatalog = null)
+        : this(runtime.ChatManager, runtime.Controller, runtime.WorkspaceController, runtime.ModelDisplayName, abilityCatalog)
+    {
+        _runtime = runtime;
     }
 
     /// <summary>
@@ -671,6 +678,9 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         bool isInterruption = IsRunning;
         bool runLoopIteration = IsLoopIterationEnabled && !isInterruption;
 
+        ICodingChatRunner runner = IsResponsesApiEnabled
+            ? (_runtime ?? throw new InvalidOperationException("任务运行时尚未初始化。")).ResponsesRunner
+            : _runtime?.CodingRunner ?? _workTaskController.CodingRunner;
         InputText = string.Empty;
         PendingImages.Clear();
         SelectProgrammingAbility();
@@ -685,13 +695,13 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
             if (runLoopIteration)
             {
                 await _workTaskController
-                    .RunLoopIterationAsync(loopPrompt, runOptions)
+                    .RunLoopIterationAsync(loopPrompt, runOptions, runner: runner)
                     .ConfigureAwait(true);
             }
             else
             {
                 await _workTaskController
-                    .SendMessageAsync(contents, runOptions)
+                    .SendMessageAsync(contents, runOptions, runner: runner)
                     .ConfigureAwait(true);
             }
 

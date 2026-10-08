@@ -127,10 +127,12 @@ public sealed class CodingAgent : IAsyncDisposable
                 _disposeCancellationTokenSource.Token
             );
             CancellationToken runCancellationToken = runCancellationTokenSource.Token;
-            CodingRunWorkspaceContext workspaceContext = await GetRunWorkspaceContextAsync(
+            CodingRunWorkspaceContext workspaceContext = await GetRunWorkspaceContextAsync
+            (
                 workspacePath,
                 enableDotNetRun,
-                runCancellationToken).ConfigureAwait(false);
+                runCancellationToken
+            ).ConfigureAwait(false);
             ChatClientAgent chatClientAgent = await context.GetChatClientAgentAsync
             (
                 options =>
@@ -204,10 +206,12 @@ public sealed class CodingAgent : IAsyncDisposable
     public Task<bool> StopLanguageServerAsync() =>
         _workspaceCache?.StopLanguageServerAsync() ?? Task.FromResult(false);
 
-    private async Task<CodingRunWorkspaceContext> GetRunWorkspaceContextAsync(
+    internal async Task<CodingRunWorkspaceContext> GetRunWorkspaceContextAsync
+    (
         string? workspacePath,
         bool enableDotNetRun,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         string? normalizedPath = string.IsNullOrWhiteSpace(workspacePath)
             ? null
@@ -223,9 +227,11 @@ public sealed class CodingAgent : IAsyncDisposable
 
             CodingWorkspaceCache? replacement = normalizedPath is null
                 ? null
-                : CodingWorkspaceCache.Create(
+                : CodingWorkspaceCache.Create
+                (
                     normalizedPath,
-                    _languageServerCommand);
+                    _languageServerCommand
+                );
             CodingWorkspaceCache? previous = _workspaceCache;
             _workspaceCache = replacement;
             if (previous is not null)
@@ -241,9 +247,11 @@ public sealed class CodingAgent : IAsyncDisposable
         }
     }
 
-    private CodingRunWorkspaceContext CreateRunWorkspaceContext(
+    private CodingRunWorkspaceContext CreateRunWorkspaceContext
+    (
         CodingWorkspaceCache? workspaceCache,
-        bool enableDotNetRun)
+        bool enableDotNetRun
+    )
     {
         if (workspaceCache is null)
         {

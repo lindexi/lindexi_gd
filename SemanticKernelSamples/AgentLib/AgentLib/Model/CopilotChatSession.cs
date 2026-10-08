@@ -15,6 +15,7 @@ public sealed class CopilotChatSession : NotifyBase
     private string _title = "新会话";
     private TitleSource _titleSource;
     private AgentSession? _agentSession;
+    private CopilotResponsesSession? _responsesSession;
     private IMainThreadDispatcher? _mainThreadDispatcher;
 
     /// <summary>
@@ -70,6 +71,19 @@ public sealed class CopilotChatSession : NotifyBase
     /// 会话中的聊天消息列表。
     /// </summary>
     public ObservableCollection<CopilotChatMessage> ChatMessages { get; } = [];
+
+    /// <summary>
+    /// 获取持续维护的 Responses 原生会话；仅存储初始化时允许提供恢复实例。
+    /// 访问不会读取展示消息或 Chat 协议历史。
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.AllowNull]
+    public CopilotResponsesSession ResponsesSession
+    {
+        get => _responsesSession ??= new CopilotResponsesSession();
+        init => _responsesSession = value;
+    }
+
+    internal CopilotResponsesSession? ExistingResponsesSession => _responsesSession;
 
     /// <summary>
     /// 主线程调度器。设置后，<see cref="AddMessageAsync"/> 将通过调度器回到主线程修改 <see cref="ChatMessages"/>。

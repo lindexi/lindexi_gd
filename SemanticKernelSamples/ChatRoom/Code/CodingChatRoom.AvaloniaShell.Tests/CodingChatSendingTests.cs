@@ -16,6 +16,28 @@ namespace CodingChatRoom.AvaloniaShell.Tests;
 [TestClass]
 public sealed class CodingChatSendingTests
 {
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    [Timeout(5000)]
+    public async Task SendMessageAsyncShouldSelectRequestedRunner(bool useResponses)
+    {
+        var manager = new CopilotChatManager();
+        var codingRunner = new TestCodingChatRunner(manager);
+        var responsesRunner = new TestCodingChatRunner(manager);
+        var application = CodingChatApplicationTestFactory.CreateApplication(
+            manager, new TestSessionStore(), codingRunner);
+        await application.InitializeAsync();
+
+        var expected = useResponses ? responsesRunner : codingRunner;
+        Task sending = application.SendMessageAsync([new TextContent("check")],
+            new CodingChatRunOptions(false, false, null), runner: expected);
+        await expected.Started.Task;
+        Assert.IsFalse((useResponses ? codingRunner : responsesRunner).Started.Task.IsCompleted);
+        expected.Complete("done");
+        await sending;
+    }
+
     [TestMethod(DisplayName = "发送应使用启动时已提交的工作路径")]
     [Timeout(5000)]
     public async Task SendMessageAsyncShouldUseCommittedWorkspacePath()
@@ -206,6 +228,113 @@ public sealed class CodingChatSendingTests
 
         store.ReleaseSave();
         await firstSend;
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    [Timeout(15000)]
+    public async Task ResponsesStopBeforeCompletionShouldAllowSendingAgainAndInNewSession(bool receivePartialResponse)
+    {
+        using var handler = new InterruptedResponseHandler(receivePartialResponse);
+        using var http = new HttpClient(handler);
+        var manager = new CopilotChatManager();
+        manager.AgentApiEndpointManager.HttpClient?.Dispose();
+        manager.AgentApiEndpointManager.HttpClient = http;
+        manager.AgentApiEndpointManager.LoadConfiguration(
+            AgentLib.Core.AgentApiManagers.LanguageModelProviders.AgentApiManagerConfiguration.FromJsonString("""
+                {"PrimaryModel":"demo","OpenAIConfigurationList":[{"EndPoint":"https://example.com/v1","Key":"test-key",
+                "ModelDefinitions":[{"ModelName":"demo","ModelId":"model-id","Provider":"test"}]}]}
+                """));
+        await using var codingAgent = new CodingAgent();
+        var runner = new ResponsesCodingChatRunner(manager, new ResponsesCodingAgent(codingAgent));
+        var application = CodingChatApplicationTestFactory.CreateApplication(
+            manager, new TestSessionStore(), codingAgent: codingAgent);
+        await application.InitializeAsync();
+        var options = new CodingChatRunOptions(false, false, null);
+        Task first = application.SendMessageAsync([new TextContent("first")], options, runner);
+        await handler.WaitingForCancellation.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        await application.StopActiveRunByUserAsync();
+        await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await first.WaitAsync(TimeSpan.FromSeconds(5)));
+        await application.SendMessageAsync([new TextContent("second")], options, runner)
+            .WaitAsync(TimeSpan.FromSeconds(5));
+        await application.CreateNewSessionAsync();
+        await application.SendMessageAsync([new TextContent("third")], options, runner)
+            .WaitAsync(TimeSpan.FromSeconds(5));
+
+        Assert.IsTrue(!application.IsRunActive && !manager.IsChatting
+            && manager.SelectedSession.ChatMessages.Any(message => message.Role == ChatRole.User && message.Content == "third"),
+            $"Running={application.IsRunActive}, chatting={manager.IsChatting}, messages={manager.SelectedSession.ChatMessages.Count}");
+    }
+
+    private sealed class InterruptedResponseHandler(bool receivePartialResponse) : HttpMessageHandler
+    {
+        private int _requestCount;
+        public TaskCompletionSource WaitingForCancellation { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            int number = Interlocked.Increment(ref _requestCount);
+            if (number == 1 && !receivePartialResponse)
+            {
+                WaitingForCancellation.TrySetResult();
+                await Task.Delay(Timeout.Infinite, cancellationToken);
+            }
+            HttpContent content;
+            if (number == 1)
+            {
+                content = new StreamContent(new InterruptedResponseStream(WaitingForCancellation));
+                content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/event-stream");
+            }
+            else
+            {
+                string response = $$$"""
+                    data: {"type":"response.completed","sequence_number":0,"response":{"id":"resp_{{{number}}}","status":"completed","output":[{"type":"message","id":"msg_{{{number}}}","role":"assistant","status":"completed","content":[{"type":"output_text","text":"done","annotations":[]}]}]}}
+
+
+                    """;
+                content = new StringContent(response, System.Text.Encoding.UTF8, "text/event-stream");
+            }
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK) { Content = content };
+        }
+    }
+
+    private sealed class InterruptedResponseStream(TaskCompletionSource waiting) : Stream
+    {
+        private readonly MemoryStream _prefix = new(System.Text.Encoding.UTF8.GetBytes("""
+            data: {"type":"response.created","sequence_number":0,"response":{"id":"resp_1","status":"in_progress","output":[]}}
+
+            data: {"type":"response.output_text.delta","sequence_number":1,"item_id":"msg_1","output_index":0,"content_index":0,"delta":"partial"}
+
+
+            """));
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            int count = await _prefix.ReadAsync(buffer, cancellationToken);
+            if (count > 0) return count;
+            waiting.TrySetResult();
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+            return 0;
+        }
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
+            ReadAsync(buffer.AsMemory(offset, count), cancellationToken).AsTask();
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override void Flush() => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) _prefix.Dispose();
+            base.Dispose(disposing);
+        }
     }
 
     [TestMethod(DisplayName = "停止活动发送应取消完整运行生命周期")]

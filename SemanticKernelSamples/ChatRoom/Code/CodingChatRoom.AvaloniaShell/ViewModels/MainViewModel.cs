@@ -334,8 +334,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         return new WorkTaskItemViewModel
         (
             record.DisplayName,
-            new ChatViewModel
-                (runtime.ChatManager, runtime.Controller, runtime.WorkspaceController, runtime.ModelDisplayName, abilityCatalog),
+            new ChatViewModel(runtime, abilityCatalog),
             new SessionListViewModel(runtime.Controller),
             runtime,
             record.Id

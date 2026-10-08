@@ -55,4 +55,9 @@ public sealed record CopilotChatSessionPersistenceData
     /// 获取序列化的代理会话状态；尚未创建代理状态时为 <see langword="null"/>。
     /// </summary>
     public JsonElement? AgentSessionState { get; init; }
+
+    /// <summary>
+    /// 获取由存储恢复的原生 Responses 会话；旧文件没有此状态时为 null。
+    /// </summary>
+    public CopilotResponsesSession? ResponsesSession { get; init; }
 }
