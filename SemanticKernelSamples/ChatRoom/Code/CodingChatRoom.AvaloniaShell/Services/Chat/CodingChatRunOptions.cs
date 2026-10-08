@@ -10,21 +10,6 @@ using Microsoft.Extensions.AI;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
-internal readonly record struct CodingChatRunOptions
-(
-    bool EnableAutomaticCompression,
-    bool EnableDotNetRun,
-    ReasoningEffort? ReasoningEffort
-)
-{
-    public static CodingChatRunOptions Default { get; } = new
-    (
-        EnableAutomaticCompression: true,
-        EnableDotNetRun: false,
-        ReasoningEffort: null
-    );
-}
-
 internal static class CodingAgentRunExtensions
 {
     public static Task<CodingAgentRunResult> RunAsync
