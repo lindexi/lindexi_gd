@@ -59,10 +59,10 @@ public sealed class ResponsesCodingAgent
             CancellationToken = cancellationToken,
             ReasoningEffort = runOptions.ReasoningEffort,
         };
-        return new CodingAgentRunResult(context.AssistantChatMessage, runner.RunAsync());
+        return new CodingAgentRunResult(context.AssistantChatMessage, runner.RunAsync(), runner);
     }
 
-    private static ResponseContentPart CreateInputPart(AIContent content) => content switch
+    internal static ResponseContentPart CreateInputPart(AIContent content) => content switch
     {
         TextContent text => ResponseContentPart.CreateInputTextPart(text.Text),
         DataContent image when image.MediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase) =>

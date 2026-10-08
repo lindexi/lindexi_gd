@@ -9,6 +9,27 @@ namespace AgentLib.Coding;
 
 internal sealed class ResponsesCodingAgentRunner
 {
+    private readonly System.Collections.Concurrent.ConcurrentQueue<ResponseItem> _pendingMessages = new();
+
+    internal Task InjectMessageAsync(IReadOnlyList<AIContent> contents, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        CancellationToken.ThrowIfCancellationRequested();
+        _pendingMessages.Enqueue(ResponseItem.CreateUserMessageItem(contents.Select(ResponsesCodingAgent.CreateInputPart)));
+        return Task.CompletedTask;
+    }
+
+    private bool AppendPendingMessages()
+    {
+        bool appended = false;
+        while (_pendingMessages.TryDequeue(out ResponseItem? item))
+        {
+            Conversation.AppendItem(item);
+            appended = true;
+        }
+        return appended;
+    }
+
     public required IManualSendMessageContext MessageContext { get; init; }
 
     public required IReadOnlyList<AIContent> Contents { get; init; }
@@ -56,9 +77,11 @@ internal sealed class ResponsesCodingAgentRunner
                 var calls = response.OutputItems.OfType<FunctionCallResponseItem>().ToArray();
                 if (calls.Length == 0)
                 {
+                    if (AppendPendingMessages()) continue;
                     return response.GetOutputText();
                 }
                 await ExecuteToolsAsync(calls, functions).ConfigureAwait(false);
+                AppendPendingMessages();
             }
         }
         finally
