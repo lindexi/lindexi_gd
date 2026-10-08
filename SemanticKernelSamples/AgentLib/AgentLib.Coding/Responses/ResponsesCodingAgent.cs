@@ -30,8 +30,7 @@ public sealed class ResponsesCodingAgent
     /// </summary>
     public async Task<CodingAgentRunResult> RunAsync(IManualSendMessageContext context,
         IReadOnlyList<AIContent> contents, CopilotResponsesSession conversation,
-        string? workspacePath, bool enableDotNetRun = false,
-        ReasoningEffort? reasoningEffort = null,
+        string? workspacePath, CodingChatRunOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -42,11 +41,12 @@ public sealed class ResponsesCodingAgent
             throw new ArgumentException("编程任务内容不能为空。", nameof(contents));
         }
 
+        CodingChatRunOptions runOptions = options ?? CodingChatRunOptions.Default;
         var input = ResponseItem.CreateUserMessageItem(contents.Select(CreateInputPart));
         var prompts = await CodingPromptProvider.BuildAsync(_copilotInstructionsPath, cancellationToken).ConfigureAwait(false);
         var client = await ((IResponsesClientProvider)context.LanguageModel)
             .GetResponsesClientAsync().ConfigureAwait(false);
-        var workspaceContext = await _codingAgent.GetRunWorkspaceContextAsync(workspacePath, enableDotNetRun, cancellationToken).ConfigureAwait(false);
+        var workspaceContext = await _codingAgent.GetRunWorkspaceContextAsync(workspacePath, runOptions.EnableDotNetRun, cancellationToken).ConfigureAwait(false);
         var runner = new ResponsesCodingAgentRunner
         {
             MessageContext = context,
@@ -57,7 +57,7 @@ public sealed class ResponsesCodingAgent
             Client = client,
             Workspace = workspaceContext,
             CancellationToken = cancellationToken,
-            ReasoningEffort = reasoningEffort,
+            ReasoningEffort = runOptions.ReasoningEffort,
         };
         return new CodingAgentRunResult(context.AssistantChatMessage, runner.RunAsync());
     }
