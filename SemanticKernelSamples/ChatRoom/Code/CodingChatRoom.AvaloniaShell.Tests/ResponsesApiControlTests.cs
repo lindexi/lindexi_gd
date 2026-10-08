@@ -12,6 +12,63 @@ namespace CodingChatRoom.AvaloniaShell.Tests;
 public sealed class ResponsesApiControlTests
 {
     [TestMethod]
+    [DataRow(false, 0d)]
+    [DataRow(true, 1d)]
+    public void ResponsesApiShouldShowCheckOnlyWhenSelected(bool selected, double expectedOpacity)
+    {
+        using var viewModel = new ChatViewModel { IsResponsesApiEnabled = selected };
+        var view = new ChatView { DataContext = viewModel };
+        var window = new Window { Width = 1016, Height = 620, Content = view };
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+            var toggle = view.FindControl<ToggleButton>("ResponsesApiToggleButton")
+                ?? throw new InvalidOperationException("Responses toggle missing.");
+            var check = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(toggle)
+                .OfType<Avalonia.Controls.Shapes.Path>().Single(item => item.Name == "ApiModeCheck");
+
+            Assert.AreEqual(expectedOpacity, check.Opacity);
+        }
+        finally { window.Close(); }
+    }
+
+    [TestMethod]
+    [DataRow(false, ":pointerover")]
+    [DataRow(true, ":pointerover")]
+    [DataRow(false, ":pressed")]
+    [DataRow(true, ":pressed")]
+    public void ResponsesApiTextBackgroundShouldRemainTransparent(bool selected, string state)
+    {
+        var toggle = new StateToggleButton
+        {
+            Content = "Responses API",
+            IsChecked = selected,
+            Classes = { "ApiMode" },
+        };
+        var window = new Window { Content = toggle };
+        try
+        {
+            window.Show();
+            toggle.SetState(state);
+            var presenter = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(toggle)
+                .OfType<Avalonia.Controls.Presenters.ContentPresenter>()
+                .Single(item => item.Name == "ApiModeContent");
+
+            Assert.AreEqual(Avalonia.Media.Colors.Transparent,
+                ((Avalonia.Media.ISolidColorBrush)presenter.Background!).Color);
+        }
+        finally { window.Close(); }
+    }
+
+    private sealed class StateToggleButton : ToggleButton
+    {
+        protected override Type StyleKeyOverride => typeof(ToggleButton);
+
+        public void SetState(string state) => PseudoClasses.Set(state, true);
+    }
+
+    [TestMethod]
     public void ResponsesApiShouldBeDisabledByDefault()
     {
         using var viewModel = new ChatViewModel();

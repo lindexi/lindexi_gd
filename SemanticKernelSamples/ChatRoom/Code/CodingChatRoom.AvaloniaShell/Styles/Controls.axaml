@@ -20,19 +20,67 @@
         <Setter Property="FontFamily" Value="{StaticResource ShellFont}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="MinHeight" Value="32" />
-        <Setter Property="Padding" Value="10,4" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ToggleButtonBorderBrush}" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Background" Value="Transparent" />
-    </Style>
-    <Style Selector="ToggleButton.ApiMode:checked:not(:pointerover):not(:pressed):not(:disabled) /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="ApiModeSurface"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <Border x:Name="ApiModeIndicator" Width="20" Height="20"
+                                VerticalAlignment="Center" CornerRadius="3"
+                                Background="Transparent"
+                                BorderThickness="1" BorderBrush="{DynamicResource TextSecondaryBrush}">
+                            <Path x:Name="ApiModeCheck" Width="12" Height="12" Stretch="Uniform"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                  Data="M 1,4 L 3,6 L 7,1" Stroke="{DynamicResource TextOnPrimaryBrush}"
+                                  StrokeThickness="1.5" Opacity="0" />
+                        </Border>
+                        <ContentPresenter x:Name="ApiModeContent" Grid.Column="1"
+                                          Background="Transparent"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
     </Style>
-    <Style Selector="ToggleButton.ApiMode:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+    <Style Selector="ToggleButton.ApiMode:pointerover /template/ Border#ApiModeIndicator">
+        <Setter Property="Background" Value="{DynamicResource SurfaceVariantBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.ApiMode:checked /template/ Border#ApiModeIndicator">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.ApiMode:checked /template/ Path#ApiModeCheck">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+    <Style Selector="ToggleButton.ApiMode:pressed /template/ Border#ApiModeSurface">
+        <Setter Property="Opacity" Value="0.75" />
+    </Style>
+    <Style Selector="ToggleButton.ApiMode:checked:pointerover /template/ Border#ApiModeIndicator">
+        <Setter Property="Background" Value="{DynamicResource PrimaryDarkBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryDarkBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.ApiMode:focus-visible /template/ Border#ApiModeSurface">
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Margin" Value="-1" />
+    </Style>
+    <Style Selector="ToggleButton.ApiMode:disabled">
+        <Setter Property="Opacity" Value="0.45" />
     </Style>
     <Style Selector="Button.Primary">
         <Setter Property="FontWeight" Value="SemiBold" />
