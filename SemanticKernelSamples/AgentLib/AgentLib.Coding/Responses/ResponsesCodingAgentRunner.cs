@@ -25,6 +25,8 @@ internal sealed class ResponsesCodingAgentRunner
 
     public required CancellationToken CancellationToken { get; init; }
 
+    public ReasoningEffort? ReasoningEffort { get; init; }
+
     internal async Task<string?> RunAsync()
     {
         var functions = Workspace.Tools.OfType<AIFunction>()
@@ -97,6 +99,9 @@ internal sealed class ResponsesCodingAgentRunner
             Instructions = Instructions,
             StreamingEnabled = true,
             StoredOutputEnabled = true,
+            ReasoningOptions = ReasoningEffort is { } effort
+                ? new ResponseReasoningOptions { ReasoningEffortLevel = new ResponseReasoningEffortLevel(effort.ToString().ToLowerInvariant()) }
+                : null,
         };
         foreach (ResponseItem item in Conversation.Items)
         {

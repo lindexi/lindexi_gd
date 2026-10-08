@@ -31,6 +31,7 @@ public sealed class ResponsesCodingAgent
     public async Task<CodingAgentRunResult> RunAsync(IManualSendMessageContext context,
         IReadOnlyList<AIContent> contents, CopilotResponsesSession conversation,
         string? workspacePath, bool enableDotNetRun = false,
+        ReasoningEffort? reasoningEffort = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -56,6 +57,7 @@ public sealed class ResponsesCodingAgent
             Client = client,
             Workspace = workspaceContext,
             CancellationToken = cancellationToken,
+            ReasoningEffort = reasoningEffort,
         };
         return new CodingAgentRunResult(context.AssistantChatMessage, runner.RunAsync());
     }

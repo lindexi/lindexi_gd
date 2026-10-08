@@ -18,7 +18,7 @@ internal sealed class ResponsesCodingChatRunner(CopilotChatManager chatManager, 
         var conversation = session.ResponsesSession;
         var context = await chatManager.CreateManualSendMessageContextAsync(cancellationToken).ConfigureAwait(false);
         var run = await agent.RunAsync(context, contents, conversation, workspacePath,
-            options.EnableDotNetRun, cancellationToken).ConfigureAwait(false);
+            options.EnableDotNetRun, options.ReasoningEffort, cancellationToken).ConfigureAwait(false);
         return new CodingAgentRunResult(run.AssistantChatMessage, CompleteAsync(run, sessionId));
     }
 
