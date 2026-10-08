@@ -19,7 +19,7 @@ public sealed class ResponsesImageToolLiveTests
     [TestMethod]
     public async Task ImageTool_ReturnsNativeImageAndModelRecognizesItAsync()
     {
-        const string keyPath = @"C:\lindexi\Work\Key\minimaxi.md";
+        const string keyPath = @"C:\lindexi\Work\Key\MiniMax.txt";
         if (!File.Exists(keyPath)) return;
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMinutes(3));
         string reportPath = Path.Combine(AppContext.BaseDirectory, $"image-tool-{Guid.NewGuid():N}.json");

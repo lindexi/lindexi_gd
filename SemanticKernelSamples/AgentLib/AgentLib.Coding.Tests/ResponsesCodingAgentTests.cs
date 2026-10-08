@@ -11,9 +11,11 @@ namespace AgentLib.Coding.Tests;
 public sealed class ResponsesCodingAgentTests
 {
     [TestMethod]
-    public async Task RunAsyncShouldContinueUsingNativeHistory()
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task RunAsyncShouldContinueUsingNativeHistory(bool nullTerminalAnnotations)
     {
-        using var handler = new StreamingHandler();
+        using var handler = new StreamingHandler { NullTerminalAnnotations = nullTerminalAnnotations };
         using var http = new HttpClient(handler);
         var manager = new CopilotChatManager();
         manager.AgentApiEndpointManager.HttpClient?.Dispose();
@@ -26,7 +28,7 @@ public sealed class ResponsesCodingAgentTests
         var agent = new ResponsesCodingAgent(runtime);
         var state = manager.SelectedSession.ResponsesSession;
         var first = await agent.RunAsync(await manager.CreateManualSendMessageContextAsync(),
-            [new Microsoft.Extensions.AI.TextContent("first")], state, null);
+            [new Microsoft.Extensions.AI.TextContent("first")], state, null, new CodingChatRunOptions(false, false, ReasoningEffort.High));
         await first.CompletionTask;
         var second = await agent.RunAsync(await manager.CreateManualSendMessageContextAsync(),
             [new Microsoft.Extensions.AI.TextContent("second")], state, null);
@@ -34,6 +36,8 @@ public sealed class ResponsesCodingAgentTests
 
         using var request = JsonDocument.Parse(handler.Requests[1]);
         Assert.AreEqual(3, request.RootElement.GetProperty("input").GetArrayLength());
+        using var firstRequest = JsonDocument.Parse(handler.Requests[0]);
+        Assert.AreEqual("high", firstRequest.RootElement.GetProperty("reasoning").GetProperty("effort").GetString());
     }
 
     [TestMethod]
@@ -77,6 +81,7 @@ public sealed class ResponsesCodingAgentTests
     {
         public List<string> Requests { get; } = new();
         public bool ReturnToolCall { get; init; }
+        public bool NullTerminalAnnotations { get; init; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -94,9 +99,18 @@ public sealed class ResponsesCodingAgentTests
                     {"id":"resp_tool","status":"completed","output":[{"type":"function_call","id":"fc_1","call_id":"call_add","name":"add","arguments":"{\"left\":2,\"right\":3}","status":"completed"}]}
                     """;
             }
+            string prefix = string.Empty;
+            if (NullTerminalAnnotations)
+            {
+                using var document = JsonDocument.Parse(response);
+                string item = document.RootElement.GetProperty("output")[0].GetRawText();
+                prefix = $"data: {{\"type\":\"response.created\",\"sequence_number\":0,\"response\":{{\"id\":\"{id}\",\"status\":\"in_progress\",\"output\":[]}}}}\n\n"
+                    + $"data: {{\"type\":\"response.output_item.done\",\"sequence_number\":1,\"output_index\":0,\"item\":{item}}}\n\n";
+                response = response.Replace("\"annotations\":[]", "\"annotations\":null", StringComparison.Ordinal);
+            }
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent($"data: {{\"type\":\"response.completed\",\"sequence_number\":0,\"response\":{response}}}\n\n",
+                Content = new StringContent(prefix + $"data: {{\"type\":\"response.completed\",\"sequence_number\":0,\"response\":{response}}}\n\n",
                     Encoding.UTF8, "text/event-stream")
             };
         }
