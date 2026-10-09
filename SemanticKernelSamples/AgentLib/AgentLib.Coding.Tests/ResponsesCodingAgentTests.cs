@@ -41,7 +41,9 @@ public sealed class ResponsesCodingAgentTests
     }
 
     [TestMethod]
-    public async Task RunAsyncShouldSubmitActualToolResult()
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task RunAsyncShouldSubmitActualToolResult(bool automaticCompression)
     {
         string path = Path.Combine(Path.GetTempPath(), $"responses-workspace-{Guid.NewGuid():N}");
         Directory.CreateDirectory(path);
@@ -62,10 +64,12 @@ public sealed class ResponsesCodingAgentTests
         var agent = new ResponsesCodingAgent(runtime);
 
         var run = await agent.RunAsync(await manager.CreateManualSendMessageContextAsync(),
-            [new TextContent("calculate")], manager.SelectedSession.ResponsesSession, path);
+            [new TextContent("calculate")], manager.SelectedSession.ResponsesSession, path,
+            new CodingChatRunOptions(automaticCompression, false, null));
         await run.CompletionTask;
 
-        using var request = JsonDocument.Parse(handler.Requests[1]);
+        Assert.AreEqual(automaticCompression ? 1 : 0, handler.CompactRequests.Count);
+        using var request = JsonDocument.Parse(automaticCompression ? handler.CompactRequests.Single() : handler.Requests[1]);
         Assert.AreEqual("5", request.RootElement.GetProperty("input").EnumerateArray()
             .Single(item => item.GetProperty("type").GetString() == "function_call_output")
             .GetProperty("output").GetString());
@@ -102,6 +106,7 @@ public sealed class ResponsesCodingAgentTests
             .Where(item => item.GetProperty("type").GetString() == "message" && item.GetProperty("role").GetString() == "user")
             .Select(item => item.GetProperty("content")[0].GetProperty("text").GetString()!).ToArray();
         CollectionAssert.AreEqual(new[] { "initial", "interrupt-one", "interrupt-two" }, userTexts);
+        Assert.HasCount(0, handler.CompactRequests);
     }
 
     private sealed class TestToolSource : ICodingWorkspaceToolSource
@@ -113,6 +118,7 @@ public sealed class ResponsesCodingAgentTests
     private sealed class StreamingHandler : HttpMessageHandler
     {
         public List<string> Requests { get; } = new();
+        public List<string> CompactRequests { get; } = new();
         public bool ReturnToolCall { get; init; }
         public bool NullTerminalAnnotations { get; init; }
         public bool BlockFirstRequest { get; init; }
@@ -121,6 +127,15 @@ public sealed class ResponsesCodingAgentTests
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            if (request.RequestUri!.AbsolutePath.EndsWith("/responses/compact", StringComparison.Ordinal))
+            {
+                CompactRequests.Add(await request.Content!.ReadAsStringAsync(cancellationToken));
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"output":[{"type":"compaction","id":"cmp_test","encrypted_content":"opaque"}]}""",
+                        Encoding.UTF8, "application/json"),
+                };
+            }
             Requests.Add(await request.Content!.ReadAsStringAsync(cancellationToken));
             if (BlockFirstRequest && Requests.Count == 1)
             {

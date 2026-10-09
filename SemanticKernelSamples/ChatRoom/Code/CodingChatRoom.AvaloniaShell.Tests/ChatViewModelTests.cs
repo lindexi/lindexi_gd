@@ -659,6 +659,86 @@ public sealed class ChatViewModelTests
             ],
         };
 
+    [TestMethod]
+    [Timeout(15000)]
+    public async Task DisablingLoopDuringSecondRunShouldRefreshUiAfterFinalCompression()
+    {
+        var secondStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseSecond = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var secondCompressionStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseCompression = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int runCount = 0;
+        int compressionCount = 0;
+        var client = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (_, _, ct) => RespondAsync(ct),
+            OnGetResponseAsync = async (_, _, ct) =>
+            {
+                if (Interlocked.Increment(ref compressionCount) == 2)
+                {
+                    secondCompressionStarted.TrySetResult();
+                    await releaseCompression.Task.WaitAsync(ct);
+                }
+                return new ChatResponse([new ChatMessage(ChatRole.Assistant, "Coding task summary")]);
+            },
+        };
+        var manager = CreateChatManager(client);
+        await using var agent = new CodingAgent();
+        var controller = CodingChatApplicationTestFactory.CreateApplication(manager, new EmptySessionStore(), codingAgent: agent);
+        await controller.InitializeAsync();
+        using var sessions = new SessionListViewModel(controller);
+        await ((SimpleAsyncCommand)sessions.CreateNewSessionCommand).ExecuteAsync();
+        using var chat = new ChatViewModel(manager, controller, "test")
+        {
+            IsResponsesApiEnabled = false,
+            IsAutomaticCompressionEnabled = true,
+            IsLoopIterationEnabled = true,
+            InputText = "Continue the coding task",
+        };
+        bool observedRunning = chat.IsRunning;
+        string observedButtonText = chat.SendButtonText;
+        chat.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(ChatViewModel.IsRunning)) observedRunning = chat.IsRunning;
+            if (args.PropertyName == nameof(ChatViewModel.SendButtonText)) observedButtonText = chat.SendButtonText;
+        };
+        bool notifiedNewSession = sessions.CreateNewSessionCommand.CanExecute(null);
+        sessions.CreateNewSessionCommand.CanExecuteChanged += (_, _) =>
+            notifiedNewSession = sessions.CreateNewSessionCommand.CanExecute(null);
+        Task sending = ((SimpleAsyncCommand)chat.SendCommand).ExecuteAsync();
+        try
+        {
+            await secondStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            chat.IsLoopIterationEnabled = false;
+            releaseSecond.TrySetResult();
+            await secondCompressionStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            releaseCompression.TrySetResult();
+            await sending.WaitAsync(TimeSpan.FromSeconds(5));
+            Console.WriteLine($"Runs={runCount}, compressions={compressionCount}, loop={controller.IsLoopActive}, running={chat.IsRunning}, notifiedRunning={observedRunning}, button={chat.SendButtonText}, notifiedButton={observedButtonText}, newSession={sessions.CreateNewSessionCommand.CanExecute(null)}, notifiedNewSession={notifiedNewSession}, stop={chat.StopCommand.CanExecute(null)}");
+            Assert.IsTrue(!observedRunning && observedButtonText == "发送"
+                && sessions.CreateNewSessionCommand.CanExecute(null) && !chat.StopCommand.CanExecute(null),
+                $"Actual running={chat.IsRunning}, notified running={observedRunning}, actual button={chat.SendButtonText}, notified button={observedButtonText}, newSession={sessions.CreateNewSessionCommand.CanExecute(null)}");
+        }
+        finally
+        {
+            releaseSecond.TrySetResult();
+            releaseCompression.TrySetResult();
+            controller.StopActiveRun();
+            await sending.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+
+        async IAsyncEnumerable<ChatResponseUpdate> RespondAsync(
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct)
+        {
+            if (Interlocked.Increment(ref runCount) == 2)
+            {
+                secondStarted.TrySetResult();
+                await releaseSecond.Task.WaitAsync(ct);
+            }
+            yield return new ChatResponseUpdate(ChatRole.Assistant, "Task iteration done");
+        }
+    }
+
     private static CopilotChatManager CreateChatManager(FakeChatClient chatClient)
     {
         var manager = new CopilotChatManager();
@@ -701,7 +781,7 @@ public sealed class ChatViewModelTests
 
         public IReadOnlyList<AIContent>? ObservedContents { get; private set; }
 
-        public async Task<CodingAgentRunResult> RunAsync(
+        public async Task<ICodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CodingChatRunOptions options,
@@ -713,18 +793,18 @@ public sealed class ChatViewModelTests
             var assistantMessage = CopilotChatMessage.CreateAssistant("完成", isPresetInfo: false);
             await manager.SelectedSession.AddMessageAsync(assistantMessage);
             Completed.TrySetResult();
-            return new CodingAgentRunResult(assistantMessage, Task.FromResult<string?>("完成"));
+            return new CompletedCodingAgentRunResult(assistantMessage, Task.FromResult<string?>("完成"));
         }
     }
 
     private sealed class FailingRunner(Exception exception) : ICodingChatRunner
     {
-        public Task<CodingAgentRunResult> RunAsync(
+        public Task<ICodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CodingChatRunOptions options,
             CancellationToken cancellationToken) =>
-            Task.FromException<CodingAgentRunResult>(exception);
+            Task.FromException<ICodingAgentRunResult>(exception);
     }
 
     private sealed class CompletingRunner(CopilotChatManager manager) : ICodingChatRunner
@@ -741,7 +821,7 @@ public sealed class ChatViewModelTests
 
         public bool ObservedAutomaticCompressionEnabled { get; private set; }
 
-        public async Task<CodingAgentRunResult> RunAsync(
+        public async Task<ICodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CodingChatRunOptions options,
@@ -755,7 +835,7 @@ public sealed class ChatViewModelTests
             var assistantMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
             await manager.SelectedSession.AddMessageAsync(assistantMessage);
             Started.TrySetResult();
-            return new CodingAgentRunResult(assistantMessage, _completion.Task);
+            return new CompletedCodingAgentRunResult(assistantMessage, _completion.Task);
         }
 
         public void Complete() => _completion.TrySetResult("完成");
@@ -775,7 +855,7 @@ public sealed class ChatViewModelTests
 
         public string? InjectedText { get; private set; }
 
-        public async Task<CodingAgentRunResult> RunAsync(
+        public async Task<ICodingAgentRunResult> RunAsync(
             IReadOnlyList<AIContent> contents,
             string? workspacePath,
             CodingChatRunOptions options,
@@ -787,7 +867,7 @@ public sealed class ChatViewModelTests
             var assistantMessage = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
             await manager.SelectedSession.AddMessageAsync(assistantMessage);
             Started.TrySetResult();
-            return new CodingAgentRunResult(assistantMessage, WaitForCancellationAsync(cancellationToken));
+            return new CompletedCodingAgentRunResult(assistantMessage, WaitForCancellationAsync(cancellationToken));
         }
 
         public Task InjectMessageAsync(

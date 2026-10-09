@@ -624,7 +624,14 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(StatusText));
         try
         {
-            await _workTaskController.CompressConversationAsync(compressionRequest).ConfigureAwait(true);
+            ICodingChatRunner runner = IsResponsesApiEnabled
+                ? (_runtime ?? throw new InvalidOperationException("任务运行时尚未初始化。")).ResponsesRunner
+                : _runtime?.CodingRunner ?? _workTaskController.CodingRunner;
+            if (!await _workTaskController.CompressConversationAsync(compressionRequest, runner).ConfigureAwait(true))
+            {
+                _runStatusText = null;
+                return;
+            }
             _runStatusText = "对话压缩完成";
             await AddSystemMessageAsync(session, "对话压缩完成。").ConfigureAwait(true);
         }

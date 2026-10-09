@@ -62,7 +62,7 @@ public sealed class CodingAgent : IAsyncDisposable
     /// <param name="enableDotNetRun">是否为本次运行提供 <c>dotnet run</c> 工具。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>流式消息和完整生命周期任务。</returns>
-    public Task<CodingAgentRunResult> RunAsync
+    public Task<ICodingAgentRunResult> RunAsync
     (
         IManualSendMessageContext context,
         string prompt,
@@ -98,7 +98,7 @@ public sealed class CodingAgent : IAsyncDisposable
     /// <param name="enableDotNetRun">是否为本次运行提供 <c>dotnet run</c> 工具。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>流式消息和完整生命周期任务。</returns>
-    public async Task<CodingAgentRunResult> RunAsync
+    public async Task<ICodingAgentRunResult> RunAsync
     (
         IManualSendMessageContext context,
         IReadOnlyList<AIContent> contents,
@@ -182,7 +182,7 @@ public sealed class CodingAgent : IAsyncDisposable
                 runCancellationTokenSource
             );
             ownershipTransferred = true;
-            return new CodingAgentRunResult
+            return new ChatClientCodingAgentRunResult
             (
                 context.AssistantChatMessage,
                 completionTask,

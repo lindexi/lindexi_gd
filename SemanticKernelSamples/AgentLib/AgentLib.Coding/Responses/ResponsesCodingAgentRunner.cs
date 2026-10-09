@@ -48,6 +48,8 @@ internal sealed class ResponsesCodingAgentRunner
 
     public ReasoningEffort? ReasoningEffort { get; init; }
 
+    public bool EnableAutomaticCompression { get; init; }
+
     internal async Task<string?> RunAsync()
     {
         var functions = Workspace.Tools.OfType<AIFunction>()
@@ -81,6 +83,12 @@ internal sealed class ResponsesCodingAgentRunner
                     return response.GetOutputText();
                 }
                 await ExecuteToolsAsync(calls, functions).ConfigureAwait(false);
+                if (EnableAutomaticCompression && _pendingMessages.IsEmpty)
+                {
+                    await ResponsesCodingAgent.TryCompactConversationAsync(Client,
+                        MessageContext.LanguageModel.ModelDefinition.ModelId, Conversation,
+                        Instructions, CancellationToken).ConfigureAwait(false);
+                }
                 AppendPendingMessages();
             }
         }

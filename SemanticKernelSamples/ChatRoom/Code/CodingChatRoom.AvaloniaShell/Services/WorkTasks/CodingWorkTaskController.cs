@@ -71,8 +71,7 @@ internal sealed class CodingWorkTaskController
     public bool CanSend => _operationPhase == CodingWorkTaskOperationPhase.Running
                            || (!_isLoopActive && _operationPhase == CodingWorkTaskOperationPhase.Idle);
 
-    public bool CanCompressConversation => !HasActiveOperation
-                                           && _chatManager.SelectedSession.AgentSession is not null;
+    public bool CanCompressConversation => !HasActiveOperation;
 
     public bool IsCompressionActive => _operationPhase == CodingWorkTaskOperationPhase.Compressing;
 
@@ -336,7 +335,7 @@ internal sealed class CodingWorkTaskController
         Exception? runException = null;
         try
         {
-            CodingAgentRunResult runResult = await chatRunner.RunAsync
+            ICodingAgentRunResult runResult = await chatRunner.RunAsync
             (
                 runContents,
                 _workspaceController.NextRunWorkspacePath,
@@ -425,7 +424,7 @@ internal sealed class CodingWorkTaskController
                     );
                     if (options.EnableAutomaticCompression)
                     {
-                        await CompressConversationCoreAsync(operationCancellationTokenSource.Token);
+                        await CompressConversationCoreAsync(chatRunner, operationCancellationTokenSource.Token);
                     }
                     else if (IsLoopIterationEnabled)
                     {
@@ -472,33 +471,41 @@ internal sealed class CodingWorkTaskController
         }
     }
 
-    public Task CompressConversationAsync(CancellationToken cancellationToken = default)
-        => CompressConversationAsync(null, cancellationToken);
+    public Task<bool> CompressConversationAsync(CancellationToken cancellationToken = default)
+        => CompressConversationAsync(null, cancellationToken: cancellationToken);
 
-    public async Task CompressConversationAsync(string? compressionRequest, CancellationToken cancellationToken = default)
+    public async Task<bool> CompressConversationAsync(string? compressionRequest,
+        ICodingChatRunner? runner = null, CancellationToken cancellationToken = default)
     {
         if (!CanCompressConversation)
         {
             throw new InvalidOperationException("当前会话没有可压缩的对话历史，或已有操作正在运行。");
         }
 
-        await CompressConversationCoreAsync(cancellationToken, compressionRequest);
+        using var operationCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _activeOperationCancellationTokenSource = operationCancellation;
+        try
+        {
+            return await CompressConversationCoreAsync(runner ?? _chatRunner, operationCancellation.Token, compressionRequest);
+        }
+        finally
+        {
+            _activeOperationCancellationTokenSource = null;
+        }
     }
 
-    private async Task CompressConversationCoreAsync(CancellationToken cancellationToken, string? compressionRequest = null)
+    private async Task<bool> CompressConversationCoreAsync(ICodingChatRunner runner,
+        CancellationToken cancellationToken, string? compressionRequest = null)
     {
         CopilotChatSession session = _chatManager.SelectedSession;
         SetOperationPhase(CodingWorkTaskOperationPhase.Compressing);
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await _chatManager.ReduceSessionAsync(
-                chatReducer: null,
-                requestText: compressionRequest,
-                additionalPrompt: compressionRequest,
-                cancellationToken: cancellationToken);
+            if (!await runner.TryCompactConversationAsync(session, compressionRequest, cancellationToken)) return false;
             await _sessionStore.SaveSessionAsync(session, CancellationToken.None);
             AddOrUpdateSummary(session, insertAtTop: true);
+            return true;
         }
         finally
         {

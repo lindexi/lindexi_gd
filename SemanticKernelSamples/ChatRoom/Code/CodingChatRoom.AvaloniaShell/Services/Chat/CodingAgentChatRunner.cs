@@ -13,7 +13,7 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
 {
     private readonly CopilotChatManager _chatManager;
     private readonly CodingAgent _codingAgent;
-    private CodingAgentRunResult? _activeRun;
+    private ICodingAgentRunResult? _activeRun;
 
     public CodingAgentChatRunner(CopilotChatManager chatManager, CodingAgent codingAgent)
     {
@@ -23,7 +23,7 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
         _codingAgent = codingAgent;
     }
 
-    public async Task<CodingAgentRunResult> RunAsync
+    public async Task<ICodingAgentRunResult> RunAsync
     (
         IReadOnlyList<AIContent> contents,
         string? workspacePath,
@@ -36,7 +36,7 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
         IManualSendMessageContext context = await _chatManager
             .CreateManualSendMessageContextAsync(cancellationToken)
             .ConfigureAwait(false);
-        CodingAgentRunResult run = await _codingAgent
+        ICodingAgentRunResult run = await _codingAgent
             .RunAsync
             (
                 context,
@@ -47,11 +47,20 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
             )
             .ConfigureAwait(false);
         _activeRun = run;
-        return new CodingAgentRunResult
+        return new CompletedCodingAgentRunResult
         (
             run.AssistantChatMessage,
             CompleteAndClearActiveRunAsync(run, sessionId)
         );
+    }
+
+    public async Task<bool> TryCompactConversationAsync(AgentLib.Model.CopilotChatSession session,
+        string? instructions, CancellationToken cancellationToken)
+    {
+        if (session.AgentSession is null) return false;
+        await _chatManager.ReduceSessionAsync(chatReducer: null, requestText: instructions,
+            additionalPrompt: instructions, cancellationToken: cancellationToken).ConfigureAwait(false);
+        return true;
     }
 
     public Task InjectMessageAsync
@@ -61,12 +70,12 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
     )
     {
         ArgumentNullException.ThrowIfNull(contents);
-        CodingAgentRunResult activeRun = _activeRun
+        ICodingAgentRunResult activeRun = _activeRun
                                          ?? throw new InvalidOperationException("当前没有正在运行的编程代理。");
         return activeRun.InjectMessageAsync(contents, cancellationToken);
     }
 
-    private async Task<string?> CompleteAndClearActiveRunAsync(CodingAgentRunResult run, Guid sessionId)
+    private async Task<string?> CompleteAndClearActiveRunAsync(ICodingAgentRunResult run, Guid sessionId)
     {
         try
         {

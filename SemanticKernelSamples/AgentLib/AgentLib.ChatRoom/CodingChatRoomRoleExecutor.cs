@@ -1,7 +1,6 @@
 using AgentLib.ChatRoom.Model;
 using AgentLib.Coding;
 using AgentLib.Model;
-
 using Microsoft.Extensions.AI;
 
 namespace AgentLib.ChatRoom;
@@ -23,10 +22,12 @@ internal sealed class CodingChatRoomRoleExecutor : IChatRoomRoleExecutor
 
     public ChatRoomRoleExecutionKind ExecutionKind => ChatRoomRoleExecutionKind.Coding;
 
-    public async Task<ChatRoomRoleExecutionResult> RunAsync(
+    public async Task<ChatRoomRoleExecutionResult> RunAsync
+    (
         ChatRoomRoleExecutionContext context,
         IReadOnlyList<AIContent> contents,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(contents);
@@ -40,14 +41,18 @@ internal sealed class CodingChatRoomRoleExecutor : IChatRoomRoleExecutor
         try
         {
             ThrowIfDisposed();
-            CodingAgentRunResult runResult = await _codingAgent.RunAsync(
+            ICodingAgentRunResult runResult = await _codingAgent.RunAsync
+            (
                 manualContext,
                 contents,
                 _workspacePath,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            return new ChatRoomRoleExecutionResult(
+                cancellationToken: cancellationToken
+            ).ConfigureAwait(false);
+            return new ChatRoomRoleExecutionResult
+            (
                 runResult.AssistantChatMessage,
-                CompleteAsync(runResult.CompletionTask, cancellationToken));
+                CompleteAsync(runResult.CompletionTask, cancellationToken)
+            );
         }
         finally
         {
@@ -55,10 +60,12 @@ internal sealed class CodingChatRoomRoleExecutor : IChatRoomRoleExecutor
         }
     }
 
-    public Task SetWorkspacePathAsync(
+    public Task SetWorkspacePathAsync
+    (
         CopilotChatManager chatManager,
         string? workspacePath,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         ArgumentNullException.ThrowIfNull(chatManager);
         ThrowIfDisposed();
@@ -94,9 +101,11 @@ internal sealed class CodingChatRoomRoleExecutor : IChatRoomRoleExecutor
         await _codingAgent.DisposeAsync().ConfigureAwait(false);
     }
 
-    private async Task<ChatRoomRoleExecutionCompletion> CompleteAsync(
+    private async Task<ChatRoomRoleExecutionCompletion> CompleteAsync
+    (
         Task<string?> completionTask,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         try
         {
@@ -138,9 +147,15 @@ internal sealed class CodingChatRoomRoleExecutorFactory : IChatRoomRoleExecutorF
     public IChatRoomRoleExecutor Create(ChatRoomRoleExecutorCreationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        return new CodingChatRoomRoleExecutor(new CodingAgent(new CodingAgentOptions
-        {
-            LanguageServerCommand = _languageServerCommand,
-        }));
+        return new CodingChatRoomRoleExecutor
+        (
+            new CodingAgent
+            (
+                new CodingAgentOptions
+                {
+                    LanguageServerCommand = _languageServerCommand,
+                }
+            )
+        );
     }
 }

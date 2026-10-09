@@ -9,13 +9,16 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 
 internal interface ICodingChatRunner
 {
-    Task<CodingAgentRunResult> RunAsync
+    Task<ICodingAgentRunResult> RunAsync
     (
         IReadOnlyList<AIContent> contents,
         string? workspacePath,
         CodingChatRunOptions options,
         CancellationToken cancellationToken
     );
+
+    Task<bool> TryCompactConversationAsync(AgentLib.Model.CopilotChatSession session,
+        string? instructions, CancellationToken cancellationToken) => Task.FromResult(false);
 
     Task InjectMessageAsync
     (
