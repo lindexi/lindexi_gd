@@ -13,13 +13,35 @@ using Microsoft.Extensions.AI;
 
 namespace CodingChatRoom.AvaloniaShell.Services;
 
-internal enum CodingWorkTaskOperationPhase
+/// <summary>
+/// 表示工作任务的完整业务操作状态，统一驱动界面属性和命令可用性。
+/// 循环状态在单轮完成后仍保持活动，只有最外层操作完成收尾并清理取消源后才进入空闲。
+/// </summary>
+internal enum CodingWorkTaskOperationState
 {
+    /// <summary>没有活动操作，可以发送、压缩或切换会话。</summary>
     Idle,
+
+    /// <summary>单次运行正在执行，允许向活动运行提交插话。</summary>
     Running,
+
+    /// <summary>正在执行手动压缩，尚未进入保存收尾。</summary>
     Compressing,
+
+    /// <summary>单次运行或手动压缩正在保存及收尾，操作尚未结束。</summary>
     Finalizing,
-    WaitingToRetry,
+
+    /// <summary>循环中的当前轮正在执行，允许插话；取消循环勾选不立即终止当前轮。</summary>
+    LoopRunning,
+
+    /// <summary>循环正在执行轮末压缩，仍属于同一个活动循环操作。</summary>
+    LoopCompressing,
+
+    /// <summary>循环正在保存当前轮或压缩结果，尚未决定进入下一轮或结束循环。</summary>
+    LoopFinalizing,
+
+    /// <summary>循环执行失败后等待重试，可通过停止取消等待。</summary>
+    LoopWaitingToRetry,
 }
 
 internal sealed class CodingWorkTaskController
@@ -33,8 +55,7 @@ internal sealed class CodingWorkTaskController
     private string? _workTaskName;
     private CancellationTokenSource? _activeOperationCancellationTokenSource;
     private volatile bool _isLoopIterationEnabled;
-    private bool _isLoopActive;
-    private CodingWorkTaskOperationPhase _operationPhase;
+    private CodingWorkTaskOperationState _operationState;
 
     public CodingWorkTaskController
     (
@@ -68,12 +89,12 @@ internal sealed class CodingWorkTaskController
 
     public bool CanChangeSession => !HasActiveOperation;
 
-    public bool CanSend => _operationPhase == CodingWorkTaskOperationPhase.Running
-                           || (!_isLoopActive && _operationPhase == CodingWorkTaskOperationPhase.Idle);
+    public bool CanSend => !HasActiveOperation || IsRunActive;
 
     public bool CanCompressConversation => !HasActiveOperation;
 
-    public bool IsCompressionActive => _operationPhase == CodingWorkTaskOperationPhase.Compressing;
+    public bool IsCompressionActive => _operationState is CodingWorkTaskOperationState.Compressing
+        or CodingWorkTaskOperationState.LoopCompressing;
 
     public bool IsLoopIterationEnabled
     {
@@ -81,11 +102,16 @@ internal sealed class CodingWorkTaskController
         set => _isLoopIterationEnabled = value;
     }
 
-    public bool IsRunActive => _operationPhase == CodingWorkTaskOperationPhase.Running;
+    public bool IsRunActive => _operationState is CodingWorkTaskOperationState.Running
+        or CodingWorkTaskOperationState.LoopRunning;
 
-    public bool IsLoopActive => _isLoopActive;
+    public bool IsLoopActive => _operationState is CodingWorkTaskOperationState.LoopRunning
+        or CodingWorkTaskOperationState.LoopCompressing
+        or CodingWorkTaskOperationState.LoopFinalizing
+        or CodingWorkTaskOperationState.LoopWaitingToRetry;
 
-    public bool IsFinalizing => _operationPhase == CodingWorkTaskOperationPhase.Finalizing;
+    public bool IsFinalizing => _operationState is CodingWorkTaskOperationState.Finalizing
+        or CodingWorkTaskOperationState.LoopFinalizing;
 
     internal void SetWorkTask(Guid workTaskId, string workTaskName)
     {
@@ -258,7 +284,7 @@ internal sealed class CodingWorkTaskController
         }
 
         ICodingChatRunner chatRunner = runner ?? _chatRunner;
-        if (_operationPhase == CodingWorkTaskOperationPhase.Running)
+        if (IsRunActive)
         {
             Guid sessionId = _chatManager.SelectedSession.SessionId;
             await _chatManager.ChatLogger.LogDiagnosticAsync
@@ -287,7 +313,7 @@ internal sealed class CodingWorkTaskController
             return;
         }
 
-        if (_operationPhase != CodingWorkTaskOperationPhase.Idle || _isLoopActive)
+        if (HasActiveOperation)
         {
             throw new InvalidOperationException("当前任务已有活动操作。");
         }
@@ -295,6 +321,7 @@ internal sealed class CodingWorkTaskController
         using CancellationTokenSource operationCancellationTokenSource =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _activeOperationCancellationTokenSource = operationCancellationTokenSource;
+        UpdateOperationState(CodingWorkTaskOperationState.Running);
         try
         {
             await RunSingleMessageAsync
@@ -311,6 +338,7 @@ internal sealed class CodingWorkTaskController
             {
                 _activeOperationCancellationTokenSource = null;
             }
+            UpdateOperationState(default);
         }
     }
 
@@ -322,7 +350,7 @@ internal sealed class CodingWorkTaskController
         CancellationToken cancellationToken
     )
     {
-        SetOperationPhase(CodingWorkTaskOperationPhase.Running);
+        AdvanceOperationState(CodingWorkTaskOperationState.Running);
         CopilotChatSession session = _chatManager.SelectedSession;
         session.WorkspacePath = _workspaceController.NextRunWorkspacePath;
         ApplyWorkTaskMetadata(session);
@@ -352,14 +380,14 @@ internal sealed class CodingWorkTaskController
             (
                 session.SessionId,
                 "运行",
-                $"运行异常结束。异常类型={exception.GetType().FullName}；运行令牌取消={cancellationToken.IsCancellationRequested}；活动取消源存在={_activeOperationCancellationTokenSource is not null}；活动取消源已取消={_activeOperationCancellationTokenSource?.IsCancellationRequested == true}；阶段={_operationPhase}。",
+                $"运行异常结束。异常类型={exception.GetType().FullName}；运行令牌取消={cancellationToken.IsCancellationRequested}；活动取消源存在={_activeOperationCancellationTokenSource is not null}；活动取消源已取消={_activeOperationCancellationTokenSource?.IsCancellationRequested == true}；状态={_operationState}。",
                 exception
             );
             throw;
         }
         finally
         {
-            SetOperationPhase(CodingWorkTaskOperationPhase.Finalizing);
+            AdvanceOperationState(CodingWorkTaskOperationState.Finalizing);
             try
             {
                 await _chatManager.ChatLogger.LogDiagnosticAsync(session.SessionId, "会话保存", "开始保存运行后的会话。");
@@ -377,11 +405,7 @@ internal sealed class CodingWorkTaskController
                     saveException
                 );
             }
-            finally
-            {
-                SetOperationPhase(CodingWorkTaskOperationPhase.Idle);
-                await _chatManager.ChatLogger.LogDiagnosticAsync(session.SessionId, "运行", "运行状态已恢复为空闲。");
-            }
+
         }
     }
 
@@ -398,7 +422,7 @@ internal sealed class CodingWorkTaskController
             throw new ArgumentException("消息内容不能为空。", nameof(prompt));
         }
 
-        if (_activeOperationCancellationTokenSource is not null)
+        if (HasActiveOperation)
         {
             throw new InvalidOperationException("当前任务已有活动操作。");
         }
@@ -406,9 +430,8 @@ internal sealed class CodingWorkTaskController
         using CancellationTokenSource operationCancellationTokenSource =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _activeOperationCancellationTokenSource = operationCancellationTokenSource;
-        _isLoopActive = true;
         ICodingChatRunner chatRunner = runner ?? _chatRunner;
-        OnStateChanged();
+        UpdateOperationState(CodingWorkTaskOperationState.LoopRunning);
         try
         {
             while (IsLoopIterationEnabled)
@@ -448,9 +471,8 @@ internal sealed class CodingWorkTaskController
 
                     try
                     {
-                        SetOperationPhase(CodingWorkTaskOperationPhase.WaitingToRetry);
+                        UpdateOperationState(CodingWorkTaskOperationState.LoopWaitingToRetry);
                         await Task.Delay(TimeSpan.FromSeconds(10), operationCancellationTokenSource.Token);
-                        SetOperationPhase(CodingWorkTaskOperationPhase.Idle);
                     }
                     catch (OperationCanceledException)
                     {
@@ -466,8 +488,7 @@ internal sealed class CodingWorkTaskController
                 _activeOperationCancellationTokenSource = null;
             }
 
-            _isLoopActive = false;
-            SetOperationPhase(CodingWorkTaskOperationPhase.Idle);
+            UpdateOperationState(default);
         }
     }
 
@@ -484,6 +505,7 @@ internal sealed class CodingWorkTaskController
 
         using var operationCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _activeOperationCancellationTokenSource = operationCancellation;
+        UpdateOperationState(CodingWorkTaskOperationState.Compressing);
         try
         {
             return await CompressConversationCoreAsync(runner ?? _chatRunner, operationCancellation.Token, compressionRequest);
@@ -491,6 +513,7 @@ internal sealed class CodingWorkTaskController
         finally
         {
             _activeOperationCancellationTokenSource = null;
+            UpdateOperationState(default);
         }
     }
 
@@ -498,19 +521,13 @@ internal sealed class CodingWorkTaskController
         CancellationToken cancellationToken, string? compressionRequest = null)
     {
         CopilotChatSession session = _chatManager.SelectedSession;
-        SetOperationPhase(CodingWorkTaskOperationPhase.Compressing);
-        try
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            if (!await runner.TryCompactConversationAsync(session, compressionRequest, cancellationToken)) return false;
-            await _sessionStore.SaveSessionAsync(session, CancellationToken.None);
-            AddOrUpdateSummary(session, insertAtTop: true);
-            return true;
-        }
-        finally
-        {
-            SetOperationPhase(CodingWorkTaskOperationPhase.Idle);
-        }
+        AdvanceOperationState(CodingWorkTaskOperationState.Compressing);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!await runner.TryCompactConversationAsync(session, compressionRequest, cancellationToken)) return false;
+        AdvanceOperationState(CodingWorkTaskOperationState.Finalizing);
+        await _sessionStore.SaveSessionAsync(session, CancellationToken.None);
+        AddOrUpdateSummary(session, insertAtTop: true);
+        return true;
     }
 
     public async Task StopActiveRunByUserAsync()
@@ -520,7 +537,7 @@ internal sealed class CodingWorkTaskController
         (
             session.SessionId,
             "停止",
-            $"用户请求停止运行。阶段={_operationPhase}；循环活动={_isLoopActive}；活动取消源存在={_activeOperationCancellationTokenSource is not null}；活动取消源已取消={_activeOperationCancellationTokenSource?.IsCancellationRequested == true}。"
+            $"用户请求停止运行。状态={_operationState}；循环活动={IsLoopActive}；活动取消源存在={_activeOperationCancellationTokenSource is not null}；活动取消源已取消={_activeOperationCancellationTokenSource?.IsCancellationRequested == true}。"
         );
         StopActiveRun();
     }
@@ -588,12 +605,23 @@ internal sealed class CodingWorkTaskController
         }
     }
 
-    private bool HasActiveOperation => _isLoopActive || _operationPhase != CodingWorkTaskOperationPhase.Idle;
+    private bool HasActiveOperation => _operationState != CodingWorkTaskOperationState.Idle;
 
-    private void SetOperationPhase(CodingWorkTaskOperationPhase phase)
+    private void AdvanceOperationState(CodingWorkTaskOperationState state)
     {
-        if (_operationPhase == phase) return;
-        _operationPhase = phase;
+        UpdateOperationState(IsLoopActive ? state switch
+        {
+            CodingWorkTaskOperationState.Running => CodingWorkTaskOperationState.LoopRunning,
+            CodingWorkTaskOperationState.Compressing => CodingWorkTaskOperationState.LoopCompressing,
+            CodingWorkTaskOperationState.Finalizing => CodingWorkTaskOperationState.LoopFinalizing,
+            _ => state,
+        } : state);
+    }
+
+    private void UpdateOperationState(CodingWorkTaskOperationState state)
+    {
+        if (_operationState == state) return;
+        _operationState = state;
         OnStateChanged();
     }
 
