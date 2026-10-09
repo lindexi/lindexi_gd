@@ -27,6 +27,14 @@ public sealed class CopilotResponsesSession
         _items.Add(item);
     }
 
+    /// <summary>用服务端压缩返回的完整原生输出替换请求历史。</summary>
+    public void ApplyCompaction(IReadOnlyList<ResponseItem> output)
+    {
+        ArgumentNullException.ThrowIfNull(output);
+        _items.Clear();
+        _items.AddRange(output);
+    }
+
     /// <summary>按服务返回顺序追加响应的原生输出。</summary>
     public void AppendResponse(ResponseResult response)
     {

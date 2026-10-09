@@ -11,6 +11,14 @@ namespace CodingChatRoom.AvaloniaShell.Services;
 
 internal sealed class ResponsesCodingChatRunner(CopilotChatManager chatManager, ResponsesCodingAgent agent) : ICodingChatRunner
 {
+    public async Task<bool> TryCompactConversationAsync(AgentLib.Model.CopilotChatSession session,
+        string? instructions, CancellationToken cancellationToken)
+    {
+        var context = await chatManager.CreateManualSendMessageContextAsync(cancellationToken).ConfigureAwait(false);
+        return await agent.TryCompactConversationAsync(context.LanguageModel, session.ResponsesSession,
+            instructions, cancellationToken).ConfigureAwait(false);
+    }
+
     private ICodingAgentRunResult? _activeRun;
     private CopilotChatSession? _activeSession;
 

@@ -24,6 +24,52 @@ public sealed class ResponsesWorkflowLiveTests
     private const string ModelId = "MiniMax-M3";
 
     [TestMethod]
+    public async Task NativeCompactShouldReturnProtocolOutputAsync()
+    {
+        if (!File.Exists(KeyPath)) return;
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+        var client = new ResponsesClient(
+            new System.ClientModel.ApiKeyCredential((await File.ReadAllTextAsync(KeyPath, timeout.Token)).Trim()),
+            new ResponsesClientOptions { Endpoint = new Uri(Endpoint) });
+        string directory = Path.Combine(Path.GetTempPath(), $"responses-compact-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(directory);
+        Console.WriteLine($"Compact report directory: {directory}");
+        var request = new CreateResponseOptions { Model = ModelId, StoredOutputEnabled = false };
+        request.InputItems.Add(ResponseItem.CreateUserMessageItem("For this C# project, remember the test identifier ORCHID-731. Reply briefly."));
+        var first = (await client.CreateResponseAsync(request, timeout.Token)).Value;
+        var input = new List<ResponseItem>(request.InputItems);
+        input.AddRange(first.OutputItems);
+        request.InputItems.Clear();
+        foreach (var item in input) request.InputItems.Add(item);
+        request.InputItems.Add(ResponseItem.CreateUserMessageItem("Which test identifier did I specify? Reply only with the identifier."));
+        var second = (await client.CreateResponseAsync(request, timeout.Token)).Value;
+        input = new List<ResponseItem>(request.InputItems);
+        input.AddRange(second.OutputItems);
+        using var compactRequest = System.ClientModel.BinaryContent.Create(BinaryData.FromObjectAsJson(new
+        {
+            model = ModelId,
+            input = input.Select(item => JsonSerializer.Deserialize<JsonElement>(
+                System.ClientModel.Primitives.ModelReaderWriter.Write(item).ToString())).ToArray(),
+            instructions = "Preserve the C# project test identifier and conversation context.",
+        }));
+        var result = await client.CompactResponseAsync(compactRequest, "application/json",
+            new System.ClientModel.Primitives.RequestOptions
+            {
+                CancellationToken = timeout.Token,
+                ErrorOptions = System.ClientModel.Primitives.ClientErrorBehaviors.NoThrow,
+            });
+        var response = result.GetRawResponse();
+        string body = response.Content.ToString();
+        await File.WriteAllTextAsync(Path.Combine(directory, "compact-response.json"), body, timeout.Token);
+        Console.WriteLine($"Compact HTTP status: {response.Status}");
+        Console.WriteLine($"Compact response: {body}");
+        Assert.IsTrue(response.Status is >= 200 and < 300, $"Compact returned HTTP {response.Status}: {body}");
+        using var document = JsonDocument.Parse(body);
+        Assert.IsTrue(document.RootElement.TryGetProperty("output", out var output)
+            && output.ValueKind == JsonValueKind.Array && output.GetArrayLength() > 0);
+    }
+
+    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task NativeStreamingWithoutApplicationShouldReadCompletedEventAsync(bool storeOutput)
@@ -205,7 +251,7 @@ public sealed class ResponsesWorkflowLiveTests
         await ((SimpleAsyncCommand)scenario.Chat.CompressConversationCommand).ExecuteAsync();
         Assert.IsTrue(scenario.Recorder.Paths.Any(path => path.EndsWith("/responses/compact", StringComparison.Ordinal)),
             "压缩必须调用原生 compact，不允许用 Chat 压缩或伪造完成。");
-        await scenario.SendAsync("压缩之前记住的标识是什么？只回复标识。");
+        await scenario.SendAsync("请再重复一次，刚才的测试标识是什么？只回复标识，不调用工具。");
         StringAssert.Contains(scenario.LastAnswer, "ORCHID-731");
     }
 

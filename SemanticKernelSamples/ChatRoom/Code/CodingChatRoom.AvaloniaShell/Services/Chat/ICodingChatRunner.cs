@@ -17,6 +17,9 @@ internal interface ICodingChatRunner
         CancellationToken cancellationToken
     );
 
+    Task<bool> TryCompactConversationAsync(AgentLib.Model.CopilotChatSession session,
+        string? instructions, CancellationToken cancellationToken) => Task.FromResult(false);
+
     Task InjectMessageAsync
     (
         IReadOnlyList<AIContent> contents,

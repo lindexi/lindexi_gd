@@ -54,6 +54,15 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
         );
     }
 
+    public async Task<bool> TryCompactConversationAsync(AgentLib.Model.CopilotChatSession session,
+        string? instructions, CancellationToken cancellationToken)
+    {
+        if (session.AgentSession is null) return false;
+        await _chatManager.ReduceSessionAsync(chatReducer: null, requestText: instructions,
+            additionalPrompt: instructions, cancellationToken: cancellationToken).ConfigureAwait(false);
+        return true;
+    }
+
     public Task InjectMessageAsync
     (
         IReadOnlyList<AIContent> contents,

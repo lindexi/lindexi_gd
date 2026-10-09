@@ -58,8 +58,51 @@ public sealed class ResponsesCodingAgent
             Workspace = workspaceContext,
             CancellationToken = cancellationToken,
             ReasoningEffort = runOptions.ReasoningEffort,
+            EnableAutomaticCompression = runOptions.EnableAutomaticCompression,
         };
         return new ResponsesCodingAgentRunResult(runner);
+    }
+
+    /// <summary>
+    /// 通过服务端原生 Compact 压缩历史；无历史返回 false，失败或取消不修改历史且不回退。
+    /// </summary>
+    public async Task<bool> TryCompactConversationAsync(ILanguageModel model, CopilotResponsesSession conversation,
+        string? additionalInstructions = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        ArgumentNullException.ThrowIfNull(conversation);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (conversation.Items.Count == 0) return false;
+        var prompts = await CodingPromptProvider.BuildAsync(_copilotInstructionsPath, cancellationToken).ConfigureAwait(false);
+        string instructions = string.Join(Environment.NewLine + Environment.NewLine, prompts);
+        if (!string.IsNullOrWhiteSpace(additionalInstructions)) instructions += Environment.NewLine + additionalInstructions;
+        var client = await ((IResponsesClientProvider)model).GetResponsesClientAsync().ConfigureAwait(false);
+        return await TryCompactConversationAsync(client, model.ModelDefinition.ModelId, conversation,
+            instructions, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static async Task<bool> TryCompactConversationAsync(ResponsesClient client, string modelId,
+        CopilotResponsesSession conversation, string instructions, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (conversation.Items.Count == 0) return false;
+        using var content = System.ClientModel.BinaryContent.Create(BinaryData.FromObjectAsJson(new
+        {
+            model = modelId,
+            input = conversation.Items.Select(item => System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(
+                System.ClientModel.Primitives.ModelReaderWriter.Write(item).ToString())).ToArray(),
+            instructions,
+        }));
+        var result = await client.CompactResponseAsync(content, "application/json",
+            new System.ClientModel.Primitives.RequestOptions { CancellationToken = cancellationToken }).ConfigureAwait(false);
+        using var document = System.Text.Json.JsonDocument.Parse(result.GetRawResponse().Content);
+        var output = document.RootElement.GetProperty("output").EnumerateArray()
+            .Select(item => System.ClientModel.Primitives.ModelReaderWriter.Read<ResponseItem>(BinaryData.FromString(item.GetRawText()))
+                ?? throw new System.IO.InvalidDataException("Compact 返回了空的原生 Item。"))
+            .ToArray();
+        cancellationToken.ThrowIfCancellationRequested();
+        conversation.ApplyCompaction(output);
+        return true;
     }
 
     internal static ResponseContentPart CreateInputPart(AIContent content) => content switch

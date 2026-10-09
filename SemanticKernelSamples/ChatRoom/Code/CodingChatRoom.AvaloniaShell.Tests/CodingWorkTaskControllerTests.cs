@@ -209,7 +209,7 @@ public sealed class CodingWorkTaskControllerTests
             new ChatMessage(ChatRole.Assistant, "助手回答"),
         ]);
         var store = new TestSessionStore();
-        var application = CodingChatApplicationTestFactory.CreateApplication(manager, store, new ControllableRunner());
+        var application = CodingChatApplicationTestFactory.CreateApplication(manager, store);
         await application.InitializeAsync();
         Assert.IsTrue(application.CanSend);
         Assert.IsTrue(application.CanCompressConversation);
@@ -259,7 +259,8 @@ public sealed class CodingWorkTaskControllerTests
             new ChatMessage(ChatRole.User, "用户问题"),
             new ChatMessage(ChatRole.Assistant, "助手回答"),
         ]);
-        var runner = new ControllableRunner();
+        await using var codingAgent = new CodingAgent();
+        var runner = new ControllableRunner { CompressionRunner = new CodingAgentChatRunner(manager, codingAgent) };
         var application = CodingChatApplicationTestFactory.CreateApplication(manager, new TestSessionStore(), runner);
         application.IsLoopIterationEnabled = true;
 
@@ -551,6 +552,11 @@ public sealed class CodingWorkTaskControllerTests
 
     private sealed class ControllableRunner : ICodingChatRunner
     {
+        public ICodingChatRunner? CompressionRunner { get; init; }
+
+        public Task<bool> TryCompactConversationAsync(CopilotChatSession session, string? instructions,
+            CancellationToken cancellationToken) => CompressionRunner?.TryCompactConversationAsync(session, instructions, cancellationToken)
+                ?? Task.FromResult(false);
         private readonly TaskCompletionSource<string?> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
