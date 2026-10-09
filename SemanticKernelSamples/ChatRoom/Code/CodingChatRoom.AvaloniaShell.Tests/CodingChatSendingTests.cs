@@ -544,6 +544,34 @@ public sealed class CodingChatSendingTests
             => CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
     }
 
+    [TestMethod]
+    [Timeout(5000)]
+    public async Task CompressionSaveShouldRemainActiveUntilSaveCompletes()
+    {
+        var manager = new CopilotChatManager();
+        var store = new TestSessionStore { BlockSave = true };
+        var controller = CodingChatApplicationTestFactory.CreateApplication(manager, store);
+        bool notifiedIdle = false;
+        controller.StateChanged += (_, _) => notifiedIdle = controller.CanChangeSession;
+        Task<bool> compression = controller.CompressConversationAsync(null, new SuccessfulCompressionRunner());
+        try
+        {
+            await store.SaveStarted.Task;
+            Assert.IsTrue(controller.IsFinalizing && !controller.CanChangeSession && !notifiedIdle);
+        }
+        finally { store.ReleaseSave(); }
+        await compression;
+        Assert.IsTrue(controller.CanChangeSession && notifiedIdle);
+    }
+
+    private sealed class SuccessfulCompressionRunner : ICodingChatRunner
+    {
+        public Task<ICodingAgentRunResult> RunAsync(IReadOnlyList<AIContent> contents, string? workspacePath,
+            CodingChatRunOptions options, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<bool> TryCompactConversationAsync(CopilotChatSession session, string? instructions,
+            CancellationToken cancellationToken) => Task.FromResult(true);
+    }
+
     private static string CreateTestDirectory()
     {
         string path = Path.Join(Path.GetTempPath(), $"CodingChatRoom.SendWorkspace.{Guid.NewGuid():N}");

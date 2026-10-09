@@ -449,6 +449,49 @@ public sealed class CodingWorkTaskControllerTests
         return manager;
     }
 
+    [TestMethod]
+    [DataRow("empty")]
+    [DataRow("failure")]
+    [DataRow("cancel")]
+    public async Task CompressionExitShouldPublishIdleAfterClearingCancellation(string outcome)
+    {
+        var manager = new CopilotChatManager();
+        var runner = new ControlledCompressionRunner(outcome);
+        var controller = CodingChatApplicationTestFactory.CreateApplication(manager, new TestSessionStore(), runner);
+        bool notifiedIdle = false;
+        controller.StateChanged += (_, _) => notifiedIdle = controller.CanChangeSession
+            && controller.CanSend && !controller.IsCompressionActive && !controller.IsFinalizing;
+        Task<bool> compression = controller.CompressConversationAsync();
+        await runner.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        if (outcome == "cancel") controller.StopActiveRun();
+        runner.Release.TrySetResult();
+        if (outcome == "failure")
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await compression);
+        else if (outcome == "cancel")
+            await Assert.ThrowsAsync<OperationCanceledException>(async () => await compression);
+        else
+            Assert.IsFalse(await compression);
+
+        Assert.IsTrue(notifiedIdle);
+        await controller.CreateNewSessionAsync();
+    }
+
+    private sealed class ControlledCompressionRunner(string outcome) : ICodingChatRunner
+    {
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public Task<ICodingAgentRunResult> RunAsync(IReadOnlyList<AIContent> contents, string? workspacePath,
+            CodingChatRunOptions options, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public async Task<bool> TryCompactConversationAsync(CopilotChatSession session, string? instructions,
+            CancellationToken cancellationToken)
+        {
+            Started.TrySetResult();
+            await Release.Task.WaitAsync(cancellationToken);
+            if (outcome == "failure") throw new InvalidOperationException("Compression failed.");
+            return false;
+        }
+    }
+
     private sealed class TestMainThreadDispatcher : AgentLib.IMainThreadDispatcher
     {
         public Task InvokeAsync(Func<Task> action) => action();
