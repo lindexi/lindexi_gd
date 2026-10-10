@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
+        xmlns:vm="clr-namespace:CodingAgent.AvaloniaShell.ViewModels"
+        xmlns:views1="clr-namespace:CodingAgent.AvaloniaShell.Views"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="760"
+        x:Class="CodingAgent.AvaloniaShell.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon="avares://PrismCodingAgent/Assets/Icons/CodingChatRoom.ico"
+        Width="1440" Height="900"
+        MinWidth="1280"
+        MinHeight="720"
+        TransparencyLevelHint="Mica, None"
+        TransparencyBackgroundFallback="White"
+        Background="{Binding ActualTransparencyLevel, RelativeSource={RelativeSource Self}, Converter={StaticResource WindowTransparencyBackgroundConverter}}">
+    <Window.Title>
+        <MultiBinding Converter="{StaticResource WorkspaceTitleConverter}"
+                      ConverterParameter="{StaticResource ApplicationTitle}">
+            <Binding Path="ChatViewModel.NextRunWorkspacePath" />
+            <Binding Path="ChatViewModel.CurrentSessionTitle" />
+            <Binding Path="ActiveWorkTask.DisplayName" />
+        </MultiBinding>
+    </Window.Title>
+    <views1:MainView />
+</Window>

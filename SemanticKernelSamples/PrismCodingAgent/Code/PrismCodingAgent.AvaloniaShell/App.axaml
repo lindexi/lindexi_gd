@@ -1,0 +1,21 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:CodingAgent.AvaloniaShell.Converters"
+             x:Class="CodingAgent.AvaloniaShell.App"
+             RequestedThemeVariant="Light">
+
+    <Application.Resources>
+        <converters:WorkspaceTitleConverter x:Key="WorkspaceTitleConverter" />
+        <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+        <converters:WindowTransparencyBackgroundConverter x:Key="WindowTransparencyBackgroundConverter" />
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://PrismCodingAgent/Styles/Strings.axaml" />
+        <StyleInclude Source="avares://PrismCodingAgent/Styles/Colors.axaml" />
+        <StyleInclude Source="avares://PrismCodingAgent/Styles/Controls.axaml" />
+        <StyleInclude Source="avares://PrismCodingAgent/Styles/MessageBubble.axaml" />
+        <StyleInclude Source="avares://PrismCodingAgent/Styles/Settings.axaml" />
+    </Application.Styles>
+</Application>

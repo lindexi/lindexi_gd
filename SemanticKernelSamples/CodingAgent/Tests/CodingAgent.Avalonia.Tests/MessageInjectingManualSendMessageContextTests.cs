@@ -1,1 +1,0 @@
-namespace CodingChatRoom.AvaloniaShell.Tests;

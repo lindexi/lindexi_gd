@@ -1,0 +1,289 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
+             xmlns:vm="clr-namespace:CodingAgent.AvaloniaShell.ViewModels"
+             xmlns:views1="clr-namespace:CodingAgent.AvaloniaShell.Views"
+             x:Class="CodingAgent.AvaloniaShell.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+    <Grid RowDefinitions="Auto,*,Auto" Background="{StaticResource SettingsBackgroundBrush}">
+        <Border Grid.Row="0" Classes="SettingsHeader" Padding="32,24,32,16">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20" HorizontalAlignment="Stretch">
+                <Button Classes="SettingsBack"
+                        Content="← 返回聊天"
+                        ToolTip.Tip="返回聊天"
+                        Command="{Binding BackCommand}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                    <TextBlock Text="设置" Classes="SettingsPageTitle" />
+                    <TextBlock Text="模型服务与隔离执行环境" Classes="Subtitle" />
+                </StackPanel>
+                <Button Grid.Column="2"
+                        Classes="Primary accent SaveSettings"
+                        Content="保存更改"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding !IsBusy}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="32,8,32,32" MaxWidth="1120"
+                        Spacing="8"
+                        HorizontalAlignment="Stretch">
+                <Border Classes="SettingsIntro" Padding="18" IsVisible="False">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                        <Border Classes="IntroIcon">
+                            <TextBlock Text="⚙"
+                                       FontSize="20"
+                                       Foreground="White"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="工作区运行配置" Classes="Eyebrow" />
+                            <TextBlock Text="统一管理 Coding Agent 使用的模型与 Windows 沙箱连接。"
+                                       FontSize="15"
+                                       FontWeight="SemiBold"
+                                       Foreground="#22313F" />
+                            <TextBlock Text="更改将在保存后写入配置；重新打开工作区即可使用新的运行环境。"
+                                       Classes="SettingsHint"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Border Grid.Column="2" Classes="SectionTag" VerticalAlignment="Center">
+                            <TextBlock Text="需要重载"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryDarkBrush}" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="20">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                            <Border Classes="SectionIcon SandboxIcon">
+                                <TextBlock Text="&gt;_"
+                                           FontSize="12"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource SandboxAccentBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="Windows 沙箱" Classes="SettingsSectionTitle" />
+                                <TextBlock Text="通过 WinRemoteShell 将命令与文件操作发送到隔离环境。"
+                                           Classes="Subtitle"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="2"
+                                          IsChecked="{Binding IsWindowsSandboxEnabled}"
+                                          OnContent="已启用"
+                                          OffContent="已禁用"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Border Classes="SandboxNotice" Padding="14">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <TextBlock Text="✓"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource SandboxAccentBrush}" />
+                                <TextBlock Grid.Column="1"
+                                           Text="仅使用可信的 WinRemoteShell 客户端，并连接到受控网络中的服务地址。沙箱将在工作区打开时建立连接。"
+                                           TextWrapping="Wrap"
+                                           Foreground="{StaticResource SandboxTextBrush}" />
+                            </Grid>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="16" IsEnabled="{Binding IsWindowsSandboxEnabled}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="沙箱工具路径" Classes="SettingsLabel" />
+                                <TextBox Classes="Rounded SettingsInput"
+                                         Text="{Binding WindowsSandboxToolPath}"
+                                         PlaceholderText="C:\Tools\WinRemoteShell.exe" />
+                                <TextBlock Text="可填写完整路径，或系统 PATH 中可解析的命令名。"
+                                           Classes="SettingsHint"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="连接地址" Classes="SettingsLabel" />
+                                <TextBox Classes="Rounded SettingsInput"
+                                         Text="{Binding WindowsSandboxServerAddress}"
+                                         PlaceholderText="127.0.0.1:12399"
+                                         LostFocus="OnWindowsSandboxServerAddressLostFocus" />
+                                <TextBlock Text="使用 主机:端口 格式，例如 192.168.1.20:12399。输入完成后将自动测试连接。"
+                                           Classes="SettingsHint"
+                                           TextWrapping="Wrap" />
+                                <Grid ColumnDefinitions="Auto,*"
+                                      ColumnSpacing="8"
+                                      IsVisible="{Binding HasSandboxConnectionStatusMessage}">
+                                    <ProgressBar Width="72"
+                                                 IsIndeterminate="True"
+                                                 IsVisible="{Binding IsSandboxConnectionTestRunning}"
+                                                 VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding SandboxConnectionStatusMessage}"
+                                               Foreground="{StaticResource SandboxTextBrush}"
+                                               IsVisible="{Binding !IsSandboxConnectionStatusError}"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding SandboxConnectionStatusMessage}"
+                                               Foreground="{StaticResource DangerBrush}"
+                                               IsVisible="{Binding IsSandboxConnectionStatusError}"
+                                               TextWrapping="Wrap" />
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="20">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                            <Border Classes="SectionIcon">
+                                <TextBlock Text="NET"
+                                           FontSize="9"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryDarkBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="{StaticResource NetworkProxySettingsTitle}"
+                                           Classes="SettingsSectionTitle" />
+                                <TextBlock Text="{StaticResource NetworkProxySettingsDescription}"
+                                           Classes="Subtitle"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="2"
+                                          IsChecked="{Binding IsNetworkProxyEnabled}"
+                                          OnContent="{StaticResource NetworkProxyEnabledText}"
+                                          OffContent="{StaticResource NetworkProxyDisabledText}"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <StackPanel Spacing="14" IsEnabled="{Binding IsNetworkProxyEnabled}">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="{StaticResource NetworkProxyAddressLabel}" Classes="SettingsLabel" />
+                                <TextBox Classes="Rounded SettingsInput"
+                                         Text="{Binding NetworkProxyAddress}"
+                                         PlaceholderText="{StaticResource NetworkProxyAddressPlaceholder}" />
+                                <TextBlock Text="{StaticResource NetworkProxyAddressHint}"
+                                           Classes="SettingsHint"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <CheckBox IsChecked="{Binding BypassProxyOnLocal}"
+                                          Content="{StaticResource BypassProxyOnLocalText}" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{StaticResource BypassProxyOnLocalHint}"
+                                           Classes="SettingsHint"
+                                           TextWrapping="Wrap"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="16">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                            <Border Classes="SectionIcon">
+                                <TextBlock Text="LSP"
+                                           FontSize="10"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryDarkBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="{StaticResource LanguageServerSettingsTitle}"
+                                           Classes="SettingsSectionTitle" />
+                                <TextBlock Text="{StaticResource LanguageServerSettingsDescription}"
+                                           Classes="Subtitle"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2"
+                                        Orientation="Horizontal"
+                                        Spacing="8"
+                                        VerticalAlignment="Center">
+                                <Button Classes="Primary accent"
+                                        Content="{StaticResource InstallOrUpdateLanguageServerText}"
+                                        Click="OnInstallOrUpdateLanguageServerClick" />
+                                <Button Content="{StaticResource CopyLanguageServerInstallCommandText}"
+                                        ToolTip.Tip="{StaticResource CopyLanguageServerInstallCommandToolTip}"
+                                        Click="OnCopyLanguageServerInstallCommandClick" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="{StaticResource LanguageServerInstallHint}"
+                                   Classes="SettingsHint"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="20">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                            <Border Classes="SectionIcon">
+                                <TextBlock Text="MD"
+                                           FontSize="11"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryDarkBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="3">
+                                <TextBlock Text="Copilot 自定义指令" Classes="SettingsSectionTitle" />
+                                <TextBlock Text="将 copilot-instructions.md 的内容追加到 Coding Agent 系统提示词。"
+                                           Classes="Subtitle"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="2"
+                                          IsChecked="{Binding IsCopilotInstructionsEnabled}"
+                                          OnContent="已启用"
+                                          OffContent="已禁用"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+
+                        <StackPanel Spacing="6" IsEnabled="{Binding IsCopilotInstructionsEnabled}">
+                            <TextBlock Text="指令文件路径（可选）" Classes="SettingsLabel" />
+                            <TextBox Classes="Rounded SettingsInput"
+                                     Text="{Binding CopilotInstructionsPath}"
+                                     PlaceholderText="C:\Users\用户名\copilot-instructions.md" />
+                            <TextBlock Text="留空时使用当前用户目录下的 copilot-instructions.md；填写后使用指定的完整路径。"
+                                       Classes="SettingsHint"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="{DynamicResource ModelConfigurationTitle}" Classes="SettingsSectionTitle" />
+                        <TextBox Text="{Binding PrimaryModel}" PlaceholderText="{DynamicResource DefaultModelHint}" Classes="Rounded SettingsInput" />
+                        <views1:ModelSettingsView />
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2"
+                Classes="StatusBar"
+                Padding="28,12"
+                IsVisible="{Binding HasStatusMessage}">
+            <Grid ColumnDefinitions="*,Auto" MaxWidth="1040" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding StatusMessage}"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center" />
+                <ProgressBar Grid.Column="1"
+                             Width="100"
+                             IsIndeterminate="True"
+                             IsVisible="{Binding IsBusy}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

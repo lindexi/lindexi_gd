@@ -1,0 +1,193 @@
+using AgentLib;
+using AgentLib.Core.AgentApiManagers.Contexts;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+using CodingAgent.AvaloniaShell.Infrastructure;
+using CodingAgent.AvaloniaShell.Services.WorkTasks;
+
+namespace CodingAgent.AvaloniaShell.Tests;
+
+[TestClass]
+public sealed class CodingWorkTaskRuntimeFactoryTests
+{
+    [TestMethod]
+    public async Task ResponsesRunnerShouldBeReusedWithinTaskRuntime()
+    {
+        using var temporaryDirectory = new TemporaryDirectory();
+        var paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
+        await using var runtime = await CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new ImmediateMainThreadDispatcher());
+
+        Assert.AreSame(runtime.ResponsesRunner, runtime.ResponsesRunner);
+    }
+
+    [TestMethod]
+    public async Task ResponsesRunnerShouldBeOwnedByEachTaskRuntime()
+    {
+        using var firstDirectory = new TemporaryDirectory();
+        using var secondDirectory = new TemporaryDirectory();
+        await using var first = await CodingWorkTaskRuntimeFactory.InitializeAsync(
+            CodingChatRoomPaths.Create(firstDirectory.Path), new ImmediateMainThreadDispatcher());
+        await using var second = await CodingWorkTaskRuntimeFactory.InitializeAsync(
+            CodingChatRoomPaths.Create(secondDirectory.Path), new ImmediateMainThreadDispatcher());
+
+        Assert.AreNotSame(first.ResponsesRunner, second.ResponsesRunner);
+    }
+
+    [TestMethod(DisplayName = "路径对象应只在指定根目录下计算固定文件和子目录")]
+    [Timeout(5000)]
+    public void PathsShouldUseOnlyTheSpecifiedRootDirectory()
+    {
+        using var temporaryDirectory = new TemporaryDirectory();
+        CodingChatRoomPaths paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
+
+        Assert.AreEqual(Path.GetFullPath(temporaryDirectory.Path), paths.RootDirectory);
+        Assert.AreEqual(
+            Path.Join(paths.RootDirectory, "AgentConfiguration.json"),
+            paths.ConfigurationFile.FullName);
+        Assert.AreEqual(Path.Join(paths.RootDirectory, "Logs"), paths.LogDirectory);
+        Assert.AreEqual(Path.Join(paths.RootDirectory, "Sessions"), paths.SessionDirectory.FullName);
+        Assert.AreEqual(Path.Join(paths.RootDirectory, "Abilities"), paths.AbilitiesDirectory.FullName);
+    }
+
+    [TestMethod(DisplayName = "目录初始化不应生成配置文件")]
+    [Timeout(5000)]
+    public void EnsureDirectoriesShouldNotCreateConfigurationFile()
+    {
+        using var temporaryDirectory = new TemporaryDirectory();
+        CodingChatRoomPaths paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
+
+        paths.EnsureDirectories();
+
+        Assert.IsTrue(Directory.Exists(paths.RootDirectory));
+        Assert.IsTrue(Directory.Exists(paths.LogDirectory));
+        Assert.IsTrue(paths.SessionDirectory.Exists);
+        Assert.IsTrue(paths.AbilitiesDirectory.Exists);
+        Assert.IsFalse(paths.ConfigurationFile.Exists);
+    }
+
+    [TestMethod(DisplayName = "配置缺失时应创建无模型运行时")]
+    [Timeout(5000)]
+    public async Task MissingConfigurationShouldCreateEmptyRuntime()
+    {
+        using var temporaryDirectory = new TemporaryDirectory();
+        CodingChatRoomPaths paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
+        await using var runtime = await CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new ImmediateMainThreadDispatcher());
+        Assert.IsEmpty(runtime.EndpointManager.GetSupportedModels());
+    }
+
+    [TestMethod(DisplayName = "损坏配置时启动应直接失败")]
+    [Timeout(5000)]
+    public async Task InvalidConfigurationShouldFailWithoutFallback()
+    {
+        using var temporaryDirectory = new TemporaryDirectory();
+        CodingChatRoomPaths paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
+        paths.EnsureDirectories();
+        await File.WriteAllTextAsync(paths.ConfigurationFile.FullName, "{ invalid json");
+
+        await Assert.ThrowsExactlyAsync<System.Text.Json.JsonException>(
+            () => CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new ImmediateMainThreadDispatcher()));
+    }
+
+    [TestMethod(DisplayName = "空 Key 的提供商配置应正常启动")]
+    [Timeout(5000)]
+    public async Task ConfigurationWithoutKeyShouldStart()
+    {
+        using var temporaryDirectory = new TemporaryDirectory();
+        CodingChatRoomPaths paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
+        paths.EnsureDirectories();
+        await CreateConfiguration(primaryModel: null, key: string.Empty).SaveToFileAsync(paths.ConfigurationFile);
+
+        await using CodingWorkTaskRuntime runtime = await CodingWorkTaskRuntimeFactory.InitializeAsync(
+            paths,
+            new ImmediateMainThreadDispatcher());
+
+        Assert.AreEqual("test-provider/test-model", runtime.ModelDisplayName);
+    }
+
+    [TestMethod(DisplayName = "未知首选模型时启动应保留模型管理器异常")]
+    [Timeout(5000)]
+    public async Task UnknownPrimaryModelShouldFail()
+    {
+        using var temporaryDirectory = new TemporaryDirectory();
+        CodingChatRoomPaths paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
+        paths.EnsureDirectories();
+        await CreateConfiguration(primaryModel: "missing-model", key: "test-key")
+            .SaveToFileAsync(paths.ConfigurationFile);
+
+        ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new ImmediateMainThreadDispatcher()));
+
+        StringAssert.Contains(exception.Message, "missing-model");
+    }
+
+    [TestMethod(DisplayName = "有效配置应创建使用固定日志和会话目录的运行时")]
+    [Timeout(10000)]
+    public async Task ValidConfigurationShouldUseExplicitLogAndSessionDirectories()
+    {
+        using var temporaryDirectory = new TemporaryDirectory();
+        CodingChatRoomPaths paths = CodingChatRoomPaths.Create(temporaryDirectory.Path);
+        paths.EnsureDirectories();
+        await CreateConfiguration(primaryModel: "test-model", key: "test-key")
+            .SaveToFileAsync(paths.ConfigurationFile);
+
+        await using CodingWorkTaskRuntime runtime = await CodingWorkTaskRuntimeFactory.InitializeAsync(
+            paths,
+            new ImmediateMainThreadDispatcher());
+
+        Assert.AreEqual(paths.LogDirectory, runtime.ChatLogger.ChatLogFolder);
+        Assert.AreEqual("test-provider/test-model", runtime.ModelDisplayName);
+        Assert.AreSame(runtime.EndpointManager, runtime.ChatManager.AgentApiEndpointManager);
+    }
+
+    private static AgentApiManagerConfiguration CreateConfiguration(string? primaryModel, string key)
+    {
+        return new AgentApiManagerConfiguration
+        {
+            PrimaryModel = primaryModel,
+            OpenAIConfigurationList =
+            [
+                new OpenAIProtocolLanguageModelConfiguration("https://example.test/v1", key)
+                {
+                    ModelDefinitions =
+                    [
+                        new ModelDefinition
+                        {
+                            Provider = "test-provider",
+                            ModelName = "test-model",
+                            Capabilities = new LlmModelCapabilities(),
+                        },
+                    ],
+                },
+            ],
+        };
+    }
+
+    private sealed class ImmediateMainThreadDispatcher : IMainThreadDispatcher
+    {
+        public Task InvokeAsync(Func<Task> action) => action();
+
+        public Task<T> InvokeAsync<T>(Func<Task<T>> action) => action();
+
+        public bool CheckAccess() => true;
+    }
+
+    private sealed class TemporaryDirectory : IDisposable
+    {
+        public TemporaryDirectory()
+        {
+            Path = System.IO.Path.Join(
+                System.IO.Path.GetTempPath(),
+                "CodingChatRoom.Tests",
+                Guid.NewGuid().ToString("N"));
+        }
+
+        public string Path { get; }
+
+        public void Dispose()
+        {
+            if (Directory.Exists(Path))
+            {
+                Directory.Delete(Path, recursive: true);
+            }
+        }
+    }
+}

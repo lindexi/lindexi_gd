@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Code/">
+    <Project Path="Code/PrismCodingAgent.AvaloniaShell/PrismCodingAgent.AvaloniaShell.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/PrismCodingAgent.AvaloniaShell.Tests/PrismCodingAgent.AvaloniaShell.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Lib/">
+    <Project Path="../AgentLib/AgentLib.Coding/AgentLib.Coding.csproj" />
+    <Project Path="../AgentLib/AgentLib/AgentLib.csproj" />
+  </Folder>
+</Solution>

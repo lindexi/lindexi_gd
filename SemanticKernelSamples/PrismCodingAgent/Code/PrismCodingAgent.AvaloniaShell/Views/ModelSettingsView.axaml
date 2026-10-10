@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
+             xmlns:vm="clr-namespace:CodingAgent.AvaloniaShell.ViewModels"
+             xmlns:views1="clr-namespace:CodingAgent.AvaloniaShell.Views"
+             x:Class="CodingAgent.AvaloniaShell.Views.ModelSettingsView" x:DataType="vm:SettingsViewModel">
+ <StackPanel Spacing="16" IsEnabled="{Binding !IsBusy}">
+  <ItemsControl ItemsSource="{Binding Providers}">
+   <ItemsControl.ItemTemplate>
+    <DataTemplate x:DataType="vm:ProviderSettingsViewModel">
+     <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource SettingsCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,4">
+      <StackPanel Spacing="16">
+       <Button Content="{DynamicResource RemoveModelServiceText}" Classes="QuietDanger" HorizontalAlignment="Right"
+        Command="{Binding $parent[views1:ModelSettingsView].((vm:SettingsViewModel)DataContext).RemoveProviderCommand}" CommandParameter="{Binding}" />
+       <views1:ModelServiceConnectionView />
+       <views1:OpenAIModelCatalogView />
+       <ItemsControl ItemsSource="{Binding Models}">
+        <ItemsControl.ItemTemplate>
+         <DataTemplate x:DataType="vm:ModelSettingsViewModel">
+          <Border Classes="ModelCard" Padding="12" Margin="0,4">
+           <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="12">
+             <StackPanel Spacing="6"><TextBlock Text="{DynamicResource ModelProviderText}" Classes="SettingsLabel" /><TextBox Text="{Binding Provider}" Classes="Rounded SettingsInput" /></StackPanel>
+             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{DynamicResource ModelDisplayNameText}" Classes="SettingsLabel" /><TextBox Text="{Binding ModelName}" Classes="Rounded SettingsInput" /></StackPanel>
+             <Button Grid.Column="2" Content="×" Classes="IconDanger" VerticalAlignment="Bottom" ToolTip.Tip="{DynamicResource SetupRemoveModel}"
+              Command="{Binding $parent[ItemsControl].((vm:ProviderSettingsViewModel)DataContext).RemoveModelCommand}" CommandParameter="{Binding}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+             <StackPanel Spacing="6"><TextBlock Text="{DynamicResource ModelApiIdText}" Classes="SettingsLabel" /><TextBox Text="{Binding ModelId}" Classes="Rounded SettingsInput" /></StackPanel>
+             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{DynamicResource ModelContextSizeText}" Classes="SettingsLabel" /><NumericUpDown Value="{Binding ContextWindowSize}" Minimum="1" Maximum="100000000" Classes="SettingsInput" /></StackPanel>
+             <StackPanel Grid.Column="2" Spacing="6"><TextBlock Text="{DynamicResource ModelOutputSizeText}" Classes="SettingsLabel" /><NumericUpDown Value="{Binding MaxOutputTokens}" Minimum="1" Maximum="10000000" Classes="SettingsInput" /></StackPanel>
+            </Grid>
+            <WrapPanel>
+             <CheckBox Content="{DynamicResource ModelReasoningText}" IsChecked="{Binding SupportsReasoning}" Margin="0,0,16,0" />
+             <CheckBox Content="{DynamicResource ModelToolsText}" IsChecked="{Binding SupportsToolCall}" Margin="0,0,16,0" />
+             <CheckBox Content="{DynamicResource ModelImagesText}" IsChecked="{Binding SupportsImageInput}" Margin="0,0,16,0" />
+             <CheckBox Content="{DynamicResource ModelFastText}" IsChecked="{Binding IsFlash}" />
+            </WrapPanel>
+           </StackPanel>
+          </Border>
+         </DataTemplate>
+        </ItemsControl.ItemTemplate>
+       </ItemsControl>
+      </StackPanel>
+     </Border>
+    </DataTemplate>
+   </ItemsControl.ItemTemplate>
+  </ItemsControl>
+  <Button Content="{DynamicResource AddModelServiceText}" Command="{Binding AddProviderCommand}" Classes="AddOutline" />
+ </StackPanel>
+</UserControl>

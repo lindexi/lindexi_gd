@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "PrismCodingAgent.AvaloniaShell": {
+      "commandName": "Project"
+    },
+    "调试欢迎界面": {
+      "commandName": "Project",
+      "commandLineArgs": "--debug-onboarding"
+    }
+  }
+}

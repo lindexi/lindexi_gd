@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:CodingAgent.AvaloniaShell.ViewModels"
+             x:Class="CodingAgent.AvaloniaShell.Views.OpenAIModelCatalogView"
+             x:DataType="vm:ModelCatalogViewModel" x:CompileBindings="True">
+    <StackPanel x:Name="CatalogPanel" x:DataType="vm:ModelCatalogViewModel" Spacing="12">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBlock Text="{DynamicResource SetupModelsLabel}" Classes="SettingsSectionTitle" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="{DynamicResource SetupDiscoverAction}" Command="{Binding LoadCommand}" />
+        </Grid>
+        <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="3" />
+        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Classes="SettingsHint" />
+        <ScrollViewer MaxHeight="200" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Models}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,4">
+                            <TextBlock Text="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <Button Grid.Column="1" Content="{DynamicResource SetupAddModel}"
+                                    Command="{Binding $parent[ItemsControl].((vm:ModelCatalogViewModel)DataContext).AddCommand}"
+                                    CommandParameter="{Binding}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        <TextBlock Text="{DynamicResource SetupManualHint}" TextWrapping="Wrap" />
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBox Text="{Binding ModelId, UpdateSourceTrigger=PropertyChanged}" Classes="Rounded SettingsInput" VerticalContentAlignment="Center" PlaceholderText="{DynamicResource SetupModelIdText}" />
+            <Button Grid.Column="1" Content="{DynamicResource SetupAddModel}" Command="{Binding AddManualCommand}" />
+        </Grid>
+    </StackPanel>
+</UserControl>
