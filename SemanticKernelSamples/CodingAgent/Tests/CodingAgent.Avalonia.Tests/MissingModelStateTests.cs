@@ -8,7 +8,7 @@ using Avalonia.VisualTree;
 
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
-[TestClass]
+[AvaloniaTestClass]
 public sealed class MissingModelStateTests
 {
     [TestMethod]

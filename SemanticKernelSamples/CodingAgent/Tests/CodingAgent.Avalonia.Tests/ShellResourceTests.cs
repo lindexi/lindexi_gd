@@ -5,13 +5,13 @@ using CodingChatRoom.AvaloniaShell.ViewModels;
 
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
-[TestClass]
+[AvaloniaTestClass]
 public sealed class ShellResourceTests
 {
     [TestMethod]
     public void ShellAvatarShouldLoadFromPackagedResources()
     {
-        var uri = new Uri("avares://CodingChatRoom.AvaloniaShell/Assets/Icons/CodingChatRoom_48x48.png");
+        var uri = new Uri("avares://CodingAgent/Assets/Icons/CodingChatRoom_48x48.png");
 
         using var stream = AssetLoader.Open(uri);
         using var bitmap = new Bitmap(stream);

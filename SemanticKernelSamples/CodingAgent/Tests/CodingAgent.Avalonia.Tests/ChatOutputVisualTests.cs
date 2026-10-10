@@ -10,21 +10,15 @@ using CodingChatRoom.AvaloniaShell.Views;
 
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
-[TestClass]
+[AvaloniaTestClass]
 public sealed class ChatOutputVisualTests
 {
     [AssemblyInitialize]
-    public static void InitializeAvalonia(TestContext _)
-    {
-        AppBuilder.Configure<App>()
-            .UseSkia()
-            .UseHeadless(new AvaloniaHeadlessPlatformOptions
-            {
-                UseHeadlessDrawing = false,
-            })
-            .WithInterFont()
-            .SetupWithoutStarting();
-    }
+    public static Task InitializeAvalonia(TestContext _)
+        => AvaloniaTestClassAttribute.Session.Dispatch(() => { }, CancellationToken.None);
+
+    [AssemblyCleanup]
+    public static Task CleanupAvalonia() => AvaloniaTestClassAttribute.Session.DisposeAsync().AsTask();
 
     [TestMethod]
     public void FocusedChatOutputShouldNotRenderBlueOuterBorder()
