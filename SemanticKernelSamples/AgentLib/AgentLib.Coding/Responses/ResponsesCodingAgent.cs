@@ -1,6 +1,9 @@
+using System.ClientModel.Primitives;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
+
 using Microsoft.Extensions.AI;
+
 using OpenAI.Responses;
 
 #pragma warning disable OPENAI001
@@ -100,6 +103,7 @@ public sealed class ResponsesCodingAgent
             .Select(item => System.ClientModel.Primitives.ModelReaderWriter.Read<ResponseItem>(BinaryData.FromString(item.GetRawText()))
                 ?? throw new System.IO.InvalidDataException("Compact 返回了空的原生 Item。"))
             .ToArray();
+
         cancellationToken.ThrowIfCancellationRequested();
         conversation.ApplyCompaction(output);
         return true;
