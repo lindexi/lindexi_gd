@@ -1,7 +1,7 @@
 using AgentLib.Model;
-using CodingAgent.AvaloniaShell.Services.Shell;
+using PrismCodingAgent.AvaloniaShell.Services.Shell;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class TemporaryImageViewerTests

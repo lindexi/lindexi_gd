@@ -5,10 +5,10 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using CodingAgent.AvaloniaShell.ViewModels;
-using ChatView = CodingAgent.AvaloniaShell.Views.ChatView;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
+using ChatView = PrismCodingAgent.AvaloniaShell.Views.ChatView;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [AvaloniaTestClass]
 public sealed class ChatOutputVisualTests

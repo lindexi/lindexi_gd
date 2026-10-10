@@ -1,11 +1,11 @@
 using AgentLib;
 using AgentLib.Logging;
 using AgentLib.Model;
-using CodingAgent.AvaloniaShell.Services.Sessions;
-using CodingAgent.AvaloniaShell.ViewModels;
-using CodingChatApplicationTestFactory = global::CodingAgent.AvaloniaShell.Tests.CodingWorkTaskControllerTestFactory;
+using PrismCodingAgent.AvaloniaShell.Services.Sessions;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
+using CodingChatApplicationTestFactory = global::PrismCodingAgent.AvaloniaShell.Tests.CodingWorkTaskControllerTestFactory;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class HistoryInteractionTests

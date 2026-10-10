@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AgentLib;
 
-namespace CodingAgent.AvaloniaShell.Services.Workspace;
+namespace PrismCodingAgent.AvaloniaShell.Services.Workspace;
 
 internal sealed record WorkspaceChangeResult
 (

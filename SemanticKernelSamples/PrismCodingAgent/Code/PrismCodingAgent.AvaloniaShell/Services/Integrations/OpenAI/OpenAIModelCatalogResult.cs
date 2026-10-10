@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CodingAgent.AvaloniaShell.Services.Integrations.OpenAI;
+namespace PrismCodingAgent.AvaloniaShell.Services.Integrations.OpenAI;
 
 internal sealed record OpenAIModelCatalogResult(IReadOnlyList<string> ModelIds, string? ErrorMessage)
 {

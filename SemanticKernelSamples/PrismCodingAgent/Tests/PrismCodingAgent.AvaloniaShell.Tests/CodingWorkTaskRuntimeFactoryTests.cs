@@ -1,10 +1,10 @@
 using AgentLib;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
-using CodingAgent.AvaloniaShell.Infrastructure;
-using CodingAgent.AvaloniaShell.Services.WorkTasks;
+using PrismCodingAgent.AvaloniaShell.Infrastructure;
+using PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class CodingWorkTaskRuntimeFactoryTests

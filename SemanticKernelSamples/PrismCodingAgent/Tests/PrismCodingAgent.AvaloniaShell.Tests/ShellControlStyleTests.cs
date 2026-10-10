@@ -4,11 +4,11 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using CodingAgent.AvaloniaShell.Converters;
-using CodingAgent.AvaloniaShell.ViewModels;
-using ChatView = CodingAgent.AvaloniaShell.Views.ChatView;
+using PrismCodingAgent.AvaloniaShell.Converters;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
+using ChatView = PrismCodingAgent.AvaloniaShell.Views.ChatView;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [AvaloniaTestClass]
 public sealed class ShellControlStyleTests
@@ -70,7 +70,7 @@ public sealed class ShellControlStyleTests
     [TestMethod]
     public void MainWindowShouldRequestMicaWithOpaqueFallback()
     {
-        var window = new CodingAgent.AvaloniaShell.MainWindow();
+        var window = new PrismCodingAgent.AvaloniaShell.MainWindow();
         try
         {
             CollectionAssert.AreEqual(new[] { WindowTransparencyLevel.Mica, WindowTransparencyLevel.None }, window.TransparencyLevelHint.ToArray());

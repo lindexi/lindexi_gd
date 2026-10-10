@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using OpenAI;
 using OpenAI.Models;
 
-namespace CodingAgent.AvaloniaShell.Services.Integrations.OpenAI;
+namespace PrismCodingAgent.AvaloniaShell.Services.Integrations.OpenAI;
 
 internal sealed class OpenAIModelCatalogClient : IOpenAIModelCatalogClient
 {

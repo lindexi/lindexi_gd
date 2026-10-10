@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using AgentLib.Logging;
 using Avalonia.Threading;
-using CodingAgent.AvaloniaShell.Services.WorkTasks;
+using PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
 
-namespace CodingAgent.AvaloniaShell.Services.Sessions;
+namespace PrismCodingAgent.AvaloniaShell.Services.Sessions;
 
 internal sealed class CodingChatHistoryLoader
 {

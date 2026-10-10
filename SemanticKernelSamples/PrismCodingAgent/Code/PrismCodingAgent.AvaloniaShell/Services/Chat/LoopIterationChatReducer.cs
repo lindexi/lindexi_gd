@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
 
-namespace CodingAgent.AvaloniaShell.Services.Chat;
+namespace PrismCodingAgent.AvaloniaShell.Services.Chat;
 
 internal sealed class LoopIterationChatReducer : IChatReducer
 {

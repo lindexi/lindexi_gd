@@ -10,11 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Controls;
-using CodingAgent.AvaloniaShell.Abilities;
-using CodingAgent.AvaloniaShell.Services.Settings;
-using CodingAgent.AvaloniaShell.Services.WorkTasks;
+using PrismCodingAgent.AvaloniaShell.Abilities;
+using PrismCodingAgent.AvaloniaShell.Services.Settings;
+using PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
 
-namespace CodingAgent.AvaloniaShell.ViewModels;
+namespace PrismCodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>组合独立工作任务与常驻导航。</summary>
 public sealed class MainViewModel : ViewModelBase, IAsyncDisposable

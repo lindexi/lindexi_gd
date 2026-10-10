@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AgentLib.Logging;
 using AgentLib.Model;
 
-namespace CodingAgent.AvaloniaShell.Services.Sessions;
+namespace PrismCodingAgent.AvaloniaShell.Services.Sessions;
 
 internal interface ICodingChatSessionStore
 {

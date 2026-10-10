@@ -1,15 +1,15 @@
 using System.Text.Json;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
-using CodingAgent.AvaloniaShell.Infrastructure;
-using CodingAgent.AvaloniaShell.Services.WorkTasks;
-using CodingAgent.AvaloniaShell.ViewModels;
 using Microsoft.Extensions.AI;
 using OpenAI.Responses;
+using PrismCodingAgent.AvaloniaShell.Infrastructure;
+using PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
 
 #pragma warning disable OPENAI001
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 [TestCategory("LiveApi")]

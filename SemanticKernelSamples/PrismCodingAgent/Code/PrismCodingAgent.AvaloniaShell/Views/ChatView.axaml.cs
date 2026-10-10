@@ -11,10 +11,10 @@ using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using CodingAgent.AvaloniaShell.Services.Shell;
-using CodingAgent.AvaloniaShell.ViewModels;
+using PrismCodingAgent.AvaloniaShell.Services.Shell;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingAgent.AvaloniaShell.Views;
+namespace PrismCodingAgent.AvaloniaShell.Views;
 
 /// <summary>
 /// 显示当前编程助手会话。

@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:CodingAgent.AvaloniaShell.ViewModels"
-             x:Class="CodingAgent.AvaloniaShell.Views.ModelServiceConnectionView"
+             xmlns:vm="clr-namespace:PrismCodingAgent.AvaloniaShell.ViewModels"
+             x:Class="PrismCodingAgent.AvaloniaShell.Views.ModelServiceConnectionView"
              x:DataType="vm:ProviderSettingsViewModel"
              FontFamily="{StaticResource ShellFont}" FontSize="13">
     <UserControl.Styles>

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace CodingAgent.AvaloniaShell.ViewModels;
+namespace PrismCodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 提供同步命令实现。

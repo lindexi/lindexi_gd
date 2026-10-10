@@ -1,6 +1,6 @@
-using CodingAgent.AvaloniaShell.ViewModels;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class WorkTaskNavigationTests

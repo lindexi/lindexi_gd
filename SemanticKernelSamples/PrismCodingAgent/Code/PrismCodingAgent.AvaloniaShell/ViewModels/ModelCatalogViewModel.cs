@@ -6,9 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using CodingAgent.AvaloniaShell.Services.Integrations.OpenAI;
+using PrismCodingAgent.AvaloniaShell.Services.Integrations.OpenAI;
 
-namespace CodingAgent.AvaloniaShell.ViewModels;
+namespace PrismCodingAgent.AvaloniaShell.ViewModels;
 
 public sealed class ModelCatalogViewModel : ViewModelBase, IDisposable
 {

@@ -11,13 +11,13 @@ using AgentLib;
 using AgentLib.Coding;
 using AgentLib.Model;
 using Avalonia.Threading;
-using CodingAgent.AvaloniaShell.Abilities;
-using CodingAgent.AvaloniaShell.Services.Chat;
-using CodingAgent.AvaloniaShell.Services.Workspace;
-using CodingAgent.AvaloniaShell.Services.WorkTasks;
 using Microsoft.Extensions.AI;
+using PrismCodingAgent.AvaloniaShell.Abilities;
+using PrismCodingAgent.AvaloniaShell.Services.Chat;
+using PrismCodingAgent.AvaloniaShell.Services.Workspace;
+using PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
 
-namespace CodingAgent.AvaloniaShell.ViewModels;
+namespace PrismCodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 表示右侧编程助手聊天区域。

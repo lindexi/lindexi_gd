@@ -1,9 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
-             xmlns:vm="clr-namespace:CodingAgent.AvaloniaShell.ViewModels"
-             xmlns:views1="clr-namespace:CodingAgent.AvaloniaShell.Views"
-             x:Class="CodingAgent.AvaloniaShell.Views.SessionListView"
+             xmlns:views="using:PrismCodingAgent.AvaloniaShell.Views"
+             xmlns:vm="clr-namespace:PrismCodingAgent.AvaloniaShell.ViewModels"
+             xmlns:views11="clr-namespace:PrismCodingAgent.AvaloniaShell.Views"
+             x:Class="PrismCodingAgent.AvaloniaShell.Views.SessionListView"
              x:DataType="vm:SessionListViewModel">
     <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16,0,16,16">
         <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
@@ -78,7 +78,7 @@
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
                                         <Button Content="{StaticResource OpenSessionText}"
-                                                Command="{Binding $parent[views1:MainView].((vm:MainViewModel)DataContext).OpenSessionCommand}"
+                                                Command="{Binding $parent[views11:MainView].((vm:MainViewModel)DataContext).OpenSessionCommand}"
                                                 CommandParameter="{Binding}" />
                                         <Button Classes="Icon Danger" Width="32" Height="32" Padding="7"
                                                 ToolTip.Tip="{StaticResource DeleteSessionText}"

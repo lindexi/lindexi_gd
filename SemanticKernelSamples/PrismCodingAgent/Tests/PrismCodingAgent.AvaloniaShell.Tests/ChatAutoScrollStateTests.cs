@@ -1,6 +1,6 @@
-using CodingAgent.AvaloniaShell.Views;
+using PrismCodingAgent.AvaloniaShell.Views;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class ChatAutoScrollStateTests

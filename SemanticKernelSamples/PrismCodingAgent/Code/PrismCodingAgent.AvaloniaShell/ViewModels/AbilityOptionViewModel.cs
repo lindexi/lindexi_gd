@@ -1,6 +1,6 @@
-using CodingAgent.AvaloniaShell.Abilities;
+using PrismCodingAgent.AvaloniaShell.Abilities;
 
-namespace CodingAgent.AvaloniaShell.ViewModels;
+namespace PrismCodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 表示输入区可选择的发送前能力。

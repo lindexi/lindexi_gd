@@ -1,8 +1,8 @@
-using CodingAgent.AvaloniaShell.Infrastructure;
-using CodingAgent.AvaloniaShell.Services.WorkTasks;
 using Microsoft.Extensions.AI;
+using PrismCodingAgent.AvaloniaShell.Infrastructure;
+using PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class WorkTaskStoreTests

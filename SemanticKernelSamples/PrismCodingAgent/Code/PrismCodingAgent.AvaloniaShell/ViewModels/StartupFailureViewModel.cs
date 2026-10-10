@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Input;
 
-namespace CodingAgent.AvaloniaShell.ViewModels;
+namespace PrismCodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 表示启动失败页面的数据和退出操作。

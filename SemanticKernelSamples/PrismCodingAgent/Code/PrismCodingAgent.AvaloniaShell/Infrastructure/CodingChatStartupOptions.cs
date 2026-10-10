@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace CodingAgent.AvaloniaShell.Infrastructure;
+namespace PrismCodingAgent.AvaloniaShell.Infrastructure;
 
 internal sealed record CodingChatStartupOptions(bool IsOnboardingDebug, CodingChatRoomPaths Paths)
 {
