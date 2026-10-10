@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.ComponentModel;
-
 using AgentLib;
 using AgentLib.Coding;
 using AgentLib.Core.AgentApiManagers.Contexts;
@@ -8,20 +5,19 @@ using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Logging;
 using AgentLib.Model;
-
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-
-using CodingChatRoom.AvaloniaShell.ViewModels;
-using CodingChatRoom.AvaloniaShell.Views;
-using CodingChatRoom.AvaloniaShell.Services;
-
+using CodingAgent.AvaloniaShell.Services.Chat;
+using CodingAgent.AvaloniaShell.Services.Sessions;
+using CodingAgent.AvaloniaShell.Services.Workspace;
+using CodingAgent.AvaloniaShell.Services.WorkTasks;
+using CodingAgent.AvaloniaShell.ViewModels;
+using CodingAgent.AvaloniaShell.Views;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
+using CodingChatApplicationTestFactory = global::CodingAgent.AvaloniaShell.Tests.CodingWorkTaskControllerTestFactory;
 
-using CodingChatApplicationTestFactory = global::CodingChatRoom.AvaloniaShell.Tests.CodingWorkTaskControllerTestFactory;
-
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class ChatViewModelTests

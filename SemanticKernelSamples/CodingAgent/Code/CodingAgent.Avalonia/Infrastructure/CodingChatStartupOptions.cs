@@ -1,8 +1,7 @@
 using System;
 using System.IO;
-using System.Linq;
 
-namespace CodingChatRoom.AvaloniaShell.Infrastructure;
+namespace CodingAgent.AvaloniaShell.Infrastructure;
 
 internal sealed record CodingChatStartupOptions(bool IsOnboardingDebug, CodingChatRoomPaths Paths)
 {

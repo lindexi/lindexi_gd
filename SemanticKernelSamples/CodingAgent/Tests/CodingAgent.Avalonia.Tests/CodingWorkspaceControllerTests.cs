@@ -1,8 +1,7 @@
 using AgentLib;
+using CodingAgent.AvaloniaShell.Services.Workspace;
 
-using CodingChatRoom.AvaloniaShell.Services;
-
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class CodingWorkspaceControllerTests

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace CodingChatRoom.AvaloniaShell.Abilities;
+namespace CodingAgent.AvaloniaShell.Abilities;
 
 internal sealed record AbilityDefinition
 (

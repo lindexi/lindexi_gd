@@ -8,9 +8,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using AgentLib.Logging;
-using CodingChatRoom.AvaloniaShell.Services;
+using CodingAgent.AvaloniaShell.Services.WorkTasks;
 
-namespace CodingChatRoom.AvaloniaShell.ViewModels;
+namespace CodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 提供按需加载、搜索和管理历史会话的页面。

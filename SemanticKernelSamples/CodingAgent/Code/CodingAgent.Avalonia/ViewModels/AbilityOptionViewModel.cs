@@ -1,6 +1,6 @@
-using CodingChatRoom.AvaloniaShell.Abilities;
+using CodingAgent.AvaloniaShell.Abilities;
 
-namespace CodingChatRoom.AvaloniaShell.ViewModels;
+namespace CodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 表示输入区可选择的发送前能力。

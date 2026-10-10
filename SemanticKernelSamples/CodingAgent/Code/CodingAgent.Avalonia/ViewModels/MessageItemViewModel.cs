@@ -1,12 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-
 using AgentLib.Model;
-
 using Microsoft.Extensions.AI;
 
-namespace CodingChatRoom.AvaloniaShell.ViewModels;
+namespace CodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 将一条 <see cref="CopilotChatMessage"/> 投影为聊天界面可绑定的消息项。

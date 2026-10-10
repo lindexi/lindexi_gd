@@ -2,10 +2,11 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.VisualTree;
-using CodingChatRoom.AvaloniaShell.ViewModels;
-using CodingChatRoom.AvaloniaShell.Views;
+using CodingAgent.AvaloniaShell.ViewModels;
+using ModelServiceConnectionView = CodingAgent.AvaloniaShell.Views.ModelServiceConnectionView;
+using OpenAIModelCatalogView = CodingAgent.AvaloniaShell.Views.OpenAIModelCatalogView;
 
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [AvaloniaTestClass]
 public sealed class ModelConfigurationControlTests

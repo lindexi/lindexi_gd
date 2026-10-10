@@ -1,4 +1,4 @@
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.Settings;
 
 internal sealed record CodingChatShellSettings
 {

@@ -1,6 +1,6 @@
-using CodingChatRoom.AvaloniaShell.ViewModels;
+using CodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class WorkTaskNavigationTests

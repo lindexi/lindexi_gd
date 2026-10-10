@@ -6,9 +6,8 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentLib;
-using CodingChatRoom.AvaloniaShell.Infrastructure;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.Workspace;
 
 internal sealed record WorkspaceChangeResult
 (

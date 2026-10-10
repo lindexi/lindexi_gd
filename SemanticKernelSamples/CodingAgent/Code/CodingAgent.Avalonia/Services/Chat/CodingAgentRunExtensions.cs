@@ -8,7 +8,7 @@ using AgentLib.Model;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.Chat;
 
 internal static class CodingAgentRunExtensions
 {

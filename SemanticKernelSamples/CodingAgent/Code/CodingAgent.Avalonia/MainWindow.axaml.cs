@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics;
 using Avalonia.Controls;
-using CodingChatRoom.AvaloniaShell.ViewModels;
+using CodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingChatRoom.AvaloniaShell;
+namespace CodingAgent.AvaloniaShell;
 
 public partial class MainWindow : Window
 {

@@ -7,7 +7,7 @@ using AgentLib.Coding;
 using AgentLib.Model;
 using Microsoft.Extensions.AI;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.Chat;
 
 internal sealed class ResponsesCodingChatRunner(CopilotChatManager chatManager, ResponsesCodingAgent agent) : ICodingChatRunner
 {

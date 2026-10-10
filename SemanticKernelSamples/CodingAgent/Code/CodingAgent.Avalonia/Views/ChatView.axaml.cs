@@ -4,20 +4,17 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-
 using AgentLib.Model;
-
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using CodingAgent.AvaloniaShell.Services.Shell;
+using CodingAgent.AvaloniaShell.ViewModels;
 
-using CodingChatRoom.AvaloniaShell.Services;
-using CodingChatRoom.AvaloniaShell.ViewModels;
-
-namespace CodingChatRoom.AvaloniaShell.Views;
+namespace CodingAgent.AvaloniaShell.Views;
 
 /// <summary>
 /// 显示当前编程助手会话。
@@ -93,7 +90,7 @@ public partial class ChatView : UserControl
     private void ScrollToEndAfterLayout()
     {
         Dispatcher.UIThread.Post(
-            MessagesScrollViewer.ScrollToEnd,
+            (Action)MessagesScrollViewer.ScrollToEnd,
             DispatcherPriority.Background);
     }
 

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AgentLib.Coding;
 using Microsoft.Extensions.AI;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.Chat;
 
 internal interface ICodingChatRunner
 {

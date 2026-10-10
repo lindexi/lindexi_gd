@@ -1,8 +1,8 @@
 using System;
 using System.ComponentModel;
-using CodingChatRoom.AvaloniaShell.Services;
+using CodingAgent.AvaloniaShell.Services.WorkTasks;
 
-namespace CodingChatRoom.AvaloniaShell.ViewModels;
+namespace CodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 保存独立任务的界面上下文；切换导航不会销毁聊天对象。

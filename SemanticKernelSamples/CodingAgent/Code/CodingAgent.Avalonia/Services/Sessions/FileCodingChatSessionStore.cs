@@ -8,7 +8,7 @@ using AgentLib.Logging;
 using AgentLib.Model;
 using Microsoft.Agents.AI;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.Sessions;
 
 internal sealed class FileCodingChatSessionStore : ICodingChatSessionStore
 {

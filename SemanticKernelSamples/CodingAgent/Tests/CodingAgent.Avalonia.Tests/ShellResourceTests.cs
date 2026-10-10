@@ -1,9 +1,9 @@
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using CodingChatRoom.AvaloniaShell.ViewModels;
+using CodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [AvaloniaTestClass]
 public sealed class ShellResourceTests
@@ -22,7 +22,7 @@ public sealed class ShellResourceTests
     [TestMethod]
     public void MainWindowShouldConstructWithItsResources()
     {
-        var window = new MainWindow
+        var window = new CodingAgent.AvaloniaShell.MainWindow
         {
             DataContext = new MainViewModel(),
         };

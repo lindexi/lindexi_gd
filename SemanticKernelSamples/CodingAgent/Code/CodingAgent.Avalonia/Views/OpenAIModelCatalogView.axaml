@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
-             x:Class="CodingChatRoom.AvaloniaShell.Views.OpenAIModelCatalogView"
+             xmlns:vm="clr-namespace:CodingAgent.AvaloniaShell.ViewModels"
+             x:Class="CodingAgent.AvaloniaShell.Views.OpenAIModelCatalogView"
              x:DataType="vm:ModelCatalogViewModel" x:CompileBindings="True">
     <StackPanel x:Name="CatalogPanel" x:DataType="vm:ModelCatalogViewModel" Spacing="12">
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">

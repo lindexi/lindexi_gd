@@ -2,7 +2,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CodingChatRoom.AvaloniaShell.Abilities;
+namespace CodingAgent.AvaloniaShell.Abilities;
 
 internal static class DefaultAbilityInstaller
 {

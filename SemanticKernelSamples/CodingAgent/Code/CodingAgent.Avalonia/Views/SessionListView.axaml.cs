@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.VisualTree;
-using CodingChatRoom.AvaloniaShell.ViewModels;
+using CodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingChatRoom.AvaloniaShell.Views;
+namespace CodingAgent.AvaloniaShell.Views;
 
 /// <summary>
 /// 显示历史会话列表。

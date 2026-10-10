@@ -4,10 +4,11 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using CodingChatRoom.AvaloniaShell.ViewModels;
-using CodingChatRoom.AvaloniaShell.Views;
+using CodingAgent.AvaloniaShell.Converters;
+using CodingAgent.AvaloniaShell.ViewModels;
+using ChatView = CodingAgent.AvaloniaShell.Views.ChatView;
 
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [AvaloniaTestClass]
 public sealed class ShellControlStyleTests
@@ -69,7 +70,7 @@ public sealed class ShellControlStyleTests
     [TestMethod]
     public void MainWindowShouldRequestMicaWithOpaqueFallback()
     {
-        var window = new MainWindow();
+        var window = new CodingAgent.AvaloniaShell.MainWindow();
         try
         {
             CollectionAssert.AreEqual(new[] { WindowTransparencyLevel.Mica, WindowTransparencyLevel.None }, window.TransparencyLevelHint.ToArray());
@@ -84,7 +85,7 @@ public sealed class ShellControlStyleTests
     [TestMethod]
     public void MicaTransparencyShouldUseTransparentWindowBackground()
     {
-        var converter = new Converters.WindowTransparencyBackgroundConverter();
+        var converter = new WindowTransparencyBackgroundConverter();
 
         var background = (ISolidColorBrush) converter.Convert(WindowTransparencyLevel.Mica, typeof(IBrush), null, CultureInfo.InvariantCulture);
 

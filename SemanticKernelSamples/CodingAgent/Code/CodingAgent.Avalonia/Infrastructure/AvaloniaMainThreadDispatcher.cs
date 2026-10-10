@@ -1,11 +1,9 @@
 using System;
 using System.Threading.Tasks;
-
 using AgentLib;
-
 using Avalonia.Threading;
 
-namespace CodingChatRoom.AvaloniaShell.Infrastructure;
+namespace CodingAgent.AvaloniaShell.Infrastructure;
 
 /// <summary>
 /// 将 AgentLib 的主线程操作调度到 Avalonia UI 线程。

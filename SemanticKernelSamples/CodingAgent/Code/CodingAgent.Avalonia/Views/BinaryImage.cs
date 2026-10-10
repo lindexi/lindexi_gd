@@ -1,13 +1,11 @@
 using System;
 using System.IO;
-
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.VisualTree;
 
-namespace CodingChatRoom.AvaloniaShell.Views;
+namespace CodingAgent.AvaloniaShell.Views;
 
 /// <summary>
 /// 显示来自 <see cref="BinaryData"/> 的图片内容。

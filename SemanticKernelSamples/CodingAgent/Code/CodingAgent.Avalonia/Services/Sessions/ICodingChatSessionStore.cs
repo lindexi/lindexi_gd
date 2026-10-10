@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AgentLib.Core;
 using AgentLib.Logging;
 using AgentLib.Model;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.Sessions;
 
 internal interface ICodingChatSessionStore
 {

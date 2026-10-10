@@ -5,10 +5,10 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using CodingAgent.AvaloniaShell.ViewModels;
+using ChatView = CodingAgent.AvaloniaShell.Views.ChatView;
 
-using CodingChatRoom.AvaloniaShell.Views;
-
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [AvaloniaTestClass]
 public sealed class ChatOutputVisualTests
@@ -110,7 +110,7 @@ public sealed class ChatOutputVisualTests
     {
         var chatView = new ChatView
         {
-            DataContext = new ViewModels.ChatViewModel(),
+            DataContext = new ChatViewModel(),
         };
         var window = new Window
         {

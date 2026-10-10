@@ -1,9 +1,8 @@
 using AgentLib.Model;
-
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 
-namespace CodingChatRoom.AvaloniaShell.Views;
+namespace CodingAgent.AvaloniaShell.Views;
 
 /// <summary>
 /// 按 Copilot 消息片段类型选择对应的数据模板。

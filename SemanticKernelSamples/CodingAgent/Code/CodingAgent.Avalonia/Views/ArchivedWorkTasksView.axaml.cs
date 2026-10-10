@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace CodingChatRoom.AvaloniaShell.Views;
+namespace CodingAgent.AvaloniaShell.Views;
 
 /// <summary>显示并管理已存档工作任务。</summary>
 public partial class ArchivedWorkTasksView : UserControl

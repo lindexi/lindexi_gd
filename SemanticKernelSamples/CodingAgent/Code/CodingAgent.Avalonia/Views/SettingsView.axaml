@@ -1,8 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels"
              xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
-             x:Class="CodingChatRoom.AvaloniaShell.Views.SettingsView"
+             xmlns:vm="clr-namespace:CodingAgent.AvaloniaShell.ViewModels"
+             xmlns:views1="clr-namespace:CodingAgent.AvaloniaShell.Views"
+             x:Class="CodingAgent.AvaloniaShell.Views.SettingsView"
              x:DataType="vm:SettingsViewModel">
     <Grid RowDefinitions="Auto,*,Auto" Background="{StaticResource SettingsBackgroundBrush}">
         <Border Grid.Row="0" Classes="SettingsHeader" Padding="32,24,32,16">
@@ -263,7 +264,7 @@
                     <StackPanel Spacing="16">
                         <TextBlock Text="{DynamicResource ModelConfigurationTitle}" Classes="SettingsSectionTitle" />
                         <TextBox Text="{Binding PrimaryModel}" PlaceholderText="{DynamicResource DefaultModelHint}" Classes="Rounded SettingsInput" />
-                        <views:ModelSettingsView />
+                        <views1:ModelSettingsView />
                     </StackPanel>
                 </Border>
 

@@ -5,17 +5,17 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using AgentLib.Coding.Sandboxes;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using AgentLib.Coding.Sandboxes;
-using CodingChatRoom.AvaloniaShell.Abilities;
-using CodingChatRoom.AvaloniaShell.Infrastructure;
-using CodingChatRoom.AvaloniaShell.Services;
-using CodingChatRoom.AvaloniaShell.ViewModels;
+using CodingAgent.AvaloniaShell.Abilities;
+using CodingAgent.AvaloniaShell.Infrastructure;
+using CodingAgent.AvaloniaShell.Services.WorkTasks;
+using CodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingChatRoom.AvaloniaShell;
+namespace CodingAgent.AvaloniaShell;
 
 public partial class App : Application
 {

@@ -1,10 +1,10 @@
 using AgentLib;
-using AgentLib.Coding;
+using CodingAgent.AvaloniaShell.Services.Chat;
+using CodingAgent.AvaloniaShell.Services.Sessions;
+using CodingAgent.AvaloniaShell.Services.Workspace;
+using CodingAgent.AvaloniaShell.Services.WorkTasks;
 
-using CodingChatRoom.AvaloniaShell.Infrastructure;
-using CodingChatRoom.AvaloniaShell.Services;
-
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 internal static class CodingWorkTaskControllerTestFactory
 {

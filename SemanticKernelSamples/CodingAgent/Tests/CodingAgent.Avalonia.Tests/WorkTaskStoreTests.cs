@@ -1,8 +1,8 @@
-using CodingChatRoom.AvaloniaShell.Infrastructure;
-using CodingChatRoom.AvaloniaShell.Services;
+using CodingAgent.AvaloniaShell.Infrastructure;
+using CodingAgent.AvaloniaShell.Services.WorkTasks;
 using Microsoft.Extensions.AI;
 
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class WorkTaskStoreTests

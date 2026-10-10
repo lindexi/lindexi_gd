@@ -1,4 +1,5 @@
 using System;
+using System.ClientModel;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,9 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using OpenAI;
 using OpenAI.Models;
-using System.ClientModel;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.Integrations.OpenAI;
 
 internal sealed class OpenAIModelCatalogClient : IOpenAIModelCatalogClient
 {

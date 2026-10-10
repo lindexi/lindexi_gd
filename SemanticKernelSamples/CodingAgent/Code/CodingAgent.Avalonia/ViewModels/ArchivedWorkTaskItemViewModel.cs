@@ -1,7 +1,7 @@
 using System;
-using CodingChatRoom.AvaloniaShell.Services;
+using CodingAgent.AvaloniaShell.Services.WorkTasks;
 
-namespace CodingChatRoom.AvaloniaShell.ViewModels;
+namespace CodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>表示存档页面中的工作任务。</summary>
 public sealed class ArchivedWorkTaskItemViewModel

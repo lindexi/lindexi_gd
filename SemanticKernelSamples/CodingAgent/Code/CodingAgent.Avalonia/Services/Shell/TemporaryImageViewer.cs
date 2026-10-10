@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using AgentLib.Model;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.Shell;
 
 internal static class TemporaryImageViewer
 {

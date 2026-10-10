@@ -1,10 +1,10 @@
 using AgentLib;
-using CodingChatRoom.AvaloniaShell.Abilities;
-using CodingChatRoom.AvaloniaShell.Infrastructure;
-using CodingChatRoom.AvaloniaShell.Services;
-using CodingChatRoom.AvaloniaShell.ViewModels;
+using CodingAgent.AvaloniaShell.Abilities;
+using CodingAgent.AvaloniaShell.Infrastructure;
+using CodingAgent.AvaloniaShell.Services.WorkTasks;
+using CodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class ModelSetupLifecycleTests

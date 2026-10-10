@@ -1,8 +1,7 @@
-using System;
 using Avalonia.Controls;
-using CodingChatRoom.AvaloniaShell.ViewModels;
+using CodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingChatRoom.AvaloniaShell.Views;
+namespace CodingAgent.AvaloniaShell.Views;
 
 public partial class OpenAIModelCatalogView : UserControl
 {

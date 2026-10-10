@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- xmlns:vm="using:CodingChatRoom.AvaloniaShell.ViewModels" xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
- x:Class="CodingChatRoom.AvaloniaShell.Views.ModelSettingsView" x:DataType="vm:SettingsViewModel">
+             xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
+             xmlns:vm="clr-namespace:CodingAgent.AvaloniaShell.ViewModels"
+             xmlns:views1="clr-namespace:CodingAgent.AvaloniaShell.Views"
+             x:Class="CodingAgent.AvaloniaShell.Views.ModelSettingsView" x:DataType="vm:SettingsViewModel">
  <StackPanel Spacing="16" IsEnabled="{Binding !IsBusy}">
   <ItemsControl ItemsSource="{Binding Providers}">
    <ItemsControl.ItemTemplate>
@@ -8,9 +10,9 @@
      <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource SettingsCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,4">
       <StackPanel Spacing="16">
        <Button Content="{DynamicResource RemoveModelServiceText}" Classes="QuietDanger" HorizontalAlignment="Right"
-        Command="{Binding $parent[views:ModelSettingsView].((vm:SettingsViewModel)DataContext).RemoveProviderCommand}" CommandParameter="{Binding}" />
-       <views:ModelServiceConnectionView />
-       <views:OpenAIModelCatalogView />
+        Command="{Binding $parent[views1:ModelSettingsView].((vm:SettingsViewModel)DataContext).RemoveProviderCommand}" CommandParameter="{Binding}" />
+       <views1:ModelServiceConnectionView />
+       <views1:OpenAIModelCatalogView />
        <ItemsControl ItemsSource="{Binding Models}">
         <ItemsControl.ItemTemplate>
          <DataTemplate x:DataType="vm:ModelSettingsViewModel">

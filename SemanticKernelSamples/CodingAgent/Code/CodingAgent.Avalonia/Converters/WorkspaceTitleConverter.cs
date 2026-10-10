@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Data.Converters;
 
-namespace CodingChatRoom.AvaloniaShell.Converters;
+namespace CodingAgent.AvaloniaShell.Converters;
 
 /// <summary>
 /// 将应用标题、当前任务名称、工作路径与会话标题组合为窗口标题。

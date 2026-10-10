@@ -1,13 +1,11 @@
 using System;
 using System.Diagnostics;
-
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using CodingAgent.AvaloniaShell.ViewModels;
 
-using CodingChatRoom.AvaloniaShell.ViewModels;
-
-namespace CodingChatRoom.AvaloniaShell.Views;
+namespace CodingAgent.AvaloniaShell.Views;
 
 /// <summary>
 /// 显示模型服务与 Windows 沙箱设置。

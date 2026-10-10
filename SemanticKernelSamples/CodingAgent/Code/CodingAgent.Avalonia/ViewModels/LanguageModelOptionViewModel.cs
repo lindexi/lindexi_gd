@@ -1,8 +1,7 @@
 using System;
-
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
-namespace CodingChatRoom.AvaloniaShell.ViewModels;
+namespace CodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 表示聊天界面中可选择的语言模型。

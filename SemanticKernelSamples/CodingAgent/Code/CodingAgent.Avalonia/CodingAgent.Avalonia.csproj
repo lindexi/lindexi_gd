@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <AssemblyName>CodingAgent</AssemblyName>
-    <RootNamespace>CodingChatRoom.AvaloniaShell</RootNamespace>
+    <RootNamespace>CodingAgent.AvaloniaShell</RootNamespace>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>

@@ -1,8 +1,7 @@
 using AgentLib.Model;
+using CodingAgent.AvaloniaShell.Services.Shell;
 
-using CodingChatRoom.AvaloniaShell.Services;
-
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class TemporaryImageViewerTests

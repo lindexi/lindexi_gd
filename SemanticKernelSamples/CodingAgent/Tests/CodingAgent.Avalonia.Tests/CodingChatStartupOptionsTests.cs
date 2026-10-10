@@ -1,6 +1,6 @@
-using CodingChatRoom.AvaloniaShell.Infrastructure;
+using CodingAgent.AvaloniaShell.Infrastructure;
 
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class CodingChatStartupOptionsTests

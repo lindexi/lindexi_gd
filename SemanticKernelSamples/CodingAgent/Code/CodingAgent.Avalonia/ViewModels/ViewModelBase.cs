@@ -1,6 +1,6 @@
 using AgentLib.Model;
 
-namespace CodingChatRoom.AvaloniaShell.ViewModels;
+namespace CodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 为 Shell ViewModel 提供属性变更通知和通用忙碌状态。

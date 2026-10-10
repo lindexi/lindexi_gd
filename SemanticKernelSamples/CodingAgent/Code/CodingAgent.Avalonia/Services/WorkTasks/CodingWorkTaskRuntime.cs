@@ -5,9 +5,12 @@ using AgentLib.Coding;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Logging;
-using CodingChatRoom.AvaloniaShell.Infrastructure;
+using CodingAgent.AvaloniaShell.Infrastructure;
+using CodingAgent.AvaloniaShell.Services.Chat;
+using CodingAgent.AvaloniaShell.Services.Settings;
+using CodingAgent.AvaloniaShell.Services.Workspace;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.WorkTasks;
 
 /// <summary>
 /// 保存由 Shell 组合根创建的核心运行时对象。

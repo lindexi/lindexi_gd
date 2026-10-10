@@ -1,7 +1,7 @@
-﻿using Avalonia;
-using System;
+﻿using System;
+using Avalonia;
 
-namespace CodingChatRoom.AvaloniaShell;
+namespace CodingAgent.AvaloniaShell;
 
 class Program
 {

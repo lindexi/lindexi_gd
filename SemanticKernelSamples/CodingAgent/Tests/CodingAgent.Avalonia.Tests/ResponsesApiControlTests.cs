@@ -3,10 +3,10 @@ using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using CodingChatRoom.AvaloniaShell.ViewModels;
-using CodingChatRoom.AvaloniaShell.Views;
+using CodingAgent.AvaloniaShell.ViewModels;
+using ChatView = CodingAgent.AvaloniaShell.Views.ChatView;
 
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 [AvaloniaTestClass]
 public sealed class ResponsesApiControlTests

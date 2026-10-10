@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using CodingChatRoom.AvaloniaShell.Infrastructure;
+using CodingAgent.AvaloniaShell.Infrastructure;
 using Microsoft.Extensions.AI;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.WorkTasks;
 
 internal sealed record WorkTaskRecord
 (

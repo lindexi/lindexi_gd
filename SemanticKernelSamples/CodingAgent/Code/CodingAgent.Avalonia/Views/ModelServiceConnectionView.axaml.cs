@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace CodingChatRoom.AvaloniaShell.Views;
+namespace CodingAgent.AvaloniaShell.Views;
 
 public partial class ModelServiceConnectionView : UserControl
 {

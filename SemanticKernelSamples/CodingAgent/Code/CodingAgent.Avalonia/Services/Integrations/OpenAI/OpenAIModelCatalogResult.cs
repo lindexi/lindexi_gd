@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.Integrations.OpenAI;
 
 internal sealed record OpenAIModelCatalogResult(IReadOnlyList<string> ModelIds, string? ErrorMessage)
 {

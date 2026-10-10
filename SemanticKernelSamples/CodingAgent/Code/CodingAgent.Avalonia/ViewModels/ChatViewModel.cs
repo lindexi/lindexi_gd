@@ -7,15 +7,17 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia.Threading;
 using AgentLib;
-using AgentLib.Model;
 using AgentLib.Coding;
-using CodingChatRoom.AvaloniaShell.Abilities;
-using CodingChatRoom.AvaloniaShell.Services;
+using AgentLib.Model;
+using Avalonia.Threading;
+using CodingAgent.AvaloniaShell.Abilities;
+using CodingAgent.AvaloniaShell.Services.Chat;
+using CodingAgent.AvaloniaShell.Services.Workspace;
+using CodingAgent.AvaloniaShell.Services.WorkTasks;
 using Microsoft.Extensions.AI;
 
-namespace CodingChatRoom.AvaloniaShell.ViewModels;
+namespace CodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 表示右侧编程助手聊天区域。

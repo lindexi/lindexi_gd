@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Input;
 
-namespace CodingChatRoom.AvaloniaShell.ViewModels;
+namespace CodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 表示启动失败页面的数据和退出操作。

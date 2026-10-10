@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Headless;
 
-namespace CodingChatRoom.AvaloniaShell.Tests;
+namespace CodingAgent.AvaloniaShell.Tests;
 
 internal sealed class AvaloniaTestClassAttribute : TestClassAttribute
 {

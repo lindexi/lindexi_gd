@@ -8,10 +8,12 @@ using AgentLib;
 using AgentLib.Coding;
 using AgentLib.Logging;
 using AgentLib.Model;
-using Microsoft.Agents.AI;
+using CodingAgent.AvaloniaShell.Services.Chat;
+using CodingAgent.AvaloniaShell.Services.Sessions;
+using CodingAgent.AvaloniaShell.Services.Workspace;
 using Microsoft.Extensions.AI;
 
-namespace CodingChatRoom.AvaloniaShell.Services;
+namespace CodingAgent.AvaloniaShell.Services.WorkTasks;
 
 /// <summary>
 /// 表示工作任务的完整业务操作状态，统一驱动界面属性和命令可用性。
