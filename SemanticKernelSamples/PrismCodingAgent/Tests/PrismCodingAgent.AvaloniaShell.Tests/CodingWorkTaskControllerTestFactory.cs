@@ -1,4 +1,5 @@
 using AgentLib;
+using AgentLib.Coding;
 using PrismCodingAgent.AvaloniaShell.Services.Chat;
 using PrismCodingAgent.AvaloniaShell.Services.Sessions;
 using PrismCodingAgent.AvaloniaShell.Services.Workspace;

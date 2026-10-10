@@ -1,7 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:views="using:CodingChatRoom.AvaloniaShell.Views"
-             xmlns:views1="clr-namespace:CodingAgent.AvaloniaShell.Views"
+             xmlns:views="using:PrismCodingAgent.AvaloniaShell.Views"
              xmlns:vm="clr-namespace:PrismCodingAgent.AvaloniaShell.ViewModels"
              xmlns:views2="clr-namespace:PrismCodingAgent.AvaloniaShell.Views"
              x:Class="PrismCodingAgent.AvaloniaShell.Views.SettingsView"

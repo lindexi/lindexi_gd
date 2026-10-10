@@ -17,7 +17,7 @@
 
 目录和项目更名已执行；解决方案、项目引用、程序集、RootNamespace、友元程序集、资源 URI、manifest 和调试配置已更新。
 
-显式 C# 和 XAML 命名空间尚未同步：目标是 `PrismCodingAgent.AvaloniaShell` 及 `.Tests`；目前仍有 `CodingAgent.AvaloniaShell` 和旧 `CodingChatRoom.AvaloniaShell.Views` 引用。当前构建失败在旧根命名空间与 AgentLib.Coding.CodingAgent 类型冲突，不能计为迁移完成。需完成 IDE 命名空间迁移及 XAML 遗漏处理后重新构建和测试。
+IDE 已完成显式命名空间迁移为 `PrismCodingAgent.AvaloniaShell` 及 `.Tests`；七个 XAML 的旧视图命名空间遗漏及测试辅助类缺少 AgentLib.Coding 引用已修正。独立解决方案构建及全部非 LiveApi 测试通过。
 
 ## 兼容边界
 
@@ -27,4 +27,4 @@ AgentLib 仍引用 SemanticKernelSamples 根下原项目，不复制源码、不
 
 ## 验收边界
 
-迁移前常规应用测试 238 项通过；这不是当前命名空间迁移后的验收。真实服务测试不在本轮执行，原生 Compact 续聊仍未通过，调查见 Docs/CodingChatRoom-Responses API/14-原生压缩续聊调查与交接.md。
+当前产品命名空间迁移后，常规应用测试 238 项通过（0 失败）。真实服务测试不在本轮执行；构建仍存在既有分析器警告，不宣称零警告。原生 Compact 续聊仍未通过，调查见 Docs/CodingChatRoom-Responses API/14-原生压缩续聊调查与交接.md。
