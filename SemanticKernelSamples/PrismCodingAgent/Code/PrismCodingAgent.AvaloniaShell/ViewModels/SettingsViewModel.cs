@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
-using CodingAgent.AvaloniaShell.Services.Integrations.WindowsSandbox;
-using CodingAgent.AvaloniaShell.Services.Settings;
+using PrismCodingAgent.AvaloniaShell.Services.Integrations.WindowsSandbox;
+using PrismCodingAgent.AvaloniaShell.Services.Settings;
 
-namespace CodingAgent.AvaloniaShell.ViewModels;
+namespace PrismCodingAgent.AvaloniaShell.ViewModels;
 
 public sealed class SettingsViewModel : ViewModelBase
 {

@@ -10,13 +10,13 @@ using AgentLib.Coding.Sandboxes;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Logging;
-using CodingAgent.AvaloniaShell.Infrastructure;
-using CodingAgent.AvaloniaShell.Services.Chat;
-using CodingAgent.AvaloniaShell.Services.Sessions;
-using CodingAgent.AvaloniaShell.Services.Settings;
-using CodingAgent.AvaloniaShell.Services.Workspace;
+using PrismCodingAgent.AvaloniaShell.Infrastructure;
+using PrismCodingAgent.AvaloniaShell.Services.Chat;
+using PrismCodingAgent.AvaloniaShell.Services.Sessions;
+using PrismCodingAgent.AvaloniaShell.Services.Settings;
+using PrismCodingAgent.AvaloniaShell.Services.Workspace;
 
-namespace CodingAgent.AvaloniaShell.Services.WorkTasks;
+namespace PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
 
 /// <summary>
 /// 按固定路径和严格失败策略创建 CodingChatRoom 核心运行时。

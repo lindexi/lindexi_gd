@@ -4,16 +4,16 @@ using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Logging;
 using AgentLib.Model;
-using CodingAgent.AvaloniaShell.Services.Chat;
-using CodingAgent.AvaloniaShell.Services.Sessions;
-using CodingAgent.AvaloniaShell.Services.Workspace;
-using CodingAgent.AvaloniaShell.Services.WorkTasks;
-using CodingAgent.AvaloniaShell.ViewModels;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
-using CodingChatApplicationTestFactory = global::CodingAgent.AvaloniaShell.Tests.CodingWorkTaskControllerTestFactory;
+using PrismCodingAgent.AvaloniaShell.Services.Chat;
+using PrismCodingAgent.AvaloniaShell.Services.Sessions;
+using PrismCodingAgent.AvaloniaShell.Services.Workspace;
+using PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
+using CodingChatApplicationTestFactory = global::PrismCodingAgent.AvaloniaShell.Tests.CodingWorkTaskControllerTestFactory;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class CodingWorkTaskControllerTests

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace CodingAgent.AvaloniaShell.Abilities;
+namespace PrismCodingAgent.AvaloniaShell.Abilities;
 
 internal sealed class AbilityDirectoryReader
 {

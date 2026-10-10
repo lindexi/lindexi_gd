@@ -1,7 +1,7 @@
 ﻿using System;
 using Avalonia;
 
-namespace CodingAgent.AvaloniaShell;
+namespace PrismCodingAgent.AvaloniaShell;
 
 class Program
 {

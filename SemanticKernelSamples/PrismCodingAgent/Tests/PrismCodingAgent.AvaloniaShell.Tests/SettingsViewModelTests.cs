@@ -1,12 +1,12 @@
 using AgentLib.Coding.Sandboxes;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
-using CodingAgent.AvaloniaShell.Infrastructure;
-using CodingAgent.AvaloniaShell.Services.Integrations.WindowsSandbox;
-using CodingAgent.AvaloniaShell.Services.Settings;
-using CodingAgent.AvaloniaShell.Services.WorkTasks;
-using CodingAgent.AvaloniaShell.ViewModels;
+using PrismCodingAgent.AvaloniaShell.Infrastructure;
+using PrismCodingAgent.AvaloniaShell.Services.Integrations.WindowsSandbox;
+using PrismCodingAgent.AvaloniaShell.Services.Settings;
+using PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class SettingsViewModelTests

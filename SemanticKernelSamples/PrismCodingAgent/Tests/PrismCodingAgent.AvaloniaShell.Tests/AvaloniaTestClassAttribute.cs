@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Headless;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 internal sealed class AvaloniaTestClassAttribute : TestClassAttribute
 {

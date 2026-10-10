@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CodingAgent.AvaloniaShell.Services.Integrations.WindowsSandbox;
+namespace PrismCodingAgent.AvaloniaShell.Services.Integrations.WindowsSandbox;
 
 internal interface IWindowsSandboxConnectionTester
 {

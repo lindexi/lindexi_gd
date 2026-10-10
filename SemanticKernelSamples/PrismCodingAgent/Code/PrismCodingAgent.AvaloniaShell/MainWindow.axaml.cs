@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics;
 using Avalonia.Controls;
-using CodingAgent.AvaloniaShell.ViewModels;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingAgent.AvaloniaShell;
+namespace PrismCodingAgent.AvaloniaShell;
 
 public partial class MainWindow : Window
 {

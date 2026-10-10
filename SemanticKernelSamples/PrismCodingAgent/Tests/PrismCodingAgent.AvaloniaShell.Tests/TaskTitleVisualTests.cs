@@ -1,9 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.VisualTree;
-using CodingAgent.AvaloniaShell.ViewModels;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [AvaloniaTestClass]
 public sealed class TaskTitleVisualTests
@@ -12,7 +12,7 @@ public sealed class TaskTitleVisualTests
     public void TaskMenuShouldAlignWithTitleCenter()
     {
         var model = new MainViewModel();
-        var window = new CodingAgent.AvaloniaShell.MainWindow { DataContext = model };
+        var window = new PrismCodingAgent.AvaloniaShell.MainWindow { DataContext = model };
         try
         {
             window.Show();
@@ -30,7 +30,7 @@ public sealed class TaskTitleVisualTests
     public void RenamingActiveTaskShouldUpdateWindowTitle()
     {
         var model = new MainViewModel();
-        var window = new CodingAgent.AvaloniaShell.MainWindow { DataContext = model };
+        var window = new PrismCodingAgent.AvaloniaShell.MainWindow { DataContext = model };
         try
         {
             window.Show();
@@ -47,7 +47,7 @@ public sealed class TaskTitleVisualTests
         var other = new MainViewModel().ActiveWorkTask;
         other.DisplayName = "Other task";
         model.WorkTasks.Add(other);
-        var window = new CodingAgent.AvaloniaShell.MainWindow { DataContext = model };
+        var window = new PrismCodingAgent.AvaloniaShell.MainWindow { DataContext = model };
         try
         {
             window.Show();

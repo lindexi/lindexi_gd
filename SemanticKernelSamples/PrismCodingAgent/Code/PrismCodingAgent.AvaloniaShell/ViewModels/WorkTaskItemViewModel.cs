@@ -1,8 +1,8 @@
 using System;
 using System.ComponentModel;
-using CodingAgent.AvaloniaShell.Services.WorkTasks;
+using PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
 
-namespace CodingAgent.AvaloniaShell.ViewModels;
+namespace PrismCodingAgent.AvaloniaShell.ViewModels;
 
 /// <summary>
 /// 保存独立任务的界面上下文；切换导航不会销毁聊天对象。

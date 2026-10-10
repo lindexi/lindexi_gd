@@ -1,7 +1,7 @@
-using CodingAgent.AvaloniaShell.Services.Integrations.OpenAI;
-using CodingAgent.AvaloniaShell.ViewModels;
+using PrismCodingAgent.AvaloniaShell.Services.Integrations.OpenAI;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class ModelCatalogViewModelTests

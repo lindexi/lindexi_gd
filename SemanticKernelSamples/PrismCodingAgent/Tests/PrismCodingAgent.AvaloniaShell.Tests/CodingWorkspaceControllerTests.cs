@@ -1,7 +1,7 @@
 using AgentLib;
-using CodingAgent.AvaloniaShell.Services.Workspace;
+using PrismCodingAgent.AvaloniaShell.Services.Workspace;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class CodingWorkspaceControllerTests

@@ -1,6 +1,6 @@
 using System;
 
-namespace CodingAgent.AvaloniaShell.Views;
+namespace PrismCodingAgent.AvaloniaShell.Views;
 
 /// <summary>
 /// 维护消息列表是否应继续跟随底部。

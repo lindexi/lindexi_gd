@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace CodingAgent.AvaloniaShell.Abilities;
+namespace PrismCodingAgent.AvaloniaShell.Abilities;
 
 internal sealed record AbilityDefinition
 (

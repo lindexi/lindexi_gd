@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace CodingAgent.AvaloniaShell.Infrastructure;
+namespace PrismCodingAgent.AvaloniaShell.Infrastructure;
 
 /// <summary>
 /// 定义 CodingChatRoom 唯一允许使用的本地数据路径。

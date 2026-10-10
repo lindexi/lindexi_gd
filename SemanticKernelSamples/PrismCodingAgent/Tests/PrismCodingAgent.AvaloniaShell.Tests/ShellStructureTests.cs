@@ -1,10 +1,10 @@
 using System.Globalization;
 using System.Reflection;
-using CodingAgent.AvaloniaShell.Converters;
-using CodingAgent.AvaloniaShell.ViewModels;
-using ChatView = CodingAgent.AvaloniaShell.Views.ChatView;
+using PrismCodingAgent.AvaloniaShell.Converters;
+using PrismCodingAgent.AvaloniaShell.ViewModels;
+using ChatView = PrismCodingAgent.AvaloniaShell.Views.ChatView;
 
-namespace CodingAgent.AvaloniaShell.Tests;
+namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 [TestClass]
 public sealed class ShellStructureTests
