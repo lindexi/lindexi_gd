@@ -1,4 +1,6 @@
-# AgentLib 消息 API 实验与待办
+# AgentLib 消息 API 实验与待办（早期记录）
+
+> 本文保留消息 API 实验时点的范围，后文“当前”及“未实现”不直接表示最新产品状态。Shell 和会话协议持久化随后已接通；架构与验收以 02、10、14 为准。信息对象现位于 Model/CopilotChatMessageResponseInfo.cs。早期撤回原生 XML 的记录不否定后续会话级原生 Items 存储。
 
 ## 当前范围
 

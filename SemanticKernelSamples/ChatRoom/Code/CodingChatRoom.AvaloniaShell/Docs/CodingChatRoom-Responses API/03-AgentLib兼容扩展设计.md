@@ -109,7 +109,16 @@ Responses 执行器后续可从 `context.LanguageModel` 获取 `IResponsesClient
 
 已通过公开入口验证模型引用固定、现有 `ChatClient` 可直接获取，以及创建完成后取消创建令牌不影响后续 Agent 初始化。取消令牌存储相关的旧测试已移除。Shell 上下文包装器与 CodingAgent 测试实现已同步调整。
 
-## 共享工作区运行时
+## 当前实现修订（优先于下述早期草案）
+
+- 共享工作区 runtime/lease 草案已明确否决并删除；下述方案只为保留设计历史，不得据此重新创建类型。Responses 直接复用 CodingAgent 的工作区工具入口及既有缓存。
+- 当前公开协议会话是 AgentLib.Model.CopilotResponsesSession，由 CopilotChatSession 延迟持有，不再使用 ResponsesConversationState。
+- 运行结果是 ICodingAgentRunResult，具体普通类分别实现 Chat/Responses 插话；没有公共结果中的具体 runner 特判。
+- CodingChatRunOptions 位于 AgentLib.Coding。ResponsesCodingAgentRunner 用 required/init 初始化依赖，不保留独立参数容器。
+- CodingPromptProvider.BuildAsync 提供共享提示词；ResponsesToolHelper 提供 AIFunction 桥接，不另建 ResponsesFunctionToolAdapter 或投影框架。消息投影由 CopilotChatMessageResponseInfo 承担，文件已迁移为同名。
+- Compact 原生调用已接通，无任何回退，语义续聊仍未验收；源码未知 Item 保存 Patch 已验证，不能仅凭类型名认定内容丢失。
+
+## 早期共享工作区运行时草案（已撤回）
 
 在 `AgentLib.Coding` 中形成：
 
