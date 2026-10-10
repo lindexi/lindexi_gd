@@ -41,14 +41,17 @@ public sealed class ResponsesCodingAgentTests
     }
 
     [TestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public async Task RunAsyncShouldSubmitActualToolResult(bool automaticCompression)
+    [DataRow(false, 300000, 10000, 0)]
+    [DataRow(true, 199998, 10000, 0)]
+    [DataRow(true, 200000, 9999, 0)]
+    [DataRow(true, 200000, 10000, 1)]
+    [DataRow(true, 300000, 1, 1)]
+    public async Task RunAsyncShouldSubmitActualToolResult(bool automaticCompression, int totalTokens, int outputTokens, int expectedCompactions)
     {
         string path = Path.Combine(Path.GetTempPath(), $"responses-workspace-{Guid.NewGuid():N}");
         Directory.CreateDirectory(path);
         Console.WriteLine(path);
-        using var handler = new StreamingHandler { ReturnToolCall = true };
+        using var handler = new StreamingHandler { ReturnToolCall = true, TotalTokens = totalTokens, OutputTokens = outputTokens };
         using var http = new HttpClient(handler);
         var manager = new CopilotChatManager();
         manager.AgentApiEndpointManager.HttpClient?.Dispose();
@@ -68,8 +71,8 @@ public sealed class ResponsesCodingAgentTests
             new CodingChatRunOptions(automaticCompression, false, null));
         await run.CompletionTask;
 
-        Assert.AreEqual(automaticCompression ? 1 : 0, handler.CompactRequests.Count);
-        using var request = JsonDocument.Parse(automaticCompression ? handler.CompactRequests.Single() : handler.Requests[1]);
+        Assert.AreEqual(expectedCompactions, handler.CompactRequests.Count);
+        using var request = JsonDocument.Parse(expectedCompactions == 1 ? handler.CompactRequests.Single() : handler.Requests[1]);
         Assert.AreEqual("5", request.RootElement.GetProperty("input").EnumerateArray()
             .Single(item => item.GetProperty("type").GetString() == "function_call_output")
             .GetProperty("output").GetString());
@@ -120,6 +123,8 @@ public sealed class ResponsesCodingAgentTests
         public List<string> Requests { get; } = new();
         public List<string> CompactRequests { get; } = new();
         public bool ReturnToolCall { get; init; }
+        public int TotalTokens { get; init; }
+        public int OutputTokens { get; init; }
         public bool NullTerminalAnnotations { get; init; }
         public bool BlockFirstRequest { get; init; }
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -155,6 +160,8 @@ public sealed class ResponsesCodingAgentTests
                     {"id":"resp_tool","status":"completed","output":[{"type":"function_call","id":"fc_1","call_id":"call_add","name":"add","arguments":"{\"left\":2,\"right\":3}","status":"completed"}]}
                     """;
             }
+            if (ReturnToolCall && Requests.Count == 1 && TotalTokens > 0)
+                response = response[..^1] + $",\"usage\":{{\"input_tokens\":{TotalTokens - OutputTokens},\"output_tokens\":{OutputTokens},\"total_tokens\":{TotalTokens}}}}}";
             string prefix = string.Empty;
             if (NullTerminalAnnotations)
             {

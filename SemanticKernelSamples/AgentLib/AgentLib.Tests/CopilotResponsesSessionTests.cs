@@ -68,6 +68,32 @@ public sealed class CopilotResponsesSessionTests
     }
 
     [TestMethod]
+    public async Task CompactedHistoryShouldSurviveStorageAndContinueWithoutOldItems()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), $"responses-compacted-store-{Guid.NewGuid():N}");
+        Console.WriteLine(directory);
+        var store = new FileCopilotChatSessionStore(directory);
+        var session = new CopilotChatSession();
+        session.ResponsesSession.AppendItem(ResponseItem.CreateUserMessageItem("old input"));
+        session.ResponsesSession.AppendItem(ResponseItem.CreateAssistantMessageItem("old answer"));
+        var compacted = ModelReaderWriter.Read<ResponseItem>(BinaryData.FromString("""
+            {"type":"compaction","id":"cmp_test","encrypted_content":"opaque-state","status":"completed"}
+            """)) ?? throw new InvalidDataException("Compaction item missing.");
+        session.ResponsesSession.ApplyCompaction([ResponseItem.CreateUserMessageItem("retained input"), compacted]);
+        string[] prefix = session.ResponsesSession.Items.Select(item => ModelReaderWriter.Write(item).ToString()).ToArray();
+        await store.SaveSessionAsync(session, null);
+
+        var data = await store.LoadSessionAsync(session.SessionId);
+        var restored = new CopilotChatSession(data.SessionId, data.StartedTime) { ResponsesSession = data.ResponsesSession };
+        var state = restored.ResponsesSession ?? throw new InvalidDataException("Stored state missing.");
+        var next = ResponseItem.CreateUserMessageItem("next input");
+        state.AppendItem(next);
+
+        CollectionAssert.AreEqual(prefix.Append(ModelReaderWriter.Write(next).ToString()).ToArray(),
+            state.Items.Select(item => ModelReaderWriter.Write(item).ToString()).ToArray());
+    }
+
+    [TestMethod]
     public async Task SavingChatSessionShouldNotCreateResponsesState()
     {
         string directory = Path.Combine(Path.GetTempPath(), $"responses-store-{Guid.NewGuid():N}");
