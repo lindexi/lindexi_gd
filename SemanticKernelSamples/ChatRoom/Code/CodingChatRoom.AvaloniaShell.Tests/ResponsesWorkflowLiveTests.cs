@@ -1,9 +1,7 @@
-using System.Net.Http;
 using System.Text.Json;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
-using AgentLib.Coding;
 using CodingChatRoom.AvaloniaShell.Infrastructure;
 using CodingChatRoom.AvaloniaShell.Services;
 using CodingChatRoom.AvaloniaShell.ViewModels;
@@ -22,77 +20,6 @@ public sealed class ResponsesWorkflowLiveTests
     private const string KeyPath = @"C:\lindexi\Work\Key\MiniMax.txt";
     private const string Endpoint = "https://api.minimaxi.com/v1";
     private const string ModelId = "MiniMax-M3";
-
-    [TestMethod]
-    public async Task NativeCompactShouldReturnProtocolOutputAsync()
-    {
-        if (!File.Exists(KeyPath)) return;
-        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-        var client = new ResponsesClient(
-            new System.ClientModel.ApiKeyCredential((await File.ReadAllTextAsync(KeyPath, timeout.Token)).Trim()),
-            new ResponsesClientOptions { Endpoint = new Uri(Endpoint) });
-        string directory = Path.Combine(Path.GetTempPath(), $"responses-compact-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(directory);
-        Console.WriteLine($"Compact report directory: {directory}");
-        var request = new CreateResponseOptions { Model = ModelId, StoredOutputEnabled = false };
-        request.InputItems.Add(ResponseItem.CreateUserMessageItem("For this C# project, remember the test identifier ORCHID-731. Reply briefly."));
-        var first = (await client.CreateResponseAsync(request, timeout.Token)).Value;
-        var input = new List<ResponseItem>(request.InputItems);
-        input.AddRange(first.OutputItems);
-        request.InputItems.Clear();
-        foreach (var item in input) request.InputItems.Add(item);
-        request.InputItems.Add(ResponseItem.CreateUserMessageItem("Which test identifier did I specify? Reply only with the identifier."));
-        var second = (await client.CreateResponseAsync(request, timeout.Token)).Value;
-        input = new List<ResponseItem>(request.InputItems);
-        input.AddRange(second.OutputItems);
-        using var compactRequest = System.ClientModel.BinaryContent.Create(BinaryData.FromObjectAsJson(new
-        {
-            model = ModelId,
-            input = input.Select(item => JsonSerializer.Deserialize<JsonElement>(
-                System.ClientModel.Primitives.ModelReaderWriter.Write(item).ToString())).ToArray(),
-            instructions = "Preserve the C# project test identifier and conversation context.",
-        }));
-        var result = await client.CompactResponseAsync(compactRequest, "application/json",
-            new System.ClientModel.Primitives.RequestOptions
-            {
-                CancellationToken = timeout.Token,
-                ErrorOptions = System.ClientModel.Primitives.ClientErrorBehaviors.NoThrow,
-            });
-        var response = result.GetRawResponse();
-        string body = response.Content.ToString();
-        await File.WriteAllTextAsync(Path.Combine(directory, "compact-response.json"), body, timeout.Token);
-        Console.WriteLine($"Compact HTTP status: {response.Status}");
-        Console.WriteLine($"Compact response: {body}");
-        Assert.IsTrue(response.Status is >= 200 and < 300, $"Compact returned HTTP {response.Status}: {body}");
-        using var document = JsonDocument.Parse(body);
-        Assert.IsTrue(document.RootElement.TryGetProperty("output", out var output)
-            && output.ValueKind == JsonValueKind.Array && output.GetArrayLength() > 0);
-    }
-
-    [TestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public async Task NativeStreamingWithoutApplicationShouldReadCompletedEventAsync(bool storeOutput)
-    {
-        if (!File.Exists(KeyPath)) return;
-        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-        var client = new OpenAI.Responses.ResponsesClient(
-            new System.ClientModel.ApiKeyCredential((await File.ReadAllTextAsync(KeyPath, timeout.Token)).Trim()),
-            new ResponsesClientOptions { Endpoint = new Uri(Endpoint) });
-        var options = new OpenAI.Responses.CreateResponseOptions
-        {
-            Model = ModelId, StreamingEnabled = true, StoredOutputEnabled = storeOutput,
-        };
-        options.InputItems.Add(OpenAI.Responses.ResponseItem.CreateUserMessageItem("Explain C# int in one short sentence."));
-        bool completed = false;
-        Console.WriteLine($"SDK assembly: {typeof(OpenAI.Responses.ResponsesClient).Assembly.FullName}");
-        await foreach (var update in client.CreateResponseStreamingAsync(options, timeout.Token))
-        {
-            Console.WriteLine($"SDK event: {update.GetType().Name}");
-            completed |= update is OpenAI.Responses.StreamingResponseCompletedUpdate;
-        }
-        Assert.IsTrue(completed);
-    }
 
     [TestMethod]
     public async Task SendCommandShouldPreserveContextAcrossTurnsAndStoredSessionAsync()
@@ -128,11 +55,9 @@ public sealed class ResponsesWorkflowLiveTests
             originalItems = original.Runtime.ChatManager.SelectedSession.ResponsesSession.Items
                 .Select(item => System.ClientModel.Primitives.ModelReaderWriter.Write(item).ToString()).ToArray();
         }
-
         await using var restored = await Scenario.CreateAsync(directory);
         await restored.Runtime.Controller.OpenSessionAsync(sessionId);
-        var session = restored.Runtime.ChatManager.SelectedSession;
-        CollectionAssert.AreEqual(originalItems, session.ResponsesSession.Items
+        CollectionAssert.AreEqual(originalItems, restored.Runtime.ChatManager.SelectedSession.ResponsesSession.Items
             .Select(item => System.ClientModel.Primitives.ModelReaderWriter.Write(item).ToString()).ToArray());
         await restored.SendAsync("请再重复一次，刚才的测试标识是什么？只回复标识，不调用工具。");
         StringAssert.Contains(restored.LastAnswer, "ORCHID-731");
@@ -152,20 +77,16 @@ public sealed class ResponsesWorkflowLiveTests
         scenario.Chat.WorkspaceInput = workspace;
         await ((SimpleAsyncCommand)scenario.Chat.ApplyWorkspaceCommand).ExecuteAsync();
         Assert.AreEqual(Path.GetFullPath(workspace), scenario.Runtime.WorkspaceController.NextRunWorkspacePath);
-
         await scenario.SendAsync("请使用本地文件读取工具读取工作区 fixture.txt，逐字回复文件中的代码测试标识，保留原始大小写，不要改写。不要搜索网络，不要运行命令，不要调用子代理。");
         var history = scenario.Runtime.ChatManager.SelectedSession.ResponsesSession.Items;
-        var calls = history.OfType<OpenAI.Responses.FunctionCallResponseItem>().ToArray();
-        Assert.IsNotEmpty(calls, "No native local function call recorded.");
-        var outputs = history.OfType<OpenAI.Responses.FunctionCallOutputResponseItem>().ToArray();
-        Assert.IsTrue(outputs.Any(output => calls.Any(call => call.CallId == output.CallId)
-            && output.FunctionOutput.Contains(marker, StringComparison.Ordinal)), "Actual file content missing from native tool result.");
+        var calls = history.OfType<FunctionCallResponseItem>().ToArray();
+        Assert.IsNotEmpty(calls);
+        Assert.IsTrue(history.OfType<FunctionCallOutputResponseItem>().Any(output =>
+            calls.Any(call => call.CallId == output.CallId) && output.FunctionOutput.Contains(marker, StringComparison.Ordinal)));
         StringAssert.Contains(scenario.LastAnswer, marker);
         string[] prefix = history.Select(item => System.ClientModel.Primitives.ModelReaderWriter.Write(item).ToString()).ToArray();
         int nextRequest = scenario.Recorder.Requests.Count;
-
         await scenario.SendAsync("请根据上文逐字重复刚才读到的代码测试标识，保留原始大小写，只回复标识，不调用工具。");
-
         StringAssert.Contains(scenario.LastAnswer, marker);
         CollectionAssert.AreEqual(prefix, history.Take(prefix.Length)
             .Select(item => System.ClientModel.Primitives.ModelReaderWriter.Write(item).ToString()).ToArray());
@@ -180,10 +101,8 @@ public sealed class ResponsesWorkflowLiveTests
     {
         if (!File.Exists(KeyPath)) return;
         await using var scenario = await Scenario.CreateAsync();
-        scenario.Recorder.CaptureResponses = true;
         scenario.Chat.SelectedReasoningEffort = scenario.Chat.AvailableReasoningEfforts.Single(option => option.Value == ReasoningEffort.High);
         await scenario.SendAsync("计算 17 加 26，只回复结果，不调用工具。");
-
         using var request = JsonDocument.Parse(scenario.Recorder.Requests.Last());
         Assert.AreEqual("high", request.RootElement.GetProperty("reasoning").GetProperty("effort").GetString());
     }
@@ -194,11 +113,9 @@ public sealed class ResponsesWorkflowLiveTests
     {
         if (!File.Exists(KeyPath)) return;
         await using var scenario = await Scenario.CreateAsync();
-        byte[] image = CreateRedImage();
-        Assert.IsTrue(ImageAttachmentViewModel.TryCreate("sample.png", image, out var attachment));
+        Assert.IsTrue(ImageAttachmentViewModel.TryCreate("sample.png", CreateRedImage(), out var attachment));
         scenario.Chat.PendingImages.Add(attachment);
         await scenario.SendAsync("我准备根据附件实现 Avalonia 界面，请检查素材是否足以指导布局：有明确的按钮、文字等界面元素则回复 UI_LAYOUT；只有均匀色块、没有界面元素则回复 SOLID_COLOR；其他情况回复 OTHER。只回复分类标记，不调用工具。");
-
         using var request = JsonDocument.Parse(scenario.Recorder.Requests.First());
         Assert.IsTrue(request.RootElement.GetProperty("input").EnumerateArray()
             .Where(item => item.GetProperty("type").GetString() == "message")
@@ -233,7 +150,6 @@ public sealed class ResponsesWorkflowLiveTests
         scenario.Chat.InputText = "请调整回答，只回复代码测试标识 INTERRUPT-731，不调用工具。";
         await ((SimpleAsyncCommand)scenario.Chat.SendCommand).ExecuteAsync();
         await sending.WaitAsync(TimeSpan.FromMinutes(3));
-
         StringAssert.Contains(scenario.LastAnswer, "INTERRUPT-731");
         Assert.IsTrue(scenario.Runtime.ChatManager.SelectedSession.ChatMessages.Any(message =>
             message.Role == ChatRole.User && message.Content.Contains("INTERRUPT-731", StringComparison.Ordinal)));
@@ -245,13 +161,17 @@ public sealed class ResponsesWorkflowLiveTests
         if (!File.Exists(KeyPath)) return;
         await using var scenario = await Scenario.CreateAsync();
         await scenario.SendAsync("记住标识 ORCHID-731。只回复已记住，不调用工具。");
-
-        Assert.IsTrue(scenario.Chat.CompressConversationCommand.CanExecute(null),
-            "Responses 历史已存在，但压缩入口尚未接入原生 Responses compact。");
+        Assert.IsTrue(scenario.Chat.CompressConversationCommand.CanExecute(null));
         await ((SimpleAsyncCommand)scenario.Chat.CompressConversationCommand).ExecuteAsync();
-        Assert.IsTrue(scenario.Recorder.Paths.Any(path => path.EndsWith("/responses/compact", StringComparison.Ordinal)),
-            "压缩必须调用原生 compact，不允许用 Chat 压缩或伪造完成。");
+        Assert.IsTrue(scenario.Recorder.Paths.Any(path => path.EndsWith("/responses/compact", StringComparison.Ordinal)));
+        int continuationIndex = scenario.Recorder.Requests.Count;
+        string compacted = System.ClientModel.Primitives.ModelReaderWriter.Write(
+            scenario.Runtime.ChatManager.SelectedSession.ResponsesSession.Items.Single()).ToString();
         await scenario.SendAsync("请再重复一次，刚才的测试标识是什么？只回复标识，不调用工具。");
+        using var continuation = JsonDocument.Parse(scenario.Recorder.Requests[continuationIndex]);
+        using var expected = JsonDocument.Parse(compacted);
+        Assert.AreEqual(expected.RootElement.GetProperty("encrypted_content").GetString(),
+            continuation.RootElement.GetProperty("input")[0].GetProperty("encrypted_content").GetString());
         StringAssert.Contains(scenario.LastAnswer, "ORCHID-731");
     }
 
@@ -279,7 +199,6 @@ public sealed class ResponsesWorkflowLiveTests
             DirectoryPath = directory;
             Chat = new ChatViewModel(runtime) { IsResponsesApiEnabled = true, IsAutomaticCompressionEnabled = false };
         }
-
         public CodingWorkTaskRuntime Runtime { get; }
         public ChatViewModel Chat { get; }
         public RequestRecorder Recorder { get; }
@@ -312,7 +231,6 @@ public sealed class ResponsesWorkflowLiveTests
             await runtime.Controller.InitializeAsync();
             return new Scenario(runtime, recorder, directory);
         }
-
         public async Task SendAsync(string text)
         {
             Chat.InputText = text;
@@ -322,11 +240,10 @@ public sealed class ResponsesWorkflowLiveTests
                 message.Role == ChatRole.System && message.Content.Contains("失败", StringComparison.Ordinal)), Chat.StatusText);
             Assert.IsFalse(string.IsNullOrWhiteSpace(LastAnswer));
         }
-
         public async ValueTask DisposeAsync()
         {
             await File.WriteAllTextAsync(Path.Combine(DirectoryPath, $"requests-{Guid.NewGuid():N}.json"),
-                JsonSerializer.Serialize(new { Recorder.Paths, Recorder.Requests, Recorder.Responses }, new JsonSerializerOptions { WriteIndented = true }));
+                JsonSerializer.Serialize(new { Recorder.Paths, Recorder.Requests }, new JsonSerializerOptions { WriteIndented = true }));
             Chat.Dispose();
             await Runtime.DisposeAsync();
             Runtime.EndpointManager.HttpClient?.Dispose();
@@ -338,27 +255,13 @@ public sealed class ResponsesWorkflowLiveTests
         public RequestRecorder() : base(new HttpClientHandler()) { }
         public List<string> Requests { get; } = new();
         public List<string> Paths { get; } = new();
-        public List<string> Responses { get; } = new();
-        public bool CaptureResponses { get; set; }
         public TaskCompletionSource RequestStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Requests.Add(request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken));
             Paths.Add(request.RequestUri?.AbsolutePath ?? string.Empty);
             RequestStarted.TrySetResult();
-            var response = await base.SendAsync(request, cancellationToken);
-            if (!CaptureResponses) return response;
-            await response.Content.LoadIntoBufferAsync(cancellationToken);
-            string body = await response.Content.ReadAsStringAsync(cancellationToken);
-            Responses.Add(body);
-            foreach (string line in body.Split('\n').Where(line => line.StartsWith("data: ", StringComparison.Ordinal)))
-            {
-                using var data = JsonDocument.Parse(line[6..]);
-                if (data.RootElement.GetProperty("type").GetString() == "response.completed")
-                    Console.WriteLine($"Completed output: {data.RootElement.GetProperty("response").GetProperty("output").GetRawText()}");
-            }
-            return response;
+            return await base.SendAsync(request, cancellationToken);
         }
     }
 
