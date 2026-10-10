@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <AssemblyName>CodingAgent.Avalonia.Tests</AssemblyName>
-    <RootNamespace>CodingAgent.AvaloniaShell.Tests</RootNamespace>
+    <AssemblyName>PrismCodingAgent.AvaloniaShell.Tests</AssemblyName>
+    <RootNamespace>PrismCodingAgent.AvaloniaShell.Tests</RootNamespace>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Code\CodingAgent.Avalonia\CodingAgent.Avalonia.csproj" />
+    <ProjectReference Include="..\..\Code\PrismCodingAgent.AvaloniaShell\PrismCodingAgent.AvaloniaShell.csproj" />
   </ItemGroup>
 
   <ItemGroup>

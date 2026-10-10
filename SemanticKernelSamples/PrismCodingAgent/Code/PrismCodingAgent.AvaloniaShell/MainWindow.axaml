@@ -8,7 +8,7 @@
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="760"
         x:Class="CodingAgent.AvaloniaShell.MainWindow"
         x:DataType="vm:MainViewModel"
-        Icon="avares://CodingAgent/Assets/Icons/CodingChatRoom.ico"
+        Icon="avares://PrismCodingAgent/Assets/Icons/CodingChatRoom.ico"
         Width="1440" Height="900"
         MinWidth="1280"
         MinHeight="720"

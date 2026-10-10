@@ -11,7 +11,7 @@
    <Grid Margin="16,28,16,20" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" RowSpacing="12">
     <Grid ColumnDefinitions="36,*" ColumnSpacing="10" Margin="4,0">
      <Border Background="#E1E9FC" CornerRadius="10" Width="36" Height="36">
-      <Image Width="26" Height="26" Source="avares://CodingAgent/Assets/Icons/CodingChatRoom_48x48.png" />
+      <Image Width="26" Height="26" Source="avares://PrismCodingAgent/Assets/Icons/CodingChatRoom_48x48.png" />
      </Border>
      <StackPanel Grid.Column="1" Spacing="4">
       <TextBlock Text="CodingChatRoom" FontSize="16" FontWeight="Bold" Foreground="#24334D" />

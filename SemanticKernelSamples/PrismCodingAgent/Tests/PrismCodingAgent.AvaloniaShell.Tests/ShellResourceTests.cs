@@ -11,7 +11,7 @@ public sealed class ShellResourceTests
     [TestMethod]
     public void ShellAvatarShouldLoadFromPackagedResources()
     {
-        var uri = new Uri("avares://CodingAgent/Assets/Icons/CodingChatRoom_48x48.png");
+        var uri = new Uri("avares://PrismCodingAgent/Assets/Icons/CodingChatRoom_48x48.png");
 
         using var stream = AssetLoader.Open(uri);
         using var bitmap = new Bitmap(stream);

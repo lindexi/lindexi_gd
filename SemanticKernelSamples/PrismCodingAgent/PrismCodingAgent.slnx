@@ -1,9 +1,9 @@
 <Solution>
   <Folder Name="/Code/">
-    <Project Path="Code/CodingAgent.Avalonia/CodingAgent.Avalonia.csproj" />
+    <Project Path="Code/PrismCodingAgent.AvaloniaShell/PrismCodingAgent.AvaloniaShell.csproj" />
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="Tests/CodingAgent.Avalonia.Tests/CodingAgent.Avalonia.Tests.csproj" />
+    <Project Path="Tests/PrismCodingAgent.AvaloniaShell.Tests/PrismCodingAgent.AvaloniaShell.Tests.csproj" />
   </Folder>
   <Folder Name="/Lib/">
     <Project Path="../AgentLib/AgentLib.Coding/AgentLib.Coding.csproj" />

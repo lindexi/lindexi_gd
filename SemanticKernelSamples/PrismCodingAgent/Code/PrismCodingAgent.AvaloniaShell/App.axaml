@@ -12,10 +12,10 @@
 
     <Application.Styles>
         <FluentTheme />
-        <StyleInclude Source="avares://CodingAgent/Styles/Strings.axaml" />
-        <StyleInclude Source="avares://CodingAgent/Styles/Colors.axaml" />
-        <StyleInclude Source="avares://CodingAgent/Styles/Controls.axaml" />
-        <StyleInclude Source="avares://CodingAgent/Styles/MessageBubble.axaml" />
-        <StyleInclude Source="avares://CodingAgent/Styles/Settings.axaml" />
+        <StyleInclude Source="avares://PrismCodingAgent/Styles/Strings.axaml" />
+        <StyleInclude Source="avares://PrismCodingAgent/Styles/Colors.axaml" />
+        <StyleInclude Source="avares://PrismCodingAgent/Styles/Controls.axaml" />
+        <StyleInclude Source="avares://PrismCodingAgent/Styles/MessageBubble.axaml" />
+        <StyleInclude Source="avares://PrismCodingAgent/Styles/Settings.axaml" />
     </Application.Styles>
 </Application>
