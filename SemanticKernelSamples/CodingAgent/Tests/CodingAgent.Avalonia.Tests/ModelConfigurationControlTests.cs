@@ -7,7 +7,7 @@ using CodingChatRoom.AvaloniaShell.Views;
 
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
-[TestClass]
+[AvaloniaTestClass]
 public sealed class ModelConfigurationControlTests
 {
     [TestMethod]

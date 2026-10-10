@@ -1,8 +1,4 @@
 <Solution>
-  <Folder Name="/CodingChatRoom/">
-    <Project Path="Code/CodingChatRoom.AvaloniaShell.Tests/CodingChatRoom.AvaloniaShell.Tests.csproj" />
-    <Project Path="Code/CodingChatRoom.AvaloniaShell/CodingChatRoom.AvaloniaShell.csproj" />
-  </Folder>
   <Folder Name="/Lib/">
     <Project Path="../AgentLib/AgentLib.Coding/AgentLib.Coding.csproj" />
     <Project Path="../AgentLib/AgentLib.Tests/AgentLib.Tests.csproj">

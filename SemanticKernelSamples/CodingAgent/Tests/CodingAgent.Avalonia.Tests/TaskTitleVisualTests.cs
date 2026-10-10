@@ -5,7 +5,7 @@ using CodingChatRoom.AvaloniaShell.ViewModels;
 
 namespace CodingChatRoom.AvaloniaShell.Tests;
 
-[TestClass]
+[AvaloniaTestClass]
 public sealed class TaskTitleVisualTests
 {
     [TestMethod]
