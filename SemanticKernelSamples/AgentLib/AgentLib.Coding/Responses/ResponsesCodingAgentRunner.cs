@@ -83,7 +83,7 @@ internal sealed class ResponsesCodingAgentRunner
                     return response.GetOutputText();
                 }
                 await ExecuteToolsAsync(calls, functions).ConfigureAwait(false);
-                if (EnableAutomaticCompression && _pendingMessages.IsEmpty)
+                if (EnableAutomaticCompression && _pendingMessages.IsEmpty && ShouldCompact(response))
                 {
                     await ResponsesCodingAgent.TryCompactConversationAsync(Client,
                         MessageContext.LanguageModel.ModelDefinition.ModelId, Conversation,
@@ -102,6 +102,48 @@ internal sealed class ResponsesCodingAgentRunner
                 }
                 chatting?.Dispose();
             }).ConfigureAwait(false);
+        }
+    }
+
+    private bool ShouldCompact(ResponseResult response)
+    {
+        long outputCount = response.Usage?.OutputTokenCount > 0
+            ? response.Usage.OutputTokenCount
+            : response.OutputItems.Sum(EstimateItemTokenCount);
+        long toolResults = Conversation.Items.Skip(Conversation.Items.Count - response.OutputItems.OfType<FunctionCallResponseItem>().Count())
+            .Sum(EstimateItemTokenCount);
+        long contextCount = response.Usage?.TotalTokenCount > 0
+            ? response.Usage.TotalTokenCount + toolResults
+            : Conversation.Items.Sum(EstimateItemTokenCount);
+        return contextCount >= CodingCompressionThresholds.Forced
+            || (contextCount >= CodingCompressionThresholds.Conditional
+                && outputCount >= CodingCompressionThresholds.MinimumAssistantOutput);
+    }
+
+    private static long EstimateItemTokenCount(ResponseItem item)
+    {
+        // 与现有 Chat 压缩一致：缺少真实用量时按内容字符数估算，不将估算值写入用量统计。
+        using var document = System.Text.Json.JsonDocument.Parse(System.ClientModel.Primitives.ModelReaderWriter.Write(item));
+        return CountContent(document.RootElement);
+
+        static long CountContent(System.Text.Json.JsonElement element)
+        {
+            long count = 0;
+            if (element.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (property.Value.ValueKind == System.Text.Json.JsonValueKind.String)
+                    {
+                        if (property.Name is "text" or "output" or "arguments" or "name" or "encrypted_content")
+                            count += property.Value.GetString()?.Length ?? 0;
+                    }
+                    else count += CountContent(property.Value);
+                }
+            }
+            else if (element.ValueKind == System.Text.Json.JsonValueKind.Array)
+                foreach (var value in element.EnumerateArray()) count += CountContent(value);
+            return count;
         }
     }
 
