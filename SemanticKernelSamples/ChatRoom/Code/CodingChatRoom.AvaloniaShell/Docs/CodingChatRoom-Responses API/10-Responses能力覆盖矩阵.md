@@ -1,57 +1,48 @@
-# Responses 能力覆盖矩阵
+# Responses 能力覆盖矩阵（当前状态）
 
-## 当前状态与目标的区别
+## 判定
 
-已验证原生请求、显式历史、本地函数执行闭环、提示词缓存用量和内置 Web Search 调用记录。引用 UI、完整取消、压缩、Shell 接入及协议持久化不因此视为完成。
+代码接通、确定性测试通过、真实语义验收通过分别记录，不以请求 HTTP 成功替代完整能力验收。缺少密钥直接返回遵循既有约定，但不是实际调用证据。
 
-## 判定规则
-
-“支持”必须具备请求构造、响应解析、消息投影、错误处理和测试。只有 Web Search 属于本方案要求第一等支持的 SDK 托管工具。
-
-| 能力 | 产品级目标行为 |
+| 能力 | 当前状态与边界 |
 | --- | --- |
-| Instructions 与 Items | 原生使用，不转换成 Chat Completions messages |
-| 文本流 | 按 delta 实时投影并处理 completed/incomplete/failed |
-| 图片输入 | 使用 input image content part，保持与文本顺序 |
-| `previous_response_id` | 引用上一轮响应 id；显式历史路线不依赖其补齐上下文 |
-| Conversations | 当前接入未验证，不承诺可用 |
-| `store=true` | 请求保存响应，不据此省略本地历史或承诺重启续聊 |
-| 客户端历史 | 显式提交所需原生 Items，保持稳定前缀；完整持久化另行实现 |
-| Reasoning effort | 映射现有思考强度 |
-| Reasoning summary | 请求并流式展示“思考摘要” |
-| Cached/reasoning token | 映射到现有用量模型；以 cached input / input 计算命中率，累计比率按 token 加权 |
-| 自定义函数工具 | 复用 AgentLib `AIFunction`，完成 call/output 循环 |
-| Parallel tool calls | 按 API 语义执行同批调用并稳定排序结果 |
-| Web Search | 显式注册内置工具，由服务端执行；以原生调用项验证，完整引用 UI 为后续目标 |
-| Annotations/citations | 保留 URL、标题及其与答案文本的引用关系 |
-| Server-side cancel | 已取得 response id 且 SDK 支持时取消远端 response |
-| Compact | 自动压缩开启时使用 Responses 可续接上下文管理能力 |
-| 持久化 | 使用可选 ResponsesState，继续兼容旧 XML |
-| 错误 | 保留 HTTP、code、param、status 和 response id |
+| 原生 Instructions/Items | 已接通，不适配成 Chat messages |
+| 界面入口 | Toggle 选择 runner；无模式锁定/迁移/回退 |
+| 文本流与消息投影 | 已接通及真实通过；完整异常事件覆盖仍需完善 |
+| 已知 completed 解析异常 | 按用户授权精确捕获，使用原生 item.done；终态用量可能缺失 |
+| 思考强度 | 传入 reasoning.effort，真实验证通过 |
+| 推理内容 | 原生事件展示；不承诺每轮一定返回 summary |
+| 图片附件 | input_image 提交验证；语义测试 Ignore，不能计为识别通过 |
+| load_image 工具 | 原生图片工具结果有真实非流式闭环记录；完整 Shell 图片验收不足 |
+| 本地函数工具 | 复用 AIFunction，工作区文件真实闭环通过 |
+| 工具执行并行 | 当前批次顺序执行，不宣称客户端并行能力 |
+| 请求边界插话 | 队列追加，不取消重发；本地及真实命令测试通过 |
+| 停止 | 请求取消及后续发送测试通过；部分工具/收尾边界仍待完善 |
+| 服务端 cancel | 未实现远端 response cancel，不能与本地令牌取消混同 |
+| Web Search | 原生注册、早期调用记录；完整流式及引用 UI 未验收 |
+| Annotations/citations | SDK 原生数据保留；专门引用展示未完成 |
+| 原生会话历史 | 会话持续维护，只追加；Shell 无第二套历史字典 |
+| 保存与恢复 | XML 版本 3 可选原生节点；普通历史 Runtime 重建续聊真实通过 |
+| 压缩存储往返 | 确定性测试通过；压缩后真实续聊及 Runtime 重建未通过 |
+| 手动 Compact | 原生调用/完整输出替换/取消/错误测试通过；语义续聊未通过 |
+| 自动 Compact | 工具批次后条件200000/强制300000，条件输出10000；插话优先，本地测试通过 |
+| previous_response_id | 普通显式历史不依赖它；不同时补齐历史 |
+| Conversations | 未接入，不承诺可用 |
+| store | 提交存储请求，不保证端点具备 GET 或服务端历史恢复能力 |
+| token/cache 统计 | 原生可得用量使用既有体系；缺终态时不得伪造，缓存命中不保证 |
+| 审批/子代理 | 专项暂缓，不在协议适配层补丁兜底 |
+| 新会话重启逃生 | 已记录调查与预期，暂缓 |
 
-## 非目标托管工具
+## 当前依赖与验证
 
-以下 SDK 托管工具不属于本方案承诺范围：
+NuGet 使用 OpenAI 2.13.0；本地源码标记 2.14.0。MiniMax-M3 是当前验证点，不将测试或执行设计绑定厂商。DeepSeek Compact 暂缓，临时提供商实验撤回。
 
-- File Search；
-- Code Interpreter；
-- Remote MCP；
-- Computer Use；
-- Image Generation；
-- Apply Patch。
+主流程定向真实通过不代表全量回归：此前扩大测试有 Avalonia 线程归属及真实沙箱失败，net6 testhost 依赖缺失；详见 14。
 
-不为这些能力增加设置项、界面占位、虚假开关或半成品实现。未来增加时沿用现有 `ResponsesStreamProjector` 与工具注册边界，以新增局部 handler 的方式接入，不修改 Toggle 分支、共享工作区 runtime、会话协调层和消息模型。
+## 固定约束
 
-## 固定行为
+不增加能力探测、额外设置或隐式降级。Compact 完全依赖服务端，无文本回退、历史补传。协议历史不得从展示消息重建。只有存储初始化允许恢复。
 
-- 不增加 Responses 设置或 capability 开关；
-- Toggle 开启后直接使用当前模型的现有 Endpoint、Key 和模型定义；
-- 端点不支持 Responses 时显示真实错误；
-- 不自动回退 CodingAgent；
-- 不把未收到的 reasoning summary 伪装为已完成；
-- 不把未执行的 compact 伪装为压缩成功；
-- 未知 Item 保留安全的类型信息；若影响工具闭环或最终状态，则运行不得标记成功。
+非目标托管工具仍包括 File Search、Code Interpreter、Remote MCP、Computer Use、Image Generation、Apply Patch；不为其创建界面占位。
 
-## 自然演进证明
-
-Responses 的网络读取、Item 投影、工具执行和会话状态彼此分离。新增 SDK Item 或托管工具时，只需增加对应注册与 projector handler；本地编程工具、Shell 分支、设置逻辑和 Avalonia 主界面均无需重做。
+原生压缩调查与证据以 [14-原生压缩续聊调查与交接](14-原生压缩续聊调查与交接.md) 为准。
