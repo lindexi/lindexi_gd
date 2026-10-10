@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CodingChatRoom.AvaloniaShell\CodingChatRoom.AvaloniaShell.csproj" />
-    <ProjectReference Include="..\WindowsSandboxProbe\WindowsSandboxProbe.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
