@@ -11,6 +11,43 @@ namespace AgentLib.Coding.Tests;
 public sealed class ResponsesCodingAgentTests
 {
     [TestMethod]
+    [DataRow("explicit-model", null, "explicit-model")]
+    [DataRow(null, null, "demo")]
+    [DataRow(null, "mapped-model", "mapped-model")]
+    [DataRow("explicit-model", "mapped-model", "explicit-model")]
+    public async Task RunAsyncShouldSendResolvedModelId(string? modelId, string? mappedId, string expectedId)
+    {
+        using var handler = new StreamingHandler();
+        using var http = new HttpClient(handler);
+        var manager = new CopilotChatManager();
+        manager.AgentApiEndpointManager.HttpClient?.Dispose();
+        manager.AgentApiEndpointManager.HttpClient = http;
+        var provider = new JsonConfigurationOpenAIProtocolLanguageModelProvider(
+            new OpenAIProtocolLanguageModelConfiguration("https://example.com/v1", "test-key")
+            {
+                ModelDefinitions = [new AgentLib.Core.AgentApiManagers.Contexts.ModelDefinition
+                {
+                    Provider = "test", ModelName = "demo", ModelId = modelId,
+                }],
+            }, manager.AgentApiEndpointManager)
+        {
+            ModelNameToIdMap = new DictionaryModelNameToIdMap(mappedId is null
+                ? new Dictionary<string, string>()
+                : new Dictionary<string, string> { ["demo"] = mappedId }),
+        };
+        manager.AgentApiEndpointManager.RegisterLanguageModelProvider(provider);
+        await using var runtime = new CodingAgent();
+        var agent = new ResponsesCodingAgent(runtime);
+
+        var run = await agent.RunAsync(await manager.CreateManualSendMessageContextAsync(),
+            [new TextContent("test")], manager.SelectedSession.ResponsesSession, null);
+        await run.CompletionTask;
+
+        using var request = JsonDocument.Parse(handler.Requests.Single());
+        Assert.AreEqual(expectedId, request.RootElement.GetProperty("model").GetString());
+    }
+
+    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task RunAsyncShouldContinueUsingNativeHistory(bool nullTerminalAnnotations)

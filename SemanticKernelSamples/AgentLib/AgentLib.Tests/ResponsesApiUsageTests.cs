@@ -31,12 +31,13 @@ public sealed class ResponsesApiUsageTests
         var context = await manager.CreateManualSendMessageContextAsync();
         context.UserChatMessage.AppendText("Hello");
         await context.AppendMessagesToSessionAsync();
-        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var binding = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var client = binding.Client;
 
         using (context.StartChatting())
         {
             var response = await client.CreateResponseAsync(
-                context.LanguageModel.ModelDefinition.ModelId, "Hello", cancellationToken: CancellationToken.None);
+                binding.ModelId, "Hello", cancellationToken: CancellationToken.None);
             context.AssistantChatMessage.ResponseInfo.AppendResponse(response.Value);
         }
 
@@ -57,8 +58,9 @@ public sealed class ResponsesApiUsageTests
             """, "text/event-stream");
         using var httpClient = new HttpClient(handler);
         var context = await CreateManager(httpClient).CreateManualSendMessageContextAsync();
-        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
-        var options = new CreateResponseOptions { Model = context.LanguageModel.ModelDefinition.ModelId, StreamingEnabled = true };
+        var binding = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var client = binding.Client;
+        var options = new CreateResponseOptions { Model = binding.ModelId, StreamingEnabled = true };
         options.InputItems.Add(ResponseItem.CreateUserMessageItem("Hello"));
 
         var responseInfo = context.AssistantChatMessage.ResponseInfo;
@@ -78,7 +80,8 @@ public sealed class ResponsesApiUsageTests
             """);
         using var httpClient = new HttpClient(handler);
         var context = await CreateManager(httpClient).CreateManualSendMessageContextAsync();
-        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var binding = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var client = binding.Client;
         var first = new ResponseResult { Id = "resp_1", Status = ResponseStatus.Completed };
         first.OutputItems.Add(ResponseItem.CreateFunctionCallItem("call_1", "add", BinaryData.FromString("{\"value\":1}")));
         var responseInfo = context.AssistantChatMessage.ResponseInfo;
@@ -89,7 +92,7 @@ public sealed class ResponsesApiUsageTests
         responseInfo.AppendToolResult(output);
         var options = new CreateResponseOptions
         {
-            Model = context.LanguageModel.ModelDefinition.ModelId,
+            Model = binding.ModelId,
             PreviousResponseId = first.Id,
         };
         options.InputItems.Add(output);
@@ -214,7 +217,8 @@ public sealed class ResponsesApiUsageTests
         });
         using var httpClient = new HttpClient(handler);
         var context = await CreateManager(httpClient).CreateManualSendMessageContextAsync();
-        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var binding = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var client = binding.Client;
         var invocationArguments = new List<(int Left, int Right)>();
         var function = AIFunctionFactory.Create((int left, int right) =>
         {
@@ -222,7 +226,7 @@ public sealed class ResponsesApiUsageTests
             return left + right;
         }, "add");
         var tools = new Dictionary<string, AIFunction> { [function.Name] = function };
-        var request = new CreateResponseOptions { Model = context.LanguageModel.ModelDefinition.ModelId };
+        var request = new CreateResponseOptions { Model = binding.ModelId };
         request.Tools.Add(AgentLib.Tools.ResponsesToolHelper.CreateTool(function));
         request.InputItems.Add(ResponseItem.CreateUserMessageItem("Calculate 2 + 3 using add."));
         context.UserChatMessage.AppendText("Calculate 2 + 3 using add.");
