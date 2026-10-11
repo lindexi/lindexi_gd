@@ -21,9 +21,13 @@ internal static class CodingChatTestHost
         var context = new CodingRunContext(host.ChatClient, host.AssistantChatMessage,
             await host.GetAgentSessionAsync(cancellationToken), host.MainThreadDispatcher);
         using IDisposable chatting = host.StartChatting();
-        host.UserChatMessage.AppendContents(snapshot);
+        var userMessage = new CopilotChatMessage(ChatRole.User, snapshot);
+        foreach (ICopilotChatMessageItem item in userMessage.MessageItems)
+        {
+            host.UserChatMessage.MessageItems.Add(item);
+        }
         await host.AppendMessagesToSessionAsync();
         return await agent.RunAsync(context, snapshot, workspacePath,
-            enableAutomaticCompression, enableDotNetRun, cancellationToken);
+            new CodingChatRunOptions(enableAutomaticCompression, enableDotNetRun, null), cancellationToken);
     }
 }

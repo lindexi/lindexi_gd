@@ -53,79 +53,38 @@ public sealed class CodingAgent : IAsyncDisposable
     public string? WorkspacePath => _workspaceCache?.WorkspacePath;
 
     /// <summary>
-    /// 使用纯文本运行一次编程任务。
+    /// 使用有序多模态内容和运行选项执行编程对话。
     /// </summary>
-    /// <param name="context">现有手动发送上下文。</param>
-    /// <param name="prompt">用户任务文本。</param>
-    /// <param name="workspacePath">本次运行期望使用的工作区路径。</param>
-    /// <param name="enableAutomaticCompression">是否自动压缩对话历史。</param>
-    /// <param name="enableDotNetRun">是否为本次运行提供 <c>dotnet run</c> 工具。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>流式消息和完整生命周期任务。</returns>
-    public Task<ICodingAgentRunResult> RunAsync
-    (
-        CodingRunContext context,
-        string prompt,
-        string? workspacePath,
-        bool enableAutomaticCompression = true,
-        bool enableDotNetRun = false,
-        CancellationToken cancellationToken = default
-    )
-    {
-        if (string.IsNullOrWhiteSpace(prompt))
-        {
-            throw new ArgumentException("编程任务文本不能为空。", nameof(prompt));
-        }
-
-        return RunAsync
-        (
-            context,
-            [new TextContent(prompt)],
-            workspacePath,
-            enableAutomaticCompression,
-            enableDotNetRun,
-            cancellationToken
-        );
-    }
-
-    /// <summary>
-    /// 使用有序多模态内容运行一次编程任务。
-    /// </summary>
-    /// <param name="context">现有手动发送上下文。</param>
+    /// <param name="context">本次编程执行的模型会话和输出上下文。</param>
     /// <param name="contents">保持原始顺序的用户输入内容。</param>
     /// <param name="workspacePath">本次运行期望使用的工作区路径。</param>
-    /// <param name="enableAutomaticCompression">是否自动压缩对话历史。</param>
-    /// <param name="enableDotNetRun">是否为本次运行提供 <c>dotnet run</c> 工具。</param>
+    /// <param name="options">运行选项；未指定时使用默认选项。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>流式消息和完整生命周期任务。</returns>
-    public Task<ICodingAgentRunResult> RunAsync(
-        CodingRunContext context,
-        IReadOnlyList<AIContent> contents,
-        string? workspacePath,
-        bool enableAutomaticCompression = true,
-        bool enableDotNetRun = false,
-        CancellationToken cancellationToken = default) =>
-        RunAsync(context, contents, workspacePath,
-            new CodingChatRunOptions(enableAutomaticCompression, enableDotNetRun, null), cancellationToken);
-
-    /// <summary>使用明确的运行选项执行编程对话。</summary>
     public async Task<ICodingAgentRunResult> RunAsync(
         CodingRunContext context,
         IReadOnlyList<AIContent> contents,
         string? workspacePath,
-        CodingChatRunOptions options,
+        CodingChatRunOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(contents);
+        AIContent[] runContents = [.. contents];
+        if (runContents.Length == 0)
+        {
+            throw new ArgumentException("编程任务内容不能为空。", nameof(contents));
+        }
+
         ThrowIfDisposed();
+        CodingChatRunOptions runOptions = options ?? CodingChatRunOptions.Default;
         CodingRunWorkspaceContext workspaceContext = await GetRunWorkspaceContextAsync(
-            workspacePath, options.EnableDotNetRun, cancellationToken).ConfigureAwait(false);
+            workspacePath, runOptions.EnableDotNetRun, cancellationToken).ConfigureAwait(false);
         IReadOnlyList<string> prompts = await CodingPromptProvider.BuildAsync(
             _copilotInstructionsPath, cancellationToken).ConfigureAwait(false);
-        var delegation = new CodingSubAgentTools(this, context.ChatClient, workspaceContext, prompts, options);
-        return await RunAsync(context, contents, workspaceContext.WithTool(delegation.CreateRegistration()),
-            prompts, options, cancellationToken).ConfigureAwait(false);
+        var delegation = new CodingSubAgentTools(this, context.ChatClient, workspaceContext, prompts, runOptions);
+        return await RunAsync(context, runContents, workspaceContext.WithTool(delegation.CreateRegistration()),
+            prompts, runOptions, cancellationToken).ConfigureAwait(false);
     }
 
     internal async Task<ICodingAgentRunResult> RunAsync(
