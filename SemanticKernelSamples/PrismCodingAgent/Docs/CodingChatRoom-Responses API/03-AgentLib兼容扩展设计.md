@@ -68,10 +68,10 @@
 
 ### 本轮实现范围
 
-- 新增 `IResponsesClientProvider.GetResponsesClientAsync()`，返回 `Task<OpenAI.Responses.ResponsesClient>`。
+- 新增 `IResponsesClientProvider.GetResponsesClientAsync()`，返回 `Task<ResponsesClientContext>`，一次获取原生客户端及已解析的模型 ID；类型与文件均命名为 `ResponsesClientContext`，调用方使用 `clientContext`。
 - `OpenAILanguageModel` 实现新接口；原 `ILanguageModel` 不变。
 - 复用既有 OpenAI 客户端创建逻辑，共享 Endpoint、凭据和 HttpClient（包含代理配置），不建立另一套连接配置。
-- SDK 的 `ResponsesClient` 不绑定模型，请求时需显式传入模型 ID；本轮仅实现客户端获取，不扩展执行层。
+- SDK 的 `ResponsesClient` 不绑定模型；不可变上下文复用 Chat 的 `ApiEndpoint.ModelId`，不修改 `ModelDefinition`、不另写解析规则。执行器只持有 `ClientContext`，普通请求、工具续接与手动/自动压缩均使用上下文的模型 ID 及原生客户端，不拆分初始化、不代理 SDK，不改变 HTTP 传输所有权。
 - 不修改管理器、JSON 配置结构、Provider 创建路线及 Shell。
 - 增加 JSON 加载、配置替换、端点、共享 HTTP 传输与凭据测试，并验证原 Chat 客户端仍可获取。
 - SDK Responses API 当前标记为实验性，仅在直接使用它的文件中明确接受 `OPENAI001` 诊断，不修改项目级告警设置。

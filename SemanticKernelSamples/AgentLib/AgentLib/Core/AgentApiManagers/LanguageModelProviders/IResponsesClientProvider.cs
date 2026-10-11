@@ -1,7 +1,5 @@
 #pragma warning disable OPENAI001 // Responses SDK API 当前标记为实验性。
 
-using OpenAI.Responses;
-
 namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 /// <summary>
@@ -10,8 +8,8 @@ namespace AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 public interface IResponsesClientProvider
 {
     /// <summary>
-    /// 获取使用当前模型连接配置的 Responses 客户端；请求时需指定模型 ID。
+    /// 获取当前模型的 Responses 客户端上下文。
     /// </summary>
-    /// <returns>Responses 客户端实例。</returns>
-    Task<ResponsesClient> GetResponsesClientAsync();
+    /// <returns>包含原生客户端及已解析模型标识的不可变上下文。</returns>
+    Task<ResponsesClientContext> GetResponsesClientAsync();
 }

@@ -21,6 +21,15 @@ public sealed class ResponsesWorkflowLiveTests
     private const string ModelId = "MiniMax-M3";
 
     [TestMethod]
+    public async Task SendCommandShouldSucceedWithoutExplicitModelIdAsync()
+    {
+        if (!File.Exists(KeyPath)) return;
+        await using var scenario = await Scenario.CreateAsync(useProductionConfiguration: true);
+        await scenario.SendAsync("只回复 RESPONSES-731，不调用工具，不运行命令。");
+        StringAssert.Contains(scenario.LastAnswer, "RESPONSES-731");
+    }
+
+    [TestMethod]
     public async Task SendCommandShouldPreserveContextAcrossTurnsAndStoredSessionAsync()
     {
         if (!File.Exists(KeyPath)) return;
@@ -204,7 +213,7 @@ public sealed class ResponsesWorkflowLiveTests
         public string DirectoryPath { get; }
         public string LastAnswer => Runtime.ChatManager.SelectedSession.ChatMessages.Last(message => message.Role == ChatRole.Assistant && !message.IsPresetInfo).Content;
 
-        public static async Task<Scenario> CreateAsync(string? existingDirectory = null)
+        public static async Task<Scenario> CreateAsync(string? existingDirectory = null, bool useProductionConfiguration = false)
         {
             string directory = existingDirectory ?? Path.Combine(Path.GetTempPath(), $"responses-workflow-{Guid.NewGuid():N}");
             Console.WriteLine($"Workflow directory: {directory}");
@@ -217,16 +226,20 @@ public sealed class ResponsesWorkflowLiveTests
                 {
                     ModelDefinitions = [new ModelDefinition
                     {
-                        Provider = "service", ModelName = ModelId, ModelId = ModelId,
+                        Provider = "service", ModelName = ModelId, ModelId = useProductionConfiguration ? null : ModelId,
                         Capabilities = new LlmModelCapabilities(),
                     }],
                 }],
             };
+            if (useProductionConfiguration) await configuration.SaveToFileAsync(paths.ConfigurationFile);
             var runtime = await CodingWorkTaskRuntimeFactory.InitializeAsync(paths, new ImmediateDispatcher());
             var recorder = new RequestRecorder();
-            runtime.EndpointManager.HttpClient?.Dispose();
-            runtime.EndpointManager.HttpClient = new HttpClient(recorder) { Timeout = TimeSpan.FromMinutes(3) };
-            runtime.ApplyModelConfiguration(configuration);
+            if (!useProductionConfiguration)
+            {
+                runtime.EndpointManager.HttpClient?.Dispose();
+                runtime.EndpointManager.HttpClient = new HttpClient(recorder) { Timeout = TimeSpan.FromMinutes(3) };
+                runtime.ApplyModelConfiguration(configuration);
+            }
             await runtime.Controller.InitializeAsync();
             return new Scenario(runtime, recorder, directory);
         }
@@ -235,8 +248,10 @@ public sealed class ResponsesWorkflowLiveTests
             Chat.InputText = text;
             Assert.IsTrue(Chat.SendCommand.CanExecute(null), "Send command unavailable.");
             await ((SimpleAsyncCommand)Chat.SendCommand).ExecuteAsync().WaitAsync(TimeSpan.FromMinutes(3));
-            Assert.IsFalse(Runtime.ChatManager.SelectedSession.ChatMessages.Any(message =>
-                message.Role == ChatRole.System && message.Content.Contains("失败", StringComparison.Ordinal)), Chat.StatusText);
+            var failures = Runtime.ChatManager.SelectedSession.ChatMessages
+                .Where(message => message.Role == ChatRole.System && message.Content.Contains("失败", StringComparison.Ordinal))
+                .Select(message => message.Content).ToArray();
+            Assert.IsEmpty(failures, string.Join(Environment.NewLine, failures));
             Assert.IsFalse(string.IsNullOrWhiteSpace(LastAnswer));
         }
         public async ValueTask DisposeAsync()

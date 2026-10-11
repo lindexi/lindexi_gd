@@ -11,6 +11,54 @@ namespace AgentLib.Coding.Tests;
 public sealed class ResponsesCodingAgentTests
 {
     [TestMethod]
+    [DataRow("explicit-model", null, "explicit-model", false)]
+    [DataRow(null, null, "demo", false)]
+    [DataRow(null, "mapped-model", "mapped-model", false)]
+    [DataRow("explicit-model", "mapped-model", "explicit-model", false)]
+    [DataRow(null, null, "demo", true)]
+    [DataRow(null, "mapped-model", "mapped-model", true)]
+    public async Task RunAsyncShouldUseResolvedModelAcrossRequestsAsync(string? modelId, string? mappedId, string expectedId, bool toolCall)
+    {
+        using var handler = new StreamingHandler { ReturnToolCall = toolCall, TotalTokens = 300000, OutputTokens = 10000 };
+        using var http = new HttpClient(handler);
+        var manager = new CopilotChatManager();
+        manager.AgentApiEndpointManager.HttpClient?.Dispose();
+        manager.AgentApiEndpointManager.HttpClient = http;
+        var provider = new JsonConfigurationOpenAIProtocolLanguageModelProvider(
+            new OpenAIProtocolLanguageModelConfiguration("https://example.com/v1", "test-key")
+            {
+                ModelDefinitions = [new AgentLib.Core.AgentApiManagers.Contexts.ModelDefinition
+                {
+                    Provider = "test", ModelName = "demo", ModelId = modelId,
+                }],
+            }, manager.AgentApiEndpointManager)
+        {
+            ModelNameToIdMap = new DictionaryModelNameToIdMap(mappedId is null
+                ? new Dictionary<string, string>()
+                : new Dictionary<string, string> { ["demo"] = mappedId }),
+        };
+        manager.AgentApiEndpointManager.RegisterLanguageModelProvider(provider);
+        string workspace = Path.Combine(Path.GetTempPath(), $"responses-model-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(workspace);
+        Console.WriteLine(workspace);
+        await using var coding = new CodingAgent(new CodingAgentOptions { AdditionalToolSources = [new TestToolSource()] });
+        var agent = new ResponsesCodingAgent(coding);
+        var context = await manager.CreateManualSendMessageContextAsync();
+
+        var run = await agent.RunAsync(context, [new TextContent("calculate")],
+            manager.SelectedSession.ResponsesSession, workspace, new CodingChatRunOptions(true, false, null));
+        await run.CompletionTask;
+        await agent.TryCompactConversationAsync(context.LanguageModel, manager.SelectedSession.ResponsesSession);
+
+        var actualIds = handler.Requests.Concat(handler.CompactRequests).Select(json =>
+        {
+            using var request = JsonDocument.Parse(json);
+            return request.RootElement.GetProperty("model").GetString();
+        }).ToArray();
+        CollectionAssert.AreEqual(Enumerable.Repeat(expectedId, toolCall ? 4 : 2).ToArray(), actualIds);
+    }
+
+    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task RunAsyncShouldContinueUsingNativeHistory(bool nullTerminalAnnotations)
