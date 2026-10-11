@@ -111,6 +111,9 @@ public sealed class MessageItemViewModel : ViewModelBase, IDisposable
     {
         switch (e.PropertyName)
         {
+            case nameof(CopilotChatMessage.Author):
+                OnPropertyChanged(nameof(Author));
+                break;
             case nameof(CopilotChatMessage.Content):
                 OnPropertyChanged(nameof(Content));
                 break;

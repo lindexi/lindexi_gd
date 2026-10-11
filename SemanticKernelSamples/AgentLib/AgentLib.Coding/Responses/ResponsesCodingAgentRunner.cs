@@ -62,6 +62,7 @@ internal sealed class ResponsesCodingAgentRunner
             await DispatchAsync(() =>
             {
                 InitializeUserMessage();
+                _ = MessageContext.AssistantChatMessage.ResponseInfo;
                 chatting = MessageContext.StartChatting();
             }).ConfigureAwait(false);
             await MessageContext.AppendMessagesToSessionAsync().ConfigureAwait(false);
