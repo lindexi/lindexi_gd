@@ -19,33 +19,9 @@ namespace AgentLib.Model;
 public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
 {
     /// <summary>
-    /// 此消息的 Responses 信息，首次访问时创建并标记使用 Responses API；不修改正文。
+    /// 此消息的 Responses 信息，首次访问时创建；访问不会修改消息内容。
     /// </summary>
-    public CopilotChatMessageResponseInfo ResponseInfo
-    {
-        get
-        {
-            IsResponsesApi = true;
-            return _responseInfo ??= new(this);
-        }
-    }
-
-    /// <summary>
-    /// 获取消息是否使用 Responses API；随消息保存，不受后续协议选择影响。
-    /// </summary>
-    public bool IsResponsesApi
-    {
-        get => _isResponsesApi;
-        internal set
-        {
-            if (_isResponsesApi == value) return;
-            _isResponsesApi = value;
-            OnPropertyChanged(nameof(IsResponsesApi));
-            OnPropertyChanged(nameof(Author));
-        }
-    }
-
-    private bool _isResponsesApi;
+    public CopilotChatMessageResponseInfo ResponseInfo => _responseInfo ??= new(this);
 
     private CopilotChatMessageResponseInfo? _responseInfo;
 
@@ -183,7 +159,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
             }
             else if (Role == ChatRole.Assistant)
             {
-                return IsResponsesApi ? "Copilot (ResponseAPI)" : "Copilot";
+                return "Copilot";
             }
 
             return string.Empty;
@@ -445,10 +421,7 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
     /// <returns>深拷贝后的新消息实例。</returns>
     public CopilotChatMessage Clone()
     {
-        var clone = new CopilotChatMessage(Role, CreatedTime, TimeText, IsPresetInfo)
-        {
-            IsResponsesApi = IsResponsesApi,
-        };
+        var clone = new CopilotChatMessage(Role, CreatedTime, TimeText, IsPresetInfo);
         if (TotalUsageDetails is { } totalUsageDetails)
         {
             clone.TotalUsageDetails = CloneUsageDetails(totalUsageDetails);

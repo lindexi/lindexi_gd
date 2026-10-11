@@ -58,7 +58,6 @@ internal static class CopilotChatHistoryXmlCodec
             new XAttribute("Author", chatMessage.Author),
             new XAttribute("CreatedTime", chatMessage.CreatedTime.ToString("o")),
             new XAttribute("IsPresetInfo", chatMessage.IsPresetInfo),
-            chatMessage.IsResponsesApi ? new XAttribute("IsResponsesApi", true) : null,
             new XElement("Content", chatMessage.Content),
             new XElement("Reason", chatMessage.Reason),
             new XElement("MessageItems", chatMessage.MessageItems.Select(CreateMessageItemElement)),
@@ -145,10 +144,7 @@ internal static class CopilotChatHistoryXmlCodec
             ? CreateLegacyMessageItems(messageElement)
             : messageItemsElement.Elements().Select(ReadMessageItem).ToList();
         UsageDetails? usageDetails = ReadUsageDetails(messageElement.Element("UsageDetails"));
-        var message = CopilotChatMessage.Restore(role, createdTime, isPresetInfo, messageItems, usageDetails);
-        message.IsResponsesApi = bool.TryParse(messageElement.Attribute("IsResponsesApi")?.Value, out bool isResponsesApi)
-            && isResponsesApi;
-        return message;
+        return CopilotChatMessage.Restore(role, createdTime, isPresetInfo, messageItems, usageDetails);
     }
 
     private static List<ICopilotChatMessageItem> CreateLegacyMessageItems(XElement messageElement)
