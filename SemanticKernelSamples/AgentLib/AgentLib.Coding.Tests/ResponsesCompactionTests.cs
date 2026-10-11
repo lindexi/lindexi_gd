@@ -12,25 +12,6 @@ namespace AgentLib.Coding.Tests;
 public sealed class ResponsesCompactionTests
 {
     [TestMethod]
-    [DataRow("model-id", "model-id")]
-    [DataRow(null, "demo")]
-    public async Task CompactShouldSendResolvedModelId(string? modelId, string expectedId)
-    {
-        using var handler = new ControlledCompactHandler();
-        using var http = new HttpClient(handler);
-        var model = await CreateModelAsync(http, modelId);
-        await using var coding = new CodingAgent();
-        var agent = new ResponsesCodingAgent(coding);
-        var state = new CopilotResponsesSession();
-        state.AppendItem(ResponseItem.CreateUserMessageItem("original"));
-
-        await agent.TryCompactConversationAsync(model, state);
-
-        using var request = System.Text.Json.JsonDocument.Parse(handler.RequestBody);
-        Assert.AreEqual(expectedId, request.RootElement.GetProperty("model").GetString());
-    }
-
-    [TestMethod]
     [DataRow(200)]
     [DataRow(400)]
     public async Task CompactShouldApplyOnlySuccessfulServerOutput(int status)
@@ -159,22 +140,15 @@ public sealed class ResponsesCompactionTests
                 System.ClientModel.Primitives.ModelReaderWriter.Read<ResponseItem>(BinaryData.FromString(item.GetRawText()))!).ToString()).ToArray(), actual);
     }
 
-    private static async Task<ILanguageModel> CreateModelAsync(HttpClient http, string? modelId = "model-id")
+    private static async Task<ILanguageModel> CreateModelAsync(HttpClient http)
     {
         var manager = new CopilotChatManager();
         manager.AgentApiEndpointManager.HttpClient?.Dispose();
         manager.AgentApiEndpointManager.HttpClient = http;
-        manager.AgentApiEndpointManager.LoadConfiguration(new AgentApiManagerConfiguration
-        {
-            PrimaryModel = "demo",
-            OpenAIConfigurationList = [new OpenAIProtocolLanguageModelConfiguration("https://example.com/v1", "test-key")
-            {
-                ModelDefinitions = [new AgentLib.Core.AgentApiManagers.Contexts.ModelDefinition
-                {
-                    Provider = "test", ModelName = "demo", ModelId = modelId,
-                }],
-            }],
-        });
+        manager.AgentApiEndpointManager.LoadConfiguration(AgentApiManagerConfiguration.FromJsonString("""
+            {"PrimaryModel":"demo","OpenAIConfigurationList":[{"EndPoint":"https://example.com/v1","Key":"test-key",
+            "ModelDefinitions":[{"ModelName":"demo","ModelId":"model-id","Provider":"test"}]}]}
+            """));
         return (await manager.CreateManualSendMessageContextAsync()).LanguageModel;
     }
 
@@ -183,11 +157,9 @@ public sealed class ResponsesCompactionTests
         public string Body { get; init; } = """{"output":[]}""";
         public bool WaitForCancellation { get; init; }
         public int RequestCount { get; private set; }
-        public string RequestBody { get; private set; } = string.Empty;
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            RequestBody = request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken);
             RequestCount++;
             Started.TrySetResult();
             if (WaitForCancellation) await Task.Delay(Timeout.Infinite, cancellationToken);

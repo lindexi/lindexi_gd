@@ -44,7 +44,7 @@ public sealed class ResponsesClientProviderTests
 
         var client = await provider.GetResponsesClientAsync();
 
-        Assert.AreEqual(new Uri("https://example.com/v1"), client.Client.Endpoint);
+        Assert.AreEqual(new Uri("https://example.com/v1"), client.Endpoint);
     }
 
     [TestMethod]
@@ -70,57 +70,11 @@ public sealed class ResponsesClientProviderTests
         manager.LoadConfiguration(CreateConfiguration());
         var client = await ((IResponsesClientProvider) manager.PrimaryModel).GetResponsesClientAsync();
 
-        await client.Client.DeleteResponseAsync("response-test", new RequestOptions());
+        await client.DeleteResponseAsync("response-test", new RequestOptions());
 
         Assert.AreEqual(
             "DELETE https://example.com/v1/responses/response-test Bearer test-key",
             handler.RequestDetails);
-    }
-
-    [TestMethod]
-    [DataRow("explicit-model", null, "explicit-model")]
-    [DataRow(null, null, "test-model")]
-    [DataRow(null, "mapped-model", "mapped-model")]
-    [DataRow("explicit-model", "mapped-model", "explicit-model")]
-    public async Task ResponsesProvider_ShouldExposeResolvedModelIdAsync(string? modelId, string? mappedId, string expectedId)
-    {
-        var definition = new AgentLib.Core.AgentApiManagers.Contexts.ModelDefinition
-        {
-            Provider = "test", ModelName = "test-model", ModelId = modelId,
-        };
-        var provider = new JsonConfigurationOpenAIProtocolLanguageModelProvider(
-            new OpenAIProtocolLanguageModelConfiguration("https://example.com/v1", "test-key")
-            {
-                ModelDefinitions = [definition],
-            })
-        {
-            ModelNameToIdMap = new DictionaryModelNameToIdMap(mappedId is null
-                ? new Dictionary<string, string>()
-                : new Dictionary<string, string> { ["test-model"] = mappedId }),
-        };
-
-        var model = provider.GetSupportedModels().Single();
-
-        var binding = await ((IResponsesClientProvider)model).GetResponsesClientAsync();
-        Assert.AreEqual(expectedId, binding.ModelId);
-    }
-
-    [TestMethod]
-    public void GetSupportedModels_ShouldPreserveOriginalModelDefinition()
-    {
-        var definition = new AgentLib.Core.AgentApiManagers.Contexts.ModelDefinition
-        {
-            Provider = "test", ModelName = "test-model",
-        };
-        var provider = new JsonConfigurationOpenAIProtocolLanguageModelProvider(
-            new OpenAIProtocolLanguageModelConfiguration("https://example.com/v1", "test-key")
-            {
-                ModelDefinitions = [definition],
-            });
-
-        var model = provider.GetSupportedModels().Single();
-
-        Assert.AreSame(definition, model.ModelDefinition);
     }
 
     private static AgentApiManagerConfiguration CreateConfiguration()

@@ -1,4 +1,3 @@
-using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
 using AgentLib.Tools;
 using Microsoft.Extensions.AI;
@@ -41,7 +40,7 @@ internal sealed class ResponsesCodingAgentRunner
 
     public required string Instructions { get; init; }
 
-    public required ResponsesClientContext ClientContext { get; init; }
+    public required ResponsesClient Client { get; init; }
 
     public required CodingRunWorkspaceContext Workspace { get; init; }
 
@@ -86,8 +85,8 @@ internal sealed class ResponsesCodingAgentRunner
                 await ExecuteToolsAsync(calls, functions).ConfigureAwait(false);
                 if (EnableAutomaticCompression && _pendingMessages.IsEmpty && ShouldCompact(response))
                 {
-                    await ResponsesCodingAgent.TryCompactConversationAsync(ClientContext,
-                        Conversation,
+                    await ResponsesCodingAgent.TryCompactConversationAsync(Client,
+                        MessageContext.LanguageModel.ModelDefinition.ModelId, Conversation,
                         Instructions, CancellationToken).ConfigureAwait(false);
                 }
                 AppendPendingMessages();
@@ -169,7 +168,7 @@ internal sealed class ResponsesCodingAgentRunner
     {
         var request = new CreateResponseOptions
         {
-            Model = ClientContext.ModelId,
+            Model = MessageContext.LanguageModel.ModelDefinition.ModelId,
             Instructions = Instructions,
             StreamingEnabled = true,
             StoredOutputEnabled = true,
@@ -196,7 +195,7 @@ internal sealed class ResponsesCodingAgentRunner
         ResponseResult? startedResponse = null;
         try
         {
-            await foreach (StreamingResponseUpdate update in ClientContext.Client
+            await foreach (StreamingResponseUpdate update in Client
                 .CreateResponseStreamingAsync(request, CancellationToken).ConfigureAwait(false))
             {
                 await DispatchAsync(() => MessageContext.AssistantChatMessage.ResponseInfo

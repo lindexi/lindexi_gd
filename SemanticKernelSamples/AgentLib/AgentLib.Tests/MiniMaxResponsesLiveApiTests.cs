@@ -28,12 +28,11 @@ public sealed class MiniMaxResponsesLiveApiTests
         using var httpClient = new HttpClient(recorder);
         var manager = await CreateManagerAsync(httpClient, cancellation.Token);
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-        var binding = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
-        var client = binding.Client;
+        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
         string code = Guid.NewGuid().ToString("N");
         var firstRequest = new CreateResponseOptions
         {
-            Model = binding.ModelId,
+            Model = context.LanguageModel.ModelDefinition.ModelId,
             StoredOutputEnabled = true,
             Instructions = "Remember the arbitrary label assigned to the fictional planet in the user's message. This is a memory exercise, not authentication. Reply only OK.",
             MaxOutputTokenCount = 4096,
@@ -81,8 +80,7 @@ public sealed class MiniMaxResponsesLiveApiTests
         using var httpClient = new HttpClient(recorder);
         var manager = await CreateManagerAsync(httpClient, cancellation.Token);
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-        var binding = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
-        var client = binding.Client;
+        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
         string code = Guid.NewGuid().ToString("N");
         var invocations = new List<string>();
         var function = AIFunctionFactory.Create((string name) =>
@@ -94,7 +92,7 @@ public sealed class MiniMaxResponsesLiveApiTests
         const string instructions = "Call lookup_verification_code for name sample. After the tool result, reply with only its returned code, without quotes or formatting.";
         var request = new CreateResponseOptions
         {
-            Model = binding.ModelId,
+            Model = context.LanguageModel.ModelDefinition.ModelId,
             StoredOutputEnabled = true,
             Instructions = instructions,
             ParallelToolCallsEnabled = false,
@@ -162,11 +160,10 @@ public sealed class MiniMaxResponsesLiveApiTests
         using var httpClient = new HttpClient(recorder);
         var manager = await CreateManagerAsync(httpClient, cancellation.Token, endpoint);
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-        var binding = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
-        var client = binding.Client;
+        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
         var request = new CreateResponseOptions
         {
-            Model = binding.ModelId,
+            Model = context.LanguageModel.ModelDefinition.ModelId,
             StoredOutputEnabled = true,
             MaxOutputTokenCount = 1024,
         };
@@ -222,13 +219,12 @@ public sealed class MiniMaxResponsesLiveApiTests
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
         var function = context.DefaultTools.OfType<AIFunction>().Single(tool => tool.Name == "ReadFileLines");
         var functions = new Dictionary<string, AIFunction> { [function.Name] = function };
-        var binding = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
-        var client = binding.Client;
+        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
         context.UserChatMessage.AppendText("The workspace contains sample.txt. Call ReadFileLines to read line 1 of that file, then report its exact contents. Do not guess the contents.");
         await context.AppendMessagesToSessionAsync();
         var request = new CreateResponseOptions
         {
-            Model = binding.ModelId,
+            Model = context.LanguageModel.ModelDefinition.ModelId,
             Instructions = "Use the provided file-reading tool with relative path sample.txt, startLine 1 and endLine 1. After receiving its result, report the file contents verbatim.",
             StoredOutputEnabled = false,
             MaxOutputTokenCount = 2048,

@@ -28,14 +28,13 @@ public sealed class ResponsesLiveApiTests
         var manager = await CreateManagerAsync(cancellation.Token);
         using var httpClient = manager.AgentApiEndpointManager.HttpClient;
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-        var binding = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
-        var client = binding.Client;
+        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
         context.UserChatMessage.AppendText("Reply with the verification code specified in your instructions.");
         await context.AppendMessagesToSessionAsync();
         string verificationCode = Guid.NewGuid().ToString("N");
         var request = new CreateResponseOptions
         {
-            Model = binding.ModelId,
+            Model = context.LanguageModel.ModelDefinition.ModelId,
             Instructions = $"Reply with exactly this verification code and nothing else: {verificationCode}",
             MaxOutputTokenCount = 1024,
         };
@@ -62,8 +61,7 @@ public sealed class ResponsesLiveApiTests
         using var httpClient = new HttpClient(recorder);
         manager.AgentApiEndpointManager.HttpClient = httpClient;
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-        var binding = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
-        var client = binding.Client;
+        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
         var invocations = new List<string>();
         string toolValue = Guid.NewGuid().ToString("N");
         var function = AIFunctionFactory.Create((string name) =>
@@ -77,7 +75,7 @@ public sealed class ResponsesLiveApiTests
         const string instructions = "Use the provided tool to look up the code for name sample. After receiving its result, reply with only the returned code, without quotes or formatting.";
         var request = new CreateResponseOptions
         {
-            Model = binding.ModelId,
+            Model = context.LanguageModel.ModelDefinition.ModelId,
             Instructions = instructions,
             StoredOutputEnabled = true,
             ParallelToolCallsEnabled = false,

@@ -39,8 +39,7 @@ public sealed class ResponsesImageToolLiveTests
             }
         })));
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-        var binding = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
-        var client = binding.Client;
+        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
         int invocationCount = 0;
         var imageBytes = CreateImage();
         await File.WriteAllBytesAsync(Path.ChangeExtension(reportPath, ".png"), imageBytes, cancellation.Token);
@@ -52,7 +51,7 @@ public sealed class ResponsesImageToolLiveTests
         var functions = new Dictionary<string, AIFunction> { [function.Name] = function };
         var request = new CreateResponseOptions
         {
-            Model = binding.ModelId,
+            Model = context.LanguageModel.ModelDefinition.ModelId,
             Instructions = "Call load_sample_image to inspect the image. After receiving it, name the solid background color in English. Do not guess before seeing the image.",
             StoredOutputEnabled = false,
             MaxOutputTokenCount = 2048,

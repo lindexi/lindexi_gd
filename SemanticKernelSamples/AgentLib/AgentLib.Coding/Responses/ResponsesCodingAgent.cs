@@ -47,8 +47,8 @@ public sealed class ResponsesCodingAgent
         CodingChatRunOptions runOptions = options ?? CodingChatRunOptions.Default;
         var input = ResponseItem.CreateUserMessageItem(contents.Select(CreateInputPart));
         var prompts = await CodingPromptProvider.BuildAsync(_copilotInstructionsPath, cancellationToken).ConfigureAwait(false);
-        var provider = (IResponsesClientProvider)context.LanguageModel;
-        var clientContext = await provider.GetResponsesClientAsync().ConfigureAwait(false);
+        var client = await ((IResponsesClientProvider)context.LanguageModel)
+            .GetResponsesClientAsync().ConfigureAwait(false);
         var workspaceContext = await _codingAgent.GetRunWorkspaceContextAsync(workspacePath, runOptions.EnableDotNetRun, cancellationToken).ConfigureAwait(false);
         var runner = new ResponsesCodingAgentRunner
         {
@@ -57,7 +57,7 @@ public sealed class ResponsesCodingAgent
             Conversation = conversation,
             Input = input,
             Instructions = string.Join(Environment.NewLine + Environment.NewLine, prompts),
-            ClientContext = clientContext,
+            Client = client,
             Workspace = workspaceContext,
             CancellationToken = cancellationToken,
             ReasoningEffort = runOptions.ReasoningEffort,
@@ -79,25 +79,24 @@ public sealed class ResponsesCodingAgent
         var prompts = await CodingPromptProvider.BuildAsync(_copilotInstructionsPath, cancellationToken).ConfigureAwait(false);
         string instructions = string.Join(Environment.NewLine + Environment.NewLine, prompts);
         if (!string.IsNullOrWhiteSpace(additionalInstructions)) instructions += Environment.NewLine + additionalInstructions;
-        var provider = (IResponsesClientProvider)model;
-        var clientContext = await provider.GetResponsesClientAsync().ConfigureAwait(false);
-        return await TryCompactConversationAsync(clientContext, conversation,
+        var client = await ((IResponsesClientProvider)model).GetResponsesClientAsync().ConfigureAwait(false);
+        return await TryCompactConversationAsync(client, model.ModelDefinition.ModelId, conversation,
             instructions, cancellationToken).ConfigureAwait(false);
     }
 
-    internal static async Task<bool> TryCompactConversationAsync(ResponsesClientContext clientContext,
+    internal static async Task<bool> TryCompactConversationAsync(ResponsesClient client, string modelId,
         CopilotResponsesSession conversation, string instructions, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (conversation.Items.Count == 0) return false;
         using var content = System.ClientModel.BinaryContent.Create(BinaryData.FromObjectAsJson(new
         {
-            model = clientContext.ModelId,
+            model = modelId,
             input = conversation.Items.Select(item => System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(
                 System.ClientModel.Primitives.ModelReaderWriter.Write(item).ToString())).ToArray(),
             instructions,
         }));
-        var result = await clientContext.Client.CompactResponseAsync(content, "application/json",
+        var result = await client.CompactResponseAsync(content, "application/json",
             new System.ClientModel.Primitives.RequestOptions { CancellationToken = cancellationToken }).ConfigureAwait(false);
         using var document = System.Text.Json.JsonDocument.Parse(result.GetRawResponse().Content);
         var output = document.RootElement.GetProperty("output").EnumerateArray()

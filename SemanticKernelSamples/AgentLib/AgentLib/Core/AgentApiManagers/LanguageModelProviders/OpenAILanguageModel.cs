@@ -13,10 +13,9 @@ record OpenAILanguageModel
 ) : ILanguageModel, IResponsesClientProvider
 {
     /// <inheritdoc />
-    public Task<ResponsesClientContext> GetResponsesClientAsync()
+    public Task<OpenAI.Responses.ResponsesClient> GetResponsesClientAsync()
     {
-        var client = OpenAIClientCreator.CreateResponsesClient(ApiEndpoint, HttpClientProvider);
-        return Task.FromResult(new ResponsesClientContext(client, ApiEndpoint.ModelId));
+        return Task.FromResult(OpenAIClientCreator.CreateResponsesClient(ApiEndpoint, HttpClientProvider));
     }
 
     public Task<IChatClient> GetChatClientAsync()
