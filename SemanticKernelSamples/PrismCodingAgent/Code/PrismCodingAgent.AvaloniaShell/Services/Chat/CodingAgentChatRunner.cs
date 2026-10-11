@@ -32,26 +32,35 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
     )
     {
         ArgumentNullException.ThrowIfNull(contents);
-        Guid sessionId = _chatManager.SelectedSession.SessionId;
-        IManualSendMessageContext context = await _chatManager
-            .CreateManualSendMessageContextAsync(cancellationToken)
+        CopilotChatSession session = _chatManager.SelectedSession;
+        AIContent[] runContents = System.Linq.Enumerable.ToArray(contents);
+        var client = await _chatManager.AgentApiEndpointManager.PrimaryModel.GetChatClientAsync()
             .ConfigureAwait(false);
-        ICodingAgentRunResult run = await _codingAgent
-            .RunAsync
-            (
-                context,
-                contents,
-                workspacePath,
-                options,
-                cancellationToken
-            )
-            .ConfigureAwait(false);
-        _activeRun = run;
-        return new CompletedCodingAgentRunResult
-        (
-            run.AssistantChatMessage,
-            CompleteAndClearActiveRunAsync(run, sessionId)
-        );
+        var userMessage = new CopilotChatMessage(ChatRole.User, runContents);
+        var assistantMessage = CopilotChatMessage.CreateAssistant(
+            CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
+        var context = new CodingRunContext(client, assistantMessage, session.AgentSession,
+            _chatManager.MainThreadDispatcher);
+        IDisposable chatting = _chatManager.StartChatting();
+        try
+        {
+            ICodingAgentRunResult run = await _codingAgent.RunAsync(
+                context, runContents, workspacePath, options, cancellationToken).ConfigureAwait(false);
+            session.SetAgentSession(context.AgentSession
+                ?? throw new InvalidOperationException("编程代理未创建模型会话。"));
+            cancellationToken.ThrowIfCancellationRequested();
+            await session.AddMessageAsync(userMessage).ConfigureAwait(false);
+            await _chatManager.ChatLogger.LogMessageAsync(session.SessionId, userMessage).ConfigureAwait(false);
+            await session.AddMessageAsync(assistantMessage).ConfigureAwait(false);
+            _activeRun = run;
+            return new CompletedCodingAgentRunResult(run.AssistantChatMessage,
+                CompleteAndClearActiveRunAsync(run, session.SessionId, chatting));
+        }
+        catch
+        {
+            chatting.Dispose();
+            throw;
+        }
     }
 
     public async Task<bool> TryCompactConversationAsync(AgentLib.Model.CopilotChatSession session,
@@ -75,7 +84,8 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
         return activeRun.InjectMessageAsync(contents, cancellationToken);
     }
 
-    private async Task<string?> CompleteAndClearActiveRunAsync(ICodingAgentRunResult run, Guid sessionId)
+    private async Task<string?> CompleteAndClearActiveRunAsync(ICodingAgentRunResult run, Guid sessionId,
+        IDisposable chatting)
     {
         try
         {
@@ -92,6 +102,7 @@ internal sealed class CodingAgentChatRunner : ICodingChatRunner
         }
         finally
         {
+            chatting.Dispose();
             if (ReferenceEquals(_activeRun, run))
             {
                 _activeRun = null;

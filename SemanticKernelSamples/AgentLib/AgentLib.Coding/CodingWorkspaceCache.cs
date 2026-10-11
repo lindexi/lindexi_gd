@@ -66,16 +66,12 @@ internal sealed class CodingWorkspaceCache : IAsyncDisposable
             : [];
         if (additionalToolRegistrations.Count == 0 && optionalRegistrations.Length == 0)
         {
-            return new CodingRunWorkspaceContext(WorkspacePath, Tools, ToolRegistrationRegistry);
+            return new CodingRunWorkspaceContext(WorkspacePath, ToolRegistrations);
         }
 
         ToolRegistration[] registrations =
             [.. ToolRegistrations, .. optionalRegistrations, .. additionalToolRegistrations];
-        AITool[] tools = [.. registrations.Select(static registration => registration.Tool)];
-        return new CodingRunWorkspaceContext(
-            WorkspacePath,
-            Array.AsReadOnly(tools),
-            new ToolRegistrationRegistry(registrations));
+        return new CodingRunWorkspaceContext(WorkspacePath, Array.AsReadOnly(registrations));
     }
 
     public Task<bool> StopLanguageServerAsync() =>
@@ -140,11 +136,23 @@ internal sealed class CodingWorkspaceCache : IAsyncDisposable
     }
 }
 
-internal sealed record CodingRunWorkspaceContext(
-    string? WorkspacePath,
-    IReadOnlyList<AITool> Tools,
-    ToolRegistrationRegistry ToolRegistrationRegistry)
+internal sealed class CodingRunWorkspaceContext
 {
-    public static CodingRunWorkspaceContext Empty { get; } =
-        new(null, [], ToolRegistrationRegistry.Empty);
+    internal CodingRunWorkspaceContext(string? workspacePath, IReadOnlyList<ToolRegistration> registrations)
+    {
+        WorkspacePath = workspacePath;
+        ToolRegistrations = registrations;
+        Tools = Array.AsReadOnly(registrations.Select(static registration => registration.Tool).ToArray());
+        ToolRegistrationRegistry = new ToolRegistrationRegistry(registrations);
+    }
+
+    internal string? WorkspacePath { get; }
+    internal IReadOnlyList<ToolRegistration> ToolRegistrations { get; }
+    internal IReadOnlyList<AITool> Tools { get; }
+    internal ToolRegistrationRegistry ToolRegistrationRegistry { get; }
+
+    internal CodingRunWorkspaceContext WithTool(ToolRegistration registration) =>
+        new(WorkspacePath, [.. ToolRegistrations, registration]);
+
+    public static CodingRunWorkspaceContext Empty { get; } = new(null, []);
 }

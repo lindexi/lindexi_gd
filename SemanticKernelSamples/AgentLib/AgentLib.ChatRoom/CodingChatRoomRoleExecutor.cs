@@ -33,26 +33,41 @@ internal sealed class CodingChatRoomRoleExecutor : IChatRoomRoleExecutor
         ArgumentNullException.ThrowIfNull(contents);
         ThrowIfDisposed();
 
-        IManualSendMessageContext manualContext = await context.ChatManager
-            .CreateManualSendMessageContextAsync(cancellationToken)
+        CopilotChatManager chatManager = context.ChatManager;
+        CopilotChatSession session = chatManager.SelectedSession;
+        IChatClient client = await chatManager.AgentApiEndpointManager.PrimaryModel.GetChatClientAsync()
             .ConfigureAwait(false);
+        AIContent[] runContents = [.. contents];
+        var userMessage = new CopilotChatMessage(ChatRole.User, runContents);
+        var assistantMessage = CopilotChatMessage.CreateAssistant(
+            CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
+        var runContext = new CodingRunContext(client, assistantMessage, session.AgentSession,
+            chatManager.MainThreadDispatcher);
 
         await _lifecycleLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             ThrowIfDisposed();
-            ICodingAgentRunResult runResult = await _codingAgent.RunAsync
-            (
-                manualContext,
-                contents,
-                _workspacePath,
-                cancellationToken: cancellationToken
-            ).ConfigureAwait(false);
-            return new ChatRoomRoleExecutionResult
-            (
-                runResult.AssistantChatMessage,
-                CompleteAsync(runResult.CompletionTask, cancellationToken)
-            );
+            IDisposable chatting = chatManager.StartChatting();
+            try
+            {
+                ICodingAgentRunResult runResult = await _codingAgent.RunAsync(
+                    runContext, runContents, _workspacePath, cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+                session.SetAgentSession(runContext.AgentSession
+                    ?? throw new InvalidOperationException("编程代理未创建模型会话。"));
+                cancellationToken.ThrowIfCancellationRequested();
+                await session.AddMessageAsync(userMessage).ConfigureAwait(false);
+                await chatManager.ChatLogger.LogMessageAsync(session.SessionId, userMessage).ConfigureAwait(false);
+                await session.AddMessageAsync(assistantMessage).ConfigureAwait(false);
+                return new ChatRoomRoleExecutionResult(runResult.AssistantChatMessage,
+                    CompleteAsync(runResult.CompletionTask, chatting, cancellationToken));
+            }
+            catch
+            {
+                chatting.Dispose();
+                throw;
+            }
         }
         finally
         {
@@ -104,6 +119,7 @@ internal sealed class CodingChatRoomRoleExecutor : IChatRoomRoleExecutor
     private async Task<ChatRoomRoleExecutionCompletion> CompleteAsync
     (
         Task<string?> completionTask,
+        IDisposable chatting,
         CancellationToken cancellationToken
     )
     {
@@ -116,6 +132,10 @@ internal sealed class CodingChatRoomRoleExecutor : IChatRoomRoleExecutor
             cancellationToken.IsCancellationRequested || Volatile.Read(ref _isDisposed) != 0)
         {
             return new ChatRoomRoleExecutionCompletion(null, WasCanceled: true);
+        }
+        finally
+        {
+            chatting.Dispose();
         }
     }
 
