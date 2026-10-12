@@ -37,6 +37,32 @@ public sealed class CodingRunEntryTests
         Assert.AreEqual("done", await run.CompletionTask);
     }
 
+    [TestMethod]
+    public void CodingRunContextWhenCreatedShouldUseAssistantMessageAsOutput()
+    {
+        var message = CopilotChatMessage.CreateAssistant(string.Empty, isPresetInfo: false);
+        var context = new CodingRunContext(new FakeChatClient(), message);
+
+        Assert.AreSame(message, context.Output);
+    }
+
+    [TestMethod]
+    public async Task RunAsyncWhenMessageHasPlaceholderShouldReplaceItWithOutput()
+    {
+        var client = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (_, _, cancellationToken) => RespondAsync(cancellationToken),
+        };
+        await using var agent = new CodingAgent();
+        var message = CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false);
+        var context = new CodingRunContext(client, message);
+
+        ICodingAgentRunResult run = await agent.RunAsync(context, [new TextContent("task")], null);
+        await run.CompletionTask;
+
+        Assert.AreEqual("done", message.Content);
+    }
+
     private static async IAsyncEnumerable<ChatResponseUpdate> RespondAsync(
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {

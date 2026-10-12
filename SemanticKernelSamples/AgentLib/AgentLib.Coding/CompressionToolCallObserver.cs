@@ -4,66 +4,67 @@ using Microsoft.Extensions.AI;
 
 namespace AgentLib.Coding;
 
-internal sealed class CompressionToolCallObserver
+internal sealed class CompressionToolCallObserver : IChatReducer
 {
     private const string ToolName = "CompressConversation";
-
-    private readonly CopilotChatMessage _assistantMessage;
-    private readonly IMainThreadDispatcher? _mainThreadDispatcher;
+    private readonly CodingRunContext _context;
+    private readonly CopilotChatManagerToolCallChatReducer _reducer;
+    private Task _outputTask = Task.CompletedTask;
     private string? _callId;
 
-    public CompressionToolCallObserver(
-        CopilotChatMessage assistantMessage,
-        IMainThreadDispatcher? mainThreadDispatcher,
-        CopilotChatManagerToolCallChatReducer reducer)
+    public CompressionToolCallObserver(CodingRunContext context, CopilotChatManagerToolCallChatReducer reducer)
     {
-        _assistantMessage = assistantMessage;
-        _mainThreadDispatcher = mainThreadDispatcher;
+        _context = context;
+        _reducer = reducer;
         reducer.CompressionStarted += OnCompressionStarted;
         reducer.CompressionCompleted += OnCompressionCompleted;
         reducer.CompressionFailed += OnCompressionFailed;
     }
 
+    public async Task<IEnumerable<ChatMessage>> ReduceAsync(IEnumerable<ChatMessage> messages,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _reducer.ReduceAsync(messages, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            await _outputTask.ConfigureAwait(false);
+        }
+    }
+
     private void OnCompressionStarted(object? sender, EventArgs e)
     {
-        _callId = Guid.NewGuid().ToString("N");
-        Invoke(() =>
+        string callId = Guid.NewGuid().ToString("N");
+        _callId = callId;
+        _outputTask = AppendAsync(_outputTask, () =>
         {
-            if (_assistantMessage.Content == CopilotChatMessage.PlaceholderContent)
-            {
-                _assistantMessage.ClearMessageItems();
-            }
-
-            _assistantMessage.AppendFunctionCall(
-                new FunctionCallContent(_callId, ToolName, new Dictionary<string, object?>()));
+            _context.Output.ClearPlaceholder();
+            _context.Output.AppendFunctionCall(
+                new FunctionCallContent(callId, ToolName, new Dictionary<string, object?>()));
         });
     }
 
     private void OnCompressionCompleted(object? sender, IReadOnlyList<ChatMessage> messages)
     {
-        string output = string.Join(
-            Environment.NewLine,
+        string output = string.Join(Environment.NewLine,
             messages.Where(message => message.Role == ChatRole.Assistant).Select(message => message.Text));
-        Invoke(() => _assistantMessage.AppendFunctionResult(new FunctionResultContent(_callId!, output)));
+        AppendResult(output);
     }
 
-    private void OnCompressionFailed(object? sender, Exception exception)
+    private void OnCompressionFailed(object? sender, Exception exception) => AppendResult(exception.ToString());
+
+    private void AppendResult(string result)
     {
-        Invoke(() => _assistantMessage.AppendFunctionResult(new FunctionResultContent(_callId!, exception.ToString())));
+        string callId = _callId ?? throw new InvalidOperationException("压缩尚未开始。");
+        _outputTask = AppendAsync(_outputTask,
+            () => _context.Output.AppendFunctionResult(new FunctionResultContent(callId, result)));
     }
 
-    private void Invoke(Action action)
+    private async Task AppendAsync(Task previous, Action action)
     {
-        if (_mainThreadDispatcher is not null && !_mainThreadDispatcher.CheckAccess())
-        {
-            _ = _mainThreadDispatcher.InvokeAsync(() =>
-            {
-                action();
-                return Task.CompletedTask;
-            });
-            return;
-        }
-
-        action();
+        await previous.ConfigureAwait(false);
+        await _context.InvokeOutputAsync(action).ConfigureAwait(false);
     }
 }

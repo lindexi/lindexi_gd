@@ -82,7 +82,7 @@ public sealed class CodingAgent : IAsyncDisposable
             workspacePath, runOptions.EnableDotNetRun, cancellationToken).ConfigureAwait(false);
         IReadOnlyList<string> prompts = await CodingPromptProvider.BuildAsync(
             _copilotInstructionsPath, cancellationToken).ConfigureAwait(false);
-        var delegation = new CodingSubAgentTools(this, context.ChatClient, workspaceContext, prompts, runOptions);
+        var delegation = new CodingSubAgentTools(this, context, workspaceContext, prompts, runOptions);
         return await RunAsync(context, runContents, workspaceContext.WithTool(delegation.CreateRegistration()),
             prompts, runOptions, cancellationToken).ConfigureAwait(false);
     }
@@ -133,17 +133,12 @@ public sealed class CodingAgent : IAsyncDisposable
                             ConditionalCompressionTokenCountThreshold = CodingCompressionThresholds.Conditional,
                             ForcedCompressionTokenCountThreshold = CodingCompressionThresholds.Forced,
                         };
-                        _ = new CompressionToolCallObserver
-                        (
-                            context.AssistantChatMessage,
-                            context.MainThreadDispatcher,
-                            reducer
-                        );
+                        var compressionObserver = new CompressionToolCallObserver(context, reducer);
                         options.ChatHistoryProvider = new InMemoryChatHistoryProvider
                         (
                             new InMemoryChatHistoryProviderOptions
                             {
-                                ChatReducer = new ToolCallAwareChatReducer(reducer),
+                                ChatReducer = new ToolCallAwareChatReducer(compressionObserver),
                             }
                         );
                     }
@@ -323,7 +318,8 @@ public sealed class CodingAgent : IAsyncDisposable
                                cancellationToken
                            ))
             {
-                AppendResponseUpdate(context, update, toolRegistrationRegistry);
+                await context.InvokeOutputAsync(() =>
+                    AppendResponseUpdate(context, update, toolRegistrationRegistry)).ConfigureAwait(false);
                 hasResponseUpdate = true;
             }
 
@@ -362,44 +358,33 @@ public sealed class CodingAgent : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(update);
         ArgumentNullException.ThrowIfNull(registry);
-        if (context.AssistantChatMessage.Content == CopilotChatMessage.PlaceholderContent)
-        {
-            context.AssistantChatMessage.ClearMessageItems();
-        }
+        context.Output.ClearPlaceholder();
 
         foreach (AIContent content in update.Contents)
         {
             switch (content)
             {
                 case TextReasoningContent textReasoningContent when !string.IsNullOrEmpty(textReasoningContent.Text):
-                    context.AssistantChatMessage.AppendReasoning(textReasoningContent.Text);
+                    context.Output.AppendReasoning(textReasoningContent.Text);
                     break;
                 case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
-                    context.AssistantChatMessage.AppendText(textContent.Text);
+                    context.Output.AppendText(textContent.Text);
                     break;
                 case FunctionCallContent functionCallContent:
-                    context.AssistantChatMessage.AppendFunctionCall
+                    context.Output.AppendFunctionCall
                         (functionCallContent, registry.CreatePresentation(functionCallContent));
                     break;
                 case FunctionResultContent functionResultContent:
-                    context.AssistantChatMessage.AppendFunctionResult(functionResultContent);
+                    context.Output.AppendFunctionResult(functionResultContent);
                     break;
             }
         }
 
-        context.AssistantChatMessage.AppendUsageDetails(update.Contents);
+        context.Output.AppendUsageDetails(update.Contents);
     }
 
-    private static Task ClearAssistantPlaceholderAsync(CodingRunContext context)
-    {
-        if (context.AssistantChatMessage.Content != CopilotChatMessage.PlaceholderContent)
-        {
-            return Task.CompletedTask;
-        }
-
-        context.AssistantChatMessage.ClearMessageItems();
-        return Task.CompletedTask;
-    }
+    private static Task ClearAssistantPlaceholderAsync(CodingRunContext context) =>
+        context.InvokeOutputAsync(context.Output.ClearPlaceholder);
 
     private static bool AreSameWorkspace(string? left, string? right)
     {

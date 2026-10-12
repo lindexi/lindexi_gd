@@ -557,9 +557,9 @@ public sealed class CodingAgentTests
         var assistantMessage = CopilotChatMessage.CreateAssistant(
             CopilotChatMessage.PlaceholderContent,
             isPresetInfo: false);
-        _ = new CompressionToolCallObserver(assistantMessage, null, reducer);
+        var observer = new CompressionToolCallObserver(new CodingRunContext(client, assistantMessage), reducer);
 
-        await reducer.ReduceAsync(
+        await observer.ReduceAsync(
             [new ChatMessage(ChatRole.Assistant, "需要压缩")],
             CancellationToken.None);
 
@@ -583,9 +583,9 @@ public sealed class CodingAgentTests
         var assistantMessage = CopilotChatMessage.CreateAssistant(
             CopilotChatMessage.PlaceholderContent,
             isPresetInfo: false);
-        _ = new CompressionToolCallObserver(assistantMessage, null, reducer);
+        var observer = new CompressionToolCallObserver(new CodingRunContext(client, assistantMessage), reducer);
 
-        await reducer.ReduceAsync(
+        await observer.ReduceAsync(
             [new ChatMessage(ChatRole.Assistant, "需要压缩")],
             CancellationToken.None);
 

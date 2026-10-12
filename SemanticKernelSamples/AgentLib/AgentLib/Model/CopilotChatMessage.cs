@@ -16,7 +16,7 @@ namespace AgentLib.Model;
 /// 表示 Copilot 聊天中的一条消息，支持文本、图片、音频等多模态内容，
 /// 以及工具调用、子代理调用和审批等交互。
 /// </summary>
-public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
+public sealed class CopilotChatMessage : NotifyBase, ICopilotChatOutput
 {
     /// <summary>
     /// 此消息的 Responses 信息，首次访问时创建；访问不会修改消息内容。
@@ -528,6 +528,15 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatCurrentContent
         }
 
         return new ChatMessage(Role, contents);
+    }
+
+    /// <inheritdoc/>
+    public void ClearPlaceholder()
+    {
+        if (Content == PlaceholderContent)
+        {
+            ClearMessageItems();
+        }
     }
 
     /// <summary>
