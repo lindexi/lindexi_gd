@@ -7,7 +7,7 @@ namespace AgentLib.Coding;
 
 internal sealed class CodingSubAgentTools(
     CodingAgent agent,
-    IChatClient chatClient,
+    CodingRunContext parentContext,
     CodingRunWorkspaceContext workspaceContext,
     IReadOnlyList<string> prompts,
     CodingChatRunOptions options)
@@ -20,11 +20,21 @@ internal sealed class CodingSubAgentTools(
         [Description("本次编程任务提示词。")] string prompt,
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        CopilotChatSubAgentItem? output = null;
+        await parentContext.InvokeOutputAsync(() =>
+        {
+            parentContext.Output.ClearPlaceholder();
+            output = parentContext.Output.CreateSubAgentItem(nameof(InvokeCodingSubAgent), prompt);
+        }).ConfigureAwait(false);
+        CopilotChatSubAgentItem childOutput = output
+            ?? throw new InvalidOperationException("子智能体输出未创建。");
         var submission = new GeneratedTextSubmissionTool();
         CodingRunWorkspaceContext childTools = workspaceContext.WithTool(new ToolRegistration(
             submission.CreateTool("ReturnOutputToParent", "提交最终结果文本。")));
-        var context = new CodingRunContext(chatClient,
-            CopilotChatMessage.CreateAssistant(CopilotChatMessage.PlaceholderContent, isPresetInfo: false));
+        var context = new CodingRunContext(parentContext.ChatClient,
+            CopilotChatMessage.CreateAssistant(string.Empty, isPresetInfo: false),
+            mainThreadDispatcher: parentContext.MainThreadDispatcher, output: childOutput);
         IReadOnlyList<string> childPrompts = [.. prompts, "最终结果必须通过 `ReturnOutputToParent` 提交"];
         ICodingAgentRunResult run = await agent.RunAsync(context, [new TextContent(prompt)], childTools,
             childPrompts, options, cancellationToken).ConfigureAwait(false);

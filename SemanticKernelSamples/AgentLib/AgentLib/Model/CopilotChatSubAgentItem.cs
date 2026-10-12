@@ -247,7 +247,6 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
         ArgumentNullException.ThrowIfNull(functionResultContent);
 
         string callId = functionResultContent.CallId ?? string.Empty;
-
         // 审批工具的流式调用阶段不创建项（由 RuntimeHumanApprovalFunction 统一创建），
         // 因此流式结果到达时也没有项可匹配，直接跳过。
         if (_approvalToolCallIds.Contains(callId))

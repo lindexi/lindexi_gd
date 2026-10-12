@@ -82,7 +82,7 @@ public sealed class CodingAgent : IAsyncDisposable
             workspacePath, runOptions.EnableDotNetRun, cancellationToken).ConfigureAwait(false);
         IReadOnlyList<string> prompts = await CodingPromptProvider.BuildAsync(
             _copilotInstructionsPath, cancellationToken).ConfigureAwait(false);
-        var delegation = new CodingSubAgentTools(this, context.ChatClient, workspaceContext, prompts, runOptions);
+        var delegation = new CodingSubAgentTools(this, context, workspaceContext, prompts, runOptions);
         return await RunAsync(context, runContents, workspaceContext.WithTool(delegation.CreateRegistration()),
             prompts, runOptions, cancellationToken).ConfigureAwait(false);
     }
@@ -133,17 +133,12 @@ public sealed class CodingAgent : IAsyncDisposable
                             ConditionalCompressionTokenCountThreshold = CodingCompressionThresholds.Conditional,
                             ForcedCompressionTokenCountThreshold = CodingCompressionThresholds.Forced,
                         };
-                        _ = new CompressionToolCallObserver
-                        (
-                            context.Output,
-                            context.MainThreadDispatcher,
-                            reducer
-                        );
+                        var compressionObserver = new CompressionToolCallObserver(context, reducer);
                         options.ChatHistoryProvider = new InMemoryChatHistoryProvider
                         (
                             new InMemoryChatHistoryProviderOptions
                             {
-                                ChatReducer = new ToolCallAwareChatReducer(reducer),
+                                ChatReducer = new ToolCallAwareChatReducer(compressionObserver),
                             }
                         );
                     }
@@ -323,7 +318,8 @@ public sealed class CodingAgent : IAsyncDisposable
                                cancellationToken
                            ))
             {
-                AppendResponseUpdate(context, update, toolRegistrationRegistry);
+                await context.InvokeOutputAsync(() =>
+                    AppendResponseUpdate(context, update, toolRegistrationRegistry)).ConfigureAwait(false);
                 hasResponseUpdate = true;
             }
 
@@ -387,11 +383,8 @@ public sealed class CodingAgent : IAsyncDisposable
         context.Output.AppendUsageDetails(update.Contents);
     }
 
-    private static Task ClearAssistantPlaceholderAsync(CodingRunContext context)
-    {
-        context.Output.ClearPlaceholder();
-        return Task.CompletedTask;
-    }
+    private static Task ClearAssistantPlaceholderAsync(CodingRunContext context) =>
+        context.InvokeOutputAsync(context.Output.ClearPlaceholder);
 
     private static bool AreSameWorkspace(string? left, string? right)
     {

@@ -312,3 +312,23 @@ CodingAgent 的唯一 Chat 执行路径共同负责：
 - 为实时展示新增子运行持久化、恢复、存储过滤或父子关联机制。
 
 下一轮应以本文为实现依据，保持变更最小、职责明确，并在本文范围内完整实施和验证。
+
+## 13. 第二步实施记录：编程子运行实时输出
+
+本节记录后续用户授权的第二步，覆盖第 10 节原先“不要求实时接入”的范围限制；前文历史设计状态不代表当前代码状态。
+
+- `CodingRunContext` 可指定 `ICopilotChatOutput`，默认仍为 `AssistantChatMessage`。后者继续承担宿主及 completion 结果契约；子运行的过程不写入该兼容消息，委托结果始终来自 `GeneratedTextSubmissionTool`。
+- `CodingSubAgentTools` 捕获明确父上下文，在执行前通过父 `Output` 创建独立 `CopilotChatSubAgentItem`。同一次委托两轮共用片段、上下文及 session；串行多次委托分别创建片段。
+- 子运行复用同一 `CodingAgent` 和唯一流式循环，直接向子片段追加文本、推理、工具过程及用量，不共享或复制 `MessageItems`。
+- 捕获的 `MainThreadDispatcher` 用于可等待的片段创建、流式更新、用量及占位清理；无 dispatcher 时直接执行。压缩展示通过 reducer 包装等待事件产生的输出任务，不再丢弃调度任务。
+- 按用户修正，通用消息模型不判断 `InvokeCodingSubAgent` 名称，不提供 `SetOutputText`，不额外写入子片段的最终结果。委托保留普通工具调用和结果展示，子片段只接收过程输出，父模型仍接收正常工具结果。
+- 未修改通用 `SubAgentToolProvider`、Responses 执行路径、工具权限边界或 AnalyzeImage；未引入锁、调度器、运行树或复制执行循环。
+
+验证记录：
+
+- AgentLib.Coding 的 net6.0、net9.0 构建通过；Shell 构建通过。
+- 新增 12 项 MSTest，使用公开 API 与现有 `FakeChatClient` 验证实时文本、推理及工具过程、同输出补交、串行独立片段、取消不兜底、UI 调度、普通工具结果、用量及空响应占位清理。移除名称特判和额外结果 API 后，相应断言验证普通工具结果，不要求隐藏委托工具卡。
+- Coding 全量：164 通过、1 失败；失败为此前已知的 `CodingWorkspaceCacheTests.CreateRunContextShouldReuseCachedState` 集合引用断言，未修改。
+- 共享输出模型定向回归：net10.0 的 34 项通过；net6.0 testhost 因缺少 Google.Protobuf 3.30.2 中止，未修改环境或依赖。
+- Shell 全量：244 通过、1 跳过、2 失败。失败为 Responses 在线压缩测试 `RawHttpCompactionShouldPreserveContextWithoutSdkAsync` 与 `CompressionCommandShouldBeAvailableForResponsesHistoryAsync`，模型未返回预期历史标识；未修改这些范围外测试或执行逻辑。
+- 本次未执行命令行、脚本或沙盒程序。
