@@ -135,7 +135,7 @@ public sealed class CodingAgent : IAsyncDisposable
                         };
                         _ = new CompressionToolCallObserver
                         (
-                            context.AssistantChatMessage,
+                            context.Output,
                             context.MainThreadDispatcher,
                             reducer
                         );
@@ -362,42 +362,34 @@ public sealed class CodingAgent : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(update);
         ArgumentNullException.ThrowIfNull(registry);
-        if (context.AssistantChatMessage.Content == CopilotChatMessage.PlaceholderContent)
-        {
-            context.AssistantChatMessage.ClearMessageItems();
-        }
+        context.Output.ClearPlaceholder();
 
         foreach (AIContent content in update.Contents)
         {
             switch (content)
             {
                 case TextReasoningContent textReasoningContent when !string.IsNullOrEmpty(textReasoningContent.Text):
-                    context.AssistantChatMessage.AppendReasoning(textReasoningContent.Text);
+                    context.Output.AppendReasoning(textReasoningContent.Text);
                     break;
                 case TextContent textContent when !string.IsNullOrEmpty(textContent.Text):
-                    context.AssistantChatMessage.AppendText(textContent.Text);
+                    context.Output.AppendText(textContent.Text);
                     break;
                 case FunctionCallContent functionCallContent:
-                    context.AssistantChatMessage.AppendFunctionCall
+                    context.Output.AppendFunctionCall
                         (functionCallContent, registry.CreatePresentation(functionCallContent));
                     break;
                 case FunctionResultContent functionResultContent:
-                    context.AssistantChatMessage.AppendFunctionResult(functionResultContent);
+                    context.Output.AppendFunctionResult(functionResultContent);
                     break;
             }
         }
 
-        context.AssistantChatMessage.AppendUsageDetails(update.Contents);
+        context.Output.AppendUsageDetails(update.Contents);
     }
 
     private static Task ClearAssistantPlaceholderAsync(CodingRunContext context)
     {
-        if (context.AssistantChatMessage.Content != CopilotChatMessage.PlaceholderContent)
-        {
-            return Task.CompletedTask;
-        }
-
-        context.AssistantChatMessage.ClearMessageItems();
+        context.Output.ClearPlaceholder();
         return Task.CompletedTask;
     }
 

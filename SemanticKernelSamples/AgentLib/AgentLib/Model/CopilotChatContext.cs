@@ -6,7 +6,7 @@ namespace AgentLib.Model;
 
 internal sealed class CopilotChatContext
 {
-    public CopilotChatContext(ObservableCollection<CopilotChatMessage> historyMessages, ICopilotChatCurrentContent currentContent)
+    public CopilotChatContext(ObservableCollection<CopilotChatMessage> historyMessages, ICopilotChatOutput currentContent)
     {
         ArgumentNullException.ThrowIfNull(historyMessages);
         ArgumentNullException.ThrowIfNull(currentContent);
@@ -17,7 +17,7 @@ internal sealed class CopilotChatContext
 
     public IReadOnlyList<CopilotChatMessage> HistoryMessages { get; }
 
-    public ICopilotChatCurrentContent CurrentContent { get; }
+    public ICopilotChatOutput CurrentContent { get; }
 
     public CopilotChatContext CreateSubAgentContext(CopilotChatSubAgentItem subAgentItem)
     {

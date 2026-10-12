@@ -9,7 +9,7 @@ namespace AgentLib.Model;
 /// <summary>
 /// 表示子智能体调用片段。
 /// </summary>
-public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageItem, ICopilotChatCurrentContent
+public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageItem, ICopilotChatOutput
 {
     /// <summary>
     /// 创建子智能体调用片段。
@@ -117,6 +117,48 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
     /// </summary>
     public bool HasMessageItems => MessageItems.Count > 0;
 
+    /// <summary>本次调用累积的用量。</summary>
+    public UsageDetails? TotalUsageDetails { get; private set; }
+
+    /// <summary>最近一次响应的用量。</summary>
+    public UsageDetails? CurrentUsageDetails { get; private set; }
+
+    /// <inheritdoc/>
+    public void AppendUsageDetails(IEnumerable<AIContent>? contents)
+    {
+        if (contents is null)
+        {
+            return;
+        }
+
+        foreach (AIContent content in contents)
+        {
+            if (content is UsageContent { Details: { } details })
+            {
+                AppendUsageDetails(details);
+            }
+        }
+    }
+
+    /// <inheritdoc/>
+    public void AppendUsageDetails(UsageDetails details)
+    {
+        ArgumentNullException.ThrowIfNull(details);
+        var current = new UsageDetails();
+        current.Add(details);
+        CurrentUsageDetails = current;
+        TotalUsageDetails ??= new UsageDetails();
+        TotalUsageDetails.Add(details);
+        OnPropertyChanged(nameof(CurrentUsageDetails));
+        OnPropertyChanged(nameof(TotalUsageDetails));
+    }
+
+    /// <inheritdoc/>
+    public void ClearPlaceholder()
+    {
+        // 子智能体片段创建时没有占位内容。
+    }
+
     /// <inheritdoc/>
     public void AppendText(string text)
     {
@@ -165,7 +207,8 @@ public sealed class CopilotChatSubAgentItem : NotifyBase, ICopilotChatMessageIte
     /// <inheritdoc/>
     public void AppendFunctionCall(FunctionCallContent functionCallContent) => AppendFunctionCall(functionCallContent, null);
 
-    internal void AppendFunctionCall(FunctionCallContent functionCallContent, ToolCallPresentation? presentation)
+    /// <inheritdoc/>
+    public void AppendFunctionCall(FunctionCallContent functionCallContent, ToolCallPresentation? presentation)
     {
         ArgumentNullException.ThrowIfNull(functionCallContent);
 

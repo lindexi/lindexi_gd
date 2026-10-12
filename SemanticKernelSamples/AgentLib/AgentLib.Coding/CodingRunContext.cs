@@ -19,6 +19,7 @@ public sealed class CodingRunContext
         AssistantChatMessage = assistantChatMessage;
         AgentSession = agentSession;
         MainThreadDispatcher = mainThreadDispatcher;
+        Output = assistantChatMessage;
     }
 
     /// <summary>本次执行使用的模型客户端。</summary>
@@ -27,8 +28,11 @@ public sealed class CodingRunContext
     /// <summary>本次对话的模型历史，首次执行时由执行器创建。</summary>
     public AgentSession? AgentSession { get; internal set; }
 
-    /// <summary>承接流式输出的消息。</summary>
+    /// <summary>供宿主读取和保存的助手消息。</summary>
     public CopilotChatMessage AssistantChatMessage { get; }
+
+    /// <summary>接收本次执行的内容、工具展示和用量信息。</summary>
+    public ICopilotChatOutput Output { get; }
 
     /// <summary>输出绑定 UI 时使用的线程调度器。</summary>
     public IMainThreadDispatcher? MainThreadDispatcher { get; }

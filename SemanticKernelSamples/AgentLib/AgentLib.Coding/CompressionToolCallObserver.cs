@@ -8,16 +8,16 @@ internal sealed class CompressionToolCallObserver
 {
     private const string ToolName = "CompressConversation";
 
-    private readonly CopilotChatMessage _assistantMessage;
+    private readonly ICopilotChatOutput _output;
     private readonly IMainThreadDispatcher? _mainThreadDispatcher;
     private string? _callId;
 
     public CompressionToolCallObserver(
-        CopilotChatMessage assistantMessage,
+        ICopilotChatOutput output,
         IMainThreadDispatcher? mainThreadDispatcher,
         CopilotChatManagerToolCallChatReducer reducer)
     {
-        _assistantMessage = assistantMessage;
+        _output = output;
         _mainThreadDispatcher = mainThreadDispatcher;
         reducer.CompressionStarted += OnCompressionStarted;
         reducer.CompressionCompleted += OnCompressionCompleted;
@@ -29,12 +29,8 @@ internal sealed class CompressionToolCallObserver
         _callId = Guid.NewGuid().ToString("N");
         Invoke(() =>
         {
-            if (_assistantMessage.Content == CopilotChatMessage.PlaceholderContent)
-            {
-                _assistantMessage.ClearMessageItems();
-            }
-
-            _assistantMessage.AppendFunctionCall(
+            _output.ClearPlaceholder();
+            _output.AppendFunctionCall(
                 new FunctionCallContent(_callId, ToolName, new Dictionary<string, object?>()));
         });
     }
@@ -44,12 +40,12 @@ internal sealed class CompressionToolCallObserver
         string output = string.Join(
             Environment.NewLine,
             messages.Where(message => message.Role == ChatRole.Assistant).Select(message => message.Text));
-        Invoke(() => _assistantMessage.AppendFunctionResult(new FunctionResultContent(_callId!, output)));
+        Invoke(() => _output.AppendFunctionResult(new FunctionResultContent(_callId!, output)));
     }
 
     private void OnCompressionFailed(object? sender, Exception exception)
     {
-        Invoke(() => _assistantMessage.AppendFunctionResult(new FunctionResultContent(_callId!, exception.ToString())));
+        Invoke(() => _output.AppendFunctionResult(new FunctionResultContent(_callId!, exception.ToString())));
     }
 
     private void Invoke(Action action)
