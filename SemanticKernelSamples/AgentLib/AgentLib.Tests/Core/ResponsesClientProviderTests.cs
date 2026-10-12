@@ -42,9 +42,9 @@ public sealed class ResponsesClientProviderTests
         manager.LoadConfiguration(CreateConfiguration());
         var provider = (IResponsesClientProvider) manager.PrimaryModel;
 
-        var client = await provider.GetResponsesClientAsync();
+        var clientContext = await provider.GetResponsesClientAsync();
 
-        Assert.AreEqual(new Uri("https://example.com/v1"), client.Endpoint);
+        Assert.AreEqual(new Uri("https://example.com/v1"), clientContext.Client.Endpoint);
     }
 
     [TestMethod]
@@ -68,13 +68,62 @@ public sealed class ResponsesClientProviderTests
         using var httpClient = new HttpClient(handler);
         manager.HttpClient = httpClient;
         manager.LoadConfiguration(CreateConfiguration());
-        var client = await ((IResponsesClientProvider) manager.PrimaryModel).GetResponsesClientAsync();
+        var clientContext = await ((IResponsesClientProvider) manager.PrimaryModel).GetResponsesClientAsync();
 
-        await client.DeleteResponseAsync("response-test", new RequestOptions());
+        await clientContext.Client.DeleteResponseAsync("response-test", new RequestOptions());
 
         Assert.AreEqual(
             "DELETE https://example.com/v1/responses/response-test Bearer test-key",
             handler.RequestDetails);
+    }
+
+    [TestMethod]
+    [DataRow("explicit-model", null, "explicit-model")]
+    [DataRow(null, null, "test-model")]
+    [DataRow(null, "mapped-model", "mapped-model")]
+    [DataRow("explicit-model", "mapped-model", "explicit-model")]
+    public async Task GetResponsesClientAsync_ShouldReturnResolvedModelIdAsync(string? modelId, string? mappedId, string expectedId)
+    {
+        var definition = new AgentLib.Core.AgentApiManagers.Contexts.ModelDefinition
+        {
+            Provider = "test", ModelName = "test-model", ModelId = modelId,
+        };
+        using var httpClient = new HttpClient();
+        var manager = new AgentApiEndpointManager();
+        manager.HttpClient?.Dispose();
+        manager.HttpClient = httpClient;
+        var provider = new JsonConfigurationOpenAIProtocolLanguageModelProvider(
+            new OpenAIProtocolLanguageModelConfiguration("https://example.com/v1", "test-key")
+            {
+                ModelDefinitions = [definition],
+            }, manager)
+        {
+            ModelNameToIdMap = new DictionaryModelNameToIdMap(mappedId is null
+                ? new Dictionary<string, string>()
+                : new Dictionary<string, string> { ["test-model"] = mappedId }),
+        };
+
+        var clientContext = await ((IResponsesClientProvider)provider.GetSupportedModels().Single()).GetResponsesClientAsync();
+
+        Assert.AreEqual(expectedId, clientContext.ModelId);
+    }
+
+    [TestMethod]
+    public void GetSupportedModels_ShouldPreserveModelDefinition()
+    {
+        var definition = new AgentLib.Core.AgentApiManagers.Contexts.ModelDefinition
+        {
+            Provider = "test", ModelName = "test-model",
+        };
+        var provider = new JsonConfigurationOpenAIProtocolLanguageModelProvider(
+            new OpenAIProtocolLanguageModelConfiguration("https://example.com/v1", "test-key")
+            {
+                ModelDefinitions = [definition],
+            });
+
+        var model = provider.GetSupportedModels().Single();
+
+        Assert.AreSame(definition, model.ModelDefinition);
     }
 
     private static AgentApiManagerConfiguration CreateConfiguration()

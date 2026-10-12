@@ -27,10 +27,11 @@ public sealed class LindexiResponsesLiveApiTests
         using var httpClient = new HttpClient(recorder);
         var manager = await CreateManagerAsync(httpClient, cancellation.Token);
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var clientContext = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var client = clientContext.Client;
         var options = new CreateResponseOptions
         {
-            Model = context.LanguageModel.ModelDefinition.ModelId,
+            Model = clientContext.ModelId,
             StoredOutputEnabled = true,
             MaxOutputTokenCount = 512,
         };
@@ -55,10 +56,11 @@ public sealed class LindexiResponsesLiveApiTests
         using var httpClient = new HttpClient(recorder);
         var manager = await CreateManagerAsync(httpClient, cancellation.Token);
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var clientContext = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var client = clientContext.Client;
         var request = new CreateResponseOptions
         {
-            Model = context.LanguageModel.ModelDefinition.ModelId,
+            Model = clientContext.ModelId,
             StoredOutputEnabled = true,
             MaxOutputTokenCount = 512,
         };
@@ -80,11 +82,12 @@ public sealed class LindexiResponsesLiveApiTests
         using var httpClient = new HttpClient(recorder);
         var manager = await CreateManagerAsync(httpClient, cancellation.Token);
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var clientContext = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var client = clientContext.Client;
         string label = Guid.NewGuid().ToString("N");
         var firstRequest = new CreateResponseOptions
         {
-            Model = context.LanguageModel.ModelDefinition.ModelId,
+            Model = clientContext.ModelId,
             StoredOutputEnabled = true,
             Instructions = "Remember the fictional planet's label for the next turn. Reply with OK.",
             MaxOutputTokenCount = 1024,
@@ -133,11 +136,12 @@ public sealed class LindexiResponsesLiveApiTests
         using var httpClient = new HttpClient(recorder);
         var manager = await CreateManagerAsync(httpClient, cancellation.Token);
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var clientContext = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var client = clientContext.Client;
         string label = Guid.NewGuid().ToString("N");
         var request = new CreateResponseOptions
         {
-            Model = context.LanguageModel.ModelDefinition.ModelId,
+            Model = clientContext.ModelId,
             StoredOutputEnabled = true,
             Instructions = "Remember the fictional planet's label for the next turn. Reply with OK.",
             MaxOutputTokenCount = 1024,
@@ -172,7 +176,8 @@ public sealed class LindexiResponsesLiveApiTests
         using var httpClient = new HttpClient(recorder);
         var manager = await CreateManagerAsync(httpClient, cancellation.Token);
         var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-        var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var clientContext = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+        var client = clientContext.Client;
         // 足够长且本次实验唯一的前缀，减少最低缓存长度和历史实验命中的干扰。
         string prefix = $"Experiment {Guid.NewGuid():N}\n" + string.Join("\n", Enumerable.Range(0, 160)
             .Select(i => $"Record {i:D4}: The fictional observatory stores stable measurements of orbital distance, surface temperature, atmospheric pressure and spectral intensity for later comparison."));
@@ -184,7 +189,7 @@ public sealed class LindexiResponsesLiveApiTests
             history.Add(ResponseItem.CreateUserMessageItem($"Acknowledge turn {turn + 1} with OK only. Do not summarize the records."));
             var request = new CreateResponseOptions
             {
-                Model = context.LanguageModel.ModelDefinition.ModelId,
+                Model = clientContext.ModelId,
                 StoredOutputEnabled = true,
                 Instructions = "Keep the provided records as context. Reply briefly to each new request.",
                 MaxOutputTokenCount = 1024,
@@ -244,12 +249,13 @@ public sealed class LindexiResponsesLiveApiTests
         {
             var manager = await CreateManagerAsync(httpClient, cancellation.Token);
             var context = await manager.CreateManualSendMessageContextAsync(cancellation.Token);
-            var client = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+            var clientContext = await ((IResponsesClientProvider)context.LanguageModel).GetResponsesClientAsync();
+            var client = clientContext.Client;
             context.UserChatMessage.AppendText("请实际使用内置 WebSearchTool 搜索 OpenAI 的最新新闻，包括最新发布的模型。优先查阅 OpenAI 官方公告，列出新闻标题、发布日期、模型名称、简要说明和来源链接。区分正式发布、预览和传闻，不要仅凭训练知识回答；明确说明检索时点。");
             await context.AppendMessagesToSessionAsync();
             var request = new CreateResponseOptions
             {
-                Model = context.LanguageModel.ModelDefinition.ModelId,
+                Model = clientContext.ModelId,
                 StoredOutputEnabled = true,
                 Instructions = "You are a research assistant. Use the provided web_search tool to research current news, prefer primary sources, and cite sources. Answer in Chinese.",
                 MaxOutputTokenCount = 4096,

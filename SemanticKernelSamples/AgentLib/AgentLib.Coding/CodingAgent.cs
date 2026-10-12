@@ -53,60 +53,47 @@ public sealed class CodingAgent : IAsyncDisposable
     public string? WorkspacePath => _workspaceCache?.WorkspacePath;
 
     /// <summary>
-    /// 使用纯文本运行一次编程任务。
+    /// 使用有序多模态内容和运行选项执行编程对话。
     /// </summary>
-    /// <param name="context">现有手动发送上下文。</param>
-    /// <param name="prompt">用户任务文本。</param>
-    /// <param name="workspacePath">本次运行期望使用的工作区路径。</param>
-    /// <param name="enableAutomaticCompression">是否自动压缩对话历史。</param>
-    /// <param name="enableDotNetRun">是否为本次运行提供 <c>dotnet run</c> 工具。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>流式消息和完整生命周期任务。</returns>
-    public Task<ICodingAgentRunResult> RunAsync
-    (
-        IManualSendMessageContext context,
-        string prompt,
-        string? workspacePath,
-        bool enableAutomaticCompression = true,
-        bool enableDotNetRun = false,
-        CancellationToken cancellationToken = default
-    )
-    {
-        if (string.IsNullOrWhiteSpace(prompt))
-        {
-            throw new ArgumentException("编程任务文本不能为空。", nameof(prompt));
-        }
-
-        return RunAsync
-        (
-            context,
-            [new TextContent(prompt)],
-            workspacePath,
-            enableAutomaticCompression,
-            enableDotNetRun,
-            cancellationToken
-        );
-    }
-
-    /// <summary>
-    /// 使用有序多模态内容运行一次编程任务。
-    /// </summary>
-    /// <param name="context">现有手动发送上下文。</param>
+    /// <param name="context">本次编程执行的模型会话和输出上下文。</param>
     /// <param name="contents">保持原始顺序的用户输入内容。</param>
     /// <param name="workspacePath">本次运行期望使用的工作区路径。</param>
-    /// <param name="enableAutomaticCompression">是否自动压缩对话历史。</param>
-    /// <param name="enableDotNetRun">是否为本次运行提供 <c>dotnet run</c> 工具。</param>
+    /// <param name="options">运行选项；未指定时使用默认选项。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>流式消息和完整生命周期任务。</returns>
-    public async Task<ICodingAgentRunResult> RunAsync
-    (
-        IManualSendMessageContext context,
+    public async Task<ICodingAgentRunResult> RunAsync(
+        CodingRunContext context,
         IReadOnlyList<AIContent> contents,
         string? workspacePath,
-        bool enableAutomaticCompression = true,
-        bool enableDotNetRun = false,
-        CancellationToken cancellationToken = default
-    )
+        CodingChatRunOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(contents);
+        AIContent[] runContents = [.. contents];
+        if (runContents.Length == 0)
+        {
+            throw new ArgumentException("编程任务内容不能为空。", nameof(contents));
+        }
+
+        ThrowIfDisposed();
+        CodingChatRunOptions runOptions = options ?? CodingChatRunOptions.Default;
+        CodingRunWorkspaceContext workspaceContext = await GetRunWorkspaceContextAsync(
+            workspacePath, runOptions.EnableDotNetRun, cancellationToken).ConfigureAwait(false);
+        IReadOnlyList<string> prompts = await CodingPromptProvider.BuildAsync(
+            _copilotInstructionsPath, cancellationToken).ConfigureAwait(false);
+        var delegation = new CodingSubAgentTools(this, context.ChatClient, workspaceContext, prompts, runOptions);
+        return await RunAsync(context, runContents, workspaceContext.WithTool(delegation.CreateRegistration()),
+            prompts, runOptions, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<ICodingAgentRunResult> RunAsync(
+        CodingRunContext context,
+        IReadOnlyList<AIContent> contents,
+        CodingRunWorkspaceContext workspaceContext,
+        IReadOnlyList<string> prompts,
+        CodingChatRunOptions runOptions,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(contents);
@@ -127,22 +114,19 @@ public sealed class CodingAgent : IAsyncDisposable
                 _disposeCancellationTokenSource.Token
             );
             CancellationToken runCancellationToken = runCancellationTokenSource.Token;
-            CodingRunWorkspaceContext workspaceContext = await GetRunWorkspaceContextAsync
-            (
-                workspacePath,
-                enableDotNetRun,
-                runCancellationToken
-            ).ConfigureAwait(false);
-            ChatClientAgent chatClientAgent = await context.GetChatClientAgentAsync
-            (
-                options =>
-                {
+            runCancellationToken.ThrowIfCancellationRequested();
+            var options = new ChatClientAgentOptions();
+            {
                     options.ChatOptions ??= new ChatOptions();
                     options.ChatOptions.Tools = [.. workspaceContext.Tools];
                     options.AIContextProviders = [];
                     options.EnableMessageInjection = true;
                     options.RequirePerServiceCallChatHistoryPersistence = true;
-                    if (enableAutomaticCompression)
+                    if (runOptions.ReasoningEffort is { } effort)
+                    {
+                        options.ChatOptions.Reasoning = new ReasoningOptions { Effort = effort };
+                    }
+                    if (runOptions.EnableAutomaticCompression)
                     {
                         var reducer = new CopilotChatManagerToolCallChatReducer(context.ChatClient)
                         {
@@ -167,11 +151,13 @@ public sealed class CodingAgent : IAsyncDisposable
                     {
                         options.ChatHistoryProvider = null;
                     }
-                }, runCancellationToken
-            ).ConfigureAwait(false);
+            }
+            ChatClientAgent chatClientAgent = context.ChatClient.AsAIAgent(options);
             MessageInjectingChatClient messageInjector = chatClientAgent.GetService<MessageInjectingChatClient>()
                                                          ?? throw new InvalidOperationException("编程代理未启用消息注入。");
-            AgentSession agentSession = await context.GetAgentSessionAsync(runCancellationToken).ConfigureAwait(false);
+            AgentSession agentSession = context.AgentSession
+                ?? await chatClientAgent.CreateSessionAsync(runCancellationToken).ConfigureAwait(false);
+            context.AgentSession = agentSession;
             Task<string?> completionTask = RunCoreAsync
             (
                 context,
@@ -179,6 +165,7 @@ public sealed class CodingAgent : IAsyncDisposable
                 chatClientAgent,
                 agentSession,
                 workspaceContext.ToolRegistrationRegistry,
+                prompts,
                 runCancellationTokenSource
             );
             ownershipTransferred = true;
@@ -306,11 +293,12 @@ public sealed class CodingAgent : IAsyncDisposable
 
     private async Task<string?> RunCoreAsync
     (
-        IManualSendMessageContext context,
+        CodingRunContext context,
         IReadOnlyList<AIContent> contents,
         ChatClientAgent chatClientAgent,
         AgentSession agentSession,
         ToolRegistrationRegistry toolRegistrationRegistry,
+        IReadOnlyList<string> prompts,
         CancellationTokenSource runCancellationTokenSource
     )
     {
@@ -319,25 +307,9 @@ public sealed class CodingAgent : IAsyncDisposable
         {
             await Task.Yield();
             CancellationToken cancellationToken = runCancellationTokenSource.Token;
-            CopilotChatMessage userChatMessage = context.UserChatMessage;
-            userChatMessage.ClearMessageItems();
-            foreach (AIContent item in contents)
-            {
-                switch (item)
-                {
-                    case TextContent textContent:
-                        userChatMessage.AppendText(textContent.Text);
-                        break;
-                    case DataContent dataContent when dataContent.Data is { Length: > 0 }:
-                        userChatMessage.MessageItems.Add(CreateDataMessageItem(dataContent));
-                        break;
-                }
-            }
 
-            using IDisposable chatting = context.StartChatting();
-            await context.AppendMessagesToSessionAsync();
             await CodingSystemPrompt
-                .EnsureSystemPromptInSessionAsync(agentSession, _copilotInstructionsPath, cancellationToken)
+                .EnsureSystemPromptInSessionAsync(agentSession, prompts, cancellationToken)
                 .ConfigureAwait(false);
             ChatMessage[] inputMessages =
             [
@@ -382,7 +354,7 @@ public sealed class CodingAgent : IAsyncDisposable
 
     private static void AppendResponseUpdate
     (
-        IManualSendMessageContext context,
+        CodingRunContext context,
         AgentResponseUpdate update,
         ToolRegistrationRegistry registry
     )
@@ -418,23 +390,7 @@ public sealed class CodingAgent : IAsyncDisposable
         context.AssistantChatMessage.AppendUsageDetails(update.Contents);
     }
 
-    private static ICopilotChatMessageItem CreateDataMessageItem(DataContent dataContent)
-    {
-        ReadOnlyMemory<byte> data = dataContent.Data;
-        string mimeType = dataContent.MediaType ?? string.Empty;
-        if (mimeType.StartsWith("audio/", StringComparison.OrdinalIgnoreCase))
-        {
-            return new CopilotChatAudioItem(BinaryData.FromBytes(data), mimeType);
-        }
-
-        return new CopilotChatImageItem
-        (
-            BinaryData.FromBytes(data),
-            string.IsNullOrWhiteSpace(mimeType) ? "application/octet-stream" : mimeType
-        );
-    }
-
-    private static Task ClearAssistantPlaceholderAsync(IManualSendMessageContext context)
+    private static Task ClearAssistantPlaceholderAsync(CodingRunContext context)
     {
         if (context.AssistantChatMessage.Content != CopilotChatMessage.PlaceholderContent)
         {

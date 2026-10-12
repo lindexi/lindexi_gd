@@ -302,19 +302,24 @@ public sealed class CodingAgentTests
         Assert.AreEqual("完成", await nextRun.CompletionTask.WaitAsync(TimeSpan.FromSeconds(2)));
     }
 
-    [TestMethod(DisplayName = "模型初始化失败时 RunAsync 应直接抛出异常")]
+    [TestMethod(DisplayName = "模型执行失败应通过完成任务传播原始异常")]
     [Timeout(10000)]
-    public async Task RunAsyncWhenModelInitializationFailsShouldThrowDirectly()
+    public async Task RunAsyncWhenModelExecutionFailsShouldPropagateExceptionThroughCompletionTask()
     {
-        await using var agent = CreateAgent(CreateProvider("workspace", []));
-        var context = new FailingManualSendMessageContext();
+        var expectedException = new InvalidOperationException("模型执行失败。");
+        var client = new FakeChatClient
+        {
+            OnGetStreamingResponseAsync = (_, _, _) => throw expectedException,
+        };
+        await using var agent = new CodingAgent();
+        var context = new CodingRunContext(client, CopilotChatMessage.CreateAssistant(
+            CopilotChatMessage.PlaceholderContent, isPresetInfo: false));
 
-        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() =>
-            agent.RunAsync(context, "任务", "workspace"));
+        ICodingAgentRunResult run = await agent.RunAsync(context, [new TextContent("任务")], null);
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+            async () => await run.CompletionTask);
 
-        Assert.AreEqual("代理初始化失败。", exception.Message);
-        Assert.IsFalse(context.MessagesAppended);
-        Assert.AreEqual(CopilotChatMessage.PlaceholderContent, context.AssistantChatMessage.Content);
+        Assert.AreSame(expectedException, exception);
     }
 
     [TestMethod(DisplayName = "每轮运行应固定工作区上下文并在下一轮更换缓存")]
@@ -749,55 +754,6 @@ public sealed class CodingAgentTests
             DisposeCount++;
             Disposed.TrySetResult();
             return default;
-        }
-    }
-
-    private sealed class FailingManualSendMessageContext : IManualSendMessageContext
-    {
-        public CopilotChatMessage UserChatMessage { get; } = CopilotChatMessage.CreateUser(string.Empty);
-
-        public CopilotChatMessage AssistantChatMessage { get; } = CopilotChatMessage.CreateAssistant(
-            CopilotChatMessage.PlaceholderContent,
-            isPresetInfo: false);
-
-        private readonly FakeChatClient _chatClient = new();
-
-        public IChatClient ChatClient => _chatClient;
-
-        public AgentLib.Core.AgentApiManagers.LanguageModelProviders.ILanguageModel LanguageModel => new FakeLanguageModel(_chatClient);
-
-        public IMainThreadDispatcher? MainThreadDispatcher => null;
-
-        public IReadOnlyList<AITool> DefaultTools => [];
-
-        public bool MessagesAppended { get; private set; }
-
-        public Task<ChatClientAgent> GetChatClientAgentAsync(
-            Action<ChatClientAgentOptions>? configure = null,
-            CancellationToken cancellationToken = default) =>
-            Task.FromException<ChatClientAgent>(new InvalidOperationException("代理初始化失败。"));
-
-        public Task<AgentSession> GetAgentSessionAsync(CancellationToken cancellationToken = default) =>
-            Task.FromException<AgentSession>(new InvalidOperationException("不应获取会话。"));
-
-        public void AppendResponseUpdate(AgentResponseUpdate update) =>
-            throw new InvalidOperationException("不应追加响应。 ");
-
-        public Task AppendMessagesToSessionAsync()
-        {
-            MessagesAppended = true;
-            return Task.CompletedTask;
-        }
-
-        public IDisposable StartChatting() => NoopDisposable.Instance;
-    }
-
-    private sealed class NoopDisposable : IDisposable
-    {
-        public static NoopDisposable Instance { get; } = new();
-
-        public void Dispose()
-        {
         }
     }
 
