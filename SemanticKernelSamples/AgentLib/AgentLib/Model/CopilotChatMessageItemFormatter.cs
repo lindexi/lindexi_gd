@@ -140,9 +140,7 @@ internal static class CopilotChatMessageItemFormatter
     internal static string? FormatResult(FunctionResultContent functionResultContent)
     {
         ArgumentNullException.ThrowIfNull(functionResultContent);
-        return functionResultContent.Result is JsonElement { ValueKind: JsonValueKind.String } text
-            ? text.GetString()
-            : FormatValue(functionResultContent.Result);
+        return FormatValue(functionResultContent.Result);
     }
 
     internal static string? FormatValue(object? value)

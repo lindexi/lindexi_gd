@@ -9,5 +9,4 @@ namespace AgentLib.Tools;
 /// </summary>
 public sealed record ToolRegistration(
     AITool Tool,
-    Func<IDictionary<string, object?>, ToolCallPresentation>? CreatePresentation = null,
-    ToolCallDisplayKind DisplayKind = ToolCallDisplayKind.Tool);
+    Func<IDictionary<string, object?>, ToolCallPresentation>? CreatePresentation = null);
