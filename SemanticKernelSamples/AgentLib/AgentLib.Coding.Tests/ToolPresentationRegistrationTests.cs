@@ -78,6 +78,19 @@ public sealed class ToolPresentationRegistrationTests
         Assert.AreEqual("ChatViewModelTests", presentation.SecondaryText);
     }
 
+    [TestMethod]
+    public void WhenSummaryFailsThenRegisteredDisplayKindIsPreserved()
+    {
+        var registration = new ToolRegistration(AIFunctionFactory.Create(() => "done", "DelegateTask"),
+            _ => throw new InvalidOperationException(), ToolCallDisplayKind.SubAgent);
+        var registry = new ToolRegistrationRegistry([registration]);
+
+        ToolCallPresentation? presentation = registry.CreatePresentation(
+            new FunctionCallContent("call", "DelegateTask", new Dictionary<string, object?>()));
+
+        Assert.AreEqual(ToolCallDisplayKind.SubAgent, presentation?.DisplayKind);
+    }
+
     private static ToolCallPresentation CreateWorkspacePresentation(string name, Dictionary<string, object?> arguments)
     {
         var provider = new WorkspaceToolProvider { WorkspacePath = Environment.CurrentDirectory };

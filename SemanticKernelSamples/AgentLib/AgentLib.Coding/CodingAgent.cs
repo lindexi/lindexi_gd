@@ -147,7 +147,19 @@ public sealed class CodingAgent : IAsyncDisposable
                         options.ChatHistoryProvider = null;
                     }
             }
-            ChatClientAgent chatClientAgent = context.ChatClient.AsAIAgent(options);
+            options.UseProvidedChatClientAsIs = true;
+            ChatClientAgent chatClientAgent = context.ChatClient.AsBuilder()
+                .UseApprovalResponseBinding()
+                .UseApprovalNotRequiredFunctionBypassing()
+                .UseFunctionInvocation(configure: client =>
+                {
+                    client.AllowConcurrentInvocation = false;
+                    client.FunctionInvoker = (invocation, token) => CodingToolInvocation.InvokeAsync(
+                        context, workspaceContext.ToolRegistrationRegistry, invocation, token);
+                })
+                .UseMessageInjection()
+                .UsePerServiceCallChatHistoryPersistence()
+                .BuildAIAgent(options);
             MessageInjectingChatClient messageInjector = chatClientAgent.GetService<MessageInjectingChatClient>()
                                                          ?? throw new InvalidOperationException("编程代理未启用消息注入。");
             AgentSession agentSession = context.AgentSession

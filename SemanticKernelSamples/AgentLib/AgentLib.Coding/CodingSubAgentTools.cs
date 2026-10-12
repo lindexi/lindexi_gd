@@ -13,22 +13,26 @@ internal sealed class CodingSubAgentTools(
     CodingChatRunOptions options)
 {
     internal ToolRegistration CreateRegistration() => new(
-        AIFunctionFactory.Create(InvokeCodingSubAgent));
+        AIFunctionFactory.Create(InvokeCodingSubAgent, new AIFunctionFactoryOptions
+        {
+            ConfigureParameterBinding = parameter => parameter.ParameterType == typeof(CopilotChatSubAgentItem)
+                ? new AIFunctionFactoryOptions.ParameterBindingOptions
+                {
+                    ExcludeFromSchema = true,
+                    BindParameter = (_, arguments) => arguments.Context?[CodingToolInvocation.OutputKey]
+                        as CopilotChatSubAgentItem
+                        ?? throw new InvalidOperationException("A sub-agent invocation requires an output target."),
+                }
+                : default,
+        }), DisplayKind: ToolCallDisplayKind.SubAgent);
 
     [Description("执行编程任务并返回提交的结果。")]
     private async Task<string> InvokeCodingSubAgent(
         [Description("本次编程任务提示词。")] string prompt,
+        CopilotChatSubAgentItem childOutput,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        CopilotChatSubAgentItem? output = null;
-        await parentContext.InvokeOutputAsync(() =>
-        {
-            parentContext.Output.ClearPlaceholder();
-            output = parentContext.Output.CreateSubAgentItem(nameof(InvokeCodingSubAgent), prompt);
-        }).ConfigureAwait(false);
-        CopilotChatSubAgentItem childOutput = output
-            ?? throw new InvalidOperationException("子智能体输出未创建。");
         var submission = new GeneratedTextSubmissionTool();
         CodingRunWorkspaceContext childTools = workspaceContext.WithTool(new ToolRegistration(
             submission.CreateTool("ReturnOutputToParent", "提交最终结果文本。")));

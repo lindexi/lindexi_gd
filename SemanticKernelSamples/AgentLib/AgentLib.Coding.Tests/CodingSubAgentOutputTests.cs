@@ -101,12 +101,27 @@ public sealed class CodingSubAgentOutputTests
     }
 
     [TestMethod]
-    public async Task WhenDelegationReturnsThenOrdinaryToolCardContainsSubmission()
+    public async Task WhenDelegationReturnsThenSingleSubAgentCardContainsSubmission()
     {
         var scenario = new Scenario();
         await using var agent = new CodingAgent();
         await (await scenario.StartAsync(agent)).CompletionTask;
-        Assert.AreEqual("submitted", scenario.Message.MessageItems.OfType<CopilotChatToolItem>().Single().OutputText);
+        Assert.IsEmpty(scenario.Message.MessageItems.OfType<CopilotChatToolItem>());
+        Assert.AreEqual("submitted", scenario.Message.MessageItems.OfType<CopilotChatSubAgentItem>().Single().OutputText);
+        Assert.AreEqual("parent-1", scenario.Message.MessageItems.OfType<CopilotChatSubAgentItem>().Single().CallId);
+    }
+
+    [TestMethod]
+    public async Task WhenDelegationIsRegisteredThenOutputParameterIsHiddenFromModel()
+    {
+        var scenario = new Scenario();
+        await using var agent = new CodingAgent();
+        await (await scenario.StartAsync(agent)).CompletionTask;
+        using var schema = System.Text.Json.JsonDocument.Parse(scenario.DelegationSchema
+            ?? throw new InvalidOperationException());
+
+        CollectionAssert.AreEqual(new[] { "prompt" }, schema.RootElement.GetProperty("properties")
+            .EnumerateObject().Select(property => property.Name).ToArray());
     }
 
     [TestMethod]
@@ -131,13 +146,19 @@ public sealed class CodingSubAgentOutputTests
     }
 
     [TestMethod]
-    public void WhenCodingDelegationIsReportedInsideSubAgentThenOrdinaryCardContainsResult()
+    public void WhenSubAgentPresentationIsReportedThenSameCardContainsProcessAndResult()
     {
         var child = new CopilotChatSubAgentItem("outer", "child", "task");
-        child.AppendFunctionCall(new FunctionCallContent("call", "InvokeCodingSubAgent", new Dictionary<string, object?>()));
-        child.CreateSubAgentItem("InvokeCodingSubAgent", "task", "fragment");
+        var call = new FunctionCallContent("call", "DelegatedTask", new Dictionary<string, object?>());
+        var presentation = new ToolCallPresentation(null, null, DisplayKind: ToolCallDisplayKind.SubAgent);
+        child.AppendFunctionCall(call, presentation);
+        CopilotChatSubAgentItem output = child.CreateSubAgentItem("DelegatedTask", "task", "call");
+        output.AppendText("process");
+        child.AppendFunctionCall(call, presentation);
         child.AppendFunctionResult(new FunctionResultContent("call", "submitted"));
-        Assert.AreEqual("submitted", child.MessageItems.OfType<CopilotChatToolItem>().Single().OutputText);
+        Assert.HasCount(1, child.MessageItems);
+        Assert.AreSame(output, child.MessageItems.Single());
+        Assert.AreEqual("submitted", output.OutputText);
     }
 
     [TestMethod]
@@ -180,11 +201,20 @@ public sealed class CodingSubAgentOutputTests
         public int ChildRounds { get; private set; }
         public bool RetryContainsFirstRound { get; private set; }
         public string? ParentResult { get; private set; }
+        public string? DelegationSchema { get; private set; }
         private int _parentCalls;
 
         public Task<ICodingAgentRunResult> StartAsync(CodingAgent agent, CancellationToken cancellationToken = default)
         {
-            var client = new FakeChatClient { OnGetStreamingResponseAsync = (messages, _, ct) => RespondAsync(messages.ToArray(), ct) };
+            var client = new FakeChatClient
+            {
+                OnGetStreamingResponseAsync = (messages, options, ct) =>
+                {
+                    DelegationSchema ??= options?.Tools?.OfType<AIFunction>()
+                        .SingleOrDefault(tool => tool.Name == "InvokeCodingSubAgent")?.JsonSchema.ToString();
+                    return RespondAsync(messages.ToArray(), ct);
+                },
+            };
             return agent.RunAsync(new CodingRunContext(client, Message, mainThreadDispatcher: dispatcher),
                 [new TextContent("parent task")], null, new CodingChatRunOptions(false, false, null), cancellationToken);
         }

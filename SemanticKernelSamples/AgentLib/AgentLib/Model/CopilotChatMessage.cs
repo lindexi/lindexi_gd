@@ -680,6 +680,13 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatOutput
             ? Guid.NewGuid().ToString("N")
             : functionCallContent.CallId;
 
+        if (presentation?.DisplayKind == ToolCallDisplayKind.SubAgent)
+        {
+            CreateSubAgentItem(functionCallContent.Name,
+                CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent), callId);
+            return;
+        }
+
         if (!_toolItemsByCallId.TryGetValue(callId, out CopilotChatToolItem? toolItem))
         {
             toolItem = new CopilotChatToolItem(callId, functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent), presentation: presentation);

@@ -6,7 +6,9 @@ namespace AgentLib.Model;
 /// <param name="PrimaryText">主要操作对象。</param>
 /// <param name="SecondaryText">必要的补充信息。</param>
 /// <param name="FullTargetText">用于提示信息的完整目标文本。</param>
+/// <param name="DisplayKind">调用的展示片段类型。</param>
 public sealed record ToolCallPresentation(
     string? PrimaryText,
     string? SecondaryText,
-    string? FullTargetText = null);
+    string? FullTargetText = null,
+    ToolCallDisplayKind DisplayKind = ToolCallDisplayKind.Tool);

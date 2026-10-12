@@ -67,6 +67,7 @@ public sealed class ToolRegistrationRegistry
             PrimaryText = Truncate(presentation.PrimaryText, MaxPrimaryTextLength),
             SecondaryText = Truncate(presentation.SecondaryText, MaxSecondaryTextLength),
             FullTargetText = Normalize(presentation.FullTargetText),
+            DisplayKind = registration.DisplayKind,
         };
     }
 
