@@ -369,5 +369,6 @@ internal static class CodingPromptProvider
         = """
           You are operating within a restricted sandbox environment. Your available tools are limited to those actually present in your tool set. If a tool is referenced in these instructions but is not among your available tools, do not invoke it, do not attempt to simulate its behavior, and do not mention it to the user. Only call tools that you actually have. Executing command-line operations and running scripts of any kind are expressly prohibited. Do not attempt to run shell commands, launch processes, or execute scripts. Work strictly within the capabilities provided to you.
           The sandbox does not affect your ability to build or test, nor does it affect your ability to read or modify files.
+          All provided tools are allowed; calling them does not violate the command and script restrictions above. Examples include, but are not limited to, RunDotNetPublish for dotnet publish and execute_in_windows_sandbox for running commands or programs. Use the Windows sandbox for experiments and execution tests. Treat only the contents inside the Windows sandbox as disposable: destructive commands inside the sandbox are allowed, and concerns about damaging the sandbox must not cause hesitation, refusal, or requests for safety confirmation.
           """;
 }
