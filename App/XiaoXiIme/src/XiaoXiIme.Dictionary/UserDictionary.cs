@@ -11,6 +11,9 @@ public sealed class UserDictionary : IImeDictionary, IShapeDictionary, ISymbolDi
     private readonly Dictionary<UserDictionaryKey, int> _frequencies;
     private readonly object _syncRoot = new();
     private long _version;
+    private ImeLexicon? _cachedSystemLexicon;
+    private ImeLexicon? _cachedLexicon;
+    private long _cachedUserVersion;
 
     /// <inheritdoc />
     public ImeLexicon GetLexicon()
@@ -18,7 +21,11 @@ public sealed class UserDictionary : IImeDictionary, IShapeDictionary, ISymbolDi
         var system = _systemDictionary.GetLexicon();
         lock (_syncRoot)
         {
-            return system with
+            if (ReferenceEquals(system, _cachedSystemLexicon) && _cachedUserVersion == _version && _cachedLexicon is not null)
+                return _cachedLexicon;
+            _cachedSystemLexicon = system;
+            _cachedUserVersion = _version;
+            return _cachedLexicon = system with
             {
                 Version = unchecked(system.Version + _version),
                 Entries = Array.AsReadOnly(system.Entries.Select(e => e with

@@ -14,6 +14,12 @@ public sealed partial class ImeContext
         var lexicon = _dictionary.GetLexicon();
         if (_lexiconVersion is { } version && version != lexicon.Version) _revision++;
         _lexiconVersion = lexicon.Version;
+        if (_decodingIndex is null || !ReferenceEquals(_decodingIndex.Lexicon, lexicon) ||
+            !ReferenceEquals(_decodingIndex.Rules, options.FuzzyRules))
+            _decodingIndex = new(lexicon, options.FuzzyRules);
+        var indexData = _decodingIndex;
+        var entriesAtPosition = new Dictionary<int, ImePhoneticEntry[]>();
+        long visits = 0, entryVisits = 0, syllableVisits = 0;
         var paths = new List<DecodedPath>();
         VisitSegments(0, "", "", int.MaxValue, 0, [], []);
         var grouped = paths.GroupBy(p => (p.Text, p.Path.Kind, p.Path.CoverageEnd, p.Path.RemainingInput,
@@ -43,6 +49,7 @@ public sealed partial class ImeContext
                 selectable && input == _reading ? new(_contextId, _revision, ordinal) : null, interpretations,
                 new((int)best.Path.Kind, best.Path.CoverageEnd, best.Source, Strategy(best.Path), best.Frequency)));
         }
+        _lastDecodeMetrics = $"positions={entriesAtPosition.Count}; segmentVisits={visits}; entryVisits={entryVisits}; syllableVisits={syllableVisits}; paths={paths.Count}; candidates={results.Count}";
         return results.OrderBy(c => c.Rank.CompletionPriority).ThenByDescending(c => c.Rank.CoverageEnd)
             .ThenBy(c => c.Rank.SourcePriority).ThenBy(c => c.Rank.StrategyPriority).ThenByDescending(c => c.Rank.Frequency)
             .ThenBy(c => c.Interpretations[0].Segments.Count).ThenBy(c => c.Candidate.Reading.Replace(" ", "", StringComparison.Ordinal).Length)
@@ -63,11 +70,25 @@ public sealed partial class ImeContext
         void VisitSegments(int start, string text, string reading, int frequency, int source,
             IReadOnlyList<ImeConfirmedSegment> segments, IReadOnlyList<ImePathEvidence> evidence)
         {
-            foreach (var entry in lexicon.Entries)
+            visits++;
+            if (!entriesAtPosition.TryGetValue(start, out var reachable))
             {
-                var syllables = entry.CanonicalReading.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var indices = new HashSet<int>();
+                foreach (var pair in indexData.Starts)
+                {
+                    var available = input.Length - start;
+                    if (Matches(start, pair.Key[..Math.Min(available, pair.Key.Length)], false))
+                        indices.UnionWith(pair.Value);
+                }
+                reachable = indices.Order().Select(i => lexicon.Entries[i]).ToArray();
+                entriesAtPosition.Add(start, reachable);
+            }
+            foreach (var entry in reachable)
+            {
+                entryVisits++;
+                var syllables = indexData.Syllables[entry];
                 MatchSyllable(0, start, evidence);
-                foreach (var alias in lexicon.LookupAliases.Where(a => a.Text == entry.Text && a.CanonicalReading == entry.CanonicalReading))
+                foreach (var alias in indexData.Aliases[entry])
                 {
                     if (Matches(start, alias.Input, false)) Finish(start + alias.Input.Length, evidence);
                 }
@@ -89,6 +110,7 @@ public sealed partial class ImeContext
                 }
                 void MatchSyllable(int index, int position, IReadOnlyList<ImePathEvidence> ev)
                 {
+                    syllableVisits++;
                     if (index == syllables.Length)
                     {
                         Finish(position, ev);
@@ -98,8 +120,7 @@ public sealed partial class ImeContext
                     }
                     if (position == input.Length) { AddPending(ImeInterpretationKind.Prefix, ev); return; }
                     var syllable = syllables[index];
-                    var aliases = ComponentAliases(syllable, options.FuzzyRules).ToHashSet(StringComparer.Ordinal);
-                    foreach (var projection in lexicon.Projection.Entries.Where(p => aliases.Contains(p.Initial + p.Final)))
+                    foreach (var projection in indexData.Projections[syllable])
                     {
                         var available = input.Length - position;
                         if (available < projection.Input.Length && Matches(position, projection.Input[..available], false))
@@ -116,7 +137,7 @@ public sealed partial class ImeContext
                         if (options.LengthPolicy != ImeShapeLengthPolicy.RequiredTwo) MatchSyllable(index + 1, next, phonetic);
                         if (options.Placement is ImeShapePlacement.PerCharacter or ImeShapePlacement.Both && index < entry.Text.Length)
                         {
-                            foreach (var alias in lexicon.ShapeEntries.Where(s => s.Text == entry.Text[index].ToString()).Select(s => s.ShapeCode).Distinct())
+                            foreach (var alias in indexData.CharacterShapes(entry.Text[index].ToString()))
                                 MatchShape(alias, next, index, ImeEvidenceKind.PerCharacterShape, phonetic, end => MatchSyllable(index + 1, end.Position, end.Evidence));
                         }
                     }
@@ -148,9 +169,9 @@ public sealed partial class ImeContext
         }
         IEnumerable<string> WordShapes(string text)
         {
-            if (text.Length == 1) return lexicon.ShapeEntries.Where(s => s.Text == text).Select(s => s.ShapeCode).Distinct();
-            return lexicon.ShapeEntries.Where(s => s.Text == text[..1]).SelectMany(first =>
-                lexicon.ShapeEntries.Where(s => s.Text == text[^1..]).Select(last => first.ShapeCode[..1] + last.ShapeCode[..1])).Distinct();
+            if (text.Length == 1) return indexData.CharacterShapes(text);
+            return indexData.CharacterShapes(text[..1]).SelectMany(first =>
+                indexData.CharacterShapes(text[^1..]).Select(last => first[..1] + last[..1])).Distinct();
         }
         bool Matches(int position, string code, bool shape)
         {

@@ -14,7 +14,7 @@ public enum ImeCandidateSortPolicy { PhoneticFirst, ShapeFirst, Automatic }
 /// <summary>Controls automatic selection after typed characters.</summary>
 public enum ImeAutoCommitPolicy { Off, Four, Unique }
 /// <summary>Identifies bidirectional component equivalences.</summary>
-public enum ImeFuzzyRule { ZhZ, ShS, AngAn, EngEn, UanUang }
+public enum ImeFuzzyRule { ZhZ, ShS, AngAn, EngEn, UanUang, ChC, InIng, IanIang, AiAn, UnOng }
 /// <summary>Identifies completion and selection eligibility.</summary>
 public enum ImeInterpretationKind { Complete, Partial, Prefix, IncompleteShape }
 /// <summary>Identifies the constraint represented by path evidence.</summary>

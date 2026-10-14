@@ -7,7 +7,7 @@ namespace XiaoXiIme.Dictionary;
 /// </summary>
 public sealed class CompiledImeDictionary : IImeDictionary, IShapeDictionary, ISymbolDictionary
 {
-    private readonly ImeLexicon? _lexicon;
+    private ImeLexicon? _lexicon;
     private readonly ImeCandidate[] _candidates;
     private readonly IReadOnlyDictionary<string, int[]> _exactIndex;
     private readonly IReadOnlyDictionary<string, int[]> _prefixIndex;
@@ -61,12 +61,25 @@ public sealed class CompiledImeDictionary : IImeDictionary, IShapeDictionary, IS
             DictionaryPackageFormat.XiaoheDoublePinyinInputScheme => ImeProjectionDefinition.XiaoheDoublePinyin,
             _ => throw new NotSupportedException(),
         };
-        var entries = _candidates.Select(c => new ImePhoneticEntry(c.Text,
-            PhoneticInputProjection.CanonicalizeReading(c.Reading), c.Score)).ToArray();
-        if (entries.Any(e => !ImeLexiconValidator.IsReading(e.CanonicalReading) ||
-            e.CanonicalReading.Split(' ').Any(s => !projection.Entries.Any(p => p.Initial + p.Final == s))))
-            throw new NotSupportedException(DictionaryResources.InvalidReading);
-        return new InMemoryImeDictionary(new ImeLexicon(entries, _shapeEntries, projection, 0)).GetLexicon();
+        var syllables = projection.Entries.Select(p => p.Initial + p.Final).ToHashSet(StringComparer.Ordinal);
+        var entries = new List<ImePhoneticEntry>();
+        var aliases = new List<ImeLookupAlias>();
+        foreach (var candidate in _candidates)
+        {
+            // This first-party abbreviation is registered alongside its canonical reading in the term source.
+            if (candidate.Text == "小希" && candidate.Reading == "xx" &&
+                _candidates.Any(c => c.Text == "小希" && c.Reading == "xiao xi"))
+            {
+                aliases.Add(new("小希", "xiao xi", "xx"));
+                continue;
+            }
+            var reading = PhoneticInputProjection.CanonicalizeReading(candidate.Reading);
+            if (!ImeLexiconValidator.IsReading(reading) || reading.Split(' ').Any(s => !syllables.Contains(s)))
+                throw new NotSupportedException(DictionaryResources.InvalidReading);
+            entries.Add(new(candidate.Text, reading, candidate.Score));
+        }
+        return _lexicon = new InMemoryImeDictionary(new ImeLexicon(entries, _shapeEntries, projection, 0)
+        { LookupAliases = aliases }).GetLexicon();
     }
 
     /// <inheritdoc />

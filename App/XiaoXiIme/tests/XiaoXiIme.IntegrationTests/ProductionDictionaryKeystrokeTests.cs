@@ -189,11 +189,17 @@ public sealed class ProductionDictionaryFixture : IDisposable
     {
         HostRoot = Path.Combine(Path.GetTempPath(), "XiaoXiIme.IntegrationTests", Guid.NewGuid().ToString("N"));
         userDictionaryRoot = Path.Combine(HostRoot, "users");
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         CompilePackage(DictionaryPackageLocations.FullPinyinInputScheme);
+        FullPinyinBuildTime = watch.Elapsed;
+        watch.Restart();
         CompilePackage(DictionaryPackageLocations.XiaoheDoublePinyinInputScheme);
+        XiaoheBuildTime = watch.Elapsed;
     }
 
     public string HostRoot { get; }
+    public TimeSpan FullPinyinBuildTime { get; }
+    public TimeSpan XiaoheBuildTime { get; }
 
     public ImeHostService CreateHost(XiaoXiImeIpcOptions options, string inputScheme)
     {
