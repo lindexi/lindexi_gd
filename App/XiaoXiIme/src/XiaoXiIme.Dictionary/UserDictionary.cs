@@ -10,6 +10,28 @@ public sealed class UserDictionary : IImeDictionary, IShapeDictionary, ISymbolDi
     private readonly IImeDictionary _systemDictionary;
     private readonly Dictionary<UserDictionaryKey, int> _frequencies;
     private readonly object _syncRoot = new();
+    private long _version;
+
+    /// <inheritdoc />
+    public ImeLexicon GetLexicon()
+    {
+        var system = _systemDictionary.GetLexicon();
+        lock (_syncRoot)
+        {
+            return system with
+            {
+                Version = unchecked(system.Version + _version),
+                Entries = Array.AsReadOnly(system.Entries.Select(e => e with
+                {
+                    SourceKind = _frequencies.GetValueOrDefault(new UserDictionaryKey(e.Text,
+                        DictionaryPackageFormat.NormalizeLookupKey(e.CanonicalReading))) > 0
+                        ? DictionaryCandidateSourceKind.User : e.SourceKind,
+                    UserFrequency = _frequencies.GetValueOrDefault(new UserDictionaryKey(e.Text,
+                        DictionaryPackageFormat.NormalizeLookupKey(e.CanonicalReading)), e.UserFrequency),
+                }).ToArray()),
+            };
+        }
+    }
 
     public UserDictionary(IImeDictionary systemDictionary, IEnumerable<UserDictionaryEntry>? entries = null)
     {
@@ -190,6 +212,45 @@ public sealed class UserDictionary : IImeDictionary, IShapeDictionary, ISymbolDi
             throw new ArgumentException(DictionaryResources.EmptyReading, nameof(learning));
         }
 
+        ArgumentNullException.ThrowIfNull(learning.Segments);
+        if (learning.Segments.Count > 0)
+        {
+            var keys = new List<UserDictionaryKey>();
+            var registered = _systemDictionary.GetLexicon().Entries;
+            var outputEnd = 0;
+            var inputEnd = 0;
+            foreach (var segment in learning.Segments)
+            {
+                if (segment is null || string.IsNullOrWhiteSpace(segment.Text) ||
+                    string.IsNullOrWhiteSpace(segment.CanonicalReading) ||
+                    !registered.Any(e => e.Text == segment.Text && e.CanonicalReading == segment.CanonicalReading) ||
+                    segment.InputStart != inputEnd || segment.InputLength <= 0 ||
+                    segment.InputStart > learning.OriginalInput.Length - segment.InputLength ||
+                    segment.OutputStart != outputEnd || segment.OutputLength != segment.Text.Length ||
+                    segment.OutputStart > learning.Candidate.Text.Length - segment.OutputLength ||
+                    !learning.Candidate.Text.AsSpan(segment.OutputStart, segment.OutputLength).SequenceEqual(segment.Text))
+                    throw new ArgumentException(DictionaryResources.InvalidCompilerEntry, nameof(learning));
+                keys.Add(new UserDictionaryKey(segment.Text,
+                    DictionaryPackageFormat.NormalizeLookupKey(segment.CanonicalReading)));
+                inputEnd = segment.InputStart + segment.InputLength;
+                outputEnd = segment.OutputStart + segment.OutputLength;
+            }
+            if (outputEnd != learning.Candidate.Text.Length || inputEnd != learning.OriginalInput.Length)
+                throw new ArgumentException(DictionaryResources.InvalidCompilerEntry, nameof(learning));
+            lock (_syncRoot)
+            {
+                var result = 0;
+                foreach (var segmentKey in keys)
+                {
+                    var current = _frequencies.GetValueOrDefault(segmentKey);
+                    result = current == int.MaxValue ? int.MaxValue : current + 1;
+                    _frequencies[segmentKey] = result;
+                }
+                _version++;
+                return result;
+            }
+        }
+
         var key = new UserDictionaryKey(
             learning.Candidate.Text,
             DictionaryPackageFormat.NormalizeLookupKey(learning.OriginalInput));
@@ -198,6 +259,7 @@ public sealed class UserDictionary : IImeDictionary, IShapeDictionary, ISymbolDi
             var current = _frequencies.GetValueOrDefault(key);
             var updated = current == int.MaxValue ? int.MaxValue : current + 1;
             _frequencies[key] = updated;
+            _version++;
             return updated;
         }
     }
@@ -215,7 +277,9 @@ public sealed class UserDictionary : IImeDictionary, IShapeDictionary, ISymbolDi
         var key = new UserDictionaryKey(text, DictionaryPackageFormat.NormalizeLookupKey(reading));
         lock (_syncRoot)
         {
-            return _frequencies.Remove(key);
+            var removed = _frequencies.Remove(key);
+            if (removed) _version++;
+            return removed;
         }
     }
 

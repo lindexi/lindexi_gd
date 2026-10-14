@@ -7,6 +7,7 @@ namespace XiaoXiIme.Dictionary;
 /// </summary>
 public sealed class CompiledImeDictionary : IImeDictionary, IShapeDictionary, ISymbolDictionary
 {
+    private readonly ImeLexicon? _lexicon;
     private readonly ImeCandidate[] _candidates;
     private readonly IReadOnlyDictionary<string, int[]> _exactIndex;
     private readonly IReadOnlyDictionary<string, int[]> _prefixIndex;
@@ -21,8 +22,9 @@ public sealed class CompiledImeDictionary : IImeDictionary, IShapeDictionary, IS
         IReadOnlyDictionary<string, int[]> prefixIndex,
         ShapeDictionaryEntry[] shapeEntries,
         IReadOnlyDictionary<string, IReadOnlyList<ImeCandidate>> symbols,
-        string inputScheme)
+        string inputScheme, ImeLexicon? lexicon = null)
     {
+        _lexicon = lexicon;
         _candidates = candidates;
         _exactIndex = exactIndex;
         _prefixIndex = prefixIndex;
@@ -48,6 +50,24 @@ public sealed class CompiledImeDictionary : IImeDictionary, IShapeDictionary, IS
     /// Gets the encoding space recorded by the compiled package.
     /// </summary>
     public string InputScheme { get; }
+
+    /// <inheritdoc />
+    public ImeLexicon GetLexicon()
+    {
+        if (_lexicon is not null) return _lexicon;
+        var projection = InputScheme switch
+        {
+            DictionaryPackageFormat.FullPinyinInputScheme => ImeProjectionDefinition.FullPinyin,
+            DictionaryPackageFormat.XiaoheDoublePinyinInputScheme => ImeProjectionDefinition.XiaoheDoublePinyin,
+            _ => throw new NotSupportedException(),
+        };
+        var entries = _candidates.Select(c => new ImePhoneticEntry(c.Text,
+            PhoneticInputProjection.CanonicalizeReading(c.Reading), c.Score)).ToArray();
+        if (entries.Any(e => !ImeLexiconValidator.IsReading(e.CanonicalReading) ||
+            e.CanonicalReading.Split(' ').Any(s => !projection.Entries.Any(p => p.Initial + p.Final == s))))
+            throw new NotSupportedException(DictionaryResources.InvalidReading);
+        return new InMemoryImeDictionary(new ImeLexicon(entries, _shapeEntries, projection, 0)).GetLexicon();
+    }
 
     /// <inheritdoc />
     public IReadOnlyList<ImeCandidate> Query(ImeDictionaryQuery query)

@@ -2,8 +2,49 @@ using XiaoXiIme.Foundation;
 
 namespace XiaoXiIme.Dictionary;
 
-public sealed class InMemoryImeDictionary : IImeDictionary
+public sealed class InMemoryImeDictionary : IImeDictionary, IShapeDictionary
 {
+    private readonly ImeLexicon? _lexicon;
+
+    /// <summary>Creates a dictionary from complete canonical phonetic and shape data.</summary>
+    public InMemoryImeDictionary(ImeLexicon lexicon)
+        : this(CreateCandidates(lexicon))
+    {
+        _lexicon = lexicon with
+        {
+            Entries = Array.AsReadOnly(lexicon.Entries.GroupBy(e => (e.Text, e.CanonicalReading))
+                .Select(g => g.OrderBy(e => e.SourceKind).ThenByDescending(e => e.BaseFrequency).First()).ToArray()),
+            ShapeEntries = Array.AsReadOnly(lexicon.ShapeEntries.DistinctBy(e => (e.Text, e.ShapeCode)).ToArray()),
+            LookupAliases = Array.AsReadOnly(lexicon.LookupAliases.ToArray()),
+        };
+    }
+
+    private static IEnumerable<ImeCandidate> CreateCandidates(ImeLexicon lexicon)
+    {
+        ImeLexiconValidator.Validate(lexicon);
+        return lexicon.Entries.Select(e => new ImeCandidate(e.Text, e.CanonicalReading, e.BaseFrequency));
+    }
+
+    /// <inheritdoc />
+    public ImeLexicon GetLexicon() => _lexicon ?? throw new NotSupportedException();
+
+    /// <inheritdoc />
+    public IReadOnlyList<ShapeDictionaryEntry> QueryShape(string shapeCode, int maxCount = 9)
+    {
+        ArgumentNullException.ThrowIfNull(shapeCode);
+        return (_lexicon?.ShapeEntries ?? []).Where(e => e.ShapeCode.StartsWith(shapeCode.ToLowerInvariant(), StringComparison.Ordinal))
+            .Take(Math.Max(0, maxCount)).ToArray();
+    }
+
+    /// <inheritdoc />
+    public IReadOnlyList<ImeCandidate> FilterByShape(IReadOnlyList<ImeCandidate> candidates, string shapeCode, int maxCount = 9)
+    {
+        ArgumentNullException.ThrowIfNull(candidates);
+        ArgumentNullException.ThrowIfNull(shapeCode);
+        return candidates.Where(c => QueryShape(shapeCode, int.MaxValue).Any(s => c.Text.Contains(s.Text, StringComparison.Ordinal)))
+            .Take(Math.Max(0, maxCount)).ToArray();
+    }
+
     private readonly Dictionary<string, List<ImeCandidate>> _entries;
 
     public InMemoryImeDictionary(IEnumerable<ImeCandidate> entries)

@@ -7,6 +7,9 @@ namespace XiaoXiIme.Dictionary;
 /// </summary>
 public sealed record ImeDictionaryLearning(ImeCandidate Candidate, string OriginalInput)
 {
+    /// <summary>Gets the registered canonical segments consumed by this selection.</summary>
+    public IReadOnlyList<ImeConfirmedSegment> Segments { get; init; } = [];
+
     public ImeCandidate Candidate
     {
         get;

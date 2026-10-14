@@ -30,10 +30,11 @@ public static class DictionaryPackageLoader
         {
             throw;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or InvalidDataException or ArgumentException)
-        {
-            throw new DictionaryPackageException(packageDirectory, exception.Message);
-        }
+        catch (IOException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (UnauthorizedAccessException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (JsonException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (InvalidDataException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (ArgumentException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
     }
 
     /// <summary>
@@ -56,10 +57,11 @@ public static class DictionaryPackageLoader
         {
             throw;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or InvalidDataException or ArgumentException)
-        {
-            throw new DictionaryPackageException(packageDirectory, exception.Message);
-        }
+        catch (IOException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (UnauthorizedAccessException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (JsonException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (InvalidDataException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (ArgumentException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
     }
 
     private static (DictionaryPackageManifest Manifest, Dictionary<string, string> Shards) ReadAndValidatePackage(string rootPath)
@@ -103,18 +105,28 @@ public static class DictionaryPackageLoader
         var symbols = ReadSymbolEntries(
             shards[DictionaryPackageFormat.SymbolsRole],
             manifest.Counts.SymbolInputs);
+        ImeLexicon? lexicon = null;
+        if (manifest.FormatVersion == 2)
+        {
+            if (!shards.TryGetValue("lexicon", out var lexiconPath))
+                throw new InvalidDataException(DictionaryResources.InvalidManifest);
+            using var stream = File.OpenRead(lexiconPath);
+            var data = JsonSerializer.Deserialize<ImeLexicon>(stream, JsonOptions)
+                ?? throw new InvalidDataException(DictionaryResources.InvalidManifest);
+            lexicon = new InMemoryImeDictionary(data).GetLexicon();
+        }
         return new CompiledImeDictionary(
             candidates,
             exactIndex,
             prefixIndex,
             shapeEntries,
             symbols,
-            manifest.Parameters.InputScheme);
+            manifest.Parameters.InputScheme, lexicon);
     }
 
     private static void ValidateManifest(DictionaryPackageManifest manifest)
     {
-        if (manifest.FormatVersion != DictionaryPackageManifest.CurrentFormatVersion)
+        if (manifest.FormatVersion != DictionaryPackageManifest.CurrentFormatVersion && manifest.FormatVersion != 2)
         {
             throw new InvalidDataException(DictionaryResources.UnsupportedPackageVersion);
         }

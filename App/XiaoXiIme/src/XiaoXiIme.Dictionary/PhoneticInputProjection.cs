@@ -87,6 +87,19 @@ internal static class PhoneticInputProjection
         "ou",
     };
 
+    internal static IReadOnlyList<ImeProjectionEntry> GetComponentEntries(bool doublePinyin)
+    {
+        var entries = new List<ImeProjectionEntry>();
+        foreach (var initial in Initials.Keys.Prepend(string.Empty))
+        foreach (var final in Finals.Keys.Concat(SimpleFinals).Append("er").Distinct())
+        {
+            var syllable = initial + final;
+            if (!doublePinyin) entries.Add(new(initial, final, syllable));
+            else if (TryEncodeXiaoheSyllable(syllable, out var code)) entries.Add(new(initial, final, code));
+        }
+        return entries;
+    }
+
     internal static string CanonicalizeReading(string reading)
     {
         ArgumentNullException.ThrowIfNull(reading);

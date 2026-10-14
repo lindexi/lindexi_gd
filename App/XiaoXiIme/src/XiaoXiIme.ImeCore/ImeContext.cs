@@ -3,7 +3,7 @@ using XiaoXiIme.Foundation;
 
 namespace XiaoXiIme.ImeCore;
 
-public sealed class ImeContext
+public sealed partial class ImeContext
 {
     private readonly IImeDictionary _dictionary;
     private readonly IShapeDictionary? _shapeDictionary;
@@ -31,6 +31,12 @@ public sealed class ImeContext
 
     public ImeProcessResult ProcessKey(ImeKey key)
     {
+        if (_options is not null)
+        {
+            var eat = _eatConfirmationSpace && key.Kind == ImeKeyKind.Space;
+            _eatConfirmationSpace = false;
+            if (eat) return new ImeProcessResult(Snapshot, null, true);
+        }
         return key.Kind switch
         {
             ImeKeyKind.Character => ProcessCharacter(key.Character),
@@ -60,6 +66,8 @@ public sealed class ImeContext
     public ImeProcessResult SetComposition(string composition)
     {
         ArgumentNullException.ThrowIfNull(composition);
+        if (_options is not null && composition.Length > 0)
+            return new ImeProcessResult(Snapshot, null, composition == _reading);
         if (!IsValidComposition(composition))
         {
             return new ImeProcessResult(Snapshot, null, false);
@@ -163,11 +171,14 @@ public sealed class ImeContext
 
     private ImeProcessResult ProcessCharacter(char character)
     {
+        if (_options is not null && (_reading.Length >= 64 || !IsAsciiLetter(character)))
+            return new ImeProcessResult(Snapshot, null, false);
         if (!CanInsertCharacter(character))
         {
             return new ImeProcessResult(Snapshot, null, false);
         }
 
+        var appended = _caretIndex == _reading.Length;
         var normalizedCharacter = IsSymbolComposition || character == '/'
             ? char.ToLowerInvariant(character)
             : character;
@@ -176,11 +187,15 @@ public sealed class ImeContext
         _selection = 0;
         RefreshCandidates();
 
-        if (string.Equals(_reading, AutoCommitReading, StringComparison.Ordinal)
+        if ((_options is null || _options.EnableLegacyXx) && string.Equals(_reading, AutoCommitReading, StringComparison.Ordinal)
             && _candidates.Count > 0)
         {
-            return CommitCandidate(0);
+            var result = CommitCandidate(0);
+            _eatConfirmationSpace = result.CommitText is not null && _options?.EatConfirmationSpace == true;
+            return result;
         }
+
+        if (appended && TryAutomaticCommit() is { } automatic) return automatic;
 
         return new ImeProcessResult(Snapshot, null, true);
     }
@@ -269,6 +284,11 @@ public sealed class ImeContext
             return new ImeProcessResult(Snapshot, null, true);
         }
 
+        if (_options is not null)
+        {
+            var detailed = Decode(_reading)[candidateIndex];
+            return detailed.SelectionId is { } id ? SelectCandidate(id) : new ImeProcessResult(Snapshot, null, true);
+        }
         var selectedCandidate = _candidates[candidateIndex];
         var originalInput = _reading;
         var shouldLearn = IsPhoneticComposition(originalInput);
@@ -319,6 +339,13 @@ public sealed class ImeContext
     private void RefreshCandidates()
     {
         _candidates.Clear();
+        if (_options is not null)
+        {
+            _revision++;
+            _candidates.AddRange(Decode(_reading).Select(c => c.Candidate));
+            NormalizeCandidateWindow();
+            return;
+        }
 
         if (IsComposing)
         {
@@ -335,6 +362,7 @@ public sealed class ImeContext
 
     private void Clear()
     {
+        if (_options is not null) _revision++;
         _reading = string.Empty;
         _caretIndex = 0;
         _candidates.Clear();

@@ -8,6 +8,27 @@ namespace XiaoXiIme.Dictionary;
 /// </summary>
 public static class DictionaryPackageCompiler
 {
+    /// <summary>Compiles complete canonical lexicon data into a runtime package.</summary>
+    public static DictionaryPackageManifest CompileLexicon(ImeLexicon lexicon, string outputDirectory,
+        IReadOnlyList<DictionaryPackageSource>? sources = null)
+    {
+        ArgumentNullException.ThrowIfNull(lexicon);
+        var normalized = new InMemoryImeDictionary(lexicon).GetLexicon();
+        var manifest = Compile(normalized.Entries.Select(e =>
+            new PhoneticDictionaryEntry(e.Text, e.CanonicalReading, e.BaseFrequency)), outputDirectory,
+            sources: sources, shapeEntries: normalized.ShapeEntries);
+        var path = Path.Combine(outputDirectory, "lexicon.json");
+        File.WriteAllText(path, JsonSerializer.Serialize(normalized, JsonOptions), new UTF8Encoding(false));
+        manifest = manifest with
+        {
+            FormatVersion = 2,
+            Shards = manifest.Shards.Append(CreateShard("lexicon", path)).ToArray(),
+        };
+        File.WriteAllText(Path.Combine(outputDirectory, DictionaryPackageFormat.ManifestFileName),
+            JsonSerializer.Serialize(manifest, JsonOptions), new UTF8Encoding(false));
+        return manifest;
+    }
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
