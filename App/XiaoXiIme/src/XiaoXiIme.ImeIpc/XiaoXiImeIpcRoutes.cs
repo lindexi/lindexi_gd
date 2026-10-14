@@ -2,6 +2,10 @@ namespace XiaoXiIme.ImeIpc;
 
 public static class XiaoXiImeIpcRoutes
 {
+    public const string GetProductSettings = "XiaoXiIme.GetProductSettings";
+
+    public const string SaveProductSettings = "XiaoXiIme.SaveProductSettings";
+
     public const string ProcessKey = "XiaoXiIme.ProcessKey";
 
     public const string GetSnapshot = "XiaoXiIme.GetSnapshot";

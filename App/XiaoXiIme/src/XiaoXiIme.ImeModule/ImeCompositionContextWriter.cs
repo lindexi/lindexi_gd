@@ -469,10 +469,10 @@ public sealed unsafe class ImeCompositionContextWriter
         ZeroCompositionString(compositionString, requiredSize);
 
         compositionString->Size = requiredSize;
-        compositionString->ResultStrLength = (uint)resultBytes.Length;
+        compositionString->ResultStrLength = (uint)resultBytes.Length / sizeof(char);
         compositionString->ResultStrOffset = (uint)Unsafe.SizeOf<CompositionString>();
         compositionString->ResultClauseLength = sizeof(uint) * 2u;
-        compositionString->ResultClauseOffset = compositionString->ResultStrOffset + compositionString->ResultStrLength;
+        compositionString->ResultClauseOffset = compositionString->ResultStrOffset + (uint)resultBytes.Length;
 
         var target = (byte*)compositionString + compositionString->ResultStrOffset;
         resultBytes.CopyTo(new Span<byte>(target, resultBytes.Length));
@@ -489,19 +489,19 @@ public sealed unsafe class ImeCompositionContextWriter
 
         compositionString->Size = requiredSize;
         var offset = (uint)Unsafe.SizeOf<CompositionString>();
-        compositionString->CompReadStrLength = (uint)readingBytes.Length;
+        compositionString->CompReadStrLength = (uint)reading.Length;
         compositionString->CompReadStrOffset = offset;
-        offset += compositionString->CompReadStrLength;
+        offset += (uint)readingBytes.Length;
         compositionString->CompReadAttrLength = (uint)reading.Length;
         compositionString->CompReadAttrOffset = offset;
         offset += compositionString->CompReadAttrLength;
         compositionString->CompReadClauseLength = sizeof(uint) * 2u;
         compositionString->CompReadClauseOffset = offset;
         offset += compositionString->CompReadClauseLength;
-        compositionString->CompStrLength = (uint)compositionBytes.Length;
+        compositionString->CompStrLength = (uint)text.Length;
         compositionString->CompStrOffset = offset;
         compositionString->CompAttrLength = (uint)text.Length;
-        compositionString->CompAttrOffset = compositionString->CompStrOffset + compositionString->CompStrLength;
+        compositionString->CompAttrOffset = compositionString->CompStrOffset + (uint)compositionBytes.Length;
         compositionString->CompClauseLength = sizeof(uint) * 2u;
         compositionString->CompClauseOffset = compositionString->CompAttrOffset + compositionString->CompAttrLength;
         compositionString->CursorPos = (uint)Math.Clamp(cursorPos, 0, text.Length);

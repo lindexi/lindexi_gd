@@ -20,6 +20,25 @@ public sealed class XiaoXiImeIpcClient : IDisposable
         _options = options ?? XiaoXiImeIpcOptions.Default;
     }
 
+    /// <summary>Reads authoritative product preferences from a supporting Host.</summary>
+    public async Task<ImeProductSettingsResponse> GetProductSettingsAsync()
+    {
+        var response = await SendWithRetryAsync(proxy => proxy.GetResponseAsync<ImeProductSettingsResponse>(
+            XiaoXiImeIpcRoutes.GetProductSettings, new ImeProductSettingsRequest())).ConfigureAwait(false);
+        return response ?? throw new InvalidOperationException();
+    }
+
+    /// <summary>Saves once without automatic replay; after timeout read status before retrying.</summary>
+    public async Task<ImeProductSettingsResponse> SaveProductSettingsAsync(ImeSaveProductSettingsRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        await ConnectAsync().ConfigureAwait(false);
+        var proxy = _clientProxy ?? throw new InvalidOperationException();
+        var response = await WithTimeout(proxy.GetResponseAsync<ImeProductSettingsResponse>(
+            XiaoXiImeIpcRoutes.SaveProductSettings, request), _options.EffectiveRequestTimeout).ConfigureAwait(false);
+        return response ?? throw new InvalidOperationException();
+    }
+
     public async Task ConnectAsync()
     {
         if (_clientProxy is not null)
@@ -117,11 +136,16 @@ public sealed class XiaoXiImeIpcClient : IDisposable
 
     public Task<ImeUiState> GetUiStateAsync() => GetUiStateAsync(ImeSessionId.Unspecified);
 
-    public async Task<ImeUiState> GetUiStateAsync(ImeSessionId sessionId)
+    public Task<ImeUiState> GetUiStateAsync(ImeSessionId sessionId) =>
+        GetUiStateAsync(new ImeUiStateRequest(sessionId));
+
+    /// <summary>Queries an explicit session or the existing session associated with a focused target.</summary>
+    public async Task<ImeUiState> GetUiStateAsync(ImeUiStateRequest request)
     {
+        ArgumentNullException.ThrowIfNull(request);
         var response = await SendWithRetryAsync(proxy => proxy.GetResponseAsync<ImeUiStateResponse>(
                 XiaoXiImeIpcRoutes.GetUiState,
-                new ImeUiStateRequest(sessionId))).ConfigureAwait(false);
+                request)).ConfigureAwait(false);
 
         return response?.UiState ?? throw new InvalidOperationException("IME IPC server returned an empty UI-state response.");
     }

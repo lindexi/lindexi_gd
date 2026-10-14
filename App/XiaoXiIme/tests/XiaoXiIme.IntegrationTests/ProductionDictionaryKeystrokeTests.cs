@@ -60,6 +60,91 @@ public class ProductionDictionaryKeystrokeTests(ProductionDictionaryFixture fixt
         Assert.Equal("XiaoXiIme", exact.Snapshot.Candidates[0].Text);
     }
 
+    [Fact(Timeout = 30_000)]
+    public async Task FullPinyin_WhenNBecomesNiThenCompositionAndCandidatesUpdateWithoutCommit()
+    {
+        var options = new XiaoXiImeIpcOptions($"XiaoXiIme_ProductionDictionary_{Guid.NewGuid():N}");
+        using var host = fixture.CreateHost(options, DictionaryPackageLocations.FullPinyinInputScheme);
+        using var client = new XiaoXiImeIpcClient(options);
+        host.Start();
+        await client.ConnectAsync();
+
+        var prefix = await client.ProcessKeyAsync(ImeKey.FromCharacter('n'));
+        var exact = await client.ProcessKeyAsync(ImeKey.FromCharacter('i'));
+        var status = await client.GetHostStatusAsync();
+
+        Assert.True(prefix.Handled);
+        Assert.True(prefix.Snapshot.IsComposing);
+        Assert.Equal("n", prefix.Snapshot.Composition.Reading);
+        Assert.Contains(prefix.Snapshot.Candidates, candidate => candidate.Text == "你");
+        Assert.Null(prefix.CommitText);
+        Assert.True(exact.Handled);
+        Assert.True(exact.Snapshot.IsComposing);
+        Assert.Equal("ni", exact.Snapshot.Composition.Reading);
+        Assert.Equal("你", exact.Snapshot.Candidates[0].Text);
+        Assert.Null(exact.CommitText);
+        Assert.False(status.IsUsingFallbackDictionary);
+        Assert.Equal(DictionaryPackageLocations.FullPinyinInputScheme, status.DictionaryInputScheme);
+    }
+
+    [Fact(Timeout = 30_000)]
+    public async Task FullPinyin_WhenEscapeCancelsNiThenCompositionClearsWithoutCommit()
+    {
+        var options = new XiaoXiImeIpcOptions($"XiaoXiIme_ProductionDictionary_{Guid.NewGuid():N}");
+        using var host = fixture.CreateHost(options, DictionaryPackageLocations.FullPinyinInputScheme);
+        using var client = new XiaoXiImeIpcClient(options);
+        host.Start();
+        await client.ConnectAsync();
+        await ProcessCharactersAsync(client, "ni");
+
+        var cancel = await client.ProcessKeyAsync(new ImeKey(ImeKeyKind.Escape));
+        var snapshot = await client.GetSnapshotAsync();
+        var status = await client.GetHostStatusAsync();
+
+        Assert.True(cancel.Handled);
+        Assert.Null(cancel.CommitText);
+        Assert.False(cancel.Snapshot.IsComposing);
+        Assert.Equal(string.Empty, cancel.Snapshot.Composition.Reading);
+        Assert.Empty(cancel.Snapshot.Candidates);
+        Assert.False(snapshot.IsComposing);
+        Assert.Equal(string.Empty, snapshot.Composition.Reading);
+        Assert.Empty(snapshot.Candidates);
+        Assert.False(status.IsUsingFallbackDictionary);
+        Assert.Equal(DictionaryPackageLocations.FullPinyinInputScheme, status.DictionaryInputScheme);
+    }
+
+    [Fact(Timeout = 30_000)]
+    public async Task FullPinyin_WhenNiIsRetypedAfterCancelThenSpaceCommitsOnce()
+    {
+        var options = new XiaoXiImeIpcOptions($"XiaoXiIme_ProductionDictionary_{Guid.NewGuid():N}");
+        using var host = fixture.CreateHost(options, DictionaryPackageLocations.FullPinyinInputScheme);
+        using var client = new XiaoXiImeIpcClient(options);
+        host.Start();
+        await client.ConnectAsync();
+        await ProcessCharactersAsync(client, "ni");
+        var cancel = await client.ProcessKeyAsync(new ImeKey(ImeKeyKind.Escape));
+
+        var composing = await ProcessCharactersAsync(client, "ni");
+        var commit = await client.ProcessKeyAsync(new ImeKey(ImeKeyKind.Space));
+        var secondSpace = await client.ProcessKeyAsync(new ImeKey(ImeKeyKind.Space));
+        var status = await client.GetHostStatusAsync();
+
+        Assert.Null(cancel.CommitText);
+        Assert.Null(composing.CommitText);
+        Assert.Equal("ni", composing.Snapshot.Composition.Reading);
+        Assert.Equal("你", composing.Snapshot.Candidates[0].Text);
+        Assert.True(commit.Handled);
+        Assert.Equal("你", commit.CommitText);
+        Assert.False(commit.Snapshot.IsComposing);
+        Assert.Equal(string.Empty, commit.Snapshot.Composition.Reading);
+        Assert.Empty(commit.Snapshot.Candidates);
+        Assert.Null(secondSpace.CommitText);
+        Assert.False(secondSpace.Snapshot.IsComposing);
+        Assert.Empty(secondSpace.Snapshot.Candidates);
+        Assert.False(status.IsUsingFallbackDictionary);
+        Assert.Equal(DictionaryPackageLocations.FullPinyinInputScheme, status.DictionaryInputScheme);
+    }
+
     private async Task AssertInputCommitsExpectedTextAsync(string input, string expectedText, string inputScheme)
     {
         var options = new XiaoXiImeIpcOptions($"XiaoXiIme_ProductionDictionary_{Guid.NewGuid():N}");

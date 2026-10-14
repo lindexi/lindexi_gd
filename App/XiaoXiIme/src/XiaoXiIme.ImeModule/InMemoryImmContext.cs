@@ -192,7 +192,7 @@ internal sealed unsafe class InMemoryImmContext : IImmContextAccessor, IDisposab
             return string.Empty;
         }
 
-        return new string((char*)(buffer + offset), 0, (int)(length / sizeof(char)));
+        return new string((char*)(buffer + offset), 0, (int)length);
     }
 
     private nint ContextHandle(nint baseHandle) => _handle + (baseHandle - DefaultHandle);

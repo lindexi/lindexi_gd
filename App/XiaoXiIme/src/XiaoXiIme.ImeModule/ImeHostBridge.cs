@@ -69,12 +69,15 @@ public sealed class ImeHostBridge : IDisposable
 
     public ImeProcessResult ProcessKey(ImeKey key) => ProcessKey(key, ImeSessionId.Default);
 
-    public ImeProcessResult ProcessKey(ImeKey key, ImeSessionId sessionId)
+    public ImeProcessResult ProcessKey(ImeKey key, ImeSessionId sessionId) => ProcessKey(key, sessionId, null);
+
+    /// <summary>Processes a key with an optional immutable candidate position snapshot.</summary>
+    public ImeProcessResult ProcessKey(ImeKey key, ImeSessionId sessionId, ImeCandidateAnchor? anchor)
     {
         sessionId = sessionId.Effective;
         try
         {
-            var result = _client.ProcessKeyAsync(key, sessionId).ConfigureAwait(false).GetAwaiter().GetResult();
+            var result = _client.ProcessKeyAsync(key, sessionId, anchor).ConfigureAwait(false).GetAwaiter().GetResult();
             _lastError = null;
             return result;
         }
@@ -244,6 +247,9 @@ public sealed class ImeHostBridge : IDisposable
     {
         Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId);
 
+        Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId, ImeCandidateAnchor? anchor) =>
+            ProcessKeyAsync(key, sessionId);
+
         Task<ImeSessionSnapshot> GetSnapshotAsync(ImeSessionId sessionId);
 
         Task<ImeUiState> GetUiStateAsync(ImeSessionId sessionId);
@@ -325,6 +331,13 @@ public sealed class ImeHostBridge : IDisposable
         public Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId)
         {
             return InvokeAsync(() => _client.ProcessKeyAsync(key, sessionId));
+        }
+
+        public async Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId, ImeCandidateAnchor? anchor)
+        {
+            var response = await InvokeAsync(() => _client.ProcessKeyRequestAsync(
+                new ImeProcessKeyRequest(key, sessionId, Anchor: anchor))).ConfigureAwait(false);
+            return response.Result;
         }
 
         public Task<ImeSessionSnapshot> GetSnapshotAsync(ImeSessionId sessionId)

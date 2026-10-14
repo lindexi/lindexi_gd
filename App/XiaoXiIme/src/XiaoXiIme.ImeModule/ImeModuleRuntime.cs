@@ -38,9 +38,13 @@ public static class ImeModuleRuntime
     public static ImeProcessResult ProcessTranslatedKey(ImeKey key, HImc inputContext)
     {
         var sessionId = ImeSessionId.FromHimc(inputContext.Value);
-        var result = ProcessKey(key, sessionId);
+        var result = ProcessKey(key, sessionId, inputContext);
         SetSnapshot(sessionId, result.Snapshot);
         SetLastResult(sessionId, result);
+        if (key.Kind == ImeKeyKind.Escape)
+        {
+            ImeLifecycleDiagnostics.Record("ProcessTranslatedKey.Escape", inputContext.Value, 0, "after-host");
+        }
         return result;
     }
 
@@ -102,6 +106,7 @@ public static class ImeModuleRuntime
 
     public static ImeResetSessionResponse ResetSession(HImc inputContext)
     {
+        ImeLifecycleDiagnostics.Record("ResetSession", inputContext.Value, 0, "before");
         var sessionId = ImeSessionId.FromHimc(inputContext.Value);
         var response = ResetHostSession(new ImeResetSessionRequest(sessionId));
         lock (SyncRoot)
@@ -147,6 +152,14 @@ public static class ImeModuleRuntime
             return true;
         }
 
+        lock (SyncRoot)
+        {
+            return GetSnapshot(ImeSessionId.FromHimc(inputContext.Value)).IsComposing;
+        }
+    }
+
+    internal static bool IsComposing(HImc inputContext)
+    {
         lock (SyncRoot)
         {
             return GetSnapshot(ImeSessionId.FromHimc(inputContext.Value)).IsComposing;
@@ -288,7 +301,7 @@ public static class ImeModuleRuntime
         }
     }
 
-    private static ImeProcessResult ProcessKey(ImeKey key, ImeSessionId sessionId)
+    private static ImeProcessResult ProcessKey(ImeKey key, ImeSessionId sessionId, HImc inputContext)
     {
         Func<ImeKey, ImeProcessResult>? processKey;
         ImeHostBridge? bridge;
@@ -303,7 +316,8 @@ public static class ImeModuleRuntime
             return processKey(key);
         }
 
-        return (bridge ?? GetBridge()).ProcessKey(key, sessionId);
+        return (bridge ?? GetBridge()).ProcessKey(key, sessionId,
+            ImeCandidateAnchorReader.Read(inputContext, sessionId));
     }
 
     private static ImeProcessResult SetHostComposition(string composition, ImeSessionId sessionId)

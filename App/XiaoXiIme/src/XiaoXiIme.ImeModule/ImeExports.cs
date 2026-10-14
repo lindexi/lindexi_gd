@@ -306,6 +306,7 @@ public static unsafe class ImeExports
     internal static int ImeSelectManaged(nint inputContext, int select)
     {
         ImeKeystrokeDiagnostics.RecordImeSelect();
+        ImeLifecycleDiagnostics.Record("ImeSelect", inputContext, select, "before");
         try
         {
             if (select == 0)
@@ -331,14 +332,12 @@ public static unsafe class ImeExports
     internal static int ImeSetActiveContextManaged(nint inputContext, int active)
     {
         ImeKeystrokeDiagnostics.RecordImeSetActiveContext();
+        ImeLifecycleDiagnostics.Record("ImeSetActiveContext", inputContext, active, "before");
         try
         {
-            if (active == 0)
-            {
-                ApplyControlKey(ImeConstants.VkEscape, inputContext);
-                ImeModuleRuntime.ResetSession(new HImc(inputContext));
-            }
-
+            // Activation changes focus ownership, not the lifetime of this HIMC's composition.
+            // Explicit cancellation, deselection and destruction perform their own cleanup.
+            ImeLifecycleDiagnostics.Record("ImeSetActiveContext", inputContext, active, "after");
             return 1;
         }
         catch
@@ -403,6 +402,7 @@ public static unsafe class ImeExports
         {
             var key = ImeKeyTranslator.Translate(normalizedVirtualKey, GetModifiers(keyState));
             stage = 2;
+            var wasComposing = ImeModuleRuntime.IsComposing(new HImc(inputContext));
             var processResult = key.Kind is ImeKeyKind.Other
                 ? new ImeProcessResult(ImeSessionSnapshot.Empty, CommitText: null, Handled: false)
                 : ImeModuleRuntime.ProcessTranslatedKey(key, new HImc(inputContext));
@@ -410,7 +410,7 @@ public static unsafe class ImeExports
             stage = 3;
             var compositionWriteSucceeded = s_compositionContextWriter.TryWrite(new HImc(inputContext), result);
             stage = 4;
-            var messages = ImeTransMsgBuilder.BuildMessages(result);
+            var messages = ImeTransMsgBuilder.BuildMessages(result, wasComposing);
             stage = 5;
             var written = ImeTransMsgWriter.Write(transKey, messages);
             var returnValue = written != 0 ? written : result.Handled ? 1u : 0u;
@@ -472,8 +472,9 @@ public static unsafe class ImeExports
         return virtualKey == 0 ? 0 : ApplyControlKey(virtualKey, inputContext).Handled ? 1 : 0;
     }
 
-    private static ImeToAsciiResult ApplyControlKey(ushort virtualKey, nint inputContext)
+    private static ImeToAsciiResult ApplyControlKey(ushort virtualKey, nint inputContext, [CallerMemberName] string source = "")
     {
+        ImeLifecycleDiagnostics.Record(source, inputContext, virtualKey, "control-key");
         return ApplyTranslatedKey(ImeKeyTranslator.Translate(virtualKey), inputContext);
     }
 

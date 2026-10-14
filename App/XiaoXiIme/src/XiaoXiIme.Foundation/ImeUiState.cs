@@ -11,7 +11,9 @@ public sealed record ImeUiState(
     ImeAboutState? About = null,
     string? DiagnosticText = null,
     bool IsHostUnavailable = false,
-    bool IsUsingFallbackDictionary = false)
+    bool IsUsingFallbackDictionary = false,
+    ImeCandidateAnchor? Anchor = null,
+    ImeSessionId SessionId = default)
 {
     public ImeAboutState EffectiveAbout => About ?? ImeAboutState.SeWzc;
 

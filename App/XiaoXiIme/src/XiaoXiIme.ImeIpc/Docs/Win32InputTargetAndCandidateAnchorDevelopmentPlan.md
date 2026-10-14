@@ -2,15 +2,46 @@
 
 ## 1. 目标
 
-完成以下两个当前未实现的能力：
+本计划的发布状态以 [主交接第 4.8 节](../../../../Docs/next-session-handoff.md#48-统一发布差距清单) 为准。第二轮真实证据已回读归档，本次未重新执行；下文设计建议不等于已批准的应用矩阵。
+
+补齐以下输入目标/候选定位能力（已有结构、会话和 UI 基础，不从零重建）：
 
 1. 从 `HIMC` 对应的 Win32 输入上下文中取得正确的目标窗口 `HWND`，用于：
-   - 构造 `ImeToAsciiEx` 返回的 `TRANSMSG.Hwnd`；
+   - 采集目标窗口诊断及定位快照；原生 `TRANSMSG` 没有 HWND 字段，不改其 ABI；
    - 标识本次输入所属的窗口和输入会话；
    - 通过 IPC 向 Host/UI 提供必要的目标窗口上下文。
 2. 从 Win32 输入上下文中取得候选窗口锚点，将有效的屏幕坐标写入 `ImeUiState.AnchorX/AnchorY`，使独立候选窗口能够跟随应用插入符或应用指定的候选位置。
 
-本计划只描述开发方案，不包含代码修改。
+## 第二轮实际证据与剩余范围（G02 未关闭）
+
+已完成 [第二轮逐项回读归档](../../../../.coding-agent/imm32-validation/g02-real-run-02-review.md)。原始路径 `.coding-agent/imm32-validation/g02-real-run-02/final-evidence`，x64管理员任务 `346c21d6abff471f9f4a0d447d4c1cfa`。xx、单HIMC取消/重组/提交、多HIMC交错均PASS；真实候选窗口双EDIT位置、无新按键回切、窗口移动、工作区边缘分别PASS，非首轮exit0推断。五项均DPI=96/scaling=1，实际rect依次 `(130,204,646,293)`、`(130,249,646,338)`、`(130,204,646,293)`、`(260,284,776,373)`、`(1404,921,1920,1010)`，工作区 `(0,0,1920,1032)`；展开日志112–127行及冻结宿主476–487/677–710行固定断言边界。
+
+已扩展真实宿主/runner并组装发布负载，冻结源码身份与发布清单对应；系统实际加载SHA=`CE79122E014152350ED842094D88367999D9C7E71D932F0E6EA3A20DE6DC31B7`，安装源/manifest一致。两HIMC销毁、UI主动退出与布局/IME清理有原始记录；无全系统残留进程枚举或截图证据。本次仅证据回读/文档编辑，无代码追加、重跑或扩大多屏。
+
+既有CandidateAnchorTests19/19、Integration76/76；本轮增量0警告/0错误与历史非增量18 CA1416 + 1 CS8604（19警告）/0错误严格区分。阶段一模块148/148、IPC27/27及更旧测试不计作第二轮重跑；解决方案exit0只有还原输出不计全测试。
+
+FdwInit初始化/来源有效性、COMPOSITIONFORM/CFS_EXCLUDE合同、坐标单位/多DPI、句柄真正销毁复用/世代、同HWND多HIMC激活身份及无缓存锚点新激活仍是发布合同/验收缺口及本批未覆盖风险，不能伪称完成或确定失败。多DPI/多屏视觉归G03，未批准扩展环境未执行。当前限定场景无失败，不需要定向修复；只闭环本批断言，G02整体保持开放。
+
+## 本阶段用户决定与接续顺序（优先于下方历史实施顺序）
+
+1. **本阶段跳过/后置 DPI 专项问题与验证，不继续推进多 DPI、多缩放比例视觉、多显示器或跨屏实验。** 用户理由是预期设置 PMv2 后正常；该预期不作为验证证据。实测仍仅单屏 96 DPI、scaling=1，不标记 DPI 专项通过。
+2. 下一步先核对原生锚点 `FdwInit` 初始化/来源有效性、`COMPOSITIONFORM` / `CFS_EXCLUDE` SDK 合同，保留基本正确的客户区/屏幕坐标及单位换算要求；跳过专项不等于跳过基本坐标正确性。
+3. 随后推进窗口/会话生命周期、真正 HWND/HIMC 销毁与句柄复用/世代、同 HWND 多 HIMC 激活身份、新激活无缓存锚点。下方第 12.6 节多 DPI/跨屏矩阵及第 13 节相关专项工作本阶段不执行，原始设计/后续验收要求保留。
+4. G02/G03 保持开放，主交接 14 项未闭环及 A=1/B=7/C=6 计数不变。本次仅阶段优先级调整，不是永久排除发布范围，也未要求改变 PMv2 配置。
+
+PMv2 只读核对：UI `Program.cs` 使用 `UsePlatformDetect()`，项目引用 Avalonia.Desktop 11.3.7；已读取入口、App 和项目文件，未见显式 PMv2 选项、DPI awareness API 调用或 ApplicationManifest 配置，`XiaoXiIme/src` 文本检索未命中显式 PMv2 标识。只能确认所核对文件未显式设置，不能推断框架默认/运行时是否启用 PMv2；未改配置、未作运行时验证。
+
+本次只更新本计划和主交接；已读取第二轮回读归档及阶段结果，未修改原始验证报告、业务/测试代码，未构建、发布或运行测试。
+
+## 阶段一历史进展（不代表第二轮未执行）
+
+已阅读当前上一轮会话限定与 exclude 实现；本阶段保留 `himc:<pid>:<handle>`、`CFS_EXCLUDE` CurrentPosition.X 及三字段 TRANSMSG ABI。新增可选焦点 HWND/PID UI 查询；Host 在已有有效锚点中唯一匹配，显式会话优先，未知或歧义焦点返回空候选。Windows Presenter 查询前台 GUI 焦点，使有缓存锚点的会话能无新按键回切。新增四项测试覆盖回切、PID 不符、显式查询优先及歧义目标隐藏。
+
+最终定向 CandidateAnchorTests 19/19；IntegrationTests 项目全部 76/76；ImeModule.Tests 全部 148/148；ImeIpc.Tests 全部 27/27；均 0 失败/0 跳过。Release 解决方案成功，历史非增量 18 个 CA1416 + 1 个 CS8604（共19警告）、0 错误；本轮增量0警告不否定该历史边界。解决方案测试调用虽退出 0，但只有还原日志，不能计为全测试通过。测试初次 CS0121 已通过显式请求类型修复，最终验证后未再改业务代码。
+
+未完成：真实宿主与 runner 扩展、专用发布负载、Windows xx/单 HIMC/多 HIMC 回归、实际候选 UI 位置/EDIT 关联/切换/移动/边界断言、模块身份归档、截图及清理；真实 DPI/多屏覆盖为零。句柄失效与真正 HIMC 销毁/复用必须区分，当前仍未闭环；同 HWND 多 HIMC 的焦点查询歧义保守隐藏，尚须原生激活身份合同；新激活且未缓存锚点的场景还需采集路径。锚点初始化有效性、composition 来源及 exclude 坐标单位必须继续核对原生合同，不能以本次托管通过代替。
+
+准确结果与未覆盖范围见 [阶段结果](../../../../.coding-agent/imm32-validation/g02-phase1-results.md)。下文是原始设计基线/建议，不能把旧描述当当前实现盘点或完成证据。
 
 ## 2. 当前实现基线
 
@@ -23,9 +54,9 @@
 3. 把结果写回 `HIMC`。
 4. 调用 `ImeTransMsgBuilder.BuildMessages(result)`。
 
-`BuildMessages` 的 `hwnd` 参数有默认值，调用处未传入窗口句柄，因此所有生成的 `TRANSMSG.Hwnd` 当前均为 `0`。
+`ImeTransMsgBuilder.BuildMessages` 当前接受结果及内部 `wasComposing` 参数，没有 `hwnd` 参数。`TransMsg` 仅有 `Message/WParam/LParam`，符合当前 IMM32 消息结构；Windows 通过当前 HIMC 调用链分发消息，不应添加 `TRANSMSG.Hwnd`。
 
-项目中的 `InputContext` 已声明 `Hwnd` 和 `HWndIme`，但其结构布局尚未覆盖 Windows 原生 `INPUTCONTEXT` 的全部字段。在依赖该结构读取窗口句柄或候选位置前，必须先校验并补全原生布局，避免字段偏移错误。
+当前 `InputContext` 已有 `Hwnd`、组合窗、候选窗数组、组合/候选/消息缓冲及保留字段，没有 `HWndIme`。`ImeExportsTests.InputContext_MatchesNativeLayout` 和 `TransMsgTypes_MatchNativeLayout` 已有大小/关键偏移断言，按运行进程架构选择期望值；测试代码存在不证明本次已运行 x86/x64 或 Native AOT 布局复验。读取定位字段前仍需核对相关字段偏移及坐标语义，不再将“结构仅有部分字段”作为当前缺陷。
 
 ### 2.2 候选窗口锚点
 
@@ -34,7 +65,7 @@
 - `AnchorX`
 - `AnchorY`
 
-但 `ImeUiState.FromSnapshot` 不接收锚点，默认返回 `(0, 0)`。Host 当前只维护一个全局 `ImeContext`，也没有保存 Win32 输入目标或候选位置。
+但 `ImeUiState.FromSnapshot` 不接收锚点，默认返回 `(0, 0)`。Host 当前已通过 `Dictionary<ImeSessionId, ImeContext>` 隔离上下文，并解析指定/最近活动会话；`GetUiStateAsync` 仍用不带锚点的 `FromSnapshot`。尚未见 Win32 Target/Anchor 的采集与 IPC 传播链路。
 
 Avalonia UI 已将 `ImeUiState.AnchorX/AnchorY` 映射到 `CandidateWindowViewState`，因此 UI 状态模型已经具备最小消费入口，但尚未定义：
 
@@ -84,23 +115,23 @@ IPC 不应直接传输可供远端解引用的指针，也不应要求 Host 锁�
 
 ### 4.1 输入会话标识
 
-新增不可变的 `ImeInputSessionId` 或等价值对象。
+复用已有不可变 `ImeSessionId`，不要另建重复的 `ImeInputSessionId`。现有 `FromHimc` 生成 `himc:<句柄>` 字符串，跨进程身份冲突、句柄复用和会话回收语义仍待核对；下列内容是演进建议，不是现状。
 
 建议内容：
 
-- `long Value` 或 `Guid Value`；
+- 保留现有字符串 `Value` 合同；若需强化身份，先核对跨进程唯一性与协议兼容，不直接改成新的数值/Guid 模型；
 - JSON 可稳定序列化；
 - 不包含进程内指针；
 - 同一活动组合会话保持不变，组合结束后可释放；
 - 目标窗口、线程或 `HIMC` 发生变化时创建新会话。
 
-如果第一阶段不实现完整多会话 Host，可以先把会话标识加入契约并由 Host 原样关联，避免后续再次破坏 IPC 协议。
+会话标识已在契约及 Host 中使用；定位增量应复用既有合同并核对身份及回收，不新增平行会话体系。
 
 ### 4.2 Win32 输入目标快照
 
 新增 `ImeInputTarget` 或等价模型，建议包含：
 
-- `ImeInputSessionId SessionId`
+- `ImeSessionId SessionId`
 - `long WindowHandle`
 - `int ProcessId`
 - `int ThreadId`
@@ -139,7 +170,7 @@ IPC 不应直接传输可供远端解引用的指针，也不应要求 Host 锁�
 
 ### 4.4 IPC 请求上下文
 
-将 `ImeProcessKeyRequest` 从只有 `ImeKey` 扩展为至少包含：
+现有 `ImeProcessKeyRequest` 已包含 `Key`、`SessionId`、`Generation`、`SequenceNumber`。在保留会话/时序合同的基础上，建议扩展 Target/Anchor 上下文，而不是从只有 Key 的旧基线重建：
 
 - `ImeKey Key`
 - `ImeInputTarget Target`
@@ -151,7 +182,7 @@ IPC 不应直接传输可供远端解引用的指针，也不应要求 Host 锁�
 2. 新增 `ImeInputContextSnapshot Context`，把 Target、Anchor 和后续修饰键状态集中放入；
 3. 新增 V2 路由，保留旧路由一段兼容期。
 
-当前项目尚未发布稳定协议时，推荐第二种方式，避免 `ImeProcessKeyRequest` 后续持续膨胀。
+若核对后确认没有稳定协议兼容要求，可考虑第二种方式；外部消费者与协议兼容状态尚待确认，不能凭本计划假定。
 
 ### 4.5 UI 状态
 
@@ -180,7 +211,7 @@ IPC 不应直接传输可供远端解引用的指针，也不应要求 Host 锁�
 5. 增加 `Unsafe.SizeOf<T>()`/`Marshal.OffsetOf<T>()` 测试，对关键字段偏移进行断言。
 6. 确认 Native AOT 下结构布局与普通 JIT 一致。
 
-特别注意：当前 `InputContext` 只声明了部分字段，直接把 `ImmLockIMC` 返回值解释为该结构存在偏移风险。此项应作为后续功能开发的前置条件，而不是在现有结构上直接追加读取逻辑。
+当前布局修复及核心偏移测试已有实现。后续应复用并扩展这些断言，对定位相关字段、x86/x64 实际执行及 Native AOT 做复验；本次没有重新比对本机 SDK 或运行原生探针，不声称所有字段已独立验证。
 
 ### 5.2 扩展 Win32 API 声明
 
@@ -236,21 +267,12 @@ IPC 不应直接传输可供远端解引用的指针，也不应要求 Host 锁�
 
 - IPC 仍可发送按键；
 - Target 标记为无效；
-- `TRANSMSG.Hwnd` 保持 `0`；
+- 保持原生 `TRANSMSG` 三字段结构，不添加窗口句柄；
 - 不因位置采集失败丢失输入功能。
 
-### 6.2 写入 TRANSMSG
+### 6.2 保持 TRANSMSG ABI
 
-调整 `ImeToAsciiExManaged` 的流程，使 `ImeTransMsgBuilder.BuildMessages` 接收读取到的目标 `HWnd`。
-
-所有同一次 `ImeToAsciiEx` 返回的消息应使用相同目标：
-
-- `WM_IME_STARTCOMPOSITION`
-- `WM_IME_COMPOSITION`
-- `WM_IME_ENDCOMPOSITION`
-- 后续新增的 `WM_IME_NOTIFY`
-
-测试应覆盖提交、组合中、结束组合三条分支，确保每条消息的 `Hwnd` 一致。
+不向 `ImeTransMsgBuilder` 或 `TRANSMSG` 添加 HWND。目标窗口快照只用于 IPC 定位和诊断；返回消息仍只有 message、wParam、lParam，由 Windows 当前 HIMC 链路分发。复用现有结构布局测试及组合/提交/结束消息分支测试，真实行为由生命周期及多 HIMC 场景验收。
 
 ### 6.3 与 HIMC 写回的一致性
 
@@ -258,7 +280,7 @@ IPC 不应直接传输可供远端解引用的指针，也不应要求 Host 锁�
 
 建议规则：
 
-- Win32 写回和 `TRANSMSG.Hwnd` 使用本次调用现场读取的 Target；
+- Win32 写回使用本次调用的 HIMC，Target 只作为同次采集的定位/诊断快照；
 - IPC 返回只负责输入法语义结果；
 - Host 不允许修改 Win32 目标窗口。
 
@@ -340,21 +362,21 @@ ImeModule 输出屏幕物理像素后，UI 定位时需要：
 
 ### 8.2 Host 状态管理
 
-第一阶段最小实现可以让 Host 在处理 `ProcessKey` 时保存最近一次上下文，并在 `GetUiState` 时把锚点合并进 `ImeUiState`。
+Host 已有按 `ImeSessionId` 隔离的上下文和指定会话查询。定位增量应复用现有隔离，在各会话保存 Target/Anchor，不能回退为全局最近一个输入上下文。下列清单是定位增量/回收语义的建议，不意味着现有会话处理缺失。
 
 但为了避免窗口 A 的候选状态被窗口 B 使用，推荐直接按 `SessionId` 隔离：
 
-- `Dictionary<ImeInputSessionId, ImeContext>` 保存每个会话的输入状态；
+- 复用现有 `Dictionary<ImeSessionId, ImeContext>` 保存每个会话的输入状态；
 - 同时保存每个会话最近一次 Target 和 Anchor；
 - `ProcessKey` 按 SessionId 选择上下文；
 - `GetSnapshot`/`GetUiState` 明确请求哪个 SessionId；
 - 会话结束、窗口失效或超时后清理。
 
-如果本次范围只完成两个现状而暂不引入多会话，应在代码中建立单独的 `ImeInputContextSnapshot` 保存点，并添加明确的后续任务，避免将 HWND/Anchor 塞入 `ImeContext` 的词典转换逻辑。
+定位快照应独立于 `ImeContext` 的词典转换逻辑，并关联既有会话；不要用单一全局快照覆盖已实现的多会话基础。
 
 ### 8.3 UI 状态生成
 
-`ImeUiState.FromSnapshot` 当前只接收 Snapshot。建议新增重载或由 Host 专门组装：
+`ImeUiState.FromSnapshot` 当前接收 Snapshot 和诊断/降级参数，但不接收锚点。建议扩展既有组装入口或由 Host 专门组装：
 
 - Snapshot 决定 composition、candidate、guideline 和可见性；
 - InputContextSnapshot 决定 Target 和 CandidateAnchor；
@@ -398,7 +420,7 @@ ImeModule 输出屏幕物理像素后，UI 定位时需要：
 6. 保证窗口不激活、不抢占目标应用焦点。
 7. Anchor 或候选内容变化时在 UI 线程更新位置。
 
-当前项目中的 `CandidateWindowController` 只维护 ViewState，尚未包含实际窗口对象；如果窗口宿主位于其他项目，应在实施前先定位真实窗口创建和显示入口，再把定位职责放在最接近窗口平台 API 的层。
+实际窗口入口已经存在：`CandidateWindow.axaml/.cs` 和 `CandidateWindowPresenter.ApplyState/PositionWindow`。Presenter 使用 `PixelPoint` 消费非零裸锚点；缺失时使用主屏工作区固定点，尚未见锚点有效性、显示器选择、边界翻转和排除矩形逻辑。应在该入口扩展定位，不再寻找或重建缺失的窗口宿主。
 
 ## 10. 消息与生命周期
 
@@ -435,7 +457,7 @@ UI 应丢弃旧版本通知，避免 IPC 时序变化导致候选窗回跳。
 ### 11.1 读取 HWND 失败
 
 - Target 标记无效；
-- `TRANSMSG.Hwnd = 0`；
+- 不修改 `TRANSMSG` 布局或为其添加 HWND；
 - 继续写回当前 `HIMC`；
 - 记录可诊断但限频的日志。
 
@@ -448,11 +470,11 @@ UI 应丢弃旧版本通知，避免 IPC 时序变化导致候选窗回跳。
 
 ### 11.3 IPC 失败
 
-现有 fallback `ImeContext` 仍应工作。ImeModule 应使用本地采集到的 Target 构造 `TRANSMSG`，因为 Target 不依赖 Host 返回。
+现有按会话维护的 fallback `ImeContext` 仍应工作。Target 采集不能影响当前 HIMC 写回和消息构造，也不能为 `TRANSMSG` 增加 HWND；定位快照与 Host 返回的输入语义分离。
 
 ### 11.4 窗口在请求期间销毁
 
-- 写 `TRANSMSG` 前可选择再次调用 `IsWindow`；
+- 使用定位快照前可选择再次校验 `IsWindow`，但不能更改原生消息 ABI；
 - 即使句柄失效也不得向其他新窗口主动发送消息；
 - 当前实现只是填充 Win32 返回缓冲区，不应额外调用 `SendMessage`/`PostMessage`；
 - SessionId 与 PID/TID 一起用于降低 HWND 复用导致的状态串用风险。
@@ -464,7 +486,7 @@ UI 应丢弃旧版本通知，避免 IPC 时序变化导致候选窗回跳。
 新增测试验证：
 
 - `INPUTCONTEXT` 总大小；
-- `hWnd`、候选窗数组、组合窗、IME 窗口句柄等关键字段偏移；
+- `hWnd`、候选窗数组、组合窗及缓冲字段的关键偏移（当前结构没有 `HWndIme`）；
 - `CANDIDATEFORM`、`COMPOSITIONFORM`、`POINT`、`RECT` 大小；
 - x64 目标下布局与 Windows SDK 定义一致。
 
@@ -477,7 +499,7 @@ UI 应丢弃旧版本通知，避免 IPC 时序变化导致候选窗回跳。
 1. 从有效 `INPUTCONTEXT` 读取 Target HWND。
 2. HWND 无效时返回无效 Target。
 3. PID/TID 正确写入快照。
-4. `ImeToAsciiExManaged` 为所有 `TRANSMSG` 写入目标 HWND。
+4. `ImeToAsciiExManaged` 的 Target 采集不改变三字段 `TRANSMSG` ABI，并与当前 HIMC 写回一致。
 5. 提交文本、组合中、结束组合三条消息分支。
 6. `CFS_CANDIDATEPOS` 转换为屏幕坐标。
 7. `CFS_EXCLUDE` 保留矩形并使用左下锚点。
@@ -550,18 +572,18 @@ UI 应丢弃旧版本通知，避免 IPC 时序变化导致候选窗回跳。
 
 交付条件：无需 IPC 和 UI，也能从测试输入上下文稳定生成结构化 Target/Anchor。
 
-### 阶段二：TRANSMSG 目标窗口
+### 阶段二：目标快照与 HIMC 一致性
 
-1. 在 `ImeToAsciiExManaged` 读取本次 Target。
-2. 将 Target HWND 传给 `ImeTransMsgBuilder`。
-3. 验证所有消息分支的 `TransMsg.Hwnd`。
+1. 在 `ImeToAsciiExManaged` 采集本次 Target，供 IPC 定位/诊断使用。
+2. 保留 `ImeTransMsgBuilder` 与三字段 `TRANSMSG` ABI。
+3. 验证采集与写回属于同一 HIMC，覆盖消息各分支。
 4. 保证读取失败时保持现有输入能力。
 
-交付条件：真实或模拟 `HIMC` 中存在有效 HWND 时，所有返回消息携带同一目标 HWND。
+交付条件：Target 快照对应当前 HIMC，不改变 Windows 返回消息结构或主动向另一个窗口发送消息。
 
 ### 阶段三：IPC 上下文传播
 
-1. 新增 Session、Target、Anchor DTO。
+1. 复用 `ImeSessionId`，新增 Target、Anchor DTO。
 2. 扩展 `ImeProcessKeyRequest`。
 3. 更新 AOT JSON 上下文。
 4. 更新 Client、Server、Bridge 和 Host handler。
@@ -574,7 +596,7 @@ UI 应丢弃旧版本通知，避免 IPC 时序变化导致候选窗回跳。
 1. 保存每个会话最近的 Target/Anchor。
 2. 将 Anchor 合并进 `ImeUiState`。
 3. 明确无效位置和最近有效位置策略。
-4. 如纳入本次范围，实现按 SessionId 隔离 `ImeContext`。
+4. 复用已有按 `ImeSessionId` 隔离的 `ImeContext`，核对位置与会话回收语义。
 
 交付条件：`GetUiState` 返回非默认、可验证来源的候选窗锚点。
 
@@ -602,19 +624,19 @@ UI 应丢弃旧版本通知，避免 IPC 时序变化导致候选窗回跳。
 
 ### XiaoXiIme.ImeInterop
 
-- `Win32Types.cs`：补全原生结构，增加 Point/Rect/CandidateForm/CompositionForm。
+- `Win32Types.cs`：复用已有 Point/Rect/CandidateForm/CompositionForm/InputContext，核对定位字段，不重建已有结构。
 - `ImeConstants.cs`：增加 Candidate/Composition Form 样式常量。
 - 可新增 Win32 API 文件：窗口验证、线程信息、坐标转换和 caret API。
 
 ### XiaoXiIme.Foundation
 
-- 新增 Session、Target、Anchor、坐标空间和矩形模型。
+- 复用 `ImeSessionId`，新增 Target、Anchor、坐标空间和矩形模型。
 - `ImeUiState.cs`：接入结构化锚点。
 
 ### XiaoXiIme.ImeModule
 
-- `ImeExports.cs`：读取输入上下文并向消息构造器传 HWND。
-- `ImeTransMsgBuilder.cs`：强制或显式接收目标 HWND。
+- `ImeExports.cs`：读取输入目标/定位快照，保持当前 HIMC 写回。
+- `ImeTransMsgBuilder.cs`：保留三字段消息 ABI，不增加 HWND 参数。
 - `ImmContextAccessor.cs`：按职责扩展或配合新的 reader/accessor。
 - 可新增 `ImeInputContextReader.cs`：封装 Target/Anchor 采集。
 - `ImeHostBridge.cs`：传递扩展后的 ProcessKey 请求上下文。
@@ -628,38 +650,38 @@ UI 应丢弃旧版本通知，避免 IPC 时序变化导致候选窗回跳。
 
 ### XiaoXiIme.ImeHost
 
-- `ImeHostService.cs`：保存并返回会话 Target/Anchor；必要时按 Session 隔离 ImeContext。
+- `ImeHostService.cs`：在已有 Session 隔离上保存并返回会话 Target/Anchor。
 
 ### XiaoXiIme.ImeUi.Avalonia
 
 - `CandidateWindowViewState.cs`：表达锚点有效性和排除矩形。
 - `CandidateWindowStateMapper.cs`：映射结构化 Anchor。
 - `CandidateWindowController.cs`：管理会话位置缓存。
-- 实际候选 Window 文件：完成屏幕定位、翻转和 DPI 处理；当前项目文件列表中尚未发现该窗口宿主，需要实施前定位。
+- `CandidateWindow.axaml/.cs`、`CandidateWindowPresenter.cs`：窗口已存在，在既有定位入口补齐屏幕选择、边界翻转和 DPI 处理。
 
 ### Tests
 
 - `XiaoXiIme.ImeModule.Tests/ImeExportsTests.cs`
 - 可拆分新的 `ImeInputContextReaderTests.cs`
 - `XiaoXiIme.ImeIpc.Tests/XiaoXiImeIpcTests.cs`
-- Host/Core/UI 对应测试项目；若目前缺少 UI 测试项目，需要创建或在现有合适项目中补充。
+- 复用现有 Host/Core 测试及 `XiaoXiIme.IntegrationTests` 的 `CandidateWindowControllerTests`、`CandidateWindowScreenshotTests`，按职责补充定位验收；不假定 UI 测试缺失。
 
 ## 15. 风险与待确认事项
 
-1. **原生结构布局风险**：当前 `InputContext` 不完整，这是最高优先级风险。布局未验证前不能安全读取后续字段。
+1. **原生结构布局复验**：当前已有布局修复与大小/关键偏移测试；定位相关字段、实际 x86/x64 和 Native AOT 运行仍需复验，本次未做 SDK/原生探针对照。
 2. **坐标语义风险**：CandidateForm/CompositionForm 不同样式的坐标解释必须以 Windows SDK 和真实应用验证为准。
 3. **DPI 风险**：Win32 物理像素与 Avalonia 坐标单位之间可能存在缩放差异，需要最小实验确认。
 4. **多会话风险**：Host 已按 `ImeSessionId` 隔离 `ImeContext`，并把 HIMC 映射为会话标识；完成 HWND/Anchor 后仍需确认不会把窗口 A 的位置发给窗口 B。
 5. **IPC 同步延迟**：`ImeToAsciiEx` 当前同步等待 IPC；位置数据必须视为本次按键采集快照，不能假设响应返回时窗口仍然有效。
-6. **实际 UI 宿主缺失**：当前 Avalonia 项目只发现状态映射和控制器，未发现真实窗口显示代码。实施 UI 定位前需确认窗口宿主是否尚未开发或位于其他项目。
+6. **实际 UI 定位不完整**：Window/Presenter 已存在；当前裸坐标/固定点策略不等于 caret 跟随、工作区约束或多 DPI 通过。
 7. **兼容协议选择**：需要确认当前 IPC 是否已有外部消费者。如果已有，应使用可选字段或 V2 路由；如果没有，可直接演进现有 DTO。
 
 ## 16. 验收标准
 
 ### HWND
 
-- 有效 `HIMC` 关联目标窗口时，所有本次返回的 `TRANSMSG.Hwnd` 等于该目标 `HWND`。
-- 无效或缺失 HWND 时不抛异常、不破坏 composition/result 写回，消息 HWND 为 `0`。
+- 有效 `HIMC` 关联目标窗口时，采集的 Target HWND 对应本次输入上下文；返回 `TRANSMSG` 仍只有 message、wParam、lParam。
+- 无效或缺失 HWND 时不抛异常、不破坏当前 HIMC 的 composition/result 写回，也不添加消息 HWND 字段。
 - IPC 中可观察到 Target HWND、PID、TID 和有效性。
 - 快速切换窗口时不会把窗口 A 的状态或候选位置发送给窗口 B。
 

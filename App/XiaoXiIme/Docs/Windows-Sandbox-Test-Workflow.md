@@ -1,6 +1,6 @@
 # Windows 沙箱中的源码构建与测试工作流
 
-> 当前传统 IMM32 真实安装与自动按键排查进度见 [IMM32 排查交接](./IMM32-Handoff.md)。
+> 当前传统 IMM32 真实安装与自动按键排查进度见 [IMM32 排查交接](./IMM32-Handoff.md)。本文“已验证”是历史工作流记录，不是本次功能复验；当前可找到的结果及发布差距见 [主交接第 4.8 节](../../Docs/next-session-handoff.md#48-统一发布差距清单)。`.coding-agent/sandbox-probe/pulled/verification.txt` 仅证明基础设施，不证明下文源码构建或输入法业务验证。
 
 本文记录如何将 XiaoXiIme 完整代码仓库推送到 Windows 沙箱，并利用沙箱内已安装的 .NET 10 SDK 执行 `dotnet run`、构建和测试。该工作流适合隔离验证 Windows 相关托管代码，并为后续 Native AOT、输入法安装和 TSF 系统级测试提供基础。
 

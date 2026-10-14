@@ -120,7 +120,7 @@ Windows 调用 ImeToAsciiEx
 - 没有把 `Hwnd` 或 `HWndIme` 放入任何 IPC 请求。
 - `ImeToAsciiEx` 构造 `TRANSMSG` 时没有读取 `InputContext.Hwnd`，消息中的 `Hwnd` 当前为默认值 `0`。
 
-`ImeProcessKeyRequest`、`ImeSnapshotRequest` 和 `ImeUiStateRequest` 现已携带 `ImeSessionId`。`ImeSessionId.FromHimc` 把进程内 HIMC 映射为 `himc:<hex>` 稳定标识，不发送可解引用指针。空会话标识表示查询宿主最近活动会话，而不是新建或强制使用 `default` 会话。AOT JSON 源生成上下文通过公开的 `ImeSessionIdJsonConverter` 把该值写成字符串或 `null`，并通过公开的 `JsonCamelCaseStringEnumConverter` 把枚举写成 camelCase 字符串，例如 `candidateSelection` 与 `reverseConversion`。不要只依赖裸 `HWND` 作为跨进程长期身份，因为窗口句柄可能被复用。
+`ImeProcessKeyRequest`、`ImeSnapshotRequest` 和 `ImeUiStateRequest` 现已携带 `ImeSessionId`。`ImeSessionId.FromHimc` 把进程内 HIMC 映射为 `himc:<process-id-hex>:<handle-hex>` 稳定标识，不发送可解引用指针。空会话标识表示查询宿主最近活动会话，而不是新建或强制使用 `default` 会话。AOT JSON 源生成上下文通过公开的 `ImeSessionIdJsonConverter` 把该值写成字符串或 `null`，并通过公开的 `JsonCamelCaseStringEnumConverter` 把枚举写成 camelCase 字符串，例如 `candidateSelection` 与 `reverseConversion`。不要只依赖裸 `HWND` 作为跨进程长期身份，因为窗口句柄可能被复用。
 
 ### 候选窗口的位置
 

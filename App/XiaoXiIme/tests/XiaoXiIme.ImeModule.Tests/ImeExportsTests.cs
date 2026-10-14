@@ -234,8 +234,10 @@ public class ImeExportsTests
         }
     }
 
-    [Fact]
-    public unsafe void ImeSetActiveContextManaged_WhenDeactivatedThenCancelsCompositionAndClearsHimc()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public unsafe void ImeSetActiveContextManaged_WhenFocusChangesThenPreservesComposition(int active)
     {
         ImeKey? received = null;
         ImeModuleRuntime.SetProcessKeyHandlerForTesting(key =>
@@ -252,13 +254,11 @@ public class ImeExportsTests
 
         try
         {
-            var result = ImeExports.ImeSetActiveContextManaged(himc.Handle, 0);
+            var result = ImeExports.ImeSetActiveContextManaged(himc.Handle, active);
 
             Assert.Equal(1, result);
-            Assert.Equal(ImeKeyKind.Escape, received?.Kind);
-            Assert.Equal(0u, himc.CompositionString->CompStrLength);
-            Assert.Equal(0u, himc.CandidateInfo->Count);
-            Assert.False(ImeModuleRuntime.GetSnapshotForTesting(ImeSessionId.FromHimc(himc.Handle)).IsComposing);
+            Assert.Null(received);
+            Assert.Equal(4u, himc.CompositionString->CompStrLength);
         }
         finally
         {
@@ -1036,6 +1036,30 @@ public class ImeExportsTests
     }
 
     [Fact]
+    public unsafe void ImeToAsciiExManaged_SecondComposingKey_DoesNotRepeatStart()
+    {
+        ImeModuleRuntime.SetProcessKeyHandlerForTesting(_ => new ImeProcessResult(
+            new ImeSessionSnapshot(new CompositionText("ni", "ni", 2), [],
+                ImeCandidateWindowState.Empty, IsComposing: true), null, true));
+        var buffer = stackalloc byte[sizeof(TransMsgList) + sizeof(TransMsg)];
+        var list = (TransMsgList*)buffer;
+
+        try
+        {
+            ImeExports.ImeToAsciiExManaged(ImeConstants.VkA, 0, null, (nint)list, 0, 0);
+
+            var count = ImeExports.ImeToAsciiExManaged(ImeConstants.VkA, 0, null, (nint)list, 0, 0);
+
+            Assert.Equal(new[] { 1u, ImeConstants.WmImeComposition }, new[] { count, list->Message.Message });
+        }
+        finally
+        {
+            ImeModuleRuntime.SetProcessKeyHandlerForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact]
     public void Runtime_ShouldProcessVirtualKey_ReturnsTrueForUnknownKeyWhenComposing()
     {
         ImeModuleRuntime.SetSnapshotForTesting(new ImeSessionSnapshot(
@@ -1094,6 +1118,57 @@ public class ImeExportsTests
     }
 
     [Fact]
+    public void BuildMessages_ContinuingComposition_ReturnsOnlyUpdate()
+    {
+        var snapshot = new ImeSessionSnapshot(
+            new CompositionText("ni", "ni", 2), [], ImeCandidateWindowState.Empty, IsComposing: true);
+        var result = new ImeToAsciiResult(true, null, snapshot);
+
+        var messages = ImeTransMsgBuilder.BuildMessages(result, wasComposing: true);
+
+        Assert.Equal(new[] { ImeConstants.WmImeComposition }, messages.Select(message => message.Message));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void BuildMessages_Commit_EndsExactlyOnce(bool wasComposing)
+    {
+        var result = new ImeToAsciiResult(true, "你", ImeSessionSnapshot.Empty);
+
+        var messages = ImeTransMsgBuilder.BuildMessages(result, wasComposing);
+
+        Assert.Equal(new[] { ImeConstants.WmImeComposition, ImeConstants.WmImeEndComposition },
+            messages.Select(message => message.Message));
+    }
+
+    [Fact]
+    public void BuildMessages_CancelActiveComposition_EndsExactlyOnce()
+    {
+        var result = new ImeToAsciiResult(true, null, ImeSessionSnapshot.Empty);
+
+        var messages = ImeTransMsgBuilder.BuildMessages(result, wasComposing: true);
+
+        Assert.Equal(new[] { ImeConstants.WmImeEndComposition }, messages.Select(message => message.Message));
+    }
+
+    [Fact]
+    public void BuildMessages_IdleHandledKey_DoesNotEndComposition()
+    {
+        var result = new ImeToAsciiResult(true, null, ImeSessionSnapshot.Empty);
+
+        Assert.Empty(ImeTransMsgBuilder.BuildMessages(result, wasComposing: false));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void BuildMessages_UnhandledKey_DoesNotEmitMessages(bool wasComposing)
+    {
+        Assert.Empty(ImeTransMsgBuilder.BuildMessages(ImeToAsciiResult.NotHandled, wasComposing));
+    }
+
+    [Fact]
     public unsafe void Write_CopiesMessagesToTransMsgList()
     {
         var messages = new[]
@@ -1122,9 +1197,9 @@ public class ImeExportsTests
         var written = writer.TryWriteCompositionStringForTesting(compositionString, "小西", 1);
 
         Assert.True(written);
-        Assert.Equal(4u, compositionString->CompStrLength);
+        Assert.Equal(2u, compositionString->CompStrLength);
         Assert.Equal(1u, compositionString->CursorPos);
-        Assert.Equal(4u, compositionString->CompReadStrLength);
+        Assert.Equal(2u, compositionString->CompReadStrLength);
         Assert.Equal(2u, compositionString->CompReadAttrLength);
         Assert.Equal(8u, compositionString->CompReadClauseLength);
         Assert.Equal(2u, compositionString->CompAttrLength);
@@ -1137,10 +1212,28 @@ public class ImeExportsTests
         Assert.Equal(ImeConstants.AttrInput, buffer[compositionString->CompReadAttrOffset + 1]);
         var clauses = (uint*)(buffer + compositionString->CompClauseOffset);
         Assert.Equal(0u, clauses[0]);
-        Assert.Equal(4u, clauses[1]);
+        Assert.Equal(2u, clauses[1]);
         var readingClauses = (uint*)(buffer + compositionString->CompReadClauseOffset);
         Assert.Equal(0u, readingClauses[0]);
-        Assert.Equal(4u, readingClauses[1]);
+        Assert.Equal(2u, readingClauses[1]);
+    }
+
+    [Theory]
+    [InlineData("n", 1u)]
+    [InlineData("你", 1u)]
+    [InlineData("\U00020000", 2u)]
+    public unsafe void CompositionContextWriter_WhenUnicodeTextThenUsesUtf16Units(string text, uint expectedLength)
+    {
+        var writer = new ImeCompositionContextWriter(new NoOpImmContextAccessor());
+        var buffer = stackalloc byte[512];
+        var composition = (CompositionString*)buffer;
+
+        writer.TryWriteCompositionStringForTesting(composition, text, text.Length);
+
+        Assert.Equal(new[] { expectedLength, expectedLength, expectedLength, expectedLength, expectedLength, expectedLength },
+            new[] { composition->CompStrLength, composition->CompReadStrLength, composition->CompAttrLength,
+                composition->CursorPos, ((uint*)(buffer + composition->CompClauseOffset))[1],
+                ((uint*)(buffer + composition->CompReadClauseOffset))[1] });
     }
 
     [Fact]
@@ -1153,7 +1246,7 @@ public class ImeExportsTests
         var written = writer.TryWriteCompositionStringForTesting(compositionString, "小西", "xiao", 2);
 
         Assert.True(written);
-        Assert.Equal(8u, compositionString->CompReadStrLength);
+        Assert.Equal(4u, compositionString->CompReadStrLength);
         Assert.Equal(4u, compositionString->CompReadAttrLength);
         Assert.Equal("xiao", new string((char*)(buffer + compositionString->CompReadStrOffset), 0, 4));
         Assert.Equal("小西", new string((char*)(buffer + compositionString->CompStrOffset), 0, 2));
@@ -1169,12 +1262,12 @@ public class ImeExportsTests
         var written = writer.TryWriteResultStringForTesting(compositionString, "小希");
 
         Assert.True(written);
-        Assert.Equal(4u, compositionString->ResultStrLength);
+        Assert.Equal(2u, compositionString->ResultStrLength);
         Assert.Equal(8u, compositionString->ResultClauseLength);
         Assert.Equal("小希", new string((char*)(buffer + compositionString->ResultStrOffset), 0, 2));
         var clauses = (uint*)(buffer + compositionString->ResultClauseOffset);
         Assert.Equal(0u, clauses[0]);
-        Assert.Equal(4u, clauses[1]);
+        Assert.Equal(2u, clauses[1]);
     }
 
     [Fact]
@@ -1213,7 +1306,7 @@ public class ImeExportsTests
 
         Assert.True(written);
         var compositionString = (CompositionString*)compositionBuffer;
-        Assert.Equal(2u, compositionString->ResultStrLength);
+        Assert.Equal(1u, compositionString->ResultStrLength);
         var candidateInfo = (CandidateInfo*)candidateBuffer;
         Assert.Equal(0u, candidateInfo->Count);
         var guideLine = (GuideLine*)guideLineBuffer;

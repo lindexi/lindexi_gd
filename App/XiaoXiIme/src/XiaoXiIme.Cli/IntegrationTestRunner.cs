@@ -301,7 +301,7 @@ internal static class IntegrationTestRunner
 
                 var probes = string.Equals(expectedScheme, DictionaryPackageLocations.XiaoheDoublePinyinInputScheme, StringComparison.Ordinal)
                     ? new[] { ("nihc", "你好"), ("xnxiaimuyi", "XiaoXiIme") }
-                    : new[] { ("nihao", "你好"), ("xiaoxiaimuyi", "XiaoXiIme") };
+                    : new[] { ("nihao", "你好"), ("xiaoxiaimuyi", "XiaoXiIme"), ("ni", "你") };
                 foreach (var (probe, expectedText) in probes)
                 {
                     var candidates = dictionary.Query(new ImeDictionaryQuery(probe));

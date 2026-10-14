@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+ <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+ <data name="Title" xml:space="preserve"><value>小希输入法</value></data>
+ <data name="Settings" xml:space="preserve"><value>设置</value></data>
+ <data name="SettingsTitle" xml:space="preserve"><value>小希输入法设置</value></data>
+ <data name="About" xml:space="preserve"><value>关于小希输入法</value></data>
+ <data name="Full" xml:space="preserve"><value>全拼</value></data>
+ <data name="Double" xml:space="preserve"><value>小鹤双拼</value></data>
+ <data name="Unknown" xml:space="preserve"><value>方案未知</value></data>
+ <data name="Hint" xml:space="preserve"><value>保存后下次启动输入服务生效，当前输入不受影响。</value></data>
+ <data name="Current" xml:space="preserve"><value>当前运行：{0}；已保存：{1}</value></data>
+ <data name="Override" xml:space="preserve"><value>启动覆盖来源：{0}。保存设置不会覆盖该来源。</value></data>
+ <data name="explicitPath" xml:space="preserve"><value>显式词库路径</value></data>
+ <data name="explicitParameter" xml:space="preserve"><value>显式方案参数</value></data>
+ <data name="environment" xml:space="preserve"><value>环境变量</value></data>
+ <data name="Visible" xml:space="preserve"><value>显示状态栏</value></data>
+ <data name="Exit" xml:space="preserve"><value>退出</value></data>
+ <data name="Hide" xml:space="preserve"><value>隐藏状态栏</value></data>
+ <data name="Position" xml:space="preserve"><value>恢复默认位置（应用后生效）</value></data>
+ <data name="Defaults" xml:space="preserve"><value>恢复默认</value></data>
+ <data name="Reload" xml:space="preserve"><value>重新连接 / 重新加载</value></data>
+ <data name="Cancel" xml:space="preserve"><value>取消</value></data>
+ <data name="Apply" xml:space="preserve"><value>应用</value></data>
+ <data name="OK" xml:space="preserve"><value>确定</value></data>
+ <data name="Offline" xml:space="preserve"><value>输入服务未连接（显示上次确认状态）</value></data>
+ <data name="Ready" xml:space="preserve"><value>就绪</value></data>
+ <data name="Fallback" xml:space="preserve"><value>已降级，不代表正式词库可用</value></data>
+ <data name="UserError" xml:space="preserve"><value>用户词库异常</value></data>
+ <data name="Pending" xml:space="preserve"><value>已保存，下次启动输入服务生效</value></data>
+ <data name="Saving" xml:space="preserve"><value>正在保存…</value></data>
+ <data name="Uncertain" xml:space="preserve"><value>保存结果待确认，请重新连接核对；不要重复应用。</value></data>
+ <data name="Conflict" xml:space="preserve"><value>设置已在其他操作中更改，请重新加载。</value></data>
+ <data name="HostChanged" xml:space="preserve"><value>输入服务已重启，请重新加载后应用。</value></data>
+ <data name="PackageUnavailable" xml:space="preserve"><value>无法使用所选方案，请检查已安装词库。</value></data>
+ <data name="StorageUnavailable" xml:space="preserve"><value>无法保存设置，请检查当前用户目录访问权限。</value></data>
+ <data name="InvalidSettings" xml:space="preserve"><value>设置内容无效或配置文件已损坏。</value></data>
+ <data name="Unsupported" xml:space="preserve"><value>当前输入服务不支持设置。</value></data>
+ <data name="None" xml:space="preserve"><value>已保存</value></data>
+ <data name="Attribution" xml:space="preserve"><value>词库数据及词库逻辑贡献：{0}</value></data>
+ <data name="Version" xml:space="preserve"><value>版本：{0}</value></data>
+ <data name="UnknownVersion" xml:space="preserve"><value>版本未知</value></data>
+ <data name="Diagnostics" xml:space="preserve"><value>查看诊断详情</value></data>
+ <data name="Copy" xml:space="preserve"><value>复制诊断信息</value></data>
+ <data name="DiagnosticSummary" xml:space="preserve"><value>{0}\n{1}\n正式词库加载异常：{2}\n用户词库异常：{3}\n配置读取：{4}</value></data>
+ <data name="Yes" xml:space="preserve"><value>是</value></data>
+ <data name="No" xml:space="preserve"><value>否</value></data>
+ <data name="TrayUnavailable" xml:space="preserve"><value>托盘不可用，状态栏保守保持显示。可再次启动相同入口恢复状态栏或打开设置。</value></data>
+ <data name="Temporary" xml:space="preserve"><value>状态栏已临时恢复，尚未保存。</value></data>
+</root>

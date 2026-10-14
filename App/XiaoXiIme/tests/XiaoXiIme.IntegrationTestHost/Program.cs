@@ -13,11 +13,20 @@ using XiaoXiIme.ImeHost;
 using XiaoXiIme.ImeIpc;
 using XiaoXiIme.ImeUi.Avalonia;
 
+if (args.Length == 2 && args[0] == "--product-ui-target")
+{
+    if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException();
+    Win32ImeEditScenario.RunProductUiTarget(args[1]);
+    return 0;
+}
+
 var scenarios = new (string Name, Func<Task> Run)[]
 {
     ("candidate-window-state", RunCandidateWindowStateAsync),
     ("ime-host-ipc", RunImeHostIpcAsync),
     ("real-ime-keystroke-commit", RunRealImeKeystrokeCommitAsync),
+    ("real-ime-composition-lifecycle", RunRealImeCompositionLifecycleAsync),
+    ("real-ime-multi-himc-isolation", RunRealImeMultiHimcIsolationAsync),
 };
 
 foreach (var scenario in scenarios)
@@ -69,7 +78,8 @@ static async Task RunImeHostIpcAsync()
 {
     var options = new XiaoXiImeIpcOptions($"XiaoXiIme_Integration_{Guid.NewGuid():N}");
     var hostRoot = ResolveHostBaseDirectory();
-    using var host = new ImeHostService(options, hostBaseDirectory: hostRoot);
+    using var host = new ImeHostService(options, hostBaseDirectory: hostRoot,
+        productSettingsPath: Path.Combine(Path.GetTempPath(), "XiaoXiIme-integration", Guid.NewGuid().ToString("N"), "product-settings.json"));
     using var client = new XiaoXiImeIpcClient(options);
 
     host.Start();
@@ -99,6 +109,26 @@ static Task RunRealImeKeystrokeCommitAsync()
     }
 
     return Win32ImeEditScenario.RunAsync();
+}
+
+static Task RunRealImeCompositionLifecycleAsync()
+{
+    if (!OperatingSystem.IsWindows())
+    {
+        throw new PlatformNotSupportedException("The real IME composition lifecycle scenario requires Windows.");
+    }
+
+    return Win32ImeEditScenario.RunAsync(lifecycle: true);
+}
+
+static Task RunRealImeMultiHimcIsolationAsync()
+{
+    if (!OperatingSystem.IsWindows())
+    {
+        throw new PlatformNotSupportedException("The real IME multi-HIMC scenario requires Windows.");
+    }
+
+    return Win32ImeEditScenario.RunAsync(multiHimc: true);
 }
 
 static string ResolveHostBaseDirectory()
@@ -160,7 +190,81 @@ internal static class Win32ImeEditScenario
     private const string GetDiagnosticsExport = "XiaoXiImeGetKeystrokeDiagnostics";
     private static readonly InputMessageTrace s_inputMessageTrace = new();
 
-    public static async Task RunAsync()
+    [DllImport("user32.dll")]
+    private static extern bool IsWindow(nint window);
+
+    internal static void RunProductUiTarget(string evidencePath)
+    {
+        ImmDisableTextFrameService(GetCurrentThreadId());
+        var window = CreateWindowEx(0, "STATIC", "XiaoXiIme Product UI EDIT Target", WsOverlappedWindow | WsVisible,
+            100, 100, 520, 190, 0, 0, GetModuleHandle(null), 0);
+        if (window == 0) throw new Win32Exception(Marshal.GetLastPInvokeError());
+        nint edit = 0;
+        nint context = 0;
+        nint previousContext = 0;
+        try
+        {
+            edit = CreateWindowEx(0, "EDIT", string.Empty, WsChild | WsVisible | WsBorder | EsAutoHScroll,
+                20, 55, 470, 32, window, 0, GetModuleHandle(null), 0);
+            if (edit == 0) throw new Win32Exception(Marshal.GetLastPInvokeError());
+            context = ImmCreateContext();
+            if (context == 0) throw new Win32Exception(Marshal.GetLastPInvokeError());
+            previousContext = ImmAssociateContext(edit, context);
+            SetForegroundWindow(window);
+            SetActiveWindow(window);
+            SetFocus(edit);
+            PumpMessages();
+            WriteSnapshot();
+            void WriteSnapshot()
+            {
+                var associated = ImmGetContext(edit);
+                try
+                {
+                    var length = associated == 0 ? 0 : ImmGetCompositionString(associated, 8, null, 0);
+                    var bytes = length > 0 ? new byte[length] : Array.Empty<byte>();
+                    if (length > 0) ImmGetCompositionString(associated, 8, bytes, (uint)bytes.Length);
+                    File.WriteAllText(evidencePath, System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        pid = Environment.ProcessId, window = window.ToInt64(), edit = edit.ToInt64(),
+                        thread = GetCurrentThreadId(), himc = associated.ToInt64(), ownedHimc = context.ToInt64(),
+                        composition = System.Text.Encoding.Unicode.GetString(bytes)
+                    }));
+                }
+                finally
+                {
+                    if (associated != 0) ImmReleaseContext(edit, associated);
+                }
+            }
+            var deadline = DateTime.UtcNow + TimeSpan.FromMinutes(3);
+            while (IsWindow(window) && DateTime.UtcNow < deadline)
+            {
+                PumpMessages();
+                if (File.Exists(evidencePath + ".restore"))
+                {
+                    File.Delete(evidencePath + ".restore");
+                    SetForegroundWindow(window);
+                    SetActiveWindow(window);
+                    SetFocus(edit);
+                }
+                if (File.Exists(evidencePath + ".snapshot"))
+                {
+                    WriteSnapshot();
+                    File.Delete(evidencePath + ".snapshot");
+                }
+                if (File.Exists(evidencePath + ".stop")) break;
+                Thread.Sleep(10);
+            }
+        }
+        finally
+        {
+            if (edit != 0 && IsWindow(edit)) ImmAssociateContext(edit, previousContext);
+            var contextDestroyed = context == 0 || ImmDestroyContext(context);
+            if (IsWindow(window)) DestroyWindow(window);
+            if (!contextDestroyed) throw new Win32Exception(Marshal.GetLastPInvokeError());
+        }
+    }
+
+    public static async Task RunAsync(bool lifecycle = false, bool multiHimc = false)
     {
         if (!OperatingSystem.IsWindows())
         {
@@ -168,7 +272,7 @@ internal static class Win32ImeEditScenario
         }
 
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var thread = new Thread(() => RunOnWindowThread(completion))
+        var thread = new Thread(() => RunOnWindowThread(completion, lifecycle, multiHimc))
         {
             IsBackground = true,
             Name = "XiaoXiIme real keystroke integration",
@@ -179,12 +283,14 @@ internal static class Win32ImeEditScenario
         await completion.Task.WaitAsync(TimeSpan.FromSeconds(90));
     }
 
-    private static void RunOnWindowThread(TaskCompletionSource completion)
+    private static void RunOnWindowThread(TaskCompletionSource completion, bool lifecycle, bool multiHimc)
     {
         nint window = 0;
         nint keyboardLayout = 0;
         nint imeModule = 0;
         var loadedByImmBeforeProbe = false;
+        EditCompositionObserver? observer = null;
+        Exception? failure = null;
         try
         {
             WriteStage("entered-window-thread");
@@ -287,6 +393,17 @@ internal static class Win32ImeEditScenario
                 throw new Win32Exception(Marshal.GetLastPInvokeError(), $"Unable to load {ExpectedImeFile} from System32 for keystroke diagnostics.");
             }
 
+            var loadedPathBuffer = new StringBuilder(32768);
+            if (GetModuleFileName(imeModule, loadedPathBuffer, loadedPathBuffer.Capacity) == 0)
+            {
+                throw new Win32Exception(Marshal.GetLastPInvokeError(), "Unable to identify the loaded IME module.");
+            }
+            var loadedPath = loadedPathBuffer.ToString();
+            using (var loadedFile = File.OpenRead(loadedPath))
+            {
+                Console.WriteLine($"DIAGNOSTICS loaded-ime-identity: Path={loadedPath}; SHA256={Convert.ToHexString(SHA256.HashData(loadedFile))}; LoadedByImmBeforeProbe={loadedByImmBeforeProbe}");
+            }
+
             WriteStage("before-load-diagnostics-exports");
             var diagnostics = ImeDiagnosticsExports.Load(imeModule);
             WriteStage("after-load-diagnostics-exports");
@@ -305,6 +422,23 @@ internal static class Win32ImeEditScenario
             {
                 throw new InvalidOperationException($"The target window lost foreground or focus before SendInput. SetForegroundWindow={foregroundSet}, ExpectedForeground=0x{window:X}, ActualForeground=0x{foregroundBeforeInput:X}, ExpectedFocus=0x{edit:X}, ActualFocus=0x{focusBeforeInput:X}.");
             }
+            if (multiHimc)
+            {
+                RunMultiHimcIsolation(window, edit, keyboardLayout);
+                var snapshot = diagnostics.GetSnapshot();
+                Require(snapshot.ImeProcessKeyCallCount >= 9 && snapshot.ImeToAsciiExCallCount >= 9,
+                    $"Multi-HIMC input did not reach the expected native IME call chain. {snapshot}");
+                Console.WriteLine($"DIAGNOSTICS real-ime-multi-himc-isolation native-calls: {snapshot}");
+                return;
+            }
+
+            observer = new EditCompositionObserver(edit, lifecycle);
+            if (lifecycle)
+            {
+                RunCompositionLifecycle(window, edit, keyboardLayout, observer);
+                return;
+            }
+
             WriteStage("before-SendInput");
             InjectXxKeystrokes();
             WriteStage("after-SendInput");
@@ -315,6 +449,7 @@ internal static class Win32ImeEditScenario
             do
             {
                 PumpMessages();
+                CheckTarget(window, edit, keyboardLayout, observer);
                 text = GetWindowText(edit);
                 if (text == "小希")
                 {
@@ -324,7 +459,7 @@ internal static class Win32ImeEditScenario
                         throw new InvalidOperationException($"The text committed, but the IME call trace was incomplete. {snapshot}");
                     }
 
-                    completion.SetResult();
+                    ObserveStable(window, edit, keyboardLayout, observer, "小希", expectedResults: 1);
                     return;
                 }
 
@@ -338,10 +473,11 @@ internal static class Win32ImeEditScenario
 
         catch (Exception exception)
         {
-            completion.TrySetException(exception);
+            failure = exception;
         }
         finally
         {
+            observer?.Dispose();
             if (window != 0)
             {
                 DestroyWindow(window);
@@ -356,8 +492,527 @@ internal static class Win32ImeEditScenario
             {
                 FreeLibrary(imeModule);
             }
+            GC.KeepAlive(observer);
+            if (failure is not null)
+            {
+                completion.TrySetException(failure);
+            }
+            else
+            {
+                completion.TrySetResult();
+            }
         }
     }
+
+    private static void RunMultiHimcIsolation(nint window, nint firstEdit, nint layout)
+    {
+        var secondEdit = CreateWindowEx(0, "EDIT", string.Empty,
+            WsChild | WsVisible | WsBorder | EsAutoHScroll,
+            20, 100, 470, 32, window, 0, GetModuleHandle(null), 0);
+        Require(secondEdit != 0, "Unable to create the second EDIT.");
+        nint firstContext = 0;
+        nint secondContext = 0;
+        nint firstPrevious = 0;
+        nint secondPrevious = 0;
+        var contextsAssociated = false;
+        EditCompositionObserver? first = null;
+        EditCompositionObserver? second = null;
+        try
+        {
+            firstContext = ImmCreateContext();
+            secondContext = ImmCreateContext();
+            Require(firstContext != 0 && secondContext != 0 && firstContext != secondContext,
+                "Two distinct owned HIMCs are required.");
+            firstPrevious = ImmAssociateContext(firstEdit, firstContext);
+            secondPrevious = ImmAssociateContext(secondEdit, secondContext);
+            contextsAssociated = true;
+            Require(ImmSetOpenStatus(firstContext, true) && ImmSetOpenStatus(secondContext, true),
+                "Unable to open both owned HIMCs.");
+            first = new EditCompositionObserver(firstEdit, validateLifecycle: true);
+            second = new EditCompositionObserver(secondEdit, validateLifecycle: true);
+            Require(first.InputContext == firstContext && second.InputContext == secondContext,
+                "EDIT association did not retain the distinct owned HIMCs.");
+            using var client = new XiaoXiImeIpcClient();
+            var status = WaitWithPump(client.GetHostStatusAsync(), first);
+            Require(status.IsRunning && !status.IsUsingFallbackDictionary
+                && string.IsNullOrEmpty(status.DictionaryLoadError)
+                && !string.IsNullOrWhiteSpace(status.DictionaryPackagePath)
+                && Directory.Exists(status.DictionaryPackagePath)
+                && status.DictionaryInputScheme == DictionaryPackageLocations.FullPinyinInputScheme,
+                $"Multi-HIMC input requires the production fullPinyin external host: {status}");
+            var firstSession = ImeSessionId.FromHimc(firstContext);
+            var secondSession = ImeSessionId.FromHimc(secondContext);
+            CheckHostSnapshot(client, firstSession, first, string.Empty, false);
+            CheckHostSnapshot(client, secondSession, second, string.Empty, false);
+
+            Step(firstEdit, first, firstSession, 0x4E, "n");
+            Step(secondEdit, second, secondSession, 0x4E, "n");
+            CheckFirst("n");
+            Step(firstEdit, first, firstSession, 0x49, "ni");
+            CheckHostSnapshot(client, secondSession, second, "n", true);
+            Require(second.Read(0x0008) == "n" && second.ResultCount == 0,
+                "First EDIT update changed the second HIMC.");
+            Step(secondEdit, second, secondSession, 0x49, "ni");
+            CheckFirst("ni");
+
+            if (Environment.GetEnvironmentVariable("XIAOXIIME_VERIFY_ANCHOR") == "1")
+            {
+                VerifyCandidate(firstEdit, first, firstSession, "switch-first-no-key");
+                VerifyCandidate(secondEdit, second, secondSession, "switch-second-no-key");
+                VerifyCandidate(firstEdit, first, firstSession, "switch-back-no-key");
+                Require(MoveWindow(window, 230, 180, 520, 190, true), "Unable to move input window.");
+                VerifyCandidate(firstEdit, first, firstSession, "moved-no-key");
+                var monitor = GetMonitor(firstEdit);
+                Require(MoveWindow(window, monitor.Work.Right - 120, monitor.Work.Bottom - 110, 520, 190, true),
+                    "Unable to move input window to work area boundary.");
+                VerifyCandidate(firstEdit, first, firstSession, "work-area-boundary-no-key");
+                Require(MoveWindow(window, 100, 100, 520, 190, true), "Unable to restore input window.");
+            }
+
+            SendKey(secondEdit, second, 0x1B);
+            WaitFor(() => second.EndCount == 1, second, "second HIMC Escape END");
+            Require(second.StartCount == 1 && second.ResultCount == 0
+                && second.Read(0x0008) == string.Empty && second.Read(0x0001) == string.Empty
+                && second.Read(0x0800) == string.Empty, "Second HIMC cancel must clear strings without a result.");
+            CheckHostSnapshot(client, secondSession, second, string.Empty, false);
+            ObserveStable(window, secondEdit, layout, second, string.Empty, 0);
+            CheckFirst("ni");
+
+            Step(secondEdit, second, secondSession, 0x4E, "n");
+            CheckFirst("ni");
+            Step(secondEdit, second, secondSession, 0x49, "ni");
+            CheckFirst("ni");
+            SendKey(secondEdit, second, 0x20);
+            WaitFor(() => second.ResultCount == 1 && second.EndCount == 2
+                && GetWindowText(secondEdit) == "你", second, "second HIMC Space result/END/text");
+            Require(second.StartCount == 2 && second.Results.Single() == "你",
+                "Second HIMC must cancel then recompose and commit exactly once.");
+            CheckHostSnapshot(client, secondSession, second, string.Empty, false);
+            ObserveStable(window, secondEdit, layout, second, "你", 1);
+            CheckFirst("ni");
+
+            Focus(firstEdit, first);
+            CheckFirst("ni");
+            SendKey(firstEdit, first, 0x20);
+            WaitFor(() => first.ResultCount == 1 && first.EndCount == 1
+                && GetWindowText(firstEdit) == "你", first, "first HIMC Space result/END/text");
+            Require(first.StartCount == 1 && first.Results.Single() == "你",
+                "First HIMC must retain its original composition and commit once.");
+            ObserveStable(window, firstEdit, layout, first, "你", 1);
+            CheckHostSnapshot(client, firstSession, first, string.Empty, false);
+            CheckHostSnapshot(client, secondSession, second, string.Empty, false);
+            Require(GetWindowText(secondEdit) == "你" && second.ResultCount == 1
+                && second.StartCount == 2 && second.EndCount == 2,
+                "First commit changed the second EDIT lifecycle.");
+            Console.WriteLine($"DIAGNOSTICS real-ime-multi-himc-isolation: FirstEDIT=0x{firstEdit:X}, FirstHIMC=0x{firstContext:X}, FirstSession={firstSession}, {first}; SecondEDIT=0x{secondEdit:X}, SecondHIMC=0x{secondContext:X}, SecondSession={secondSession}, {second}");
+
+            void VerifyCandidate(nint edit, EditCompositionObserver observer, ImeSessionId session, string stage)
+            {
+                Focus(edit, observer);
+                WaitFor(() => CandidateMatches(client, edit, observer, session, stage), observer, stage);
+                Console.WriteLine($"PASS candidate-position/{stage}");
+            }
+
+            void CheckFirst(string reading)
+            {
+                first.ThrowIfFailed();
+                second.ThrowIfFailed();
+                Require(first.Read(0x0008) == reading && first.Read(0x0001) == reading
+                    && first.StartCount == 1 && first.EndCount == 0 && first.ResultCount == 0,
+                    $"Focus switching or second HIMC input changed the first composition '{reading}'. {first}");
+                CheckHostSnapshot(client, firstSession, first, reading, true);
+            }
+
+            void Focus(nint edit, EditCompositionObserver observer)
+            {
+                SetForegroundWindow(window);
+                SetActiveWindow(window);
+                SetFocus(edit);
+                PumpMessages();
+                first.ThrowIfFailed();
+                second.ThrowIfFailed();
+                CheckTarget(window, edit, layout, observer);
+            }
+
+            void SendKey(nint edit, EditCompositionObserver observer, ushort key)
+            {
+                Focus(edit, observer);
+                Input[] inputs = [Input.Keyboard(key, 0), Input.Keyboard(key, KeyEventKeyUp)];
+                Require(SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<Input>()) == inputs.Length,
+                    $"Multi-HIMC SendInput did not accept both events for 0x{key:X}.");
+            }
+
+            void Step(nint edit, EditCompositionObserver observer, ImeSessionId session, ushort key, string reading)
+            {
+                var previousUpdates = observer.Updates.Count;
+                SendKey(edit, observer, key);
+                WaitFor(() => observer.Updates.Skip(previousUpdates).Any(update => update.Composition == reading
+                    && update.Reading == reading && update.Cursor == reading.Length), observer, $"multi-HIMC composition {reading}");
+                Require(observer.Read(0x0008) == reading && observer.Read(0x0001) == reading,
+                    $"Live multi-HIMC composition/reading must be {reading}.");
+                CheckHostSnapshot(client, session, observer, reading, true);
+            }
+        }
+        finally
+        {
+            first?.Dispose();
+            second?.Dispose();
+            if (contextsAssociated)
+            {
+                ImmAssociateContext(firstEdit, firstPrevious);
+                ImmAssociateContext(secondEdit, secondPrevious);
+            }
+            var firstDestroyed = firstContext == 0 || ImmDestroyContext(firstContext);
+            var secondDestroyed = secondContext == 0 || ImmDestroyContext(secondContext);
+            var editDestroyed = DestroyWindow(secondEdit);
+            GC.KeepAlive(first);
+            GC.KeepAlive(second);
+            Console.WriteLine($"DIAGNOSTICS multi-HIMC cleanup: FirstDestroyed={firstDestroyed}, SecondDestroyed={secondDestroyed}, SecondEDITDestroyed={editDestroyed}");
+            Require(firstDestroyed && secondDestroyed && editDestroyed, "Multi-HIMC resource cleanup failed.");
+        }
+    }
+
+    private static void RunCompositionLifecycle(nint window, nint edit, nint layout, EditCompositionObserver observer)
+    {
+        using var client = new XiaoXiImeIpcClient();
+        var status = WaitWithPump(client.GetHostStatusAsync(), observer);
+        Console.WriteLine($"DIAGNOSTICS real-ime-composition-lifecycle external-host: {status}");
+        Require(status.IsRunning && !status.IsUsingFallbackDictionary
+            && string.IsNullOrEmpty(status.DictionaryLoadError)
+            && !string.IsNullOrWhiteSpace(status.DictionaryPackagePath)
+            && Directory.Exists(status.DictionaryPackagePath)
+            && status.DictionaryInputScheme == DictionaryPackageLocations.FullPinyinInputScheme,
+            $"Default external host must use the production fullPinyin package without fallback: {status}");
+        var session = ImeSessionId.FromHimc(observer.InputContext);
+        CheckHostSnapshot(client, session, observer, string.Empty, false);
+
+        Compose();
+        SendKey(0x1B);
+        WaitFor(() => observer.EndCount == 1, observer, "Escape END");
+        Require(observer.StartCount == 1 && observer.ResultCount == 0, "Cancel must have one START/END and no result.");
+        Require(observer.Read(0x0008) == string.Empty && observer.Read(0x0001) == string.Empty
+            && observer.Read(0x0800) == string.Empty, "Cancel must clear composition/reading/result in the same HIMC.");
+        CheckHostSnapshot(client, session, observer, string.Empty, false);
+        ObserveStable(window, edit, layout, observer, string.Empty, 0);
+        Require(observer.StartCount == 1 && observer.EndCount == 1, "Cancel lifecycle changed during stable observation.");
+
+        Compose();
+        SendKey(0x20);
+        WaitFor(() => observer.ResultCount == 1 && observer.EndCount == 2 && GetWindowText(edit) == "你",
+            observer, "Space result/END/text");
+        Require(observer.StartCount == 2 && observer.Results.Single() == "你", "Second composition must start once and commit exactly one result '你'.");
+        CheckHostSnapshot(client, session, observer, string.Empty, false);
+        ObserveStable(window, edit, layout, observer, "你", 1);
+        CheckHostSnapshot(client, session, observer, string.Empty, false);
+        Require(observer.StartCount == 2 && observer.EndCount == 2, "Each lifecycle must have exactly one START and END.");
+        Console.WriteLine($"DIAGNOSTICS real-ime-composition-lifecycle: HIMC=0x{observer.InputContext:X}, Session={session}, {observer}");
+
+        void Compose()
+        {
+            Step(0x4E, "n", 1);
+            Step(0x49, "ni", 2);
+        }
+
+        void Step(ushort key, string composition, int cursor)
+        {
+            var previousUpdates = observer.Updates.Count;
+            SendKey(key);
+            WaitFor(() => observer.Updates.Skip(previousUpdates).Any(update => update.Composition == composition
+                && update.Reading == composition && update.Cursor == cursor), observer, $"composition {composition}");
+            Require(observer.Read(0x0008) == composition && observer.Read(0x0001) == composition,
+                $"Live HIMC composition/reading must be {composition}.");
+            CheckHostSnapshot(client, session, observer, composition, true);
+        }
+
+        void SendKey(ushort key)
+        {
+            CheckTarget(window, edit, layout, observer);
+            Input[] inputs = [Input.Keyboard(key, 0), Input.Keyboard(key, KeyEventKeyUp)];
+            var sent = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<Input>());
+            Require(sent == inputs.Length, $"SendInput accepted {sent} of {inputs.Length} events for 0x{key:X}.");
+        }
+    }
+
+    private static void CheckHostSnapshot(XiaoXiImeIpcClient client, ImeSessionId session,
+        EditCompositionObserver observer, string composition, bool composing)
+    {
+        var snapshot = WaitWithPump(client.GetSnapshotAsync(session), observer);
+        if (composing && Environment.GetEnvironmentVariable("XIAOXIIME_VERIFY_ANCHOR") == "1")
+        {
+            var ui = WaitWithPump(client.GetUiStateAsync(session), observer);
+            Require(ui.SessionId == session && ui.Anchor is { IsValid: true } anchor
+                && anchor.SessionId == session && anchor.ProcessId == (uint)Environment.ProcessId,
+                $"Actual HIMC anchor was not valid for session {session}: {ui.Anchor}");
+            Console.WriteLine($"ANCHOR-EVIDENCE session={session} anchor={ui.Anchor}");
+        }
+        Require(snapshot.IsComposing == composing && snapshot.Composition.DisplayText == composition
+            && snapshot.Composition.Reading == composition
+            && snapshot.Composition.CaretIndex == composition.Length,
+            $"External host snapshot for actual HIMC session {session} did not follow real input: {snapshot}");
+        if (composition == "ni")
+        {
+            Require(snapshot.Candidates.Count > 0 && snapshot.Candidates[0].Text == "你",
+                "Production fullPinyin first candidate for ni must be 你.");
+        }
+    }
+
+    private static bool CandidateMatches(XiaoXiImeIpcClient client, nint edit,
+        EditCompositionObserver observer, ImeSessionId session, string stage)
+    {
+        var ui = WaitWithPump(client.GetUiStateAsync(new ImeUiStateRequest(
+            FocusWindowHandle: (long)edit, FocusProcessId: (uint)Environment.ProcessId)), observer);
+        Require(ui.SessionId == session && ui.Anchor is { IsValid: true } && ui.Anchor.WindowHandle == (long)edit,
+            $"Focus query crossed actual EDIT/session boundary at {stage}: {ui}");
+        var candidate = FindWindow(null, "XiaoXiIme Candidate Window");
+        if (candidate == 0 || !IsWindowVisible(candidate)) return false;
+        Require(GetWindowRect(candidate, out var rect), "Unable to read actual candidate HWND rectangle.");
+        var anchor = ui.Anchor!;
+        Require(XiaoXiIme.ImeInterop.InputTargetMethods.TryGetPhysicalPoint(edit, anchor.ClientX, anchor.ClientY, out var point),
+            "Unable to convert actual EDIT anchor.");
+        var top = point.Y + anchor.ExcludeTop - anchor.ScreenY;
+        if (anchor.ClientExcludeTop is { } clientTop)
+        {
+            Require(XiaoXiIme.ImeInterop.InputTargetMethods.TryGetPhysicalPoint(edit, anchor.ClientX, clientTop, out var upper),
+                "Unable to convert actual exclusion top.");
+            top = upper.Y;
+        }
+        var work = GetMonitor(edit).Work;
+        var width = rect.Right - rect.Left;
+        var height = rect.Bottom - rect.Top;
+        var expectedX = Math.Clamp(point.X, work.Left, Math.Max(work.Left, work.Right - width));
+        var expectedY = Math.Clamp(point.Y + height > work.Bottom ? top - height : point.Y,
+            work.Top, Math.Max(work.Top, work.Bottom - height));
+        var statusPath = Environment.GetEnvironmentVariable("XIAOXIIME_UI_STATUS");
+        var status = statusPath is not null && File.Exists(statusPath) ? File.ReadAllText(statusPath) : string.Empty;
+        var matches = rect.Left == expectedX && rect.Top == expectedY && width > 0 && height > 0
+            && rect.Left >= work.Left && rect.Top >= work.Top && rect.Right <= work.Right && rect.Bottom <= work.Bottom
+            && status.StartsWith("visible|ni|", StringComparison.Ordinal)
+            && status.Contains($"session={session}|", StringComparison.Ordinal);
+        Console.WriteLine($"POSITION-EVIDENCE stage={stage} match={matches} edit=0x{edit:X} himc=0x{observer.InputContext:X} session={session} candidate=0x{candidate:X} rect={rect.Left},{rect.Top},{rect.Right},{rect.Bottom} expected={expectedX},{expectedY} work={work.Left},{work.Top},{work.Right},{work.Bottom} dpi={XiaoXiIme.ImeInterop.InputTargetMethods.GetDpiForWindow(candidate)} anchor={anchor} status={status}");
+        return matches;
+    }
+
+    private static MonitorInfo GetMonitor(nint window)
+    {
+        var info = new MonitorInfo { Size = (uint)Marshal.SizeOf<MonitorInfo>() };
+        Require(GetMonitorInfo(MonitorFromWindow(window, 2), ref info), "Unable to read actual monitor work area.");
+        return info;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct WindowRect { public int Left, Top, Right, Bottom; }
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MonitorInfo { public uint Size; public WindowRect Monitor, Work; public uint Flags; }
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern nint FindWindow(string? className, string title);
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool IsWindowVisible(nint window);
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetWindowRect(nint window, out WindowRect rect);
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool MoveWindow(nint window, int x, int y, int width, int height, bool repaint);
+    [DllImport("user32.dll")]
+    private static extern nint MonitorFromWindow(nint window, uint flags);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetMonitorInfo(nint monitor, ref MonitorInfo info);
+
+    private static T WaitWithPump<T>(Task<T> task, EditCompositionObserver observer)
+    {
+        WaitFor(() => task.IsCompleted, observer, "read-only default IPC query");
+        return task.GetAwaiter().GetResult();
+    }
+
+    private static void WaitFor(Func<bool> predicate, EditCompositionObserver observer, string stage)
+    {
+        var timer = Stopwatch.StartNew();
+        do
+        {
+            PumpMessages();
+            observer.ThrowIfFailed();
+            if (predicate()) return;
+            Thread.Sleep(10);
+        }
+        while (timer.Elapsed < TimeSpan.FromSeconds(10));
+        throw new TimeoutException($"Timed out waiting for {stage}. {observer}");
+    }
+
+    private static void ObserveStable(nint window, nint edit, nint layout,
+        EditCompositionObserver observer, string expectedText, int expectedResults)
+    {
+        var timer = Stopwatch.StartNew();
+        do
+        {
+            PumpMessages();
+            CheckTarget(window, edit, layout, observer);
+            Require(GetWindowText(edit) == expectedText && observer.ResultCount == expectedResults,
+                $"Late or duplicate commit: expected '{expectedText}' and {expectedResults} results. {observer}");
+            Thread.Sleep(10);
+        }
+        while (timer.Elapsed < TimeSpan.FromSeconds(1));
+    }
+
+    private static void CheckTarget(nint window, nint edit, nint layout, EditCompositionObserver observer)
+    {
+        observer.ThrowIfFailed();
+        Require(GetForegroundWindow() == window && GetFocus() == edit && GetKeyboardLayout(0) == layout,
+            "Target foreground/focus/HKL changed.");
+        var context = ImmGetContext(edit);
+        try
+        {
+            Require(context != 0 && context == observer.InputContext && ImmGetOpenStatus(context),
+                "Target HIMC changed or IME closed.");
+        }
+        finally
+        {
+            if (context != 0) ImmReleaseContext(edit, context);
+        }
+    }
+
+    private static void Require(bool condition, string message)
+    {
+        if (!condition) throw new InvalidOperationException(message);
+    }
+
+    private sealed class EditCompositionObserver : IDisposable
+    {
+        private readonly nint _edit;
+        private readonly SubclassProc _callback;
+        private Exception? _failure;
+        private readonly bool _validateLifecycle;
+        private bool _composing;
+        private bool _hasResult;
+        public nint InputContext { get; }
+        public int StartCount { get; private set; }
+        public int EndCount { get; private set; }
+        public List<string> Results { get; } = [];
+        public int ResultCount => Results.Count;
+        public List<(string Composition, string Reading, int Cursor)> Updates { get; } = [];
+
+        public EditCompositionObserver(nint edit, bool validateLifecycle)
+        {
+            _edit = edit;
+            _validateLifecycle = validateLifecycle;
+            InputContext = ImmGetContext(edit);
+            Require(InputContext != 0, "EDIT has no HIMC for synchronous capture.");
+            ImmReleaseContext(edit, InputContext);
+            _callback = OnMessage;
+            Require(SetWindowSubclass(edit, _callback, 1, 0), "Unable to subclass target EDIT.");
+        }
+
+        private nint OnMessage(nint window, uint message, nuint wParam, nint lParam, nuint id, nuint data)
+        {
+            try
+            {
+                if (message is WmImeStartComposition or WmImeComposition or WmImeEndComposition)
+                {
+                    if (message == WmImeStartComposition)
+                    {
+                        Require(!_validateLifecycle || !_composing, "Duplicate START while composing.");
+                        StartCount++;
+                        _composing = true;
+                        _hasResult = false;
+                    }
+                    if (message == WmImeEndComposition)
+                    {
+                        Require(!_validateLifecycle || _composing, "END without active composition.");
+                        EndCount++;
+                        _composing = false;
+                    }
+                    var context = ImmGetContext(window);
+                    try
+                    {
+                        Require(context != 0 && context == InputContext, "Message HIMC differs from target HIMC.");
+                        if (message == WmImeComposition)
+                        {
+                            var flags = (uint)lParam;
+                            if ((flags & 0x0800) != 0)
+                            {
+                                Require(!_validateLifecycle || (_composing && !_hasResult),
+                                    "Result outside composition or repeated result before END.");
+                                Results.Add(ReadString(context, 0x0800));
+                                _hasResult = true;
+                            }
+                            if ((flags & (0x0008 | 0x0001 | 0x0080)) != 0)
+                            {
+                                Require(!_validateLifecycle || _composing, "Composition update outside START/END.");
+                                var cursor = ImmGetCompositionString(context, 0x0080, null, 0);
+                                Require(cursor >= 0, $"GCS_CURSORPOS failed: {cursor}.");
+                                Updates.Add((ReadString(context, 0x0008), ReadString(context, 0x0001), cursor));
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        if (context != 0) ImmReleaseContext(window, context);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                _failure ??= exception;
+            }
+            return DefSubclassProc(window, message, wParam, lParam);
+        }
+
+        public string Read(uint index)
+        {
+            var context = ImmGetContext(_edit);
+            try
+            {
+                Require(context != 0 && context == InputContext, "Live query HIMC changed.");
+                return ReadString(context, index);
+            }
+            finally
+            {
+                if (context != 0) ImmReleaseContext(_edit, context);
+            }
+        }
+
+        private static string ReadString(nint context, uint index)
+        {
+            var length = ImmGetCompositionString(context, index, null, 0);
+            Require(length >= 0 && length % 2 == 0, $"Invalid IMM string length {length} for 0x{index:X}.");
+            if (length == 0) return string.Empty;
+            var buffer = new byte[length];
+            Require(ImmGetCompositionString(context, index, buffer, (uint)length) == length,
+                $"IMM string length changed for 0x{index:X}.");
+            return Encoding.Unicode.GetString(buffer);
+        }
+
+        public void ThrowIfFailed()
+        {
+            if (_failure is not null) throw new InvalidOperationException($"Synchronous EDIT capture failed. {this}", _failure);
+        }
+
+        public void Dispose()
+        {
+            RemoveWindowSubclass(_edit, _callback, 1);
+            GC.KeepAlive(_callback);
+        }
+
+        public override string ToString() => $"START={StartCount}, END={EndCount}, Results=[{string.Join(",", Results)}], Updates=[{string.Join(",", Updates)}], CallbackError={_failure}";
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    private delegate nint SubclassProc(nint window, uint message, nuint wParam, nint lParam, nuint id, nuint data);
+
+    [DllImport("comctl32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetWindowSubclass(nint window, SubclassProc callback, nuint id, nuint data);
+
+    [DllImport("comctl32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool RemoveWindowSubclass(nint window, SubclassProc callback, nuint id);
+
+    [DllImport("comctl32.dll")]
+    private static extern nint DefSubclassProc(nint window, uint message, nuint wParam, nint lParam);
+
+    [DllImport("imm32.dll", EntryPoint = "ImmGetCompositionStringW")]
+    private static extern int ImmGetCompositionString(nint context, uint index, [Out] byte[]? buffer, uint length);
 
     private static void ActivateAndOpenIme(nint edit, nint keyboardLayout)
     {
@@ -522,7 +1177,9 @@ internal static class Win32ImeEditScenario
 
     private static void PumpMessages()
     {
-        while (PeekMessage(out var message, 0, 0, 0, PmRemove))
+        var budget = Stopwatch.StartNew();
+        for (var count = 0; count < 256 && budget.Elapsed < TimeSpan.FromMilliseconds(20)
+            && PeekMessage(out var message, 0, 0, 0, PmRemove); count++)
         {
             s_inputMessageTrace.Record(message);
             TranslateMessage(message);
@@ -779,6 +1436,9 @@ internal static class Win32ImeEditScenario
     [DllImport("kernel32.dll")]
     private static extern uint GetCurrentThreadId();
 
+    [DllImport("kernel32.dll", EntryPoint = "GetModuleFileNameW", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern uint GetModuleFileName(nint module, StringBuilder fileName, int size);
+
     [DllImport("kernel32.dll", EntryPoint = "LoadLibraryExW", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern nint LoadLibraryEx(string fileName, nint file, uint flags);
 
@@ -849,6 +1509,16 @@ internal static class Win32ImeEditScenario
 
     [DllImport("imm32.dll")]
     private static extern nint ImmGetDefaultIMEWnd(nint window);
+
+    [DllImport("imm32.dll")]
+    private static extern nint ImmCreateContext();
+
+    [DllImport("imm32.dll")]
+    private static extern nint ImmAssociateContext(nint window, nint inputContext);
+
+    [DllImport("imm32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool ImmDestroyContext(nint inputContext);
 
     [DllImport("imm32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]

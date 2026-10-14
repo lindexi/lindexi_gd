@@ -72,12 +72,18 @@ public sealed unsafe class ImeCompositionContextReader
             return false;
         }
 
-        if (!IsValidRange(compositionString->Size, compositionString->CompStrOffset, compositionString->CompStrLength))
+        if (compositionString->CompStrLength > int.MaxValue / sizeof(char))
         {
             return false;
         }
 
-        var compositionBytes = new ReadOnlySpan<byte>((byte*)compositionString + compositionString->CompStrOffset, (int)compositionString->CompStrLength);
+        var byteLength = compositionString->CompStrLength * sizeof(char);
+        if (!IsValidRange(compositionString->Size, compositionString->CompStrOffset, byteLength))
+        {
+            return false;
+        }
+
+        var compositionBytes = new ReadOnlySpan<byte>((byte*)compositionString + compositionString->CompStrOffset, (int)byteLength);
         return !string.IsNullOrEmpty(Encoding.Unicode.GetString(compositionBytes));
     }
 

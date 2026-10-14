@@ -353,7 +353,7 @@ public class ImeHostBridgeTests
     }
 
     [Fact(Timeout = 5_000)]
-    public unsafe Task ImeToAsciiEx_WhenTwoHimcsComposeThenKeepsIndependentSessions()
+    public unsafe Task ImeToAsciiEx_WhenSecondHimcCancelsRecomposesAndCommitsThenKeepsFirstSession()
     {
         using var host = CreateHost();
         return ComposeIndependentHimcSessions(host);
@@ -390,6 +390,26 @@ public class ImeHostBridgeTests
             Assert.Equal("aimuyi", second.ReadCompositionText());
             Assert.Equal("IME", second.ReadFirstCandidateText());
 
+            Assert.True(ImeExports.ImeProcessKeyManaged(second.Handle, ImeConstants.VkEscape, 0, null));
+            ImeExports.ImeToAsciiExManaged(ImeConstants.VkEscape, 0, null, (nint)list, 0, second.Handle);
+
+            Assert.Equal(string.Empty, second.ReadCompositionText());
+            Assert.Equal(string.Empty, second.ReadResultText());
+            Assert.False(ImeModuleRuntime.GetSnapshotForTesting(ImeSessionId.FromHimc(second.Handle)).IsComposing);
+            Assert.False(host.Service.GetSnapshotAsync(ImeSessionId.FromHimc(second.Handle)).GetAwaiter().GetResult().IsComposing);
+            Assert.Equal("xiaoxiaimuyi", first.ReadCompositionText());
+            Assert.Equal("XiaoXiIme", first.ReadFirstCandidateText());
+            Assert.Equal("xiaoxiaimuyi", host.Service.GetSnapshotAsync(ImeSessionId.FromHimc(first.Handle)).GetAwaiter().GetResult().Composition.Reading);
+
+            foreach (var character in "aimuyi")
+            {
+                var virtualKey = (uint)('A' + (character - 'a'));
+                Assert.True(ImeExports.ImeProcessKeyManaged(second.Handle, virtualKey, 0, null));
+                ImeExports.ImeToAsciiExManaged(virtualKey, 0, null, (nint)list, 0, second.Handle);
+            }
+
+            Assert.Equal("aimuyi", second.ReadCompositionText());
+            Assert.Equal("IME", second.ReadFirstCandidateText());
             Assert.True(ImeExports.ImeProcessKeyManaged(second.Handle, ImeConstants.VkSpace, 0, null));
             var secondCommit = ImeExports.ImeToAsciiExManaged(ImeConstants.VkSpace, 0, null, (nint)list, 0, second.Handle);
             var lastResult = ImeModuleRuntime.GetLastProcessResultForTesting();
@@ -443,7 +463,7 @@ public class ImeHostBridgeTests
     }
 
     [Fact(Timeout = 5_000)]
-    public unsafe Task ImeSetActiveContext_WhenDeactivatedThenResetsFullPinyinProjectTermSession()
+    public unsafe Task ImeSetActiveContext_WhenDeactivatedAndReactivatedThenPreservesFullPinyinProjectTermSession()
     {
         using var host = CreateHost();
         return CancelProjectTermThroughImeSetActiveContext(host, "xiaoxiaimuyi");
@@ -563,15 +583,14 @@ public class ImeHostBridgeTests
         {
             try
             {
+                var session = ImeSessionId.FromHimc(himc.Handle);
+                var before = host.Service.GetSnapshotAsync(session).GetAwaiter().GetResult();
                 Assert.Equal(1, ImeExports.ImeSetActiveContextManaged(himc.Handle, 0));
-                var lastResult = ImeModuleRuntime.GetLastProcessResultForTesting();
-                Assert.Null(lastResult.CommitText);
-                Assert.False(lastResult.Snapshot.IsComposing);
-                Assert.Equal(0u, himc.CompositionString->CompStrLength);
-                Assert.Equal(0u, himc.CompositionString->ResultStrLength);
-                Assert.Equal(0u, himc.CandidateInfo->Count);
-                Assert.False(ImeModuleRuntime.GetSnapshotForTesting(ImeSessionId.FromHimc(himc.Handle)).IsComposing);
-                Assert.False((host.Service.GetSnapshotAsync(ImeSessionId.FromHimc(himc.Handle)).GetAwaiter().GetResult()).IsComposing);
+                Assert.Equal(input, (host.Service.GetSnapshotAsync(session).GetAwaiter().GetResult()).Composition.Reading);
+                Assert.Equal((uint)input.Length, himc.CompositionString->CompStrLength);
+                Assert.Equal(1, ImeExports.ImeSetActiveContextManaged(himc.Handle, 1));
+                Assert.Equal(before.Composition, (host.Service.GetSnapshotAsync(session).GetAwaiter().GetResult()).Composition);
+                Assert.True(ImeModuleRuntime.GetSnapshotForTesting(session).IsComposing);
             }
             finally
             {
@@ -978,19 +997,27 @@ public class ImeHostBridgeTests
         try
         {
             host.Start();
-            uint result = 0;
-            foreach (var character in input)
+            for (var index = 0; index < input.Length; index++)
             {
-                var virtualKey = (uint)('A' + (character - 'a'));
+                var virtualKey = (uint)('A' + (input[index] - 'a'));
                 if (eatKeysFirst)
                 {
                     Assert.True(ImeExports.ImeProcessKeyManaged(himc.Handle, virtualKey, 0, null));
                 }
 
-                result = ImeExports.ImeToAsciiExManaged(virtualKey, 0, null, (nint)list, 0, himc.Handle);
+                var result = ImeExports.ImeToAsciiExManaged(virtualKey, 0, null, (nint)list, 0, himc.Handle);
+                var expectedMessages = index == 0
+                    ? new[] { ImeConstants.WmImeStartComposition, ImeConstants.WmImeComposition }
+                    : new[] { ImeConstants.WmImeComposition };
+                Assert.Equal((uint)expectedMessages.Length, result);
+                Assert.Equal((uint)expectedMessages.Length, list->Count);
+                for (var messageIndex = 0; messageIndex < expectedMessages.Length; messageIndex++)
+                {
+                    Assert.Equal(expectedMessages[messageIndex], (&list->Message)[messageIndex].Message);
+                }
             }
 
-            Assert.Equal((uint)(input.Length * sizeof(char)), himc.CompositionString->CompStrLength);
+            Assert.Equal((uint)input.Length, himc.CompositionString->CompStrLength);
             Assert.Equal(input, himc.ReadCompositionText());
             Assert.Equal(1u, himc.CandidateInfo->Count);
             Assert.Equal("XiaoXiIme", himc.ReadFirstCandidateText());
@@ -1003,7 +1030,6 @@ public class ImeHostBridgeTests
             var commit = ImeExports.ImeToAsciiExManaged(ImeConstants.VkSpace, 0, null, (nint)list, 0, himc.Handle);
             var lastResult = ImeModuleRuntime.GetLastProcessResultForTesting();
 
-            Assert.Equal(2u, result);
             Assert.Equal(2u, commit);
             Assert.Equal(ImeConstants.WmImeComposition, list->Message.Message);
             Assert.Equal((nuint)'X', list->Message.WParam);
@@ -1011,7 +1037,7 @@ public class ImeHostBridgeTests
             Assert.Equal(ImeConstants.WmImeEndComposition, (&list->Message)[1].Message);
             Assert.Equal("XiaoXiIme", lastResult.CommitText);
             Assert.False(lastResult.Snapshot.IsComposing);
-            Assert.Equal((uint)("XiaoXiIme".Length * sizeof(char)), himc.CompositionString->ResultStrLength);
+            Assert.Equal((uint)"XiaoXiIme".Length, himc.CompositionString->ResultStrLength);
             Assert.Equal("XiaoXiIme", himc.ReadResultText());
             Assert.Equal(0u, himc.CompositionString->CompStrLength);
             Assert.Equal(0u, himc.CandidateInfo->Count);

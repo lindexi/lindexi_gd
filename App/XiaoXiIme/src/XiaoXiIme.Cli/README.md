@@ -2,6 +2,8 @@
 
 小希输入法命令行工具。职责：安装、卸载、重新安装、状态检查、诊断、Host 管理和系统级冒烟测试入口。
 
+发布验收范围、统一差距及当前证据库存见 [主交接第 4.8 节](../../../Docs/next-session-handoff.md#48-统一发布差距清单)。本页是操作说明，不是发布验证通过报告；历史单 EDIT `xx → 小希` 不能替代当前负载的生命周期、多 HIMC、应用/架构或升级验收。
+
 本项目使用 `DotNetCampus.CommandLine` 进行命令行解析。命令建模、处理器注册、内置帮助、异步入口、Native AOT 注意事项和踩坑记录见 [DotNetCampus.CommandLine 使用与踩坑记录](./DotNetCampus.CommandLine.md)。
 
 当前支持以下检查和安装命令：
@@ -91,7 +93,7 @@ integration-payload/
 2. 仅卸载注册表中明确归属于 `XiaoXi IME` / `XiaoXiIme.ime` 的旧布局。
 3. 将 x64/x86 原生 IME 分别以资源中声明的 `XiaoXiIme.ime` 部署到 `System32`/`SysWOW64`，并使用 x64 系统路径调用 `ImmInstallIME`。
 4. 未传入 `--skip-tsf` 时，分别使用 x86/x64 ABI Host 验证对应架构的 TSF ABI/vtable 和隔离 COM 激活。
-5. 执行负载中的自包含集成测试宿主，覆盖部分 Host、IPC 和上层逻辑；真实按键基础冒烟通过 `SendInput` 自动向单个测试 EDIT 注入 `xx`，并验证控件精确上屏一次“小希”。
+5. 执行负载中的自包含集成测试宿主，覆盖部分 Host、IPC 和上层逻辑；保留 `real-ime-keystroke-commit` 的 `xx -> 小希` 单 EDIT 冒烟及稳定观察。新增 `real-ime-composition-lifecycle` 通过 `SendInput` 执行 `n/i → Escape → n/i → Space`，观察同一 HIMC 的组合开始、更新、取消和提交，严格要求默认外部 Host 使用正式全拼 package、无 fallback/load error，且 `ni` 首候选及唯一提交结果为“你”（`ni -> 你`）。负载正式全拼 package 校验已增加此要求。
 6. 输出单行 JSON 控制台事件并写入完整 JSON 报告。
 7. 卸载测试输入法并清理部署文件。
 
@@ -119,6 +121,14 @@ integration-payload/
 - `System32` 目标文件和匹配键盘布局注册表状态。
 
 如果 `ImmInstallIME` 失败，还会输出 `diagnostics-post-install-failure`，立即记录调用后的文件和注册表状态。排障时应同时保留完整控制台输出和 `results\integration-*.json`；报告中的 `Data` 字段包含未被控制台摘要省略的诊断对象。
+
+## 本轮实现与验证状态
+
+已修复组合更新重复 START，按处理前会话状态区分开始与更新；原 `xx` 冒烟保留稳定观察。收尾复核将场景成功/失败结果发布移至资源清理后，并保持回调存活至窗口销毁完成，不放宽断言。
+
+独立集成宿主 Release 构建（含收尾修复后复验）0 警告、0 错误；模块测试 136/136。代理报告 CLI 相关 14/14、`ProductionDictionaryKeystrokeTests` 18/18；CLI 全量测试 5 分钟超时，不能声称全量通过。收尾未重跑其他代理测试范围。
+
+**代码已实现不代表 Windows 验证完成。真实沙箱测试本轮未执行，当前环境禁止启动进程；没有本轮真实 PASS 或产品验收完成结论。** 组合/取消/提交等产品级未完成项仍保持未完成，多应用、多 HIMC 和 x86/x64 目标应用矩阵仍待验证。
 
 ## 集成测试约束
 
