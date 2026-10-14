@@ -36,7 +36,11 @@ public static class PushClient
             throw new ArgumentException("The target path is required.", nameof(target));
         }
 
-        using var client = new HttpClient { BaseAddress = server };
+        using var client = new HttpClient
+        {
+            BaseAddress = server,
+            Timeout = Timeout.InfiniteTimeSpan
+        };
         using var request = new HttpRequestMessage(HttpMethod.Post, "push");
         if (deleteTarget)
         {

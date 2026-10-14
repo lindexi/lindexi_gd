@@ -18,7 +18,11 @@ public static class UpdateClient
         ArgumentNullException.ThrowIfNull(server);
         ArgumentNullException.ThrowIfNull(output);
 
-        using var client = new HttpClient { BaseAddress = server };
+        using var client = new HttpClient
+        {
+            BaseAddress = server,
+            Timeout = Timeout.InfiniteTimeSpan
+        };
         var remoteVersion = await client.GetFromJsonAsync(
             "update/version",
             AppJsonSerializerContext.Default.UpdateVersionResponse,
