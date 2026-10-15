@@ -1,8 +1,0 @@
-<Solution>
-  <Project Path="FractalForge.Core/FractalForge.Core.csproj" />
-  <Project Path="FractalForge.Training/FractalForge.Training.csproj" />
-  <Project Path="FractalForge.Research.Widening/FractalForge.Research.Widening.csproj" />
-  <Project Path="FractalForge.Research.Deepening/FractalForge.Research.Deepening.csproj" />
-  <Project Path="FractalForge.Research.Adaptive/FractalForge.Research.Adaptive.csproj" />
-  <Project Path="FractalForge.Research.Feedback/FractalForge.Research.Feedback.csproj" />
-</Solution>

@@ -6,12 +6,4 @@
     <Project Path="Code/MathGraph.Neural.Cli/MathGraph.Neural.Cli.csproj" />
     <Project Path="Code/MathGraph.Neural.Tests/MathGraph.Neural.Tests.csproj" />
   </Folder>
-  <Folder Name="/Code/FractalForge/">
-    <Project Path="Code/FractalForge/FractalForge.Core/FractalForge.Core.csproj" />
-    <Project Path="Code/FractalForge/FractalForge.Training/FractalForge.Training.csproj" />
-    <Project Path="Code/FractalForge/FractalForge.Research.Widening/FractalForge.Research.Widening.csproj" />
-    <Project Path="Code/FractalForge/FractalForge.Research.Deepening/FractalForge.Research.Deepening.csproj" />
-    <Project Path="Code/FractalForge/FractalForge.Research.Adaptive/FractalForge.Research.Adaptive.csproj" />
-    <Project Path="Code/FractalForge/FractalForge.Research.Feedback/FractalForge.Research.Feedback.csproj" />
-  </Folder>
 </Solution>
