@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="NonFinite" xml:space="preserve"><value>检测到非有限数值。位置：{0}。</value></data>
+  <data name="StateMismatch" xml:space="preserve"><value>循环状态不属于当前执行快照；不支持隐式跨版本状态迁移。</value></data>
+  <data name="JsonlInvalid" xml:space="preserve"><value>JSONL 第 {0} 行数据无效，要求包含唯一且非空的 text 字符串字段。</value></data>
+  <data name="JsonlBudget" xml:space="preserve"><value>读取 JSONL 第 {0} 行时超出数据加载预算。</value></data>
+  <data name="ChatBoundary" xml:space="preserve"><value>聊天模板边界与完整文本的 token 前缀不一致，无法安全生成监督掩码。</value></data>
+  <data name="ChatNoLabels" xml:space="preserve"><value>聊天样本截断后没有可监督的 assistant 目标。</value></data>
+  <data name="ChatJsonlInvalid" xml:space="preserve"><value>聊天 JSONL 第 {0} 行无效，要求基础 conversations 消息且存在可监督目标；不支持工具调用或未知消息字段。</value></data>
+  <data name="SplitInsufficient" xml:space="preserve"><value>独立内容组或分割比例不足以产生非空的训练、结构选择和测试集合。</value></data>
+  <data name="ArchiveTimeout" xml:space="preserve"><value>训练检查点保存超时；训练已停止，先前历史存档保持不变。</value></data>
+</root>

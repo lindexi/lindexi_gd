@@ -2,5 +2,8 @@
   <Folder Name="/Code/">
     <Project Path="Code/MathGraph.Tests/MathGraph.Tests.csproj" />
     <Project Path="Code/MathGraph/MathGraphs.csproj" />
+    <Project Path="Code/MathGraph.Neural/MathGraph.Neural.csproj" />
+    <Project Path="Code/MathGraph.Neural.Cli/MathGraph.Neural.Cli.csproj" />
+    <Project Path="Code/MathGraph.Neural.Tests/MathGraph.Neural.Tests.csproj" />
   </Folder>
 </Solution>

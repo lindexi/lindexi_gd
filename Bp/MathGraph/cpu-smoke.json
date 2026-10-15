@@ -1,0 +1,20 @@
+{
+  "TokenizerPath": "../minimind_model/tokenizer.json",
+  "TokenizerConfigPath": "../minimind_model/tokenizer_config.json",
+  "DatasetPath": "../minimind_dataset/pretrain_t2t_mini.jsonl",
+  "DatasetFormat": "pretrain",
+  "ArchiveRoot": "artifacts/smoke-runs",
+  "PrefixLines": 12,
+  "Pipeline": false,
+  "WarmupUpdates": 2,
+  "Epochs": 1,
+  "Seed": 17,
+  "InternalSteps": 1,
+  "MaxNewTokens": 32,
+  "DataLimits": { "MaxLineBytes": 131072, "MaxFileBytes": 1048576, "MaxSamples": 12, "MaxSampleTokens": 24, "MaxTotalTokens": 288 },
+  "Budget": { "MaxNodes": 200, "MaxDepth": 4, "MaxDelay": 128, "MaxSteps": 1024, "MaxTapeCells": 4000000, "MaxConnections": 100000 },
+  "Partition": { "StructureSelectionFraction": 0.25, "TestFraction": 0.25, "Seed": 7 },
+  "Controller": { "ObservationUpdates": 2, "LearningRate": 0.01, "CostPerNode": 0.001, "BaselineRate": 0.1, "UseNodeFeatures": true },
+  "Archive": { "SaveEveryUpdates": 10, "SaveEverySeconds": 600, "SaveTimeoutSeconds": 120, "MaxCheckpoints": 100 },
+  "Sampling": { "Temperature": 1, "RepetitionPenalty": 1, "TopK": 20, "TopP": 0.9, "DoSample": true }
+}
