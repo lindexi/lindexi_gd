@@ -1,0 +1,86 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+ <SolidColorBrush x:Key="PlayerBackgroundBrush" Color="#101820"/>
+ <SolidColorBrush x:Key="PlayerForegroundBrush" Color="#EEF4FA"/>
+ <SolidColorBrush x:Key="PlayerAccentBrush" Color="#64BEFF"/>
+ <SolidColorBrush x:Key="PlayerControlBackgroundBrush" Color="#1C2936"/>
+ <SolidColorBrush x:Key="PlayerHoverBrush" Color="#354D63"/>
+ <SolidColorBrush x:Key="PlayerPressedBrush" Color="#436580"/>
+ <SolidColorBrush x:Key="PlayerTrackBrush" Color="#506174"/>
+ <SolidColorBrush x:Key="PlayerErrorBrush" Color="#FF9090"/>
+ <Style x:Key="PlayerBaseButtonStyle" TargetType="Button">
+  <Setter Property="MinWidth" Value="42"/><Setter Property="MinHeight" Value="40"/>
+  <Setter Property="Margin" Value="3"/><Setter Property="Padding" Value="10"/>
+  <Setter Property="Background" Value="{DynamicResource PlayerControlBackgroundBrush}"/>
+  <Setter Property="Foreground" Value="{DynamicResource PlayerForegroundBrush}"/>
+  <Setter Property="BorderBrush" Value="Transparent"/><Setter Property="BorderThickness" Value="2"/>
+  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+   <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+   </Border>
+   <ControlTemplate.Triggers>
+    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Chrome" Property="Background" Value="{DynamicResource PlayerHoverBrush}"/></Trigger>
+    <Trigger Property="IsPressed" Value="True"><Setter TargetName="Chrome" Property="Background" Value="{DynamicResource PlayerPressedBrush}"/></Trigger>
+    <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource PlayerAccentBrush}"/></Trigger>
+    <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4"/></Trigger>
+   </ControlTemplate.Triggers>
+  </ControlTemplate></Setter.Value></Setter>
+ </Style>
+ <Style x:Key="PlayerButtonStyle" TargetType="Button" BasedOn="{StaticResource PlayerBaseButtonStyle}"/>
+ <Style x:Key="PlayerIconStyle" TargetType="Path">
+  <Setter Property="Width" Value="18"/><Setter Property="Height" Value="18"/><Setter Property="Stretch" Value="Uniform"/>
+  <Setter Property="Fill" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+ </Style>
+ <Style x:Key="PlayerRailButton" TargetType="RepeatButton">
+  <Setter Property="Focusable" Value="False"/>
+  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Height="4" CornerRadius="2" Background="{TemplateBinding Background}"/></ControlTemplate></Setter.Value></Setter>
+ </Style>
+ <Style x:Key="PlayerSliderStyle" TargetType="Slider">
+  <Setter Property="Margin" Value="8,4"/><Setter Property="Height" Value="32"/><Setter Property="VerticalAlignment" Value="Center"/>
+  <Setter Property="Background" Value="{DynamicResource PlayerTrackBrush}"/><Setter Property="Foreground" Value="{DynamicResource PlayerAccentBrush}"/>
+  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Slider">
+   <Border x:Name="Frame" BorderBrush="Transparent" BorderThickness="1" CornerRadius="4" Padding="3">
+    <Track x:Name="PART_Track" VerticalAlignment="Center">
+     <Track.DecreaseRepeatButton><RepeatButton Command="Slider.DecreaseLarge" Background="{TemplateBinding Foreground}" Style="{StaticResource PlayerRailButton}"/></Track.DecreaseRepeatButton>
+     <Track.Thumb><Thumb Width="14" Height="14"><Thumb.Template><ControlTemplate TargetType="Thumb"><Border x:Name="Knob" Background="{DynamicResource PlayerForegroundBrush}" CornerRadius="7"/><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Knob" Property="Background" Value="{DynamicResource PlayerAccentBrush}"/></Trigger><Trigger Property="IsDragging" Value="True"><Setter TargetName="Knob" Property="Background" Value="{DynamicResource PlayerPressedBrush}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+     <Track.IncreaseRepeatButton><RepeatButton Command="Slider.IncreaseLarge" Background="{TemplateBinding Background}" Style="{StaticResource PlayerRailButton}"/></Track.IncreaseRepeatButton>
+    </Track>
+   </Border>
+   <ControlTemplate.Triggers>
+    <Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource PlayerAccentBrush}"/></Trigger>
+    <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4"/></Trigger>
+   </ControlTemplate.Triggers>
+  </ControlTemplate></Setter.Value></Setter>
+ </Style>
+ <Style x:Key="PlayerComboItemStyle" TargetType="ComboBoxItem">
+  <Setter Property="Foreground" Value="{DynamicResource PlayerForegroundBrush}"/><Setter Property="Padding" Value="14,9"/>
+  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBoxItem">
+   <Border x:Name="Item" Background="{DynamicResource PlayerControlBackgroundBrush}" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border>
+   <ControlTemplate.Triggers>
+    <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Item" Property="Background" Value="{DynamicResource PlayerHoverBrush}"/></Trigger>
+    <Trigger Property="IsSelected" Value="True"><Setter Property="Foreground" Value="{DynamicResource PlayerAccentBrush}"/></Trigger>
+    <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4"/></Trigger>
+   </ControlTemplate.Triggers>
+  </ControlTemplate></Setter.Value></Setter>
+ </Style>
+ <Style x:Key="PlayerComboBoxStyle" TargetType="ComboBox">
+  <Setter Property="Width" Value="92"/><Setter Property="Height" Value="40"/><Setter Property="Margin" Value="4"/>
+  <Setter Property="Foreground" Value="{DynamicResource PlayerForegroundBrush}"/><Setter Property="Background" Value="{DynamicResource PlayerControlBackgroundBrush}"/>
+  <Setter Property="ItemContainerStyle" Value="{StaticResource PlayerComboItemStyle}"/>
+  <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox">
+   <Grid>
+    <ToggleButton x:Name="Toggle" Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" Foreground="{TemplateBinding Foreground}">
+     <ToggleButton.Template><ControlTemplate TargetType="ToggleButton">
+      <Border x:Name="Chrome" Background="{DynamicResource PlayerControlBackgroundBrush}" CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource PlayerTrackBrush}"><Path Width="9" Height="5" Margin="0,0,12,0" HorizontalAlignment="Right" Stretch="Fill" Fill="{TemplateBinding Foreground}" Data="M0,0 L9,0 4.5,5 Z"/></Border>
+      <ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Chrome" Property="Background" Value="{DynamicResource PlayerHoverBrush}"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="Chrome" Property="Background" Value="{DynamicResource PlayerPressedBrush}"/></Trigger><Trigger Property="IsChecked" Value="True"><Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource PlayerAccentBrush}"/></Trigger></ControlTemplate.Triggers>
+     </ControlTemplate></ToggleButton.Template>
+    </ToggleButton>
+    <ContentPresenter Margin="14,0,30,0" VerticalAlignment="Center" IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"/>
+    <Border x:Name="Focus" BorderBrush="Transparent" BorderThickness="2" CornerRadius="6" IsHitTestVisible="False"/>
+    <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False">
+     <Border MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" Background="{DynamicResource PlayerControlBackgroundBrush}" BorderBrush="{DynamicResource PlayerTrackBrush}" BorderThickness="1" Padding="2"><ScrollViewer CanContentScroll="True"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/></ScrollViewer></Border>
+    </Popup>
+   </Grid>
+   <ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="Focus" Property="BorderBrush" Value="{DynamicResource PlayerAccentBrush}"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4"/></Trigger></ControlTemplate.Triggers>
+  </ControlTemplate></Setter.Value></Setter>
+ </Style>
+</ResourceDictionary>

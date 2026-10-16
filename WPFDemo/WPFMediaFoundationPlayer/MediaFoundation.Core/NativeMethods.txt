@@ -1,0 +1,12 @@
+MFPCreateMediaPlayer
+CoInitializeEx
+CoUninitialize
+PropVariantClear
+IMFPMediaPlayer
+IMFPMediaItem
+IMFPMediaPlayerCallback
+IUnknown
+MFP_POSITIONTYPE_100NS
+MFP_MEDIAITEM_CREATED_EVENT
+MFP_MEDIAITEM_SET_EVENT
+IsWindow

@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="MediaFoundation.Core/MediaFoundation.Core.csproj" />
+  <Project Path="MediaFoundation.Wpf/MediaFoundation.Wpf.csproj" />
+  <Project Path="MediaFoundation.PlayerDemo/MediaFoundation.PlayerDemo.csproj" />
+</Solution>

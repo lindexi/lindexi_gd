@@ -1,0 +1,6 @@
+IMMDeviceEnumerator
+IMMDevice
+IAudioClient
+IAudioCaptureClient
+CoCreateInstance
+CoTaskMemFree
