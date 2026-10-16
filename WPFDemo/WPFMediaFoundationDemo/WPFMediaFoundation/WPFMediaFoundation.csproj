@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -6,12 +6,18 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
+    <RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <PlatformTarget Condition="'$(RuntimeIdentifier)' == 'win-x86'">x86</PlatformTarget>
+    <PlatformTarget Condition="'$(RuntimeIdentifier)' == 'win-x64'">x64</PlatformTarget>
+    <DefaultItemExcludes>$(DefaultItemExcludes);Results\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\lsjutil\Src\Lsj.Util.Win32.Extensions\Lsj.Util.Win32.Extensions.csproj" />
-    <ProjectReference Include="..\..\lsjutil\Src\Lsj.Util.Win32.NativeUI\Lsj.Util.Win32.NativeUI.csproj" />
-    <ProjectReference Include="..\..\lsjutil\Src\Lsj.Util.Win32\Lsj.Util.Win32.csproj" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183" PrivateAssets="all" />
+    <None Include="../../Video/视频.mp4" Link="Video/视频.mp4" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

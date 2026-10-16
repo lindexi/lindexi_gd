@@ -1,327 +1,457 @@
-﻿using Lsj.Util.Win32;
-using Lsj.Util.Win32.BaseTypes;
-using Lsj.Util.Win32.ComInterfaces;
-using Lsj.Util.Win32.DirectX.ComInterfaces;
-using Lsj.Util.Win32.DirectX.Structs;
-using Lsj.Util.Win32.Enums;
-using Lsj.Util.Win32.Extensions.COM;
-using Lsj.Util.Win32.Extensions.Winmm;
-using Lsj.Util.Win32.MediaFoundation;
-using Lsj.Util.Win32.MediaFoundation.ComInterfaces;
-using Lsj.Util.Win32.Structs;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using static Lsj.Util.Win32.ComInterfaces.IIDs;
-using static Lsj.Util.Win32.Constants;
-using static Lsj.Util.Win32.DirectX.Constants;
-using static Lsj.Util.Win32.DirectX.D3d9;
-using static Lsj.Util.Win32.DirectX.Enums.D3DCREATE;
-using static Lsj.Util.Win32.DirectX.Enums.D3DDEVTYPE;
-using static Lsj.Util.Win32.DirectX.Enums.D3DFORMAT;
-using static Lsj.Util.Win32.DirectX.Enums.D3DMULTISAMPLE_TYPE;
-using static Lsj.Util.Win32.DirectX.Enums.D3DPRESENT;
-using static Lsj.Util.Win32.DirectX.Enums.D3DSWAPEFFECT;
-using static Lsj.Util.Win32.DirectX.Enums.D3DTEXTUREFILTERTYPE;
-using static Lsj.Util.Win32.Dxva2;
-using static Lsj.Util.Win32.MediaFoundation.Constants;
-using static Lsj.Util.Win32.MediaFoundation.Enums.MediaFoundationStartupFlags;
-using static Lsj.Util.Win32.MediaFoundation.Enums.MF_SOURCE_READER_FLAG;
-using static Lsj.Util.Win32.MediaFoundation.GUIDs.AudioSubtypeGUIDs;
-using static Lsj.Util.Win32.MediaFoundation.GUIDs.MajorMediaTypes;
-using static Lsj.Util.Win32.MediaFoundation.GUIDs.MediaFoundationAttributes;
-using static Lsj.Util.Win32.MediaFoundation.GUIDs.VideoSubtypeGUIDs;
-using static Lsj.Util.Win32.MediaFoundation.Mf;
-using static Lsj.Util.Win32.MediaFoundation.Mfapi;
-using static Lsj.Util.Win32.MediaFoundation.Mfplat;
-using static Lsj.Util.Win32.MediaFoundation.Mfreadwrite;
-using static Lsj.Util.Win32.UnsafePInvokeExtensions;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Direct3D9;
+using Windows.Win32.Media.MediaFoundation;
+using Windows.Win32.System.Com;
+using Windows.Win32.System.Com.StructuredStorage;
+using Windows.Win32.System.Variant;
 
-namespace WPFMediaFoundation
+namespace WPFMediaFoundation;
+
+/// <summary>
+/// Plays hardware-decoded video through a D3D9Ex surface hosted by WPF.
+/// </summary>
+public unsafe partial class MainWindow : Window
 {
+    private readonly D3DImage _image = new();
+    private readonly Stopwatch _clock = new();
+    private readonly string _videoPath;
+    private IDirect3D9Ex* _direct3D;
+    private IDirect3DDevice9Ex* _device;
+    private IDirect3DDeviceManager9* _deviceManager;
+    private IDirect3DSurface9* _renderTarget;
+    private IMFSourceReader* _reader;
+    private IMFSample* _pendingSample;
+    private long _pendingTimestamp;
+    private long? _firstTimestamp;
+    private int _width;
+    private int _height;
+    private bool _mfStarted;
+    private bool _initialized;
+    private bool _closed;
+    private readonly bool _selfTest;
+    private readonly Stopwatch _testClock = new();
+    private readonly DispatcherTimer _testTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
+    private WriteableBitmap? _bitmap;
+    private bool _software;
+    private int _frames;
+    private int _loops;
+    private int _resizes;
+    private int _framesAfterResize;
+    private int _framesAfterLoop;
+    private bool _resizeRequested;
+    private bool _seekRequested;
+    private long _duration;
+
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Uses the bundled video unless a command-line path is supplied.
     /// </summary>
-    public partial class MainWindow : Window
+    public MainWindow()
     {
-        public static string VideoPath = @"D:\Samples\4K.mp4";
+        var arguments = Environment.GetCommandLineArgs().Skip(1).ToArray();
+        _selfTest = arguments.Contains("--self-test", StringComparer.Ordinal);
+        _videoPath = arguments.FirstOrDefault(argument => argument != "--self-test")
+            ?? Path.Combine(AppContext.BaseDirectory, "Video", "视频.mp4");
+        InitializeComponent();
+        Image.Source = _image;
+    }
 
-        DispatcherTimer _dispatcherTimer;
-        public MainWindow()
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_initialized || _closed)
         {
-            if (Environment.GetCommandLineArgs().Skip(1).FirstOrDefault() is string s)
+            return;
+        }
+
+        try
+        {
+            Console.WriteLine($"START architecture={RuntimeInformation.ProcessArchitecture} selfTest={_selfTest} video={_videoPath}");
+            try
             {
-                VideoPath = s;
+                InitializeVideo(new HWND(new WindowInteropHelper(this).EnsureHandle()));
             }
-
-            InitializeComponent();
-            var d3dImage = new D3DImage();
-            D3DImage = d3dImage;
-            Image.Source = d3dImage;
-
-            //_dispatcherTimer = new DispatcherTimer(DispatcherPriority.Normal);
-            //_dispatcherTimer.Interval = TimeSpan.FromMicroseconds(5);
-            //_dispatcherTimer.Tick += DispatcherTimer_Tick;
-            //_dispatcherTimer.Start();
+            catch (COMException error)
+            {
+                Console.WriteLine($"D3D9 unavailable HRESULT=0x{error.HResult:X8}; retrying CPU RGB32 rendering.");
+                ReleaseResources();
+                _software = true;
+                InitializeVideo(new HWND(new WindowInteropHelper(this).EnsureHandle()));
+            }
+            _initialized = true;
             CompositionTarget.Rendering += CompositionTarget_Rendering;
-        }
-
-        private void CompositionTarget_Rendering(object? sender, EventArgs e)
-        {
-            RenderFrame();
-        }
-
-        private void DispatcherTimer_Tick(object? sender, EventArgs e)
-        {
-            RenderFrame();
-        }
-
-
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            InitD3D(new WindowInteropHelper(this).EnsureHandle());
-        }
-
-        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if (RenderTarget != NULL)
+            if (_selfTest)
             {
-                RenderTarget.AsIUnknown().Value.Release();
-            }
-
-            if (Device != NULL)
-            {
-                User32.GetClientRect(new WindowInteropHelper(this).EnsureHandle(), out var size);
-                RenderTargetWidth = size.right - size.left;
-                RenderTargetHeight = size.bottom - size.top;
-                if (Device.Value.CreateRenderTarget(RenderTargetWidth, RenderTargetHeight, D3DFMT_A8R8G8B8, D3DMULTISAMPLE_NONE, 0, false, out var surface, ref NullRef<HANDLE>()))
-                {
-                    RenderTarget = surface;
-
-                    D3DImage.Lock();
-                    D3DImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, RenderTarget);
-                    D3DImage.Unlock();
-                }
+                _testClock.Restart();
+                _testTimer.Tick += SelfTest_Tick;
+                _testTimer.Start();
             }
         }
-
-        public D3DImage D3DImage { get; private set; }
-
-        /// <summary>
-        /// The device
-        /// </summary>
-        public P<IDirect3DDevice9Ex> DeviceEx { get; private set; }
-
-        /// <summary>
-        /// The device as <see cref="IDirect3DDevice9"/>
-        /// </summary>
-        public P<IDirect3DDevice9> Device => DeviceEx.AsP<IDirect3DDevice9>();
-
-        public P<IDirect3DSurface9> RenderTarget { get; private set; }
-
-        public int RenderTargetWidth { get; private set; }
-
-        public int RenderTargetHeight { get; private set; }
-
-        public P<IMFSourceReader> Reader { get; private set; }
-
-        public P<IDirect3DDeviceManager9> DeviceManager { get; private set; }
-
-        public uint VideoWidth { get; private set; }
-
-        public uint VideoHeight { get; private set; }
-
-        public Stopwatch PlayerStopwatch { get; } = new Stopwatch();
-
-        public WaveOutPlayer? AudioPlayer { get; private set; }
-
-        private bool InitD3D(HWND hWnd)
+        catch
         {
-            if (!Direct3DCreate9Ex(D3D_SDK_VERSION, out var iDirect3D9Ex))
+            ReleaseResources();
+            throw;
+        }
+    }
+
+    private void InitializeVideo(HWND window)
+    {
+        if (!_software)
+        {
+        IDirect3D9Ex* direct3D = null;
+        PInvoke.Direct3DCreate9Ex(PInvoke.D3D_SDK_VERSION, &direct3D).ThrowOnFailure();
+        _direct3D = direct3D;
+        var parameters = new D3DPRESENT_PARAMETERS
+        {
+            Windowed = true,
+            hDeviceWindow = window,
+            SwapEffect = D3DSWAPEFFECT.D3DSWAPEFFECT_DISCARD,
+            BackBufferFormat = D3DFORMAT.D3DFMT_UNKNOWN,
+            BackBufferWidth = 1,
+            BackBufferHeight = 1,
+            BackBufferCount = 1,
+            PresentationInterval = unchecked((uint)PInvoke.D3DPRESENT_INTERVAL_IMMEDIATE)
+        };
+        IDirect3DDevice9Ex* device = null;
+        _direct3D->CreateDeviceEx(0, D3DDEVTYPE.D3DDEVTYPE_HAL, window,
+            PInvoke.D3DCREATE_HARDWARE_VERTEXPROCESSING | PInvoke.D3DCREATE_MULTITHREADED | PInvoke.D3DCREATE_FPU_PRESERVE,
+            &parameters, null, &device).ThrowOnFailure();
+        _device = device;
+        ResizeRenderTarget();
+        }
+
+        PInvoke.MFStartup(PInvoke.MF_VERSION, 0).ThrowOnFailure();
+        _mfStarted = true;
+        uint resetToken;
+        IDirect3DDeviceManager9* manager = null;
+        if (!_software)
+        {
+        PInvoke.DXVA2CreateDirect3DDeviceManager9(&resetToken, &manager).ThrowOnFailure();
+        _deviceManager = manager;
+        manager->ResetDevice((IDirect3DDevice9*)_device, resetToken).ThrowOnFailure();
+        }
+
+        IMFAttributes* attributes = null;
+        IMFMediaType* mediaType = null;
+        try
+        {
+            PInvoke.MFCreateAttributes(&attributes, 2).ThrowOnFailure();
+            attributes->SetUINT32(PInvoke.MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, 1).ThrowOnFailure();
+            if (_software)
             {
-                return false;
-            }
-
-            var presentParameters = new D3DPRESENT_PARAMETERS
-            {
-                Windowed = true,
-                SwapEffect = D3DSWAPEFFECT_FLIPEX,
-                BackBufferFormat = D3DFMT_A8R8G8B8,
-                BackBufferWidth = 0,
-                BackBufferHeight = 0,
-                BackBufferCount = 2,
-                PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE,
-            };
-
-            if (!iDirect3D9Ex.Value.CreateDeviceEx(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
-                ref presentParameters, ref NullRef<D3DDISPLAYMODEEX>(), out var device))
-            {
-                return false;
-            }
-
-            DeviceEx = device;
-
-            User32.GetClientRect(new WindowInteropHelper(this).EnsureHandle(), out var size);
-            RenderTargetWidth = size.right - size.left;
-            RenderTargetHeight = size.bottom - size.top;
-            if (Device.Value.CreateRenderTarget(RenderTargetWidth, RenderTargetHeight, D3DFMT_A8R8G8B8, D3DMULTISAMPLE_NONE, 0, false, out var surface, ref NullRef<HANDLE>()))
-            {
-                RenderTarget = surface;
-
-                D3DImage.Lock();
-                D3DImage.SetBackBuffer(D3DResourceType.IDirect3DSurface9, RenderTarget);
-                D3DImage.Unlock();
+                attributes->SetUINT32(PInvoke.MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING, 1).ThrowOnFailure();
             }
             else
             {
-                return false;
+                attributes->SetUnknown(PInvoke.MF_SOURCE_READER_D3D_MANAGER, (IUnknown*)manager).ThrowOnFailure();
             }
-
-            Mfplat.MFStartup(MF_VERSION, MFSTARTUP_FULL);
-            var result = MFCreateAttributes(out var attr, 2);
-            if (!result)
+            IMFSourceReader* reader = null;
+            fixed (char* path = _videoPath)
             {
-                return false;
+                PInvoke.MFCreateSourceReaderFromURL(path, attributes, &reader).ThrowOnFailure();
             }
-
-            if (!DXVA2CreateDirect3DDeviceManager9(out var resetToken, out var deviceManager))
+            _reader = reader;
+            reader->SetStreamSelection(unchecked((uint)MF_SOURCE_READER_CONSTANTS.MF_SOURCE_READER_ALL_STREAMS), false).ThrowOnFailure();
+            reader->SetStreamSelection(unchecked((uint)MF_SOURCE_READER_CONSTANTS.MF_SOURCE_READER_FIRST_VIDEO_STREAM), true).ThrowOnFailure();
+            PInvoke.MFCreateMediaType(&mediaType).ThrowOnFailure();
+            mediaType->SetGUID(PInvoke.MF_MT_MAJOR_TYPE, PInvoke.MFMediaType_Video).ThrowOnFailure();
+            mediaType->SetGUID(PInvoke.MF_MT_SUBTYPE, _software ? PInvoke.MFVideoFormat_RGB32 : PInvoke.MFVideoFormat_NV12).ThrowOnFailure();
+            reader->SetCurrentMediaType(unchecked((uint)MF_SOURCE_READER_CONSTANTS.MF_SOURCE_READER_FIRST_VIDEO_STREAM), null, mediaType).ThrowOnFailure();
+            PROPVARIANT duration = default;
+            reader->GetPresentationAttribute(unchecked((uint)MF_SOURCE_READER_CONSTANTS.MF_SOURCE_READER_MEDIASOURCE), PInvoke.MF_PD_DURATION, out duration).ThrowOnFailure();
+            _duration = (long)duration.Anonymous.Anonymous.Anonymous.uhVal;
+            if (_software)
             {
-                return false;
+                Release(ref mediaType);
+                reader->GetCurrentMediaType(unchecked((uint)MF_SOURCE_READER_CONSTANTS.MF_SOURCE_READER_FIRST_VIDEO_STREAM), &mediaType).ThrowOnFailure();
+                ulong size;
+                mediaType->GetUINT64(PInvoke.MF_MT_FRAME_SIZE, out size).ThrowOnFailure();
+                _bitmap = new WriteableBitmap((int)(size >> 32), (int)(size & uint.MaxValue), 96, 96, PixelFormats.Bgr32, null);
+                Image.Source = _bitmap;
             }
+            Console.WriteLine($"READY renderer={(_software ? "CPU RGB32" : "D3D9")} durationTicks={_duration}");
+        }
+        finally
+        {
+            Release(ref mediaType);
+            Release(ref attributes);
+        }
+    }
 
-            if (!deviceManager.Value.ResetDevice(Device, resetToken))
-            {
-                deviceManager.AsIUnknown().Value.Release();
-                return false;
-            }
+    private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (_initialized && !_closed)
+        {
+            _resizes++;
+            Console.WriteLine($"RESIZE count={_resizes} width={ActualWidth} height={ActualHeight}");
+        }
+        if (_device != null && !_closed)
+        {
+            ResizeRenderTarget();
+        }
+    }
 
-            DeviceManager = deviceManager;
-
-
-            attr.Value.SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, 1);
-            attr.Value.SetUnknown(MF_SOURCE_READER_D3D_MANAGER, deviceManager.AsIUnknown());
-
-            result = MFCreateSourceReaderFromURL(VideoPath, attr, out var reader);
-            attr.AsIUnknown().Value.Release();
-
-            if (!result)
-            {
-                return false;
-            }
-
-            Reader = reader;
-
-            result = MFCreateMediaType(out var videoTypeOut);
-            if (!result)
-            {
-                return false;
-            }
-
-            result = MFCreateMediaType(out var audioTypeOut);
-            if (!result)
-            {
-                return false;
-            }
-
-            videoTypeOut.AsP<IMFAttributes>().Value.SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-            videoTypeOut.AsP<IMFAttributes>().Value.SetGUID(MF_MT_SUBTYPE, MFVideoFormat_NV12);
-            Reader.Value.SetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, ref NullRef<DWORD>(), videoTypeOut);
-            videoTypeOut.AsIUnknown().Value.Release();
-
-            audioTypeOut.AsP<IMFAttributes>().Value.SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
-            audioTypeOut.AsP<IMFAttributes>().Value.SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
-            audioTypeOut.AsP<IMFAttributes>().Value.SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, 16);
-            audioTypeOut.AsP<IMFAttributes>().Value.SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, 44100);
-            audioTypeOut.AsP<IMFAttributes>().Value.SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, 2);
-            Reader.Value.SetCurrentMediaType(MF_SOURCE_READER_FIRST_AUDIO_STREAM, ref NullRef<DWORD>(), audioTypeOut);
-            audioTypeOut.AsIUnknown().Value.Release();
-
-            Reader.Value.GetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, out var actualType);
-            MFGetAttributeSize(actualType.AsP<IMFAttributes>(), MF_MT_FRAME_SIZE, out var width, out var height);
-            actualType.AsIUnknown().Value.Release();
-            VideoWidth = width;
-            VideoHeight = height;
-
-            PlayerStopwatch.Restart();
-
-            return true;
+    private void ResizeRenderTarget()
+    {
+        if (!PInvoke.GetClientRect(new HWND(new WindowInteropHelper(this).EnsureHandle()), out var rect))
+        {
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+        }
+        int width = rect.right - rect.left;
+        int height = rect.bottom - rect.top;
+        if (width <= 0 || height <= 0 || (width == _width && height == _height))
+        {
+            return;
         }
 
-        private long _lastTimeNs = 0; // ns
-        private long _sentAudioTimeNs = 0; // ns
-        private long _offsetTimeNs = 0;
-
-        private void RenderFrame()
+        IDirect3DSurface9* target = null;
+        _device->CreateRenderTarget((uint)width, (uint)height, D3DFORMAT.D3DFMT_A8R8G8B8,
+            D3DMULTISAMPLE_TYPE.D3DMULTISAMPLE_NONE, 0, false, &target, null).ThrowOnFailure();
+        try
         {
-            if (Reader == NULL)
+            _image.Lock();
+            try
+            {
+                _image.SetBackBuffer(D3DResourceType.IDirect3DSurface9, (nint)target, true);
+                Release(ref _renderTarget);
+                _renderTarget = target;
+                target = null;
+                _width = width;
+                _height = height;
+            }
+            finally
+            {
+                _image.Unlock();
+            }
+        }
+        finally
+        {
+            Release(ref target);
+        }
+    }
+
+    private void CompositionTarget_Rendering(object? sender, EventArgs e)
+    {
+        try
+        {
+            RenderFrame();
+        }
+        catch (COMException error) when (!_software &&
+            (error.HResult == unchecked((int)0xC00D36B4) || error.HResult == unchecked((int)0x80004002) ||
+             error.HResult == unchecked((int)0x8876086A)))
+        {
+            Console.WriteLine($"D3D9 decode/surface unsupported HRESULT=0x{error.HResult:X8}; retrying CPU RGB32 rendering.");
+            ReleaseResources();
+            _software = true;
+            Window_Loaded(this, new RoutedEventArgs());
+        }
+        catch
+        {
+            ReleaseResources();
+            throw;
+        }
+    }
+
+    private void RenderFrame()
+    {
+        if (!_initialized || (!_software && (_renderTarget == null || !_image.IsFrontBufferAvailable)))
+        {
+            return;
+        }
+
+        if (_pendingSample == null)
+        {
+            uint stream;
+            uint flags;
+            long timestamp;
+            IMFSample* sample = null;
+            var result = _reader->ReadSample(unchecked((uint)MF_SOURCE_READER_CONSTANTS.MF_SOURCE_READER_FIRST_VIDEO_STREAM), 0,
+                &stream, &flags, &timestamp, &sample);
+            _pendingSample = sample;
+            result.ThrowOnFailure();
+            if ((flags & (uint)MF_SOURCE_READER_FLAG.MF_SOURCE_READERF_ERROR) != 0)
+            {
+                throw new COMException(null, unchecked((int)0x80004005));
+            }
+            if ((flags & (uint)MF_SOURCE_READER_FLAG.MF_SOURCE_READERF_ENDOFSTREAM) != 0)
+            {
+                Release(ref _pendingSample);
+                var position = new PROPVARIANT();
+                position.Anonymous.Anonymous.vt = VARENUM.VT_I8;
+                // A zero-initialized VT_I8 seeks to the beginning without allocating memory.
+                _reader->SetCurrentPosition(Guid.Empty, in position).ThrowOnFailure();
+                _firstTimestamp = null;
+                _clock.Reset();
+                _loops++;
+                Console.WriteLine($"LOOP count={_loops} frames={_frames}");
+                return;
+            }
+            if (sample == null)
             {
                 return;
             }
-
-            var start = PlayerStopwatch.ElapsedMilliseconds;
-
-            var elapsedNs = PlayerStopwatch.Elapsed.TotalNanoseconds + _offsetTimeNs;
-            if (elapsedNs < (_lastTimeNs - 5000000 /* 5ms */))
+            _pendingTimestamp = timestamp;
+            if (_firstTimestamp == null)
             {
-                return;
+                _firstTimestamp = timestamp;
+                _clock.Restart();
             }
-            var result = Reader.Value.ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, out var actualStreamIndex, out var flags, out var timestamp, out var sample);
-            _lastTimeNs = timestamp * 100;
-            AudioPlayer?.SyncCurrentTime(_lastTimeNs);
+        }
 
-            if (flags.HasFlag(MF_SOURCE_READERF_ENDOFSTREAM))
+        // Media Foundation timestamps and TimeSpan ticks are both in 100 ns units.
+        if (_clock.Elapsed.Ticks < _pendingTimestamp - _firstTimestamp.GetValueOrDefault())
+        {
+            return;
+        }
+
+        IMFMediaBuffer* buffer = null;
+        IDirect3DSurface9* surface = null;
+        try
+        {
+            if (_software)
             {
-                var propVariant = new PROPVARIANT();
-                propVariant.vt = VARENUM.VT_I8;
-                propVariant.lVal = 0;
-                _sentAudioTimeNs = 0;
-                AudioPlayer?.Reset();
-                result = Reader.Value.SetCurrentPosition(new GUID(), propVariant);
-                PlayerStopwatch.Restart();
-                _offsetTimeNs = 0;
-                return;
-            }
-
-            if (_lastTimeNs < elapsedNs)
-            {
-                _offsetTimeNs += _lastTimeNs - (long)elapsedNs;
-                Console.WriteLine($"Update _offsetTimeNs {_offsetTimeNs}");
-            }
-
-            if (sample != NULL)
-            {
-                result = sample.Value.ConvertToContiguousBuffer(out var buffer);
-
-                if (result)
+                _pendingSample->ConvertToContiguousBuffer(&buffer).ThrowOnFailure();
+                byte* data;
+                uint length;
+                buffer->Lock(&data, null, &length).ThrowOnFailure();
+                try
                 {
-                    var MR_BUFFER_SERVICE = (GUID)"{A562248C-9AC6-4FFC-9FBA-3AF8F8AD1A4D}";
-                    result = MFGetService(buffer.AsP<IUnknown>(), MR_BUFFER_SERVICE, IID_IDirect3DSurface9, out var surfacePtr);
-                    if (result)
-                    {
-                        P<IDirect3DSurface9> surface = (IntPtr)surfacePtr;
-                        surface.Value.GetDesc(out var desc);
-
-                        result = Device.Value.StretchRect(surface, NullRef<RECT>(), RenderTarget, NullRef<RECT>(), D3DTEXF_NONE);
-
-                        D3DImage.Lock();
-                        D3DImage.AddDirtyRect(new Int32Rect(0, 0, RenderTargetWidth, RenderTargetHeight));
-                        D3DImage.Unlock();
-
-                        surface.AsIUnknown().Value.Release();
-                    }
-
-                    buffer.AsIUnknown().Value.Release();
+                    var bitmap = _bitmap ?? throw new InvalidOperationException();
+                    bitmap.WritePixels(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight), (nint)data,
+                        checked((int)length), checked(bitmap.PixelWidth * 4));
                 }
-
-                sample.AsIUnknown().Value.Release();
+                finally
+                {
+                    buffer->Unlock().ThrowOnFailure();
+                }
+                CountFrame();
+                return;
             }
+            _pendingSample->GetBufferByIndex(0, &buffer).ThrowOnFailure();
+            void* service = null;
+            PInvoke.MFGetService((IUnknown*)buffer, PInvoke.MR_BUFFER_SERVICE,
+                typeof(IDirect3DSurface9).GUID, out service).ThrowOnFailure();
+            surface = (IDirect3DSurface9*)service;
+            _image.Lock();
+            try
+            {
+                _device->StretchRect(surface, null, _renderTarget, null,
+                    D3DTEXTUREFILTERTYPE.D3DTEXF_NONE).ThrowOnFailure();
+                _image.AddDirtyRect(new Int32Rect(0, 0, _width, _height));
+                CountFrame();
+            }
+            finally
+            {
+                _image.Unlock();
+            }
+        }
+        finally
+        {
+            Release(ref surface);
+            Release(ref buffer);
+            Release(ref _pendingSample);
+        }
+    }
 
-            var end = PlayerStopwatch.ElapsedMilliseconds;
-            //Console.WriteLine($"RenderFrame: Start {start} End {end} Duration {end - start}");
+    private void CountFrame()
+    {
+        _frames++;
+        if (_resizes > 0) _framesAfterResize++;
+        if (_loops > 0) _framesAfterLoop++;
+    }
+
+    private void SelfTest_Tick(object? sender, EventArgs e)
+    {
+        if (!_resizeRequested && _frames >= 10)
+        {
+            _resizeRequested = true;
+            Width = 640;
+            Height = 360;
+        }
+        if (!_seekRequested && _framesAfterResize >= 10 && _duration > 0)
+        {
+            _seekRequested = true;
+            Release(ref _pendingSample);
+            var position = new PROPVARIANT();
+            position.Anonymous.Anonymous.vt = VARENUM.VT_I8;
+            position.Anonymous.Anonymous.Anonymous.hVal = Math.Max(0, _duration - TimeSpan.TicksPerSecond);
+            _reader->SetCurrentPosition(Guid.Empty, in position).ThrowOnFailure();
+            _firstTimestamp = null;
+            _clock.Reset();
+            Console.WriteLine("SEEK near EOF to exercise real end-of-stream looping");
+        }
+        if (_testClock.Elapsed < TimeSpan.FromSeconds(15)) return;
+        bool passed = _frames >= 30 && _resizes > 0 && _framesAfterResize >= 10 && _loops > 0 && _framesAfterLoop >= 10;
+        Console.WriteLine($"SELF-TEST {(passed ? "PASS" : "FAIL")} frames={_frames} resizes={_resizes} framesAfterResize={_framesAfterResize} loops={_loops} framesAfterLoop={_framesAfterLoop} elapsedMs={_testClock.ElapsedMilliseconds}");
+        Environment.ExitCode = passed ? 0 : 1;
+        Close();
+        Application.Current.Shutdown(Environment.ExitCode);
+    }
+
+    /// <inheritdoc />
+    protected override void OnClosed(EventArgs e)
+    {
+        _closed = true;
+        try
+        {
+            ReleaseResources();
+            Console.WriteLine("CLEANUP complete");
+        }
+        finally
+        {
+            base.OnClosed(e);
+        }
+    }
+
+    private void ReleaseResources()
+    {
+        _testTimer.Stop();
+        _testTimer.Tick -= SelfTest_Tick;
+        CompositionTarget.Rendering -= CompositionTarget_Rendering;
+        _initialized = false;
+        _clock.Reset();
+        try
+        {
+            _image.Lock();
+            try
+            {
+                _image.SetBackBuffer(D3DResourceType.IDirect3DSurface9, nint.Zero);
+            }
+            finally
+            {
+                _image.Unlock();
+            }
+        }
+        finally
+        {
+            Release(ref _pendingSample);
+            Release(ref _reader);
+            Release(ref _renderTarget);
+            Release(ref _deviceManager);
+            Release(ref _device);
+            Release(ref _direct3D);
+            if (_mfStarted)
+            {
+                _mfStarted = false;
+                PInvoke.MFShutdown().ThrowOnFailure();
+            }
+        }
+    }
+
+    private static void Release<T>(ref T* value) where T : unmanaged
+    {
+        var pointer = value;
+        value = null;
+        if (pointer != null)
+        {
+            ((IUnknown*)pointer)->Release();
         }
     }
 }

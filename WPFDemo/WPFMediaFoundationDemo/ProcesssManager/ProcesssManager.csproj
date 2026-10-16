@@ -1,7 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+    <PlatformTarget Condition="'$(RuntimeIdentifier)' == 'win-x86'">x86</PlatformTarget>
+    <PlatformTarget Condition="'$(RuntimeIdentifier)' == 'win-x64' Or ('$(RuntimeIdentifier)' == '' And '$(Platform)' == 'AnyCPU')">x64</PlatformTarget>
+    <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -9,9 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\lsjutil\Src\Lsj.Util.Win32.Extensions\Lsj.Util.Win32.Extensions.csproj" />
-    <ProjectReference Include="..\..\lsjutil\Src\Lsj.Util.Win32.NativeUI\Lsj.Util.Win32.NativeUI.csproj" />
-    <ProjectReference Include="..\..\lsjutil\Src\Lsj.Util.Win32\Lsj.Util.Win32.csproj" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183" PrivateAssets="all" />
   </ItemGroup>
 
 </Project>
