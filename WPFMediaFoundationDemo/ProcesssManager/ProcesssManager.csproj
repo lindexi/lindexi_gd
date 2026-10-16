@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\lsjutil\Src\Lsj.Util.Win32.Extensions\Lsj.Util.Win32.Extensions.csproj" />
+    <ProjectReference Include="..\..\lsjutil\Src\Lsj.Util.Win32.NativeUI\Lsj.Util.Win32.NativeUI.csproj" />
+    <ProjectReference Include="..\..\lsjutil\Src\Lsj.Util.Win32\Lsj.Util.Win32.csproj" />
+  </ItemGroup>
+
+</Project>

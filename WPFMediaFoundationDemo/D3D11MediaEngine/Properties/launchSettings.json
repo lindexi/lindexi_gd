@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "D3D11MediaEngine": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}
