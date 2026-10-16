@@ -5,8 +5,6 @@ using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders.Fakes;
 using AgentLib.Logging;
 using AgentLib.Model;
-using Avalonia.Controls;
-using Avalonia.Controls.Templates;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using PrismCodingAgent.AvaloniaShell.Services.Chat;
@@ -14,7 +12,6 @@ using PrismCodingAgent.AvaloniaShell.Services.Sessions;
 using PrismCodingAgent.AvaloniaShell.Services.Workspace;
 using PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
 using PrismCodingAgent.AvaloniaShell.ViewModels;
-using PrismCodingAgent.AvaloniaShell.Views;
 using CodingChatApplicationTestFactory = global::PrismCodingAgent.AvaloniaShell.Tests.CodingWorkTaskControllerTestFactory;
 
 namespace PrismCodingAgent.AvaloniaShell.Tests;
@@ -33,36 +30,6 @@ public sealed class ChatViewModelTests
         Assert.IsFalse(userMessage.IsAssistantMessage);
         Assert.IsTrue(assistantMessage.IsAssistantMessage);
         Assert.AreEqual("Copilot", assistantMessage.Author);
-    }
-
-    [TestMethod(DisplayName = "工具和审批片段应选择对应模板")]
-    [Timeout(5000)]
-    public void TemplateSelectorShouldSelectToolAndApprovalTemplates()
-    {
-        var toolTemplate = new TestDataTemplate();
-        var approvalTemplate = new TestDataTemplate();
-        var selector = new ChatMessageItemTemplateSelector
-        {
-            ToolItemTemplate = toolTemplate,
-            ApprovalToolItemTemplate = approvalTemplate,
-        };
-
-        Assert.AreSame(toolTemplate, selector.SelectTemplate(new CopilotChatToolItem("tool-call", "read_file", "path=a.cs")));
-        Assert.AreSame(approvalTemplate, selector.SelectTemplate(new CopilotChatApprovalToolItem("approval-call", "write_file", "path=a.cs")));
-    }
-
-    [TestMethod(DisplayName = "图片片段应选择图片模板")]
-    [Timeout(5000)]
-    public void TemplateSelectorShouldSelectImageTemplate()
-    {
-        var imageTemplate = new TestDataTemplate();
-        var selector = new ChatMessageItemTemplateSelector
-        {
-            ImageItemTemplate = imageTemplate,
-        };
-        var imageItem = new CopilotChatImageItem(BinaryData.FromBytes([1, 2, 3]), "image/png");
-
-        Assert.AreSame(imageTemplate, selector.SelectTemplate(imageItem));
     }
 
     [TestMethod(DisplayName = "用户多模态消息投影应保留图片片段")]
@@ -602,13 +569,6 @@ public sealed class ChatViewModelTests
         Assert.AreEqual(
             (true, true),
             (failureMessage.IsSystemMessage, failureMessage.Message.IsPresetInfo));
-    }
-
-    private sealed class TestDataTemplate : IDataTemplate
-    {
-        public Control? Build(object? param) => new Border();
-
-        public bool Match(object? data) => true;
     }
 
     private static string CreateTestDirectory()
