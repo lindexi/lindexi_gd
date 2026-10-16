@@ -553,7 +553,6 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatOutput
         _responseInfo = null;
         _toolItemsByCallId.Clear();
         _subAgentItemsByCallId.Clear();
-        _invokeSubAgentCallIds.Clear();
     }
 
     /// <summary>
@@ -661,36 +660,36 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatOutput
     {
         ArgumentNullException.ThrowIfNull(functionCallContent);
 
-        if (string.Equals(functionCallContent.Name, "InvokeSubAgent", StringComparison.Ordinal))
-        {
-            string invokeCallId = string.IsNullOrWhiteSpace(functionCallContent.CallId)
-                ? Guid.NewGuid().ToString("N")
-                : functionCallContent.CallId;
-            _invokeSubAgentCallIds.Add(invokeCallId);
-            return;
-        }
-
         if (IsApprovalTool(functionCallContent.Name))
         {
             AppendApprovalToolCall(functionCallContent);
             return;
         }
 
-        string callId = string.IsNullOrWhiteSpace(functionCallContent.CallId)
-            ? Guid.NewGuid().ToString("N")
-            : functionCallContent.CallId;
+        CreateToolItem(functionCallContent, presentation);
+    }
+
+    /// <inheritdoc/>
+    public CopilotChatToolItem CreateToolItem(FunctionCallContent functionCallContent, ToolCallPresentation? presentation = null)
+    {
+        ArgumentNullException.ThrowIfNull(functionCallContent);
+        string callId = functionCallContent.CallId;
 
         if (!_toolItemsByCallId.TryGetValue(callId, out CopilotChatToolItem? toolItem))
         {
             toolItem = new CopilotChatToolItem(callId, functionCallContent.Name, CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent), presentation: presentation);
             _toolItemsByCallId[callId] = toolItem;
             MessageItems.Add(toolItem);
-            return;
+            return toolItem;
         }
 
         toolItem.ToolName = functionCallContent.Name;
         toolItem.InputText = CopilotChatMessageItemFormatter.FormatArgumentsToHumans(functionCallContent) ?? string.Empty;
-        toolItem.ApplyPresentation(presentation);
+        if (presentation is not null)
+        {
+            toolItem.ApplyPresentation(presentation);
+        }
+        return toolItem;
     }
 
     /// <summary>
@@ -703,21 +702,10 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatOutput
 
         string callId = functionResultContent.CallId ?? string.Empty;
 
-        if (_invokeSubAgentCallIds.Contains(callId))
-        {
-            return;
-        }
-
         // 审批工具的流式调用阶段不创建项（由 RuntimeHumanApprovalFunction 统一创建），
         // 因此流式结果到达时也没有项可匹配，直接跳过。
         if (_approvalToolCallIds.Contains(callId))
         {
-            return;
-        }
-
-        if (_subAgentItemsByCallId.ContainsKey(callId))
-        {
-            AppendSubAgentResult(functionResultContent);
             return;
         }
 
@@ -881,7 +869,6 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatOutput
     private readonly Dictionary<string, CopilotChatApprovalToolItem> _approvalToolItemsByCallId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, CopilotChatSubAgentItem> _subAgentItemsByCallId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string?> _approvalToolDescriptions = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _invokeSubAgentCallIds = new(StringComparer.Ordinal);
     private readonly HashSet<string> _approvalToolCallIds = new(StringComparer.Ordinal);
 
     private static string? FormatMessageItem(ICopilotChatMessageItem messageItem)
@@ -959,6 +946,11 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatOutput
                 .Append(toolItem.InputText);
         }
 
+        if (!string.IsNullOrEmpty(toolItem.DetailContent))
+        {
+            builder.AppendLine().Append(toolItem.DetailContent);
+        }
+
         if (toolItem.HasOutputText)
         {
             builder.AppendLine()
@@ -1006,23 +998,6 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatOutput
         }
 
         return builder.ToString();
-    }
-
-    private void AppendSubAgentResult(FunctionResultContent functionResultContent)
-    {
-        string callId = string.IsNullOrWhiteSpace(functionResultContent.CallId)
-            ? Guid.NewGuid().ToString("N")
-            : functionResultContent.CallId;
-
-        if (_subAgentItemsByCallId.TryGetValue(callId, out CopilotChatSubAgentItem? subAgentItem))
-        {
-            subAgentItem.OutputText = CopilotChatMessageItemFormatter.FormatResult(functionResultContent) ?? string.Empty;
-
-            if (CreateDataItemFromResult(functionResultContent) is { } dataItem)
-            {
-                subAgentItem.MessageItems.Add(dataItem);
-            }
-        }
     }
 
     private void AppendApprovalToolCall(FunctionCallContent functionCallContent)
@@ -1073,8 +1048,23 @@ public sealed class CopilotChatMessage : NotifyBase, ICopilotChatOutput
             }
         }
 
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            _toolItemsByCallId.Clear();
+        }
+        if (e.OldItems is not null)
+        {
+            foreach (CopilotChatToolItem tool in e.OldItems.OfType<CopilotChatToolItem>())
+            {
+                _toolItemsByCallId.Remove(tool.CallId);
+            }
+        }
         if (e.NewItems is not null)
         {
+            foreach (CopilotChatToolItem tool in e.NewItems.OfType<CopilotChatToolItem>())
+            {
+                _toolItemsByCallId[tool.CallId] = tool;
+            }
             foreach (INotifyPropertyChanged messageItem in e.NewItems.OfType<INotifyPropertyChanged>())
             {
                 messageItem.PropertyChanged += MessageItem_PropertyChanged;

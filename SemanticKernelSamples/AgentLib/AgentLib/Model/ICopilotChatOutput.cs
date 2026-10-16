@@ -22,6 +22,9 @@ public interface ICopilotChatOutput
     /// <summary>追加带展示摘要的工具调用。</summary>
     void AppendFunctionCall(FunctionCallContent functionCallContent, ToolCallPresentation? presentation);
 
+    /// <summary>创建或获取工具调用片段，保留已有详情。</summary>
+    CopilotChatToolItem CreateToolItem(FunctionCallContent functionCallContent, ToolCallPresentation? presentation = null);
+
     /// <summary>追加工具执行结果。</summary>
     void AppendFunctionResult(FunctionResultContent functionResultContent);
 

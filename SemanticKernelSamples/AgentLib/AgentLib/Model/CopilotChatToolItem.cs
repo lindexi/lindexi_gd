@@ -175,6 +175,50 @@ public sealed class CopilotChatToolItem : NotifyBase, ICopilotChatMessageItem
     /// </summary>
     public bool HasOutputText => !string.IsNullOrEmpty(OutputText);
 
+    /// <summary>
+    /// 工具执行期间的可选详情，与输出返回内容相互独立。
+    /// </summary>
+    public CopilotChatMessage? Details
+    {
+        get => _details;
+        set
+        {
+            if (ReferenceEquals(_details, value))
+            {
+                return;
+            }
+
+            if (_details is not null)
+            {
+                _details.PropertyChanged -= OnDetailsPropertyChanged;
+            }
+
+            _details = value;
+            if (_details is not null)
+            {
+                _details.PropertyChanged += OnDetailsPropertyChanged;
+            }
+
+            OnPropertyChanged(nameof(Details));
+            OnPropertyChanged(nameof(DetailContent));
+        }
+    }
+
+    private CopilotChatMessage? _details;
+
+    /// <summary>
+    /// 详情的完整文本，用于消息内容通知和复制。
+    /// </summary>
+    public string DetailContent => Details?.FullContent ?? string.Empty;
+
+    private void OnDetailsPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(CopilotChatMessage.FullContent))
+        {
+            OnPropertyChanged(nameof(DetailContent));
+        }
+    }
+
     internal void ApplyPresentation(ToolCallPresentation? presentation)
     {
         PrimaryText = presentation?.PrimaryText ?? string.Empty;
@@ -188,5 +232,8 @@ public sealed class CopilotChatToolItem : NotifyBase, ICopilotChatMessageItem
         ToolName,
         InputText,
         OutputText,
-        new ToolCallPresentation(PrimaryText, SecondaryText, FullTargetText));
+        new ToolCallPresentation(PrimaryText, SecondaryText, FullTargetText))
+    {
+        Details = Details?.Clone()
+    };
 }

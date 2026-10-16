@@ -19,7 +19,7 @@ internal sealed class CopilotChatContext
 
     public ICopilotChatOutput CurrentContent { get; }
 
-    public CopilotChatContext CreateSubAgentContext(CopilotChatSubAgentItem subAgentItem)
+    public CopilotChatContext CreateSubAgentContext(ICopilotChatOutput subAgentItem)
     {
         ArgumentNullException.ThrowIfNull(subAgentItem);
         return new CopilotChatContext(new ObservableCollection<CopilotChatMessage>(HistoryMessages), subAgentItem);

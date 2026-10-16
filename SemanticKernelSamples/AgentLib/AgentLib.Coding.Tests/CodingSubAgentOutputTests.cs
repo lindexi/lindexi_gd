@@ -18,7 +18,7 @@ public sealed class CodingSubAgentOutputTests
         await scenario.StreamPaused.Task.WaitAsync(TimeSpan.FromSeconds(5));
         try
         {
-            CopilotChatSubAgentItem child = scenario.Message.MessageItems.OfType<CopilotChatSubAgentItem>().Single();
+            CopilotChatMessage child = scenario.Message.MessageItems.OfType<CopilotChatToolItem>().Single().Details!;
             Assert.AreEqual("child text", child.MessageItems.OfType<CopilotChatTextItem>().Single().Text);
             Assert.IsFalse(run.CompletionTask.IsCompleted);
         }
@@ -35,7 +35,7 @@ public sealed class CodingSubAgentOutputTests
         var scenario = new Scenario();
         await using var agent = new CodingAgent();
         await (await scenario.StartAsync(agent)).CompletionTask;
-        CopilotChatSubAgentItem child = scenario.Message.MessageItems.OfType<CopilotChatSubAgentItem>().Single();
+        CopilotChatMessage child = scenario.Message.MessageItems.OfType<CopilotChatToolItem>().Single().Details!;
         CollectionAssert.AreEqual(new[] { "child reasoning", "ReturnOutputToParent" },
             new[] { child.MessageItems.OfType<CopilotChatReasoningItem>().Single().Text,
                 child.MessageItems.OfType<CopilotChatToolItem>().Single().ToolName });
@@ -47,7 +47,7 @@ public sealed class CodingSubAgentOutputTests
         var scenario = new Scenario(retry: true);
         await using var agent = new CodingAgent();
         await (await scenario.StartAsync(agent)).CompletionTask;
-        CopilotChatSubAgentItem child = scenario.Message.MessageItems.OfType<CopilotChatSubAgentItem>().Single();
+        CopilotChatMessage child = scenario.Message.MessageItems.OfType<CopilotChatToolItem>().Single().Details!;
         Assert.AreEqual("child textchild textchild done", string.Concat(child.MessageItems.OfType<CopilotChatTextItem>().Select(item => item.Text)));
         Assert.IsTrue(scenario.RetryContainsFirstRound);
         Assert.AreEqual("submitted", scenario.ParentResult);
@@ -59,9 +59,9 @@ public sealed class CodingSubAgentOutputTests
         var scenario = new Scenario(delegations: 2);
         await using var agent = new CodingAgent();
         await (await scenario.StartAsync(agent)).CompletionTask;
-        CopilotChatSubAgentItem[] children = scenario.Message.MessageItems.OfType<CopilotChatSubAgentItem>().ToArray();
+        CopilotChatToolItem[] children = scenario.Message.MessageItems.OfType<CopilotChatToolItem>().ToArray();
         Assert.HasCount(2, children);
-        Assert.AreNotSame(children[0].MessageItems, children[1].MessageItems);
+        Assert.AreNotSame(children[0].Details!.MessageItems, children[1].Details!.MessageItems);
         Assert.AreNotEqual(children[0].CallId, children[1].CallId);
     }
 
@@ -75,7 +75,7 @@ public sealed class CodingSubAgentOutputTests
         await scenario.StreamPaused.Task.WaitAsync(TimeSpan.FromSeconds(5));
         cancellation.Cancel();
         await Assert.ThrowsAsync<OperationCanceledException>(async () => await run.CompletionTask);
-        Assert.AreEqual(string.Empty, scenario.Message.MessageItems.OfType<CopilotChatSubAgentItem>().Single().OutputText);
+        Assert.AreEqual(string.Empty, scenario.Message.MessageItems.OfType<CopilotChatToolItem>().Single().OutputText);
         Assert.AreEqual(1, scenario.ChildRounds);
     }
 
@@ -88,10 +88,17 @@ public sealed class CodingSubAgentOutputTests
         scenario.Message.MessageItems.CollectionChanged += (_, args) =>
         {
             outsideDispatcher |= !dispatcher.CheckAccess();
-            foreach (CopilotChatSubAgentItem child in args.NewItems?.OfType<CopilotChatSubAgentItem>() ?? [])
+            foreach (CopilotChatToolItem tool in args.NewItems?.OfType<CopilotChatToolItem>() ?? [])
             {
-                child.MessageItems.CollectionChanged += (_, _) => outsideDispatcher |= !dispatcher.CheckAccess();
-                child.PropertyChanged += (_, _) => outsideDispatcher |= !dispatcher.CheckAccess();
+                tool.PropertyChanged += (_, e) =>
+                {
+                    outsideDispatcher |= !dispatcher.CheckAccess();
+                    if (e.PropertyName == nameof(CopilotChatToolItem.Details) && tool.Details is { } details)
+                    {
+                        details.MessageItems.CollectionChanged += (_, _) => outsideDispatcher |= !dispatcher.CheckAccess();
+                        details.PropertyChanged += (_, _) => outsideDispatcher |= !dispatcher.CheckAccess();
+                    }
+                };
             }
         };
         await using var agent = new CodingAgent();
@@ -101,7 +108,26 @@ public sealed class CodingSubAgentOutputTests
     }
 
     [TestMethod]
-    public async Task WhenDelegationReturnsThenOrdinaryToolCardContainsSubmission()
+    public async Task WhenDelegationReturnsThenOnlyOneToolItemContainsDetails()
+    {
+        var scenario = new Scenario();
+        await using var agent = new CodingAgent();
+        await (await scenario.StartAsync(agent)).CompletionTask;
+        Assert.HasCount(1, scenario.Message.MessageItems.OfType<CopilotChatToolItem>());
+        Assert.IsEmpty(scenario.Message.MessageItems.OfType<CopilotChatSubAgentItem>());
+    }
+
+    [TestMethod]
+    public async Task WhenDelegatingThenChildUsesModelCallId()
+    {
+        var scenario = new Scenario();
+        await using var agent = new CodingAgent();
+        await (await scenario.StartAsync(agent)).CompletionTask;
+        Assert.AreEqual("parent-1", scenario.Message.MessageItems.OfType<CopilotChatToolItem>().Single().CallId);
+    }
+
+    [TestMethod]
+    public async Task WhenDelegationReturnsThenOrdinaryToolContainsReturnedOutput()
     {
         var scenario = new Scenario();
         await using var agent = new CodingAgent();
@@ -146,7 +172,7 @@ public sealed class CodingSubAgentOutputTests
         var scenario = new Scenario();
         await using var agent = new CodingAgent();
         await (await scenario.StartAsync(agent)).CompletionTask;
-        Assert.AreEqual(7L, scenario.Message.MessageItems.OfType<CopilotChatSubAgentItem>().Single().TotalUsageDetails?.InputTokenCount);
+        Assert.AreEqual(7L, scenario.Message.MessageItems.OfType<CopilotChatToolItem>().Single().Details!.TotalUsageDetails?.InputTokenCount);
     }
 
     [TestMethod]
