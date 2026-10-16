@@ -98,8 +98,14 @@ public sealed class SubAgentToolProvider
             SubAgentSelection selection = SubAgentSelection.Parse(subAgentType);
             ILanguageModel model = _agentApiEndpointManager.GetBestModel(languageModel => selection.IsMatch(languageModel));
             IChatClient chatClient = await model.GetChatClientAsync();
-            CopilotChatSubAgentItem? subAgentItem = _chatContext?.CurrentContent.CreateSubAgentItem(InvokeSubAgentDisplayName, CreateInvocationInputText(prompt, systemPrompt, subAgentType));
-            _outputCollector.Attach(subAgentItem);
+            CopilotChatMessage? subAgentItem = null;
+            if (_chatContext is not null)
+            {
+                FunctionCallContent callContent = (FunctionInvokingChatClient.CurrentContext
+                    ?? throw new InvalidOperationException("工具详情必须在模型工具调用中创建。")).CallContent;
+                subAgentItem = CopilotChatMessage.CreateAssistant(string.Empty, isPresetInfo: false);
+                _chatContext.CurrentContent.CreateToolItem(callContent).Details = subAgentItem;
+            }
             CopilotChatContext? subAgentChatContext = subAgentItem is not null ? _chatContext?.CreateSubAgentContext(subAgentItem) : null;
 
             ChatClientAgent chatClientAgent = chatClient.AsAIAgent(new ChatClientAgentOptions()
@@ -126,15 +132,10 @@ public sealed class SubAgentToolProvider
             }
 
             string output = _outputCollector.OutputText;
-            if (subAgentItem is not null && !string.IsNullOrEmpty(output))
-            {
-                subAgentItem.OutputText = output;
-            }
-
             return output;
         }
 
-        private async Task RunSubAgentOnceAsync(ChatClientAgent chatClientAgent, List<ChatMessage> messages, CopilotChatSubAgentItem? subAgentItem)
+        private async Task RunSubAgentOnceAsync(ChatClientAgent chatClientAgent, List<ChatMessage> messages, ICopilotChatOutput? subAgentItem)
         {
             ArgumentNullException.ThrowIfNull(chatClientAgent);
             ArgumentNullException.ThrowIfNull(messages);
@@ -176,7 +177,7 @@ public sealed class SubAgentToolProvider
             });
         }
 
-        private void AppendSubAgentResponseUpdate(CopilotChatSubAgentItem? subAgentItem, AgentResponseUpdate responseUpdate)
+        private void AppendSubAgentResponseUpdate(ICopilotChatOutput? subAgentItem, AgentResponseUpdate responseUpdate)
         {
             ArgumentNullException.ThrowIfNull(responseUpdate);
 
@@ -205,34 +206,18 @@ public sealed class SubAgentToolProvider
             }
         }
 
-        private void AppendSubAgentFunctionCall(CopilotChatSubAgentItem subAgentItem, FunctionCallContent functionCallContent)
+        private void AppendSubAgentFunctionCall(ICopilotChatOutput subAgentItem, FunctionCallContent functionCallContent)
         {
             ArgumentNullException.ThrowIfNull(subAgentItem);
             ArgumentNullException.ThrowIfNull(functionCallContent);
 
-            if (string.Equals(functionCallContent.Name, InvokeSubAgentToolName, StringComparison.Ordinal))
-            {
-                CopilotChatSubAgentItem nestedSubAgentItem = subAgentItem.CreateSubAgentItem(InvokeSubAgentDisplayName, CopilotChatMessageItemFormatter.FormatArguments(functionCallContent), functionCallContent.CallId);
-                nestedSubAgentItem.ToolName = InvokeSubAgentDisplayName;
-                return;
-            }
-
             subAgentItem.AppendFunctionCall(functionCallContent, _toolRegistrationRegistry.CreatePresentation(functionCallContent));
         }
 
-        private static void AppendSubAgentFunctionResult(CopilotChatSubAgentItem subAgentItem, FunctionResultContent functionResultContent)
+        private static void AppendSubAgentFunctionResult(ICopilotChatOutput subAgentItem, FunctionResultContent functionResultContent)
         {
             ArgumentNullException.ThrowIfNull(subAgentItem);
             ArgumentNullException.ThrowIfNull(functionResultContent);
-
-            if (!string.IsNullOrWhiteSpace(functionResultContent.CallId) && subAgentItem.MessageItems.OfType<CopilotChatSubAgentItem>().Any(item => string.Equals(item.CallId, functionResultContent.CallId, StringComparison.Ordinal)))
-            {
-                CopilotChatSubAgentItem nestedSubAgentItem = subAgentItem.MessageItems
-                    .OfType<CopilotChatSubAgentItem>()
-                    .First(item => string.Equals(item.CallId, functionResultContent.CallId, StringComparison.Ordinal));
-                nestedSubAgentItem.OutputText = CopilotChatMessageItemFormatter.FormatResult(functionResultContent) ?? string.Empty;
-                return;
-            }
 
             subAgentItem.AppendFunctionResult(functionResultContent);
         }
@@ -240,29 +225,14 @@ public sealed class SubAgentToolProvider
 
     private sealed class SubAgentOutputCollector
     {
-        private CopilotChatSubAgentItem? _subAgentItem;
-
         public bool HasOutput { get; private set; }
 
         public string OutputText { get; private set; } = string.Empty;
-
-        public void Attach(CopilotChatSubAgentItem? subAgentItem)
-        {
-            _subAgentItem = subAgentItem;
-            if (_subAgentItem is not null && !string.IsNullOrEmpty(OutputText))
-            {
-                _subAgentItem.OutputText = OutputText;
-            }
-        }
 
         public void SetOutput(string output)
         {
             HasOutput = true;
             OutputText = output ?? string.Empty;
-            if (_subAgentItem is not null)
-            {
-                _subAgentItem.OutputText = OutputText;
-            }
         }
     }
 

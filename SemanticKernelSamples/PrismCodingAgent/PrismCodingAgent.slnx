@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Code/">
     <Project Path="Code/PrismCodingAgent.AvaloniaShell/PrismCodingAgent.AvaloniaShell.csproj" />
+    <Project Path="Docs/Docs.csproj" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests/PrismCodingAgent.AvaloniaShell.Tests/PrismCodingAgent.AvaloniaShell.Tests.csproj" />

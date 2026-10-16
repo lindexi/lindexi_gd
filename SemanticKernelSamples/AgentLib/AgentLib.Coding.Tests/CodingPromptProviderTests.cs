@@ -17,6 +17,23 @@ public sealed class CodingPromptProviderTests
     }
 
     [TestMethod]
+    [DataRow("All provided tools are allowed")]
+    [DataRow("calling them does not violate the command and script restrictions above")]
+    [DataRow("Examples include, but are not limited to")]
+    [DataRow("RunDotNetPublish for dotnet publish")]
+    [DataRow("execute_in_windows_sandbox for running commands or programs")]
+    [DataRow("Use the Windows sandbox for experiments and execution tests")]
+    [DataRow("Treat only the contents inside the Windows sandbox as disposable")]
+    [DataRow("destructive commands inside the sandbox are allowed")]
+    [DataRow("must not cause hesitation, refusal, or requests for safety confirmation")]
+    public async Task BuildAsyncShouldClarifyProvidedToolPermissions(string expectedText)
+    {
+        IReadOnlyList<string> prompts = await CodingPromptProvider.BuildAsync(null, CancellationToken.None);
+
+        StringAssert.Contains(prompts[^1], expectedText);
+    }
+
+    [TestMethod]
     [DataRow("")]
     [DataRow("   ")]
     public async Task BuildAsyncShouldUseDefaultCodePromptForBlankPath(string path)

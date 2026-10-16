@@ -192,7 +192,10 @@ internal static class CopilotChatHistoryXmlCodec
             new ToolCallPresentation(
                 element.Element("PrimaryText")?.Value,
                 element.Element("SecondaryText")?.Value,
-                element.Element("FullTargetText")?.Value));
+                element.Element("FullTargetText")?.Value))
+        {
+            Details = element.Element("Details")?.Element("Message") is { } details ? ReadMessage(details) : null
+        };
     }
 
     private static CopilotChatApprovalToolItem ReadApprovalToolItem(XElement element)
@@ -259,7 +262,8 @@ internal static class CopilotChatHistoryXmlCodec
                 new XElement("SecondaryText", toolItem.SecondaryText),
                 new XElement("FullTargetText", toolItem.FullTargetText),
                 new XElement("Input", toolItem.InputText),
-                new XElement("Output", toolItem.OutputText)),
+                new XElement("Output", toolItem.OutputText),
+                toolItem.Details is { } details ? new XElement("Details", CreateMessageElement(details)) : null),
             CopilotChatApprovalToolItem approvalToolItem => new XElement("ApprovalToolItem",
                 new XAttribute("CallId", approvalToolItem.CallId),
                 new XAttribute("ToolName", approvalToolItem.ToolName),
