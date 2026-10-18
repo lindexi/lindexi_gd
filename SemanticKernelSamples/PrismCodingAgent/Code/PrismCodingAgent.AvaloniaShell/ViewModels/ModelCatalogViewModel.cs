@@ -63,7 +63,8 @@ public sealed class ModelCatalogViewModel : ViewModelBase, IDisposable
         {
             var result = await _client.GetModelIdsAsync(_provider.EndPoint.Trim(), _provider.ApiKey, request.Token);
             if (_request != request || request.IsCancellationRequested) return;
-            foreach (string id in result.ModelIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.Ordinal))
+            foreach (string id in result.ModelIds.Where(id => !string.IsNullOrWhiteSpace(id))
+                         .Select(id => id.Trim()).Distinct(StringComparer.Ordinal).Where(id => !IsModelAdded(id)))
                 Models.Add(id);
             Status = result.IsSuccessful
                 ? Text(Models.Count == 0 ? "SetupCatalogEmpty" : "SetupCatalogReady")
@@ -83,6 +84,9 @@ public sealed class ModelCatalogViewModel : ViewModelBase, IDisposable
         }
     }
 
+    private bool IsModelAdded(string id)
+        => _provider.Models.Any(model => model.ModelId?.Trim() == id || model.ModelName.Trim() == id);
+
     private void Add(string? id)
     {
         if (string.IsNullOrWhiteSpace(id))
@@ -91,8 +95,9 @@ public sealed class ModelCatalogViewModel : ViewModelBase, IDisposable
             return;
         }
         id = id.Trim();
-        if (_provider.Models.Any(model => model.ModelId == id || model.ModelName == id))
+        if (IsModelAdded(id))
         {
+            Models.Remove(id);
             Status = Text("SetupAlreadyAdded");
             return;
         }
@@ -109,6 +114,7 @@ public sealed class ModelCatalogViewModel : ViewModelBase, IDisposable
             model.ModelName = id;
             model.ModelId = id;
         }
+        Models.Remove(id);
         ModelId = string.Empty;
         Status = Text("SetupModelAdded");
     }

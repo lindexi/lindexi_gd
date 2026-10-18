@@ -59,6 +59,34 @@ public sealed class ModelConfigurationControlTests
     }
 
     [TestMethod]
+    public void DuplicateManualModelShouldShowFeedbackBelowInput()
+    {
+        var provider = new ProviderSettingsViewModel();
+        provider.Models.Add(new ModelSettingsViewModel { ModelId = "coding-model", ModelName = "Coding" });
+        var view = new OpenAIModelCatalogView { DataContext = provider };
+        var window = new Window { Content = view, Width = 720, Height = 500 };
+        try
+        {
+            window.Show();
+            window.UpdateLayout();
+            var input = view.GetVisualDescendants().OfType<TextBox>().Single();
+            input.Text = "coding-model";
+            var button = view.GetVisualDescendants().OfType<Button>().Last();
+
+            button.Command!.Execute(button.CommandParameter);
+            window.UpdateLayout();
+
+            var status = view.GetVisualDescendants().OfType<TextBlock>().Single(block => block.Name == "CatalogStatus");
+            var inputPosition = input.TranslatePoint(default, view) ?? throw new InvalidOperationException();
+            var statusPosition = status.TranslatePoint(default, view) ?? throw new InvalidOperationException();
+            Assert.IsTrue(status.IsVisible
+                && status.Text == ModelCatalogViewModel.Text("SetupAlreadyAdded")
+                && statusPosition.Y >= inputPosition.Y + input.Bounds.Height);
+        }
+        finally { window.Close(); }
+    }
+
+    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public void ConnectionInputTextShouldBeVerticallyCentered(bool isPassword)
