@@ -11,34 +11,34 @@ namespace PrismCodingAgent.AvaloniaShell.Tests;
 public sealed class WorkTaskPinningTests
 {
     [TestMethod]
-    public void PinningShouldMoveTaskToTopWithoutChangingSelection()
+    public async Task PinningShouldMoveTaskToTopWithoutChangingSelection()
     {
         var shell = new MainViewModel();
         var first = shell.ActiveWorkTask;
         var second = new MainViewModel().ActiveWorkTask;
         shell.WorkTasks.Add(second);
 
-        shell.PinWorkTaskCommand.Execute(second);
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.PinWorkTaskCommand).ExecuteAsync(second);
 
         Assert.AreEqual((second, first), (shell.FilteredWorkTasks[0], shell.ActiveWorkTask));
     }
 
     [TestMethod]
-    public void PinningAgainShouldKeepTaskAtTop()
+    public async Task PinningAgainShouldKeepTaskAtTop()
     {
         var shell = new MainViewModel();
         var first = shell.ActiveWorkTask;
         var second = new MainViewModel().ActiveWorkTask;
         shell.WorkTasks.Add(second);
-        shell.PinWorkTaskCommand.Execute(second);
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.PinWorkTaskCommand).ExecuteAsync(second);
 
-        shell.PinWorkTaskCommand.Execute(second);
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.PinWorkTaskCommand).ExecuteAsync(second);
 
         CollectionAssert.AreEqual(new[] { second, first }, shell.FilteredWorkTasks.ToArray());
     }
 
     [TestMethod]
-    public void LastMovedTaskShouldPrecedePreviouslyMovedTasks()
+    public async Task LastMovedTaskShouldPrecedePreviouslyMovedTasks()
     {
         var shell = new MainViewModel();
         var first = shell.ActiveWorkTask;
@@ -46,21 +46,21 @@ public sealed class WorkTaskPinningTests
         var third = new MainViewModel().ActiveWorkTask;
         shell.WorkTasks.Add(second);
         shell.WorkTasks.Add(third);
-        shell.PinWorkTaskCommand.Execute(second);
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.PinWorkTaskCommand).ExecuteAsync(second);
 
-        shell.PinWorkTaskCommand.Execute(third);
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.PinWorkTaskCommand).ExecuteAsync(third);
 
         CollectionAssert.AreEqual(new[] { third, second, first }, shell.FilteredWorkTasks.ToArray());
     }
 
     [TestMethod]
-    public void SearchChangesShouldPreserveTemporaryOrder()
+    public async Task SearchChangesShouldPreserveTaskOrder()
     {
         var shell = new MainViewModel();
         var first = shell.ActiveWorkTask;
         var second = new MainViewModel().ActiveWorkTask;
         shell.WorkTasks.Add(second);
-        shell.PinWorkTaskCommand.Execute(second);
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.PinWorkTaskCommand).ExecuteAsync(second);
         shell.WorkTaskSearchText = "No match";
 
         shell.WorkTaskSearchText = string.Empty;
@@ -69,16 +69,16 @@ public sealed class WorkTaskPinningTests
     }
 
     [TestMethod]
-    public void PinningShouldNotChangePersistenceOrder()
+    public async Task PinningShouldChangePersistenceOrder()
     {
         var shell = new MainViewModel();
         var first = shell.ActiveWorkTask;
         var second = new MainViewModel().ActiveWorkTask;
         shell.WorkTasks.Add(second);
 
-        shell.PinWorkTaskCommand.Execute(second);
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.PinWorkTaskCommand).ExecuteAsync(second);
 
-        CollectionAssert.AreEqual(new[] { first, second }, shell.WorkTasks.ToArray());
+        CollectionAssert.AreEqual(new[] { second, first }, shell.WorkTasks.ToArray());
     }
 
     [TestMethod]
@@ -95,7 +95,7 @@ public sealed class WorkTaskPinningTests
     public async Task CreatingTaskShouldPlaceItAbovePreviouslyMovedTask()
     {
         await using var shell = await CreateShellAsync();
-        shell.PinWorkTaskCommand.Execute(shell.ActiveWorkTask);
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.PinWorkTaskCommand).ExecuteAsync(shell.ActiveWorkTask);
 
         await ((SimpleAsyncCommand)shell.CreateWorkTaskCommand).ExecuteAsync();
 
@@ -104,21 +104,21 @@ public sealed class WorkTaskPinningTests
     }
 
     [TestMethod]
-    public async Task SavingAfterPinningShouldNotPersistTemporaryOrder()
+    public async Task SavingAfterPinningShouldPreserveTaskOrder()
     {
         var paths = CreatePaths();
         await using var shell = await CreateShellAsync(paths);
         var first = shell.ActiveWorkTask;
         await ((SimpleAsyncCommand)shell.CreateWorkTaskCommand).ExecuteAsync();
         var second = shell.ActiveWorkTask;
-        shell.PinWorkTaskCommand.Execute(first);
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.PinWorkTaskCommand).ExecuteAsync(first);
         shell.RenameWorkTaskCommand.Execute(first);
         first.EditedDisplayName = "Renamed";
 
         await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.SaveWorkTaskNameCommand).ExecuteAsync(first);
         var saved = await new WorkTaskStore(paths).LoadAsync();
 
-        CollectionAssert.AreEqual(new[] { second.Id, first.Id }, saved.Select(task => task.Id).ToArray());
+        CollectionAssert.AreEqual(new[] { first.Id, second.Id }, saved.Select(task => task.Id).ToArray());
     }
 
     [TestMethod]
@@ -129,7 +129,7 @@ public sealed class WorkTaskPinningTests
         await ((SimpleAsyncCommand)shell.CreateWorkTaskCommand).ExecuteAsync();
         var other = shell.ActiveWorkTask;
         await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.ArchiveWorkTaskCommand).ExecuteAsync(original);
-        shell.PinWorkTaskCommand.Execute(other);
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.PinWorkTaskCommand).ExecuteAsync(other);
         var archived = shell.ArchivedWorkTasks.Single();
 
         await ((SimpleAsyncCommand<ArchivedWorkTaskItemViewModel>)shell.RestoreWorkTaskCommand).ExecuteAsync(archived);
@@ -152,6 +152,21 @@ public sealed class WorkTaskPinningTests
         var saved = await new WorkTaskStore(paths).LoadAsync();
 
         CollectionAssert.AreEqual(new[] { original.Id, other.Id }, saved.Select(task => task.Id).ToArray());
+    }
+
+    [TestMethod]
+    public async Task PinningShouldImmediatelyPersistTaskOrder()
+    {
+        var paths = CreatePaths();
+        await using var shell = await CreateShellAsync(paths);
+        var first = shell.ActiveWorkTask;
+        await ((SimpleAsyncCommand)shell.CreateWorkTaskCommand).ExecuteAsync();
+        var second = shell.ActiveWorkTask;
+
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.PinWorkTaskCommand).ExecuteAsync(first);
+        var saved = await new WorkTaskStore(paths).LoadAsync();
+
+        CollectionAssert.AreEqual(new[] { first.Id, second.Id }, saved.Select(task => task.Id).ToArray());
     }
 
     private static CodingChatRoomPaths CreatePaths()
