@@ -5,7 +5,9 @@ namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 internal sealed class AvaloniaTestClassAttribute : TestClassAttribute
 {
-    internal static HeadlessUnitTestSession Session { get; } = HeadlessUnitTestSession.StartNew(typeof(TestApplication));
+    private static HeadlessUnitTestSession? _session;
+
+    internal static HeadlessUnitTestSession Session => _session ??= HeadlessUnitTestSession.StartNew(typeof(TestApplication));
 
     public override TestMethodAttribute GetTestMethodAttribute(TestMethodAttribute testMethodAttribute)
         => new UiTestMethodAttribute(testMethodAttribute);

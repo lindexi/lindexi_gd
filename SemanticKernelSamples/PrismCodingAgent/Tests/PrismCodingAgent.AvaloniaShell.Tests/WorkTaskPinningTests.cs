@@ -121,6 +121,39 @@ public sealed class WorkTaskPinningTests
         CollectionAssert.AreEqual(new[] { second.Id, first.Id }, saved.Select(task => task.Id).ToArray());
     }
 
+    [TestMethod]
+    public async Task RestoringTaskShouldPlaceItAbovePreviouslyMovedTask()
+    {
+        await using var shell = await CreateShellAsync();
+        var original = shell.ActiveWorkTask;
+        await ((SimpleAsyncCommand)shell.CreateWorkTaskCommand).ExecuteAsync();
+        var other = shell.ActiveWorkTask;
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.ArchiveWorkTaskCommand).ExecuteAsync(original);
+        shell.PinWorkTaskCommand.Execute(other);
+        var archived = shell.ArchivedWorkTasks.Single();
+
+        await ((SimpleAsyncCommand<ArchivedWorkTaskItemViewModel>)shell.RestoreWorkTaskCommand).ExecuteAsync(archived);
+
+        CollectionAssert.AreEqual(new[] { original.Id, other.Id }, shell.FilteredWorkTasks.Select(task => task.Id).ToArray());
+    }
+
+    [TestMethod]
+    public async Task RestoringTaskShouldPersistItAtTop()
+    {
+        var paths = CreatePaths();
+        await using var shell = await CreateShellAsync(paths);
+        var original = shell.ActiveWorkTask;
+        await ((SimpleAsyncCommand)shell.CreateWorkTaskCommand).ExecuteAsync();
+        var other = shell.ActiveWorkTask;
+        await ((SimpleAsyncCommand<WorkTaskItemViewModel>)shell.ArchiveWorkTaskCommand).ExecuteAsync(original);
+        var archived = shell.ArchivedWorkTasks.Single();
+
+        await ((SimpleAsyncCommand<ArchivedWorkTaskItemViewModel>)shell.RestoreWorkTaskCommand).ExecuteAsync(archived);
+        var saved = await new WorkTaskStore(paths).LoadAsync();
+
+        CollectionAssert.AreEqual(new[] { original.Id, other.Id }, saved.Select(task => task.Id).ToArray());
+    }
+
     private static CodingChatRoomPaths CreatePaths()
     {
         var paths = CodingChatRoomPaths.Create(Path.Join(Path.GetTempPath(), "CodingChatRoom-Pinning", Guid.NewGuid().ToString("N")));

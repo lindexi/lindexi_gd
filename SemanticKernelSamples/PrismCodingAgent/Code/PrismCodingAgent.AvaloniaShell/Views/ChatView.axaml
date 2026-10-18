@@ -5,8 +5,8 @@
              xmlns:vm="clr-namespace:PrismCodingAgent.AvaloniaShell.ViewModels"
              x:Class="PrismCodingAgent.AvaloniaShell.Views.ChatView"
              x:DataType="vm:ChatViewModel">
-    <UserControl.Resources>
-        <DataTemplate x:Key="AssistantTextItemTemplate" x:DataType="model:CopilotChatTextItem">
+    <UserControl.DataTemplates>
+        <DataTemplate DataType="model:CopilotChatTextItem" x:DataType="model:CopilotChatTextItem">
             <TextBox Classes="ChatOutput"
                      Margin="0,0,0,8"
                      Text="{Binding Text}"
@@ -14,14 +14,7 @@
                      IsVisible="{Binding HasText}" />
         </DataTemplate>
 
-        <DataTemplate x:Key="UserTextItemTemplate" x:DataType="model:CopilotChatTextItem">
-            <TextBox Classes="ChatOutput UserChatOutput"
-                     Margin="0,0,0,8"
-                     Text="{Binding Text}"
-                     IsVisible="{Binding HasText}" />
-        </DataTemplate>
-
-        <DataTemplate x:Key="ImageItemTemplate" x:DataType="model:CopilotChatImageItem">
+        <DataTemplate DataType="model:CopilotChatImageItem" x:DataType="model:CopilotChatImageItem">
             <Button Margin="0,0,0,8"
                     Padding="0"
                     HorizontalAlignment="Left"
@@ -37,7 +30,7 @@
             </Button>
         </DataTemplate>
 
-        <DataTemplate x:Key="AssistantReasoningItemTemplate" x:DataType="model:CopilotChatReasoningItem">
+        <DataTemplate DataType="model:CopilotChatReasoningItem" x:DataType="model:CopilotChatReasoningItem">
             <Expander Classes="ReasoningExpander"
                       Margin="0,0,0,8"
                       IsExpanded="False"
@@ -56,50 +49,7 @@
             </Expander>
         </DataTemplate>
 
-        <views:ChatMessageItemTemplateSelector x:Key="ChatMessageItemTemplateSelector"
-                                               TextItemTemplate="{StaticResource AssistantTextItemTemplate}"
-                                               ReasoningItemTemplate="{StaticResource AssistantReasoningItemTemplate}"
-                                               ImageItemTemplate="{StaticResource ImageItemTemplate}" />
-
-        <DataTemplate x:Key="AssistantToolItemTemplate" x:DataType="model:CopilotChatToolItem">
-            <Expander Margin="0,0,0,8">
-                <Expander.Header>
-                    <Grid ColumnDefinitions="Auto,*,Auto"
-                          ColumnSpacing="8"
-                          ToolTip.Tip="{Binding ToolTipText}">
-                        <TextBlock Grid.Column="0"
-                                   Text="{Binding DisplayName}"
-                                   FontWeight="SemiBold" />
-                        <TextBlock Grid.Column="1"
-                                   Text="{Binding PrimaryText}"
-                                   TextTrimming="CharacterEllipsis"
-                                   IsVisible="{Binding HasPrimaryText}" />
-                        <TextBlock Grid.Column="2"
-                                   MaxWidth="240"
-                                   Text="{Binding SecondaryText}"
-                                   TextTrimming="CharacterEllipsis"
-                                   Foreground="{StaticResource TextSecondaryBrush}"
-                                   IsVisible="{Binding HasSecondaryText}" />
-                    </Grid>
-                </Expander.Header>
-                <Border Classes="ToolPanel">
-                    <StackPanel Spacing="6">
-                        <StackPanel IsVisible="{Binding HasInputText}">
-                            <TextBlock Classes="SecondaryLabel" Text="{StaticResource ToolInputText}" />
-                            <TextBox Classes="ChatOutput" Text="{Binding InputText}" />
-                        </StackPanel>
-                        <ItemsControl ItemsSource="{Binding Details.MessageItems}"
-                                      ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}" />
-                        <StackPanel IsVisible="{Binding HasOutputText}">
-                            <TextBlock Classes="SecondaryLabel" Text="{StaticResource ToolOutputText}" />
-                            <TextBox Classes="ChatOutput" Text="{Binding OutputText}" />
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-            </Expander>
-        </DataTemplate>
-
-        <DataTemplate x:Key="AssistantApprovalToolItemTemplate" x:DataType="model:CopilotChatApprovalToolItem">
+        <DataTemplate DataType="model:CopilotChatApprovalToolItem" x:DataType="model:CopilotChatApprovalToolItem">
             <Border Classes="ApprovalPanel" Margin="0,0,0,8">
                 <StackPanel Spacing="6">
                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -138,7 +88,44 @@
             </Border>
         </DataTemplate>
 
-        <DataTemplate x:Key="AssistantSubAgentItemTemplate" x:DataType="model:CopilotChatSubAgentItem">
+        <DataTemplate DataType="model:CopilotChatToolItem" x:DataType="model:CopilotChatToolItem">
+            <Expander Margin="0,0,0,8">
+                <Expander.Header>
+                    <Grid ColumnDefinitions="Auto,*,Auto"
+                          ColumnSpacing="8"
+                          ToolTip.Tip="{Binding ToolTipText}">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding DisplayName}"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding PrimaryText}"
+                                   TextTrimming="CharacterEllipsis"
+                                   IsVisible="{Binding HasPrimaryText}" />
+                        <TextBlock Grid.Column="2"
+                                   MaxWidth="240"
+                                   Text="{Binding SecondaryText}"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   IsVisible="{Binding HasSecondaryText}" />
+                    </Grid>
+                </Expander.Header>
+                <Border Classes="ToolPanel">
+                    <StackPanel Spacing="6">
+                        <StackPanel IsVisible="{Binding HasInputText}">
+                            <TextBlock Classes="SecondaryLabel" Text="{StaticResource ToolInputText}" />
+                            <TextBox Classes="ChatOutput" Text="{Binding InputText}" />
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding Details.MessageItems}" />
+                        <StackPanel IsVisible="{Binding HasOutputText}">
+                            <TextBlock Classes="SecondaryLabel" Text="{StaticResource ToolOutputText}" />
+                            <TextBox Classes="ChatOutput" Text="{Binding OutputText}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Expander>
+        </DataTemplate>
+
+        <DataTemplate DataType="model:CopilotChatSubAgentItem" x:DataType="model:CopilotChatSubAgentItem">
             <Expander Margin="0,0,0,8" IsExpanded="True">
                 <Expander.Header>
                     <TextBlock Text="{Binding DisplayName}" />
@@ -150,7 +137,6 @@
                             <TextBox Classes="ChatOutput" Text="{Binding InputText}" />
                         </StackPanel>
                         <ItemsControl ItemsSource="{Binding MessageItems}"
-                                      ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}"
                                       IsVisible="{Binding HasMessageItems}" />
                         <StackPanel IsVisible="{Binding HasOutputText}">
                             <TextBlock Classes="SecondaryLabel" Text="返回上级代理的输出" />
@@ -162,10 +148,7 @@
         </DataTemplate>
 
 
-        <views:ChatMessageItemTemplateSelector x:Key="UserMessageItemTemplateSelector"
-                                               TextItemTemplate="{StaticResource UserTextItemTemplate}"
-                                               ImageItemTemplate="{StaticResource ImageItemTemplate}" />
-    </UserControl.Resources>
+    </UserControl.DataTemplates>
 
     <Grid RowDefinitions="Auto,*,Auto" Background="{StaticResource BackgroundBrush}">
         <Border Grid.Row="0"
@@ -283,8 +266,7 @@
                                                       CommandParameter="{Binding}" />
                                         </ContextMenu>
                                     </Border.ContextMenu>
-                                    <ItemsControl ItemsSource="{Binding MessageItems}"
-                                                  ItemTemplate="{StaticResource ChatMessageItemTemplateSelector}" />
+                                    <ItemsControl ItemsSource="{Binding MessageItems}" />
                                 </Border>
                                 <Border Classes="UsageSummaryBorder"
                                         HorizontalAlignment="Right"
@@ -317,8 +299,16 @@
                                                       CommandParameter="{Binding}" />
                                         </ContextMenu>
                                     </Border.ContextMenu>
-                                    <ItemsControl ItemsSource="{Binding MessageItems}"
-                                                  ItemTemplate="{StaticResource UserMessageItemTemplateSelector}" />
+                                    <ItemsControl ItemsSource="{Binding MessageItems}">
+                                        <ItemsControl.DataTemplates>
+                                            <DataTemplate DataType="model:CopilotChatTextItem" x:DataType="model:CopilotChatTextItem">
+                                                <TextBox Classes="ChatOutput UserChatOutput"
+                                                         Margin="0,0,0,8"
+                                                         Text="{Binding Text}"
+                                                         IsVisible="{Binding HasText}" />
+                                            </DataTemplate>
+                                        </ItemsControl.DataTemplates>
+                                    </ItemsControl>
                                 </Border>
                             </StackPanel>
 

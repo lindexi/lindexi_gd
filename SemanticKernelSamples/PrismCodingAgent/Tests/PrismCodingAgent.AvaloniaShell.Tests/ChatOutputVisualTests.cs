@@ -13,10 +13,6 @@ namespace PrismCodingAgent.AvaloniaShell.Tests;
 [AvaloniaTestClass]
 public sealed class ChatOutputVisualTests
 {
-    [AssemblyInitialize]
-    public static Task InitializeAvalonia(TestContext _)
-        => AvaloniaTestClassAttribute.Session.Dispatch(() => { }, CancellationToken.None);
-
     [AssemblyCleanup]
     public static Task CleanupAvalonia() => AvaloniaTestClassAttribute.Session.DisposeAsync().AsTask();
 
