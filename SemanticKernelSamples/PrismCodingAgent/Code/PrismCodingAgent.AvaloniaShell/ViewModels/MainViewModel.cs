@@ -433,10 +433,8 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
                 null
             );
             task = CreateRuntimeTask(runtime, record, _abilityCatalog);
-            WorkTasks.Insert(0, task);
-            Subscribe(task);
+            AddWorkTaskToTop(task);
             await SaveTasksAsync().ConfigureAwait(true);
-            MoveTaskToTop(task);
             Activate(task);
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
@@ -480,6 +478,13 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         {
             task.PropertyChanged += OnTaskPropertyChanged;
         }
+    }
+
+    private void AddWorkTaskToTop(WorkTaskItemViewModel task)
+    {
+        WorkTasks.Insert(0, task);
+        Subscribe(task);
+        MoveTaskToTop(task);
     }
 
     private void MoveTaskToTop(WorkTaskItemViewModel? task)
@@ -528,12 +533,11 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             await RestoreTaskConfigurationAsync(task, runtime, item.Record).ConfigureAwait(true);
             await SaveTasksAsync
             (
-                [.. WorkTasks, task], ArchivedWorkTasks
+                [task, .. WorkTasks], ArchivedWorkTasks
                     .Where(archived => !ReferenceEquals(archived, item))
                     .Select(archived => archived.Record)
             ).ConfigureAwait(true);
-            WorkTasks.Add(task);
-            Subscribe(task);
+            AddWorkTaskToTop(task);
             ArchivedWorkTasks.Remove(item);
             RefreshWorkTaskFilter();
             OnPropertyChanged(nameof(IsArchiveEmpty));
