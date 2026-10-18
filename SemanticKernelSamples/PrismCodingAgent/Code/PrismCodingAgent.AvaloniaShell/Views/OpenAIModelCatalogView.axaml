@@ -9,7 +9,6 @@
             <Button Grid.Column="1" Content="{DynamicResource SetupDiscoverAction}" Command="{Binding LoadCommand}" />
         </Grid>
         <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="3" />
-        <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Classes="SettingsHint" />
         <ScrollViewer MaxHeight="200" HorizontalScrollBarVisibility="Disabled">
             <ItemsControl ItemsSource="{Binding Models}">
                 <ItemsControl.ItemTemplate>
@@ -29,5 +28,6 @@
             <TextBox Text="{Binding ModelId, UpdateSourceTrigger=PropertyChanged}" Classes="Rounded SettingsInput" VerticalContentAlignment="Center" PlaceholderText="{DynamicResource SetupModelIdText}" />
             <Button Grid.Column="1" Content="{DynamicResource SetupAddModel}" Command="{Binding AddManualCommand}" />
         </Grid>
+        <TextBlock x:Name="CatalogStatus" Text="{Binding Status}" TextWrapping="Wrap" Classes="SettingsHint" />
     </StackPanel>
 </UserControl>
