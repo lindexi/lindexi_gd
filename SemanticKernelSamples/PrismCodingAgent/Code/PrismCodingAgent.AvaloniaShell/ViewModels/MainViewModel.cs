@@ -31,7 +31,6 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     private bool _isArchiveOpen;
     private bool _isDisposed;
     private string _workTaskSearchText = string.Empty;
-    private readonly List<Guid> _workTaskDisplayOrder = [];
 
     /// <summary>创建未连接模型的设计期界面。</summary>
     public MainViewModel()
@@ -109,10 +108,11 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             }
         );
         RenameWorkTaskCommand = new SimpleCommand<WorkTaskItemViewModel>(StartRenamingTask);
-        PinWorkTaskCommand = new SimpleCommand<WorkTaskItemViewModel>
+        PinWorkTaskCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>
         (
-            MoveTaskToTop,
-            task => task is not null && WorkTasks.Contains(task)
+            MoveTaskToTopAsync,
+            task => task is not null && WorkTasks.Contains(task),
+            HandleCommandException
         );
         SaveWorkTaskNameCommand = new SimpleAsyncCommand<WorkTaskItemViewModel>
         (
@@ -362,7 +362,6 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
 
     private void Unsubscribe(WorkTaskItemViewModel task)
     {
-        _workTaskDisplayOrder.Remove(task.Id);
         task.PropertyChanged -= OnTaskPropertyChanged;
         task.Detach();
     }
@@ -433,9 +432,9 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
                 null
             );
             task = CreateRuntimeTask(runtime, record, _abilityCatalog);
-            AddWorkTaskToTop(task);
-            await SaveTasksAsync().ConfigureAwait(true);
+            Task saveTask = AddWorkTaskToTopAsync(task);
             Activate(task);
+            await saveTask.ConfigureAwait(true);
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
         {
@@ -480,19 +479,21 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
     }
 
-    private void AddWorkTaskToTop(WorkTaskItemViewModel task)
+    private async Task AddWorkTaskToTopAsync(WorkTaskItemViewModel task)
     {
         WorkTasks.Insert(0, task);
         Subscribe(task);
-        MoveTaskToTop(task);
+        RefreshWorkTaskFilter();
+        await SaveTasksAndReportAsync().ConfigureAwait(true);
     }
 
-    private void MoveTaskToTop(WorkTaskItemViewModel? task)
+    private async Task MoveTaskToTopAsync(WorkTaskItemViewModel? task)
     {
         if (task is null || !WorkTasks.Contains(task)) return;
-        _workTaskDisplayOrder.Remove(task.Id);
-        _workTaskDisplayOrder.Insert(0, task.Id);
+        ErrorMessage = null;
+        WorkTasks.Move(WorkTasks.IndexOf(task), 0);
         RefreshWorkTaskFilter();
+        await SaveTasksAndReportAsync().ConfigureAwait(true);
     }
 
     private async Task ArchiveTaskAsync(WorkTaskItemViewModel? task)
@@ -531,17 +532,11 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             runtime = await _createRuntimeAsync().ConfigureAwait(true);
             task = CreateRuntimeTask(runtime, item.Record with { IsArchived = false }, _abilityCatalog);
             await RestoreTaskConfigurationAsync(task, runtime, item.Record).ConfigureAwait(true);
-            await SaveTasksAsync
-            (
-                [task, .. WorkTasks], ArchivedWorkTasks
-                    .Where(archived => !ReferenceEquals(archived, item))
-                    .Select(archived => archived.Record)
-            ).ConfigureAwait(true);
-            AddWorkTaskToTop(task);
             ArchivedWorkTasks.Remove(item);
-            RefreshWorkTaskFilter();
+            Task saveTask = AddWorkTaskToTopAsync(task);
             OnPropertyChanged(nameof(IsArchiveEmpty));
             Activate(task);
+            await saveTask.ConfigureAwait(true);
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
         {
@@ -607,7 +602,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         FilteredArchivedWorkTasks.Clear();
 
         foreach (WorkTaskItemViewModel task in WorkTasks.Where(task => MatchesWorkTaskSearch
-                 (task.DisplayName, task.Chat.NextRunWorkspacePath, searchText)).OrderBy(task => _workTaskDisplayOrder.IndexOf(task.Id) is >= 0 and var index ? index : int.MaxValue))
+                 (task.DisplayName, task.Chat.NextRunWorkspacePath, searchText)))
         {
             FilteredWorkTasks.Add(task);
         }
