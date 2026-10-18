@@ -26,6 +26,39 @@ public sealed class ModelCatalogViewModelTests
         Assert.HasCount(1, provider.Models);
     }
 
+    [DataTestMethod]
+    [DataRow("coding-model", "Display name")]
+    [DataRow(" coding-model ", "Display name")]
+    [DataRow(null, "coding-model")]
+    public async Task LoadingCatalogShouldExcludeAlreadyAddedModel(string? modelId, string modelName)
+    {
+        var provider = new ProviderSettingsViewModel { EndPoint = "https://example.com/v1" };
+        provider.Models.Add(new ModelSettingsViewModel { ModelId = modelId, ModelName = modelName });
+        var client = new CatalogClient(Task.FromResult(OpenAIModelCatalogResult.Success(["coding-model", "other-model"])));
+        using var model = new ModelCatalogViewModel(provider, client);
+
+        await model.LoadAsync();
+
+        CollectionAssert.AreEqual(new[] { "other-model" }, model.Models.ToArray());
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task AddingModelShouldRemoveItFromCatalog(bool manually)
+    {
+        var provider = new ProviderSettingsViewModel { EndPoint = "https://example.com/v1" };
+        var client = new CatalogClient(Task.FromResult(OpenAIModelCatalogResult.Success(["coding-model", "other-model"])));
+        using var model = new ModelCatalogViewModel(provider, client);
+        await model.LoadAsync();
+        model.ModelId = " coding-model ";
+        System.Windows.Input.ICommand command = manually ? model.AddManualCommand : model.AddCommand;
+
+        command.Execute("coding-model");
+
+        CollectionAssert.AreEqual(new[] { "other-model" }, model.Models.ToArray());
+    }
+
     [TestMethod]
     public void BlankModelShouldNotBeAdded()
     {
