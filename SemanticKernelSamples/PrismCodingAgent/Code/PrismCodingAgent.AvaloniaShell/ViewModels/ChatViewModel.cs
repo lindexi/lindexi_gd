@@ -47,7 +47,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// </summary>
     public ChatViewModel()
     {
-        _modelStatusText = "等待应用初始化";
+        _modelStatusText = Localizations.Lang.Current.InitializingText;
         SendCommand = new SimpleCommand(static () => { }, static () => false);
         CompressConversationCommand = new SimpleCommand(static () => { }, static () => false);
         StopCommand = new SimpleCommand(static () => { }, static () => false);
@@ -128,7 +128,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     public bool ShowWelcome => Messages.All(item => item.Message.IsPresetInfo);
 
     /// <summary>获取当前会话标题。</summary>
-    public string CurrentSessionTitle => _subscribedSession?.Title ?? "编程助手";
+    public string CurrentSessionTitle => _subscribedSession?.Title ?? Localizations.Lang.Current.ChatTitle;
 
     /// <summary>
     /// 获取当前会话 ID。
@@ -138,7 +138,9 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 获取当前状态说明。
     /// </summary>
-    public string StatusText => _runStatusText ?? _modelStatusText;
+    public string StatusText => _runStatusText ?? (SelectedModel is { } model
+        ? Localizations.Lang.Format(Localizations.Lang.Current.CurrentModel, model.DisplayName)
+        : _chatManager is not null ? Localizations.Lang.Current.NoModels : Localizations.Lang.Current.InitializingText);
 
     /// <summary>
     /// 获取当前进程可用的语言模型。
@@ -181,7 +183,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
             if (_chatManager is not null)
             {
                 _chatManager.AgentApiEndpointManager.PrimaryModel = value.Model;
-                _modelStatusText = $"当前模型：{value.DisplayName}";
+                _modelStatusText = Localizations.Lang.Format(Localizations.Lang.Current.CurrentModel, value.DisplayName);
                 OnPropertyChanged(nameof(StatusText));
             }
         }
@@ -190,7 +192,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 获取发送按钮文本。
     /// </summary>
-    public string SendButtonText => IsRunning ? "插话" : "发送";
+    public string SendButtonText => IsRunning ? Localizations.Lang.Current.InterruptText : Localizations.Lang.Current.SendText;
 
     /// <summary>获取可选择的发送前能力。</summary>
     public ObservableCollection<AbilityOptionViewModel> AvailableAbilities { get; } = [];
@@ -379,7 +381,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 获取工作路径状态文本。
     /// </summary>
-    public string WorkspaceStatusText => _workspaceController?.StatusText ?? "工作路径功能尚未初始化";
+    public string WorkspaceStatusText => _workspaceController?.StatusText ?? Localizations.Lang.Current.WorkspaceUninitialized;
 
     /// <summary>
     /// 获取是否正在切换工作路径。
@@ -393,11 +395,20 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
 
     private void InitializeReasoningEfforts()
     {
-        AvailableReasoningEfforts.Add(new ReasoningEffortOptionViewModel("默认", null));
-        AvailableReasoningEfforts.Add(new ReasoningEffortOptionViewModel("低", ReasoningEffort.Low));
-        AvailableReasoningEfforts.Add(new ReasoningEffortOptionViewModel("中", ReasoningEffort.Medium));
-        AvailableReasoningEfforts.Add(new ReasoningEffortOptionViewModel("高", ReasoningEffort.High));
-        _selectedReasoningEffort = AvailableReasoningEfforts[0];
+        Localizations.Lang.Current.PropertyChanged += OnLanguageChanged;
+        RebuildReasoningEfforts();
+    }
+
+    private void RebuildReasoningEfforts()
+    {
+        ReasoningEffort? selectedValue = _selectedReasoningEffort?.Value;
+        AvailableReasoningEfforts.Clear();
+        AvailableReasoningEfforts.Add(new ReasoningEffortOptionViewModel(Localizations.Lang.Current.ReasoningDefault, null));
+        AvailableReasoningEfforts.Add(new ReasoningEffortOptionViewModel(Localizations.Lang.Current.ReasoningLow, ReasoningEffort.Low));
+        AvailableReasoningEfforts.Add(new ReasoningEffortOptionViewModel(Localizations.Lang.Current.ReasoningMedium, ReasoningEffort.Medium));
+        AvailableReasoningEfforts.Add(new ReasoningEffortOptionViewModel(Localizations.Lang.Current.ReasoningHigh, ReasoningEffort.High));
+        _selectedReasoningEffort = AvailableReasoningEfforts.First(option => option.Value == selectedValue);
+        OnPropertyChanged(nameof(SelectedReasoningEffort));
     }
 
     private void InitializeAvailableModels()
@@ -428,11 +439,11 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         if (selectedModel is not null)
         {
             _chatManager.AgentApiEndpointManager.PrimaryModel = selectedModel.Model;
-            _modelStatusText = $"当前模型：{selectedModel.DisplayName}";
+            _modelStatusText = Localizations.Lang.Format(Localizations.Lang.Current.CurrentModel, selectedModel.DisplayName);
         }
         else
         {
-            _modelStatusText = "没有可用模型";
+            _modelStatusText = Localizations.Lang.Current.NoModels;
         }
 
         OnPropertyChanged(nameof(SelectedModel));
@@ -528,14 +539,14 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         }
         catch (OperationCanceledException)
         {
-            const string message = "工作路径切换已取消。";
+            string message = Localizations.Lang.Current.WorkspaceCancelled;
             Trace.TraceInformation(message);
             await AddSystemMessageAsync(session, message).ConfigureAwait(true);
         }
         catch (Exception exception)
         {
             Trace.TraceError($"工作路径切换失败：{exception}");
-            await AddSystemMessageAsync(session, $"工作路径切换失败：{exception.Message}").ConfigureAwait(true);
+            await AddSystemMessageAsync(session, Localizations.Lang.Format(Localizations.Lang.Current.WorkspaceFailed, exception.Message)).ConfigureAwait(true);
         }
     }
 
@@ -567,6 +578,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
             _abilityCatalog.Changed -= OnAbilityCatalogChanged;
         }
 
+        Localizations.Lang.Current.PropertyChanged -= OnLanguageChanged;
         DetachSession();
         ClearMessages();
         PendingImages.CollectionChanged -= OnPendingImagesCollectionChanged;
@@ -597,14 +609,14 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         {
             bool stopped = await _workTaskController.StopLanguageServerAsync().ConfigureAwait(true);
             _runStatusText = stopped
-                ? "LSP 服务已结束，将在下次调用符号工具时重新启动"
-                : "当前没有正在运行的 LSP 服务";
-            await AddSystemMessageAsync(_subscribedSession, _runStatusText).ConfigureAwait(true);
+                ? Localizations.Lang.Current.LspStopped
+                : Localizations.Lang.Current.LspNotRunning;
+            await AddSystemMessageAsync(_subscribedSession, StatusText).ConfigureAwait(true);
         }
         catch (Exception exception)
         {
-            _runStatusText = $"结束 LSP 服务失败：{exception.Message}";
-            await AddSystemMessageAsync(_subscribedSession, _runStatusText).ConfigureAwait(true);
+            _runStatusText = Localizations.Lang.Format(Localizations.Lang.Current.LspStopFailed, exception.Message);
+            await AddSystemMessageAsync(_subscribedSession, StatusText).ConfigureAwait(true);
         }
         finally
         {
@@ -622,7 +634,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         }
 
         CopilotChatSession? session = _subscribedSession;
-        _runStatusText = "正在压缩对话";
+        _runStatusText = Localizations.Lang.Current.Compacting;
         OnPropertyChanged(nameof(StatusText));
         try
         {
@@ -634,18 +646,18 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
                 _runStatusText = null;
                 return;
             }
-            _runStatusText = "对话压缩完成";
-            await AddSystemMessageAsync(session, "对话压缩完成。").ConfigureAwait(true);
+            _runStatusText = Localizations.Lang.Current.Compacted;
+            await AddSystemMessageAsync(session, StatusText).ConfigureAwait(true);
         }
         catch (OperationCanceledException)
         {
-            _runStatusText = "对话压缩已取消";
-            await AddSystemMessageAsync(session, "对话压缩已取消。").ConfigureAwait(true);
+            _runStatusText = Localizations.Lang.Current.CompactCancelled;
+            await AddSystemMessageAsync(session, StatusText).ConfigureAwait(true);
         }
         catch (Exception exception)
         {
-            _runStatusText = $"对话压缩失败：{exception.Message}";
-            await AddSystemMessageAsync(session, _runStatusText).ConfigureAwait(true);
+            _runStatusText = Localizations.Lang.Format(Localizations.Lang.Current.CompactFailed, exception.Message);
+            await AddSystemMessageAsync(session, StatusText).ConfigureAwait(true);
         }
         finally
         {
@@ -694,7 +706,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         InputText = string.Empty;
         PendingImages.Clear();
         SelectProgrammingAbility();
-        _runStatusText = isInterruption ? "正在提交插话" : "正在运行";
+        _runStatusText = isInterruption ? Localizations.Lang.Current.InterruptSubmitting : Localizations.Lang.Current.Running;
         OnPropertyChanged(nameof(StatusText));
         var runOptions = new CodingChatRunOptions(
             IsAutomaticCompressionEnabled,
@@ -716,20 +728,20 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
             }
 
             _runStatusText = isInterruption && IsRunning
-                ? "插话已提交，等待 Agent 处理"
+                ? Localizations.Lang.Current.InterruptSubmitted
                 : IsRunning
-                    ? "正在运行"
+                    ? Localizations.Lang.Current.Running
                     : null;
         }
         catch (OperationCanceledException)
         {
-            _runStatusText = "已停止";
-            await AddSystemMessageAsync(session, "运行已停止。").ConfigureAwait(true);
+            _runStatusText = Localizations.Lang.Current.RunStopped;
+            await AddSystemMessageAsync(session, StatusText).ConfigureAwait(true);
         }
         catch (Exception exception)
         {
-            _runStatusText = $"运行失败：{exception.Message}";
-            await AddSystemMessageAsync(session, _runStatusText).ConfigureAwait(true);
+            _runStatusText = Localizations.Lang.Format(Localizations.Lang.Current.RunFailed, exception.Message);
+            await AddSystemMessageAsync(session, StatusText).ConfigureAwait(true);
         }
         finally
         {
@@ -743,6 +755,29 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         if (_abilityCatalog is not null)
         {
             _ = _abilityCatalog.RefreshAsync();
+        }
+    }
+
+    private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(SendButtonText));
+        OnPropertyChanged(nameof(CurrentSessionTitle));
+        OnPropertyChanged(nameof(StatusText));
+        OnPropertyChanged(nameof(WorkspaceStatusText));
+        foreach (ReasoningEffortOptionViewModel option in AvailableReasoningEfforts)
+        {
+            option.DisplayName = option.Value switch
+            {
+                ReasoningEffort.Low => Localizations.Lang.Current.ReasoningLow,
+                ReasoningEffort.Medium => Localizations.Lang.Current.ReasoningMedium,
+                ReasoningEffort.High => Localizations.Lang.Current.ReasoningHigh,
+                _ => Localizations.Lang.Current.ReasoningDefault,
+            };
+        }
+
+        foreach (AbilityOptionViewModel option in AvailableAbilities)
+        {
+            option.RefreshDisplayName();
         }
     }
 
@@ -763,13 +798,13 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         string selectedId = SelectedAbility?.Id ?? AbilityCatalog.ProgrammingId;
         AvailableAbilities.Clear();
         AvailableAbilities.Add(new AbilityOptionViewModel(new AbilityDefinition(
-            AbilityCatalog.ProgrammingId, "编程", null, null)));
+            AbilityCatalog.ProgrammingId, Localizations.Lang.Current.ProgrammingAbilityText, null, null)));
         AbilityCollection abilities = _abilityCatalog?.Current ?? AbilityCollection.Empty;
         AvailableAbilities.Add(new AbilityOptionViewModel(new AbilityDefinition(
             AbilityCatalog.CompressionId,
-            abilities.CompressionDisplayName ?? "按照指令进行压缩",
+            abilities.CompressionDisplayName ?? Localizations.Lang.Current.CompressWithInstructionsAbilityText,
             abilities.CompressionPrompt,
-            null)));
+            null), usesDefaultCompressionName: abilities.CompressionDisplayName is null));
         foreach (AbilityDefinition ability in abilities.Items)
         {
             AvailableAbilities.Add(new AbilityOptionViewModel(ability));

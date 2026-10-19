@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:localizations="clr-namespace:PrismCodingAgent.AvaloniaShell.Localizations"
              xmlns:views="using:PrismCodingAgent.AvaloniaShell.Views"
              xmlns:vm="clr-namespace:PrismCodingAgent.AvaloniaShell.ViewModels"
              xmlns:views11="clr-namespace:PrismCodingAgent.AvaloniaShell.Views"
@@ -9,7 +9,7 @@
     <DataTemplate x:DataType="vm:ProviderSettingsViewModel">
      <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource SettingsCardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,4">
       <StackPanel Spacing="16">
-       <Button Content="{DynamicResource RemoveModelServiceText}" Classes="QuietDanger" HorizontalAlignment="Right"
+       <Button Content="{Binding RemoveModelServiceText, Source={x:Static localizations:Lang.Current}}" Classes="QuietDanger" HorizontalAlignment="Right"
         Command="{Binding $parent[views11:ModelSettingsView].((vm:SettingsViewModel)DataContext).RemoveProviderCommand}" CommandParameter="{Binding}" />
        <views11:ModelServiceConnectionView />
        <views11:OpenAIModelCatalogView />
@@ -19,21 +19,21 @@
           <Border Classes="ModelCard" Padding="12" Margin="0,4">
            <StackPanel Spacing="12">
             <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="12">
-             <StackPanel Spacing="6"><TextBlock Text="{DynamicResource ModelProviderText}" Classes="SettingsLabel" /><TextBox Text="{Binding Provider}" Classes="Rounded SettingsInput" /></StackPanel>
-             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{DynamicResource ModelDisplayNameText}" Classes="SettingsLabel" /><TextBox Text="{Binding ModelName}" Classes="Rounded SettingsInput" /></StackPanel>
-             <Button Grid.Column="2" Content="×" Classes="IconDanger" VerticalAlignment="Bottom" ToolTip.Tip="{DynamicResource SetupRemoveModel}"
+             <StackPanel Spacing="6"><TextBlock Text="{Binding ModelProviderText, Source={x:Static localizations:Lang.Current}}" Classes="SettingsLabel" /><TextBox Text="{Binding Provider}" Classes="Rounded SettingsInput" /></StackPanel>
+             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{Binding ModelDisplayNameText, Source={x:Static localizations:Lang.Current}}" Classes="SettingsLabel" /><TextBox Text="{Binding ModelName}" Classes="Rounded SettingsInput" /></StackPanel>
+             <Button Grid.Column="2" Content="×" Classes="IconDanger" VerticalAlignment="Bottom" ToolTip.Tip="{Binding SetupRemoveModel, Source={x:Static localizations:Lang.Current}}"
               Command="{Binding $parent[ItemsControl].((vm:ProviderSettingsViewModel)DataContext).RemoveModelCommand}" CommandParameter="{Binding}" />
             </Grid>
             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
-             <StackPanel Spacing="6"><TextBlock Text="{DynamicResource ModelApiIdText}" Classes="SettingsLabel" /><TextBox Text="{Binding ModelId}" Classes="Rounded SettingsInput" /></StackPanel>
-             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{DynamicResource ModelContextSizeText}" Classes="SettingsLabel" /><NumericUpDown Value="{Binding ContextWindowSize}" Minimum="1" Maximum="100000000" Classes="SettingsInput" /></StackPanel>
-             <StackPanel Grid.Column="2" Spacing="6"><TextBlock Text="{DynamicResource ModelOutputSizeText}" Classes="SettingsLabel" /><NumericUpDown Value="{Binding MaxOutputTokens}" Minimum="1" Maximum="10000000" Classes="SettingsInput" /></StackPanel>
+             <StackPanel Spacing="6"><TextBlock Text="{Binding ModelApiIdText, Source={x:Static localizations:Lang.Current}}" Classes="SettingsLabel" /><TextBox Text="{Binding ModelId}" Classes="Rounded SettingsInput" /></StackPanel>
+             <StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="{Binding ModelContextSizeText, Source={x:Static localizations:Lang.Current}}" Classes="SettingsLabel" /><NumericUpDown Value="{Binding ContextWindowSize}" Minimum="1" Maximum="100000000" Classes="SettingsInput" /></StackPanel>
+             <StackPanel Grid.Column="2" Spacing="6"><TextBlock Text="{Binding ModelOutputSizeText, Source={x:Static localizations:Lang.Current}}" Classes="SettingsLabel" /><NumericUpDown Value="{Binding MaxOutputTokens}" Minimum="1" Maximum="10000000" Classes="SettingsInput" /></StackPanel>
             </Grid>
             <WrapPanel>
-             <CheckBox Content="{DynamicResource ModelReasoningText}" IsChecked="{Binding SupportsReasoning}" Margin="0,0,16,0" />
-             <CheckBox Content="{DynamicResource ModelToolsText}" IsChecked="{Binding SupportsToolCall}" Margin="0,0,16,0" />
-             <CheckBox Content="{DynamicResource ModelImagesText}" IsChecked="{Binding SupportsImageInput}" Margin="0,0,16,0" />
-             <CheckBox Content="{DynamicResource ModelFastText}" IsChecked="{Binding IsFlash}" />
+             <CheckBox Content="{Binding ModelReasoningText, Source={x:Static localizations:Lang.Current}}" IsChecked="{Binding SupportsReasoning}" Margin="0,0,16,0" />
+             <CheckBox Content="{Binding ModelToolsText, Source={x:Static localizations:Lang.Current}}" IsChecked="{Binding SupportsToolCall}" Margin="0,0,16,0" />
+             <CheckBox Content="{Binding ModelImagesText, Source={x:Static localizations:Lang.Current}}" IsChecked="{Binding SupportsImageInput}" Margin="0,0,16,0" />
+             <CheckBox Content="{Binding ModelFastText, Source={x:Static localizations:Lang.Current}}" IsChecked="{Binding IsFlash}" />
             </WrapPanel>
            </StackPanel>
           </Border>
@@ -45,6 +45,6 @@
     </DataTemplate>
    </ItemsControl.ItemTemplate>
   </ItemsControl>
-  <Button Content="{DynamicResource AddModelServiceText}" Command="{Binding AddProviderCommand}" Classes="AddOutline" />
+  <Button Content="{Binding AddModelServiceText, Source={x:Static localizations:Lang.Current}}" Command="{Binding AddProviderCommand}" Classes="AddOutline" />
  </StackPanel>
 </UserControl>

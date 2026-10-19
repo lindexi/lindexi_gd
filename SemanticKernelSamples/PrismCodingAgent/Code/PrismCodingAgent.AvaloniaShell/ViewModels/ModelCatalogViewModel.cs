@@ -22,7 +22,7 @@ public sealed class ModelCatalogViewModel : ViewModelBase, IDisposable
     {
         _provider = provider;
         _client = client ?? new OpenAIModelCatalogClient();
-        LoadCommand = new SimpleAsyncCommand(LoadAsync, exceptionHandler: _ => Status = Text("SetupCatalogFailed"));
+        LoadCommand = new SimpleAsyncCommand(LoadAsync, exceptionHandler: _ => Status = Localizations.Lang.Current.SetupCatalogFailed);
         AddCommand = new SimpleCommand<string>(Add);
         AddManualCommand = new SimpleCommand(() => { Cancel(); Add(ModelId); });
         _provider.PropertyChanged += OnConnectionChanged;
@@ -35,15 +35,15 @@ public sealed class ModelCatalogViewModel : ViewModelBase, IDisposable
     public string ModelId { get => _modelId; set => SetField(ref _modelId, value); }
     public string? Status { get => _status; private set => SetField(ref _status, value); }
 
-    internal static string Text(string key) => Application.Current?.FindResource(key) as string ?? key;
-
     internal static bool HasValidEndpoint(ProviderSettingsViewModel provider)
         => !string.IsNullOrWhiteSpace(provider.EndPoint)
            && Uri.TryCreate(provider.EndPoint.Trim(), UriKind.Absolute, out var uri)
            && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
 
     internal static string EndpointValidationMessage(ProviderSettingsViewModel provider)
-        => Text(string.IsNullOrWhiteSpace(provider.EndPoint) ? "SetupEndpointRequired" : "SetupInvalidEndpoint");
+        => string.IsNullOrWhiteSpace(provider.EndPoint)
+            ? Localizations.Lang.Current.SetupEndpointRequired
+            : Localizations.Lang.Current.SetupInvalidEndpoint;
 
     internal async Task LoadAsync()
     {
@@ -58,7 +58,7 @@ public sealed class ModelCatalogViewModel : ViewModelBase, IDisposable
         using var request = new CancellationTokenSource(TimeSpan.FromSeconds(20));
         _request = request;
         IsBusy = true;
-        Status = Text("SetupCatalogLoading");
+        Status = Localizations.Lang.Current.SetupCatalogLoading;
         try
         {
             var result = await _client.GetModelIdsAsync(_provider.EndPoint.Trim(), _provider.ApiKey, request.Token);
@@ -67,12 +67,12 @@ public sealed class ModelCatalogViewModel : ViewModelBase, IDisposable
                          .Select(id => id.Trim()).Distinct(StringComparer.Ordinal).Where(id => !IsModelAdded(id)))
                 Models.Add(id);
             Status = result.IsSuccessful
-                ? Text(Models.Count == 0 ? "SetupCatalogEmpty" : "SetupCatalogReady")
-                : Text("SetupCatalogFailed");
+                ? (Models.Count == 0 ? Localizations.Lang.Current.SetupCatalogEmpty : Localizations.Lang.Current.SetupCatalogReady)
+                : Localizations.Lang.Current.SetupCatalogFailed;
         }
         catch (OperationCanceledException) when (request.IsCancellationRequested)
         {
-            if (_request == request) Status = Text("SetupCatalogTimeout");
+            if (_request == request) Status = Localizations.Lang.Current.SetupCatalogTimeout;
         }
         finally
         {
@@ -91,14 +91,14 @@ public sealed class ModelCatalogViewModel : ViewModelBase, IDisposable
     {
         if (string.IsNullOrWhiteSpace(id))
         {
-            Status = Text("SetupModelRequired");
+            Status = Localizations.Lang.Current.SetupModelRequired;
             return;
         }
         id = id.Trim();
         if (IsModelAdded(id))
         {
             Models.Remove(id);
-            Status = Text("SetupAlreadyAdded");
+            Status = Localizations.Lang.Current.SetupAlreadyAdded;
             return;
         }
         var model = _provider.Models.FirstOrDefault(model => string.IsNullOrWhiteSpace(model.Provider)
@@ -116,7 +116,7 @@ public sealed class ModelCatalogViewModel : ViewModelBase, IDisposable
         }
         Models.Remove(id);
         ModelId = string.Empty;
-        Status = Text("SetupModelAdded");
+        Status = Localizations.Lang.Current.SetupModelAdded;
     }
 
     private void OnConnectionChanged(object? sender, PropertyChangedEventArgs e)

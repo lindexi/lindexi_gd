@@ -346,7 +346,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         => new(GetTaskName(1), new ChatViewModel(), new SessionListViewModel());
 
     private static string GetTaskName(int number)
-        => $"{Avalonia.Application.Current?.FindResource("WorkTaskText") ?? "工作任务"} {number}";
+        => $"{Localizations.Lang.Current.WorkTaskText} {number}";
 
     private static void StartRenamingTask(WorkTaskItemViewModel? task)
     {
@@ -387,7 +387,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             }
             catch (Exception exception)
             {
-                ReportError($"更新工作任务失败：{exception.Message}", exception);
+                ReportError(Localizations.Lang.Format(Localizations.Lang.Current.TaskUpdateFailed, exception.Message), exception);
             }
         }
     }
@@ -451,7 +451,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
                 await runtime.DisposeAsync().ConfigureAwait(true);
             }
 
-            ReportError($"创建工作任务失败：{exception.Message}", exception);
+            ReportError(Localizations.Lang.Format(Localizations.Lang.Current.TaskCreateFailed, exception.Message), exception);
         }
     }
 
@@ -471,7 +471,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         catch (Exception exception) when (IsExpectedOperationException(exception))
         {
             task.DisplayName = previousName;
-            ReportError($"保存任务名称失败：{exception.Message}", exception);
+            ReportError(Localizations.Lang.Format(Localizations.Lang.Current.TaskRenameFailed, exception.Message), exception);
         }
         finally
         {
@@ -517,7 +517,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
         {
-            ReportError($"存档工作任务失败：{exception.Message}", exception);
+            ReportError(Localizations.Lang.Format(Localizations.Lang.Current.TaskArchiveFailed, exception.Message), exception);
         }
     }
 
@@ -551,7 +551,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
                 await runtime.DisposeAsync().ConfigureAwait(true);
             }
 
-            ReportError($"恢复工作任务失败：{exception.Message}", exception);
+            ReportError(Localizations.Lang.Format(Localizations.Lang.Current.TaskRestoreFailed, exception.Message), exception);
         }
     }
 
@@ -573,7 +573,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
         {
-            ReportError($"删除存档工作任务失败：{exception.Message}", exception);
+            ReportError(Localizations.Lang.Format(Localizations.Lang.Current.TaskDeleteArchiveFailed, exception.Message), exception);
         }
     }
 
@@ -591,7 +591,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
         {
-            ReportError($"删除工作任务失败：{exception.Message}", exception);
+            ReportError(Localizations.Lang.Format(Localizations.Lang.Current.TaskDeleteFailed, exception.Message), exception);
         }
     }
 
@@ -649,7 +649,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
         {
-            ReportError($"打开日志失败：{exception.Message}", exception);
+            ReportError(Localizations.Lang.Format(Localizations.Lang.Current.LogOpenFailed, exception.Message), exception);
         }
     }
 
@@ -715,7 +715,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
         catch (Exception exception) when (IsExpectedOperationException(exception))
         {
-            ReportError($"保存工作任务失败：{exception.Message}", exception);
+            ReportError(Localizations.Lang.Format(Localizations.Lang.Current.TaskSaveFailed, exception.Message), exception);
         }
     }
 
@@ -808,7 +808,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
     }
 
     private void HandleCommandException(Exception exception)
-        => ReportError($"操作失败：{exception.Message}", exception);
+        => ReportError(Localizations.Lang.Format(Localizations.Lang.Current.OperationFailed, exception.Message), exception);
 
     private static bool IsExpectedOperationException(Exception exception)
         => exception is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException

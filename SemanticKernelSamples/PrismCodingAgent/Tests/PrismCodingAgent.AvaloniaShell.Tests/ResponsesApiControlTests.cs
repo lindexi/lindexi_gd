@@ -123,7 +123,7 @@ public sealed class ResponsesApiControlTests
         var toggle = view.FindControl<ToggleButton>("ResponsesApiToggleButton")
             ?? throw new InvalidOperationException("Responses toggle missing.");
 
-        Assert.AreEqual(toggle.Content, AutomationProperties.GetName(toggle));
+        Assert.AreEqual(toggle.Content?.ToString(), AutomationProperties.GetName(toggle));
     }
 
     [TestMethod]

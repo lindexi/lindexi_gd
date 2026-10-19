@@ -22,6 +22,17 @@ public sealed class SettingsViewModel : ViewModelBase
     private readonly SimpleAsyncCommand _testWindowsSandboxConnectionCommand;
     private CancellationTokenSource? _sandboxConnectionTestCancellationTokenSource;
     private string? _primaryModel;
+    private string _languageTag = "zh-Hans";
+
+    /// <summary>获取可选择的界面语言标签。</summary>
+    public string[] LanguageTags { get; } = ["zh-Hans", "en"];
+
+    /// <summary>获取或设置保存后应用的界面语言。</summary>
+    public string LanguageTag
+    {
+        get => _languageTag;
+        set => SetField(ref _languageTag, value == "en" ? "en" : "zh-Hans");
+    }
     private bool _isWindowsSandboxEnabled = true;
     private string _windowsSandboxToolPath = "WinRemoteShell.exe";
     private string _windowsSandboxServerAddress = "127.0.0.1:12399";
@@ -234,6 +245,7 @@ public sealed class SettingsViewModel : ViewModelBase
 
     private void Load(CodingChatSettingsSnapshot snapshot)
     {
+        LanguageTag = snapshot.ShellSettings.LanguageTag;
         IsWindowsSandboxEnabled = snapshot.ShellSettings.IsWindowsSandboxEnabled;
         WindowsSandboxToolPath = snapshot.ShellSettings.WindowsSandboxToolPath;
         WindowsSandboxServerAddress = snapshot.ShellSettings.WindowsSandboxServerAddress;
@@ -260,7 +272,7 @@ public sealed class SettingsViewModel : ViewModelBase
 
         if (!string.IsNullOrWhiteSpace(snapshot.ModelConfigurationError))
         {
-            SetStatus($"现有模型配置无法读取：{snapshot.ModelConfigurationError}", isError: true);
+            SetStatus(Localizations.Lang.Format(Localizations.Lang.Current.ModelReadFailed, snapshot.ModelConfigurationError), isError: true);
         }
         else
         {
@@ -287,7 +299,7 @@ public sealed class SettingsViewModel : ViewModelBase
         _sandboxConnectionTestCancellationTokenSource = cancellationTokenSource;
         IsSandboxConnectionTestRunning = true;
         IsSandboxConnectionStatusError = false;
-        SandboxConnectionStatusMessage = "尝试连接沙箱中…";
+        SandboxConnectionStatusMessage = Localizations.Lang.Current.SandboxConnecting;
 
         try
         {
@@ -343,6 +355,7 @@ public sealed class SettingsViewModel : ViewModelBase
             };
             var shellSettings = new CodingChatShellSettings
             {
+                LanguageTag = LanguageTag,
                 IsWindowsSandboxEnabled = IsWindowsSandboxEnabled,
                 WindowsSandboxToolPath = WindowsSandboxToolPath,
                 WindowsSandboxServerAddress = WindowsSandboxServerAddress,
@@ -365,9 +378,10 @@ public sealed class SettingsViewModel : ViewModelBase
                 validationManager.HttpClient?.Dispose();
             }
             await _settingsService.SaveAsync(modelConfiguration, shellSettings).ConfigureAwait(true);
+            Localizations.Lang.SetCurrent(LanguageTag);
             var settings = new CodingChatSettingsSnapshot(modelConfiguration, shellSettings, null);
             SettingsSaved?.Invoke(this, new CodingChatSettingsSavedEventArgs(settings));
-            SetStatus("设置已保存。模型列表、网络代理和沙箱配置已立即生效；系统提示词将在下次启动时生效。", isError: false);
+            SetStatus(Localizations.Lang.Current.SettingsSaved, isError: false);
         }
         catch (ArgumentException exception)
         {
@@ -383,11 +397,11 @@ public sealed class SettingsViewModel : ViewModelBase
         }
         catch (IOException exception)
         {
-            SetStatus($"保存设置失败：{exception.Message}", isError: true);
+            SetStatus(Localizations.Lang.Format(Localizations.Lang.Current.SettingsSaveFailed, exception.Message), isError: true);
         }
         catch (UnauthorizedAccessException exception)
         {
-            SetStatus($"没有权限保存设置：{exception.Message}", isError: true);
+            SetStatus(Localizations.Lang.Format(Localizations.Lang.Current.SettingsSaveDenied, exception.Message), isError: true);
         }
         finally
         {
@@ -404,14 +418,14 @@ public sealed class SettingsViewModel : ViewModelBase
 
         if (string.IsNullOrWhiteSpace(NetworkProxyAddress))
         {
-            throw new ArgumentException("启用网络代理时必须填写代理地址。");
+            throw new ArgumentException(Localizations.Lang.Current.ProxyRequired);
         }
 
         string address = NetworkProxyAddress.Trim();
         if (!Uri.TryCreate(address, UriKind.Absolute, out Uri? proxyUri)
             || (proxyUri.Scheme != Uri.UriSchemeHttp && proxyUri.Scheme != Uri.UriSchemeHttps))
         {
-            throw new ArgumentException("代理地址必须是有效的 HTTP 或 HTTPS 绝对地址。");
+            throw new ArgumentException(Localizations.Lang.Current.ProxyInvalid);
         }
 
         return address;
@@ -442,7 +456,7 @@ public sealed class SettingsViewModel : ViewModelBase
     private void HandleCommandException(Exception exception)
     {
         System.Diagnostics.Trace.TraceError($"设置操作失败：{exception}");
-        SetStatus($"设置操作失败：{exception.Message}", isError: true);
+        SetStatus(Localizations.Lang.Format(Localizations.Lang.Current.SettingsOperationFailed, exception.Message), isError: true);
     }
 
     private static ProviderSettingsViewModel CreateEmptyProvider()

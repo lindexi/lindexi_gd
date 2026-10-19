@@ -22,6 +22,7 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
         Sessions = sessions;
         Runtime = runtime;
         chat.PropertyChanged += OnChatChanged;
+        Localizations.Lang.Current.PropertyChanged += OnLanguageChanged;
     }
 
     /// <summary>获取任务标识。</summary>
@@ -51,10 +52,17 @@ public sealed class WorkTaskItemViewModel : ViewModelBase
     /// <summary>获取包含压缩阶段的任务活动状态。</summary>
     public bool IsWorking => Chat.IsRunning || Chat.IsCompressing || Chat.IsFinalizing || Chat.IsChangingWorkspace;
     /// <summary>获取任务当前状态文本。</summary>
-    public string StatusText => IsWorking ? "工作中" : "空闲";
+    public string StatusText => IsWorking ? Localizations.Lang.Current.WorkingText : Localizations.Lang.Current.IdleText;
     internal CodingWorkTaskRuntime? Runtime { get; }
 
-    internal void Detach() => Chat.PropertyChanged -= OnChatChanged;
+    internal void Detach()
+    {
+        Chat.PropertyChanged -= OnChatChanged;
+        Localizations.Lang.Current.PropertyChanged -= OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e)
+        => OnPropertyChanged(nameof(StatusText));
 
     private void OnChatChanged(object? sender, PropertyChangedEventArgs e)
     {

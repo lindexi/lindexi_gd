@@ -23,12 +23,12 @@ internal sealed class OpenAIModelCatalogClient : IOpenAIModelCatalogClient
     {
         if (string.IsNullOrWhiteSpace(endPoint))
         {
-            return OpenAIModelCatalogResult.Failure("请先填写模型服务地址。");
+            return OpenAIModelCatalogResult.Failure(Localizations.Lang.Current.CatalogEndpointRequired);
         }
 
         if (!Uri.TryCreate(endPoint, UriKind.Absolute, out Uri? endpointUri))
         {
-            return OpenAIModelCatalogResult.Failure("模型服务地址格式无效。");
+            return OpenAIModelCatalogResult.Failure(Localizations.Lang.Current.CatalogEndpointInvalid);
         }
 
         var options = new OpenAIClientOptions
@@ -44,27 +44,27 @@ internal sealed class OpenAIModelCatalogClient : IOpenAIModelCatalogClient
         }
         catch (ClientResultException exception)
         {
-            return Failure("模型服务返回了错误响应。请检查服务地址、API 密钥和服务状态。", exception);
+            return Failure(Localizations.Lang.Current.CatalogResponseError, exception);
         }
         catch (JsonException exception)
         {
-            return Failure("模型服务返回的内容不是有效的 OpenAI 模型列表。请检查服务地址是否指向 OpenAI 兼容 API。", exception);
+            return Failure(Localizations.Lang.Current.CatalogJsonInvalid, exception);
         }
         catch (HttpRequestException exception)
         {
-            return Failure("无法连接模型服务。请检查服务地址、网络和代理设置。", exception);
+            return Failure(Localizations.Lang.Current.CatalogConnectionFailed, exception);
         }
         catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return OpenAIModelCatalogResult.Failure("获取模型列表超时。");
+            return OpenAIModelCatalogResult.Failure(Localizations.Lang.Current.CatalogTimeout);
         }
         catch (IOException exception)
         {
-            return Failure("读取模型服务响应失败。请稍后重试。", exception);
+            return Failure(Localizations.Lang.Current.CatalogReadFailed, exception);
         }
         catch (InvalidOperationException exception)
         {
-            return Failure("模型服务响应不符合 OpenAI 模型列表协议。", exception);
+            return Failure(Localizations.Lang.Current.CatalogProtocolInvalid, exception);
         }
 
         var modelIds = new List<string>(result.Value.Count);
@@ -74,12 +74,12 @@ internal sealed class OpenAIModelCatalogClient : IOpenAIModelCatalogClient
             string modelId = result.Value[index].Id;
             if (string.IsNullOrWhiteSpace(modelId))
             {
-                return OpenAIModelCatalogResult.Failure($"模型列表中的第 {index + 1} 项包含空白模型 ID。");
+                return OpenAIModelCatalogResult.Failure(Localizations.Lang.Format(Localizations.Lang.Current.CatalogBlankId, index + 1));
             }
 
             if (!uniqueModelIds.Add(modelId))
             {
-                return OpenAIModelCatalogResult.Failure($"模型列表包含重复的模型 ID：{modelId}");
+                return OpenAIModelCatalogResult.Failure(Localizations.Lang.Format(Localizations.Lang.Current.CatalogDuplicateId, modelId));
             }
 
             modelIds.Add(modelId);

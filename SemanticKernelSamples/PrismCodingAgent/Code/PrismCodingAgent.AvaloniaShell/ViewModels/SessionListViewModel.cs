@@ -277,7 +277,7 @@ public sealed class SessionItemViewModel : ViewModelBase
     public Guid? WorkTaskId { get; private set; }
     public string? WorkTaskName { get; private set; }
     public string WorkTaskText => WorkTaskId is Guid workTaskId
-        ? $"{WorkTaskName ?? "未命名任务"} ({workTaskId})"
+        ? $"{WorkTaskName ?? Localizations.Lang.Current.UnnamedTask} ({workTaskId})"
         : WorkTaskName ?? string.Empty;
     public DateTimeOffset StartedTime { get; }
     public int MessageCount { get; private set; }
@@ -312,5 +312,5 @@ public sealed class SessionItemViewModel : ViewModelBase
     }
     public string EditedTitle { get => _editedTitle; set => SetField(ref _editedTitle, value); }
     public bool IsEditing { get => _isEditing; set => SetField(ref _isEditing, value); }
-    public string Subtitle => string.Create(CultureInfo.CurrentCulture, $"{MessageCount} 条消息 | {StartedTime:yyyy-MM-dd HH:mm:ss}");
+    public string Subtitle => Localizations.Lang.Format(Localizations.Lang.Current.SessionSubtitle, MessageCount, StartedTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.CurrentCulture));
 }

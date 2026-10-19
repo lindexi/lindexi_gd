@@ -12,7 +12,6 @@
 
     <Application.Styles>
         <FluentTheme />
-        <StyleInclude Source="avares://PrismCodingAgent/Styles/Strings.axaml" />
         <StyleInclude Source="avares://PrismCodingAgent/Styles/Colors.axaml" />
         <StyleInclude Source="avares://PrismCodingAgent/Styles/Controls.axaml" />
         <StyleInclude Source="avares://PrismCodingAgent/Styles/MessageBubble.axaml" />

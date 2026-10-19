@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:localizations="clr-namespace:PrismCodingAgent.AvaloniaShell.Localizations"
         xmlns:vm="clr-namespace:PrismCodingAgent.AvaloniaShell.ViewModels"
         x:Class="PrismCodingAgent.AvaloniaShell.StartupFailureWindow"
         x:DataType="vm:StartupFailureViewModel"
-        Title="CodingChatRoom 启动失败"
+        Title="{Binding StartupFailureTitle, Source={x:Static localizations:Lang.Current}}"
         Icon="avares://PrismCodingAgent/Assets/Icons/CodingChatRoom.ico"
         Width="760"
         Height="520"
@@ -12,13 +13,13 @@
         WindowStartupLocation="CenterScreen">
     <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="20" RowSpacing="12">
         <TextBlock Grid.Row="0"
-                   Text="CodingChatRoom 启动失败"
+                   Text="{Binding StartupFailureTitle, Source={x:Static localizations:Lang.Current}}"
                    FontSize="22"
                    FontWeight="Bold"
                    Foreground="{StaticResource ErrorBrush}" />
 
         <StackPanel Grid.Row="1" Spacing="4">
-            <TextBlock Text="固定配置文件" Classes="Subtitle" />
+            <TextBlock Text="{Binding ConfigurationFile, Source={x:Static localizations:Lang.Current}}" Classes="Subtitle" />
             <TextBlock Text="{Binding ConfigurationFilePath}"
                        TextWrapping="Wrap"
                        FontFamily="Consolas" />
@@ -39,7 +40,7 @@
 
         <Button Grid.Row="3"
                 Classes="Danger"
-                Content="退出"
+                Content="{Binding ExitText, Source={x:Static localizations:Lang.Current}}"
                 Command="{Binding ExitCommand}"
                 HorizontalAlignment="Right" />
     </Grid>

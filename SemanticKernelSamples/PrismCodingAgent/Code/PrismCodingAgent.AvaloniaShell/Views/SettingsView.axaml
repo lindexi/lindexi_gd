@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:localizations="clr-namespace:PrismCodingAgent.AvaloniaShell.Localizations"
              xmlns:views="using:PrismCodingAgent.AvaloniaShell.Views"
              xmlns:vm="clr-namespace:PrismCodingAgent.AvaloniaShell.ViewModels"
              xmlns:views2="clr-namespace:PrismCodingAgent.AvaloniaShell.Views"
@@ -9,18 +10,18 @@
         <Border Grid.Row="0" Classes="SettingsHeader" Padding="32,24,32,16">
             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20" HorizontalAlignment="Stretch">
                 <Button Classes="SettingsBack"
-                        Content="← 返回聊天"
-                        ToolTip.Tip="返回聊天"
+                        Content="{Binding BackArrowText, Source={x:Static localizations:Lang.Current}}"
+                        ToolTip.Tip="{Binding BackToChatText, Source={x:Static localizations:Lang.Current}}"
                         Command="{Binding BackCommand}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center" />
                 <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
-                    <TextBlock Text="设置" Classes="SettingsPageTitle" />
-                    <TextBlock Text="模型服务与隔离执行环境" Classes="Subtitle" />
+                    <TextBlock Text="{Binding SettingsNavigationText, Source={x:Static localizations:Lang.Current}}" Classes="SettingsPageTitle" />
+                    <TextBlock Text="{Binding SettingsSubtitle, Source={x:Static localizations:Lang.Current}}" Classes="Subtitle" />
                 </StackPanel>
                 <Button Grid.Column="2"
                         Classes="Primary accent SaveSettings"
-                        Content="保存更改"
+                        Content="{Binding SaveChangesText, Source={x:Static localizations:Lang.Current}}"
                         Command="{Binding SaveCommand}"
                         IsEnabled="{Binding !IsBusy}"
                         HorizontalAlignment="Right"
@@ -32,6 +33,13 @@
             <StackPanel Margin="32,8,32,32" MaxWidth="1120"
                         Spacing="8"
                         HorizontalAlignment="Stretch">
+                <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="{Binding LanguageText, Source={x:Static localizations:Lang.Current}}" Classes="SettingsSectionTitle" />
+                        <ComboBox x:Name="LanguageSelector" ItemsSource="{Binding LanguageTags}" SelectedItem="{Binding LanguageTag, Mode=TwoWay}" />
+                        <TextBlock Text="{Binding LanguageHint, Source={x:Static localizations:Lang.Current}}" Classes="SettingsHint" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
                 <Border Classes="SettingsIntro" Padding="18" IsVisible="False">
                     <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
                         <Border Classes="IntroIcon">
@@ -42,17 +50,17 @@
                                        VerticalAlignment="Center" />
                         </Border>
                         <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                            <TextBlock Text="工作区运行配置" Classes="Eyebrow" />
-                            <TextBlock Text="统一管理 Coding Agent 使用的模型与 Windows 沙箱连接。"
+                            <TextBlock Text="{Binding WorkspaceConfiguration, Source={x:Static localizations:Lang.Current}}" Classes="Eyebrow" />
+                            <TextBlock Text="{Binding WorkspaceConfigurationDescription, Source={x:Static localizations:Lang.Current}}"
                                        FontSize="15"
                                        FontWeight="SemiBold"
                                        Foreground="#22313F" />
-                            <TextBlock Text="更改将在保存后写入配置；重新打开工作区即可使用新的运行环境。"
+                            <TextBlock Text="{Binding WorkspaceConfigurationHint, Source={x:Static localizations:Lang.Current}}"
                                        Classes="SettingsHint"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <Border Grid.Column="2" Classes="SectionTag" VerticalAlignment="Center">
-                            <TextBlock Text="需要重载"
+                            <TextBlock Text="{Binding ReloadRequired, Source={x:Static localizations:Lang.Current}}"
                                        FontSize="11"
                                        FontWeight="SemiBold"
                                        Foreground="{StaticResource PrimaryDarkBrush}" />
@@ -72,15 +80,15 @@
                                            VerticalAlignment="Center" />
                             </Border>
                             <StackPanel Grid.Column="1" Spacing="3">
-                                <TextBlock Text="Windows 沙箱" Classes="SettingsSectionTitle" />
-                                <TextBlock Text="通过 WinRemoteShell 将命令与文件操作发送到隔离环境。"
+                                <TextBlock Text="{Binding SandboxTitle, Source={x:Static localizations:Lang.Current}}" Classes="SettingsSectionTitle" />
+                                <TextBlock Text="{Binding SandboxDescription, Source={x:Static localizations:Lang.Current}}"
                                            Classes="Subtitle"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                             <ToggleSwitch Grid.Column="2"
                                           IsChecked="{Binding IsWindowsSandboxEnabled}"
-                                          OnContent="已启用"
-                                          OffContent="已禁用"
+                                          OnContent="{Binding NetworkProxyEnabledText, Source={x:Static localizations:Lang.Current}}"
+                                          OffContent="{Binding NetworkProxyDisabledText, Source={x:Static localizations:Lang.Current}}"
                                           VerticalAlignment="Center" />
                         </Grid>
 
@@ -90,7 +98,7 @@
                                            FontWeight="Bold"
                                            Foreground="{StaticResource SandboxAccentBrush}" />
                                 <TextBlock Grid.Column="1"
-                                           Text="仅使用可信的 WinRemoteShell 客户端，并连接到受控网络中的服务地址。沙箱将在工作区打开时建立连接。"
+                                           Text="{Binding SandboxTrustHint, Source={x:Static localizations:Lang.Current}}"
                                            TextWrapping="Wrap"
                                            Foreground="{StaticResource SandboxTextBrush}" />
                             </Grid>
@@ -98,22 +106,22 @@
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="16" IsEnabled="{Binding IsWindowsSandboxEnabled}">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="沙箱工具路径" Classes="SettingsLabel" />
+                                <TextBlock Text="{Binding SandboxToolPath, Source={x:Static localizations:Lang.Current}}" Classes="SettingsLabel" />
                                 <TextBox Classes="Rounded SettingsInput"
                                          Text="{Binding WindowsSandboxToolPath}"
                                          PlaceholderText="C:\Tools\WinRemoteShell.exe" />
-                                <TextBlock Text="可填写完整路径，或系统 PATH 中可解析的命令名。"
+                                <TextBlock Text="{Binding SandboxToolHint, Source={x:Static localizations:Lang.Current}}"
                                            Classes="SettingsHint"
                                            TextWrapping="Wrap" />
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Spacing="6">
-                                <TextBlock Text="连接地址" Classes="SettingsLabel" />
+                                <TextBlock Text="{Binding SandboxAddress, Source={x:Static localizations:Lang.Current}}" Classes="SettingsLabel" />
                                 <TextBox Classes="Rounded SettingsInput"
                                          Text="{Binding WindowsSandboxServerAddress}"
                                          PlaceholderText="127.0.0.1:12399"
                                          LostFocus="OnWindowsSandboxServerAddressLostFocus" />
-                                <TextBlock Text="使用 主机:端口 格式，例如 192.168.1.20:12399。输入完成后将自动测试连接。"
+                                <TextBlock Text="{Binding SandboxAddressHint, Source={x:Static localizations:Lang.Current}}"
                                            Classes="SettingsHint"
                                            TextWrapping="Wrap" />
                                 <Grid ColumnDefinitions="Auto,*"
@@ -151,34 +159,34 @@
                                            VerticalAlignment="Center" />
                             </Border>
                             <StackPanel Grid.Column="1" Spacing="3">
-                                <TextBlock Text="{StaticResource NetworkProxySettingsTitle}"
+                                <TextBlock Text="{Binding NetworkProxySettingsTitle, Source={x:Static localizations:Lang.Current}}"
                                            Classes="SettingsSectionTitle" />
-                                <TextBlock Text="{StaticResource NetworkProxySettingsDescription}"
+                                <TextBlock Text="{Binding NetworkProxySettingsDescription, Source={x:Static localizations:Lang.Current}}"
                                            Classes="Subtitle"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                             <ToggleSwitch Grid.Column="2"
                                           IsChecked="{Binding IsNetworkProxyEnabled}"
-                                          OnContent="{StaticResource NetworkProxyEnabledText}"
-                                          OffContent="{StaticResource NetworkProxyDisabledText}"
+                                          OnContent="{Binding NetworkProxyEnabledText, Source={x:Static localizations:Lang.Current}}"
+                                          OffContent="{Binding NetworkProxyDisabledText, Source={x:Static localizations:Lang.Current}}"
                                           VerticalAlignment="Center" />
                         </Grid>
 
                         <StackPanel Spacing="14" IsEnabled="{Binding IsNetworkProxyEnabled}">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="{StaticResource NetworkProxyAddressLabel}" Classes="SettingsLabel" />
+                                <TextBlock Text="{Binding NetworkProxyAddressLabel, Source={x:Static localizations:Lang.Current}}" Classes="SettingsLabel" />
                                 <TextBox Classes="Rounded SettingsInput"
                                          Text="{Binding NetworkProxyAddress}"
-                                         PlaceholderText="{StaticResource NetworkProxyAddressPlaceholder}" />
-                                <TextBlock Text="{StaticResource NetworkProxyAddressHint}"
+                                         PlaceholderText="{Binding NetworkProxyAddressPlaceholder, Source={x:Static localizations:Lang.Current}}" />
+                                <TextBlock Text="{Binding NetworkProxyAddressHint, Source={x:Static localizations:Lang.Current}}"
                                            Classes="SettingsHint"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                                 <CheckBox IsChecked="{Binding BypassProxyOnLocal}"
-                                          Content="{StaticResource BypassProxyOnLocalText}" />
+                                          Content="{Binding BypassProxyOnLocalText, Source={x:Static localizations:Lang.Current}}" />
                                 <TextBlock Grid.Column="1"
-                                           Text="{StaticResource BypassProxyOnLocalHint}"
+                                           Text="{Binding BypassProxyOnLocalHint, Source={x:Static localizations:Lang.Current}}"
                                            Classes="SettingsHint"
                                            TextWrapping="Wrap"
                                            VerticalAlignment="Center" />
@@ -199,9 +207,9 @@
                                            VerticalAlignment="Center" />
                             </Border>
                             <StackPanel Grid.Column="1" Spacing="3">
-                                <TextBlock Text="{StaticResource LanguageServerSettingsTitle}"
+                                <TextBlock Text="{Binding LanguageServerSettingsTitle, Source={x:Static localizations:Lang.Current}}"
                                            Classes="SettingsSectionTitle" />
-                                <TextBlock Text="{StaticResource LanguageServerSettingsDescription}"
+                                <TextBlock Text="{Binding LanguageServerSettingsDescription, Source={x:Static localizations:Lang.Current}}"
                                            Classes="Subtitle"
                                            TextWrapping="Wrap" />
                             </StackPanel>
@@ -210,15 +218,15 @@
                                         Spacing="8"
                                         VerticalAlignment="Center">
                                 <Button Classes="Primary accent"
-                                        Content="{StaticResource InstallOrUpdateLanguageServerText}"
+                                        Content="{Binding InstallOrUpdateLanguageServerText, Source={x:Static localizations:Lang.Current}}"
                                         Click="OnInstallOrUpdateLanguageServerClick" />
-                                <Button Content="{StaticResource CopyLanguageServerInstallCommandText}"
-                                        ToolTip.Tip="{StaticResource CopyLanguageServerInstallCommandToolTip}"
+                                <Button Content="{Binding CopyLanguageServerInstallCommandText, Source={x:Static localizations:Lang.Current}}"
+                                        ToolTip.Tip="{Binding CopyLanguageServerInstallCommandToolTip, Source={x:Static localizations:Lang.Current}}"
                                         Click="OnCopyLanguageServerInstallCommandClick" />
                             </StackPanel>
                         </Grid>
 
-                        <TextBlock Text="{StaticResource LanguageServerInstallHint}"
+                        <TextBlock Text="{Binding LanguageServerInstallHint, Source={x:Static localizations:Lang.Current}}"
                                    Classes="SettingsHint"
                                    TextWrapping="Wrap" />
                     </StackPanel>
@@ -236,24 +244,24 @@
                                            VerticalAlignment="Center" />
                             </Border>
                             <StackPanel Grid.Column="1" Spacing="3">
-                                <TextBlock Text="Copilot 自定义指令" Classes="SettingsSectionTitle" />
-                                <TextBlock Text="将 copilot-instructions.md 的内容追加到 Coding Agent 系统提示词。"
+                                <TextBlock Text="{Binding InstructionsTitle, Source={x:Static localizations:Lang.Current}}" Classes="SettingsSectionTitle" />
+                                <TextBlock Text="{Binding InstructionsDescription, Source={x:Static localizations:Lang.Current}}"
                                            Classes="Subtitle"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                             <ToggleSwitch Grid.Column="2"
                                           IsChecked="{Binding IsCopilotInstructionsEnabled}"
-                                          OnContent="已启用"
-                                          OffContent="已禁用"
+                                          OnContent="{Binding NetworkProxyEnabledText, Source={x:Static localizations:Lang.Current}}"
+                                          OffContent="{Binding NetworkProxyDisabledText, Source={x:Static localizations:Lang.Current}}"
                                           VerticalAlignment="Center" />
                         </Grid>
 
                         <StackPanel Spacing="6" IsEnabled="{Binding IsCopilotInstructionsEnabled}">
-                            <TextBlock Text="指令文件路径（可选）" Classes="SettingsLabel" />
+                            <TextBlock Text="{Binding InstructionsPath, Source={x:Static localizations:Lang.Current}}" Classes="SettingsLabel" />
                             <TextBox Classes="Rounded SettingsInput"
                                      Text="{Binding CopilotInstructionsPath}"
-                                     PlaceholderText="C:\Users\用户名\copilot-instructions.md" />
-                            <TextBlock Text="留空时使用当前用户目录下的 copilot-instructions.md；填写后使用指定的完整路径。"
+                                     PlaceholderText="{Binding InstructionsPlaceholder, Source={x:Static localizations:Lang.Current}}" />
+                            <TextBlock Text="{Binding InstructionsHint, Source={x:Static localizations:Lang.Current}}"
                                        Classes="SettingsHint"
                                        TextWrapping="Wrap" />
                         </StackPanel>
@@ -262,8 +270,8 @@
 
                 <Border Classes="SettingsCard" Padding="24">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="{DynamicResource ModelConfigurationTitle}" Classes="SettingsSectionTitle" />
-                        <TextBox Text="{Binding PrimaryModel}" PlaceholderText="{DynamicResource DefaultModelHint}" Classes="Rounded SettingsInput" />
+                        <TextBlock Text="{Binding ModelConfigurationTitle, Source={x:Static localizations:Lang.Current}}" Classes="SettingsSectionTitle" />
+                        <TextBox Text="{Binding PrimaryModel}" PlaceholderText="{Binding DefaultModelHint, Source={x:Static localizations:Lang.Current}}" Classes="Rounded SettingsInput" />
                         <views2:ModelSettingsView />
                     </StackPanel>
                 </Border>

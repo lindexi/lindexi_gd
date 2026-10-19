@@ -23,6 +23,7 @@ public sealed class MessageItemViewModel : ViewModelBase, IDisposable
         ArgumentNullException.ThrowIfNull(message);
         _message = message;
         _message.PropertyChanged += OnMessagePropertyChanged;
+        Localizations.Lang.Current.PropertyChanged += OnLanguageChanged;
     }
 
     /// <summary>
@@ -82,13 +83,20 @@ public sealed class MessageItemViewModel : ViewModelBase, IDisposable
     {
         get
         {
-            string totalUsageSummaryText = _message.UsageSummaryText;
+            var parts = new System.Collections.Generic.List<string>();
+            var usage = _message.TotalUsageDetails;
+            if (usage?.TotalTokenCount is { } total) parts.Add(Localizations.Lang.Format(Localizations.Lang.Current.UsageTotal, total));
+            if (usage?.InputTokenCount is { } input) parts.Add(Localizations.Lang.Format(Localizations.Lang.Current.UsageInput, input));
+            if (usage?.OutputTokenCount is { } output) parts.Add(Localizations.Lang.Format(Localizations.Lang.Current.UsageOutput, output));
+            if (usage?.ReasoningTokenCount is { } reasoning) parts.Add(Localizations.Lang.Format(Localizations.Lang.Current.UsageReasoning, reasoning));
+            if (usage?.CachedInputTokenCount is { } cached) parts.Add(Localizations.Lang.Format(Localizations.Lang.Current.UsageCached, cached));
+            string totalUsageSummaryText = string.Join(" | ", parts);
             if (_message.CurrentUsageDetails?.TotalTokenCount is not { } currentTotalTokenCount)
             {
                 return totalUsageSummaryText;
             }
 
-            string currentUsageSummaryText = $"当前用量总计 {currentTotalTokenCount:N0}";
+            string currentUsageSummaryText = Localizations.Lang.Format(Localizations.Lang.Current.UsageCurrent, currentTotalTokenCount);
             return string.IsNullOrWhiteSpace(totalUsageSummaryText)
                 ? currentUsageSummaryText
                 : $"{currentUsageSummaryText} {totalUsageSummaryText}";
@@ -104,8 +112,11 @@ public sealed class MessageItemViewModel : ViewModelBase, IDisposable
         }
 
         _message.PropertyChanged -= OnMessagePropertyChanged;
+        Localizations.Lang.Current.PropertyChanged -= OnLanguageChanged;
         _isDisposed = true;
     }
+
+    private void OnLanguageChanged(object? sender, PropertyChangedEventArgs e) => OnPropertyChanged(nameof(UsageSummaryText));
 
     private void OnMessagePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

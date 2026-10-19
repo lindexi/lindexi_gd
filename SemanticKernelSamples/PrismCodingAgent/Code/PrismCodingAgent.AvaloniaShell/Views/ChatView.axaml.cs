@@ -21,7 +21,7 @@ namespace PrismCodingAgent.AvaloniaShell.Views;
 /// </summary>
 public partial class ChatView : UserControl
 {
-    private static readonly FilePickerFileType ImageFileType = new("图片")
+    private static FilePickerFileType ImageFileType => new(Localizations.Lang.Current.ImageType)
     {
         Patterns = ["*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp"],
         MimeTypes = ["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp"],
@@ -175,7 +175,7 @@ public partial class ChatView : UserControl
         {
             files = await storageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "选择要附加的图片",
+                Title = Localizations.Lang.Current.ImagePickerTitle,
                 AllowMultiple = true,
                 FileTypeFilter = [ImageFileType],
             });
@@ -183,7 +183,7 @@ public partial class ChatView : UserControl
         catch (Exception exception)
         {
             Trace.TraceError($"打开图片选择器失败：{exception}");
-            await viewModel.AddSystemNoticeAsync($"无法打开图片选择器：{exception.Message}");
+            await viewModel.AddSystemNoticeAsync(Localizations.Lang.Format(Localizations.Lang.Current.ImagePickerFailed, exception.Message));
             return;
         }
         foreach (IStorageFile file in files)
@@ -198,7 +198,7 @@ public partial class ChatView : UserControl
                 using var bitmap = new Bitmap(validationStream);
                 if (!viewModel.TryAddImageAttachment(file.Name, data))
                 {
-                    await viewModel.AddSystemNoticeAsync($"不支持图片文件：{file.Name}");
+                    await viewModel.AddSystemNoticeAsync(Localizations.Lang.Format(Localizations.Lang.Current.ImageUnsupported, file.Name));
                 }
             }
             catch (Exception exception) when (exception is IOException
@@ -206,7 +206,7 @@ public partial class ChatView : UserControl
                                               or InvalidOperationException
                                               or ArgumentException)
             {
-                await viewModel.AddSystemNoticeAsync($"无法附加图片 {file.Name}：{exception.Message}");
+                await viewModel.AddSystemNoticeAsync(Localizations.Lang.Format(Localizations.Lang.Current.ImageAttachFailed, file.Name, exception.Message));
             }
         }
     }
@@ -291,7 +291,7 @@ public partial class ChatView : UserControl
                                           or InvalidOperationException
                                           or ArgumentException)
         {
-            await viewModel.AddSystemNoticeAsync($"无法粘贴剪贴板图片：{exception.Message}");
+            await viewModel.AddSystemNoticeAsync(Localizations.Lang.Format(Localizations.Lang.Current.ImagePasteFailed, exception.Message));
             return true;
         }
     }
