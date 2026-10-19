@@ -48,16 +48,16 @@ internal sealed class WindowsSandboxConnectionTester : IWindowsSandboxConnection
         {
             if (!process.Start())
             {
-                return new WindowsSandboxConnectionTestResult(false, "沙箱连接测试失败：无法启动 WinRemoteShell 客户端。");
+                return new WindowsSandboxConnectionTestResult(false, Localizations.Lang.Current.SandboxStartFailed);
             }
         }
         catch (Win32Exception exception)
         {
-            return new WindowsSandboxConnectionTestResult(false, $"沙箱连接测试失败：{exception.Message}");
+            return new WindowsSandboxConnectionTestResult(false, Localizations.Lang.Format(Localizations.Lang.Current.SandboxTestFailed, exception.Message));
         }
         catch (InvalidOperationException exception)
         {
-            return new WindowsSandboxConnectionTestResult(false, $"沙箱连接测试失败：{exception.Message}");
+            return new WindowsSandboxConnectionTestResult(false, Localizations.Lang.Format(Localizations.Lang.Current.SandboxTestFailed, exception.Message));
         }
 
         Task<string> standardOutputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
@@ -72,7 +72,7 @@ internal sealed class WindowsSandboxConnectionTester : IWindowsSandboxConnection
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             KillProcess(process);
-            return new WindowsSandboxConnectionTestResult(false, "沙箱连接测试失败：连接测试超时。");
+            return new WindowsSandboxConnectionTestResult(false, Localizations.Lang.Current.SandboxTestTimeout);
         }
         catch (OperationCanceledException)
         {
@@ -84,7 +84,7 @@ internal sealed class WindowsSandboxConnectionTester : IWindowsSandboxConnection
         string standardError = await standardErrorTask.ConfigureAwait(false);
         if (process.ExitCode == 0)
         {
-            return new WindowsSandboxConnectionTestResult(true, "沙箱连接测试成功。");
+            return new WindowsSandboxConnectionTestResult(true, Localizations.Lang.Current.SandboxTestSucceeded);
         }
 
         string detail = string.IsNullOrWhiteSpace(standardError) ? standardOutput : standardError;
@@ -93,7 +93,7 @@ internal sealed class WindowsSandboxConnectionTester : IWindowsSandboxConnection
         return new WindowsSandboxConnectionTestResult
         (
             false,
-            $"沙箱连接测试失败：WinRemoteShell 退出码为 {process.ExitCode}。{suffix}"
+            Localizations.Lang.Format(Localizations.Lang.Current.SandboxExitFailed, process.ExitCode, suffix)
         );
     }
 

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.VisualTree;
+using PrismCodingAgent.AvaloniaShell.Localizations;
 using PrismCodingAgent.AvaloniaShell.ViewModels;
 using ModelServiceConnectionView = PrismCodingAgent.AvaloniaShell.Views.ModelServiceConnectionView;
 using OpenAIModelCatalogView = PrismCodingAgent.AvaloniaShell.Views.OpenAIModelCatalogView;
@@ -80,7 +81,7 @@ public sealed class ModelConfigurationControlTests
             var inputPosition = input.TranslatePoint(default, view) ?? throw new InvalidOperationException();
             var statusPosition = status.TranslatePoint(default, view) ?? throw new InvalidOperationException();
             Assert.IsTrue(status.IsVisible
-                && status.Text == ModelCatalogViewModel.Text("SetupAlreadyAdded")
+                && status.Text == Lang.Current.SetupAlreadyAdded
                 && statusPosition.Y >= inputPosition.Y + input.Bounds.Height);
         }
         finally { window.Close(); }

@@ -2,6 +2,8 @@ namespace PrismCodingAgent.AvaloniaShell.Services.Settings;
 
 internal sealed record CodingChatShellSettings
 {
+    public string LanguageTag { get; init; } = "zh-Hans";
+
     public bool IsWindowsSandboxEnabled { get; init; } = true;
 
     public string WindowsSandboxToolPath { get; init; } = "WinRemoteShell.exe";

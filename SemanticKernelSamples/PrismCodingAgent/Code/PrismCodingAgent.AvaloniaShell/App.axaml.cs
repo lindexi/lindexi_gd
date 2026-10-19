@@ -41,11 +41,20 @@ public partial class App : Application
         await InitializeMainWindowAsync(desktop, paths);
     }
 
-    private static async Task InitializeMainWindowAsync(IClassicDesktopStyleApplicationLifetime desktop, CodingChatRoomPaths paths)
+    private static async Task InitializeMainWindowAsync
+        (IClassicDesktopStyleApplicationLifetime desktop, CodingChatRoomPaths paths)
     {
         var runtimes = new List<CodingWorkTaskRuntime>();
+        var tasks = new List<WorkTaskItemViewModel>();
+        MainViewModel? mainViewModel = null;
         try
         {
+            var languageSettingsService = new Services.Settings.CodingChatSettingsService
+            (
+                paths, new WindowsSandboxToolSource(false, string.Empty, string.Empty)
+            );
+            var shellSettings = await languageSettingsService.LoadInitialShellSettingsAsync().ConfigureAwait(true);
+            Localizations.Lang.SetCurrent(shellSettings.LanguageTag == "en" ? "en" : "zh-Hans");
             var dispatcher = new AvaloniaMainThreadDispatcher();
             var windowsSandboxToolSource = new WindowsSandboxToolSource(false, string.Empty, string.Empty);
             await DefaultAbilityInstaller.InstallOnceAsync(paths.AbilitiesDirectory).ConfigureAwait(true);
@@ -55,7 +64,6 @@ public partial class App : Application
             IReadOnlyList<WorkTaskRecord> records = await workTaskStore.LoadAsync().ConfigureAwait(true);
             WorkTaskRecord[] activeRecords = records.Where(record => !record.IsArchived).ToArray();
             WorkTaskRecord[] archivedRecords = records.Where(record => record.IsArchived).ToArray();
-            var tasks = new List<WorkTaskItemViewModel>();
 
             if (activeRecords.Length == 0)
             {
@@ -88,12 +96,12 @@ public partial class App : Application
                         .ConfigureAwait(true);
                     runtimes.Add(runtime);
                     WorkTaskItemViewModel task = MainViewModel.CreateRuntimeTask(runtime, record, abilityCatalog);
-                    await RestoreTaskConfigurationAsync(task, runtime, record).ConfigureAwait(true);
                     tasks.Add(task);
+                    await RestoreTaskConfigurationAsync(task, runtime, record).ConfigureAwait(true);
                 }
             }
 
-            var mainViewModel = MainViewModel.Create
+            mainViewModel = MainViewModel.Create
             (
                 tasks,
                 archivedRecords,
@@ -120,10 +128,7 @@ public partial class App : Application
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
                                               or InvalidOperationException or ArgumentException or JsonException)
         {
-            foreach (CodingWorkTaskRuntime runtime in runtimes)
-            {
-                await runtime.DisposeAsync().ConfigureAwait(true);
-            }
+            await DisposeStartupStateAsync(mainViewModel, tasks, runtimes).ConfigureAwait(true);
 
             Trace.TraceError($"CodingChatRoom 应用初始化失败：{exception}");
             var failureWindow = new StartupFailureWindow
@@ -137,6 +142,33 @@ public partial class App : Application
             };
             desktop.MainWindow = failureWindow;
             failureWindow.Show();
+        }
+    }
+
+    internal static async Task DisposeStartupStateAsync
+    (
+        MainViewModel? mainViewModel,
+        IReadOnlyList<WorkTaskItemViewModel> tasks,
+        IReadOnlyList<CodingWorkTaskRuntime> runtimes
+    )
+    {
+        if (mainViewModel is not null)
+        {
+            await mainViewModel.DisposeAsync().ConfigureAwait(true);
+            return;
+        }
+
+        // MainViewModel 尚未接管时，启动代码仍拥有任务及尚未关联任务的运行时。
+        foreach (WorkTaskItemViewModel task in tasks)
+        {
+            task.Detach();
+            task.Chat.Dispose();
+            task.Sessions.Dispose();
+        }
+
+        foreach (CodingWorkTaskRuntime runtime in runtimes)
+        {
+            await runtime.DisposeAsync().ConfigureAwait(true);
         }
     }
 
@@ -174,7 +206,8 @@ public partial class App : Application
             return null;
         }
 
-        return $"已自动修复工作任务配置：补充 {recoveryInfo.AssignedMissingIdCount} 个缺失 Id，修复 {recoveryInfo.ReassignedDuplicateIdCount} 个重复 Id。原配置已备份到：{recoveryInfo.BackupFilePath}";
+        return
+            $"已自动修复工作任务配置：补充 {recoveryInfo.AssignedMissingIdCount} 个缺失 Id，修复 {recoveryInfo.ReassignedDuplicateIdCount} 个重复 Id。原配置已备份到：{recoveryInfo.BackupFilePath}";
     }
 
     private static WorkTaskRecord CreateRecord(WorkTaskItemViewModel task)
@@ -189,5 +222,5 @@ public partial class App : Application
         );
 
     private static string GetDefaultTaskName(int number)
-        => $"{Current?.FindResource("WorkTaskText") ?? "工作任务"} {number}";
+        => $"{Localizations.Lang.Current.WorkTaskText} {number}";
 }

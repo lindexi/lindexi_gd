@@ -103,15 +103,23 @@ public sealed class ModelCatalogViewModelTests
     }
 
     [DataTestMethod]
-    [DataRow("", "SetupEndpointRequired")]
-    [DataRow("   ", "SetupEndpointRequired")]
-    [DataRow("not-an-address", "SetupInvalidEndpoint")]
-    [DataRow("file:///tmp/models", "SetupInvalidEndpoint")]
-    public async Task InvalidEndpointShouldShowSpecificMessage(string endpoint, string resourceKey)
+    [DataRow("")]
+    [DataRow("   ")]
+    public async Task MissingEndpointShouldShowRequiredMessage(string endpoint)
     {
         using var model = new ModelCatalogViewModel(new ProviderSettingsViewModel { EndPoint = endpoint });
         await model.LoadAsync();
-        Assert.AreEqual(ModelCatalogViewModel.Text(resourceKey), model.Status);
+        Assert.AreEqual(PrismCodingAgent.AvaloniaShell.Localizations.Lang.Current.SetupEndpointRequired, model.Status);
+    }
+
+    [DataTestMethod]
+    [DataRow("not-an-address")]
+    [DataRow("file:///tmp/models")]
+    public async Task InvalidEndpointShouldShowSpecificMessage(string endpoint)
+    {
+        using var model = new ModelCatalogViewModel(new ProviderSettingsViewModel { EndPoint = endpoint });
+        await model.LoadAsync();
+        Assert.AreEqual(PrismCodingAgent.AvaloniaShell.Localizations.Lang.Current.SetupInvalidEndpoint, model.Status);
     }
 
     private sealed class CatalogClient(Task<OpenAIModelCatalogResult> result) : IOpenAIModelCatalogClient

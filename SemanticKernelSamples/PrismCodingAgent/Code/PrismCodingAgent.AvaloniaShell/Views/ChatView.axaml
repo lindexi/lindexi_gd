@@ -1,5 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:localizations="clr-namespace:PrismCodingAgent.AvaloniaShell.Localizations"
              xmlns:model="using:AgentLib.Model"
              xmlns:views="using:PrismCodingAgent.AvaloniaShell.Views"
              xmlns:vm="clr-namespace:PrismCodingAgent.AvaloniaShell.ViewModels"
@@ -21,7 +21,7 @@
                     Background="Transparent"
                     BorderThickness="0"
                     Cursor="Hand"
-                    ToolTip.Tip="{StaticResource OpenImageExternallyText}"
+                    ToolTip.Tip="{Binding OpenImageExternallyText, Source={x:Static localizations:Lang.Current}}"
                     CommandParameter="{Binding}"
                     Click="ImageButton_OnClick">
                 <views:BinaryImage Width="240"
@@ -36,7 +36,7 @@
                       IsExpanded="False"
                       IsVisible="{Binding HasText}">
                 <Expander.Header>
-                    <TextBlock Text="思考过程"
+                    <TextBlock Text="{Binding ReasoningProcess, Source={x:Static localizations:Lang.Current}}"
                                FontSize="12"
                                FontWeight="SemiBold"
                                Foreground="#FF546E7A" />
@@ -57,30 +57,30 @@
                         <TextBlock Classes="SecondaryLabel" Text="{Binding ApprovalStateText}" />
                     </StackPanel>
                     <StackPanel IsVisible="{Binding HasApprovalDescription}">
-                        <TextBlock Classes="SecondaryLabel" Text="审批说明" />
+                        <TextBlock Classes="SecondaryLabel" Text="{Binding ApprovalDescription, Source={x:Static localizations:Lang.Current}}" />
                         <TextBox Classes="ChatOutput" Text="{Binding ApprovalDescription}" />
                     </StackPanel>
                     <StackPanel IsVisible="{Binding HasInputText}">
-                        <TextBlock Classes="SecondaryLabel" Text="输入参数" />
+                        <TextBlock Classes="SecondaryLabel" Text="{Binding ToolInputText, Source={x:Static localizations:Lang.Current}}" />
                         <TextBox Classes="ChatOutput" Text="{Binding InputText}" />
                     </StackPanel>
                     <StackPanel IsVisible="{Binding HasOutputText}">
-                        <TextBlock Classes="SecondaryLabel" Text="工具输出" />
+                        <TextBlock Classes="SecondaryLabel" Text="{Binding ToolOutputText, Source={x:Static localizations:Lang.Current}}" />
                         <TextBox Classes="ChatOutput" Text="{Binding OutputText}" />
                     </StackPanel>
                     <StackPanel IsVisible="{Binding HasDecisionReason}">
-                        <TextBlock Classes="SecondaryLabel" Text="拒绝原因" />
+                        <TextBlock Classes="SecondaryLabel" Text="{Binding DecisionReason, Source={x:Static localizations:Lang.Current}}" />
                         <TextBox Classes="ChatOutput" Text="{Binding DecisionReason}" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal"
                                 Spacing="8"
                                 IsVisible="{Binding CanRespondToApproval}">
                         <Button Classes="Primary accent"
-                                Content="同意"
+                                Content="{Binding ApproveText, Source={x:Static localizations:Lang.Current}}"
                                 Click="ApproveToolButton_OnClick"
                                 CommandParameter="{Binding}" />
                         <Button Classes="Danger"
-                                Content="拒绝"
+                                Content="{Binding RejectText, Source={x:Static localizations:Lang.Current}}"
                                 Click="RejectToolButton_OnClick"
                                 CommandParameter="{Binding}" />
                     </StackPanel>
@@ -112,12 +112,12 @@
                 <Border Classes="ToolPanel">
                     <StackPanel Spacing="6">
                         <StackPanel IsVisible="{Binding HasInputText}">
-                            <TextBlock Classes="SecondaryLabel" Text="{StaticResource ToolInputText}" />
+                            <TextBlock Classes="SecondaryLabel" Text="{Binding ToolInputText, Source={x:Static localizations:Lang.Current}}" />
                             <TextBox Classes="ChatOutput" Text="{Binding InputText}" />
                         </StackPanel>
                         <ItemsControl ItemsSource="{Binding Details.MessageItems}" />
                         <StackPanel IsVisible="{Binding HasOutputText}">
-                            <TextBlock Classes="SecondaryLabel" Text="{StaticResource ToolOutputText}" />
+                            <TextBlock Classes="SecondaryLabel" Text="{Binding ToolOutputText, Source={x:Static localizations:Lang.Current}}" />
                             <TextBox Classes="ChatOutput" Text="{Binding OutputText}" />
                         </StackPanel>
                     </StackPanel>
@@ -133,13 +133,13 @@
                 <Border Classes="SubAgentPanel">
                     <StackPanel Spacing="6">
                         <StackPanel IsVisible="{Binding HasInputText}">
-                            <TextBlock Classes="SecondaryLabel" Text="任务输入" />
+                            <TextBlock Classes="SecondaryLabel" Text="{Binding TaskInput, Source={x:Static localizations:Lang.Current}}" />
                             <TextBox Classes="ChatOutput" Text="{Binding InputText}" />
                         </StackPanel>
                         <ItemsControl ItemsSource="{Binding MessageItems}"
                                       IsVisible="{Binding HasMessageItems}" />
                         <StackPanel IsVisible="{Binding HasOutputText}">
-                            <TextBlock Classes="SecondaryLabel" Text="返回上级代理的输出" />
+                            <TextBlock Classes="SecondaryLabel" Text="{Binding ParentAgentOutput, Source={x:Static localizations:Lang.Current}}" />
                             <TextBox Classes="ChatOutput" Text="{Binding OutputText}" />
                         </StackPanel>
                     </StackPanel>
@@ -157,10 +157,10 @@
                 BorderBrush="#10000000" BorderThickness="1">
             <Grid ColumnDefinitions="*,Auto,72" RowDefinitions="Auto,Auto" RowSpacing="7"
                   ColumnSpacing="16">
-                <TextBlock Text="{StaticResource WorkDirectoryText}" Classes="Subtitle" FontSize="11" />
+                <TextBlock Text="{Binding WorkDirectoryText, Source={x:Static localizations:Lang.Current}}" Classes="Subtitle" FontSize="11" />
                 <Grid Grid.Column="1" ColumnDefinitions="220,96" ColumnSpacing="8">
-                    <TextBlock Text="{StaticResource ModelText}" Classes="Subtitle" FontSize="11" />
-                    <TextBlock Grid.Column="1" Text="{StaticResource ReasoningEffortText}" Classes="Subtitle" FontSize="11" />
+                    <TextBlock Text="{Binding ModelText, Source={x:Static localizations:Lang.Current}}" Classes="Subtitle" FontSize="11" />
+                    <TextBlock Grid.Column="1" Text="{Binding ReasoningEffortText, Source={x:Static localizations:Lang.Current}}" Classes="Subtitle" FontSize="11" />
                 </Grid>
                 <Grid Grid.Row="1" Grid.Column="0"
                       ColumnDefinitions="*,Auto"
@@ -170,13 +170,13 @@
                              Classes="Rounded"
                              ToolTip.Tip="{Binding WorkspaceStatusText}"
                              Text="{Binding WorkspaceInput, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="{StaticResource WorkspacePlaceholderText}"
+                             PlaceholderText="{Binding WorkspacePlaceholderText, Source={x:Static localizations:Lang.Current}}"
                              IsEnabled="{Binding !IsChangingWorkspace}" />
                     <Button Grid.Column="1"
                             MinWidth="72"
                             MinHeight="32"
                             Classes="Primary accent"
-                            Content="应用"
+                            Content="{Binding ApplyText, Source={x:Static localizations:Lang.Current}}"
                             Command="{Binding ApplyWorkspaceCommand}"
                             IsEnabled="{Binding CanApplyWorkspace}" />
                 </Grid>
@@ -187,7 +187,7 @@
                     <ComboBox x:Name="ModelSelector"
                               Width="220"
                               MinHeight="32"
-                              ToolTip.Tip="选择语言模型"
+                              ToolTip.Tip="{Binding SelectModel, Source={x:Static localizations:Lang.Current}}"
                               ItemsSource="{Binding AvailableModels}"
                               SelectedItem="{Binding SelectedModel}"
                               IsEnabled="{Binding !IsRunning}">
@@ -202,7 +202,7 @@
                     <ComboBox x:Name="ReasoningEffortSelector"
                               Width="96"
                               MinHeight="32"
-                              ToolTip.Tip="{StaticResource ReasoningEffortToolTip}"
+                              ToolTip.Tip="{Binding ReasoningEffortToolTip, Source={x:Static localizations:Lang.Current}}"
                               ItemsSource="{Binding AvailableReasoningEfforts}"
                               SelectedItem="{Binding SelectedReasoningEffort}"
                               IsEnabled="{Binding !IsRunning}">
@@ -215,12 +215,12 @@
                 </StackPanel>
                 <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
                     <Button x:Name="TaskHistoryButton" Classes="Secondary" Width="32" Height="32" Padding="7"
-                            ToolTip.Tip="{StaticResource SessionListTitle}" AutomationProperties.Name="{StaticResource SessionListTitle}"
+                            ToolTip.Tip="{Binding SessionListTitle, Source={x:Static localizations:Lang.Current}}" AutomationProperties.Name="{Binding SessionListTitle, Source={x:Static localizations:Lang.Current}}"
                             Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).OpenTaskHistoryCommand}">
                         <PathIcon Width="16" Height="16" Data="M12,2 A10,10 0 1 0 12,22 A10,10 0 1 0 12,2 M12,4 A8,8 0 1 1 12,20 A8,8 0 1 1 12,4 M11,6 L13,6 L13,12 L17,14 L16,16 L11,13 Z" />
                     </Button>
                     <Button x:Name="OpenLogDirectoryButton" Classes="Secondary" Width="32" Height="32" Padding="7"
-                            ToolTip.Tip="{StaticResource OpenLogDirectoryText}" AutomationProperties.Name="{StaticResource OpenLogDirectoryText}"
+                            ToolTip.Tip="{Binding OpenLogDirectoryText, Source={x:Static localizations:Lang.Current}}" AutomationProperties.Name="{Binding OpenLogDirectoryText, Source={x:Static localizations:Lang.Current}}"
                             Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).OpenLogDirectoryCommand}">
                         <PathIcon Width="16" Height="16" Data="M5,2 L15,2 L20,7 L20,22 L5,22 Z M15,4 L15,8 L19,8 Z M8,11 L17,11 L17,13 L8,13 Z M8,15 L17,15 L17,17 L8,17 Z M8,19 L14,19 L14,21 L8,21 Z" />
                     </Button>
@@ -232,9 +232,9 @@
             <Border Width="52" Height="52" CornerRadius="16" Background="#E6EDFC" HorizontalAlignment="Center">
                 <PathIcon Width="26" Height="26" Foreground="#4969B8" Data="M4,4 L20,4 L20,18 L13,18 L8,22 L8,18 L4,18 Z M6,6 L6,16 L10,16 L10,18 L12,16 L18,16 L18,6 Z" />
             </Border>
-            <TextBlock Text="{StaticResource WelcomeTitleText}" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center" />
-            <TextBlock Text="{StaticResource WelcomeDescriptionText}" Classes="Subtitle" FontSize="14" HorizontalAlignment="Center" />
-            <TextBlock Text="{StaticResource WelcomeExamplesText}" Classes="Subtitle" HorizontalAlignment="Center" Margin="0,8,0,0" />
+            <TextBlock Text="{Binding WelcomeTitleText, Source={x:Static localizations:Lang.Current}}" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center" />
+            <TextBlock Text="{Binding WelcomeDescriptionText, Source={x:Static localizations:Lang.Current}}" Classes="Subtitle" FontSize="14" HorizontalAlignment="Center" />
+            <TextBlock Text="{Binding WelcomeExamplesText, Source={x:Static localizations:Lang.Current}}" Classes="Subtitle" HorizontalAlignment="Center" Margin="0,8,0,0" />
         </StackPanel>
         <ScrollViewer x:Name="MessagesScrollViewer" IsVisible="{Binding !ShowWelcome}"
                       Grid.Row="1"
@@ -258,10 +258,10 @@
                                 <Border Classes="MessageBubbleAssistant" HorizontalAlignment="Stretch">
                                     <Border.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="复制正文"
+                                            <MenuItem Header="{Binding CopyBody, Source={x:Static localizations:Lang.Current}}"
                                                       Click="CopyContentMenuItem_OnClick"
                                                       CommandParameter="{Binding}" />
-                                            <MenuItem Header="复制整条"
+                                            <MenuItem Header="{Binding CopyMessage, Source={x:Static localizations:Lang.Current}}"
                                                       Click="CopyFullMessageMenuItem_OnClick"
                                                       CommandParameter="{Binding}" />
                                         </ContextMenu>
@@ -291,10 +291,10 @@
                                 <Border Classes="MessageBubbleUser" HorizontalAlignment="Right">
                                     <Border.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="复制正文"
+                                            <MenuItem Header="{Binding CopyBody, Source={x:Static localizations:Lang.Current}}"
                                                       Click="CopyContentMenuItem_OnClick"
                                                       CommandParameter="{Binding}" />
-                                            <MenuItem Header="复制整条"
+                                            <MenuItem Header="{Binding CopyMessage, Source={x:Static localizations:Lang.Current}}"
                                                       Click="CopyFullMessageMenuItem_OnClick"
                                                       CommandParameter="{Binding}" />
                                         </ContextMenu>
@@ -318,10 +318,10 @@
                                     IsVisible="{Binding IsSystemMessage}">
                                 <Border.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="复制正文"
+                                        <MenuItem Header="{Binding CopyBody, Source={x:Static localizations:Lang.Current}}"
                                                   Click="CopyContentMenuItem_OnClick"
                                                   CommandParameter="{Binding}" />
-                                        <MenuItem Header="复制整条"
+                                        <MenuItem Header="{Binding CopyMessage, Source={x:Static localizations:Lang.Current}}"
                                                   Click="CopyFullMessageMenuItem_OnClick"
                                                   CommandParameter="{Binding}" />
                                     </ContextMenu>
@@ -370,7 +370,7 @@
                                                 VerticalAlignment="Top"
                                                 Padding="0"
                                                 Content="×"
-                                                ToolTip.Tip="{StaticResource RemoveImageText}"
+                                                ToolTip.Tip="{Binding RemoveImageText, Source={x:Static localizations:Lang.Current}}"
                                                 Click="RemoveImageButton_OnClick"
                                                 CommandParameter="{Binding}" />
                                     </Grid>
@@ -391,15 +391,15 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                     <Button Classes="Secondary"
-                            Content="{StaticResource AddImageText}"
+                            Content="{Binding AddImageText, Source={x:Static localizations:Lang.Current}}"
                             Click="AddImageButton_OnClick" />
                 </StackPanel>
                 <TextBox Grid.Row="1" Grid.ColumnSpan="3" x:Name="MessageInputTextBox"
                          Classes="ComposerInput" Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
-                         PlaceholderText="{StaticResource MessageInputPlaceholder}" />
-                <TextBlock Grid.Row="2" Grid.Column="1" Text="{StaticResource InputShortcutText}"
+                         PlaceholderText="{Binding MessageInputPlaceholder, Source={x:Static localizations:Lang.Current}}" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding InputShortcutText, Source={x:Static localizations:Lang.Current}}"
                            Classes="Subtitle" Margin="12,0" VerticalAlignment="Center" IsVisible="{Binding !IsRunning}" />
-                <Button Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Classes="Danger" Content="{StaticResource StopText}"
+                <Button Grid.Row="2" Grid.Column="1" HorizontalAlignment="Right" Classes="Danger" Content="{Binding StopText, Source={x:Static localizations:Lang.Current}}"
                         Command="{Binding StopCommand}" IsVisible="{Binding IsRunning}" />
                 <Button Grid.Row="2" Grid.Column="2" x:Name="SendButton" Classes="Primary accent" MinWidth="88"
                         Command="{Binding SendCommand}" IsEnabled="{Binding CanSend}">
@@ -409,19 +409,19 @@
           </Border>
           <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="12">
             <WrapPanel x:Name="RunOptionsPanel" Orientation="Horizontal" ItemSpacing="16" LineSpacing="8" VerticalAlignment="Center">
-              <CheckBox x:Name="LoopIterationCheckBox" MinHeight="32" Content="{StaticResource LoopIterationText}" IsChecked="{Binding IsLoopIterationEnabled}" />
-              <CheckBox x:Name="AutomaticCompressionCheckBox" MinHeight="32" Content="{StaticResource AutomaticCompressionText}" IsChecked="{Binding IsAutomaticCompressionEnabled}" />
-              <CheckBox x:Name="EnableDotNetRunCheckBox" MinHeight="32" Content="{StaticResource EnableDotNetRunText}" IsChecked="{Binding IsDotNetRunEnabled}" ToolTip.Tip="{StaticResource EnableDotNetRunToolTip}" />
+              <CheckBox x:Name="LoopIterationCheckBox" MinHeight="32" Content="{Binding LoopIterationText, Source={x:Static localizations:Lang.Current}}" IsChecked="{Binding IsLoopIterationEnabled}" />
+              <CheckBox x:Name="AutomaticCompressionCheckBox" MinHeight="32" Content="{Binding AutomaticCompressionText, Source={x:Static localizations:Lang.Current}}" IsChecked="{Binding IsAutomaticCompressionEnabled}" />
+              <CheckBox x:Name="EnableDotNetRunCheckBox" MinHeight="32" Content="{Binding EnableDotNetRunText, Source={x:Static localizations:Lang.Current}}" IsChecked="{Binding IsDotNetRunEnabled}" ToolTip.Tip="{Binding EnableDotNetRunToolTip, Source={x:Static localizations:Lang.Current}}" />
               <ToggleButton x:Name="ResponsesApiToggleButton" Classes="ApiMode"
-                            Content="{StaticResource ResponsesApiText}"
+                            Content="{Binding ResponsesApiText, Source={x:Static localizations:Lang.Current}}"
                             IsChecked="{Binding IsResponsesApiEnabled, Mode=TwoWay}"
-                            ToolTip.Tip="{StaticResource ResponsesApiToolTip}"
-                            AutomationProperties.Name="{StaticResource ResponsesApiText}" />
+                            ToolTip.Tip="{Binding ResponsesApiToolTip, Source={x:Static localizations:Lang.Current}}"
+                            AutomationProperties.Name="{Binding ResponsesApiText, Source={x:Static localizations:Lang.Current}}" />
             </WrapPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
-              <Button x:Name="CompressConversationButton" Classes="Secondary" Content="{StaticResource CompressConversationText}" Command="{Binding CompressConversationCommand}" IsEnabled="{Binding CanCompressConversation}" />
-              <Button x:Name="StopLanguageServerButton" Classes="Secondary" Content="{StaticResource StopLanguageServerText}" Command="{Binding StopLanguageServerCommand}" ToolTip.Tip="{StaticResource StopLanguageServerToolTip}" />
-              <Button x:Name="NewSessionButton" Classes="Secondary" Content="{StaticResource NewSessionText}"
+              <Button x:Name="CompressConversationButton" Classes="Secondary" Content="{Binding CompressConversationText, Source={x:Static localizations:Lang.Current}}" Command="{Binding CompressConversationCommand}" IsEnabled="{Binding CanCompressConversation}" />
+              <Button x:Name="StopLanguageServerButton" Classes="Secondary" Content="{Binding StopLanguageServerText, Source={x:Static localizations:Lang.Current}}" Command="{Binding StopLanguageServerCommand}" ToolTip.Tip="{Binding StopLanguageServerToolTip, Source={x:Static localizations:Lang.Current}}" />
+              <Button x:Name="NewSessionButton" Classes="Secondary" Content="{Binding NewSessionText, Source={x:Static localizations:Lang.Current}}"
                       Command="{Binding $parent[views:MainView].((vm:MainViewModel)DataContext).SessionListViewModel.CreateNewSessionCommand}" />
             </StackPanel>
           </Grid>

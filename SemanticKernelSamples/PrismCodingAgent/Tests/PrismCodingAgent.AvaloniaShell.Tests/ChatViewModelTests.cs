@@ -7,6 +7,7 @@ using AgentLib.Logging;
 using AgentLib.Model;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
+using PrismCodingAgent.AvaloniaShell.Localizations;
 using PrismCodingAgent.AvaloniaShell.Services.Chat;
 using PrismCodingAgent.AvaloniaShell.Services.Sessions;
 using PrismCodingAgent.AvaloniaShell.Services.Workspace;
@@ -70,7 +71,7 @@ public sealed class ChatViewModelTests
         CollectionAssert.Contains(changedProperties, nameof(MessageItemViewModel.FullContent));
         CollectionAssert.Contains(changedProperties, nameof(MessageItemViewModel.UsageSummaryText));
         Assert.IsTrue(viewModel.HasUsageDetails);
-        StringAssert.StartsWith(viewModel.UsageSummaryText, "当前用量总计 20 用量总计 20");
+        StringAssert.StartsWith(viewModel.UsageSummaryText, $"{Lang.Format(Lang.Current.UsageCurrent, 20)} {Lang.Format(Lang.Current.UsageTotal, 20)}");
     }
 
     [TestMethod(DisplayName = "用量摘要应先显示最后一次用量总计再显示累计用量总计")]
@@ -82,7 +83,7 @@ public sealed class ChatViewModelTests
         message.AppendUsageDetails(new UsageDetails { TotalTokenCount = 100 });
         message.AppendUsageDetails(new UsageDetails { TotalTokenCount = 40 });
 
-        StringAssert.StartsWith(viewModel.UsageSummaryText, "当前用量总计 40 用量总计 140");
+        StringAssert.StartsWith(viewModel.UsageSummaryText, $"{Lang.Format(Lang.Current.UsageCurrent, 40)} {Lang.Format(Lang.Current.UsageTotal, 140)}");
     }
 
     [TestMethod(DisplayName = "复制正文和整条消息应使用不同内容")]
@@ -425,7 +426,7 @@ public sealed class ChatViewModelTests
         Assert.IsTrue(viewModel.StopCommand.CanExecute(null));
         viewModel.StopCommand.Execute(null);
         await runner.Canceled.Task;
-        await WaitUntilAsync(() => viewModel.Messages[^1].Content == "运行已停止。");
+        await WaitUntilAsync(() => viewModel.Messages[^1].Content == Lang.Current.RunStopped);
 
         Assert.IsTrue(runner.CancellationToken.IsCancellationRequested);
         Assert.IsTrue(viewModel.Messages[^1].IsSystemMessage);
@@ -504,7 +505,7 @@ public sealed class ChatViewModelTests
 
         releaseCompression.TrySetResult();
         await WaitUntilAsync(() => compressionMessage.Content.Contains(summaryText, StringComparison.Ordinal));
-        await WaitUntilAsync(() => viewModel.Messages[^1].Content == "对话压缩完成。");
+        await WaitUntilAsync(() => viewModel.Messages[^1].Content == Lang.Current.Compacted);
 
         Assert.IsTrue(agentSession.TryGetInMemoryChatHistory(out List<ChatMessage>? compressedMessages));
         Assert.IsTrue(compressedMessages.Any(message => message.Text.Contains(summaryText, StringComparison.Ordinal)));

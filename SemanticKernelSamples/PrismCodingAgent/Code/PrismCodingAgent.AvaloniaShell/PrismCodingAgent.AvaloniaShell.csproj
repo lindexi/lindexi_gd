@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNetCampus.SourceLocalizations" Version="0.1.1-alpha.6" />
     <PackageReference Include="Avalonia" Version="12.1.0" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.0" />
@@ -32,7 +33,6 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\Icons\CodingChatRoom.ico" />
     <AvaloniaResource Include="Assets\Icons\CodingChatRoom_48x48.png" />
-    <AvaloniaResource Include="Styles\Strings.axaml" />
     <AvaloniaResource Include="Styles\Colors.axaml" />
     <AvaloniaResource Include="Styles\Controls.axaml" />
     <AvaloniaResource Include="Styles\MessageBubble.axaml" />

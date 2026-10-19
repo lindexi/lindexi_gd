@@ -5,9 +5,10 @@ namespace PrismCodingAgent.AvaloniaShell.Tests;
 
 internal sealed class AvaloniaTestClassAttribute : TestClassAttribute
 {
-    private static HeadlessUnitTestSession? _session;
+    private static readonly Lazy<HeadlessUnitTestSession> SharedSession = new(
+        () => HeadlessUnitTestSession.StartNew(typeof(TestApplication)));
 
-    internal static HeadlessUnitTestSession Session => _session ??= HeadlessUnitTestSession.StartNew(typeof(TestApplication));
+    internal static HeadlessUnitTestSession Session => SharedSession.Value;
 
     public override TestMethodAttribute GetTestMethodAttribute(TestMethodAttribute testMethodAttribute)
         => new UiTestMethodAttribute(testMethodAttribute);
@@ -15,7 +16,12 @@ internal sealed class AvaloniaTestClassAttribute : TestClassAttribute
     private sealed class UiTestMethodAttribute(TestMethodAttribute inner) : TestMethodAttribute
     {
         public override Task<TestResult[]> ExecuteAsync(ITestMethod testMethod)
-            => Session.Dispatch(() => inner.ExecuteAsync(testMethod), CancellationToken.None);
+            // Headless completes dispatch inline. MSTest must not run assembly cleanup on
+            // that thread: disposing the session would wait for its own dispatch loop.
+            => Session.Dispatch(() => inner.ExecuteAsync(testMethod), CancellationToken.None)
+                .ContinueWith(static completed => completed.GetAwaiter().GetResult(),
+                    CancellationToken.None, TaskContinuationOptions.RunContinuationsAsynchronously,
+                    TaskScheduler.Default);
     }
 
     private sealed class TestApplication

@@ -1,12 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:localizations="clr-namespace:PrismCodingAgent.AvaloniaShell.Localizations"
              xmlns:vm="clr-namespace:PrismCodingAgent.AvaloniaShell.ViewModels"
              x:Class="PrismCodingAgent.AvaloniaShell.Views.OpenAIModelCatalogView"
              x:DataType="vm:ModelCatalogViewModel" x:CompileBindings="True">
     <StackPanel x:Name="CatalogPanel" x:DataType="vm:ModelCatalogViewModel" Spacing="12">
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-            <TextBlock Text="{DynamicResource SetupModelsLabel}" Classes="SettingsSectionTitle" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="{DynamicResource SetupDiscoverAction}" Command="{Binding LoadCommand}" />
+            <TextBlock Text="{Binding SetupModelsLabel, Source={x:Static localizations:Lang.Current}}" Classes="SettingsSectionTitle" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="{Binding SetupDiscoverAction, Source={x:Static localizations:Lang.Current}}" Command="{Binding LoadCommand}" />
         </Grid>
         <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="3" />
         <ScrollViewer MaxHeight="200" HorizontalScrollBarVisibility="Disabled">
@@ -15,7 +15,7 @@
                     <DataTemplate x:DataType="x:String">
                         <Grid ColumnDefinitions="*,Auto" Margin="0,4">
                             <TextBlock Text="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                            <Button Grid.Column="1" Content="{DynamicResource SetupAddModel}"
+                            <Button Grid.Column="1" Content="{Binding SetupAddModel, Source={x:Static localizations:Lang.Current}}"
                                     Command="{Binding $parent[ItemsControl].((vm:ModelCatalogViewModel)DataContext).AddCommand}"
                                     CommandParameter="{Binding}" />
                         </Grid>
@@ -23,10 +23,10 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
-        <TextBlock Text="{DynamicResource SetupManualHint}" TextWrapping="Wrap" />
+        <TextBlock Text="{Binding SetupManualHint, Source={x:Static localizations:Lang.Current}}" TextWrapping="Wrap" />
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-            <TextBox Text="{Binding ModelId, UpdateSourceTrigger=PropertyChanged}" Classes="Rounded SettingsInput" VerticalContentAlignment="Center" PlaceholderText="{DynamicResource SetupModelIdText}" />
-            <Button Grid.Column="1" Content="{DynamicResource SetupAddModel}" Command="{Binding AddManualCommand}" />
+            <TextBox Text="{Binding ModelId, UpdateSourceTrigger=PropertyChanged}" Classes="Rounded SettingsInput" VerticalContentAlignment="Center" PlaceholderText="{Binding SetupModelIdText, Source={x:Static localizations:Lang.Current}}" />
+            <Button Grid.Column="1" Content="{Binding SetupAddModel, Source={x:Static localizations:Lang.Current}}" Command="{Binding AddManualCommand}" />
         </Grid>
         <TextBlock x:Name="CatalogStatus" Text="{Binding Status}" TextWrapping="Wrap" Classes="SettingsHint" />
     </StackPanel>

@@ -13,7 +13,7 @@ public sealed class WorkspaceTitleConverter : IMultiValueConverter
     /// <inheritdoc />
     public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
-        string applicationTitle = parameter as string ?? string.Empty;
+        string applicationTitle = values.Count > 3 ? values[3] as string ?? string.Empty : parameter as string ?? string.Empty;
         string? workspacePath = values.Count > 0 ? values[0] as string : null;
         string? sessionTitle = values.Count > 1 ? values[1] as string : null;
 
