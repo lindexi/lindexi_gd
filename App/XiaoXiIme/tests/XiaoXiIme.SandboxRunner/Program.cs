@@ -15,6 +15,12 @@ internal static class Program
 
         return args[0] switch
         {
+            "natural-daz-validation" when args.Length == 3 => DebugFuzzyValidation.RunAsync(args[1], args[2], experience: true, natural: true).GetAwaiter().GetResult(),
+            "experience-lock-validation" when args.Length == 3 => ExperienceLockValidation.RunAsync(args[1], args[2]).GetAwaiter().GetResult(),
+            "experience-validation" when args.Length == 3 => DebugFuzzyValidation.RunAsync(args[1], args[2], experience: true).GetAwaiter().GetResult(),
+            "debug-click-diagnostic" when args.Length == 3 => DebugFuzzyValidation.RunAsync(args[1], args[2], minimal: true).GetAwaiter().GetResult(),
+            "debug-fuzzy-validation" when args.Length == 3 => DebugFuzzyValidation.RunAsync(args[1], args[2]).GetAwaiter().GetResult(),
+            "debug-six-scheme-validation" when args.Length == 3 => DebugFuzzyValidation.RunAsync(args[1], args[2], sixSchemes: true).GetAwaiter().GetResult(),
             "product-ui-validation" when args.Length == 4 => ProductUiValidation.RunAsync(args[1], args[2], args[3]).GetAwaiter().GetResult(),
             "product-ui-batch" when args.Length == 1 => RunProductBatchAsync().GetAwaiter().GetResult(),
             "product-ui-compact" when args.Length == 1 => ProductUiValidation.RunAsync(

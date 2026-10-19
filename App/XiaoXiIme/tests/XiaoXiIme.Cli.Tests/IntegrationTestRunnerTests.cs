@@ -129,6 +129,7 @@ public sealed class IntegrationTestRunnerTests
     public void VerifyDictionaryPackages_WhenPackagesAreValidThenReturnsNull()
     {
         using var directory = new TemporaryDirectory();
+        CompileSupportedPackages(directory.Path);
         var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
         var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
         CompilePackage(fullPinyin, DefaultDictionaryPackageBuilder.FullPinyinInputScheme);
@@ -384,6 +385,7 @@ public sealed class IntegrationTestRunnerTests
     public void VerifyDictionaryPackages_WhenXiaoheProjectTermQueryIsMissingThenReturnsError()
     {
         using var directory = new TemporaryDirectory();
+        CompileSupportedPackages(directory.Path);
         var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
         var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
         CompilePackage(fullPinyin, DefaultDictionaryPackageBuilder.FullPinyinInputScheme);
@@ -402,6 +404,7 @@ public sealed class IntegrationTestRunnerTests
     public void VerifyDictionaryPackages_WhenXiaoheProjectTermTextDoesNotMatchThenReturnsError()
     {
         using var directory = new TemporaryDirectory();
+        CompileSupportedPackages(directory.Path);
         var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
         var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
         CompilePackage(fullPinyin, DefaultDictionaryPackageBuilder.FullPinyinInputScheme);
@@ -504,6 +507,12 @@ public sealed class IntegrationTestRunnerTests
         {
             Directory.Delete(Path, true);
         }
+    }
+
+    private static void CompileSupportedPackages(string root)
+    {
+        foreach (var scheme in PhoneticSchemeCatalog.All.Where(item => item.ProductScheme.HasValue))
+            CompilePackage(Path.Combine(root, "app", "host", DictionaryPackageLocations.GetRelativePackageDirectory(scheme.SchemeId)), scheme.SchemeId);
     }
 
     private static void CompilePackage(string packageDirectory, string inputScheme)

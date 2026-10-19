@@ -138,13 +138,18 @@ public static class DictionaryPackageLoader
 
         if ((!string.IsNullOrEmpty(manifest.CompilerVersion)
                 && !string.Equals(manifest.CompilerVersion, DictionaryPackageManifest.CurrentCompilerVersion, StringComparison.Ordinal))
-            || (!string.Equals(manifest.Parameters.InputScheme, DictionaryPackageFormat.FullPinyinInputScheme, StringComparison.Ordinal)
-                && !string.Equals(manifest.Parameters.InputScheme, DictionaryPackageFormat.XiaoheDoublePinyinInputScheme, StringComparison.Ordinal))
+            || !PhoneticSchemeCatalog.All.Any(item => item.SchemeId == manifest.Parameters.InputScheme && (item.Layout?.ZeroInitialCodes is not null || item.SchemeId == "fullPinyin"))
             || manifest.Parameters.MaxPrefixCandidatesPerKey <= 0
             || manifest.Parameters.MaxPrefixCandidatesPerKey > DictionaryPackageFormat.MaxCandidatesPerKey)
         {
             throw new InvalidDataException(DictionaryResources.InvalidCompilerParameters);
         }
+
+        var definition = PhoneticSchemeCatalog.All.Single(item => item.SchemeId == manifest.Parameters.InputScheme);
+        var requiresIdentity = manifest.Parameters.InputScheme is not ("fullPinyin" or "xiaoheDoublePinyin");
+        if ((requiresIdentity || manifest.Parameters.ProjectionVersion is not null) &&
+            (manifest.Parameters.ProjectionVersion != definition.ProjectionVersion || manifest.Parameters.RulesSha256 != definition.ContentSha256))
+            throw new InvalidDataException(DictionaryResources.InvalidCompilerParameters);
 
         if (manifest.Sources.Count > DictionaryPackageFormat.MaxManifestItems
             || manifest.Shards.Count > DictionaryPackageFormat.MaxManifestItems)

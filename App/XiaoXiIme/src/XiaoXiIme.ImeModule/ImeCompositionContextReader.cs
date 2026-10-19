@@ -13,6 +13,25 @@ public sealed unsafe class ImeCompositionContextReader
         _contextAccessor = contextAccessor;
     }
 
+    /// <summary>Checks the target IMM context rather than another session's conversion mode.</summary>
+    public bool IsReceivingChinese(HImc inputContext)
+    {
+        if (inputContext.Value == 0) return true;
+        var pointer = _contextAccessor.LockInputContext(inputContext);
+        if (pointer == 0) return false;
+        try
+        {
+            var context = (InputContext*)pointer;
+            return context->FOpen != 0 &&
+                (context->FdwConversion & ImeConstants.ImeCmodeNative) != 0 &&
+                (context->FdwConversion & ImeConstants.ImeCmodeNoConversion) == 0;
+        }
+        finally
+        {
+            _contextAccessor.UnlockInputContext(inputContext);
+        }
+    }
+
     public bool IsComposing(HImc inputContext)
     {
         if (inputContext.Value == 0)

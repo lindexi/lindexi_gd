@@ -8,9 +8,16 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(IncludeValidationSources)' == 'true'">
+  <ItemGroup Condition="'$(IncludeValidationSources)' == 'true' or '$(IncludeDictionarySources)' == 'true'">
     <Content Include="..\..\data\dictionaries\**\*" Link="data\dictionaries\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IncludeValidationSources)' == 'true'">
     <Content Include="..\..\src\**\*.cs;..\..\src\**\*.csproj;..\..\tests\**\*.cs;..\..\tests\**\*.csproj;..\..\Directory.Build.props;..\..\XiaoXiIme.slnx" Exclude="..\..\src\**\obj\**;..\..\src\**\bin\**;..\..\tests\**\obj\**;..\..\tests\**\bin\**" Link="source-freeze\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(ValidationPackagePath)' != ''">
+    <Content Include="$(ValidationPackagePath)\**\*" Link="XiaoXiIme.DictionaryPackage\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

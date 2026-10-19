@@ -56,8 +56,8 @@ public class ProductUiFaultTests(CandidateWindowScreenshotFixture fixture)
                 await Task.Delay(1600);
                 var controls = window!.GetLogicalDescendants().ToArray();
                 var scheme = controls.OfType<ComboBox>().Single();
-                var visible = controls.OfType<CheckBox>().Single();
-                scheme.SelectedIndex = 1;
+                var visible = controls.OfType<CheckBox>().Single(c => c.Name == "StatusBarVisible");
+                scheme.SelectedItem = scheme.Items.OfType<ComboBoxItem>().Single(item => item.Name == "SchemeDouble");
                 var apply = controls.OfType<Button>().Single(b => Equals(b.Content, "应用"));
                 apply.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
@@ -66,7 +66,7 @@ public class ProductUiFaultTests(CandidateWindowScreenshotFixture fixture)
                 await host.SaveProductSettingsAsync(new(authority.HostInstanceId, Guid.NewGuid(), authority.Settings.Revision,
                     authority.Settings with { StatusBarVisible = false }));
                 await Task.Delay(2400);
-                Assert.Equal(1, scheme.SelectedIndex);
+                Assert.Equal("SchemeDouble", Assert.IsType<ComboBoxItem>(scheme.SelectedItem).Name);
                 Assert.True(visible.IsChecked);
                 Assert.False(apply.IsEnabled);
                 var latest = await host.GetProductSettingsAsync();
@@ -75,7 +75,7 @@ public class ProductUiFaultTests(CandidateWindowScreenshotFixture fixture)
                 Assert.False(latest.Settings.StatusBarVisible);
                 release.TrySetResult();
                 await Task.Delay(1200);
-                Assert.Equal(1, scheme.SelectedIndex);
+                Assert.Equal("SchemeDouble", Assert.IsType<ComboBoxItem>(scheme.SelectedItem).Name);
                 Assert.True(visible.IsChecked);
                 Assert.Equal(latest.Settings, (await host.GetProductSettingsAsync()).Settings);
                 controls.OfType<Button>().Single(b => Equals(b.Content, "取消")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -126,10 +126,10 @@ public class ProductUiFaultTests(CandidateWindowScreenshotFixture fixture)
                 using var reopened = app.OpenProductSettings(options);
                 await Task.Delay(1600);
                 var scheme = window!.GetLogicalDescendants().OfType<ComboBox>().Single();
-                scheme.SelectedIndex = 1;
+                scheme.SelectedItem = scheme.Items.OfType<ComboBoxItem>().Single(item => item.Name == "SchemeDouble");
                 release.TrySetResult();
                 await Task.Delay(1200);
-                Assert.Equal(1, scheme.SelectedIndex);
+                Assert.Equal("SchemeDouble", Assert.IsType<ComboBoxItem>(scheme.SelectedItem).Name);
                 Assert.Equal(new ImeProductSettings(), (await host.GetProductSettingsAsync()).Settings);
                 return true;
             }, CancellationToken.None);

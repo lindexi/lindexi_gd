@@ -1,11 +1,13 @@
 using XiaoXiIme.Dictionary;
 using XiaoXiIme.Foundation;
 using XiaoXiIme.ImeHost;
+using XiaoXiIme.ImeCore;
 using XiaoXiIme.ImeIpc;
 using XiaoXiIme.ImeInterop;
 
 namespace XiaoXiIme.ImeModule.Tests;
 
+[Collection("Lifecycle environment")]
 public class ImeHostBridgeTests
 {
     [Fact(Timeout = 2_000)]
@@ -744,6 +746,21 @@ public class ImeHostBridgeTests
         ImeExports.SetCompositionContextWriterForTesting(himc.CreateWriter());
         const string currentComposition = "n";
         var buffer = new byte[256];
+        var scheme = input == "xiaoxiaimuyi" ? "fullPinyin" : "xiaoheDoublePinyin";
+        var packagePath = Path.Combine(Path.GetTempPath(), "ConversionListSemantics", Guid.NewGuid().ToString("N"));
+        DictionaryPackageCompiler.Compile(XiaoXiImeProjectTerms.Parse(), packagePath,
+            new DictionaryPackageParameters { InputScheme = scheme });
+        var context = new ImeContext(DictionaryPackageLoader.Load(packagePath));
+        var interpretations = context.QueryInterpretations(input).Candidates;
+        Assert.Equal(new[] { "XiaoXiIme", "小希IME", "小希" }, interpretations.Select(c => c.Candidate.Text));
+        Assert.Equal(new[] { input.Length, input.Length, scheme == "fullPinyin" ? 6 : 4 },
+            interpretations.Select(c => c.Interpretations[0].CoverageEnd));
+        Assert.All(interpretations, c => Assert.Equal(0, c.Interpretations[0].Segments[0].InputStart));
+        Assert.Equal(new[] { 1, 2, 1 }, interpretations.Select(c => c.Interpretations[0].Segments.Count));
+        context.SetComposition(input);
+        var selection = context.QueryInterpretations(input).Candidates.Single(c => c.Candidate.Text == "小希");
+        var partial = context.SelectCandidate(selection.SelectionId!.Value);
+        Assert.Equal(("小希", "aimuyi"), (partial.CommitText, partial.Snapshot.Composition.Reading));
 
         try
         {
@@ -782,8 +799,10 @@ public class ImeHostBridgeTests
                         ImeConstants.GclConversion));
 
                 var candidateList = (CandidateList*)destination;
-                Assert.Equal(1u, candidateList->Count);
-                Assert.Equal("XiaoXiIme", new string((char*)(destination + candidateList->Offset[0])));
+                var texts = new List<string>();
+                for (var index = 0; index < candidateList->Count; index++)
+                    texts.Add(new string((char*)(destination + candidateList->Offset[index])));
+                Assert.Equal(new[] { "XiaoXiIme", "小希IME", "小希" }, texts);
             }
 
             Assert.Equal(currentComposition, himc.ReadCompositionText());

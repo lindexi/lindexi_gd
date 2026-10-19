@@ -11,8 +11,8 @@ public class SoundShapeReviewRegressionTests
         var lexicon = InventedSoundShapeFixture.Lexicon("A") with
         { Entries = [new("你好", "ni hao", 120), new("你", "ni", 40), new("好", "hao", 40)] };
         var context = new ImeContext(new InMemoryImeDictionary(lexicon), InventedSoundShapeFixture.Options(), null);
-        Assert.Equal(new[] { 1, 2 }, context.QueryInterpretations("nihc").Candidates.Single(c => c.Candidate.Text == "你好")
-            .Interpretations.Select(p => p.Segments.Count).Distinct().Order().ToArray());
+        Assert.Equal(new[] { 1, 2 }, context.QueryInterpretations("nihc").Candidates.Where(c => c.Candidate.Text == "你好")
+            .SelectMany(c => c.Interpretations).Select(p => p.Segments.Count).Distinct().Order().ToArray());
     }
 
     [Fact]
@@ -27,13 +27,13 @@ public class SoundShapeReviewRegressionTests
         var context = new ImeContext(new InMemoryImeDictionary(lexicon), InventedSoundShapeFixture.Options(), learning.Add);
         context.ProcessKey(ImeKey.FromCharacter('n'));
         context.ProcessKey(ImeKey.FromCharacter('i'));
-        var candidate = context.QueryInterpretations("ni").Candidates.Single(c => c.SelectionId.HasValue);
+        var candidate = context.QueryInterpretations("ni").Candidates.Single(c => c.SelectionId.HasValue && c.Candidate.Reading == "nin");
         context.SelectCandidate(candidate.SelectionId.GetValueOrDefault());
         Assert.Equal(("nin", "nin"), (candidate.Candidate.Reading, learning.Single().Segments.Single().CanonicalReading));
     }
 
     [Theory]
-    [InlineData("n", ImeInterpretationKind.Prefix)]
+    [InlineData("n", ImeInterpretationKind.Complete)]
     [InlineData("niR", ImeInterpretationKind.IncompleteShape)]
     public void R03_PendingHomographsKeepCanonicalReading(string input, ImeInterpretationKind kind)
     {
@@ -53,8 +53,8 @@ public class SoundShapeReviewRegressionTests
         var lexicon = InventedSoundShapeFixture.Lexicon("A") with
         { Entries = [new("你好", "ni hao", 120), new("你", "ni", 40), new("好", "hao", 40)] };
         var context = new ImeContext(new InMemoryImeDictionary(lexicon), InventedSoundShapeFixture.Options(), null);
-        Assert.Equal(new[] { 0, 1 }, context.QueryInterpretations("nih").Candidates
-            .Where(c => c.Candidate.Text == "你好" && c.Interpretations[0].Kind == ImeInterpretationKind.Prefix)
+        Assert.Equal(new[] { 1, 2 }, context.QueryInterpretations("nih").Candidates
+            .Where(c => c.Candidate.Text == "你好" && c.Interpretations[0].Kind == ImeInterpretationKind.Complete)
             .Select(c => c.Interpretations[0].Segments.Count).Order().ToArray());
     }
 

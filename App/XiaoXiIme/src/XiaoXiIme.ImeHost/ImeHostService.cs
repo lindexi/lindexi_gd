@@ -47,15 +47,12 @@ public sealed class ImeHostService : IDisposable
     private ImeHostService(ProductSettingsStore settings, XiaoXiImeIpcOptions? options, string? packagePath, string? userPath, string? inputScheme, string? hostBaseDirectory)
         : this(LoadRuntimeDictionary(packagePath, userPath,
             !string.IsNullOrWhiteSpace(inputScheme) ? inputScheme :
-            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(DictionaryPackageLocations.InputSchemeEnvironmentVariableName))
-                ? Environment.GetEnvironmentVariable(DictionaryPackageLocations.InputSchemeEnvironmentVariableName)
-                : ProductSettingsStore.GetScheme(settings.Settings.InputScheme), hostBaseDirectory), options)
+                ProductSettingsStore.GetScheme(settings.Settings.InputScheme), hostBaseDirectory), options)
     {
         _productSettings = settings;
         _hostBaseDirectory = hostBaseDirectory;
         _inputSchemeSource = !string.IsNullOrWhiteSpace(packagePath) ? "explicitPath" :
             !string.IsNullOrWhiteSpace(inputScheme) ? "explicitParameter" :
-            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(DictionaryPackageLocations.InputSchemeEnvironmentVariableName)) ? "environment" :
             settings.Settings.Revision > 0 ? "userSettings" : "default";
     }
 
@@ -90,13 +87,15 @@ public sealed class ImeHostService : IDisposable
                     _userDictionarySaveError = error;
                 }
             });
-        _createImeContext = () => new ImeContext(
+        var initialContext = new ImeContext(
             userDictionary,
             learning =>
             {
                 userDictionary.Learn(learning);
                 _userDictionarySaveCoordinator.RequestSave(userDictionary.GetEntries());
             });
+        _createImeContext = () => initialContext.PrepareDictionaryChange(userDictionary)
+            .PrepareFuzzyRulesChange(GetRules(_productSettings?.Settings.FuzzyRuleMask ?? 0));
         _ipcServer = new XiaoXiImeIpcServer(
             ProcessKeyAsync,
             GetSnapshotAsync,
@@ -143,9 +142,21 @@ public sealed class ImeHostService : IDisposable
     public Task<ImeProductSettingsResponse> SaveProductSettingsAsync(ImeSaveProductSettingsRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        return _productSettings?.SaveAsync(request, _dictionaryInputScheme, _inputSchemeSource, _hostBaseDirectory)
+        return _productSettings?.SaveAsync(request, _dictionaryInputScheme, _inputSchemeSource, _hostBaseDirectory, (next, commit) =>
+        {
+            lock (_syncRoot)
+            {
+                var prepared = next.FuzzyRuleMask == _productSettings.Settings.FuzzyRuleMask ? null :
+                    _imeContexts.ToDictionary(p => p.Key, p => p.Value.PrepareFuzzyRulesChange(GetRules(next.FuzzyRuleMask)));
+                commit();
+                if (prepared is not null)
+                    foreach (var pair in prepared) _imeContexts[pair.Key] = pair.Value;
+            }
+        })
             ?? GetProductSettingsAsync();
     }
+
+    private static ImeFuzzyRule[] GetRules(int mask) => Enum.GetValues<ImeFuzzyRule>().Where(r => (mask & (1 << (int)r)) != 0).ToArray();
 
     public void Start()
     {

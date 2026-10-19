@@ -66,7 +66,7 @@ public class SoundShapeMatrixTests
     [InlineData("C07", "N3", "nirs", "", "C", "UG", "M2")]
     [InlineData("C08", "AB", "nihcr", "", "W", "UG", "O2")]
     [InlineData("C08", "AB", "nihcrn", "你好", "W", "UG", "O2")]
-    [InlineData("D01", "PATH", "nirhc", "你好")]
+    [InlineData("D01", "PATH", "nirhc", "你好|你让草")]
     [InlineData("D02", "PATH", "nirhcc", "你让草")]
     [InlineData("D03", "ABC", "nidhc", "泥好")]
     [InlineData("D04", "ABC", "nihcd", "泥好", "W")]

@@ -73,6 +73,27 @@ public class DictionaryDebugSessionTests(ProductionDictionaryFixture fixture)
         Assert.Equal("niha", session.Candidates.CompositionText);
     }
 
+    [Fact]
+    public void LegacyExperienceNumberSelectionRetainsUnconsumedInput()
+    {
+        var session = new DictionaryDebugSession(new InMemoryImeDictionary(new ImeLexicon(
+        [new("比", "bi", 100), new("笔", "bi", 90), new("闭", "bi", 80), new("臂", "bi", 70),
+         new("醋", "cu", 100), new("粗", "cu", 90)], [], ImeProjectionDefinition.FullPinyin, 1)));
+        Type(session, "bicu");
+        session.ProcessKey(Key.D3);
+        Assert.Equal(("笔", "cu", "醋"), (session.CommittedText, session.Candidates.CompositionText, session.Candidates.Candidates[0].Text));
+    }
+
+    [Theory]
+    [InlineData("bicu")]
+    [InlineData("be")]
+    public void FullProductionDictionaryHasContinuousInputCandidates(string input)
+    {
+        var session = CreateSession();
+        Type(session, input);
+        Assert.NotEmpty(session.Candidates.Candidates);
+    }
+
     private DictionaryDebugSession CreateSession(string scheme = "fullPinyin") => new(
         DictionaryPackageLoader.Load(DictionaryPackageLocations.ResolvePackageDirectory(
             inputScheme: scheme, baseDirectory: fixture.HostRoot)));

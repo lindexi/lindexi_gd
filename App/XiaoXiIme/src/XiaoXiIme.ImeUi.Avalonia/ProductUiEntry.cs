@@ -15,31 +15,43 @@ internal sealed class ProductUiEntry : IDisposable
     private Action<bool>? _open;
     private Action? _exit;
     private bool? _pending;
+    private bool _pendingExit;
     private bool _disposed;
     internal bool IsOwner { get; }
 
-    internal ProductUiEntry(string[] args)
+    internal ProductUiEntry(string[] args, string? profileIdentity = null)
     {
         var positional = args.Where(arg => arg is not "--settings" and not "--exit").ToArray();
         var server = positional.Length > 0 ? positional[0] : XiaoXiImeIpcOptions.Default.ServerName;
-        var identity = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Environment.UserName + "\0" + server)));
+        var identity = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Environment.UserName + "\0" + (profileIdentity ?? server))));
         _pipe = "XiaoXiIme_ProductUi_" + identity;
-        _mutex = new Mutex(true, "Local\\" + _pipe, out var owner);
-        IsOwner = owner;
-        if (owner) _listener = ListenAsync(_shutdown.Token);
+        _mutex = new Mutex(false, "Local\\" + _pipe);
+        try { IsOwner = _mutex.WaitOne(0); }
+        catch (AbandonedMutexException) { IsOwner = true; }
+        if (IsOwner) _listener = ListenAsync(_shutdown.Token);
         else
         {
-            using var client = new NamedPipeClientStream(".", _pipe, PipeDirection.Out, PipeOptions.CurrentUserOnly);
-            client.Connect(3000);
-            client.WriteByte(args.Contains("--exit") ? (byte)2 : args.Contains("--settings") ? (byte)1 : (byte)0);
+            try
+            {
+                using var client = new NamedPipeClientStream(".", _pipe, PipeDirection.Out, PipeOptions.CurrentUserOnly);
+                client.Connect(3000);
+                client.WriteByte(args.Contains("--exit") ? (byte)2 : args.Contains("--settings") ? (byte)1 : (byte)0);
+            }
+            finally
+            {
+                _disposed = true;
+                _mutex.Dispose();
+                _shutdown.Dispose();
+            }
         }
     }
 
     internal void Attach(Action<bool> open, Action exit)
     {
-        _exit = exit;
         if (_disposed) return;
+        _exit = exit;
         _open = open;
+        if (_pendingExit) { _pendingExit = false; exit(); return; }
         if (_pending is { } pending) { _pending = null; open(pending); }
     }
 
@@ -58,7 +70,7 @@ internal sealed class ProductUiEntry : IDisposable
                 try
                 {
                     if (await server.ReadAsync(buffer, timeout.Token).ConfigureAwait(false) == 1)
-                        Dispatcher.UIThread.Post(() => { if (_disposed) return; if (buffer[0] == 2) { _exit?.Invoke(); return; } if (_open is { } open) open(buffer[0] == 1); else _pending = buffer[0] == 1; });
+                        Dispatcher.UIThread.Post(() => { if (_disposed) return; if (buffer[0] == 2) { if (_exit is { } exit) exit(); else _pendingExit = true; return; } if (_open is { } open) open(buffer[0] == 1); else _pending = buffer[0] == 1; });
                 }
                 catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) { }
             }

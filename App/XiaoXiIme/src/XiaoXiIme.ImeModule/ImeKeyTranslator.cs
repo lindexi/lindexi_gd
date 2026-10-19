@@ -26,6 +26,7 @@ public static class ImeKeyTranslator
             >= ImeConstants.Vk0 and <= ImeConstants.Vk9 => ImeKey.SelectCandidate(virtualKey == ImeConstants.Vk0 ? 9 : virtualKey - ImeConstants.Vk0 - 1),
             >= ImeConstants.VkA and <= ImeConstants.VkZ => ImeKey.FromCharacter((char)(
                 ((modifiers & ShiftModifier) != 0 ? 'A' : 'a') + virtualKey - ImeConstants.VkA)),
+            0xBA when (modifiers & ShiftModifier) == 0 => ImeKey.FromCharacter(';'),
             ImeConstants.VkOem2 when (modifiers & ShiftModifier) == 0 => ImeKey.FromCharacter('/'),
             _ => new ImeKey(ImeKeyKind.Other),
         };
@@ -34,6 +35,6 @@ public static class ImeKeyTranslator
     public static bool ShouldProcess(ushort virtualKey, uint modifiers = 0)
     {
         var key = Translate(virtualKey, modifiers);
-        return key.Kind is not ImeKeyKind.Other;
+        return key.Kind is not ImeKeyKind.Other && key.Character != ';';
     }
 }

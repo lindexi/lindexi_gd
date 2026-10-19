@@ -6,6 +6,12 @@
 
 本项目使用 `DotNetCampus.CommandLine` 进行命令行解析。命令建模、处理器注册、内置帮助、异步入口、Native AOT 注意事项和踩坑记录见 [DotNetCampus.CommandLine 使用与踩坑记录](./DotNetCampus.CommandLine.md)。
 
+## 零配置体验成品（当前交付）
+
+Builder 支持 `payload-build --experience`，复用既有构建与校验链。当前本地成品为工作区 `dist/Experience`，入口 `dist/Experience/app/ui/XiaoXiIme.ImeUi.Avalonia.exe`，清单 `dist/Experience/xiaoxiime-payload.json`。用户双击无参运行，不安装 IME，不设置环境变量，不依赖当前目录；方案与模糊规则在共享设置窗口保存。`--no-build --staging-directory` 仅为内部组装入口，不是最终用户操作要求。
+
+最终独立签收未通过：本次 Release exit0，0 errors/6 warnings（CLI.Tests CA1416），完整51行已读。最新 Core583/Dictionary413/Integration252/IPC27/Module212/CLI targeted50 pass 来源为用户交接，非本次测试。紧凑 staging 在 Windows 同任务 Builder exit0（346项，包含验收设施），真实 PID8456 无参异cwd启动且正常退出；加载词库时快照过期，尚未输入 nihao，candidate/commit/settings 小门禁及双拼/十规则保存取消默认重开、13项未签收。延长等待后的现有小源调用遭客户端100秒超时，无日志回拉，已保存错误并停止重试。本地冻结dist未改，schema3/339项为交接基线；actual EXE/UI DLL与其manifest记录哈希相同，仅限两文件，不声称Git或完整发布源码身份闭环，也未完成全文件与七包独立哈希审计。用户唯一操作：双击 `C:\lindexi\Code\Workspace\IME\dist\Experience\app\ui\XiaoXiIme.ImeUi.Avalonia.exe`。详见 [Experience 验收](../../../Docs/experience-delivery-acceptance.md)。旧环境变量配置方式已废止，以下历史结果不覆盖本节。
+
 当前支持以下检查和安装命令：
 
 - `system-test-plan [--json]`：输出覆盖传统 IME、TSF、Host、IPC、UI、安装和回滚的全局系统测试计划。

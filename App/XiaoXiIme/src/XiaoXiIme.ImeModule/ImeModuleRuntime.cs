@@ -27,6 +27,8 @@ public static class ImeModuleRuntime
     public static ImeProcessResult ProcessVirtualKey(ushort virtualKey, uint modifiers, HImc inputContext)
     {
         var key = ImeKeyTranslator.Translate(virtualKey, modifiers);
+        if (key.Character == ';' && !ShouldProcessVirtualKey(virtualKey, modifiers, inputContext))
+            return new ImeProcessResult(ImeSessionSnapshot.Empty, null, false);
         if (key.Kind is ImeKeyKind.Other)
         {
             return new ImeProcessResult(ImeSessionSnapshot.Empty, CommitText: null, Handled: false);
@@ -142,6 +144,22 @@ public static class ImeModuleRuntime
 
     public static bool ShouldProcessVirtualKey(ushort virtualKey, uint modifiers, HImc inputContext)
     {
+        if (virtualKey == 0xBA)
+        {
+            if ((modifiers & ImeKeyTranslator.ShiftModifier) != 0 ||
+                !s_compositionContextReader.IsReceivingChinese(inputContext))
+                return false;
+            var sessionId = ImeSessionId.FromHimc(inputContext.Value);
+            ImeHostBridge? bridge;
+            lock (SyncRoot)
+            {
+                bridge = s_bridge;
+                if (bridge is null && s_snapshots.TryGetValue(sessionId, out var snapshot))
+                    return snapshot.AcceptsSemicolon;
+            }
+            return (bridge ?? GetBridge()).GetSnapshot(sessionId).AcceptsSemicolon;
+        }
+
         if (ImeKeyTranslator.ShouldProcess(virtualKey, modifiers))
         {
             return true;

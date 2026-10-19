@@ -32,7 +32,8 @@ public sealed class ImeProjectionDefinition
             ArgumentNullException.ThrowIfNull(entry.Final);
             ArgumentNullException.ThrowIfNull(entry.Input);
             if (entry.Final.Length == 0 || entry.Input.Length == 0 ||
-                (entry.Initial + entry.Final + entry.Input).Any(c => c is < 'a' or > 'z'))
+                (entry.Initial + entry.Final).Any(c => c is < 'a' or > 'z') ||
+                entry.Input.Any(c => c is not (>= 'a' and <= 'z') and not ';'))
                 throw new ArgumentException(DictionaryResources.InvalidReading, nameof(entries));
         }
         Name = name;
@@ -44,6 +45,23 @@ public sealed class ImeProjectionDefinition
     public bool IsFixedTwoKey { get; }
     public static ImeProjectionDefinition FullPinyin { get; } = Create(false);
     public static ImeProjectionDefinition XiaoheDoublePinyin { get; } = Create(true);
+
+    /// <summary>Gets the registered production projection, preserving colliding component evidence.</summary>
+    public static ImeProjectionDefinition ForScheme(string scheme)
+    {
+        if (scheme == "fullPinyin") return FullPinyin;
+        if (scheme == "xiaoheDoublePinyin") return XiaoheDoublePinyin;
+        var layout = PhoneticSchemeCatalog.All.Single(item => item.SchemeId == scheme).Layout
+            ?? throw new NotSupportedException();
+        var entries = new List<ImeProjectionEntry>();
+        foreach (var initial in layout.Initials.Keys.Prepend(string.Empty))
+        foreach (var final in layout.Finals.Keys.Concat(new[] { "ve", "ue" }).Distinct())
+        {
+            if (PhoneticInputProjection.TryProjectReading(initial + final, scheme, out var code))
+                entries.Add(new(initial, final, code));
+        }
+        return new(scheme, entries);
+    }
 
     private static ImeProjectionDefinition Create(bool doublePinyin)
     {

@@ -16,6 +16,9 @@ public sealed class UserDictionary : IImeDictionary, IShapeDictionary, ISymbolDi
     private long _cachedUserVersion;
 
     /// <inheritdoc />
+    public ImeProjectionDefinition? Projection => _systemDictionary.Projection;
+
+    /// <inheritdoc />
     public ImeLexicon GetLexicon()
     {
         var system = _systemDictionary.GetLexicon();
@@ -35,7 +38,14 @@ public sealed class UserDictionary : IImeDictionary, IShapeDictionary, ISymbolDi
                         ? DictionaryCandidateSourceKind.User : e.SourceKind,
                     UserFrequency = _frequencies.GetValueOrDefault(new UserDictionaryKey(e.Text,
                         DictionaryPackageFormat.NormalizeLookupKey(e.CanonicalReading)), e.UserFrequency),
-                }).ToArray()),
+                }).Concat(_frequencies.Where(pair =>
+                    PhoneticInputProjection.CanonicalizeReading(pair.Key.Reading).Split(' ').All(syllable =>
+                        system.Projection.Entries.Any(p => p.Initial + p.Final == syllable)) &&
+                    !system.Entries.Any(e => e.Text == pair.Key.Text &&
+                    DictionaryPackageFormat.NormalizeLookupKey(e.CanonicalReading) == pair.Key.Reading))
+                    .Select(pair => new ImePhoneticEntry(pair.Key.Text,
+                        PhoneticInputProjection.CanonicalizeReading(pair.Key.Reading), 0,
+                        DictionaryCandidateSourceKind.User, pair.Value))).ToArray()),
             };
         }
     }

@@ -589,7 +589,7 @@ public class ImeHostIpcIntegrationTests
     private static string CreateHostLayout()
     {
         var hostRoot = Path.Combine(Path.GetTempPath(), $"XiaoXiIme_HostLayout_{Guid.NewGuid():N}");
-        var entries = new List<PhoneticDictionaryEntry> { new("你好", "ni hao", 200) };
+        var entries = new List<PhoneticDictionaryEntry> { new("你", "ni", 100), new("你好", "ni hao", 200) };
         entries.AddRange(XiaoXiImeProjectTerms.Parse());
         DictionaryPackageCompiler.Compile(
             entries,

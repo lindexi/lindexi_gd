@@ -8,6 +8,11 @@ public class FullPackageReadingTests(ProductionDictionaryFixture fixture)
     [Theory]
     [InlineData("fullPinyin")]
     [InlineData("xiaoheDoublePinyin")]
+    [InlineData("sogouDoublePinyin")]
+    [InlineData("microsoftDoublePinyin")]
+    [InlineData("abcDoublePinyin")]
+    [InlineData("jiajiaDoublePinyin")]
+    [InlineData("naturalCodeDoublePinyin")]
     public void CompleteProductionPackagePreservesCanonicalEntriesAndRegisteredAlias(string scheme)
     {
         var dictionary = DictionaryPackageLoader.Load(DictionaryPackageLocations.ResolvePackageDirectory(

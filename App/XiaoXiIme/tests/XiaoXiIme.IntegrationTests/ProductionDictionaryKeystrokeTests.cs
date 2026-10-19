@@ -195,6 +195,8 @@ public sealed class ProductionDictionaryFixture : IDisposable
         watch.Restart();
         CompilePackage(DictionaryPackageLocations.XiaoheDoublePinyinInputScheme);
         XiaoheBuildTime = watch.Elapsed;
+        foreach (var scheme in new[] { "sogouDoublePinyin", "microsoftDoublePinyin", "abcDoublePinyin", "jiajiaDoublePinyin", "naturalCodeDoublePinyin" })
+            CompilePackage(scheme);
     }
 
     public string HostRoot { get; }

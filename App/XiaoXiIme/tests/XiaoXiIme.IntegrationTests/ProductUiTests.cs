@@ -11,6 +11,8 @@ namespace XiaoXiIme.IntegrationTests;
 public class ProductUiTests(CandidateWindowScreenshotFixture fixture)
 {
     [Theory]
+    [InlineData("NaturalCode", "自然码双拼")]
+    [InlineData("UnavailableSchemes", "暂不可用：大牛双拼、小月双拼（缺作者/版本/完整规则，不造表）。自然码采用用户授权回忆的常见产品基线，非官方来源核验；小鹤沿用仓库实现基线。")]
     [InlineData("SettingsTitle", "小希输入法设置")]
     [InlineData("Attribution", "词库数据及词库逻辑贡献：{0}")]
     [InlineData("Hint", "保存后下次启动输入服务生效，当前输入不受影响。")]
@@ -40,7 +42,16 @@ public class ProductUiTests(CandidateWindowScreenshotFixture fixture)
             using var session = app.OpenProductSettings(options);
             await Task.Delay(1600);
             var controls = global::Avalonia.LogicalTree.LogicalExtensions.GetLogicalDescendants(settings!).ToArray();
-            controls.OfType<ComboBox>().Single().SelectedIndex = 1;
+            controls.OfType<ComboBox>().Single().SelectedItem = controls.OfType<ComboBox>().Single().Items
+                .OfType<ComboBoxItem>().Single(item => item.Name == "SchemeNaturalCode");
+            Assert.True(controls.OfType<ComboBox>().Single().SelectedItem is ComboBoxItem { IsEnabled: true });
+            var items = controls.OfType<ComboBox>().Single().Items.OfType<ComboBoxItem>().ToArray();
+            Assert.Equal(new[] { "SchemeFull", "SchemeSogou", "SchemeMicrosoft", "SchemeNaturalCode", "SchemeAbc", "SchemeJiajia", "SchemeDouble" },
+                items.Where(item => item.IsEnabled).Select(item => item.Name));
+            Assert.Equal(new[] { "SchemeDaniu", "SchemeXiaoyue" }, items.Where(item => !item.IsEnabled).Select(item => item.Name));
+            Assert.Equal("自然码双拼", items.Single(item => item.Name == "SchemeNaturalCode").Content);
+            Assert.Contains(controls.OfType<TextBlock>(), text => text.Text ==
+                "暂不可用：大牛双拼、小月双拼（缺作者/版本/完整规则，不造表）。自然码采用用户授权回忆的常见产品基线，非官方来源核验；小鹤沿用仓库实现基线。");
             var button = controls.OfType<Button>().Single(b => Equals(b.Content, defaults ? "恢复默认" : "取消"));
             button.RaiseEvent(new global::Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
             if (defaults)
@@ -69,7 +80,7 @@ public class ProductUiTests(CandidateWindowScreenshotFixture fixture)
             var controls = global::Avalonia.LogicalTree.LogicalExtensions.GetLogicalDescendants(settings!).ToArray();
             global::Avalonia.Threading.Dispatcher.UIThread.RunJobs();
             await Task.Delay(600);
-            var visible = controls.OfType<CheckBox>().Single();
+            var visible = controls.OfType<CheckBox>().Single(c => c.Name == "StatusBarVisible");
             visible.IsChecked = false;
             controls.OfType<Button>().Single(b => Equals(b.Content, "应用")).RaiseEvent(new global::Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
             using var savedTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));

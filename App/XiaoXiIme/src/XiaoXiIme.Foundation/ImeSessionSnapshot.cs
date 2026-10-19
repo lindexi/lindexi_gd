@@ -1,11 +1,12 @@
-﻿namespace XiaoXiIme.Foundation;
+namespace XiaoXiIme.Foundation;
 
 public sealed record ImeSessionSnapshot(
     CompositionText Composition,
     IReadOnlyList<ImeCandidate> Candidates,
     ImeCandidateWindowState CandidateWindow,
     bool IsComposing,
-    ImeGuideline? Guideline = null)
+    ImeGuideline? Guideline = null,
+    bool AcceptsSemicolon = false)
 {
     public ImeGuideline EffectiveGuideline => Guideline ?? ImeGuideline.Empty;
 

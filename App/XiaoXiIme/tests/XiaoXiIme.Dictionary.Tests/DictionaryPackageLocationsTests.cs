@@ -56,7 +56,7 @@ public class DictionaryPackageLocationsTests
     }
 
     [Fact]
-    public void ResolveInputScheme_WhenEnvironmentVariableIsXiaoheThenUsesXiaohe()
+    public void ResolveInputScheme_WhenEnvironmentVariableIsXiaoheThenUsesFullPinyin()
     {
         var previous = Environment.GetEnvironmentVariable(DictionaryPackageLocations.InputSchemeEnvironmentVariableName);
         try
@@ -66,7 +66,7 @@ public class DictionaryPackageLocationsTests
                 DictionaryPackageLocations.XiaoheDoublePinyinInputScheme);
 
             Assert.Equal(
-                DictionaryPackageLocations.XiaoheDoublePinyinInputScheme,
+                DictionaryPackageLocations.FullPinyinInputScheme,
                 DictionaryPackageLocations.ResolveInputScheme());
         }
         finally

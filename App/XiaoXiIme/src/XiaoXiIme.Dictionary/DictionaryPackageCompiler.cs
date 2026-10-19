@@ -53,6 +53,8 @@ public static class DictionaryPackageCompiler
 
         parameters ??= new DictionaryPackageParameters();
         ValidateParameters(parameters);
+        var definition = PhoneticSchemeCatalog.All.Single(item => item.SchemeId == parameters.InputScheme);
+        parameters = parameters with { ProjectionVersion = definition.ProjectionVersion, RulesSha256 = definition.ContentSha256 };
         var normalizedEntries = NormalizeEntries(entries);
         var lookupKeys = BuildLookupKeys(normalizedEntries, parameters.InputScheme);
         var exactIndex = BuildExactIndex(lookupKeys);
@@ -347,8 +349,7 @@ public static class DictionaryPackageCompiler
 
     private static void ValidateParameters(DictionaryPackageParameters parameters)
     {
-        if ((!string.Equals(parameters.InputScheme, DictionaryPackageFormat.FullPinyinInputScheme, StringComparison.Ordinal)
-                && !string.Equals(parameters.InputScheme, DictionaryPackageFormat.XiaoheDoublePinyinInputScheme, StringComparison.Ordinal))
+        if (!PhoneticSchemeCatalog.All.Any(item => item.SchemeId == parameters.InputScheme && item.Layout?.ZeroInitialCodes is not null || item.SchemeId == parameters.InputScheme && item.SchemeId == "fullPinyin")
             || parameters.MaxPrefixCandidatesPerKey <= 0
             || parameters.MaxPrefixCandidatesPerKey > DictionaryPackageFormat.MaxCandidatesPerKey)
         {

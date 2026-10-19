@@ -5,7 +5,8 @@ using XiaoXiIme.ImeIpc;
 
 namespace XiaoXiIme.ImeHost;
 
-internal sealed class ProductSettingsStore : IDisposable
+/// <summary>Owns durable product preferences for Host and isolated dictionary debug mode.</summary>
+public sealed class ProductSettingsStore : IDisposable
 {
     private readonly FileStream _writerLock;
     private bool _disposed;
@@ -18,7 +19,8 @@ internal sealed class ProductSettingsStore : IDisposable
     private readonly ImeProductSettingsError _loadError;
     private readonly bool _readOnly;
 
-    internal ProductSettingsStore(string? path)
+    /// <summary>Opens preferences with an exclusive writer lock.</summary>
+    public ProductSettingsStore(string? path)
     {
         _path = Path.GetFullPath(path ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "XiaoXiIme", "product-settings.json"));
         var identity = OperatingSystem.IsWindows() ? _path.ToUpperInvariant() : _path;
@@ -58,16 +60,20 @@ internal sealed class ProductSettingsStore : IDisposable
         }
     }
 
-    internal ImeProductSettings Settings => Volatile.Read(ref _snapshot).Settings;
+    /// <summary>Gets the last committed preferences.</summary>
+    public ImeProductSettings Settings => Volatile.Read(ref _snapshot).Settings;
 
-    internal ImeProductSettingsResponse Read(string? scheme, string source, ImeProductSettingsError error = ImeProductSettingsError.None)
+    /// <summary>Reads authoritative preferences and startup status.</summary>
+    public ImeProductSettingsResponse Read(string? scheme, string source, ImeProductSettingsError error = ImeProductSettingsError.None)
     {
         var snapshot = Volatile.Read(ref _snapshot);
         return new(_instanceId, snapshot.Settings, scheme, source,
             scheme is not null && scheme != GetScheme(snapshot.Settings.InputScheme), error, snapshot.LastOperationId, _loadError);
     }
 
-    internal async Task<ImeProductSettingsResponse> SaveAsync(ImeSaveProductSettingsRequest request, string? scheme, string source, string? hostBaseDirectory)
+    /// <summary>Writes preferences, optionally committing within a prepared runtime transaction.</summary>
+    public async Task<ImeProductSettingsResponse> SaveAsync(ImeSaveProductSettingsRequest request, string? scheme, string source, string? hostBaseDirectory,
+        Action<ImeProductSettings, Action>? commitRuntime = null)
     {
         await _gate.WaitAsync().ConfigureAwait(false);
         try
@@ -79,6 +85,12 @@ internal sealed class ProductSettingsStore : IDisposable
                 return previous.Request == request ? previous.Response : Read(scheme, source, ImeProductSettingsError.Conflict);
             if (_readOnly) return Read(scheme, source, _loadError);
             if (request.ExpectedRevision != Settings.Revision) return Read(scheme, source, ImeProductSettingsError.Conflict);
+            if (request.Settings with { Revision = Settings.Revision } == Settings)
+            {
+                var unchanged = Read(scheme, source);
+                _operations.Add(request.OperationId, (request, unchanged));
+                return unchanged;
+            }
             if (Settings.Revision == long.MaxValue) return Read(scheme, source, ImeProductSettingsError.StorageUnavailable);
             if (request.Settings.InputScheme != Settings.InputScheme)
             {
@@ -101,12 +113,21 @@ internal sealed class ProductSettingsStore : IDisposable
                     await stream.FlushAsync().ConfigureAwait(false);
                     stream.Flush(true);
                 }
-                if (File.Exists(_path)) File.Replace(temporary, _path, null);
-                else File.Move(temporary, _path);
-                Volatile.Write(ref _snapshot, new(next, request.OperationId));
+                void Commit()
+                {
+                    if (File.Exists(_path)) File.Replace(temporary, _path, null);
+                    else File.Move(temporary, _path);
+                    Volatile.Write(ref _snapshot, new(next, request.OperationId));
+                }
+                if (commitRuntime is null) Commit();
+                else commitRuntime(next, Commit);
                 var response = Read(scheme, source);
                 _operations.Add(request.OperationId, (request, response));
                 return response;
+            }
+            catch (NotSupportedException)
+            {
+                return Read(scheme, source, ImeProductSettingsError.Unsupported);
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
@@ -135,9 +156,12 @@ internal sealed class ProductSettingsStore : IDisposable
     }
 
     private static bool IsValid(ImeProductSettings? settings) => settings is { SchemaVersion: 1, Revision: >= 0 }
+        && settings.FuzzyRuleMask is >= 0 and <= 1023
         && Enum.IsDefined(settings.InputScheme)
         && (settings.StatusBarPosition is null || (Math.Abs((long)settings.StatusBarPosition.X) <= 1_000_000 && Math.Abs((long)settings.StatusBarPosition.Y) <= 1_000_000));
 
-    internal static string GetScheme(ImeProductInputScheme scheme) => scheme == ImeProductInputScheme.XiaoheDoublePinyin
-        ? DictionaryPackageLocations.XiaoheDoublePinyinInputScheme : DictionaryPackageLocations.FullPinyinInputScheme;
+    /// <summary>Gets the existing package identifier without changing stable scheme values.</summary>
+    public static string GetScheme(ImeProductInputScheme scheme) =>
+        PhoneticSchemeCatalog.All.FirstOrDefault(item => item.ProductScheme == scheme)?.SchemeId
+        ?? DictionaryPackageLocations.FullPinyinInputScheme;
 }

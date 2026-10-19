@@ -57,7 +57,7 @@ public class SoundShapeOracleTests
             {
                 var suffix = input[start..];
                 if (suffix == "n")
-                    Pending(ImeInterpretationKind.Prefix, [.. evidence, new(ImeEvidenceKind.Phonetic, new(start, 1), 0, "n", "ni", null)]);
+                    Finish(start + 1, [.. evidence, new(ImeEvidenceKind.Phonetic, new(start, 1), 0, "n", "ni", null)]);
                 if (!suffix.StartsWith("ni", StringComparison.Ordinal)) return;
                 ImePathEvidence[] phonetic = [.. evidence, new(ImeEvidenceKind.Phonetic, new(start, 2), 0, "ni", "ni", null)];
                 Finish(start + 2, phonetic);
@@ -66,13 +66,16 @@ public class SoundShapeOracleTests
                 if (suffix.StartsWith("niRX", StringComparison.Ordinal))
                     Finish(start + 4, [.. phonetic, new(ImeEvidenceKind.PerCharacterShape, new(start + 2, 2), 0, "RX", "ni", "rx")]);
 
-                void Pending(ImeInterpretationKind kind, ImePathEvidence[] ev) => expected.Add(Signature(text + "你",
-                    new(kind, input.Length, null, "", segments, ev)));
+                void Pending(ImeInterpretationKind kind, ImePathEvidence[] ev)
+                {
+                    if (start == 0) expected.Add(Signature(text + "你", new(kind, input.Length, null, "", segments, ev)));
+                }
                 void Finish(int end, ImePathEvidence[] ev)
                 {
                     ImeConfirmedSegment[] confirmed = [.. segments, new("你", "ni", start, end - start, text.Length, 1)];
-                    expected.Add(Signature(text + "你", new(end == input.Length ? ImeInterpretationKind.Complete : ImeInterpretationKind.Partial,
-                        end, new(0, end), input[end..], confirmed, ev)));
+                    if (start == 0 || end == input.Length)
+                        expected.Add(Signature(text + "你", new(end == input.Length ? ImeInterpretationKind.Complete : ImeInterpretationKind.Partial,
+                            end, new(0, end), input[end..], confirmed, ev)));
                     if (end < input.Length) EnumeratePaths(end, text + "你", confirmed, ev);
                 }
             }
@@ -110,10 +113,10 @@ public class SoundShapeOracleTests
     private static IEnumerable<string> Enumerate(string input)
     {
         if (input.Length == 0) yield break;
-        foreach (var (alias, text) in new[] { ("ni", "你"), ("ha", "好"), ("niha", "你好") })
+        foreach (var (alias, text) in new[] { ("n", "你"), ("ni", "你"), ("h", "好"), ("ha", "好"), ("nih", "你好"), ("niha", "你好") })
         {
             if (input == alias) yield return text;
-            else if (input.StartsWith(alias, StringComparison.Ordinal))
+            else if (alias.Length >= 2 && input.StartsWith(alias, StringComparison.Ordinal))
                 foreach (var suffix in Enumerate(input[alias.Length..]))
                     yield return text + suffix;
         }

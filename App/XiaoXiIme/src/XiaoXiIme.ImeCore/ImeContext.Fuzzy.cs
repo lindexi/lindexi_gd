@@ -4,6 +4,31 @@ namespace XiaoXiIme.ImeCore;
 
 public sealed partial class ImeContext
 {
+    /// <summary>Prepares a rule change without mutating this context or learning.</summary>
+    public ImeContext PrepareFuzzyRulesChange(IReadOnlyList<ImeFuzzyRule> rules)
+    {
+        ArgumentNullException.ThrowIfNull(rules);
+        if (rules.Any(r => !Enum.IsDefined(r))) throw new ArgumentException(nameof(rules));
+        var prepared = new ImeContext(_dictionary,
+            _options with { FuzzyRules = Array.AsReadOnly(rules.Distinct().Order().ToArray()) }, _learn)
+        {
+            _reading = _reading,
+            _caretIndex = _caretIndex,
+            _selection = _selection,
+            _eatConfirmationSpace = _eatConfirmationSpace,
+            _revision = _revision + 1
+        };
+        prepared.RefreshCandidates();
+        if (_candidates.Count > _selection)
+        {
+            var selected = _candidates[_selection];
+            var index = prepared._candidates.FindIndex(c => c.Text == selected.Text && c.Reading == selected.Reading);
+            prepared._selection = index >= 0 ? index : 0;
+            prepared.NormalizeCandidateWindow();
+        }
+        return prepared;
+    }
+
     private static IEnumerable<string> ComponentAliases(string syllable, IReadOnlyList<ImeFuzzyRule> rules)
     {
         var initial = new[] { "zh", "ch", "sh" }.FirstOrDefault(syllable.StartsWith)
@@ -41,9 +66,6 @@ public sealed partial class ImeContext
 
     private static void ValidateProjection(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules)
     {
-        var registered = lexicon.Projection.Entries.Select(p => p.Initial + p.Final).ToHashSet(StringComparer.Ordinal);
-        foreach (var syllable in lexicon.Entries.SelectMany(e => e.CanonicalReading.Split(' ', StringSplitOptions.RemoveEmptyEntries)).Distinct(StringComparer.Ordinal))
-        foreach (var alias in ComponentAliases(syllable, rules))
-            if (!registered.Contains(alias)) throw new NotSupportedException();
+        _ = GetDecodingIndex(lexicon, rules);
     }
 }

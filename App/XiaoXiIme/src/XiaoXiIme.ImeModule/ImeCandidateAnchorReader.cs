@@ -6,6 +6,38 @@ namespace XiaoXiIme.ImeModule;
 
 internal static class ImeCandidateAnchorReader
 {
+    private const uint InitCompForm = 0x10;
+    private const uint CfsPoint = 0x02;
+    private const uint CfsForcePosition = 0x20;
+    private const uint CfsCandidatePos = 0x40;
+    private const uint CfsExclude = 0x80;
+
+    internal static unsafe (int X, int Y, int Top, string Source)? ReadCandidateForm(InputContext context)
+    {
+        // INPUTCONTEXT has no candidate-form initialization bit; index and style select list zero.
+        var form = (CandidateForm*)context.CandidateForms;
+        if (form->Index != 0)
+            return null;
+        return form->Style switch
+        {
+            CfsCandidatePos => (form->CurrentPosition.X, form->CurrentPosition.Y,
+                form->CurrentPosition.Y, "candidate-position"),
+            CfsExclude when form->Area.Left <= form->Area.Right && form->Area.Top <= form->Area.Bottom
+                => (form->CurrentPosition.X, form->Area.Bottom, form->Area.Top, "candidate-exclude"),
+            _ => null,
+        };
+    }
+
+    internal static (int X, int Y, int Top, string Source)? ReadCompositionForm(InputContext context)
+    {
+        // CFS_RECT describes a layout rectangle, not a CurrentPosition anchor.
+        if ((context.FdwInit & InitCompForm) == 0
+            || context.CompositionForm.Style is not (CfsPoint or CfsForcePosition))
+            return null;
+        var point = context.CompositionForm.CurrentPosition;
+        return (point.X, point.Y, point.Y, "composition-position");
+    }
+
     internal static unsafe ImeCandidateAnchor? Read(HImc himc, ImeSessionId sessionId)
     {
         if (!OperatingSystem.IsWindows() || himc.Value == 0)
@@ -26,13 +58,9 @@ internal static class ImeCandidateAnchorReader
         var source = "unavailable";
         if (valid)
         {
-            var form = (CandidateForm*)context.CandidateForms;
-            if (form->Index == 0 && (form->Style == 0x40 || form->Style == 0x80))
+            if (ReadCandidateForm(context) is { } candidate)
             {
-                x = form->CurrentPosition.X;
-                y = form->Style == 0x80 ? form->Area.Bottom : form->CurrentPosition.Y;
-                top = form->Style == 0x80 ? form->Area.Top : y;
-                source = form->Style == 0x80 ? "candidate-exclude" : "candidate-position";
+                (x, y, top, source) = candidate;
             }
             else
             {
@@ -44,12 +72,9 @@ internal static class ImeCandidateAnchorReader
                     top = gui.CaretRect.Top;
                     source = "caret";
                 }
-                else if (context.CompositionForm.Style is 1 or 2 or 0x20)
+                else if (ReadCompositionForm(context) is { } composition)
                 {
-                    x = context.CompositionForm.CurrentPosition.X;
-                    y = context.CompositionForm.CurrentPosition.Y;
-                    top = y;
-                    source = "composition-position";
+                    (x, y, top, source) = composition;
                 }
             }
         }

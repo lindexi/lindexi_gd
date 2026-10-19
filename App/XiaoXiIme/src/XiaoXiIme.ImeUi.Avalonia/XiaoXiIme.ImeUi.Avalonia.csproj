@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\XiaoXiIme.ImeHost\XiaoXiIme.ImeHost.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\XiaoXiIme.Foundation\XiaoXiIme.Foundation.csproj" />
     <ProjectReference Include="..\XiaoXiIme.ImeInterop\XiaoXiIme.ImeInterop.csproj" />
     <ProjectReference Include="..\XiaoXiIme.ImeCore\XiaoXiIme.ImeCore.csproj" />

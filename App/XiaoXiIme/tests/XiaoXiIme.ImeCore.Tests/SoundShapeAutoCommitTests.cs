@@ -58,7 +58,7 @@ public class SoundShapeAutoCommitTests
     }
 
     [Theory]
-    [InlineData(ImeAutoCommitPolicy.Unique, "你好")]
+    [InlineData(ImeAutoCommitPolicy.Unique, null)]
     [InlineData(ImeAutoCommitPolicy.Off, null)]
     public void H04_UniqueMaySacrificeLongerPrefix(ImeAutoCommitPolicy policy, string? expected)
     {

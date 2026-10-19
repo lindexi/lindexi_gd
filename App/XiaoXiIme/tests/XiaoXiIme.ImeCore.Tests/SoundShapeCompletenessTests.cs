@@ -115,14 +115,14 @@ public class SoundShapeCompletenessTests
     }
 
     [Fact]
-    public void SetComposition_NonemptyReplacementCannotInferCase()
+    public void SetComposition_NonemptyReplacementPreservesExplicitCase()
     {
         var fixture = new InventedSoundShapeFixture("N");
         fixture.Type("ni");
 
         var result = fixture.Context.SetComposition("niRX");
 
-        Assert.Equal((false, "ni"), (result.Handled, result.Snapshot.Composition.Reading));
+        Assert.Equal((true, "niRX"), (result.Handled, result.Snapshot.Composition.Reading));
     }
 
     [Fact]

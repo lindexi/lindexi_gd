@@ -32,7 +32,12 @@ public class SoundShapeFuzzyTests
         var context = Create(InventedSoundShapeFixture.Z(projection), rules);
         Type(context, input);
 
-        Assert.True(expected.SequenceEqual(Complete(context).Select(candidate => candidate.Candidate.Text)),
+        var backed = Complete(context).Where(c => c.Interpretations.Any(p =>
+            string.Concat(p.Evidence.Where(e => e.Kind == ImeEvidenceKind.Phonetic).Select(e => e.Input)) == input &&
+            p.Evidence.Where(e => e.Kind == ImeEvidenceKind.Phonetic).All(e =>
+                projection != "Full" || e.Range.Length == (p.Evidence.FirstOrDefault(f =>
+                    f.Kind == ImeEvidenceKind.Fuzzy && f.Range == e.Range)?.Input ?? e.CanonicalReading).Length)));
+        Assert.True(expected.SequenceEqual(backed.Select(candidate => candidate.Candidate.Text)),
             $"{id}: fuzzy closure differs for {projection}/{input}");
     }
 

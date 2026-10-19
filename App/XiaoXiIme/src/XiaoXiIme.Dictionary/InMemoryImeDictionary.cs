@@ -26,6 +26,9 @@ public sealed class InMemoryImeDictionary : IImeDictionary, IShapeDictionary
     }
 
     /// <inheritdoc />
+    public ImeProjectionDefinition? Projection => _lexicon?.Projection;
+
+    /// <inheritdoc />
     public ImeLexicon GetLexicon() => _lexicon ?? throw new NotSupportedException();
 
     /// <inheritdoc />
@@ -46,7 +49,9 @@ public sealed class InMemoryImeDictionary : IImeDictionary, IShapeDictionary
     }
 
     private readonly Dictionary<string, List<ImeCandidate>> _entries;
+    private readonly Dictionary<string, List<ImeCandidate>> _prefixEntries;
 
+    /// <summary>Creates a lookup-only dictionary. Engine use requires the canonical ImeLexicon constructor.</summary>
     public InMemoryImeDictionary(IEnumerable<ImeCandidate> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);
@@ -60,6 +65,17 @@ public sealed class InMemoryImeDictionary : IImeDictionary, IShapeDictionary
                     .Select(candidate => candidate)
                     .ToList(),
                 StringComparer.Ordinal);
+        _prefixEntries = new(StringComparer.Ordinal);
+        foreach (var (key, candidates) in _entries)
+        {
+            for (var length = 1; length < key.Length; length++)
+            {
+                var prefix = key[..length];
+                if (!_prefixEntries.TryGetValue(prefix, out var matches))
+                    _prefixEntries.Add(prefix, matches = []);
+                matches.AddRange(candidates);
+            }
+        }
     }
 
     public static InMemoryImeDictionary CreateDefault() => CreateMinimalFallback();
@@ -67,16 +83,18 @@ public sealed class InMemoryImeDictionary : IImeDictionary, IShapeDictionary
     /// <summary>
     /// Creates the small built-in dictionary used only when the production dictionary is unavailable.
     /// </summary>
-    public static InMemoryImeDictionary CreateMinimalFallback() => new(
+    public static InMemoryImeDictionary CreateMinimalFallback() => new(new ImeLexicon(
     [
         new("你", "ni", 100),
         new("呢", "ni", 60),
         new("好", "hao", 100),
         new("号", "hao", 60),
-        new("小希", "xx", 100),
-        new("小希", "xiaoxi", 100),
-        new("输入法", "shurufa", 100),
-    ]);
+        new("小希", "xiao xi", 100),
+        new("输入法", "shu ru fa", 100),
+    ], [], ImeProjectionDefinition.FullPinyin, 1)
+    {
+        LookupAliases = [new("小希", "xiao xi", "xx")]
+    });
 
     public IReadOnlyList<ImeCandidate> Query(string reading, int maxCount = 9)
     {
@@ -102,14 +120,10 @@ public sealed class InMemoryImeDictionary : IImeDictionary, IShapeDictionary
                 DictionaryCandidateMatchKind.Exact)));
         }
 
-        if (query.MatchMode == ImeDictionaryMatchMode.ExactAndPrefix)
+        if (query.MatchMode == ImeDictionaryMatchMode.ExactAndPrefix &&
+            _prefixEntries.TryGetValue(input, out var prefixCandidates))
         {
-            ranked.AddRange(_entries
-                .Where(entry =>
-                    !string.Equals(entry.Key, input, StringComparison.Ordinal)
-                    && entry.Key.StartsWith(input, StringComparison.Ordinal))
-                .SelectMany(entry => entry.Value)
-                .Select(candidate => ToRanked(candidate, DictionaryCandidateMatchKind.Prefix)));
+            ranked.AddRange(prefixCandidates.Select(candidate => ToRanked(candidate, DictionaryCandidateMatchKind.Prefix)));
         }
 
         return DictionaryCandidateRanking.Rank(ranked, query.MaxCount);

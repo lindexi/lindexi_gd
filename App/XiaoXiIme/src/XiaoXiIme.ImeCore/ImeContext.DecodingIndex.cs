@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using XiaoXiIme.Dictionary;
 
 namespace XiaoXiIme.ImeCore;
@@ -6,6 +7,19 @@ public sealed partial class ImeContext
 {
     private DecodingIndex? _decodingIndex;
     private string _lastDecodeMetrics = "";
+    private static readonly ConditionalWeakTable<ImeLexicon, Dictionary<int, DecodingIndex>> SharedIndexes = new();
+
+    private static DecodingIndex GetDecodingIndex(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules)
+    {
+        var indexes = SharedIndexes.GetValue(lexicon, _ => []);
+        var mask = rules.Aggregate(0, (value, rule) => value | 1 << (int)rule);
+        lock (indexes)
+        {
+            if (!indexes.TryGetValue(mask, out var index))
+                indexes.Add(mask, index = new(lexicon, Array.AsReadOnly(rules.Distinct().Order().ToArray())));
+            return index;
+        }
+    }
 
     private sealed class DecodingIndex
     {
@@ -16,13 +30,19 @@ public sealed partial class ImeContext
         internal readonly Dictionary<string, string[]> Shapes;
         internal readonly Dictionary<ImePhoneticEntry, ImeLookupAlias[]> Aliases;
         internal readonly Dictionary<string, int[]> Starts;
+        internal readonly double LogFrequencyMass;
 
         internal DecodingIndex(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules)
         {
             Lexicon = lexicon;
             Rules = rules;
+            LogFrequencyMass = Math.Log(1d + lexicon.Entries.Sum(e => 1d + Math.Max(0, EntryFrequency(e))));
             Syllables = lexicon.Entries.ToDictionary(e => e,
                 e => e.CanonicalReading.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+            var registered = lexicon.Projection.Entries.Select(p => p.Initial + p.Final).ToHashSet(StringComparer.Ordinal);
+            foreach (var syllable in Syllables.Values.SelectMany(s => s).Distinct(StringComparer.Ordinal))
+            foreach (var alias in ComponentAliases(syllable, rules))
+                if (!registered.Contains(alias)) throw new NotSupportedException();
             var projectionOrder = lexicon.Projection.Entries.Select((p, i) => (p, i)).ToDictionary(x => x.p, x => x.i);
             var byComponent = lexicon.Projection.Entries.ToLookup(p => p.Initial + p.Final, StringComparer.Ordinal);
             Projections = Syllables.Values.SelectMany(s => s).Distinct(StringComparer.Ordinal).ToDictionary(s => s,

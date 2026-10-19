@@ -28,20 +28,9 @@ internal static class DefaultDictionaryPackageBuilder
         var shapeSources = FindSources(sourceRoot, "*.shape.tsv");
         var symbolSources = FindSources(sourceRoot, "*.symbols.tsv");
         Directory.CreateDirectory(hostRoot);
-        BuildPackage(
-            hostRoot,
-            FullPinyinPackageDirectoryName,
-            FullPinyinInputScheme,
-            phoneticSources,
-            shapeSources,
-            symbolSources);
-        BuildPackage(
-            hostRoot,
-            XiaoheDoublePinyinPackageRelativePath,
-            XiaoheDoublePinyinInputScheme,
-            phoneticSources,
-            shapeSources,
-            symbolSources);
+        foreach (var scheme in PhoneticSchemeCatalog.All.Where(item => item.ProductScheme.HasValue))
+            BuildPackage(hostRoot, DictionaryPackageLocations.GetRelativePackageDirectory(scheme.SchemeId),
+                scheme.SchemeId, phoneticSources, shapeSources, symbolSources);
     }
 
     private static void BuildPackage(

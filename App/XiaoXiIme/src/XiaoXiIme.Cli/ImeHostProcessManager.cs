@@ -133,7 +133,8 @@ internal sealed class ImeHostProcessManager : IDisposable
         using var client = new XiaoXiImeIpcClient(options);
         try
         {
-            var status = client.WaitUntilReadyAsync(timeout).ConfigureAwait(false).GetAwaiter().GetResult();
+            // IPC connection initialization must not capture a blocked caller synchronization context.
+            var status = Task.Run(() => client.WaitUntilReadyAsync(timeout)).GetAwaiter().GetResult();
             var fallbackNote = status.IsUsingFallbackDictionary
                 ? " Host is using the minimal fallback dictionary."
                 : string.Empty;

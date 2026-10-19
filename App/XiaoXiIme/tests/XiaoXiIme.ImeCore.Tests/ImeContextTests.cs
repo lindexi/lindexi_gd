@@ -27,9 +27,9 @@ public class ImeContextTests
     }
 
     [Fact]
-    public void ProcessKey_WhenInputIsPrefixThenShowsPhraseCandidateDuringComposition()
+    public void ProcessKey_WhenInputIsSingleSyllablePrefixThenExcludesExtraSyllables()
     {
-        var context = CreateContext(new InMemoryImeDictionary(
+        var context = CreateContext(CanonicalDictionaryFixture.Create(
         [
             new ImeCandidate("你", "ni", 100),
             new ImeCandidate("你好", "ni hao", 200),
@@ -39,14 +39,13 @@ public class ImeContextTests
 
         Assert.Collection(
             result.Snapshot.Candidates,
-            candidate => Assert.Equal("你好", candidate.Text),
             candidate => Assert.Equal("你", candidate.Text));
     }
 
     [Fact]
     public void ProcessKey_WhenContinuousInputCompletesPhraseThenExactPhraseIsFirst()
     {
-        var context = CreateContext(new InMemoryImeDictionary(
+        var context = CreateContext(CanonicalDictionaryFixture.Create(
         [
             new ImeCandidate("你好", "ni hao", 200),
             new ImeCandidate("你好啊", "ni hao a", 300),
@@ -81,14 +80,15 @@ public class ImeContextTests
     {
         ImeDictionaryLearning? learning = null;
         var context = new ImeContext(
-            new InMemoryImeDictionary([new ImeCandidate("你", "ni", 100)]),
+            CanonicalDictionaryFixture.Create([new ImeCandidate("你", "ni", 100)]),
             value => learning = value);
         context.ProcessKey(ImeKey.FromCharacter('n'));
         context.ProcessKey(ImeKey.FromCharacter('i'));
 
         context.ProcessKey(new ImeKey(ImeKeyKind.Space));
 
-        Assert.Equal(new ImeDictionaryLearning(new ImeCandidate("你", "ni", 100), "ni"), learning);
+        Assert.Equal((new ImeCandidate("你", "ni", 100), "ni", new ImeConfirmedSegment("你", "ni", 0, 2, 0, 1)),
+            (learning?.Candidate, learning?.OriginalInput, Assert.Single(learning!.Segments)));
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class ImeContextTests
     {
         var learningCount = 0;
         var context = new ImeContext(
-            new InMemoryImeDictionary([new ImeCandidate("你", "ni", 100)]),
+            CanonicalDictionaryFixture.Create([new ImeCandidate("你", "ni", 100)]),
             _ => learningCount++);
         context.ProcessKey(ImeKey.FromCharacter('x'));
 
@@ -254,7 +254,7 @@ public class ImeContextTests
     [Fact]
     public void RegisterWord_WhenUserDictionaryThenAddsWordWithoutChangingComposition()
     {
-        var dictionary = new UserDictionary(new InMemoryImeDictionary(
+        var dictionary = new UserDictionary(CanonicalDictionaryFixture.Create(
         [
             new ImeCandidate("你", "ni", 100),
         ]));
@@ -276,7 +276,7 @@ public class ImeContextTests
     [Fact]
     public void UnregisterWord_WhenUserWordExistsThenRemovesItWithoutChangingComposition()
     {
-        var dictionary = new UserDictionary(new InMemoryImeDictionary(
+        var dictionary = new UserDictionary(CanonicalDictionaryFixture.Create(
         [
             new ImeCandidate("你", "ni", 100),
         ]));
@@ -446,7 +446,7 @@ public class ImeContextTests
     [Fact]
     public void ProcessKey_MoveCompositionCaretChangesSnapshotCaretIndex()
     {
-        var context = CreateContext(new InMemoryImeDictionary(
+        var context = CreateContext(CanonicalDictionaryFixture.Create(
         [
             new ImeCandidate("按", "an", 100),
             new ImeCandidate("拿", "na", 100),
@@ -466,7 +466,7 @@ public class ImeContextTests
     [Fact]
     public void ProcessKey_CharacterInsertsAtCompositionCaret()
     {
-        var context = CreateContext(new InMemoryImeDictionary(
+        var context = CreateContext(CanonicalDictionaryFixture.Create(
         [
             new ImeCandidate("按", "an", 100),
             new ImeCandidate("拿", "na", 100),
@@ -485,7 +485,7 @@ public class ImeContextTests
     [Fact]
     public void ProcessKey_BackspaceRemovesCharacterBeforeCompositionCaret()
     {
-        var context = CreateContext(new InMemoryImeDictionary(
+        var context = CreateContext(CanonicalDictionaryFixture.Create(
         [
             new ImeCandidate("安", "an", 100),
             new ImeCandidate("拿", "na", 100),
@@ -547,7 +547,7 @@ public class ImeContextTests
     [Fact]
     public void ProcessKey_BackspaceNormalizesSelectionAfterCandidateRefresh()
     {
-        var context = CreateContext(new InMemoryImeDictionary(
+        var context = CreateContext(CanonicalDictionaryFixture.Create(
         [
             new ImeCandidate("啊", "a", 100),
             new ImeCandidate("阿", "a", 90),
@@ -626,7 +626,9 @@ public class ImeContextTests
 
         var result = context.ProcessKey(ImeKey.FromCharacter('A'));
 
-        Assert.Collection(result.Snapshot.Candidates, candidate => Assert.Equal("你", candidate.Text));
+        Assert.Collection(context.QueryInterpretations("niA").Candidates.Where(c =>
+            c.Interpretations.Any(p => p.Kind == ImeInterpretationKind.Complete)),
+            candidate => Assert.Equal("你", candidate.Candidate.Text));
     }
 
     [Fact]
@@ -687,6 +689,12 @@ public class ImeContextTests
 
     private sealed class MultiResourceDictionary : IImeDictionary, IShapeDictionary, ISymbolDictionary
     {
+        public ImeLexicon GetLexicon() => Lexicon;
+        public ImeProjectionDefinition Projection => Lexicon.Projection;
+        private static readonly ImeLexicon Lexicon = new(
+            [new("你", "ni", 100), new("呢", "ni", 90)],
+            [new("你", "ab", "fixture")], ImeProjectionDefinition.FullPinyin, 1);
+
         private static readonly IReadOnlyList<ImeCandidate> PhoneticCandidates =
         [
             new ImeCandidate("你", "ni", 100),
@@ -730,7 +738,7 @@ public class ImeContextTests
 
     private static ImeContext CreateContext()
     {
-        return CreateContext(new InMemoryImeDictionary(
+        return CreateContext(CanonicalDictionaryFixture.Create(
         [
             new ImeCandidate("你", "ni", 100),
             new ImeCandidate("呢", "ni", 90),
@@ -744,7 +752,7 @@ public class ImeContextTests
 
     private static ImeContext CreatePagedContext()
     {
-        return CreateContext(new InMemoryImeDictionary(Enumerable.Range(0, 12)
+        return CreateContext(CanonicalDictionaryFixture.Create(Enumerable.Range(0, 12)
             .Select(index => new ImeCandidate($"候选{index}", "a", 100 - index))));
     }
 }

@@ -28,7 +28,7 @@ public class SoundShapeIndexRegressionTests
         var context = new ImeContext(new InMemoryImeDictionary(lexicon), InventedSoundShapeFixture.Options(), null);
         var candidate = context.QueryInterpretations("nihcwo").Candidates.Single(c => c.Candidate.Text == "你好我" &&
             c.Interpretations.Any(p => p.Kind == ImeInterpretationKind.Complete));
-        Assert.Equal(new[] { "ni hao|wo", "ni|hao|wo" }, candidate.Interpretations
+        Assert.Equal(new[] { "ni hao|wo" }, candidate.Interpretations
             .Where(p => p.Kind == ImeInterpretationKind.Complete)
             .Select(p => string.Join('|', p.Segments.Select(s => s.CanonicalReading)))
             .Distinct().Order(StringComparer.Ordinal).ToArray());

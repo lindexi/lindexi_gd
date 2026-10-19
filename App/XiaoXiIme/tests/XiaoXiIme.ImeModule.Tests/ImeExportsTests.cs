@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace XiaoXiIme.ImeModule.Tests;
 
+[Collection("Lifecycle environment")]
 public class ImeExportsTests
 {
     [Fact]

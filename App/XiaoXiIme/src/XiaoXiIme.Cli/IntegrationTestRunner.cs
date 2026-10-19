@@ -277,16 +277,8 @@ internal static class IntegrationTestRunner
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(hostDirectory);
 
-        var packages = new[]
-        {
-            Path.Combine(hostDirectory, DictionaryPackageLocations.GetRelativePackageDirectory(DictionaryPackageLocations.FullPinyinInputScheme)),
-            Path.Combine(hostDirectory, DictionaryPackageLocations.GetRelativePackageDirectory(DictionaryPackageLocations.XiaoheDoublePinyinInputScheme)),
-        };
-        var expectedSchemes = new[]
-        {
-            DictionaryPackageLocations.FullPinyinInputScheme,
-            DictionaryPackageLocations.XiaoheDoublePinyinInputScheme,
-        };
+        var expectedSchemes = PhoneticSchemeCatalog.All.Where(item => item.ProductScheme.HasValue).Select(item => item.SchemeId).ToArray();
+        var packages = expectedSchemes.Select(scheme => Path.Combine(hostDirectory, DictionaryPackageLocations.GetRelativePackageDirectory(scheme))).ToArray();
         for (var index = 0; index < packages.Length; index++)
         {
             var packageDirectory = packages[index];
@@ -301,7 +293,9 @@ internal static class IntegrationTestRunner
 
                 var probes = string.Equals(expectedScheme, DictionaryPackageLocations.XiaoheDoublePinyinInputScheme, StringComparison.Ordinal)
                     ? new[] { ("nihc", "你好"), ("xnxiaimuyi", "XiaoXiIme") }
-                    : new[] { ("nihao", "你好"), ("xiaoxiaimuyi", "XiaoXiIme"), ("ni", "你") };
+                    : expectedScheme == DictionaryPackageLocations.FullPinyinInputScheme
+                        ? new[] { ("nihao", "你好"), ("xiaoxiaimuyi", "XiaoXiIme"), ("ni", "你") }
+                        : new[] { ("ni" + "h" + PhoneticSchemeCatalog.All.Single(item => item.SchemeId == expectedScheme).Layout!.Finals["ao"], "你好") };
                 foreach (var (probe, expectedText) in probes)
                 {
                     var candidates = dictionary.Query(new ImeDictionaryQuery(probe));

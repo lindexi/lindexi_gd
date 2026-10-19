@@ -6,6 +6,8 @@ namespace XiaoXiIme.ImeUi.Avalonia;
 internal static class DebugResources
 {
     private static readonly ResourceManager Resources = new("XiaoXiIme.ImeUi.Avalonia.DebugResources", typeof(DebugResources).Assembly);
+    internal static string PreviousPage => Resources.GetString(nameof(PreviousPage), CultureInfo.CurrentUICulture)!;
+    internal static string NextPage => Resources.GetString(nameof(NextPage), CultureInfo.CurrentUICulture)!;
     internal static string OutputLabel => Resources.GetString(nameof(OutputLabel), CultureInfo.CurrentUICulture)!;
     internal static string LogLabel => Resources.GetString(nameof(LogLabel), CultureInfo.CurrentUICulture)!;
     internal static string PackagePath => Resources.GetString(nameof(PackagePath), CultureInfo.CurrentUICulture)!;

@@ -9,5 +9,7 @@
   <data name="LogLabel" xml:space="preserve"><value>调试日志（Ctrl+A 全选，Ctrl+C 复制）</value></data>
   <data name="PackagePath" xml:space="preserve"><value>词库 package 路径：{0}</value></data>
   <data name="LoadSucceeded" xml:space="preserve"><value>词库加载成功，可以在上方输入区调试。</value></data>
-  <data name="PackageHint" xml:space="preserve"><value>仅加载预编译 package。可用环境变量 XIAOXIIME_DEBUG_PACKAGE 指定 package 目录；修改后重新启动应用。</value></data>
+  <data name="PackageHint" xml:space="preserve"><value>词库由交付构建器随应用提供。若加载失败，请使用完整交付产物；无需设置环境变量或选择目录。</value></data>
+  <data name="PreviousPage" xml:space="preserve"><value>上一页</value></data>
+  <data name="NextPage" xml:space="preserve"><value>下一页</value></data>
 </root>

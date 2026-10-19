@@ -39,12 +39,15 @@ public class SoundShapeIndependentOracleTests
             ("张", "zhang", ["zhang"], [[("va", "zhang"), ("za", "zang"), ("vn", "zhan"), ("zn", "zan")]]),
         ];
         string[] inputs = ["n", "ni", "niR", "niRX", "nir", "nirx", "NIr", "NIrx",
-            "nini", "niRXniRX", "nirxnirx", "niniR", "niniRR", "ninirr", "niRXn", "niRXniR",
+            "nin", "nini", "niRXniRX", "nirxnirx", "niniR", "niniRR", "ninirr", "niRXn", "niRXniR",
             "va", "za", "vn", "zn", "znR", "znRX", "znrx", "znRXn", "niq"];
         foreach (var input in inputs)
         {
             var expected = new HashSet<string>(StringComparer.Ordinal);
+            var sentences = new List<(string Signature, int Missing, double Weight, int Count)>();
             Walk(0, "", [], []);
+            var best = sentences.OrderBy(p => p.Missing).ThenByDescending(p => p.Weight).ThenBy(p => p.Count).FirstOrDefault();
+            if (best.Signature is not null) expected.Add(best.Signature);
             var actual = context.QueryInterpretations(input).Candidates.SelectMany(c => c.Interpretations.Select(p =>
                 Signature(c.Candidate.Text, p))).Order(StringComparer.Ordinal).ToArray();
             Assert.True(expected.Order(StringComparer.Ordinal).SequenceEqual(actual),
@@ -55,13 +58,24 @@ public class SoundShapeIndependentOracleTests
                 foreach (var word in words)
                 {
                     ReadSound(0, start, previous);
-                    void Pending(ImeInterpretationKind kind, ImePathEvidence[] evidence) => expected.Add(Signature(text + word.Text,
-                        new(kind, input.Length, null, "", confirmed, evidence)));
+                    void Pending(ImeInterpretationKind kind, ImePathEvidence[] evidence)
+                    {
+                        if (start == 0) expected.Add(Signature(word.Text,
+                            new(kind, input.Length, null, "", confirmed, evidence)));
+                    }
                     void Finish(int end, ImePathEvidence[] evidence)
                     {
                         ImeConfirmedSegment[] segments = [.. confirmed, new(word.Text, word.Reading, start, end - start, text.Length, word.Text.Length)];
-                        expected.Add(Signature(text + word.Text, new(end == input.Length ? ImeInterpretationKind.Complete : ImeInterpretationKind.Partial,
-                            end, new(0, end), input[end..], segments, evidence)));
+                        var signature = Signature(text + word.Text, new(end == input.Length ? ImeInterpretationKind.Complete : ImeInterpretationKind.Partial,
+                            end, new(0, end), input[end..], segments, evidence));
+                        if (start == 0) expected.Add(signature);
+                        else if (end == input.Length)
+                        {
+                            var missing = evidence.Where(e => e.Kind == ImeEvidenceKind.Phonetic).Sum(e => 2 - e.Range.Length);
+                            var weight = segments.Sum(s => s.InputLength * Math.Log(1d +
+                                (s.Text == "张" ? 1 : s.Text == "你你" ? 4 : s.CanonicalReading == "nin" ? 3 : 2)));
+                            sentences.Add((signature, missing, weight, segments.Length));
+                        }
                         if (end < input.Length) Walk(end, text + word.Text, segments, evidence);
                     }
                     void ReadSound(int index, int position, ImePathEvidence[] evidence)
@@ -74,7 +88,7 @@ public class SoundShapeIndependentOracleTests
                                     ImeEvidenceKind.AfterWordShape, evidence, Finish);
                             return;
                         }
-                        if (position == input.Length) { Pending(ImeInterpretationKind.Prefix, evidence); return; }
+                        if (position == input.Length) return;
                         foreach (var sound in word.Sounds[index])
                         {
                             var available = Math.Min(2, input.Length - position);
@@ -83,7 +97,15 @@ public class SoundShapeIndependentOracleTests
                             if (!sound.Key.StartsWith(fragment.ToLowerInvariant(), StringComparison.Ordinal)) continue;
                             ImePathEvidence[] phonetic = [.. evidence, new(ImeEvidenceKind.Phonetic, new(position, available), index,
                                 fragment, word.Syllables[index], null)];
-                            if (available < 2) { Pending(ImeInterpretationKind.Prefix, phonetic); continue; }
+                            if (available < 2)
+                            {
+                                if (index == word.Syllables.Length - 1)
+                                {
+                                    if (length == ImeShapeLengthPolicy.RequiredTwo) Pending(ImeInterpretationKind.IncompleteShape, phonetic);
+                                    else Finish(position + available, phonetic);
+                                }
+                                continue;
+                            }
                             if (sound.Spoken != word.Syllables[index])
                                 phonetic = [.. phonetic, new(ImeEvidenceKind.Fuzzy, new(position, 2), index, sound.Spoken, word.Syllables[index], null)];
                             if (length != ImeShapeLengthPolicy.RequiredTwo) ReadSound(index + 1, position + 2, phonetic);
@@ -107,7 +129,7 @@ public class SoundShapeIndependentOracleTests
                             var ev = available == 0 ? evidence : [.. evidence, new ImePathEvidence(kind, new(position, available), index,
                                 fragment, word.Reading, alias)];
                             if (available == size) next(position + size, ev);
-                            else if (available > 0 || length == ImeShapeLengthPolicy.RequiredTwo)
+                            else if (index == word.Syllables.Length - 1 && (available > 0 || length == ImeShapeLengthPolicy.RequiredTwo))
                                 Pending(ImeInterpretationKind.IncompleteShape, ev);
                         }
                     }

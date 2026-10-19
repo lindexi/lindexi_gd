@@ -35,13 +35,14 @@ public class ScreenshotFuzzyRuleTests
         var rule = Enum.Parse<ImeFuzzyRule>(ruleName);
         var context = Create(doublePinyin, reading);
         SoundShapeFuzzyTests.Type(context, alias);
-        Assert.False(HasComplete(context, alias));
+        Assert.False(HasFuzzy());
 
         context.UpdateFuzzyRules([rule]);
-        Assert.True(HasComplete(context, alias));
+        Assert.True(HasFuzzy());
 
         context.UpdateFuzzyRules([]);
-        Assert.False(HasComplete(context, alias));
+        Assert.False(HasFuzzy());
+        bool HasFuzzy() => context.QueryInterpretations(alias).Candidates.Any(c => c.Interpretations.Any(p => p.Evidence.Any(e => e.Kind == ImeEvidenceKind.Fuzzy)));
         Assert.Equal(alias, context.Snapshot.Composition.Reading);
     }
 

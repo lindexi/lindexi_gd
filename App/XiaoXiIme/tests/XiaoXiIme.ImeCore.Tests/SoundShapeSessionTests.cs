@@ -43,7 +43,7 @@ public class SoundShapeSessionTests
     }
 
     [Theory]
-    [InlineData("D01", "nirhc", "你让草", ImeInterpretationKind.Prefix, 5)]
+    [InlineData("D01", "nirhc", "你让草", ImeInterpretationKind.Complete, 5)]
     [InlineData("D02", "nirhcc", "你好", ImeInterpretationKind.Partial, 5)]
     [InlineData("D09", "nirhcc", "你好", ImeInterpretationKind.Partial, 5)]
     public void D01_D02_D09_IndependentPathRemainsVisible(string id, string input, string text, ImeInterpretationKind kind, int end)

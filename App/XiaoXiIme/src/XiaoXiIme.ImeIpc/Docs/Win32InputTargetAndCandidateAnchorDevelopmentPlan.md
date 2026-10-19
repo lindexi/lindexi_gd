@@ -12,6 +12,44 @@
    - 通过 IPC 向 Host/UI 提供必要的目标窗口上下文。
 2. 从 Win32 输入上下文中取得候选窗口锚点，将有效的屏幕坐标写入 `ImeUiState.AnchorX/AnchorY`，使独立候选窗口能够跟随应用插入符或应用指定的候选位置。
 
+## 本次源码调查与最小修复（G02 仍开放）
+
+本节是当前源码核对及本次实际执行结果；下方“第二轮”“阶段一”和第 2 节以后的原始设计保留为历史背景，不应据旧的“当前”描述重复判定功能缺失。
+
+### 原状态与证据
+
+- 定位主链路已有实现，并非从未实现：`ImeModuleRuntime.ProcessKey` 调用 `ImeCandidateAnchorReader.Read`，通过 Bridge/可选 Anchor IPC 传递；`ImeHostService.ProcessKeyAsync/GetUiStateAsync` 按 SessionId 缓存、校验并返回锚点；`CandidateWindowPresenter` 查询焦点、重新校验窗口/PID/TID、转换客户区坐标并定位 UI。
+- `ImeSessionId.FromHimc` 当前实际格式是 `himc:<pid>:<handle>`；旧设计中无 PID 的描述已过时。Host 对同 HWND/PID 匹配多个会话时保守隐藏，不等于已解决激活身份。
+- 明确实现缺口：原 reader 未检查 `FdwInit`，并允许 `COMPOSITIONFORM.Style == CFS_RECT` 时读取 `CurrentPosition`，可能把未初始化值或非点位字段当作有效来源。
+- Windows SDK 10.0.26100.0 `um/immdev.h` 1019–1025 行确认 `INIT_COMPFORM=0x10`，没有候选窗初始化位；`um/imm.h` 621–627 行确认样式值。不能把组合窗初始化位套用于候选窗。
+
+### 本次修复范围
+
+仅修改 `ImeModule/ImeCandidateAnchorReader.cs`、新增 `ImeModule.Tests/ImeCandidateAnchorReaderTests.cs` 及本计划：
+
+1. 组合窗回退必须设置 `INIT_COMPFORM`，且仅接受 `CFS_POINT`/`CFS_FORCE_POSITION`。`CFS_RECT` 是排版矩形，不从其 `CurrentPosition` 虚构点位；无可用候选窗/caret 时沿用 unavailable 路径。
+2. 提取纯快照解析，保留候选列表 0、POSITION 优先、caret 次之、composition 最后的既有顺序；零值及负坐标不作无效判断。
+3. 保留既有 EXCLUDE 的 CurrentPosition.X、Area.Bottom/Top 定位约定，拒绝倒置排除矩形。此为快照有效性防护，不宣称完整矩形避让合同已验收。
+4. 未改变 IPC、三字段 TRANSMSG ABI、会话格式、PMv2 配置或 TSF；未修改全局交接文档。
+
+### 本次实际验证
+
+- 新增来源解析测试：15/15，通过，0 失败/0 跳过。
+- ImeModule.Tests 项目全测：227/227，通过，0 失败/0 跳过（当前数量，不沿用历史 148）。
+- IntegrationTests 的 CandidateAnchorTests 定向测试：19/19，通过，0 失败/0 跳过。
+- IntegrationTests 项目全测调用超过工具默认 5 分钟，被终止；没有完整结果，不记作通过或断言某个用例失败。随后定向测试成功。
+- ImeModule 项目 Release 构建：退出 0，0 警告/0 错误；不是解决方案构建、Native AOT 发布或 x86 验收。
+- 没有重跑 Windows 安装/真实 IME 全链路。当前工作区未找到下文引用的 `.coding-agent/imm32-validation/g02-real-run-02-review.md`（按名称搜索也未找到），故第二轮真实结果仅作为计划内历史记录保留，本次无法重新回读其原始证据。
+
+### 尚未闭环与规格边界
+
+- 真正 HWND/HIMC 销毁及句柄复用/世代没有完成：PID+handle 不是世代标识；`ImeSelectManaged(select=0)` 有重置，但 `ImeSetActiveContextManaged` 仅记录活动切换、不传播活动会话。
+- 同 HWND 多 HIMC 的当前策略仍是歧义隐藏；新激活无缓存锚点也没有独立采集/传播路径（当前仅按键采集）。这些是实际能力缺口，不能用已有双 EDIT 不同 HWND 的焦点回切测试替代。
+- 进一步实现前须确定跨进程活动身份的权威来源、失效/断连清理合同、世代开始/结束边界（不能简单把暂时失活或取消组合等同 HIMC 销毁），以及同 HWND 重关联时的原生通知顺序和真实验证宿主。现有计划是演进建议，没有确定上述合同；本次不擅自改变全局会话协议或猜测生命周期。
+- CFS_RECT 如何从允许排版区域生成候选点、EXCLUDE 的完整矩形避让及真实应用行为仍需原生合同/真实测试补齐。本次保守拒绝非点位来源，不等同完成这些布局能力。
+- 基本客户区到屏幕转换仍沿用现有 API，未扩展 DPI 专项。按用户决定继续后置多 DPI/缩放/多屏与跨屏；不扩展 TSF。
+- 下一阶段真实 IME 验收必须覆盖本次初始化门控的回退结果、真正销毁/重建/复用、同 HWND 多 HIMC 激活、新激活无缓存锚点，且保留候选实际矩形/目标关联/提交取消回归。单元测试不能将 G02 标记关闭。
+
 ## 第二轮实际证据与剩余范围（G02 未关闭）
 
 已完成 [第二轮逐项回读归档](../../../../.coding-agent/imm32-validation/g02-real-run-02-review.md)。原始路径 `.coding-agent/imm32-validation/g02-real-run-02/final-evidence`，x64管理员任务 `346c21d6abff471f9f4a0d447d4c1cfa`。xx、单HIMC取消/重组/提交、多HIMC交错均PASS；真实候选窗口双EDIT位置、无新按键回切、窗口移动、工作区边缘分别PASS，非首轮exit0推断。五项均DPI=96/scaling=1，实际rect依次 `(130,204,646,293)`、`(130,249,646,338)`、`(130,204,646,293)`、`(260,284,776,373)`、`(1404,921,1920,1010)`，工作区 `(0,0,1920,1032)`；展开日志112–127行及冻结宿主476–487/677–710行固定断言边界。

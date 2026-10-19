@@ -14,11 +14,11 @@ public enum ImeCandidateSortPolicy { PhoneticFirst, ShapeFirst, Automatic }
 /// <summary>Controls automatic selection after typed characters.</summary>
 public enum ImeAutoCommitPolicy { Off, Four, Unique }
 /// <summary>Identifies bidirectional component equivalences.</summary>
-public enum ImeFuzzyRule { ZhZ, ShS, AngAn, EngEn, UanUang, ChC, InIng, IanIang, AiAn, UnOng }
+public enum ImeFuzzyRule { ZhZ = 0, ShS = 1, AngAn = 2, EngEn = 3, UanUang = 4, ChC = 5, InIng = 6, IanIang = 7, AiAn = 8, UnOng = 9 }
 /// <summary>Identifies completion and selection eligibility.</summary>
 public enum ImeInterpretationKind { Complete, Partial, Prefix, IncompleteShape }
 /// <summary>Identifies the constraint represented by path evidence.</summary>
-public enum ImeEvidenceKind { Phonetic, PerCharacterShape, AfterWordShape, Fuzzy }
+public enum ImeEvidenceKind { Phonetic, PerCharacterShape, AfterWordShape, Fuzzy, LookupAlias }
 /// <summary>Defines immutable context construction policies.</summary>
 public sealed record ImeInputOptions
 {
@@ -29,6 +29,7 @@ public sealed record ImeInputOptions
     public ImeAutoCommitPolicy AutoCommit { get; init; }
     public bool EatConfirmationSpace { get; init; }
     public bool EnableLegacyXx { get; init; }
+    public bool EnableStandaloneShape { get; init; }
     public IReadOnlyList<ImeFuzzyRule> FuzzyRules { get; init; } = [];
 }
 /// <summary>Describes a checked UTF-16 half-open input interval.</summary>

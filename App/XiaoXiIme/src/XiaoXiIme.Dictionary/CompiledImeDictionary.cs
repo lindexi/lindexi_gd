@@ -52,24 +52,23 @@ public sealed class CompiledImeDictionary : IImeDictionary, IShapeDictionary, IS
     public string InputScheme { get; }
 
     /// <inheritdoc />
+    public ImeProjectionDefinition Projection => _lexicon?.Projection ?? ImeProjectionDefinition.ForScheme(InputScheme);
+
+    /// <inheritdoc />
     public ImeLexicon GetLexicon()
     {
         if (_lexicon is not null) return _lexicon;
-        var projection = InputScheme switch
-        {
-            DictionaryPackageFormat.FullPinyinInputScheme => ImeProjectionDefinition.FullPinyin,
-            DictionaryPackageFormat.XiaoheDoublePinyinInputScheme => ImeProjectionDefinition.XiaoheDoublePinyin,
-            _ => throw new NotSupportedException(),
-        };
+        var projection = ImeProjectionDefinition.ForScheme(InputScheme);
         var syllables = projection.Entries.Select(p => p.Initial + p.Final).ToHashSet(StringComparer.Ordinal);
         var entries = new List<ImePhoneticEntry>();
         var aliases = new List<ImeLookupAlias>();
         foreach (var candidate in _candidates)
         {
             // This first-party abbreviation is registered alongside its canonical reading in the term source.
-            if (candidate.Text == "小希" && candidate.Reading == "xx" &&
-                _candidates.Any(c => c.Text == "小希" && c.Reading == "xiao xi"))
+            if (candidate.Text == "小希" && candidate.Reading == "xx")
             {
+                if (!_candidates.Any(c => c.Text == "小希" && c.Reading == "xiao xi"))
+                    entries.Add(new("小希", "xiao xi", candidate.Score));
                 aliases.Add(new("小希", "xiao xi", "xx"));
                 continue;
             }

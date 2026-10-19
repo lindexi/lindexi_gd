@@ -5,15 +5,14 @@ namespace XiaoXiIme.ImeCore;
 
 public sealed partial class ImeContext
 {
-    private ImeInputOptions? _options;
+    private ImeInputOptions _options;
     private readonly Guid _contextId = Guid.NewGuid();
     private long _revision;
-    private long? _lexiconVersion;
     private bool _eatConfirmationSpace;
 
     private ImeProcessResult? TryAutomaticCommit()
     {
-        if (_options is null || _options.AutoCommit == ImeAutoCommitPolicy.Off || _caretIndex != _reading.Length)
+        if (_options.AutoCommit == ImeAutoCommitPolicy.Off || _caretIndex != _reading.Length)
             return null;
         var complete = Decode(_reading).Where(c => c.SelectionId.HasValue &&
             c.Interpretations.Any(p => p.Kind == ImeInterpretationKind.Complete)).ToArray();
@@ -51,17 +50,16 @@ public sealed partial class ImeContext
 
     /// <summary>Gets original character marks and the current detail page.</summary>
     public ImeDetailedSnapshot DetailedSnapshot => new(Snapshot, _reading.Select(char.IsUpper).ToArray(),
-        _options is null ? new([], 0, 0, 9) : QueryInterpretations(_reading, _pageStart, 9), _revision);
+        QueryInterpretations(_reading, _pageStart, 9), _revision);
 
     /// <summary>Queries complete legal interpretations without modifying the composition.</summary>
     public ImeConversionPage QueryInterpretations(string composition, int offset = 0, int limit = 100)
     {
         ArgumentNullException.ThrowIfNull(composition);
-        if (_options is null) throw new InvalidOperationException();
         ArgumentOutOfRangeException.ThrowIfNegative(offset);
         if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
         if (composition.Length > 64) throw new ArgumentOutOfRangeException(nameof(composition));
-        if (composition.Any(c => !IsAsciiLetter(c))) throw new ArgumentException(nameof(composition), nameof(composition));
+        if (composition.Any(c => !IsPhoneticCharacter(c))) throw new ArgumentException(nameof(composition), nameof(composition));
         var results = Decode(composition);
         return new(results.Skip(offset).Take(limit).ToArray(), results.Count, offset, limit);
     }
@@ -77,10 +75,10 @@ public sealed partial class ImeContext
     /// <summary>Selects a current semantic identity and consumes only its confirmed prefix.</summary>
     public ImeProcessResult SelectCandidate(ImeSelectionId selectionId)
     {
-        if (_options is not null) Decode(_reading);
-        if (_options is null || selectionId.ContextId != _contextId || selectionId.Revision != _revision)
+        if (selectionId.ContextId != _contextId || selectionId.Revision != _revision ||
+            !ReferenceEquals(_displayedLexicon, _dictionary.GetLexicon()))
             return new(Snapshot, null, false);
-        var candidate = Decode(_reading).SingleOrDefault(c => c.SelectionId == selectionId);
+        var candidate = _displayedCandidates.SingleOrDefault(c => c.SelectionId == selectionId);
         if (candidate is null) return new(Snapshot, null, false);
         var path = candidate.Interpretations[0];
         if (path.ConsumedRange is not { } consumed) return new(Snapshot, null, false);
@@ -89,7 +87,8 @@ public sealed partial class ImeContext
         _caretIndex = Math.Max(0, _caretIndex - consumed.End);
         _selection = 0;
         RefreshCandidates();
-        _learn?.Invoke(new ImeDictionaryLearning(candidate.Candidate, original) { Segments = path.Segments });
+        if (path.Segments.Count > 0)
+            _learn?.Invoke(new ImeDictionaryLearning(candidate.Candidate, original) { Segments = path.Segments });
         return new(Snapshot, candidate.Candidate.Text, true);
     }
 
@@ -97,7 +96,6 @@ public sealed partial class ImeContext
     public ImeProcessResult UpdateFuzzyRules(IReadOnlyList<ImeFuzzyRule> rules)
     {
         ArgumentNullException.ThrowIfNull(rules);
-        if (_options is null) throw new InvalidOperationException();
         if (rules.Any(r => !Enum.IsDefined(r))) throw new ArgumentException(nameof(rules), nameof(rules));
         var copy = Array.AsReadOnly(rules.Distinct().ToArray());
         ValidateProjection(_dictionary.GetLexicon(), copy);

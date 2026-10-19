@@ -7,6 +7,13 @@
  <data name="About" xml:space="preserve"><value>关于小希输入法</value></data>
  <data name="Full" xml:space="preserve"><value>全拼</value></data>
  <data name="Double" xml:space="preserve"><value>小鹤双拼</value></data>
+ <data name="Sogou" xml:space="preserve"><value>搜狗双拼</value></data>
+ <data name="Microsoft" xml:space="preserve"><value>微软双拼</value></data>
+ <data name="NaturalCode" xml:space="preserve"><value>自然码双拼</value></data>
+ <data name="Abc" xml:space="preserve"><value>智能 ABC 双拼</value></data>
+ <data name="Daniu" xml:space="preserve"><value>大牛双拼（缺作者/版本/完整规则）</value></data>
+ <data name="Jiajia" xml:space="preserve"><value>加加双拼</value></data>
+ <data name="Xiaoyue" xml:space="preserve"><value>小月双拼（缺作者/版本/完整规则）</value></data>
  <data name="Unknown" xml:space="preserve"><value>方案未知</value></data>
  <data name="Hint" xml:space="preserve"><value>保存后下次启动输入服务生效，当前输入不受影响。</value></data>
  <data name="Current" xml:space="preserve"><value>当前运行：{0}；已保存：{1}</value></data>
@@ -33,6 +40,8 @@
  <data name="Conflict" xml:space="preserve"><value>设置已在其他操作中更改，请重新加载。</value></data>
  <data name="HostChanged" xml:space="preserve"><value>输入服务已重启，请重新加载后应用。</value></data>
  <data name="PackageUnavailable" xml:space="preserve"><value>无法使用所选方案，请检查已安装词库。</value></data>
+ <data name="ExperienceWriterBusy" xml:space="preserve"><value>此体验配置正由另一个程序使用，无法取得设置写入锁。未修改任何设置。请在该程序正常退出后重新打开体验。</value></data>
+ <data name="ExperienceStartupUnavailable" xml:space="preserve"><value>暂时无法打开体验配置或连接已有窗口。未修改任何设置。请稍后重新打开；若问题持续，请提供此配置路径和诊断日志。</value></data>
  <data name="StorageUnavailable" xml:space="preserve"><value>无法保存设置，请检查当前用户目录访问权限。</value></data>
  <data name="InvalidSettings" xml:space="preserve"><value>设置内容无效或配置文件已损坏。</value></data>
  <data name="Unsupported" xml:space="preserve"><value>当前输入服务不支持设置。</value></data>
@@ -47,4 +56,23 @@
  <data name="No" xml:space="preserve"><value>否</value></data>
  <data name="TrayUnavailable" xml:space="preserve"><value>托盘不可用，状态栏保守保持显示。可再次启动相同入口恢复状态栏或打开设置。</value></data>
  <data name="Temporary" xml:space="preserve"><value>状态栏已临时恢复，尚未保存。</value></data>
+ <data name="SchemeGroup" xml:space="preserve"><value>输入方案 / 拼音方案</value></data>
+ <data name="StatusGroup" xml:space="preserve"><value>状态栏</value></data>
+ <data name="UnavailableSchemes" xml:space="preserve"><value>暂不可用：大牛双拼、小月双拼（缺作者/版本/完整规则，不造表）。自然码采用用户授权回忆的常见产品基线，非官方来源核验；小鹤沿用仓库实现基线。</value></data>
+ <data name="FuzzyUnavailable" xml:space="preserve"><value>模糊音：勾选后应用立即刷新候选；取消不改变已保存规则，默认关闭全部规则。</value></data>
+ <data name="FuzzyChC" xml:space="preserve"><value>c ↔ ch</value></data>
+ <data name="FuzzyShS" xml:space="preserve"><value>s ↔ sh</value></data>
+ <data name="FuzzyZhZ" xml:space="preserve"><value>z ↔ zh</value></data>
+ <data name="FuzzyAngAn" xml:space="preserve"><value>an ↔ ang</value></data>
+ <data name="FuzzyEngEn" xml:space="preserve"><value>en ↔ eng</value></data>
+ <data name="FuzzyInIng" xml:space="preserve"><value>in ↔ ing</value></data>
+ <data name="FuzzyIanIang" xml:space="preserve"><value>ian ↔ iang</value></data>
+ <data name="FuzzyUanUang" xml:space="preserve"><value>uan ↔ uang</value></data>
+ <data name="FuzzyAiAn" xml:space="preserve"><value>ai ↔ an</value></data>
+ <data name="FuzzyUnOng" xml:space="preserve"><value>un ↔ ong</value></data>
+ <data name="DebugHint" xml:space="preserve"><value>本地词库体验：方案应用后重建会话；保留活动输入和提交文本。状态栏字段仅保存正式偏好，不控制本地候选窗。配置与正式输入法隔离。</value></data>
+ <data name="DebugSaved" xml:space="preserve"><value>本地配置已保存，方案已生效；活动输入及已提交文本已保留。</value></data>
+ <data name="ExperienceStartupDetails" xml:space="preserve"><value>配置：{0}
+错误代码：0x{1:X8}
+详细信息：{2}</value></data>
 </root>

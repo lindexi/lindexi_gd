@@ -98,7 +98,7 @@ public class ProductSettingsTests
         using var host = CreateHost(NewPath());
         var state = await host.GetProductSettingsAsync();
         var operation = Guid.NewGuid();
-        await host.SaveProductSettingsAsync(new(state.HostInstanceId, operation, 0, state.Settings));
+        await host.SaveProductSettingsAsync(new(state.HostInstanceId, operation, 0, state.Settings with { StatusBarVisible = false }));
         var read = await host.GetProductSettingsAsync();
         Assert.Equal((1L, (Guid?)operation), (read.Settings.Revision, read.LastOperationId));
     }
