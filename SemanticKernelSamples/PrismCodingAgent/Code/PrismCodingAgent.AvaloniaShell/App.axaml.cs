@@ -34,11 +34,11 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    private async void InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
+    private void InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
     {
         CodingChatStartupOptions startup = CodingChatStartupOptions.FromArguments(desktop.Args);
         CodingChatRoomPaths paths = startup.Paths;
-        await InitializeMainWindowAsync(desktop, paths);
+        _ = InitializeMainWindowAsync(desktop, paths);
     }
 
     private static async Task InitializeMainWindowAsync
