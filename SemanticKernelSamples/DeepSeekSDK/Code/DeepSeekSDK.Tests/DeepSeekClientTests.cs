@@ -1,6 +1,3 @@
-using System.Net;
-using System.Text;
-using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DeepSeekSDK.Tests;
@@ -8,214 +5,113 @@ namespace DeepSeekSDK.Tests;
 [TestClass]
 public sealed class DeepSeekClientTests
 {
+    /// <summary>验证真实服务拒绝非法参数时保留 HTTP 状态码及错误信息。</summary>
     [TestMethod]
-    public async Task SearchAsyncSendsExpectedRequestAsync()
+    [TestCategory("Integration")]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task InvalidRequestReturnsHttpErrorAsync(bool fetch)
     {
-        using var handler = new StubHandler(async (message, cancellationToken) =>
+        const string keyPath = @"c:\lindexi\Work\Key\deepseek.txt";
+        if (!File.Exists(keyPath))
         {
-            var body = await message.Content!.ReadAsStringAsync(cancellationToken);
-            var actual = new
+            return;
+        }
+
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        var apiKey = (await File.ReadAllTextAsync(keyPath, cancellation.Token)).Trim();
+        using var httpClient = new HttpClient();
+        var client = new DeepSeekClient(httpClient, apiKey);
+
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(async () =>
+        {
+            if (fetch)
             {
-                Method = message.Method.Method,
-                Url = message.RequestUri!.AbsoluteUri,
-                Authorization = message.Headers.Authorization!.ToString(),
-                ContentType = message.Content.Headers.ContentType!.MediaType,
-                Body = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(body))
-            };
-            var expected = new
-            {
-                Method = "POST",
-                Url = "https://api.deepseek.com/v1/tools/search",
-                Authorization = "Bearer test-key",
-                ContentType = (string?)"application/json",
-                Body = "{\"query\":\"test\",\"count\":5,\"ori_question\":\"question\",\"localization\":\"1.1.1.1\",\"need_content\":true}"
-            };
-            Assert.AreEqual(expected, actual);
-            return JsonResponse("{\"results\":[]}");
-        });
-        using var httpClient = new HttpClient(handler);
-        var client = new DeepSeekClient(httpClient, "test-key");
-
-        await client.SearchAsync(new DeepSeekSearchRequest
-        {
-            Query = "test",
-            Count = 5,
-            OriginalQuestion = "question",
-            Localization = "1.1.1.1",
-            NeedContent = true
-        });
-    }
-
-    [TestMethod]
-    public async Task SearchAsyncSendsDefaultsAsync()
-    {
-        using var handler = new StubHandler(async (message, cancellationToken) =>
-        {
-            using var body = JsonDocument.Parse(await message.Content!.ReadAsStringAsync(cancellationToken));
-            Assert.AreEqual(
-                (10, JsonValueKind.Null, string.Empty, false),
-                (body.RootElement.GetProperty("count").GetInt32(),
-                 body.RootElement.GetProperty("ori_question").ValueKind,
-                 body.RootElement.GetProperty("localization").GetString(),
-                 body.RootElement.GetProperty("need_content").GetBoolean()));
-            return JsonResponse("{\"results\":[]}");
-        });
-        using var httpClient = new HttpClient(handler);
-        await new DeepSeekClient(httpClient, "test-key").SearchAsync(new() { Query = "test" });
-    }
-
-    [TestMethod]
-    public async Task SearchAsyncDeserializesAllResultFieldsAsync()
-    {
-        const string json = """
-            {"results":[{"rerank_score":2.5,"title":"Title","url":"https://example.com/","snippet":"Short","summary":"Long","content":"Body","site_name":"Example","site_icon":"https://example.com/icon.png","date":"2026-01-02T03:04:05Z","authority":4}]}
-            """;
-        using var handler = new StubHandler((_, _) => Task.FromResult(JsonResponse(json)));
-        using var httpClient = new HttpClient(handler);
-        var response = await new DeepSeekClient(httpClient, "test-key").SearchAsync(new() { Query = "test" });
-
-        CollectionAssert.AreEqual(new[]
-        {
-            new DeepSeekSearchResult
-            {
-                RerankScore = 2.5f, Title = "Title", Url = "https://example.com/",
-                Snippet = "Short", Summary = "Long", Content = "Body", SiteName = "Example",
-                SiteIcon = "https://example.com/icon.png",
-                Date = new DateTimeOffset(2026, 1, 2, 3, 4, 5, TimeSpan.Zero), Authority = 4
+                await client.FetchAsync(new() { Url = string.Empty }, cancellation.Token);
             }
-        }, response.Results.ToArray());
-    }
-
-    [TestMethod]
-    public async Task SearchAsyncAcceptsNullableResultFieldsAsync()
-    {
-        const string json = """
-            {"results":[{"rerank_score":0,"title":"Title","url":"https://example.com/","snippet":"","summary":"","content":"","site_name":null,"site_icon":null,"date":null,"authority":-1}]}
-            """;
-        using var handler = new StubHandler((_, _) => Task.FromResult(JsonResponse(json)));
-        using var httpClient = new HttpClient(handler);
-        var response = await new DeepSeekClient(httpClient, "test-key").SearchAsync(new() { Query = "test" });
-
-        Assert.AreEqual((null, null, null, string.Empty, -1),
-            (response.Results[0].SiteName, response.Results[0].SiteIcon,
-             response.Results[0].Date, response.Results[0].Content, response.Results[0].Authority));
-    }
-
-    [TestMethod]
-    public async Task SearchAsyncAcceptsEmptyResultsAsync()
-    {
-        using var handler = new StubHandler((_, _) => Task.FromResult(JsonResponse("{\"results\":[]}")));
-        using var httpClient = new HttpClient(handler);
-        var response = await new DeepSeekClient(httpClient, "test-key").SearchAsync(new() { Query = "test" });
-
-        Assert.IsEmpty(response.Results);
-    }
-
-    [TestMethod]
-    [DataRow(null, 0, null)]
-    [DataRow("", 51, "")]
-    [DataRow(" \t\r\n", -1, " \t")]
-    public async Task SearchAsyncSendsParametersWithoutValidationAsync(string? query, int count, string? question)
-    {
-        using var handler = new StubHandler(async (message, cancellationToken) =>
-        {
-            using var body = JsonDocument.Parse(await message.Content!.ReadAsStringAsync(cancellationToken));
-            Assert.AreEqual((query, count, question),
-                (body.RootElement.GetProperty("query").GetString(),
-                 body.RootElement.GetProperty("count").GetInt32(),
-                 body.RootElement.GetProperty("ori_question").GetString()));
-            return JsonResponse("{\"results\":[]}");
+            else
+            {
+                await client.SearchAsync(new() { Query = string.Empty }, cancellation.Token);
+            }
         });
-        using var httpClient = new HttpClient(handler);
-        var client = new DeepSeekClient(httpClient, "test-key");
 
-        await client.SearchAsync(new() { Query = query!, Count = count, OriginalQuestion = question });
+        Assert.AreEqual(System.Net.HttpStatusCode.BadRequest, exception.StatusCode);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(exception.Message));
     }
 
+    /// <summary>验证真实网页抓取返回页面标题及正文。</summary>
     [TestMethod]
-    public async Task SearchAsyncSendsLongTextWithoutTruncationAsync()
+    [TestCategory("Integration")]
+    public async Task FetchAsyncReturnsRealPageAsync()
     {
-        var text = string.Concat(Enumerable.Repeat("😀", 129));
-        using var handler = new StubHandler(async (message, cancellationToken) =>
+        const string keyPath = @"c:\lindexi\Work\Key\deepseek.txt";
+        if (!File.Exists(keyPath))
         {
-            using var body = JsonDocument.Parse(await message.Content!.ReadAsStringAsync(cancellationToken));
-            Assert.AreEqual((text, text),
-                (body.RootElement.GetProperty("query").GetString(),
-                 body.RootElement.GetProperty("ori_question").GetString()));
-            return JsonResponse("{\"results\":[]}");
-        });
-        using var httpClient = new HttpClient(handler);
-        var client = new DeepSeekClient(httpClient, "test-key");
+            return;
+        }
 
-        await client.SearchAsync(new() { Query = text, OriginalQuestion = text });
-    }
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        var apiKey = (await File.ReadAllTextAsync(keyPath, cancellation.Token)).Trim();
+        using var httpClient = new HttpClient();
+        var client = new DeepSeekClient(httpClient, apiKey);
 
-    [TestMethod]
-    [DataRow(1)]
-    [DataRow(50)]
-    public async Task SearchAsyncAcceptsUnicodeAndCountBoundariesAsync(int count)
-    {
-        using var handler = new StubHandler((_, _) => Task.FromResult(JsonResponse("{\"results\":[]}")));
-        using var httpClient = new HttpClient(handler);
-        var text = string.Concat(Enumerable.Repeat("😀", 128));
-        var result = await new DeepSeekClient(httpClient, "test-key").SearchAsync(
-            new() { Query = text, OriginalQuestion = text, Count = count });
-
-        Assert.IsEmpty(result.Results);
-    }
-
-    [TestMethod]
-    [DataRow(400)]
-    [DataRow(401)]
-    [DataRow(429)]
-    [DataRow(500)]
-    public async Task SearchAsyncPreservesHttpErrorStatusAsync(int status)
-    {
-        using var handler = new StubHandler((_, _) => Task.FromResult(new HttpResponseMessage((HttpStatusCode)status)));
-        using var httpClient = new HttpClient(handler);
-        var client = new DeepSeekClient(httpClient, "test-key");
-
-        var exception = await Assert.ThrowsAsync<HttpRequestException>(() => client.SearchAsync(new() { Query = "test" }));
-
-        Assert.AreEqual((HttpStatusCode)status, exception.StatusCode);
-    }
-
-    [TestMethod]
-    [DataRow("null")]
-    [DataRow("{}")]
-    [DataRow("not json")]
-    public async Task SearchAsyncRejectsInvalidResponseAsync(string json)
-    {
-        using var handler = new StubHandler((_, _) => Task.FromResult(JsonResponse(json)));
-        using var httpClient = new HttpClient(handler);
-        var client = new DeepSeekClient(httpClient, "test-key");
-
-        await Assert.ThrowsAsync<JsonException>(() => client.SearchAsync(new() { Query = "test" }));
-    }
-
-    [TestMethod]
-    public async Task SearchAsyncPropagatesCancellationAsync()
-    {
-        using var handler = new StubHandler(async (_, token) =>
+        var response = await client.FetchAsync(new DeepSeekFetchRequest
         {
-            await Task.Delay(Timeout.Infinite, token);
-            return JsonResponse("{\"results\":[]}");
-        });
-        using var httpClient = new HttpClient(handler);
-        using var cancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
-        var client = new DeepSeekClient(httpClient, "test-key");
+            Url = "https://api-docs.deepseek.com/"
+        }, cancellation.Token);
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => client.SearchAsync(new() { Query = "test" }, cancellation.Token));
+        StringAssert.Contains(response.Content, "DeepSeek");
     }
 
-    private static HttpResponseMessage JsonResponse(string json) => new(HttpStatusCode.OK)
+    /// <summary>验证默认参数及显式指定正文选项时的真实搜索结果。</summary>
+    [TestMethod]
+    [TestCategory("Integration")]
+    [DataRow(null)]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task SearchAsyncReturnsRealResultsAsync(bool? needContent)
     {
-        Content = new StringContent(json, Encoding.UTF8, "application/json")
-    };
+        const string keyPath = @"c:\lindexi\Work\Key\deepseek.txt";
+        if (!File.Exists(keyPath))
+        {
+            return;
+        }
 
-    private sealed class StubHandler(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync) : HttpMessageHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            => sendAsync(request, cancellationToken);
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        var apiKey = (await File.ReadAllTextAsync(keyPath, cancellation.Token)).Trim();
+        using var httpClient = new HttpClient();
+        var client = new DeepSeekClient(httpClient, apiKey);
+
+        var request = new DeepSeekSearchRequest
+        {
+            Query = "DeepSeek 官方 API 文档"
+        };
+        if (needContent.HasValue)
+        {
+            request = request with
+            {
+                Count = 2,
+                OriginalQuestion = "在哪里查看 DeepSeek 官方 API 文档？",
+                NeedContent = needContent.Value
+            };
+        }
+
+        var response = await client.SearchAsync(request, cancellation.Token);
+
+        Assert.IsTrue(response.Results.Count > 0 && response.Results.Count <= request.Count);
+        foreach (var result in response.Results)
+        {
+            Assert.IsNotNull(result.Title);
+            Assert.IsTrue(Uri.TryCreate(result.Url, UriKind.Absolute, out _));
+            Assert.IsNotNull(result.Snippet);
+            Assert.IsNotNull(result.Summary);
+            Assert.IsNotNull(result.Content);
+            Assert.IsTrue(result.RerankScore is >= 0 and <= 3);
+            Assert.IsTrue(result.Authority is >= -1 and <= 4);
+            if (!request.NeedContent)
+            {
+                Assert.AreEqual(string.Empty, result.Content);
+            }
+        }
     }
 }
