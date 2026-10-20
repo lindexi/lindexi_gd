@@ -24,8 +24,6 @@ namespace PrismCodingAgent.AvaloniaShell.ViewModels;
 /// </summary>
 public sealed class ChatViewModel : ViewModelBase, IDisposable
 {
-    private readonly bool _isDemoRunning;
-    private readonly string? _demoWorkspacePath;
     private readonly CopilotChatManager? _chatManager;
     private readonly CodingWorkTaskController? _workTaskController;
     private readonly CodingWorkspaceController? _workspaceController;
@@ -58,13 +56,6 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
         PendingImages.CollectionChanged += OnPendingImagesCollectionChanged;
         InitializeReasoningEfforts();
         RebuildAbilities();
-    }
-
-    internal ChatViewModel(bool isRunning, string workspacePath, string modelStatusText) : this()
-    {
-        _isDemoRunning = isRunning;
-        _demoWorkspacePath = workspacePath;
-        _modelStatusText = modelStatusText;
     }
 
     internal ChatViewModel(
@@ -357,7 +348,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 获取是否正在运行。
     /// </summary>
-    public bool IsRunning => _isDemoRunning || _workTaskController?.IsRunActive == true || _workTaskController?.IsLoopActive == true;
+    public bool IsRunning => _workTaskController?.IsRunActive == true || _workTaskController?.IsLoopActive == true;
 
     /// <summary>
     /// 获取当前是否正在压缩对话。
@@ -372,7 +363,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// </summary>
     public string WorkspaceInput
     {
-        get => _workspaceController?.WorkspaceInput ?? _demoWorkspacePath ?? string.Empty;
+        get => _workspaceController?.WorkspaceInput ?? string.Empty;
         set
         {
             if (_workspaceController is not null)
@@ -385,7 +376,7 @@ public sealed class ChatViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 获取当前已提交的工作路径。
     /// </summary>
-    public string? NextRunWorkspacePath => _workspaceController?.NextRunWorkspacePath ?? _demoWorkspacePath;
+    public string? NextRunWorkspacePath => _workspaceController?.NextRunWorkspacePath;
 
     /// <summary>
     /// 获取工作路径状态文本。
