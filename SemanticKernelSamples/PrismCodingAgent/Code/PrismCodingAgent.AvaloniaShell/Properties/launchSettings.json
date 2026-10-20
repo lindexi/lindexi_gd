@@ -3,14 +3,6 @@
     "PrismCodingAgent.AvaloniaShell": {
       "commandName": "Project"
     },
-    "中文演示": {
-      "commandName": "Project",
-      "commandLineArgs": "--demo-zh"
-    },
-    "英文演示": {
-      "commandName": "Project",
-      "commandLineArgs": "--demo-en"
-    },
     "调试欢迎界面": {
       "commandName": "Project",
       "commandLineArgs": "--debug-onboarding"
