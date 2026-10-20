@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Status400" xml:space="preserve"><value>请求头或请求体不合法，包括 JSON 格式错误或字段值无效。</value></data>
+  <data name="Status401" xml:space="preserve"><value>API Key 缺失或无效。</value></data>
+  <data name="Status402" xml:space="preserve"><value>账号余额不足。</value></data>
+  <data name="Status403" xml:space="preserve"><value>Fetch 请求被安全策略拒绝。</value></data>
+  <data name="Status404" xml:space="preserve"><value>Fetch 未能获取可用的网页内容，例如 URL 不可用、被站点策略拦截、目标站点返回错误、内容类型不受支持或页面没有可提取的 Markdown 正文。</value></data>
+  <data name="Status408" xml:space="preserve"><value>读取请求体超时。</value></data>
+  <data name="Status413" xml:space="preserve"><value>请求体超过大小限制。</value></data>
+  <data name="Status429" xml:space="preserve"><value>超过 Search 或 Fetch 的 QPS 限制。</value></data>
+  <data name="Status500" xml:space="preserve"><value>服务器内部错误。</value></data>
+  <data name="Status504" xml:space="preserve"><value>下游请求超时。</value></data>
+</root>

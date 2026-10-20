@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/Code/">
+    <Project Path="Code/DeepSeekSDK/DeepSeekSDK.csproj" />
+    <Project Path="Code/DeepSeekSDK.Tests/DeepSeekSDK.Tests.csproj" />
+  </Folder>
+</Solution>
