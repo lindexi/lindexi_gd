@@ -1,4 +1,4 @@
-# CodingChatRoom 多工作任务并行改造设计
+﻿# CodingChatRoom 多工作任务并行改造设计
 
 ## 1. 设计边界
 
