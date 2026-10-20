@@ -392,6 +392,16 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         }
     }
 
+    /// <summary>获取当前窗口是否为无运行时的只读演示。</summary>
+    public bool IsDemo { get; private init; }
+
+    internal static MainViewModel CreateDemo(IReadOnlyList<WorkTaskItemViewModel> tasks)
+    {
+        var main = new MainViewModel(tasks, [], null, null, null, null) { IsDemo = true };
+        main.Activate(tasks[2]);
+        return main;
+    }
+
     private void Activate(WorkTaskItemViewModel task)
     {
         _activeWorkTask.IsActive = false;

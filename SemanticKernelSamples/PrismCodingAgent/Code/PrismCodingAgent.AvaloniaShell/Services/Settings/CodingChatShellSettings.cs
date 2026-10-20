@@ -1,8 +1,23 @@
+using System.Globalization;
+
 namespace PrismCodingAgent.AvaloniaShell.Services.Settings;
 
 internal sealed record CodingChatShellSettings
 {
-    public string LanguageTag { get; init; } = "zh-Hans";
+    public string LanguageTag { get; init; } = GetDefaultLanguageTag();
+
+    private static string GetDefaultLanguageTag()
+    {
+        for (var culture = CultureInfo.CurrentUICulture; culture.Name.Length > 0; culture = culture.Parent)
+        {
+            if (culture.Name is "zh-Hans" or "en")
+            {
+                return culture.Name;
+            }
+        }
+
+        return "zh-Hans";
+    }
 
     public bool IsWindowsSandboxEnabled { get; init; } = true;
 

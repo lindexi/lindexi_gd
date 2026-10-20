@@ -1,6 +1,7 @@
 using AgentLib.Coding.Sandboxes;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using PrismCodingAgent.AvaloniaShell.Infrastructure;
+using PrismCodingAgent.AvaloniaShell.Localizations;
 using PrismCodingAgent.AvaloniaShell.Services.Integrations.WindowsSandbox;
 using PrismCodingAgent.AvaloniaShell.Services.Settings;
 using PrismCodingAgent.AvaloniaShell.Services.WorkTasks;
@@ -143,7 +144,7 @@ public sealed class SettingsViewModelTests
         Assert.HasCount(1, viewModel.Providers);
         Assert.AreNotEqual("https://example.com", viewModel.Providers[0].EndPoint);
         Assert.IsTrue(viewModel.IsStatusError);
-        StringAssert.StartsWith(viewModel.StatusMessage, "现有模型配置无法读取：");
+        StringAssert.StartsWith(viewModel.StatusMessage, Lang.Current.ModelReadFailed.ToString(string.Empty));
     }
 
     [TestMethod(DisplayName = "测试沙箱连接时应立即显示连接中提示")]
@@ -156,7 +157,7 @@ public sealed class SettingsViewModelTests
         viewModel.TestWindowsSandboxConnectionCommand.Execute(null);
         await tester.Started.Task;
 
-        Assert.AreEqual("尝试连接沙箱中…", viewModel.SandboxConnectionStatusMessage);
+        Assert.AreEqual(Lang.Current.SandboxConnecting, viewModel.SandboxConnectionStatusMessage);
     }
 
     [TestMethod(DisplayName = "沙箱连接测试完成后应显示测试结果")]

@@ -22,7 +22,7 @@ public sealed class SettingsViewModel : ViewModelBase
     private readonly SimpleAsyncCommand _testWindowsSandboxConnectionCommand;
     private CancellationTokenSource? _sandboxConnectionTestCancellationTokenSource;
     private string? _primaryModel;
-    private string _languageTag = "zh-Hans";
+    private string _languageTag = Localizations.Lang.Current.IetfLanguageTag;
 
     /// <summary>获取可选择的界面语言标签。</summary>
     public string[] LanguageTags { get; } = ["zh-Hans", "en"];

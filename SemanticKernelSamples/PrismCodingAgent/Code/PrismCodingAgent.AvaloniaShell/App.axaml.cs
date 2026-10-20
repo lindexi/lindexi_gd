@@ -37,6 +37,13 @@ public partial class App : Application
     private void InitializeApp(IClassicDesktopStyleApplicationLifetime desktop)
     {
         CodingChatStartupOptions startup = CodingChatStartupOptions.FromArguments(desktop.Args);
+        if (startup.DemoLanguage is { } demoLanguage)
+        {
+            Localizations.Lang.SetCurrent(demoLanguage);
+            desktop.MainWindow = new MainWindow { DataContext = CodingChatDemoFactory.Create(), Height = 1160 };
+            return;
+        }
+
         CodingChatRoomPaths paths = startup.Paths;
         _ = InitializeMainWindowAsync(desktop, paths);
     }
