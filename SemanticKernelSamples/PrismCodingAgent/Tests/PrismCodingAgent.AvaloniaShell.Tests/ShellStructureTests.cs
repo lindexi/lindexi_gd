@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Reflection;
 using PrismCodingAgent.AvaloniaShell.Converters;
+using PrismCodingAgent.AvaloniaShell.Localizations;
 using PrismCodingAgent.AvaloniaShell.ViewModels;
 using ChatView = PrismCodingAgent.AvaloniaShell.Views.ChatView;
 
@@ -149,7 +150,7 @@ public sealed class ShellStructureTests
         var viewModel = new ChatViewModel();
 
         CollectionAssert.AreEqual(
-            new[] { "默认", "低", "中", "高" },
+            new string[] { Lang.Current.ReasoningDefault, Lang.Current.ReasoningLow, Lang.Current.ReasoningMedium, Lang.Current.ReasoningHigh },
             viewModel.AvailableReasoningEfforts.Select(option => option.DisplayName).ToArray());
         Assert.IsNull(viewModel.SelectedReasoningEffort?.Value);
     }
