@@ -11,5 +11,6 @@ public sealed record DeepSeekFetchRequest
     /// 客户端不校验或改写地址，原样传递给服务端处理。
     /// </remarks>
     [JsonPropertyName("url")]
+    [JsonRequired]
     public required string Url { get; init; }
 }

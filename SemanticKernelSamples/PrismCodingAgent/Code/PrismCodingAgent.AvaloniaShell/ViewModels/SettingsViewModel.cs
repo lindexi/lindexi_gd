@@ -1,5 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -13,7 +16,7 @@ using PrismCodingAgent.AvaloniaShell.Services.Settings;
 
 namespace PrismCodingAgent.AvaloniaShell.ViewModels;
 
-public sealed class SettingsViewModel : ViewModelBase
+public sealed class SettingsViewModel : ViewModelBase, IDisposable
 {
     private readonly CodingChatSettingsService? _settingsService;
     private readonly IWindowsSandboxConnectionTester? _windowsSandboxConnectionTester;
@@ -39,6 +42,11 @@ public sealed class SettingsViewModel : ViewModelBase
     private string? _sandboxConnectionStatusMessage;
     private bool _isSandboxConnectionStatusError;
     private bool _isSandboxConnectionTestRunning;
+    private string? _deepSeekApiKey;
+    private bool _hasExplicitDeepSeekApiKey;
+    private bool _isLoading;
+    private bool _isDisposed;
+    private readonly HashSet<ProviderSettingsViewModel> _subscribedProviders = [];
     private bool _isNetworkProxyEnabled;
     private string? _networkProxyAddress;
     private bool _bypassProxyOnLocal = true;
@@ -55,6 +63,7 @@ public sealed class SettingsViewModel : ViewModelBase
         BackCommand = new SimpleCommand(static () => { }, static () => false);
         AddProviderCommand = new SimpleCommand(AddProvider);
         RemoveProviderCommand = new SimpleCommand<ProviderSettingsViewModel>(RemoveProvider);
+        Providers.CollectionChanged += OnProvidersChanged;
         Providers.Add(CreateEmptyProvider());
     }
 
@@ -82,6 +91,7 @@ public sealed class SettingsViewModel : ViewModelBase
         BackCommand = new SimpleCommand(Back);
         AddProviderCommand = new SimpleCommand(AddProvider);
         RemoveProviderCommand = new SimpleCommand<ProviderSettingsViewModel>(RemoveProvider);
+        Providers.CollectionChanged += OnProvidersChanged;
         Providers.Add(CreateEmptyProvider());
     }
 
@@ -129,6 +139,18 @@ public sealed class SettingsViewModel : ViewModelBase
             {
                 _testWindowsSandboxConnectionCommand.RaiseCanExecuteChanged();
             }
+        }
+    }
+
+    /// <summary>获取或设置 DeepSeek 官方网络工具使用的 API 密钥。</summary>
+    public string? DeepSeekApiKey
+    {
+        get => _deepSeekApiKey;
+        set
+        {
+            _hasExplicitDeepSeekApiKey = !string.IsNullOrWhiteSpace(value);
+            SetField(ref _deepSeekApiKey, value);
+            RefreshDeepSeekApiKey();
         }
     }
 
@@ -245,6 +267,8 @@ public sealed class SettingsViewModel : ViewModelBase
 
     private void Load(CodingChatSettingsSnapshot snapshot)
     {
+        _isLoading = true;
+        DeepSeekApiKey = snapshot.ShellSettings.DeepSeekApiKey;
         LanguageTag = snapshot.ShellSettings.LanguageTag;
         IsWindowsSandboxEnabled = snapshot.ShellSettings.IsWindowsSandboxEnabled;
         WindowsSandboxToolPath = snapshot.ShellSettings.WindowsSandboxToolPath;
@@ -269,6 +293,9 @@ public sealed class SettingsViewModel : ViewModelBase
         {
             Providers.Add(CreateEmptyProvider());
         }
+
+        _isLoading = false;
+        RefreshDeepSeekApiKey();
 
         if (!string.IsNullOrWhiteSpace(snapshot.ModelConfigurationError))
         {
@@ -355,6 +382,7 @@ public sealed class SettingsViewModel : ViewModelBase
             };
             var shellSettings = new CodingChatShellSettings
             {
+                DeepSeekApiKey = DeepSeekApiKeyResolver.Resolve(DeepSeekApiKey, modelConfiguration),
                 LanguageTag = LanguageTag,
                 IsWindowsSandboxEnabled = IsWindowsSandboxEnabled,
                 WindowsSandboxToolPath = WindowsSandboxToolPath,
@@ -378,6 +406,7 @@ public sealed class SettingsViewModel : ViewModelBase
                 validationManager.HttpClient?.Dispose();
             }
             await _settingsService.SaveAsync(modelConfiguration, shellSettings).ConfigureAwait(true);
+            SetField(ref _deepSeekApiKey, shellSettings.DeepSeekApiKey, nameof(DeepSeekApiKey));
             Localizations.Lang.SetCurrent(LanguageTag);
             var settings = new CodingChatSettingsSnapshot(modelConfiguration, shellSettings, null);
             SettingsSaved?.Invoke(this, new CodingChatSettingsSavedEventArgs(settings));
@@ -437,6 +466,60 @@ public sealed class SettingsViewModel : ViewModelBase
         _backAction?.Invoke();
     }
 
+    private void OnProvidersChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        foreach (var provider in _subscribedProviders.Where(provider => !Providers.Contains(provider)).ToArray())
+        {
+            provider.PropertyChanged -= OnProviderPropertyChanged;
+            _subscribedProviders.Remove(provider);
+        }
+
+        foreach (var provider in Providers)
+        {
+            if (_subscribedProviders.Add(provider))
+            {
+                provider.PropertyChanged += OnProviderPropertyChanged;
+            }
+        }
+
+        RefreshDeepSeekApiKey();
+    }
+
+    private void OnProviderPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(e.PropertyName)
+            || e.PropertyName is nameof(ProviderSettingsViewModel.ApiKey) or nameof(ProviderSettingsViewModel.EndPoint))
+        {
+            RefreshDeepSeekApiKey();
+        }
+    }
+
+    private void RefreshDeepSeekApiKey()
+    {
+        if (_isDisposed || _isLoading || _hasExplicitDeepSeekApiKey) return;
+
+        var configuration = new AgentApiManagerConfiguration
+        {
+            OpenAIConfigurationList = Providers.Select(provider =>
+                new OpenAIProtocolLanguageModelConfiguration(provider.EndPoint, provider.ApiKey)).ToArray(),
+        };
+        SetField(ref _deepSeekApiKey, DeepSeekApiKeyResolver.Resolve(null, configuration), nameof(DeepSeekApiKey));
+    }
+
+    /// <summary>解除模型服务监听并取消尚未完成的沙箱连接检查。</summary>
+    public void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        Providers.CollectionChanged -= OnProvidersChanged;
+        foreach (var provider in _subscribedProviders)
+        {
+            provider.PropertyChanged -= OnProviderPropertyChanged;
+        }
+        _subscribedProviders.Clear();
+        _sandboxConnectionTestCancellationTokenSource?.Cancel();
+    }
+
     private void AddProvider() => Providers.Add(CreateEmptyProvider());
 
     private void RemoveProvider(ProviderSettingsViewModel? provider)
@@ -473,14 +556,6 @@ public sealed class ProviderSettingsViewModel : ViewModelBase
 {
     private string _endPoint = string.Empty;
     private string _apiKey = string.Empty;
-    private bool _isKeyVisible;
-
-    public bool IsKeyVisible
-    {
-        get => _isKeyVisible;
-        set => SetField(ref _isKeyVisible, value);
-    }
-
     public ProviderSettingsViewModel()
     {
         AddModelCommand = new SimpleCommand(AddModel);

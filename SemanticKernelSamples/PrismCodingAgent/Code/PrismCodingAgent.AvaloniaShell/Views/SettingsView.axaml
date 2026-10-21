@@ -40,6 +40,13 @@
                         <TextBlock Text="{Binding LanguageHint, Source={x:Static localizations:Lang.Current}}" Classes="SettingsHint" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
+                <Border Classes="SettingsCard" Padding="24">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="{Binding DeepSeekApiKeyText, Source={x:Static localizations:Lang.Current}}" Classes="SettingsSectionTitle" />
+                        <views:SecretInput x:Name="DeepSeekApiKeyInput" Text="{Binding DeepSeekApiKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="{Binding DeepSeekApiKeyHint, Source={x:Static localizations:Lang.Current}}" Classes="SettingsHint" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
                 <Border Classes="SettingsIntro" Padding="18" IsVisible="False">
                     <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
                         <Border Classes="IntroIcon">

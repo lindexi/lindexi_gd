@@ -698,6 +698,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
             string? selectedModelDisplayName = task.Chat.SelectedModel?.DisplayName;
             if (task.Runtime is { } runtime)
             {
+                runtime.SettingsService.ApplyDeepSeekConfiguration(modelConfiguration, e.Settings.ShellSettings);
                 runtime.EndpointManager.WebProxy = CodingWorkTaskRuntimeFactory
                     .CreateWebProxy(e.Settings.ShellSettings);
                 runtime.ApplyModelConfiguration(modelConfiguration);
@@ -822,6 +823,7 @@ public sealed class MainViewModel : ViewModelBase, IAsyncDisposable
         if (_settingsViewModel is not null)
         {
             _settingsViewModel.SettingsSaved -= OnSettingsSaved;
+            _settingsViewModel.Dispose();
         }
 
         foreach (WorkTaskItemViewModel task in WorkTasks)
