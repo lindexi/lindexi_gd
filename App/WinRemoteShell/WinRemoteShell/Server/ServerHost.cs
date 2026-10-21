@@ -108,6 +108,10 @@ public static class ServerHost
             }
             catch (OperationCanceledException) when (!context.RequestAborted.IsCancellationRequested)
             {
+                await context.Response.WriteAsync(
+                    $"The remote command timed out after {request.TimeoutSeconds} seconds and its process tree was terminated.{Environment.NewLine}",
+                    context.RequestAborted);
+                await context.Response.Body.FlushAsync(context.RequestAborted);
             }
             catch (Exception exception) when (!context.RequestAborted.IsCancellationRequested)
             {

@@ -21,18 +21,37 @@ public static class ExecClient
         string? workingDirectory,
         CancellationToken cancellationToken = default)
     {
-        using var client = new HttpClient { BaseAddress = server };
+        using var client = new HttpClient
+        {
+            BaseAddress = server,
+            Timeout = Timeout.InfiniteTimeSpan
+        };
         var request = new ExecRequest(arguments, timeoutSeconds, workingDirectory);
         using var content = JsonContent.Create(request, AppJsonSerializerContext.Default.ExecRequest);
         using var message = new HttpRequestMessage(HttpMethod.Post, "exec") { Content = content };
-        using var response = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        await response.EnsureSuccessWithDetailsAsync(cancellationToken);
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        using var reader = new StreamReader(stream);
-        while (await reader.ReadLineAsync(cancellationToken) is { } line)
+
+        try
         {
-            await output.WriteLineAsync(line.AsMemory(), cancellationToken);
-            await output.FlushAsync(cancellationToken);
+            using var response = await client.SendAsync(
+                message,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+            await response.EnsureSuccessWithDetailsAsync(cancellationToken);
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var reader = new StreamReader(stream);
+            while (await reader.ReadLineAsync(cancellationToken) is { } line)
+            {
+                await output.WriteLineAsync(line.AsMemory(), cancellationToken);
+                await output.FlushAsync(cancellationToken);
+            }
+        }
+        catch (HttpRequestException exception)
+        {
+            var executable = arguments.Count > 0 ? arguments[0] : "<missing>";
+            throw new HttpRequestException(
+                $"Failed to execute '{executable}' on remote server '{server}': {exception.Message}",
+                exception,
+                exception.StatusCode);
         }
     }
 }
