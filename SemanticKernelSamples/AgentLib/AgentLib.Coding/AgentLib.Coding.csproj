@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net9.0;</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AgentLib\AgentLib.csproj" />
+    <ProjectReference Include="..\..\DeepSeekSDK\Code\DeepSeekSDK\DeepSeekSDK.csproj" />
   </ItemGroup>
 
 </Project>

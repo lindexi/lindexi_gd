@@ -1,6 +1,4 @@
-using System.Globalization;
 using System.Net.Http.Headers;
-using System.Resources;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -12,7 +10,6 @@ public sealed class DeepSeekClient
     private const string ApiHost = "https://api.deepseek.com/";
     private const string SearchEndpoint = ApiHost + "v1/tools/search";
     private const string FetchEndpoint = ApiHost + "v1/tools/fetch";
-    private static readonly ResourceManager ErrorMessages = new("DeepSeekSDK.HttpErrorMessages", typeof(DeepSeekClient).Assembly);
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
 
@@ -28,19 +25,23 @@ public sealed class DeepSeekClient
     (
         DeepSeekSearchRequest request,
         CancellationToken cancellationToken = default
-    ) => PostAsync<DeepSeekSearchRequest, DeepSeekSearchResponse>(SearchEndpoint, request, cancellationToken);
+    ) => PostAsync<DeepSeekSearchRequest, DeepSeekSearchResponse>(SearchEndpoint, request,
+        $"Search Query={request.Query}; Count={request.Count}; NeedContent={request.NeedContent}; Localization={request.Localization}; OriginalQuestion={request.OriginalQuestion}",
+        cancellationToken);
 
     /// <summary>抓取网页，返回标题及 Markdown 正文。非成功状态通过 HttpRequestException 返回，取消通过 OperationCanceledException 返回。</summary>
     public Task<DeepSeekFetchResponse> FetchAsync
     (
         DeepSeekFetchRequest request,
         CancellationToken cancellationToken = default
-    ) => PostAsync<DeepSeekFetchRequest, DeepSeekFetchResponse>(FetchEndpoint, request, cancellationToken);
+    ) => PostAsync<DeepSeekFetchRequest, DeepSeekFetchResponse>(FetchEndpoint, request,
+        $"Fetch Url={request.Url}", cancellationToken);
 
     private async Task<TResponse> PostAsync<TRequest, TResponse>
     (
         string endpoint,
         TRequest request,
+        string context,
         CancellationToken cancellationToken
     )
     {
@@ -48,34 +49,56 @@ public sealed class DeepSeekClient
         message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
         message.Content = JsonContent.Create(request);
 
-        using var response = await _httpClient.SendAsync
-        (
-            message, HttpCompletionOption.ResponseHeadersRead, cancellationToken
-        ).ConfigureAwait(false);
-        if (!response.IsSuccessStatusCode)
+        HttpResponseMessage response;
+        try
         {
-            string? errorContent = null;
-            Exception? readException = null;
-            try
-            {
-                errorContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception exception) when
+            response = await _httpClient.SendAsync
             (
-                exception is HttpRequestException or IOException ||
-                exception is OperationCanceledException && !cancellationToken.IsCancellationRequested
-            )
+                message, HttpCompletionOption.ResponseHeadersRead, cancellationToken
+            ).ConfigureAwait(false);
+        }
+        catch (HttpRequestException exception)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            throw new HttpRequestException($"DeepSeek {context} 失败；endpoint={endpoint}；HTTP {(int?)exception.StatusCode}: {exception.Message}",
+                exception, exception.StatusCode);
+        }
+
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
             {
-                readException = exception;
+                string? errorContent = null;
+                Exception? readException = null;
+                try
+                {
+                    errorContent = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception exception) when (exception is HttpRequestException or IOException ||
+                    exception is OperationCanceledException && !cancellationToken.IsCancellationRequested)
+                {
+                    readException = exception;
+                }
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var errorMessage = string.IsNullOrWhiteSpace(errorContent)
+                    ? response.ReasonPhrase ?? response.StatusCode.ToString()
+                    : errorContent;
+                throw new HttpRequestException($"DeepSeek {context} 失败；endpoint={endpoint}；HTTP {(int)response.StatusCode}: {errorMessage}",
+                    readException, response.StatusCode);
             }
 
-            var errorMessage = string.IsNullOrWhiteSpace(errorContent)
-                ? ErrorMessages.GetString($"Status{(int)response.StatusCode}", CultureInfo.CurrentUICulture)
-                    ?? response.ReasonPhrase
-                : errorContent;
-            throw new HttpRequestException(errorMessage, readException, response.StatusCode);
+            try
+            {
+                return await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken: cancellationToken)
+                    .ConfigureAwait(false) ?? throw new JsonException();
+            }
+            catch (HttpRequestException exception)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                throw new HttpRequestException($"DeepSeek {context} 失败；endpoint={endpoint}；HTTP {(int?)exception.StatusCode}: {exception.Message}",
+                    exception, exception.StatusCode);
+            }
         }
-        return await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken)
-            .ConfigureAwait(false) ?? throw new JsonException();
     }
 }

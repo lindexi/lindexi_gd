@@ -25,6 +25,8 @@ internal sealed record CodingChatShellSettings
 
     public string WindowsSandboxServerAddress { get; init; } = "127.0.0.1:12399";
 
+    public string? DeepSeekApiKey { get; init; }
+
     public bool IsNetworkProxyEnabled { get; init; }
 
     public string? NetworkProxyAddress { get; init; }

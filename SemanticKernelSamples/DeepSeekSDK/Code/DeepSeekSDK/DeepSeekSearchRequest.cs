@@ -56,6 +56,7 @@ public sealed record DeepSeekSearchRequest
     /// </code>
     /// </example>
     [JsonPropertyName("query")]
+    [JsonRequired]
     public required string Query { get; init; }
 
     /// <summary>返回条数，范围为 1～50，默认为 10。</summary>

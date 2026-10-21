@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using AgentLib.Coding;
 using AgentLib.Coding.Sandboxes;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using PrismCodingAgent.AvaloniaShell.Infrastructure;
@@ -19,17 +20,20 @@ internal sealed class CodingChatSettingsService
 
     private readonly CodingChatRoomPaths _paths;
     private readonly WindowsSandboxToolSource _windowsSandboxToolSource;
+    private readonly DeepSeekWebToolSource? _deepSeekWebToolSource;
 
     public CodingChatSettingsService
     (
         CodingChatRoomPaths paths,
-        WindowsSandboxToolSource windowsSandboxToolSource
+        WindowsSandboxToolSource windowsSandboxToolSource,
+        DeepSeekWebToolSource? deepSeekWebToolSource = null
     )
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(windowsSandboxToolSource);
         _paths = paths;
         _windowsSandboxToolSource = windowsSandboxToolSource;
+        _deepSeekWebToolSource = deepSeekWebToolSource;
     }
 
     public async Task<CodingChatSettingsSnapshot> LoadAsync(CancellationToken cancellationToken = default)
@@ -81,12 +85,21 @@ internal sealed class CodingChatSettingsService
             cancellationToken
         ).ConfigureAwait(false);
 
+        ApplyDeepSeekConfiguration(modelConfiguration, shellSettings);
         _windowsSandboxToolSource.UpdateConfiguration
         (
             shellSettings.IsWindowsSandboxEnabled,
             shellSettings.WindowsSandboxToolPath,
             shellSettings.WindowsSandboxServerAddress
         );
+    }
+
+    internal void ApplyDeepSeekConfiguration(
+        AgentApiManagerConfiguration modelConfiguration,
+        CodingChatShellSettings shellSettings)
+    {
+        _deepSeekWebToolSource?.UpdateConfiguration(
+            DeepSeekApiKeyResolver.Resolve(shellSettings.DeepSeekApiKey, modelConfiguration));
     }
 
     internal async Task<CodingChatShellSettings> LoadInitialShellSettingsAsync(CancellationToken cancellationToken = default)
