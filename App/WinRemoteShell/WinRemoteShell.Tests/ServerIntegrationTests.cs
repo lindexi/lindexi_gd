@@ -223,7 +223,7 @@ public sealed class ServerIntegrationTests
             output,
             cancellationSource.Token);
 
-        Assert.IsFalse(cancellationSource.IsCancellationRequested);
+        StringAssert.Contains(output.ToString(), "timed out after 1 seconds");
     }
 
     [TestMethod]

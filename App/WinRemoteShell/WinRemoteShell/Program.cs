@@ -1,5 +1,9 @@
+using System.Text;
 using DotNetCampus.Cli;
 using WinRemoteShell.Commands;
+
+Console.InputEncoding = new UTF8Encoding(false);
+Console.OutputEncoding = new UTF8Encoding(false);
 
 var commandLine = CommandLine.Parse(args);
 await commandLine
