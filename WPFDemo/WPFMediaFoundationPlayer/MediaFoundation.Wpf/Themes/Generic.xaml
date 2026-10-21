@@ -1,5 +1,5 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=System.Runtime" xmlns:local="clr-namespace:MediaFoundation.Wpf">
- <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="/MediaFoundation.Wpf;component/Themes/Controls.xaml"/></ResourceDictionary.MergedDictionaries>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=System.Runtime" xmlns:local="clr-namespace:MediaFoundation.Controls">
+ <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="/MediaFoundation.Controls;component/Themes/Controls.xaml"/></ResourceDictionary.MergedDictionaries>
  <Style TargetType="{x:Type local:MediaPlayerControl}">
   <Setter Property="Background" Value="{DynamicResource PlayerBackgroundBrush}"/><Setter Property="Foreground" Value="{DynamicResource PlayerForegroundBrush}"/>
   <Setter Property="MinWidth" Value="580"/>

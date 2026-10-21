@@ -8,7 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using MediaFoundation.Wpf;
+using MediaFoundation.Controls;
 
 namespace MediaFoundation.PlayerDemo;
 

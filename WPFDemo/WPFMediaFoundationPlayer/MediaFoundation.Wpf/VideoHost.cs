@@ -6,7 +6,7 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
-namespace MediaFoundation.Wpf;
+namespace MediaFoundation.Controls;
 
 internal sealed class VideoHost : HwndHost
 {

@@ -1,7 +1,7 @@
 <Application x:Class="MediaFoundation.PlayerDemo.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" ShutdownMode="OnExplicitShutdown">
  <Application.Resources>
   <ResourceDictionary xmlns:sys="clr-namespace:System;assembly=System.Runtime">
-   <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="/MediaFoundation.Wpf;component/Themes/Controls.xaml"/></ResourceDictionary.MergedDictionaries>
+   <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="/MediaFoundation.Controls;component/Themes/Controls.xaml"/></ResourceDictionary.MergedDictionaries>
    <sys:String x:Key="DemoTitle">Media Foundation 播放器</sys:String>
    <sys:String x:Key="SelfTestMediaRequiredText">自测需要显式指定媒体文件路径：--self-test &lt;媒体文件路径&gt;</sys:String>
    <SolidColorBrush x:Key="PlayerBackgroundBrush" Color="#142638"/>

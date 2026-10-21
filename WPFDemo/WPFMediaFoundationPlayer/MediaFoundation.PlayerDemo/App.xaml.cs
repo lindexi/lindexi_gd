@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
-using MediaFoundation.Wpf;
+using MediaFoundation.Controls;
 
 namespace MediaFoundation.PlayerDemo;
 

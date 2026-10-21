@@ -1,10 +1,10 @@
-# MediaFoundation.Wpf
+# MediaFoundation.Controls
 
-.NET 10 WPF library; references only MediaFoundation.Core and its own private CsWin32 generator. Build this csproj directly (no solution changes are required).
+.NET 10 WPF library; assembly and C# namespace: `MediaFoundation.Controls`. References only MediaFoundation.Core and its own private CsWin32 generator. Build this csproj directly (no solution changes are required).
 
 ## Entry point
 
-`MediaFoundation.Wpf.MediaPlayer` is sealed, implements `INotifyPropertyChanged` and `IDisposable`, and must be constructed, used and disposed on its owning WPF STA Dispatcher. Add its `VideoView` (`FrameworkElement`, internally an HWND host) to a visible ContentControl. Open before attachment is supported: the URI is queued until HWND creation. Audio-only playback also requires the attached HWND.
+`MediaFoundation.Controls.MediaPlayer` is sealed, implements `INotifyPropertyChanged` and `IDisposable`, and must be constructed, used and disposed on its owning WPF STA Dispatcher. Add its `VideoView` (`FrameworkElement`, internally an HWND host) to a visible ContentControl. Open before attachment is supported: the URI is queued until HWND creation. Audio-only playback also requires the attached HWND.
 
 Methods: `Open(Uri)`, `Play()`, `Pause()`, `Stop()`, `Seek(TimeSpan)`, `Close()`, `Dispose()`. Open accepts absolute URIs. Play during Opening is deferred until MediaOpened; Pause/Stop cancel that request. Repeated Open replaces and disposes the previous session. Close releases the session but leaves the host reusable; Dispose permanently releases both, session first.
 
@@ -14,7 +14,7 @@ Events: `PropertyChanged`, `MediaOpened`, `PlaybackEnded`, `Failed` (`Core.Playb
 
 ## Ready-to-use control
 
-`MediaFoundation.Wpf.MediaPlayerControl : Control, IDisposable` owns its read-only `Player`. Use its bindable `Source` URI DP and `AutoPlay` DP (default true). DefaultStyleKey and Themes/Generic.xaml provide the complete default UI. The default template does not change DataContext.
+`MediaFoundation.Controls.MediaPlayerControl : Control, IDisposable` owns its read-only `Player`. Use its bindable `Source` URI DP and `AutoPlay` DP (default true). DefaultStyleKey and Themes/Generic.xaml provide the complete default UI. The default template does not change DataContext.
 
 Commands: `PlayPauseCommand`, `StopCommand`, `OpenFileCommand`, `MuteCommand`, `LoopCommand`, `FullscreenCommand`. They are routed and may target the control explicitly. `FullscreenRequested` is a bubbling routed event; mark Handled to implement a custom host policy. The default policy changes the existing owner Window's style, resize mode and maximized state, and restores them on exit. It never reparents the video HWND. `IsFullscreen` describes only fullscreen owned by this default policy.
 

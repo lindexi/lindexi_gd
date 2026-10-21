@@ -7,7 +7,7 @@ using System.Windows.Input;
 using MediaFoundation.Core;
 using Microsoft.Win32;
 
-namespace MediaFoundation.Wpf;
+namespace MediaFoundation.Controls;
 
 /// <summary>包含原生视频区域和独立操作栏的开箱即用播放器。暂时卸载不会释放；拥有者窗口关闭或显式 Dispose 时释放。</summary>
 [TemplatePart(Name = "PART_Progress", Type = typeof(Slider))]
@@ -28,7 +28,7 @@ public class MediaPlayerControl : Control, IDisposable
     {
         Resources.MergedDictionaries.Add(new ResourceDictionary
         {
-            Source = new Uri("/MediaFoundation.Wpf;component/Themes/Strings.xaml", UriKind.Relative)
+            Source = new Uri("/MediaFoundation.Controls;component/Themes/Strings.xaml", UriKind.Relative)
         });
         Player = new MediaPlayer();
         Player.PropertyChanged += OnPlayerChanged;

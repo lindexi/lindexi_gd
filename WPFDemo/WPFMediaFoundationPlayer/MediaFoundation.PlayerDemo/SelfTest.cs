@@ -5,8 +5,8 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using MediaFoundation.Core;
-using MediaFoundation.Wpf;
-using Player = MediaFoundation.Wpf.MediaPlayer;
+using MediaFoundation.Controls;
+using Player = MediaFoundation.Controls.MediaPlayer;
 
 namespace MediaFoundation.PlayerDemo;
 

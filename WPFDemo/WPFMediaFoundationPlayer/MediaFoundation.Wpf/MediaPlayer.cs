@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Threading;
 using MediaFoundation.Core;
 
-namespace MediaFoundation.Wpf;
+namespace MediaFoundation.Controls;
 
 /// <summary>Dispatcher 线程拥有的播放器。先将 VideoView 加入可见视图，再异步打开媒体；必须在创建线程释放。</summary>
 public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable

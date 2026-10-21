@@ -5,7 +5,7 @@
 ## 三项目结构
 
 - `MediaFoundation.Core`：不依赖 WPF 的 MFPlay 音视频管线，负责媒体打开、播放时钟、音频输出、视频渲染、异步事件和原生资源生命周期。CsWin32 生成所需互操作声明。
-- `MediaFoundation.Wpf`：播放器入口 `MediaPlayer` 和位于其上层的开箱即用控件 `MediaPlayerControl`。
+- `MediaFoundation.Controls`：程序集和 C# 命名空间名称，提供播放器入口 `MediaPlayer` 和位于其上层的开箱即用控件 `MediaPlayerControl`；项目仍位于 `MediaFoundation.Wpf` 目录，项目文件名仍为 `MediaFoundation.Wpf.csproj`。
 - `MediaFoundation.PlayerDemo`：简单窗口承载播放器控件，通过应用资源定制画刷和按钮样式；同时提供可执行的集成自测。
 
 目标框架为 `net10.0-windows`，支持 `win-x86`、`win-x64`。演示输出为控制台 EXE，不是 WinExe，便于沙箱等待进程结束并获取退出码。
@@ -24,7 +24,7 @@ dotnet publish WPFMediaFoundationPlayer/MediaFoundation.PlayerDemo/MediaFoundati
 
 ## 播放器入口
 
-`MediaFoundation.Wpf.MediaPlayer` 实现 `INotifyPropertyChanged` 和 `IDisposable`。在所属 WPF Dispatcher 创建和调用，并将 `VideoView` 放入可见的内容容器。无需自行管理 HWND。打开是异步操作，通过 `MediaOpened` 或 `Failed` 通知；打开期间调用 Play 会延迟到媒体就绪。
+`MediaFoundation.Controls.MediaPlayer` 实现 `INotifyPropertyChanged` 和 `IDisposable`。在所属 WPF Dispatcher 创建和调用，并将 `VideoView` 放入可见的内容容器。无需自行管理 HWND。打开是异步操作，通过 `MediaOpened` 或 `Failed` 通知；打开期间调用 Play 会延迟到媒体就绪。
 
 - 操作：`Open(Uri)`、`Play()`、`Pause()`、`Stop()`、`Seek(TimeSpan)`、`Close()`、`Dispose()`。
 - 设置：`Volume`（0 到 1）、`IsMuted`、`PlaybackRate`、`IsLooping`。
@@ -35,7 +35,7 @@ Close 后可再次 Open，Dispose 后不可重用。媒体定位和倍速以原�
 
 ## 控件和定制
 
-`MediaFoundation.Wpf.MediaPlayerControl` 提供可绑定的 Source、AutoPlay，以及只读 Player。默认模板提供打开文件、播放暂停、停止、拖动定位、时间、音量、静音、倍速、循环、全屏、加载与错误提示，支持文件拖放和键盘操作。进度拖动期间暂停位置跟随，释放时提交定位。
+`MediaFoundation.Controls.MediaPlayerControl` 提供可绑定的 Source、AutoPlay，以及只读 Player。默认模板提供打开文件、播放暂停、停止、拖动定位、时间、音量、静音、倍速、循环、全屏、加载与错误提示，支持文件拖放和键盘操作。进度拖动期间暂停位置跟随，释放时提交定位。
 
 画面与操作栏分行，避免 WPF/原生 HWND 的 airspace 问题。全屏不重新挂载视频 HWND，而是修改并恢复当前窗口属性；宿主可处理 FullscreenRequested 接管全屏策略。
 
