@@ -26,6 +26,8 @@ internal static class Program
             "product-ui-compact" when args.Length == 1 => ProductUiValidation.RunAsync(
                 Path.Combine(AppContext.BaseDirectory, "XiaoXiIme.ImeUi.Avalonia.exe"), AppContext.BaseDirectory,
                 Path.Combine(AppContext.BaseDirectory, "evidence")).GetAwaiter().GetResult(),
+            "g02-recover-evidence" when args.Length == 1 => G02EvidenceRecovery.Run(),
+            "g02-native-validation" when args.Length == 1 => G02NativeValidation.RunAsync().GetAwaiter().GetResult(),
             "imm32-validation" when args.Length == 1 => Imm32Validation.RunAsync().GetAwaiter().GetResult(),
             ProjectTermSmokeCommand when args.Length == 2 => ProjectTermSmoke.Run(args[1]),
             NativeImeVirtualKeyProbeCommand when args.Length == 2 => NativeImeVirtualKeyProbe.Run(args[1]),

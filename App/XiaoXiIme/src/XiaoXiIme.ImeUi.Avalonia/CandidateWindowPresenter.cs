@@ -97,6 +97,7 @@ internal sealed class CandidateWindowPresenter : IDisposable
     {
         var point = new PixelPoint(state.AnchorX, state.AnchorY);
         var top = point.Y;
+        PixelRect? exclusion = null;
         if (state.Anchor is { IsValid: true } anchor)
         {
             if (anchor.SessionId != state.SessionId || !OperatingSystem.IsWindows())
@@ -104,6 +105,8 @@ internal sealed class CandidateWindowPresenter : IDisposable
             var window = (nint)anchor.WindowHandle;
             var thread = InputTargetMethods.GetWindowThreadProcessId(window, out var process);
             if (!InputTargetMethods.IsWindow(window) || process != anchor.ProcessId || thread != anchor.ThreadId
+                || (anchor.WindowIdentityProperty is { } property
+                    && (anchor.WindowIdentity == 0 || (long)InputTargetMethods.GetWindowProperty(window, property) != anchor.WindowIdentity))
                 || !InputTargetMethods.TryGetPhysicalPoint(window, anchor.ClientX, anchor.ClientY, out var current))
                 return false;
             var gui = new GuiThreadInfo { Size = (uint)System.Runtime.InteropServices.Marshal.SizeOf<GuiThreadInfo>() };
@@ -112,6 +115,15 @@ internal sealed class CandidateWindowPresenter : IDisposable
                 || foregroundProcess != process)
                 return false;
             point = new PixelPoint(current.X, current.Y);
+            if (anchor.ClientExclusion is { } area)
+            {
+                if (area.Left > area.Right || area.Top > area.Bottom
+                    || !InputTargetMethods.TryGetPhysicalPoint(window, area.Left, area.Top, out var start)
+                    || !InputTargetMethods.TryGetPhysicalPoint(window, area.Right, area.Bottom, out var end)
+                    || end.X < start.X || end.Y < start.Y)
+                    return false;
+                exclusion = new PixelRect(start.X, start.Y, end.X - start.X, end.Y - start.Y);
+            }
             if (anchor.ClientExcludeTop is { } clientTop
                 && InputTargetMethods.TryGetPhysicalPoint(window, anchor.ClientX, clientTop, out var upper))
                 top = upper.Y;
@@ -128,7 +140,7 @@ internal sealed class CandidateWindowPresenter : IDisposable
             return false;
         _window.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         _window.Position = CandidateWindowPlacement.Calculate(point, top, _window.DesiredSize,
-            screen.Scaling, screen.WorkingArea);
+            screen.Scaling, screen.WorkingArea, exclusion);
         return true;
     }
 
@@ -156,9 +168,11 @@ internal sealed class CandidateWindowPresenter : IDisposable
                 Directory.CreateDirectory(directory);
             }
 
+            var temporary = _statusFilePath + ".tmp";
             File.WriteAllText(
-                _statusFilePath,
+                temporary,
                 $"{visibility}|{state.CompositionText}|{state.Candidates.Count}|{state.Selection}|{DateTimeOffset.UtcNow:O}|session={state.SessionId}|source={state.Anchor?.Source}|failure={state.Anchor?.Failure}|position={_window.Position}|scaling={_window.RenderScaling}");
+            File.Move(temporary, _statusFilePath, true);
         }
         catch (IOException exception)
         {

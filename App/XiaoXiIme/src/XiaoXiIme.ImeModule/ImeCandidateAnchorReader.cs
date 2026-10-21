@@ -30,17 +30,29 @@ internal static class ImeCandidateAnchorReader
 
     internal static (int X, int Y, int Top, string Source)? ReadCompositionForm(InputContext context)
     {
-        // CFS_RECT describes a layout rectangle, not a CurrentPosition anchor.
-        if ((context.FdwInit & InitCompForm) == 0
-            || context.CompositionForm.Style is not (CfsPoint or CfsForcePosition))
+        if ((context.FdwInit & InitCompForm) == 0)
             return null;
-        var point = context.CompositionForm.CurrentPosition;
+        var form = context.CompositionForm;
+        // A layout region does not specify a caret. Use its lower-left edge without reading CurrentPosition.
+        if (form.Style == 1 && form.Area.Left <= form.Area.Right && form.Area.Top <= form.Area.Bottom)
+            return (form.Area.Left, form.Area.Bottom, form.Area.Top, "composition-region");
+        if (form.Style is not (CfsPoint or CfsForcePosition))
+            return null;
+        var point = form.CurrentPosition;
         return (point.X, point.Y, point.Y, "composition-position");
+    }
+
+    private static unsafe ImeAnchorRectangle? ReadExclusion(InputContext context, string source)
+    {
+        var area = source == "candidate-exclude" ? ((CandidateForm*)context.CandidateForms)->Area
+            : context.CompositionForm.Area;
+        return source is "candidate-exclude" or "composition-region"
+            ? new(area.Left, area.Top, area.Right, area.Bottom) : null;
     }
 
     internal static unsafe ImeCandidateAnchor? Read(HImc himc, ImeSessionId sessionId)
     {
-        if (!OperatingSystem.IsWindows() || himc.Value == 0)
+        if (!OperatingSystem.IsWindows() || himc.Value == 0 || !ImeInputIdentity.UsesNativeContext)
             return null;
         var pointer = ImmContextAccessor.Instance.LockInputContext(himc);
         if (pointer == 0)
@@ -85,6 +97,9 @@ internal static class ImeCandidateAnchorReader
             && InputTargetMethods.TryGetPhysicalPoint(window, x, top, out upper);
         return new(sessionId, window, process, thread, x, y, point.X, point.Y, upper.Y,
             valid ? InputTargetMethods.GetDpiForWindow(window) : 0, source, valid,
-            valid ? null : "target-or-anchor-unavailable", top);
+            valid ? null : "target-or-anchor-unavailable", top,
+            ImeInputIdentity.WindowIdentityProperty,
+            (long)InputTargetMethods.GetWindowProperty(window, ImeInputIdentity.WindowIdentityProperty),
+            ImeInputIdentity.NextSequence(), ReadExclusion(context, source));
     }
 }

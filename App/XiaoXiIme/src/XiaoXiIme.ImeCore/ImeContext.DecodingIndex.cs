@@ -8,15 +8,32 @@ public sealed partial class ImeContext
     private DecodingIndex? _decodingIndex;
     private string _lastDecodeMetrics = "";
     private static readonly ConditionalWeakTable<ImeLexicon, Dictionary<int, DecodingIndex>> SharedIndexes = new();
+    private static readonly ConditionalWeakTable<IReadOnlyList<ImePhoneticEntry>, Dictionary<int, DecodingIndex>> Topologies = new();
 
-    private static DecodingIndex GetDecodingIndex(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules)
+    /// <summary>Prepares a published dictionary on the owner's background worker.</summary>
+    public static void PrepareLexicon(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules)
+    {
+        ArgumentNullException.ThrowIfNull(lexicon);
+        ArgumentNullException.ThrowIfNull(rules);
+        _ = GetDecodingIndex(lexicon, rules);
+    }
+
+    private static DecodingIndex GetDecodingIndex(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules, DecodingIndex? previous = null)
     {
         var indexes = SharedIndexes.GetValue(lexicon, _ => []);
         var mask = rules.Aggregate(0, (value, rule) => value | 1 << (int)rule);
         lock (indexes)
         {
             if (!indexes.TryGetValue(mask, out var index))
-                indexes.Add(mask, index = new(lexicon, Array.AsReadOnly(rules.Distinct().Order().ToArray())));
+            {
+                var topologies = Topologies.GetValue(lexicon.Entries, _ => []);
+                lock (topologies)
+                {
+                    topologies.TryGetValue(mask, out var topology);
+                    indexes.Add(mask, index = new(lexicon, Array.AsReadOnly(rules.Distinct().Order().ToArray()), topology ?? previous));
+                    topologies[mask] = index;
+                }
+            }
             return index;
         }
     }
@@ -32,11 +49,43 @@ public sealed partial class ImeContext
         internal readonly Dictionary<string, int[]> Starts;
         internal readonly double LogFrequencyMass;
 
-        internal DecodingIndex(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules)
+        internal DecodingIndex(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules, DecodingIndex? previous)
         {
             Lexicon = lexicon;
             Rules = rules;
-            LogFrequencyMass = Math.Log(1d + lexicon.Entries.Sum(e => 1d + Math.Max(0, EntryFrequency(e))));
+            LogFrequencyMass = lexicon.RankingLogFrequencyMass ?? Math.Log(1d + lexicon.Entries.Sum(e => 1d + Math.Max(0, EntryFrequency(e))));
+            if (previous is not null && ReferenceEquals(lexicon.Entries, previous.Lexicon.Entries) &&
+                ReferenceEquals(lexicon.Projection, previous.Lexicon.Projection) &&
+                ReferenceEquals(lexicon.ShapeEntries, previous.Lexicon.ShapeEntries) &&
+                ReferenceEquals(lexicon.LookupAliases, previous.Lexicon.LookupAliases) && rules.SequenceEqual(previous.Rules))
+            {
+                Projections = previous.Projections;
+                Shapes = previous.Shapes;
+                Starts = previous.Starts;
+                Syllables = previous.Syllables;
+                Aliases = previous.Aliases;
+                return;
+            }
+            // Legacy dictionary implementations may still replace entries when only ranking changes.
+            if (previous is not null && ReferenceEquals(lexicon.Projection, previous.Lexicon.Projection) &&
+                ReferenceEquals(lexicon.ShapeEntries, previous.Lexicon.ShapeEntries) &&
+                ReferenceEquals(lexicon.LookupAliases, previous.Lexicon.LookupAliases) &&
+                rules.SequenceEqual(previous.Rules) && lexicon.Entries.Count == previous.Lexicon.Entries.Count &&
+                lexicon.Entries.Select((entry, i) => entry.Text == previous.Lexicon.Entries[i].Text &&
+                    entry.CanonicalReading == previous.Lexicon.Entries[i].CanonicalReading).All(matches => matches))
+            {
+                Projections = previous.Projections;
+                Shapes = previous.Shapes;
+                Starts = previous.Starts;
+                Syllables = new(lexicon.Entries.Count);
+                Aliases = new(lexicon.Entries.Count);
+                for (var i = 0; i < lexicon.Entries.Count; i++)
+                {
+                    Syllables.Add(lexicon.Entries[i], previous.Syllables[previous.Lexicon.Entries[i]]);
+                    Aliases.Add(lexicon.Entries[i], previous.Aliases[previous.Lexicon.Entries[i]]);
+                }
+                return;
+            }
             Syllables = lexicon.Entries.ToDictionary(e => e,
                 e => e.CanonicalReading.Split(' ', StringSplitOptions.RemoveEmptyEntries));
             var registered = lexicon.Projection.Entries.Select(p => p.Initial + p.Final).ToHashSet(StringComparer.Ordinal);

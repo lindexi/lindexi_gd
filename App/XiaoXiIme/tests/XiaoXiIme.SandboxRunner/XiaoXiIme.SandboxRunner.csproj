@@ -16,6 +16,25 @@
     <Content Include="..\..\src\**\*.cs;..\..\src\**\*.csproj;..\..\tests\**\*.cs;..\..\tests\**\*.csproj;..\..\Directory.Build.props;..\..\XiaoXiIme.slnx" Exclude="..\..\src\**\obj\**;..\..\src\**\bin\**;..\..\tests\**\obj\**;..\..\tests\**\bin\**" Link="source-freeze\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(G02PayloadRoot)' != ''">
+    <Content Include="$(G02PayloadRoot)\**\*" Exclude="$(G02PayloadRoot)\**\*.pdb;$(G02PayloadRoot)\native\**\*;$(G02PayloadRoot)\app\host\**\*;$(G02PayloadRoot)\app\ui\**\*;$(G02PayloadRoot)\app\tests\**\*" Link="publish\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="$(G02NativeRoot)\*.ime;$(G02NativeRoot)\*.dll" Condition="'$(G02NativeRoot)' != ''" Link="publish\native\win-x64\%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="$(G02PayloadRoot)\native\**\*" Exclude="$(G02PayloadRoot)\native\**\*.pdb" Condition="'$(G02NativeRoot)' == ''" Link="publish\native\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(G02HostRoot)' != ''">
+    <Content Include="$(G02HostRoot)\**\*" Exclude="$(G02HostRoot)\**\*.pdb" Link="publish\app\host\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(G02UiRoot)' != ''">
+    <Content Include="$(G02UiRoot)\**\*" Exclude="$(G02UiRoot)\**\*.pdb" Link="publish\app\ui\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="$(G02TestHostRoot)\**\*" Exclude="$(G02TestHostRoot)\**\*.pdb" Link="publish\app\tests\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(G02PackageRoot)' != ''">
+    <Content Include="$(G02PackageRoot)\**\*" Link="packages\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(ValidationPackagePath)' != ''">
     <Content Include="$(ValidationPackagePath)\**\*" Link="XiaoXiIme.DictionaryPackage\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

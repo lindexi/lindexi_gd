@@ -39,6 +39,15 @@ public sealed class XiaoXiImeIpcClient : IDisposable
         return response ?? throw new InvalidOperationException();
     }
 
+    /// <summary>Publishes an ordered activation or anchor observation independently of keys.</summary>
+    public async Task<ImeInputTargetUpdateResponse> UpdateInputTargetAsync(ImeInputTargetUpdate request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return await SendWithRetryAsync(proxy => proxy.GetResponseAsync<ImeInputTargetUpdateResponse>(
+            XiaoXiImeIpcRoutes.UpdateInputTarget, request)).ConfigureAwait(false)
+            ?? throw new InvalidOperationException();
+    }
+
     public async Task ConnectAsync()
     {
         if (_clientProxy is not null)

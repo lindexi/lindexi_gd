@@ -19,14 +19,15 @@ public sealed partial class ImeContext
 
     private List<ImeConversionCandidate> Decode(string input)
     {
-        var lexicon = _dictionary.GetLexicon();
+        var lexicon = _dictionary is UserDictionary { IsBackgroundPublicationEnabled: true }
+            ? _displayedLexicon ?? _dictionary.GetLexicon() : _dictionary.GetLexicon();
         var rules = _options.FuzzyRules;
         if (_decodedInput == input && ReferenceEquals(_decodedLexicon, lexicon) &&
             ReferenceEquals(_decodedOptions, _options) && ReferenceEquals(_decodedRules, rules) &&
             _decodedRevision == _revision) return _decodedCandidates;
         var options = _options;
         var fullPinyin = lexicon.Projection.Name == ImeProjectionDefinition.FullPinyin.Name;
-        _decodingIndex = GetDecodingIndex(lexicon, rules);
+        _decodingIndex = GetDecodingIndex(lexicon, rules, _decodingIndex);
         var indexData = _decodingIndex;
         var edges = new Dictionary<int, List<DecodedPath>>();
         long entryVisits = 0, syllableVisits = 0;
@@ -45,11 +46,13 @@ public sealed partial class ImeContext
             }
             foreach (var entryIndex in indices.Order())
             {
-                var entry = lexicon.Entries[entryIndex];
+                var topologyEntry = lexicon.Entries[entryIndex];
+                var entry = lexicon.UserFrequencies.TryGetValue((topologyEntry.Text, topologyEntry.CanonicalReading), out var count)
+                    ? topologyEntry with { UserFrequency = count, SourceKind = DictionaryCandidateSourceKind.User } : topologyEntry;
                 entryVisits++;
-                var syllables = indexData.Syllables[entry];
+                var syllables = indexData.Syllables[topologyEntry];
                 MatchSyllable(0, start, [], 0);
-                foreach (var alias in indexData.Aliases[entry])
+                foreach (var alias in indexData.Aliases[topologyEntry])
                     if (Matches(start, alias.Input, false))
                         Finish(start + alias.Input.Length,
                             [new(ImeEvidenceKind.LookupAlias, new(start, alias.Input.Length), 0,
@@ -273,6 +276,6 @@ public sealed partial class ImeContext
             }, head.Missing + tail.Missing, head.Weight + tail.Weight);
     }
 
-    private static int EntryFrequency(ImePhoneticEntry entry) => entry.BaseFrequency + entry.UserFrequency;
+    private static int EntryFrequency(ImePhoneticEntry entry) => (int)Math.Min(int.MaxValue, (long)entry.BaseFrequency + entry.UserFrequency);
     private static string Join(string first, string second) => first.Length == 0 ? second : first + " " + second;
 }

@@ -76,7 +76,8 @@ public sealed partial class ImeContext
     public ImeProcessResult SelectCandidate(ImeSelectionId selectionId)
     {
         if (selectionId.ContextId != _contextId || selectionId.Revision != _revision ||
-            !ReferenceEquals(_displayedLexicon, _dictionary.GetLexicon()))
+            (_dictionary is not UserDictionary { IsBackgroundPublicationEnabled: true } &&
+             !ReferenceEquals(_displayedLexicon, _dictionary.GetLexicon())))
             return new(Snapshot, null, false);
         var candidate = _displayedCandidates.SingleOrDefault(c => c.SelectionId == selectionId);
         if (candidate is null) return new(Snapshot, null, false);

@@ -167,7 +167,7 @@ internal static class Win32ImeEditScenario
 {
     private const string KeyboardLayoutsRegistryPath = @"SYSTEM\CurrentControlSet\Control\Keyboard Layouts";
     private const string ExpectedLayoutText = "XiaoXi IME";
-    private const string ExpectedImeFile = "XiaoXiIme.ime";
+    private static readonly string ExpectedImeFile = Environment.GetEnvironmentVariable("XIAOXIIME_VALIDATION_IME_FILE") ?? "XiaoXiIme.ime";
     private const uint WsOverlappedWindow = 0x00CF0000;
     private const uint WsVisible = 0x10000000;
     private const uint WsChild = 0x40000000;
@@ -384,7 +384,13 @@ internal static class Win32ImeEditScenario
             var defaultImeWindow = ImmGetDefaultIMEWnd(edit);
             WriteStage($"after-ImmGetDefaultIMEWnd Hwnd=0x{defaultImeWindow:X}");
 
+            var actualImeFile = new StringBuilder(260);
+            ImmGetIMEFileName(keyboardLayout, actualImeFile, (uint)actualImeFile.Capacity);
+            Require(GetKeyboardLayout(0) == keyboardLayout, "Thread did not activate the requested keyboard layout.");
+            Require(string.Equals(actualImeFile.ToString(), ExpectedImeFile, StringComparison.OrdinalIgnoreCase),
+                $"Activated layout points to '{actualImeFile}', expected '{ExpectedImeFile}'.");
             loadedByImmBeforeProbe = GetModuleHandle(ExpectedImeFile) != 0;
+            Require(loadedByImmBeforeProbe, "IMM did not load this run's IME before the diagnostics probe.");
             WriteStage("before-LoadLibraryEx");
             imeModule = LoadLibraryEx(ExpectedImeFile, 0, LoadLibrarySearchSystem32);
             WriteStage($"after-LoadLibraryEx Module=0x{imeModule:X}");
@@ -459,6 +465,7 @@ internal static class Win32ImeEditScenario
                         throw new InvalidOperationException($"The text committed, but the IME call trace was incomplete. {snapshot}");
                     }
 
+                    Console.WriteLine($"DIAGNOSTICS real-ime-keystroke-commit native-calls: {snapshot}");
                     ObserveStable(window, edit, keyboardLayout, observer, "小希", expectedResults: 1);
                     return;
                 }
@@ -532,7 +539,8 @@ internal static class Win32ImeEditScenario
             second = new EditCompositionObserver(secondEdit, validateLifecycle: true);
             Require(first.InputContext == firstContext && second.InputContext == secondContext,
                 "EDIT association did not retain the distinct owned HIMCs.");
-            using var client = new XiaoXiImeIpcClient();
+            using var client = new XiaoXiImeIpcClient(new XiaoXiImeIpcOptions(
+                XiaoXiImeIpcOptions.DefaultServerName, RequestTimeout: TimeSpan.FromSeconds(5)));
             var status = WaitWithPump(client.GetHostStatusAsync(), first);
             Require(status.IsRunning && !status.IsUsingFallbackDictionary
                 && string.IsNullOrEmpty(status.DictionaryLoadError)
@@ -540,8 +548,10 @@ internal static class Win32ImeEditScenario
                 && Directory.Exists(status.DictionaryPackagePath)
                 && status.DictionaryInputScheme == DictionaryPackageLocations.FullPinyinInputScheme,
                 $"Multi-HIMC input requires the production fullPinyin external host: {status}");
-            var firstSession = ImeSessionId.FromHimc(firstContext);
-            var secondSession = ImeSessionId.FromHimc(secondContext);
+            Focus(firstEdit, first);
+            var firstSession = ResolveActualSession(client, firstEdit, first);
+            Focus(secondEdit, second);
+            var secondSession = ResolveActualSession(client, secondEdit, second);
             CheckHostSnapshot(client, firstSession, first, string.Empty, false);
             CheckHostSnapshot(client, secondSession, second, string.Empty, false);
 
@@ -674,7 +684,8 @@ internal static class Win32ImeEditScenario
 
     private static void RunCompositionLifecycle(nint window, nint edit, nint layout, EditCompositionObserver observer)
     {
-        using var client = new XiaoXiImeIpcClient();
+        using var client = new XiaoXiImeIpcClient(new XiaoXiImeIpcOptions(
+            XiaoXiImeIpcOptions.DefaultServerName, RequestTimeout: TimeSpan.FromSeconds(5)));
         var status = WaitWithPump(client.GetHostStatusAsync(), observer);
         Console.WriteLine($"DIAGNOSTICS real-ime-composition-lifecycle external-host: {status}");
         Require(status.IsRunning && !status.IsUsingFallbackDictionary
@@ -683,7 +694,7 @@ internal static class Win32ImeEditScenario
             && Directory.Exists(status.DictionaryPackagePath)
             && status.DictionaryInputScheme == DictionaryPackageLocations.FullPinyinInputScheme,
             $"Default external host must use the production fullPinyin package without fallback: {status}");
-        var session = ImeSessionId.FromHimc(observer.InputContext);
+        var session = ResolveActualSession(client, edit, observer);
         CheckHostSnapshot(client, session, observer, string.Empty, false);
 
         Compose();
@@ -731,6 +742,22 @@ internal static class Win32ImeEditScenario
             var sent = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<Input>());
             Require(sent == inputs.Length, $"SendInput accepted {sent} of {inputs.Length} events for 0x{key:X}.");
         }
+    }
+
+    private static ImeSessionId ResolveActualSession(XiaoXiImeIpcClient client, nint edit, EditCompositionObserver observer)
+    {
+        ImeUiState? state = null;
+        WaitFor(() =>
+        {
+            state = WaitWithPump(client.GetUiStateAsync(new ImeUiStateRequest(
+                FocusWindowHandle: (long)edit, FocusProcessId: (uint)Environment.ProcessId)), observer);
+            return state.Anchor is { IsValid: true } && !state.SessionId.IsUnspecified;
+        }, observer, "actual native identity publication");
+        Require(state!.SessionId.Value.StartsWith("imm:", StringComparison.Ordinal)
+            && state.Anchor!.WindowHandle == (long)edit && state.Anchor.ProcessId == (uint)Environment.ProcessId,
+            $"Native identity must belong to the actual focused EDIT: {state}");
+        Console.WriteLine($"IDENTITY-EVIDENCE hwnd=0x{edit:X} himc=0x{observer.InputContext:X} session={state.SessionId}");
+        return state.SessionId;
     }
 
     private static void CheckHostSnapshot(XiaoXiImeIpcClient client, ImeSessionId session,
@@ -783,7 +810,13 @@ internal static class Win32ImeEditScenario
         var expectedY = Math.Clamp(point.Y + height > work.Bottom ? top - height : point.Y,
             work.Top, Math.Max(work.Top, work.Bottom - height));
         var statusPath = Environment.GetEnvironmentVariable("XIAOXIIME_UI_STATUS");
-        var status = statusPath is not null && File.Exists(statusPath) ? File.ReadAllText(statusPath) : string.Empty;
+        var status = string.Empty;
+        if (statusPath is not null && File.Exists(statusPath))
+        {
+            using var stream = new FileStream(statusPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new StreamReader(stream);
+            status = reader.ReadToEnd();
+        }
         var matches = rect.Left == expectedX && rect.Top == expectedY && width > 0 && height > 0
             && rect.Left >= work.Left && rect.Top >= work.Top && rect.Right <= work.Right && rect.Bottom <= work.Bottom
             && status.StartsWith("visible|ni|", StringComparison.Ordinal)
@@ -1153,14 +1186,16 @@ internal static class Win32ImeEditScenario
             throw new InvalidOperationException($"Unable to open HKLM\\{KeyboardLayoutsRegistryPath}.");
         }
 
+        var requiredLayout = Environment.GetEnvironmentVariable("XIAOXIIME_VALIDATION_LAYOUT");
         foreach (var layoutId in layouts.GetSubKeyNames())
         {
+            if (requiredLayout is not null && !string.Equals(requiredLayout, layoutId, StringComparison.OrdinalIgnoreCase)) continue;
             using var layout = layouts.OpenSubKey(layoutId);
             var layoutText = layout?.GetValue("Layout Text") as string;
             var imeFile = layout?.GetValue("Ime File") as string;
             if (string.Equals(layoutText, ExpectedLayoutText, StringComparison.OrdinalIgnoreCase)
                 && (string.Equals(imeFile, ExpectedImeFile, StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(imeFile, "XiaoXiIme.ime", StringComparison.OrdinalIgnoreCase)))
+))
             {
                 return layoutId;
             }
@@ -1182,6 +1217,8 @@ internal static class Win32ImeEditScenario
             && PeekMessage(out var message, 0, 0, 0, PmRemove); count++)
         {
             s_inputMessageTrace.Record(message);
+            if (message.WParam == 0x20)
+                Console.WriteLine($"SPACE-MESSAGE hwnd=0x{message.Window:X} message=0x{message.Value:X} lparam=0x{message.LParam:X} focus=0x{GetFocus():X}");
             TranslateMessage(message);
             DispatchMessage(message);
         }

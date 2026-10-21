@@ -1,5 +1,95 @@
 # Win32 输入目标与候选窗口锚点开发计划
 
+## m942 最终签收：后台学习有界改造完成，G02完整矩阵仍开放
+
+本节优先于下方历史待实施清单；历史证据不覆盖、不删除。完整证据及哈希见[closeout](../../../../.coding-agent/g02-closeout-validation.md)，当前交接见[主交接](../../../../Docs/next-session-handoff.md)。
+
+- [x] 实现不可变学习事件，生产者TryWrite，容量512/DropOldest；无前台Learn/GetEntries或逐事件Task.Run。
+- [x] Host单消费者批次上限128，合并计数、批量学习/原子持久化；后台异常和容量/退出丢弃统计；退出等待预算250ms。
+- [x] 后台准备完整快照及解码派生数据后发布，纯频次复用拓扑；输入继续旧快照，无学习诱发下一按键全表重建。
+- [x] 活动有效旧候选按展示原目标和消费范围提交；真正过期revision/跨上下文ID拒绝，保留精确END/result/text合同。
+- [x] 最终Release全解决方案构建成功，3个既有CA1416警告/0错误；实际重跑Core655、Dictionary413、Module226、Integration合并定向109，共1403通过/0失败/0跳过，非完整Integration。文档落盘后的Release增量复构建0警告/0错误、3.32s，先前CA1416未作范围外修改。
+- [x] 最终源码NativeAOT/Host/UI/TestHost全部重发到 `.coding-agent/g02-bg-m942/`，配套runner已发布且实际执行安装，不留未发布执行器。
+- [x] 沙箱task `22010d08ffc8436ea9623dfb1ebb8c1f` 三轮target-exit及总exitCode均0；已只回传并读取 `.coding-agent/g02-bg-m942-final-results/evidence/`。每轮真实多HIMC首EDIT切回Space START1/END1/Results=[你]，5项定位全PASS；另一会话先提交学习。
+- [x] 首HIMC Host Space 0.038/0.051/0.093ms，原生入口到返回1.6220/1.8445/7.2639ms；n=3 nearest-rank原生P50=1.8445/P95=最大7.2639ms；500ms不变。逐次messages2/written2/return2，真实IMM加载与源/安装hash一致。
+- [x] 本轮同步更新主交接、专门计划、词典规范、候选学习设计和closeout汇总。
+- [ ] G02原有未覆盖矩阵仍独立开放：x86、多DPI/多屏、真实句柄复用、同HWND多HIMC、完整销毁重建、退出断连；三轮不等于真实长期饱和压力验证，也不等于完整Integration。
+
+## 历史下一阶段：后台学习隔离输入延迟（当时文档合同已更新，实施未开始）
+
+本节为用户最新授权的两阶段工作：**先更新文档，再另行委派实现**。本次仅完成第一阶段，不新增代码、测试或验证成功结论。权威合同见 [词典规范 5.5.1](../../../../Docs/dictionary-spec.md#551-后台学习产品合同待实施优先于历史同步学习描述) 与 [候选语义设计](../../../../Docs/candidate-prefix-unified-design.md)。下方 l831、d953 等是历史证据，保留原样；481.236ms 单次成功不等于学习阻塞已解决，G02 不关闭。
+
+### 已核对的实际链路
+
+`ImeContext.SelectCandidate` 校验 ContextId/revision/展示 lexicon，按已选 interpretation 消费并刷新剩串后调用学习回调；`CommitCandidate` 在 lexicon 变化时先刷新。Host 回调在输入请求内同步 `UserDictionary.Learn`（含规范词段注册验证及计数）和 `GetEntries()` 排序复制，再把完整快照交给保存协调器。该协调器已有容量 1 / DropOldest / 单消费者，但只隔离写盘，`Dispose` 仍同步等任务排空。学习推进 `_version` 后 `GetLexicon()` 会全量映射；解码索引即使复用 Projections/Shapes/Starts，仍求总频率、逐项验证 Text/CanonicalReading 并重建 Syllables/Aliases 键映射。不能把已有保存队列称为完整的后台学习，也不能只异步调用原 Learn 而保留下一按键重建链。
+
+### 实施顺序（全部待后续委派执行）
+
+- [x] 文档阶段：读取实际调用链和最新交接，更新后台学习、快照发布、候选安全及有限退出合同；保留历史批次证据。
+- [ ] 1. 在现有 Core/Dictionary/Host 测试布局补确定性 red 用例，覆盖慢/暂停消费者、共享词典双会话及旧显式 ID；记录现有键盘 Space/序号与过期 ID 拒绝基线，不用固定睡眠替代阶段同步。
+- [ ] 2. 在现有学习入口收敛最小不可变事件（优先 readonly record struct），固定 Channel 容量及明确 DropOldest/丢弃策略；生产者仅 TryWrite，不验证全词表、不取保存快照、不等待后台任务，不逐事件 Task.Run；保存准确的已选规范语义，不捕获可变会话。
+- [ ] 3. 用 Host 管理的单消费者按有界批次/时间窗合并学习键与计数，保留词段贡献及溢出饱和；批量应用和持久化，限制合并表/待发布快照/重试，沿用旧文件保护；核对注册、Forget 等管理操作的顺序与确认语义，不把管理操作改成可丢学习。
+- [ ] 4. 拆分频次/排序层与拼写拓扑；纯频次不重建拓扑。后台准备结构变化、词典快照及所需解码派生索引后发布；输入只取已准备版本或继续旧版本，不等待后台锁、不全表复制/校验/映射，不留前台惰性重建。限制旧版本生命周期，不按 profile 永久缓存。
+- [ ] 5. 保留展示语义和真实提交：活动组合可继续旧快照；同一有效上下文/revision/快照内旧候选仍按原目标和消费范围提交，真正过期/跨上下文 ID 仍拒绝。分别验证显式 ID 与键盘路径；不能用放宽 ID 校验、重排旧序号、重置组合或改弱 END/text 断言修复。
+- [ ] 6. 监督任务异常并区分容量丢弃/学习失败/保存失败；给正常退出固定收尾预算及取消路径，预算耗尽可丢未完成学习，不为排空或慢磁盘拖住退出；避免后台任务访问已释放 Host 状态。为容量、批次和退出预算设内部常量并记录实际值，不新增用户设置。
+- [ ] 7. 先定向 green，再运行受影响 Core/Dictionary/Host 相关 Integration 与 Module 回归及 Release 构建，准确记录数量、失败/跳过和范围；验证原子保存、重启后已持久化排序及故障诊断。禁止把既有295/295当成本次实现验证。
+- [ ] 8. 发布包含新 ImeCore/Dictionary/Host 的唯一配套负载，在 Windows 沙箱实际复跑多 HIMC 切回首 EDIT 后 Space（含另一会话学习/队列压力及重复切换）；核对真实 IMM 加载与 Host 配套哈希、START/END/Results、ProcessKey/ToAscii 消息和 Host/桥接耗时，保留全部失败及每次证据。读回后更新主交接；不延长500ms桥接截止，不凭单次通过宣称稳定或关闭 G02 全矩阵。
+
+### 必须逐项签收的验收项（当前均未验证）
+
+1. **入队非阻塞/容量有界**：消费者暂停、满队列及关闭时提交仍立即返回；队列、批次、合并表及临时快照不无限增长，生产者无学习/快照/I/O等待。
+2. **批次合并/丢弃**：重复规范键合并次数正确、不同读音不混、分段不漏不重、饱和无溢出；丢弃可观察且不补偿成无界重试，未丢弃事件在正常运行中最终应用，不要求下一键立即生效。
+3. **前台无学习重建**：慢学习/准备/写盘时键入及查询仍读旧完整快照；用可观察计数或等价确定性断言证明学习不在下一按键执行全表复制/索引构建/全量映射，纯频次不重建拼写拓扑，不能仅测入队耗时。
+4. **旧候选安全提交**：活动旧快照中的有效候选按展示的原目标、canonical segments 和消费范围提交；真正过期或跨会话显式 ID 拒绝；双会话 Space/序号不失去提交和 END，不借频次重排偷换目标，不学习残串/替代路径。
+5. **异常可观察/有限退出**：注入学习、准备、保存失败后可诊断且输入不失败；暂停消费者/慢持久化时退出不超过实现记录的固定预算，允许丢弃，旧正式文件不被破坏，不留下未观察故障或释放后回调。
+6. **真实多 HIMC Space 延迟**：当前配套 Host 与原生负载真实 SendInput，重复切回及学习压力下精确 result/END/text 通过；报告逐次及汇总延迟（P50/P95/最大值、样本数）、是否逼近500ms，不用单次481.236ms历史结果代签。句柄复用、同HWND多HIMC、退出断连、x86、多DPI/多屏仍按 G02 原矩阵单独签收。
+
+
+## 最新 l831 有界收口：当前 Host 配套后原生提交通过，完整矩阵仍开放
+
+本节优先于下方历史批次。完整真实记录见[收口验证](../../../../.coding-agent/g02-closeout-validation.md)及[主交接](../../../../Docs/next-session-handoff.md)。
+
+1. 已读取前轮候选过期修复、`ImeContext.DecodingIndex.cs` 学习后拓扑不变复用实现及 `.coding-agent/g02-space-l831/native` 发布成品。未改变旧显式ID拒绝合同，未延长500ms截止或放松精确提交/END/text断言。
+2. 实际先跑 l831 原生配 k720 Host，task `0a792db9d2aa4b7ab4dfcec0e29525af`：首HIMC仍失败，START1/END0/Results=[]，Host Space700.185ms，模块超时返回0消息。证据 `.coding-agent/g02-space-l831-results/evidence/`。确认优化位于Host引用的ImeCore，单换原生不足以部署该优化。
+3. 最小配套修正：重新发布当前Host至 `.coding-agent/g02-space-l831/host`，组装 `.coding-agent/g02-space-l831-currenthost/runner` 独立负载，保留 l831 原生及既有 k720 UI/TestHost/词典。首跑 task `4b19c1c4cef7487695a46da7336b98c9` 在读取候选状态文件时遇共享占用IOException，提前失败；原始证据 `.coding-agent/g02-space-l831-currenthost-results/evidence/` 保留，不当提交验证通过。
+4. 同一负载重跑 task **34a25b52265045c58b522827aee5595c**：target与总结果exitCode均0。证据 **`.coding-agent/g02-space-l831-currenthost-r2-results/evidence/`** 已回读。首HIMC `START=1/END=1/Results=[你]`、CallbackError为空；第二HIMC START2/END2/Results=[你]；精确text断言保持。首Space Host481.236ms，ToAscii逐次记录handled=True、commit=你、messages=2/written=2/return=2；多HIMC及5项无按键候选定位PASS。
+5. 真实IMM加载证据：DLL/IME/安装及system32已加载文件hash均 `4D5483A417276F7E9A38535E227297A8095A18B3A6D10E8882DA2EBB49A357CB`，LoadedByImmBeforeProbe=True。Host ImeCore hash `7C4074EAEFDA81B07E8358234562AD67428FFDD828B69AA2FE94031BA8AB2E12`，完整负载哈希在execution.json。没有混批替代或人工身份注入。
+6. 最终源码Module全测226/226，Integration生命周期/候选66/66，Core新增双会话键盘Space/候选序号及旧显式ID拒绝3/3，合计295/295，0失败/0跳过。Release解决方案构建成功，3个既有Runner CA1416警告/0错误，覆盖受影响项目。未跑完整Integration/Core全测；本轮未重发NativeAOT，使用既有l831成品。
+7. 本轮有界验证和文档三项已完成，无新增产品源码改动。481.236ms距500ms裕量小，单次通过不保证稳定；候选状态文件共享冲突一次失败尚未修复。仅x64/96DPI单屏，不外推x86、多DPI/多屏、真实句柄复用、同HWND多HIMC、完整销毁重建及退出断连。G02完整矩阵仍开放；历史run10未知与j619/k720失败不改写。
+
+## 最新d953实际验收：身份修复通过，多HIMC提交失败，G02开放
+
+本节覆盖下方历史“身份发布仍超时/未回归”结论。原始证据：`.coding-agent/g02-fresh-20261020-d953-evidence/evidence/`；完整执行记录在工作区`.coding-agent/g02-closeout-validation.md`。
+
+1. 本轮实际先跑Module全测226/226、Integration生命周期及Candidate定向66/66，均0失败/0跳过；Release解决方案构建成功（22警告/0错误）。未跑完整Integration。精简Runner发布成功，新增G02NativeRoot原生覆盖配置，排除负载PDB；d953原生配c842 Host/UI/TestHost与词典。
+2. b731/c842原始stderr均为actual native identity publication超时；c842真实IMM生命周期在ImeSelect时已有对应焦点，却没有初始active=1 export。d953保留WM_IME_SETCONTEXT及焦点匹配的选择期激活补偿，不假定选择必然触发active=1，不放宽断言、不手工IPC注入。
+3. d953实际沙箱task=`d69453d7726f43fc8351f3c922dce21f`，只回传evidence成功。DLL/IME/安装文件及实际system32模块hash=`5AD14F7472A33665062891E86FF63AF27A8E3136CF754D95B7F92EADC67941C1`，LoadedByImmBeforeProbe=True。整体exitCode=1，不是未知。
+4. GUID身份真实发布通过：owner=158a4fb35ff84fcbbc59ec99ce64c55f；单上下文fe4998bc2647437d9d92e7608adf7edc；多上下文4c6303c4fc1d495fab0d6ecfc65bdb00 / 37229880ae214fde99e7dd7930fc3c01，窗口属性世代2/3/4。真实SendInput xx提交通过，ProcessKey4/handled2、ToAscii2/handled2。组合生命周期START2/END2/Results=[你]通过。
+5. 真实候选窗无按键first/second/back切换、移动、工作区边界共5项PASS（96 DPI单屏），有POSITION-EVIDENCE与最终match=True。不能因中间等待样本match=False判最终失败，也不抹除其时序记录。
+6. 新阻塞：real-ime-multi-himc-isolation在first HIMC Space result/END/text超时，START1/END0、Results=[]、Updates=[n,ni]，原始堆栈见target.stderr.txt。下一步应跟踪切回首HIMC后的真实Space ProcessKey/ToAscii/IMM消息链和提交状态，先证实根因再修复，不用重置组合或改弱合同规避问题。任何后续产品修正须新唯一负载及真实沙箱回归。
+7. G02不关闭。句柄复用没有发生、未覆盖；同HWND多HIMC、完整销毁重建、退出断连、x86、多DPI/多屏继续未覆盖，不外推。历史run10未知仍独立保留。本轮无新增未回归产品代码，未改本机系统。
+
+## G02 最新有界收口：托管验证成功，原生未通过，run10未知
+
+本节覆盖下方历史批次的“本轮未发布/未运行”等表述；G02保持开放。详见 [本轮执行记录](../../../../.coding-agent/g02-closeout-validation.md) 与 [最新主交接](../../../../Docs/next-session-handoff.md)。
+
+### 本轮实际尝试及结果
+
+1. 先读取实际源码、资源、发布目标及run10本地证据；发现目录混批，不能按目录名给报告归属。外层 `evidence/execution.json` 属任务 `5c74ddf9fec34fb0b73f8ddf7b312135`、hash `7EC389ABE76ED76362DF2C0E09577A08F96CE3125009F8A3E495CD01CEA0ED4C`。安装返回非零 `0xFFFFFFFFE0230804` 同时 error1419，非零返回时不能用残留last-error判失败；该次 `target.stderr.txt` 是实际原生身份发布超时，START/END=0，仍不是加载闭环。
+2. 内层 `evidence/evidence/execution.json` 属任务 `d8970a5c27ad439f81b2a04020e4f9d6`，hash `BA03F8F30314968D87A6BABCA7B02E415C98E88A5DF8AC9DCDA70A9AD0B77FD3`，随机 `XiaoXiG02_*.ime`，安装返回0/error1419/exit1，另有 `failure.txt`。它不是正式资源文件名run10结果。
+3. 用户前序run01–10均未形成当前新IME闭环，run08/09新NativeAOT hash为7EC389...，1419安装阻塞未解决；run10改正式资源文件名已执行，但回传磁盘不足，结果未知。这些是前序记录，不冒充本轮重跑。
+4. 新增只读 `G02EvidenceRecovery.cs` 和 `g02-recover-evidence` 分发，两次发布成功。首次扫描层级错误，修正后第二次真实沙箱扫描 `C:\CodingAgentSandbox\Tasks`，records为空，无法恢复历史任务最小报告/stdout/stderr。仅指定 `outputRelativePath=recovery`；最终证据 `.coding-agent/g02-closeout-recovered-final/recovery/recovery.json`。不以本地混批旧证据替代run10，不无限新增大包回传。未删本机或沙箱文件。
+5. 当前Module、Host、IntegrationTestHost、SandboxRunner分别Release build均成功；Module全测 **226/226**，InputTargetLifecycleTests + CandidateAnchorTests **30/30**，均0失败/0跳过。没有跑完整Integration。
+6. 为核实发布复制风险，当前Module实际Release win-x64 NativeAOT publish至 `.coding-agent/g02-closeout-native`，退出0。`CreateImeModule` 的 `TargetDir/native` 复制仅在Publish后且RID非空执行，当前普通build和发布均成功，未修改该Target；未独立比对复制后哈希/PE，未安装本次新成品，不作正式安装包通过声明。
+
+### 明确结论及未覆盖场景
+
+- **成功**：上述当前构建、托管回归、诊断发布执行及小目录回传。
+- **失败/仍阻塞**：前序返回0的1419安装、实际原生身份发布超时均未解决；旧负载不能当本轮通过，G02不通过、不关闭。
+- **未知**：正式资源文件名run10远端结果本轮无法恢复，磁盘回传失败不能推断产品成功或失败。
+- **未覆盖**：当前新IME真实IMM32/UI全链路、真实HWND/HIMC销毁重建与复用、同HWND多HIMC通知顺序、无按键激活刷新、窗口属性/GUID实机、断连/退出清理、x86、多DPI/多屏。托管模拟不能补签，不扩TSF。
+- 环境无可用子智能体探索/编码入口，本轮实际由当前代理完成；未宣称满足子智能体执行要求。产品实现未改，仅新增只读回收诊断入口。
+
 ## 1. 目标
 
 本计划的发布状态以 [主交接第 4.8 节](../../../../Docs/next-session-handoff.md#48-统一发布差距清单) 为准。第二轮真实证据已回读归档，本次未重新执行；下文设计建议不等于已批准的应用矩阵。
@@ -12,7 +102,30 @@
    - 通过 IPC 向 Host/UI 提供必要的目标窗口上下文。
 2. 从 Win32 输入上下文中取得候选窗口锚点，将有效的屏幕坐标写入 `ImeUiState.AnchorX/AnchorY`，使独立候选窗口能够跟随应用插入符或应用指定的候选位置。
 
-## 本次源码调查与最小修复（G02 仍开放）
+## G02 收尾修复：当前工作区托管验证通过，原生验收仍开放
+
+本节覆盖下方旧批次对“未授权身份开发／尚无独立激活／仅修改 reader”的当前状态描述；旧记录仅保留历史含义。用户已授权候选定位及身份开发。本轮接续两轮中间修改，未回退已有实现。
+
+### 已核对的实现链路
+
+- IMM 私有块 `ContextIdentity` GUID 经 `ImeInputIdentity.Resolve` 生成会话身份；写回私有块时保留 GUID。窗口属性由实际窗口对象保存世代，Anchor 携带属性名和值，Presenter 在定位前再次校验 HWND/PID/TID/属性身份。
+- `ImeSetActiveContextManaged` 独立发布激活/失活观察，`NI_CONTEXTUPDATED` 经 `RefreshInputTarget` 刷新已激活上下文；失活不重置组合、不等于销毁。Host 按 Owner 序列拒绝旧观察，同 ContextKey 更换会话身份时退役旧会话，拒绝其激活、按键和组合请求。
+- `ClientExclusion` 经 IPC 传输，在 Presenter 转换完整客户区矩形至屏幕坐标，再由 Placement 尝试下方、上方和左右避让。组合区域不再误读 CurrentPosition；初始化及来源有效性仍有门控。
+- 本轮移除 `Resolve` 中入口已排除非原生访问器后仍重复判断 `UsesNativeContext` 的冗余分支；未删除身份保护，未扩大 TSF 或 DPI 范围。
+
+### 本轮修复与实际验证
+
+1. 实际复现转换列表 3 个失败：首次定向运行 10 通过、3 失败，共 13；均在 required > 0 断言失败。根因是测试使用虚拟 HIMC=1 而未注入内存上下文，身份解析进入原生访问器；不是生产身份校验应被绕过。
+2. `ImeExportsTests.cs` 的三个转换列表测试注入 `InMemoryImmContext(1)`，finally 恢复访问器，保留候选内容、长度及不写目的缓冲等原断言。修后定向运行 13/13，通过、无跳过。既有 `Marshal.SizeOf<ImePrivateData>()` 断言已实际运行通过。
+3. Module 全测：226/226，通过，0 失败、0 跳过（当前测试清单；不沿用旧批次 227 或更旧计数）。
+4. Integration 的 `InputTargetLifecycleTests` + `CandidateAnchorTests`：30/30，通过，0 失败、0 跳过；包含已改为 `Composition.Reading` 的失活再激活保留组合断言。未运行完整 Integration，不作整项目通过声明。
+5. Module、Host、ImeUi.Avalonia 三个项目分别 Release 构建，均退出 0，各 0 警告、0 错误。此为托管构建，不是 Native AOT 发布或正式安装包验证。
+
+### 尚未执行的真实验收
+
+本轮没有发布或安装原生 IME，没有执行 Windows 真实 IMM32/UI 全链路、x86 ABI/私有块布局、真实 HWND/HIMC 销毁重建与数值复用、同 HWND 多 HIMC 激活通知顺序、无新按键激活/刷新、窗口世代属性与原生私有块身份的实机验收。托管测试只证明模拟合同，不证明这些原生场景通过。断连/进程退出后的清理合同仍需真实验收，不由序列拒绝测试代替。多 DPI/缩放/多屏继续后置，不扩 TSF；G02 不关闭。
+
+## 历史：源码调查与最小修复（G02 仍开放）
 
 本节是当前源码核对及本次实际执行结果；下方“第二轮”“阶段一”和第 2 节以后的原始设计保留为历史背景，不应据旧的“当前”描述重复判定功能缺失。
 

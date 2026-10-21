@@ -186,6 +186,8 @@ public static unsafe class ImeExports
                 GetModifiers(keyState),
                 new HImc(inputContext));
             ImeKeystrokeDiagnostics.RecordImeProcessKey(normalizedVirtualKey, handled);
+            if (normalizedVirtualKey == 0x20)
+                ImeLifecycleDiagnostics.Record("ImeProcessKey.Space", inputContext, handled ? 1 : 0, "decision");
             return handled;
         }
         catch (Exception exception)
@@ -309,8 +311,11 @@ public static unsafe class ImeExports
         ImeLifecycleDiagnostics.Record("ImeSelect", inputContext, select, "before");
         try
         {
+            if (select != 0)
+                ImeModuleRuntime.ActivateSelectedContext(new HImc(inputContext));
             if (select == 0)
             {
+                ImeModuleRuntime.SetActiveContext(new HImc(inputContext), false);
                 ApplyControlKey(ImeConstants.VkEscape, inputContext);
                 ImeModuleRuntime.ResetSession(new HImc(inputContext));
             }
@@ -335,6 +340,7 @@ public static unsafe class ImeExports
         ImeLifecycleDiagnostics.Record("ImeSetActiveContext", inputContext, active, "before");
         try
         {
+            ImeModuleRuntime.SetActiveContext(new HImc(inputContext), active != 0);
             // Activation changes focus ownership, not the lifetime of this HIMC's composition.
             // Explicit cancellation, deselection and destruction perform their own cleanup.
             ImeLifecycleDiagnostics.Record("ImeSetActiveContext", inputContext, active, "after");
@@ -397,6 +403,8 @@ public static unsafe class ImeExports
     internal static uint ImeToAsciiExManaged(uint virtualKey, uint scanCode, byte* keyState, nint transKey, uint state, nint inputContext)
     {
         var normalizedVirtualKey = (ushort)virtualKey;
+        if (normalizedVirtualKey == 0x20)
+            ImeLifecycleDiagnostics.Record("ImeToAsciiEx.Space", inputContext, 0, "entry");
         uint stage = 1;
         try
         {
@@ -407,13 +415,19 @@ public static unsafe class ImeExports
                 ? new ImeProcessResult(ImeSessionSnapshot.Empty, CommitText: null, Handled: false)
                 : ImeModuleRuntime.ProcessTranslatedKey(key, new HImc(inputContext));
             var result = ImeToAsciiResult.FromProcessResult(processResult);
+            if (normalizedVirtualKey == 0x20)
+                ImeLifecycleDiagnostics.Record("ImeToAsciiEx.Space", inputContext, result.Handled ? 1 : 0, "after-host");
             stage = 3;
             var compositionWriteSucceeded = s_compositionContextWriter.TryWrite(new HImc(inputContext), result);
             stage = 4;
             var messages = ImeTransMsgBuilder.BuildMessages(result, wasComposing);
             stage = 5;
+            var capacity = transKey == 0 ? 0 : ((TransMsgList*)transKey)->Count;
             var written = ImeTransMsgWriter.Write(transKey, messages);
             var returnValue = written != 0 ? written : result.Handled ? 1u : 0u;
+            if (normalizedVirtualKey == 0x20)
+                ImeLifecycleDiagnostics.Record("ImeToAsciiEx.Space", inputContext, compositionWriteSucceeded ? 1 : 0,
+                    $"return handled={result.Handled} commit={result.CommitText} capacity={capacity} messages={messages.Length} written={written} return={returnValue} bridgeError={ImeModuleRuntime.LastBridgeError}");
             ImeKeystrokeDiagnostics.RecordImeToAsciiEx(normalizedVirtualKey, result.Handled, compositionWriteSucceeded, written, returnValue, stage: stage);
             return returnValue;
         }
@@ -441,6 +455,7 @@ public static unsafe class ImeExports
                     ImeKey.SelectCandidate(unchecked((int)value)),
                     inputContext).Handled ? 1 : 0,
                 ImeConstants.NiCompositionStr => ApplyCompositionNotify(value, inputContext),
+                0x0003 => RefreshInputTarget(inputContext),
                 _ => 0,
             };
         }
@@ -458,6 +473,14 @@ public static unsafe class ImeExports
     internal static void SetCompositionContextWriterForTesting(ImeCompositionContextWriter? writer)
     {
         s_compositionContextWriter = writer ?? new ImeCompositionContextWriter(ImmContextAccessor.Instance);
+        ImeInputIdentity.ContextAccessor = s_compositionContextWriter.ContextAccessor;
+    }
+
+    private static int RefreshInputTarget(nint inputContext)
+    {
+        // NI_CONTEXTUPDATED reports position/open-state changes, not a new context lifetime.
+        ImeModuleRuntime.RefreshInputTarget(new HImc(inputContext));
+        return 1;
     }
 
     private static int ApplyCompositionNotify(uint value, nint inputContext)

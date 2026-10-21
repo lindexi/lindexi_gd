@@ -160,14 +160,8 @@ public sealed partial class ImeContext
             return false;
         }
 
-        if (_learn is not null)
-        {
-            _learn(learning);
-        }
-        else
-        {
-            userDictionary.Learn(learning);
-        }
+        userDictionary.Learn(learning);
+        if (userDictionary.IsBackgroundPublicationEnabled) userDictionary.PrepareAndPublish();
 
         return true;
     }
@@ -179,7 +173,9 @@ public sealed partial class ImeContext
     {
         ArgumentNullException.ThrowIfNull(reading);
         ArgumentNullException.ThrowIfNull(text);
-        return _dictionary is UserDictionary userDictionary && userDictionary.Forget(text, reading);
+        if (_dictionary is not UserDictionary userDictionary || !userDictionary.Forget(text, reading)) return false;
+        if (userDictionary.IsBackgroundPublicationEnabled) userDictionary.PrepareAndPublish();
+        return true;
     }
 
     /// <summary>
@@ -306,6 +302,11 @@ public sealed partial class ImeContext
             return new ImeProcessResult(Snapshot, null, false);
         }
 
+        // Another session can learn into the shared dictionary while this composition is inactive.
+        if (!IsSymbolComposition && _dictionary is not UserDictionary { IsBackgroundPublicationEnabled: true } &&
+            !ReferenceEquals(_displayedLexicon, _dictionary.GetLexicon()))
+            RefreshCandidates();
+
         if ((uint)candidateIndex >= (uint)_candidates.Count)
         {
             return new ImeProcessResult(Snapshot, null, true);
@@ -367,6 +368,7 @@ public sealed partial class ImeContext
     {
         _candidates.Clear();
         _revision++;
+        if (!IsComposing) _displayedLexicon = null;
         if (IsComposing && !IsSymbolComposition)
         {
             _displayedCandidates = Decode(_reading);

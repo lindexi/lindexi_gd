@@ -15,6 +15,8 @@ public sealed unsafe class ImeCompositionContextWriter
         _contextAccessor = contextAccessor;
     }
 
+    internal IImmContextAccessor ContextAccessor => _contextAccessor;
+
     public bool TryWrite(HImc inputContext, ImeToAsciiResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
@@ -271,7 +273,10 @@ public sealed unsafe class ImeCompositionContextWriter
 
         try
         {
-            if (!WritePrivateData((ImePrivateData*)privatePointer, snapshot))
+            var identity = ((ImePrivateData*)privatePointer)->ContextIdentity;
+            var written = WritePrivateData((ImePrivateData*)privatePointer, snapshot);
+            ((ImePrivateData*)privatePointer)->ContextIdentity = identity;
+            if (!written)
             {
                 return false;
             }

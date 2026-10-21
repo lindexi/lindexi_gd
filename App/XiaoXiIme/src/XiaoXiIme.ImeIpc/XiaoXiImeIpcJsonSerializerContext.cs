@@ -22,6 +22,8 @@ namespace XiaoXiIme.ImeIpc;
 [JsonSerializable(typeof(ImeSessionId))]
 [JsonSerializable(typeof(ImeProcessResult))]
 [JsonSerializable(typeof(ImeHostStatus))]
+[JsonSerializable(typeof(ImeInputTargetUpdate))]
+[JsonSerializable(typeof(ImeInputTargetUpdateResponse))]
 [JsonSerializable(typeof(ImeProcessKeyRequest))]
 [JsonSerializable(typeof(ImeProcessKeyResponse))]
 [JsonSerializable(typeof(ImeSnapshotRequest))]

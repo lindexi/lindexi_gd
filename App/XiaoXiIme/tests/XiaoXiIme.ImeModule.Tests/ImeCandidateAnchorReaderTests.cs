@@ -8,7 +8,6 @@ public class ImeCandidateAnchorReaderTests
     [InlineData(0u, 2u)]
     [InlineData(8u, 2u)]
     [InlineData(16u, 0u)]
-    [InlineData(16u, 1u)]
     [InlineData(16u, 64u)]
     public void Composition_UninitializedOrNonPointFormIsUnavailable(uint initialization, uint style)
     {

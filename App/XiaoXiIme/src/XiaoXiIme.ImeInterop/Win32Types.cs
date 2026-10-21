@@ -166,6 +166,7 @@ public struct ImePrivateData
     public uint CandidateWindowVisible;
     public uint Reserved0;
     public uint Reserved1;
+    public Guid ContextIdentity;
 }
 
 public struct TransMsg

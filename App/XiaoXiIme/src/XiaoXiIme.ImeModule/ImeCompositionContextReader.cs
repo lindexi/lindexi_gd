@@ -13,6 +13,8 @@ public sealed unsafe class ImeCompositionContextReader
         _contextAccessor = contextAccessor;
     }
 
+    internal IImmContextAccessor ContextAccessor => _contextAccessor;
+
     /// <summary>Checks the target IMM context rather than another session's conversion mode.</summary>
     public bool IsReceivingChinese(HImc inputContext)
     {

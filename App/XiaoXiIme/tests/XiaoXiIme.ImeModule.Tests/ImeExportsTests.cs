@@ -94,7 +94,7 @@ public class ImeExportsTests
     {
         var info = ImeExports.CreateInquireInfoForTesting();
 
-        Assert.Equal(0u, info.PrivateDataSize);
+        Assert.Equal((uint)Marshal.SizeOf<ImePrivateData>(), info.PrivateDataSize);
         Assert.True((info.Property & ImeConstants.ImePropKbdCharFirst) != 0);
         Assert.True((info.Property & ImeConstants.ImePropSpecialUi) != 0);
         Assert.True((info.Property & ImeConstants.ImePropUnicode) != 0);
@@ -407,6 +407,8 @@ public class ImeExportsTests
     [Fact]
     public unsafe void ImeConversionListManaged_WhenGclConversionThenWritesCandidateListWithoutChangingComposition()
     {
+        using var context = new InMemoryImmContext((nint)1);
+        ImeModuleRuntime.SetCompositionContextReaderForTesting(new(context));
         ImeModuleRuntime.SetConversionListHandlerForTesting(_ => [new ImeCandidate("XiaoXiIme", "xiao xi ai mu yi")]);
         var source = "xiaoxiaimuyi";
         var buffer = new byte[256];
@@ -437,6 +439,7 @@ public class ImeExportsTests
             }
             finally
             {
+                ImeModuleRuntime.SetCompositionContextReaderForTesting(null);
                 ImeModuleRuntime.SetConversionListHandlerForTesting(null);
                 ImeModuleRuntime.SetBridgeForTesting(null);
             }
@@ -446,6 +449,8 @@ public class ImeExportsTests
     [Fact]
     public unsafe void ImeConversionListManaged_WhenGclReverseConversionThenWritesCanonicalReading()
     {
+        using var context = new InMemoryImmContext((nint)1);
+        ImeModuleRuntime.SetCompositionContextReaderForTesting(new(context));
         var conversionCalled = false;
         ImeModuleRuntime.SetConversionListHandlerForTesting(_ =>
         {
@@ -483,6 +488,7 @@ public class ImeExportsTests
             }
             finally
             {
+                ImeModuleRuntime.SetCompositionContextReaderForTesting(null);
                 ImeModuleRuntime.SetReverseConversionListHandlerForTesting(null);
                 ImeModuleRuntime.SetConversionListHandlerForTesting(null);
                 ImeModuleRuntime.SetBridgeForTesting(null);
@@ -493,6 +499,8 @@ public class ImeExportsTests
     [Fact]
     public unsafe void ImeConversionListManaged_WhenGclReverseLengthThenReturnsRequiredSizeWithoutWritingDestination()
     {
+        using var context = new InMemoryImmContext((nint)1);
+        ImeModuleRuntime.SetCompositionContextReaderForTesting(new(context));
         var conversionCalled = false;
         ImeModuleRuntime.SetConversionListHandlerForTesting(_ =>
         {
@@ -526,6 +534,7 @@ public class ImeExportsTests
             }
             finally
             {
+                ImeModuleRuntime.SetCompositionContextReaderForTesting(null);
                 ImeModuleRuntime.SetReverseConversionListHandlerForTesting(null);
                 ImeModuleRuntime.SetConversionListHandlerForTesting(null);
                 ImeModuleRuntime.SetBridgeForTesting(null);

@@ -5,6 +5,24 @@ namespace XiaoXiIme.ImeCore.Tests;
 
 public class ImeContextTests
 {
+    [Theory]
+    [InlineData(ImeKeyKind.Space)]
+    [InlineData(ImeKeyKind.CandidateSelection)]
+    public void WhenAnotherSessionLearnsThenKeyboardSelectionCommitsAndEndsComposition(ImeKeyKind kind)
+    {
+        var dictionary = new UserDictionary(CanonicalDictionaryFixture.Create([new ImeCandidate("你", "ni", 100)]));
+        var first = new ImeContext(dictionary, learning => dictionary.Learn(learning));
+        var second = new ImeContext(dictionary, learning => dictionary.Learn(learning));
+        first.SetComposition("ni");
+        second.SetComposition("ni");
+        second.ProcessKey(new ImeKey(ImeKeyKind.Space));
+
+        var result = first.ProcessKey(new ImeKey(kind, CandidateIndex: 0));
+
+        Assert.Equal((true, "你", false, ""),
+            (result.Handled, result.CommitText, result.Snapshot.IsComposing, result.Snapshot.Composition.Reading));
+    }
+
     [Fact]
     public void ProcessKey_AddsLettersAndRefreshesCandidates()
     {

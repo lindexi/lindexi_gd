@@ -6,6 +6,8 @@ public static class XiaoXiImeIpcRoutes
 
     public const string SaveProductSettings = "XiaoXiIme.SaveProductSettings";
 
+    public const string UpdateInputTarget = "XiaoXiIme.UpdateInputTarget";
+
     public const string ProcessKey = "XiaoXiIme.ProcessKey";
 
     public const string GetSnapshot = "XiaoXiIme.GetSnapshot";

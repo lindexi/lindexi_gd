@@ -5,6 +5,10 @@ namespace XiaoXiIme.ImeInterop;
 /// <summary>Read-only Win32 target identity and coordinate operations.</summary>
 public static class InputTargetMethods
 {
+    /// <summary>Reads a window-object property; properties are removed by Windows when that object is destroyed.</summary>
+    [DllImport("user32.dll", EntryPoint = "GetPropW", CharSet = CharSet.Unicode)]
+    public static extern nint GetWindowProperty(nint window, string name);
+
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool IsWindow(nint window);
