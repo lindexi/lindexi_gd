@@ -50,6 +50,17 @@ public class MediaPlayerControl : Control, IDisposable
     public Uri? Source { get => (Uri?)GetValue(SourceProperty); set => SetValue(SourceProperty, value); }
     /// <summary>Source 依赖属性。</summary>
     public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(nameof(Source), typeof(Uri), typeof(MediaPlayerControl), new FrameworkPropertyMetadata(null, OnSourceChanged));
+    /// <summary>可绑定的视频呈现模式，默认 Hwnd；须在 Source 打开前设置，Close 后可更改。</summary>
+    public VideoRenderingMode RenderingMode { get => (VideoRenderingMode)GetValue(RenderingModeProperty); set => SetValue(RenderingModeProperty, value); }
+    /// <summary>RenderingMode 依赖属性；更改时转发到 Player，打开期间拒绝不同模式。</summary>
+    public static readonly DependencyProperty RenderingModeProperty = DependencyProperty.Register(nameof(RenderingMode), typeof(VideoRenderingMode), typeof(MediaPlayerControl),
+        new FrameworkPropertyMetadata(VideoRenderingMode.Hwnd, null, CoerceRenderingMode), value => Enum.IsDefined((VideoRenderingMode)value));
+    private static object CoerceRenderingMode(DependencyObject d, object value)
+    {
+        var control = (MediaPlayerControl)d;
+        control.Player.RenderingMode = (VideoRenderingMode)value;
+        return value;
+    }
     /// <summary>打开后自动播放，默认 true。</summary>
     public bool AutoPlay { get => (bool)GetValue(AutoPlayProperty); set => SetValue(AutoPlayProperty, value); }
     /// <summary>AutoPlay 依赖属性。</summary>

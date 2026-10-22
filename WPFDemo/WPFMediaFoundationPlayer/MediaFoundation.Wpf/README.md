@@ -4,13 +4,23 @@
 
 ## Entry point
 
-`MediaFoundation.Controls.MediaPlayer` is sealed, implements `INotifyPropertyChanged` and `IDisposable`, and must be constructed, used and disposed on its owning WPF STA Dispatcher. Add its `VideoView` (`FrameworkElement`, internally an HWND host) to a visible ContentControl. Open before attachment is supported: the URI is queued until HWND creation. Audio-only playback also requires the attached HWND.
+`MediaFoundation.Controls.MediaPlayer` is sealed, implements `INotifyPropertyChanged` and `IDisposable`, and must be constructed, used and disposed on its owning WPF STA Dispatcher. Add its stable `VideoView` (`FrameworkElement`, internally a Grid containing the selected presenter) to a visible ContentControl. Do not cast it to HwndHost. Open before attachment is supported for HWND mode: the URI is queued until HWND creation. HWND audio-only playback also requires the attached HWND.
 
 Methods: `Open(Uri)`, `Play()`, `Pause()`, `Stop()`, `Seek(TimeSpan)`, `Close()`, `Dispose()`. Open accepts absolute URIs. Play during Opening is deferred until MediaOpened; Pause/Stop cancel that request. Repeated Open replaces and disposes the previous session. Close releases the session but leaves the host reusable; Dispose permanently releases both, session first.
 
 Settings: `Volume` (0..1), `IsMuted`, `PlaybackRate` (positive finite, media-dependent), `IsLooping`. Presets and Close/reopen preserve settings. Read-only observations: `Position`, `Duration`, `State` (Core.PlaybackState), `Source`, `VideoWidth`, `VideoHeight`, `HasVideo`, `HasAudio`, `CanPlay`, `CanPause`, `CanSeek`, `LastError`.
 
 Events: `PropertyChanged`, `MediaOpened`, `PlaybackEnded`, `Failed` (`Core.PlaybackFailedEventArgs.Error`). All run on the UI Dispatcher. Position is sampled every 200 ms. Refresh errors stop polling and surface through LastError/Failed; synchronous entry-point call errors propagate. CanSeek is conservative (ready plus known duration); actual source capabilities may still reject seek or playback rate.
+
+## Rendering modes and platform requirements
+
+`MediaPlayer.RenderingMode` and `MediaPlayerControl.RenderingMode` select `VideoRenderingMode.Hwnd` (default, MFPlay child HWND) or `VideoRenderingMode.D3DImage` (Media Engine frame-server with D3D11/D3D9Ex shared texture and WPF Image). Set the mode before Open/Source. Open locks the selection immediately, including a deferred HWND Open; assigning a different mode while locked throws InvalidOperationException. Close unlocks it. VideoView remains the same object across Close, reopen and mode changes; only its internal presenter changes.
+
+HWND retains native-window airspace restrictions. D3DImage participates in WPF composition, enabling WPF overlays, clipping and transforms. It requires compatible same-adapter D3D11/D3D9Ex sharing and video support; unsupported virtual/remote adapters may fail at initialization. It is not guaranteed faster than HWND and is not an absolute zero-copy claim: decoding, sharing, synchronization and WPF composition costs depend on hardware and drivers.
+
+Front-buffer availability changes rebind the existing back buffer, but this is not full device-loss recovery. Device removal/reset does not automatically rebuild all graphics resources or fall back to HWND. Handle errors, Close, and explicitly reopen or select HWND after Close. Validate monitor changes, remote sessions, suspend/resume and device loss on target hardware.
+
+The WPF library currently defaults to x64 and supports explicit x86 (`win-x86` RID or x86 Platform). This changes the previous AnyCPU deployment contract. CsWin32 0.3.183 rejects AnyCPU generation of Direct3DCreate9Ex/IDirect3D9Ex with PInvoke005 due to architecture-specific metadata; its available configuration has no independent target-architecture option. Merely removing PlatformTarget fails compilation; pretending x64 interop is AnyCPU is unsafe. Core remains AnyCPU. Publish applications for the matching architecture.
 
 ## Ready-to-use control
 
@@ -34,7 +44,7 @@ Operational strings use Strings.resx and standard culture satellite resource loo
 
 ## Integration test handoff
 
-Run tests on Windows with Media Foundation installed, a visible WPF Window, an STA thread and a running Dispatcher. Construct the player/control there and close/dispose there; do not block the Dispatcher awaiting native events. Real media tests are delegated to the integration/demo agent, not claimed by this library implementation.
+Run tests on Windows with Media Foundation installed, a visible WPF Window, an STA thread and a running Dispatcher. Construct the player/control there and close/dispose there; do not block the Dispatcher awaiting native events. Run the published Demo with `--self-test --d3dimage <media-path>` for D3DImage, or omit `--d3dimage` for HWND. Self-test relative media paths resolve against the executable directory. Publishing with `-p:IncludeSelfTestMedia=true` optionally includes the repository sample as self-test.mp4. Logs (self-test.log) and visual-*.png are written beside the executable. D3DImage Trace reports first frame and presented-frame counts; inspect actual screenshots too, not only metadata or clock advancement.
 
 Suggested checks using only public APIs:
 
@@ -49,3 +59,11 @@ Suggested checks using only public APIs:
 9. Temporarily remove/reinsert control or replace template while playing; verify it remains usable. Close owner window; verify native session is disposed before child HWND destruction.
 
 Build validation targets: Release win-x64 and Release win-x86. RID compilation is not a substitute for native execution on each architecture.
+
+### Sandbox delivery validation
+
+Published x64 Demo was executed in the Windows sandbox with both switches. HWND self-test exited 0: metadata, playback clock, paused-position stability, slider/API seek, Stop reset, volume/mute commands, 2x clock ratio (2.043), EOF/loop, repeated open/close and callback balance (13/13) passed. A foreground screenshot showed actual video content. WASAPI loopback was unavailable (0x80070490), so actual audio output and listening quality were NOT verified.
+
+D3DImage self-test exited 1 at D3D11CreateDevice (SharedVideoSurface), HRESULT 0x887A0004 (unsupported device interface/feature). No D3DImage video frame, audio playback, pause or seek was verified in this environment; HWND results must not be attributed to D3DImage. No silent fallback was added. Compatible GPU/driver execution remains a delivery blocker for D3DImage acceptance.
+
+Recovered evidence: `.coding-agent/d3dimage-validation-fixed/self-test.log` and `.coding-agent/hwnd-validation-fixed/self-test.log`, with HWND `visual-*.png`, relative to the repository root. x86 publish is a compilation/deployment check only, not an x86 execution claim.

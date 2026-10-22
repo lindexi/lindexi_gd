@@ -12,7 +12,8 @@ public partial class App : Application
         base.OnStartup(e);
         Console.OutputEncoding = System.Text.Encoding.UTF8;
         bool testing = e.Args.Contains("--self-test");
-        if (testing) System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
+        bool d3dImage = e.Args.Contains("--d3dimage");
+        if (testing && !d3dImage) System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
         string? path = e.Args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal));
         if (testing && string.IsNullOrWhiteSpace(path))
         {
@@ -22,10 +23,14 @@ public partial class App : Application
         }
         MediaPlayerControl? control = null;
         Window? window = null;
+        RenderingModeMenu? renderingMenu = null;
         Window CreateWindow()
         {
-            control = new MediaPlayerControl { AutoPlay = !testing };
-            window = new Window { Title = (string)FindResource("DemoTitle"), Width = 1100, Height = 720, MinWidth = 640, MinHeight = 360, Content = control };
+            control = new MediaPlayerControl { AutoPlay = !testing, RenderingMode = d3dImage ? VideoRenderingMode.D3DImage : VideoRenderingMode.Hwnd };
+            var layout = new System.Windows.Controls.DockPanel();
+            renderingMenu = new RenderingModeMenu(control, layout);
+            window = new Window { Title = (string)FindResource("DemoTitle"), Width = 1100, Height = 720, MinWidth = 640, MinHeight = 360, Content = layout };
+            window.Closed += (_, _) => renderingMenu.Dispose();
             MainWindow = window;
             return window;
         }
@@ -59,7 +64,8 @@ public partial class App : Application
         try
         {
             CreateWindow().Show();
-            await SelfTest.RunAsync(window!, control!, new Uri(Path.GetFullPath(path!)), Write, timeout.Token);
+            await SelfTest.RunRenderingMenuAsync(control!, renderingMenu!, new Uri(Path.GetFullPath(path!, AppContext.BaseDirectory)), Write, timeout.Token);
+            await SelfTest.RunAsync(window!, control!, new Uri(Path.GetFullPath(path!, AppContext.BaseDirectory)), Write, timeout.Token);
             code = 0;
         }
         catch (Exception error)
@@ -68,6 +74,7 @@ public partial class App : Application
         }
         finally
         {
+            renderingMenu?.Dispose();
             control?.Dispose();
             window?.Close();
             watchdogCancellation.Cancel();

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Threading;
+using System.Windows.Controls;
 using MediaFoundation.Core;
 
 namespace MediaFoundation.Controls;
@@ -11,9 +12,13 @@ namespace MediaFoundation.Controls;
 public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
 {
     private readonly Dispatcher dispatcher;
-    private readonly VideoHost host;
+    private readonly Grid view = new();
     private readonly DispatcherTimer timer;
-    private MediaPlaybackSession? session;
+    private VideoHost? host;
+    private D3DImagePresenter? presenter;
+    private IPlaybackSession? session;
+    private VideoRenderingMode renderingMode;
+    private bool modeLocked;
     private bool disposed;
     private bool playPending;
     private double volume = 1, rate = 1;
@@ -25,16 +30,29 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
         dispatcher = Dispatcher.CurrentDispatcher;
         if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
             throw new InvalidOperationException(Text.Get("StaRequired"));
-        host = new VideoHost();
-        host.Created += OnCreated;
-        host.Destroying += ReleaseSession;
-        host.Resized += OnResize;
+        CreateHost();
         timer = new DispatcherTimer(TimeSpan.FromMilliseconds(200), DispatcherPriority.Background, OnTick, dispatcher);
         timer.Stop();
     }
 
     /// <summary>可放入 ContentControl 的唯一视频宿主，不支持同时放入多个可视树。</summary>
-    public FrameworkElement VideoView => host;
+    public FrameworkElement VideoView => view;
+    /// <summary>呈现后端，默认 Hwnd。Open（含延迟打开）立即锁定，Close 后可更改；VideoView 对象不变。</summary>
+    public VideoRenderingMode RenderingMode
+    {
+        get => renderingMode;
+        set
+        {
+            Verify();
+            if (!Enum.IsDefined(value)) throw new ArgumentOutOfRangeException(nameof(value));
+            if (value == renderingMode) return;
+            if (modeLocked) throw new InvalidOperationException(Text.Get("RenderingModeLocked"));
+            DestroyHost();
+            renderingMode = value;
+            if (value == VideoRenderingMode.Hwnd) CreateHost();
+            Notify();
+        }
+    }
     /// <summary>属性变化通知；始终在创建线程发生。</summary>
     public event PropertyChangedEventHandler? PropertyChanged;
     /// <summary>异步打开完成，此后可以播放。</summary>
@@ -98,8 +116,10 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
     {
         Verify(); ArgumentNullException.ThrowIfNull(source);
         if (!source.IsAbsoluteUri) throw new ArgumentException(Text.Get("AbsoluteUriRequired"), nameof(source));
+        modeLocked = true;
         ReleaseSession(); Source = source; LastError = null; State = PlaybackState.Opening; Publish();
-        if (host.Handle != 0) StartSession(host.Handle);
+        if (renderingMode == VideoRenderingMode.D3DImage) StartSession(0);
+        else if (host is { Handle: not 0 }) StartSession(host.Handle);
     }
     /// <summary>播放；如果还在异步打开，则在 MediaOpened 后执行。</summary>
     public void Play() { Verify(); if (State == PlaybackState.Opening) { playPending = true; return; } if (CanPlay) session?.Play(); }
@@ -110,23 +130,45 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
     /// <summary>定位；仅当 CanSeek 为 true 时调用，核心按时长截断。</summary>
     public void Seek(TimeSpan position) { Verify(); if (CanSeek) session?.Seek(position); }
     /// <summary>释放当前会话，保留视频宿主和设置，允许再次 Open。</summary>
-    public void Close() { Verify(); ReleaseSession(); Source = null; LastError = null; Publish(); }
+    public void Close() { Verify(); Source = null; ReleaseSession(); modeLocked = false; LastError = null; Publish(); }
     /// <summary>永久释放会话和 HWND；重复调用安全，必须在创建线程执行。</summary>
     public void Dispose()
     {
         dispatcher.VerifyAccess(); if (disposed) return;
-        ReleaseSession(); disposed = true; host.Dispose(); Source = null; Publish();
+        Source = null; ReleaseSession(); disposed = true; DestroyHost(); Publish();
     }
 
     private void Verify() { dispatcher.VerifyAccess(); ObjectDisposedException.ThrowIf(disposed, this); }
-    private void OnCreated(nint hwnd) { if (!disposed && Source != null) StartSession(hwnd); }
+    private void CreateHost()
+    {
+        host = new VideoHost();
+        host.Created += OnCreated; host.Destroying += ReleaseSession; host.Resized += OnResize;
+        view.Children.Add(host);
+    }
+    private void DestroyHost()
+    {
+        if (host == null) return;
+        host.Created -= OnCreated; host.Destroying -= ReleaseSession; host.Resized -= OnResize;
+        view.Children.Remove(host); host.Dispose(); host = null;
+    }
+    private void OnCreated(nint hwnd) { if (!disposed && Source != null && session == null) StartSession(hwnd); }
     private void StartSession(nint hwnd)
     {
         var previous = SynchronizationContext.Current;
         SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(dispatcher));
         try
         {
-            var created = new MediaPlaybackSession(hwnd);
+            IPlaybackSession created;
+            if (renderingMode == VideoRenderingMode.D3DImage)
+            {
+                if (!OperatingSystem.IsWindowsVersionAtLeast(8)) throw new PlatformNotSupportedException(Text.Get("D3DImagePlatformRequired"));
+                presenter = new D3DImagePresenter(ReportError);
+                var engine = new MediaEngineSession(presenter.Device);
+                created = engine;
+                presenter.Start(engine);
+                view.Children.Add(presenter.View);
+            }
+            else created = new MediaPlaybackSession(hwnd);
             session = created;
             created.StateChanged += OnStateChanged; created.MediaOpened += OnOpened;
             created.PlaybackEnded += OnEnded; created.Failed += OnFailed;
@@ -146,6 +188,10 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
             session = null;
             old.StateChanged -= OnStateChanged; old.MediaOpened -= OnOpened;
             old.PlaybackEnded -= OnEnded; old.Failed -= OnFailed; old.Dispose();
+        }
+        if (presenter != null && OperatingSystem.IsWindowsVersionAtLeast(8))
+        {
+            view.Children.Remove(presenter.View); presenter.Dispose(); presenter = null;
         }
         Position = Duration = TimeSpan.Zero; VideoWidth = VideoHeight = 0; HasVideo = HasAudio = false; State = PlaybackState.Closed;
         Publish();

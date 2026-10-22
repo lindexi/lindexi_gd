@@ -14,7 +14,7 @@ namespace MediaFoundation.Core;
 /// 所有成员（包括 Dispose）必须在构造线程调用；该线程必须是有消息循环和专用
 /// SynchronizationContext 的 STA。宿主必须先释放会话再销毁 HWND。
 /// </summary>
-public sealed unsafe class MediaPlaybackSession : IDisposable
+public sealed unsafe class MediaPlaybackSession : IPlaybackSession
 {
     private readonly int threadId = Environment.CurrentManagedThreadId;
     private readonly SynchronizationContext context;

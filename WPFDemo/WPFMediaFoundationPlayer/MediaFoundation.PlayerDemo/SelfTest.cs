@@ -12,8 +12,101 @@ namespace MediaFoundation.PlayerDemo;
 
 internal static class SelfTest
 {
+    internal static async Task RunRenderingMenuAsync(MediaPlayerControl control, RenderingModeMenu menu, Uri source, Action<string> log, CancellationToken ct)
+    {
+        var initialMode = control.RenderingMode;
+        async Task CheckSwitchAsync(VideoRenderingMode mode)
+        {
+            if (!await menu.SwitchAsync(mode)) throw new InvalidOperationException(menu.ErrorText);
+            if (control.RenderingMode != mode || control.Player.RenderingMode != mode || menu.IsSwitching)
+                throw new InvalidOperationException("Rendering mode/control/menu mismatch.");
+        }
+        await CheckSwitchAsync(VideoRenderingMode.D3DImage);
+        await CheckSwitchAsync(VideoRenderingMode.Hwnd);
+        if (control.Source != null || control.Player.Source != null || control.Player.State != PlaybackState.Closed)
+            throw new InvalidOperationException("Unopened mode selection must not open media.");
+        log("PASS unopened control RenderingMode D3DImage/Hwnd, synchronized and Closed");
+        control.AutoPlay = false;
+        var opened = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnOpened(object? sender, EventArgs e) => opened.TrySetResult();
+        control.Player.MediaOpened += OnOpened;
+        try
+        {
+            control.Source = source;
+            await opened.Task.WaitAsync(TimeSpan.FromSeconds(15), ct);
+        }
+        finally { control.Player.MediaOpened -= OnOpened; }
+        control.Player.Play();
+        async Task WaitAsync(Func<bool> condition)
+        {
+            var clock = Stopwatch.StartNew();
+            while (!condition())
+            {
+                if (control.Player.LastError is { } error) throw new InvalidOperationException("Menu test playback", error);
+                if (clock.Elapsed > TimeSpan.FromSeconds(12)) throw new TimeoutException("Menu test native state confirmation");
+                await Task.Delay(20, ct);
+            }
+        }
+        await WaitAsync(() => control.Player.State == PlaybackState.Playing && control.Player.Position > TimeSpan.FromSeconds(0.7));
+        control.Player.Pause();
+        await WaitAsync(() => control.Player.State == PlaybackState.Paused);
+        var position = control.Player.Position;
+        bool switched = await menu.SwitchAsync(VideoRenderingMode.D3DImage);
+        if (switched)
+        {
+            await WaitAsync(() => control.Player.State == PlaybackState.Paused && Math.Abs((control.Player.Position - position).TotalSeconds) < 0.6);
+            log("PASS menu D3DImage reopen and paused position restoration (not frame-presentation proof)");
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(menu.ErrorText) || menu.IsSwitching) throw new InvalidOperationException("Mode failure must expose an error and unlock menu.");
+            log("NOT VERIFIED D3DImage media switch: " + menu.ErrorText);
+        }
+        await CheckSwitchAsync(VideoRenderingMode.Hwnd);
+        await WaitAsync(() => control.Player.State == PlaybackState.Paused && Math.Abs((control.Player.Position - position).TotalSeconds) < 0.6);
+        if (control.Source != source || control.Player.Source != source || control.AutoPlay)
+            throw new InvalidOperationException("Reopen must preserve source synchronization and AutoPlay.");
+        log("PASS menu media return/recovery to HWND, paused intent, position, Source and AutoPlay");
+        foreach (var intent in new[] { PlaybackState.Playing, PlaybackState.Stopped })
+        {
+            control.AutoPlay = true;
+            if (intent == PlaybackState.Playing) control.Player.Play();
+            else control.Player.Stop();
+            await WaitAsync(() => control.Player.State == intent);
+            var switching = menu.SwitchAsync(VideoRenderingMode.D3DImage);
+            if (!switching.IsCompleted && await menu.SwitchAsync(VideoRenderingMode.Hwnd))
+                throw new InvalidOperationException("Concurrent mode switch must be rejected.");
+            if (!await switching) log("NOT VERIFIED D3DImage " + intent + ": " + menu.ErrorText);
+            await CheckSwitchAsync(VideoRenderingMode.Hwnd);
+            await WaitAsync(() => control.Player.State == intent);
+            if (!control.AutoPlay || control.Source != source || control.Player.Source != source)
+                throw new InvalidOperationException("Mode switch lost AutoPlay or source.");
+            if (intent == PlaybackState.Stopped && control.Player.Position > TimeSpan.FromMilliseconds(100))
+                throw new InvalidOperationException("Stopped reopen must remain at the start.");
+            log("PASS menu HWND recovery intent=" + intent + ", AutoPlay restored, rapid request isolated");
+        }
+        control.AutoPlay = false;
+        control.Source = null;
+        control.Player.Close();
+        if (initialMode != VideoRenderingMode.Hwnd) await CheckSwitchAsync(initialMode);
+    }
+
     internal static async Task RunAsync(Window window, MediaPlayerControl control, Uri source, Action<string> log, CancellationToken ct)
     {
+        using (var deferred = new Player())
+        {
+            var stableView = deferred.VideoView;
+            deferred.Open(source);
+            bool modeRejected = false;
+            try { deferred.RenderingMode = VideoRenderingMode.D3DImage; }
+            catch (InvalidOperationException) { modeRejected = true; }
+            if (!modeRejected) throw new InvalidOperationException("Deferred Open must lock RenderingMode.");
+            deferred.Close();
+            deferred.RenderingMode = VideoRenderingMode.D3DImage;
+            deferred.RenderingMode = VideoRenderingMode.Hwnd;
+            if (!ReferenceEquals(stableView, deferred.VideoView)) throw new InvalidOperationException("VideoView must remain stable.");
+            log("PASS deferred Open mode lock, Close unlock, stable VideoView");
+        }
         using var callbackCounts = new CallbackCounts();
         Trace.Listeners.Add(callbackCounts);
         var player = control.Player;

@@ -3,6 +3,12 @@
   <ResourceDictionary xmlns:sys="clr-namespace:System;assembly=System.Runtime">
    <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="/MediaFoundation.Controls;component/Themes/Controls.xaml"/></ResourceDictionary.MergedDictionaries>
    <sys:String x:Key="DemoTitle">Media Foundation 播放器</sys:String>
+   <sys:String x:Key="DemoMoreText">更多 ▾</sys:String>
+   <sys:String x:Key="DemoHwndText">HWND — 通常开销较低，有原生窗口空域限制</sys:String>
+   <sys:String x:Key="DemoD3DImageText">D3DImage — 可叠加 WPF UI，有额外合成开销</sys:String>
+   <sys:String x:Key="DemoSwitchNoticeText">切换将关闭并重新打开媒体，并非无缝切换。</sys:String>
+   <sys:String x:Key="DemoSwitchingText">正在重新打开媒体并恢复播放状态…</sys:String>
+   <sys:String x:Key="DemoSwitchFailedText">切换失败：{0}。可在“更多”中重新选择 HWND 重试。</sys:String>
    <sys:String x:Key="SelfTestMediaRequiredText">自测需要显式指定媒体文件路径：--self-test &lt;媒体文件路径&gt;</sys:String>
    <SolidColorBrush x:Key="PlayerBackgroundBrush" Color="#142638"/>
    <SolidColorBrush x:Key="PlayerAccentBrush" Color="#FFB347"/>

@@ -8,4 +8,6 @@
   <data name="NoMedia" xml:space="preserve"><value>打开文件或拖入媒体文件</value></data>
   <data name="Loading" xml:space="preserve"><value>正在加载…</value></data>
   <data name="FileFilter" xml:space="preserve"><value>媒体文件|*.mp4;*.wmv;*.avi;*.mov;*.m4v;*.mp3;*.wav;*.wma;*.aac;*.m4a|所有文件|*.*</value></data>
+  <data name="RenderingModeLocked" xml:space="preserve"><value>Open 后不能更改呈现模式。请先调用 Close。</value></data>
+  <data name="D3DImagePlatformRequired" xml:space="preserve"><value>D3DImage 模式需要 Windows 8 或更高版本及兼容的 Direct3D 设备。</value></data>
 </root>

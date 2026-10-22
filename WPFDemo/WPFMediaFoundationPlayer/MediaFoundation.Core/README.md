@@ -1,6 +1,6 @@
 # MediaFoundation.Core
 
-独立 `net10.0-windows` 库，不引用 WPF。使用 Windows MFPlay 的原生音频输出、视频 HWND 渲染器和播放时钟，不使用 SourceReader 视频帧模拟播放。CsWin32 0.3.183 以 PrivateAssets=all 引用；生成 SDK 接口、GUID、事件结构及 callback Vtbl。支持 x86/x64 宿主，不要求宿主启用 unsafe。
+独立 `net10.0-windows` 库，不引用 WPF。提供两种原生播放会话：`MediaPlaybackSession` 使用 MFPlay 的音频输出、视频 HWND 渲染器和播放时钟；`MediaEngineSession` 使用 Media Engine frame-server、原生音频和媒体时钟，通过宿主提供的 D3D11 设备输出视频纹理。两者实现 `IPlaybackSession`，不使用 SourceReader 视频帧模拟播放。CsWin32 0.3.183 以 PrivateAssets=all 引用；生成 SDK 接口、GUID、事件结构及 callback Vtbl。支持 x86/x64 宿主，不要求宿主启用 unsafe。
 
 ## 接入约定
 
@@ -16,6 +16,16 @@
 - EOF 触发 Ended、PlaybackEnded；循环开启时，随后异步 Seek(0)/Play。处理器可关闭循环、重新打开或释放；库不继续操作旧管线。
 - 同步参数、线程与原生命令错误抛异常；异步失败通过 State=Failed 与 Failed.Error 报告并关闭失败管线。Open 中的即时原生失败也通过 Failed 报告。事件处理器异常属于宿主异常，不应抛出。
 - 支持 Windows 已安装的 MF 解码器及协议。Windows N/精简系统可能需要 Media Feature Pack；编译成功不证明设备、编解码器和真实声音已验证。
+
+## Media Engine / D3DImage 后端
+
+`MediaEngineSession(nint d3d11Device)` 要求 Windows 8+，传入有效的 ID3D11Device，并在会话释放前保持设备有效。仍须在安装了 SynchronizationContext、持续泵消息的 STA 上使用。宿主通过 `TransferFrame(nint destinationTexture, int width, int height)` 在有新帧时传输到兼容纹理；返回 true 才表示完成一次传输，媒体元数据和播放时钟推进不能代替实际出帧证据。Core 不拥有 WPF 的 D3DImage。
+
+WPF 的 `RenderingMode` 是上层选择，不属于 Core 会话；模式在 Open（包括延迟 Open）时锁定，Close 后解锁，切换不更换 VideoView 对象。
+
+D3DImage 路径需要同一适配器上的 D3D11/D3D9Ex 共享资源和视频支持。性能取决于驱动、解码器、视频尺寸、合成及共享资源同步，不保证比 HWND 更快或绝对零拷贝。当前不提供完整设备移除/重置自动恢复，也不静默切换后端；失败后由宿主关闭并重新打开，必要时在 Close 后选择 HWND。
+
+Core 自身保持 AnyCPU；WPF 双模式库因 CsWin32 0.3.183 的 Direct3D9 架构相关元数据需要明确 x64/x86。AnyCPU 生成 Direct3DCreate9Ex/IDirect3D9Ex 会报告 PInvoke005；当前生成器配置没有独立架构选项。不能把生成 x64 interop 后标为 AnyCPU 当作安全替代。
 
 ## 诊断
 
