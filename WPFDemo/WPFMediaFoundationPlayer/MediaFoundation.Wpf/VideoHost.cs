@@ -16,11 +16,24 @@ internal sealed class VideoHost : HwndHost
 
     protected override unsafe HandleRef BuildWindowCore(HandleRef hwndParent)
     {
-        var window = PInvoke.CreateWindowEx(0, "STATIC", "", WINDOW_STYLE.WS_CHILD | WINDOW_STYLE.WS_VISIBLE | WINDOW_STYLE.WS_CLIPCHILDREN | WINDOW_STYLE.WS_CLIPSIBLINGS,
-            0, 0, 1, 1, new HWND(hwndParent.Handle), default, PInvoke.GetModuleHandle((string?)null), null);
+        var window = PInvoke.CreateWindowEx
+        (
+            0, "STATIC", "",
+            WINDOW_STYLE.WS_CHILD | WINDOW_STYLE.WS_VISIBLE | WINDOW_STYLE.WS_CLIPCHILDREN |
+            WINDOW_STYLE.WS_CLIPSIBLINGS,
+            0, 0, 1, 1, new HWND(hwndParent.Handle), default, PInvoke.GetModuleHandle((string?)null), null
+        );
         if (window.IsNull) throw new Win32Exception(Marshal.GetLastWin32Error());
-        try { Created?.Invoke((nint)window.Value); }
-        catch { PInvoke.DestroyWindow(window); throw; }
+        try
+        {
+            Created?.Invoke((nint)window.Value);
+        }
+        catch
+        {
+            PInvoke.DestroyWindow(window);
+            throw;
+        }
+
         return new HandleRef(this, (nint)window.Value);
     }
 

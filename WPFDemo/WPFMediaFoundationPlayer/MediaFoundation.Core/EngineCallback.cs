@@ -48,7 +48,8 @@ internal sealed unsafe class EngineCallback : IDisposable
         if (result == null) return unchecked((int)0x80004003);
         *result = null;
         if (iid == null) return unchecked((int)0x80004003);
-        if (*iid != NotifyId && *iid != new Guid("00000000-0000-0000-C000-000000000046")) return unchecked((int)0x80004002);
+        if (*iid != NotifyId && *iid != new Guid("00000000-0000-0000-C000-000000000046"))
+            return unchecked((int)0x80004002);
         Interlocked.Increment(ref self->References);
         *result = self;
         return 0;
@@ -56,8 +57,10 @@ internal sealed unsafe class EngineCallback : IDisposable
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static uint AddRef(Instance* self) => (uint)Interlocked.Increment(ref self->References);
+
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static uint Release(Instance* self) => ReleaseCore(self);
+
     private static uint ReleaseCore(Instance* self)
     {
         int remaining = Interlocked.Decrement(ref self->References);
@@ -66,6 +69,7 @@ internal sealed unsafe class EngineCallback : IDisposable
             GCHandle.FromIntPtr(self->Handle).Free();
             NativeMemory.Free(self);
         }
+
         return (uint)remaining;
     }
 
@@ -75,17 +79,32 @@ internal sealed unsafe class EngineCallback : IDisposable
         try
         {
             // Media Engine waits for this acknowledgement; dispatching it to the UI can stall seek/play.
-            if (kind == (uint)Windows.Win32.Media.MediaFoundation.MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_NOTIFYSTABLESTATE)
+            if (kind == (uint)Windows.Win32.Media.MediaFoundation.MF_MEDIA_ENGINE_EVENT
+                    .MF_MEDIA_ENGINE_EVENT_NOTIFYSTABLESTATE)
             {
-                return Windows.Win32.PInvoke.SetEvent(new Windows.Win32.Foundation.HANDLE((void*)first)) ? 0 : Marshal.GetHRForLastWin32Error();
+                return Windows.Win32.PInvoke.SetEvent
+                    (new Windows.Win32.Foundation.HANDLE((void*)first))
+                    ? 0
+                    : Marshal.GetHRForLastWin32Error();
             }
+
             var owner = (EngineCallback)GCHandle.FromIntPtr(self->Handle).Target!;
             if (Volatile.Read(ref owner.closed) == 0)
-                owner.context.Post(_ => { if (Volatile.Read(ref owner.closed) == 0) owner.notify(kind, first, second); }, null);
+                owner.context.Post
+                (
+                    _ =>
+                    {
+                        if (Volatile.Read(ref owner.closed) == 0) owner.notify(kind, first, second);
+                    }, null
+                );
             return 0;
         }
         // Managed exceptions must never cross a native callback boundary.
-        catch (Exception error) { Trace.TraceError("Media Engine callback dispatch: {0}", error); return error.HResult; }
+        catch (Exception error)
+        {
+            Trace.TraceError("Media Engine callback dispatch: {0}", error);
+            return error.HResult;
+        }
     }
 
     public void Dispose()
