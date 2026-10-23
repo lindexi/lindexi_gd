@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <DefineConstants>$(DefineConstants);WPF_SAMPLE</DefineConstants>
+  </PropertyGroup>
+  <Import Project="../D3D11MediaFoundation/Shared/MediaSample.props" />
+</Project>

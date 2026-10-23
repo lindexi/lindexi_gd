@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DynamicDelegate": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
