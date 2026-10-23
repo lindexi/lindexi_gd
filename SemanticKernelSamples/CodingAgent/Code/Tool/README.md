@@ -2,62 +2,69 @@
 
 ## 运行
 
-需要 **.NET 10 SDK**。这是一个 file-based app，仅有 `Migrate.cs`，不需要 csproj，也不创建传统项目。
+需要 **.NET 10 SDK**。工具是单个 `Migrate.cs` file-based app，不需要 csproj、生成器或额外 manifest。
 
-工作目录必须是 **SemanticKernelSamples**（当前工作区根目录，包含 `PrismCodingAgent`、`AgentLib`、`ChatRoom`、`CodingAgent` 等目录），运行：
+在 **SemanticKernelSamples 根目录**执行：
 
 `dotnet run --file CodingAgent/Code/Tool/Migrate.cs`
 
-不传参数。执行会直接移动源码并改写引用文件；仅执行一次，不支持重复执行。没有路径、链接、仓库边界检查，没有 dry-run、确认、备份、回滚、容错或重试；文件操作错误直接抛出。
+不传参数。只运行一次，**不要重复运行**。没有路径安全验证、存在检查、预检、冲突容错、备份、dry-run、回滚或重试；真实源码移动失败直接抛出异常，不忽略。
 
-本次交付只创建工具，**没有运行迁移**。
+本次只更新工具，**未执行迁移**。编译检查使用：
 
-## 明确移动清单
+`dotnet build CodingAgent/Code/Tool/Migrate.cs`
 
-| 原路径（相对于 SemanticKernelSamples） | 新路径 |
-| --- | --- |
-| `PrismCodingAgent/Code/PrismCodingAgent.AvaloniaShell` | `CodingAgent/Code/App/PrismCodingAgent.AvaloniaShell` |
-| `PrismCodingAgent/Tests/PrismCodingAgent.AvaloniaShell.Tests` | `CodingAgent/Code/Test/PrismCodingAgent.AvaloniaShell.Tests` |
-| `PrismCodingAgent/Docs` | `CodingAgent/Docs` |
-| `PrismCodingAgent/README.md` | `CodingAgent/README.md` |
-| `PrismCodingAgent/README.en.md` | `CodingAgent/README.en.md` |
-| `PrismCodingAgent/PrismCodingAgent.slnx` | `CodingAgent/PrismCodingAgent.slnx` |
-| `PrismCodingAgent/Directory.Build.props` | `CodingAgent/Directory.Build.props` |
-| `AgentLib` | `CodingAgent/Code/Lib/AgentLib` |
-| `DeepSeekSDK` | `CodingAgent/Code/Lib/DeepSeekSDK` |
-| `Microsoft.Agents.AI.Extensions` | `CodingAgent/Code/Lib/Microsoft.Agents.AI.Extensions` |
-| `Microsoft.Agents.AI.Reasoning` | `CodingAgent/Code/Lib/Microsoft.Agents.AI.Reasoning` |
+## 470 条显式 Source → Destination 映射
 
-按文件移动而非复制，库的内部文档、测试、demo、config 结构保持不变。不删除旧目录或清单外的用户文件；旧目录可能留下空目录及本地生成物，但已迁移源码不会留下副本。
+`Migrate.cs` 中的 `moves` 固定写出每个文件的源和目标；公共路径前缀是编译期字符串常量，不在运行时发现文件。没有递归文件枚举、顶层目录扫描或 `Directory.Move`。
 
-枚举时排除 `bin`、`obj`、`artifacts`、`.vs`、`.git`、`.coding-agent`、已发现的 `.review-build` 目录，以及 `.user`、`.suo`、`.tmp` 文件。这些是源码清单筛选，不会搬运或删除本地缓存。
+| 源范围 | 目标范围 | 文件数 |
+| --- | --- | ---: |
+| `AgentLib/` | `CodingAgent/Code/Lib/AgentLib/` | 266 |
+| `PrismCodingAgent/Code/PrismCodingAgent.AvaloniaShell/` | `CodingAgent/Code/App/PrismCodingAgent.AvaloniaShell/` | 93 |
+| `PrismCodingAgent/Tests/PrismCodingAgent.AvaloniaShell.Tests/` | `CodingAgent/Code/Test/PrismCodingAgent.AvaloniaShell.Tests/` | 45 |
+| `PrismCodingAgent/Docs/` | `CodingAgent/Docs/` | 41 |
+| `PrismCodingAgent/README.md` | `CodingAgent/README.md` | 1 |
+| `PrismCodingAgent/README.en.md` | `CodingAgent/README.en.md` | 1 |
+| `PrismCodingAgent/PrismCodingAgent.slnx` | `CodingAgent/PrismCodingAgent.slnx` | 1 |
+| `PrismCodingAgent/Directory.Build.props` | `CodingAgent/Directory.Build.props` | 1 |
+| `DeepSeekSDK/` | `CodingAgent/Code/Lib/DeepSeekSDK/` | 13 |
+| `Microsoft.Agents.AI.Extensions/` | `CodingAgent/Code/Lib/Microsoft.Agents.AI.Extensions/` | 5 |
+| `Microsoft.Agents.AI.Reasoning/` | `CodingAgent/Code/Lib/Microsoft.Agents.AI.Reasoning/` | 3 |
+| **合计** | | **470** |
 
-## 引用改写机制
+Prism 合计 183 个文件。清单由实际递归目录盘点取得，包含库内部源码、测试、文档、demo、配置与资产，完整保留内部层级。
 
-1. 移动前枚举旧文件，保存原路径 → 新物理路径映射，读取项目、props、targets、slnx XML 和相关 Markdown；不读取 SDK 配置或密钥文件内容。
-2. XML 使用原文件目录解析引用目标，再映射引用方和目标的新位置，计算相对路径；只保存实际变化的 XML。
-3. 仅处理 slnx 的 `Project/File Path`，以及 `ProjectReference`、`Content`、`None`、`Compile`、`EmbeddedResource`、`Resource`、`AvaloniaResource`、`AdditionalFiles` 的 `Include/Update/Remove`。`Link` 属性和子元素仅在确实指向已枚举物理文件或目录时重算，保留虚拟 IDE 链接名。
-4. 不处理 NuGet Include、namespace、程序集名、TFM；包含 MSBuild 表达式或多项列表的属性不改写。
-5. 对迁移范围和 ChatRoom 内 Markdown 的路径 token 作单轮替换。先按已有仓库根路径匹配，再按文档相对路径匹配；只有指向已枚举文件或目录的 token 才重算，避免把新路径再次当成旧路径替换。包括 README 的构建/运行命令、Markdown 文件链接及文档源码路径。两个主 README 的目录树按新布局更新；不把归档文档中的拟议文件名当成现有物理文件。
-6. 所有改写内容先在内存中计算，再移动文件，最后写入新位置。
-7. 从当前根 `.gitignore` 复制已有内容到 `CodingAgent/.gitignore`，追加 `artifacts/`；不移动或改写外根 `.gitignore`。
+每条先 `Directory.CreateDirectory` 创建目标父目录，再 `File.Move` 移动该文件。不移动或删除任何源目录，也不清理源空目录。
 
-## 已调查的引用范围
+清单不包含 `bin`、`obj`、`.vs`、`artifacts`、`.git`、`.coding-agent`、`.review-build` 等缓存目录内文件，以及 `*.user`、`*.suo`、`*.tmp`。缓存和清单外文件自然留在原位，不额外遍历或删除。
 
-- 主程序对 `AgentLib.Coding` 的引用，以及主测试对主程序的引用，需要按新 App/Test/Lib 层级重算。
-- `AgentLib/AgentLib` 对 `../../Microsoft.Agents.AI.Extensions`、`../../Microsoft.Agents.AI.Reasoning` 的引用，以及 `AgentLib.Coding` 对 `../../DeepSeekSDK` 的引用，迁移后仍然有效；目录族仍是同级，工具保持原值。
-- 主 `PrismCodingAgent.slnx` 保留应用、主测试和主 Docs，沿真实 ProjectReference 补齐正向依赖：AgentLib、AgentLib.Coding、Microsoft.Extensions.AI.DeepSeek、Microsoft.Agents.AI.Reasoning、DeepSeekSDK，并加入已有对应测试 AgentLib.Tests、AgentLib.Coding.Tests、DeepSeekSDK.Tests。不加入 ChatRoom 应用、ChatRoom Docs、AgentLib.ChatRoom 或其测试，不额外加入无关 demo。
-- 库自带 slnx 按相同映射计算引用；同族内部布局不变时不改动。
-- ChatRoom 应用、tests、Docs、props、targets、slnx 保持原位。仅改写其受影响的 ProjectReference、solution 路径及 README 库链接，不将 ChatRoom Docs 放入主 solution，因此不会引入两个 Docs 项目同名冲突。
-- 已调查 Prism 主测试、ChatRoom.Shell.Tests、AgentLib 测试、DeepSeekSDK 测试：未发现依赖旧目录查找仓库源码的定位代码。截图使用输出目录、测试资产使用现有相对项目布局，均不改测试源码。
-- ImageGeneration、MiniMaxSdk 等其他目录不迁移；其无关引用不改写。
+## 固定引用改写范围
 
-## 迁移后的常用命令
+移动后只对下面 **9 个文件**执行明确的静态替换或完整写入，不扫描全仓 XML/Markdown，不校验替换唯一性：
 
-以下同样从 `SemanticKernelSamples` 运行：
+1. `CodingAgent/Code/App/PrismCodingAgent.AvaloniaShell/PrismCodingAgent.AvaloniaShell.csproj`：AgentLib.Coding 引用改为 `../../Lib/AgentLib/AgentLib.Coding/AgentLib.Coding.csproj`。
+2. `CodingAgent/Code/Test/PrismCodingAgent.AvaloniaShell.Tests/PrismCodingAgent.AvaloniaShell.Tests.csproj`：应用引用改为 `../../App/PrismCodingAgent.AvaloniaShell/PrismCodingAgent.AvaloniaShell.csproj`。
+3. `ChatRoom/Code/ChatRoom.AvaloniaShell/ChatRoom.AvaloniaShell.csproj`：原位更新 AgentLib.ChatRoom 引用。
+4. `ChatRoom/Code/ChatRoom.Shell.Tests/ChatRoom.Shell.Tests.csproj`：原位更新 AgentLib.ChatRoom 引用，保留应用引用。
+5. `ChatRoom/ChatRoom.slnx`：原位更新 AgentLib、Extensions、Reasoning 路径，其余结构保留。
+6. `ChatRoom/README.md`：原位更新库链接和目录树中的库位置。
+7. `CodingAgent/Code/Lib/DeepSeekSDK/README.md`：末尾离线回归测试引用改为指向同级 AgentLib 目录族的相对 Markdown 链接。
+8. `CodingAgent/README.md`：更新启动命令、构建命令和完整目录树。
+9. `CodingAgent/README.en.md`：同上。
+
+上述共 9 个替换目标，另完整写入 `CodingAgent/PrismCodingAgent.slnx`，即 **10 个既有文件改写内容**；再从外根 `.gitignore` 复制内容并追加 `artifacts/`，创建 `CodingAgent/.gitignore`。外根 `.gitignore` 不变。文本替换兼容 LF/CRLF。
+
+主解决方案按 **App / Test / Lib / Docs** 分组，包含应用、主测试、Docs，以及完整正向依赖 AgentLib、AgentLib.Coding、Microsoft.Extensions.AI.DeepSeek、Microsoft.Agents.AI.Reasoning、DeepSeekSDK；对应现有测试 AgentLib.Tests、AgentLib.Coding.Tests、DeepSeekSDK.Tests 放在 Test 分组。不加入 ChatRoom 应用、ChatRoom Docs、AgentLib.ChatRoom、其测试或无关 demo。
+
+已读取 Prism 应用/测试项目、主 slnx、中英文 README，以及 ChatRoom 应用/测试项目、slnx、README。AgentLib 自带 slnx、AgentLib.csproj 和 AgentLib.Coding.csproj 的相对引用经过核对：四个库目录族迁移后仍为同级，内部布局不变，跨库相对引用仍成立，不改写库项目或库 slnx。Directory.Build.props 原样移动。
+
+历史归档与其他设计文档仅移动，不改内容；不改 TOML 示例路径、机器密钥路径、TFM、SDK、包版本、程序集名或 namespace。ChatRoom 的其余文件、历史迁移工具和 Docs 保持原位不变。
+
+## 迁移后
+
+从 SemanticKernelSamples 根目录：
 
 - 构建：`dotnet build CodingAgent/PrismCodingAgent.slnx`
 - 启动：`dotnet run --project CodingAgent/Code/App/PrismCodingAgent.AvaloniaShell/PrismCodingAgent.AvaloniaShell.csproj --launch-profile PrismCodingAgent.AvaloniaShell`
-- ChatRoom 仍使用原来的 `ChatRoom/ChatRoom.slnx`。
-
-本工具本身可用 `dotnet build CodingAgent/Code/Tool/Migrate.cs` 编译；编译不会执行迁移。不要用运行迁移的方式做编译验证。
+- ChatRoom：继续使用 `ChatRoom/ChatRoom.slnx`。

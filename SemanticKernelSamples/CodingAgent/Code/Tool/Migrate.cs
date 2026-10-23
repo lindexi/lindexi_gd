@@ -2,227 +2,598 @@
 #:property ImplicitUsings=enable
 #:property Nullable=enable
 
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
+const string AgentSource = "AgentLib/";
+const string AgentTarget = "CodingAgent/Code/Lib/AgentLib/";
+const string AppSource = "PrismCodingAgent/Code/PrismCodingAgent.AvaloniaShell/";
+const string AppTarget = "CodingAgent/Code/App/PrismCodingAgent.AvaloniaShell/";
+const string TestSource = "PrismCodingAgent/Tests/PrismCodingAgent.AvaloniaShell.Tests/";
+const string TestTarget = "CodingAgent/Code/Test/PrismCodingAgent.AvaloniaShell.Tests/";
+const string DocsSource = "PrismCodingAgent/Docs/";
+const string DocsTarget = "CodingAgent/Docs/";
+const string SdkSource = "DeepSeekSDK/";
+const string SdkTarget = "CodingAgent/Code/Lib/DeepSeekSDK/";
+const string ExtensionsSource = "Microsoft.Agents.AI.Extensions/";
+const string ExtensionsTarget = "CodingAgent/Code/Lib/Microsoft.Agents.AI.Extensions/";
+const string ReasoningSource = "Microsoft.Agents.AI.Reasoning/";
+const string ReasoningTarget = "CodingAgent/Code/Lib/Microsoft.Agents.AI.Reasoning/";
 
-string root = Directory.GetCurrentDirectory();
-string Absolute(string path) => Path.GetFullPath(path.Replace('\\', '/'), root);
-string Relative(string directory, string path) => Path.GetRelativePath(directory, path).Replace('\\', '/');
-
-(string Old, string New)[] directories =
+// Each tuple names one physical file; prefixes are constants, not directory moves.
+(string Source, string Destination)[] moves =
 [
-    ("PrismCodingAgent/Code/PrismCodingAgent.AvaloniaShell", "CodingAgent/Code/App/PrismCodingAgent.AvaloniaShell"),
-    ("PrismCodingAgent/Tests/PrismCodingAgent.AvaloniaShell.Tests", "CodingAgent/Code/Test/PrismCodingAgent.AvaloniaShell.Tests"),
-    ("PrismCodingAgent/Docs", "CodingAgent/Docs"),
-    ("AgentLib", "CodingAgent/Code/Lib/AgentLib"),
-    ("DeepSeekSDK", "CodingAgent/Code/Lib/DeepSeekSDK"),
-    ("Microsoft.Agents.AI.Extensions", "CodingAgent/Code/Lib/Microsoft.Agents.AI.Extensions"),
-    ("Microsoft.Agents.AI.Reasoning", "CodingAgent/Code/Lib/Microsoft.Agents.AI.Reasoning")
+    (AgentSource + "AgentLib.Tests/.runsettings", AgentTarget + "AgentLib.Tests/.runsettings"),
+    (AgentSource + "AgentLib/Core/AgentApiEndpointManager.cs", AgentTarget + "AgentLib/Core/AgentApiEndpointManager.cs"),
+    (AgentSource + "AgentLib.Tests/Core/AgentApiEndpointManagerProxyTests.cs", AgentTarget + "AgentLib.Tests/Core/AgentApiEndpointManagerProxyTests.cs"),
+    (AgentSource + "AgentLib.Tests/Core/AgentApiEndpointManagerTests.cs", AgentTarget + "AgentLib.Tests/Core/AgentApiEndpointManagerTests.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/JsonConfigurations/AgentApiManagerConfiguration.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/JsonConfigurations/AgentApiManagerConfiguration.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagerConfigurationExtension.cs", AgentTarget + "AgentLib/Core/AgentApiManagerConfigurationExtension.cs"),
+    (AgentSource + "AgentLib/Docs/计划/AgentLib 流式增量通知改造计划.md", AgentTarget + "AgentLib/Docs/计划/AgentLib 流式增量通知改造计划.md"),
+    (AgentSource + "AgentLib.ChatRoom/AgentLib.ChatRoom.csproj", AgentTarget + "AgentLib.ChatRoom/AgentLib.ChatRoom.csproj"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/AgentLib.ChatRoom.Tests.csproj", AgentTarget + "AgentLib.ChatRoom.Tests/AgentLib.ChatRoom.Tests.csproj"),
+    (AgentSource + "AgentLib.Coding/AgentLib.Coding.csproj", AgentTarget + "AgentLib.Coding/AgentLib.Coding.csproj"),
+    (AgentSource + "AgentLib.Coding.Tests/AgentLib.Coding.Tests.csproj", AgentTarget + "AgentLib.Coding.Tests/AgentLib.Coding.Tests.csproj"),
+    (AgentSource + "AgentLib/AgentLib.csproj", AgentTarget + "AgentLib/AgentLib.csproj"),
+    (AgentSource + "AgentLib/AgentLib.csproj.DotSettings", AgentTarget + "AgentLib/AgentLib.csproj.DotSettings"),
+    (AgentSource + "AgentLib.slnx", AgentTarget + "AgentLib.slnx"),
+    (AgentSource + "AgentLib.Tests/AgentLib.Tests.csproj", AgentTarget + "AgentLib.Tests/AgentLib.Tests.csproj"),
+    (AgentSource + "AgentLib/Docs/计划/AgentRunHelper-Design.md", AgentTarget + "AgentLib/Docs/计划/AgentRunHelper-Design.md"),
+    (AgentSource + "AgentLib/AgentSessionStreamingHelper.cs", AgentTarget + "AgentLib/AgentSessionStreamingHelper.cs"),
+    (AgentSource + "AgentLib.Tests/AgentSessionStreamingHelperTests.cs", AgentTarget + "AgentLib.Tests/AgentSessionStreamingHelperTests.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/ApiEndpoint.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/ApiEndpoint.cs"),
+    (AgentSource + "AgentLib/Tools/ApprovalOptions.cs", AgentTarget + "AgentLib/Tools/ApprovalOptions.cs"),
+    (AgentSource + "AgentLib.ChatRoom/AppSettings/AppSettings.cs", AgentTarget + "AgentLib.ChatRoom/AppSettings/AppSettings.cs"),
+    (AgentSource + "AgentLib/Core/ArgumentHelper.cs", AgentTarget + "AgentLib/Core/ArgumentHelper.cs"),
+    (AgentSource + "AgentLib.Tests/AssemblyAttributes.cs", AgentTarget + "AgentLib.Tests/AssemblyAttributes.cs"),
+    (AgentSource + "AgentLib.ChatRoom/AssemblyInfo.cs", AgentTarget + "AgentLib.ChatRoom/AssemblyInfo.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/AssemblyInfo.cs", AgentTarget + "AgentLib.ChatRoom.Tests/AssemblyInfo.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/AssemblyInfo.cs", AgentTarget + "AgentLib.Coding.Tests/AssemblyInfo.cs"),
+    (AgentSource + "AgentLib/Docs/计划/AsyncSubAgentAndPostValidation-Plan.md", AgentTarget + "AgentLib/Docs/计划/AsyncSubAgentAndPostValidation-Plan.md"),
+    (AgentSource + "AgentLib.Tests/Fakes/BlockingStreamingResponse.cs", AgentTarget + "AgentLib.Tests/Fakes/BlockingStreamingResponse.cs"),
+    (AgentSource + "AgentLib.Tests/Fakes/BlockingTool.cs", AgentTarget + "AgentLib.Tests/Fakes/BlockingTool.cs"),
+    (AgentSource + "AgentLib/Model/SendMessages_/ChatClientAgentCreatedResult.cs", AgentTarget + "AgentLib/Model/SendMessages_/ChatClientAgentCreatedResult.cs"),
+    (AgentSource + "AgentLib/AgentExtensions/ChatClientAgentExtension.cs", AgentTarget + "AgentLib/AgentExtensions/ChatClientAgentExtension.cs"),
+    (AgentSource + "AgentLib.Coding/ChatClientCodingAgentRunResult.cs", AgentTarget + "AgentLib.Coding/ChatClientCodingAgentRunResult.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/ChatClientCreator.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/ChatClientCreator.cs"),
+    (AgentSource + "AgentLib/Docs/计划/ChatHistoryCompression-Plan.md", AgentTarget + "AgentLib/Docs/计划/ChatHistoryCompression-Plan.md"),
+    (AgentSource + "AgentLib.ChatRoom/ChatRoomIncrementalMessageFormatter.cs", AgentTarget + "AgentLib.ChatRoom/ChatRoomIncrementalMessageFormatter.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Model/ChatRoomJsonSerializerContext.cs", AgentTarget + "AgentLib.ChatRoom/Model/ChatRoomJsonSerializerContext.cs"),
+    (AgentSource + "AgentLib.ChatRoom/ChatRoomManager.ChatRoomAutoLoopRunner.cs", AgentTarget + "AgentLib.ChatRoom/ChatRoomManager.ChatRoomAutoLoopRunner.cs"),
+    (AgentSource + "AgentLib.ChatRoom/ChatRoomManager.cs", AgentTarget + "AgentLib.ChatRoom/ChatRoomManager.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/ChatRoomManagerIntegrationTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/ChatRoomManagerIntegrationTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/ChatRoomManagerTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/ChatRoomManagerTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Model/ChatRoomMessage.cs", AgentTarget + "AgentLib.ChatRoom/Model/ChatRoomMessage.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/Model/ChatRoomMessageTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/Model/ChatRoomMessageTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/ChatRoomPersistence.cs", AgentTarget + "AgentLib.ChatRoom/ChatRoomPersistence.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/ChatRoomPersistenceTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/ChatRoomPersistenceTests.cs"),
+    (AgentSource + "AgentLib/Docs/计划/ChatRoomRole-OperationGate-Removal-Plan.md", AgentTarget + "AgentLib/Docs/计划/ChatRoomRole-OperationGate-Removal-Plan.md"),
+    (AgentSource + "AgentLib.ChatRoom/ChatRoomRole.cs", AgentTarget + "AgentLib.ChatRoom/ChatRoomRole.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Model/ChatRoomRoleDefinition.cs", AgentTarget + "AgentLib.ChatRoom/Model/ChatRoomRoleDefinition.cs"),
+    (AgentSource + "AgentLib.ChatRoom/ChatRoomRoleExecutionContext.cs", AgentTarget + "AgentLib.ChatRoom/ChatRoomRoleExecutionContext.cs"),
+    (AgentSource + "AgentLib.ChatRoom/ChatRoomRoleExecutionResult.cs", AgentTarget + "AgentLib.ChatRoom/ChatRoomRoleExecutionResult.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/ChatRoomRoleExecutorTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/ChatRoomRoleExecutorTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/ChatRoomRoleFactory.cs", AgentTarget + "AgentLib.ChatRoom/ChatRoomRoleFactory.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/ChatRoomRoleFactoryTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/ChatRoomRoleFactoryTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Tools/ChatRoomRoleManagementTools.cs", AgentTarget + "AgentLib.ChatRoom/Tools/ChatRoomRoleManagementTools.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/Tools/ChatRoomRoleManagementToolsTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/Tools/ChatRoomRoleManagementToolsTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/ChatRoomRoleModelBinder.cs", AgentTarget + "AgentLib.ChatRoom/ChatRoomRoleModelBinder.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/ChatRoomRoleTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/ChatRoomRoleTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Services/ChatRoomService.cs", AgentTarget + "AgentLib.ChatRoom/Services/ChatRoomService.cs"),
+    (AgentSource + "AgentLib.ChatRoom/ChatRoomSession.cs", AgentTarget + "AgentLib.ChatRoom/ChatRoomSession.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Model/ChatRoomSessionData.cs", AgentTarget + "AgentLib.ChatRoom/Model/ChatRoomSessionData.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/ChatRoomSessionTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/ChatRoomSessionTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/ChatRoomSpeakResult.cs", AgentTarget + "AgentLib.ChatRoom/ChatRoomSpeakResult.cs"),
+    (AgentSource + "AgentLib.Coding/CodingAgent.cs", AgentTarget + "AgentLib.Coding/CodingAgent.cs"),
+    (AgentSource + "AgentLib.Coding/CodingAgentOptions.cs", AgentTarget + "AgentLib.Coding/CodingAgentOptions.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/CodingAgentTests.cs", AgentTarget + "AgentLib.Coding.Tests/CodingAgentTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/CodingAssistantChatRoomMappingTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/CodingAssistantChatRoomMappingTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Services/CodingAssistantRoleFactory.cs", AgentTarget + "AgentLib.ChatRoom/Services/CodingAssistantRoleFactory.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/CodingAssistantRoleFactoryTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/CodingAssistantRoleFactoryTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/CodingChatRoomRoleExecutor.cs", AgentTarget + "AgentLib.ChatRoom/CodingChatRoomRoleExecutor.cs"),
+    (AgentSource + "AgentLib.Coding/CodingChatRunOptions.cs", AgentTarget + "AgentLib.Coding/CodingChatRunOptions.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/CodingChatTestHost.cs", AgentTarget + "AgentLib.Coding.Tests/CodingChatTestHost.cs"),
+    (AgentSource + "AgentLib.Coding/CodingCompressionThresholds.cs", AgentTarget + "AgentLib.Coding/CodingCompressionThresholds.cs"),
+    (AgentSource + "AgentLib.Coding/Images/CodingImageAnalysisTools.cs", AgentTarget + "AgentLib.Coding/Images/CodingImageAnalysisTools.cs"),
+    (AgentSource + "AgentLib.Coding/Images/CodingImageAnalysisToolSource.cs", AgentTarget + "AgentLib.Coding/Images/CodingImageAnalysisToolSource.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/CodingImageAnalysisToolsTests.cs", AgentTarget + "AgentLib.Coding.Tests/CodingImageAnalysisToolsTests.cs"),
+    (AgentSource + "AgentLib.Coding/CodingPromptProvider.cs", AgentTarget + "AgentLib.Coding/CodingPromptProvider.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/CodingPromptProviderTests.cs", AgentTarget + "AgentLib.Coding.Tests/CodingPromptProviderTests.cs"),
+    (AgentSource + "AgentLib.Coding/CodingRunContext.cs", AgentTarget + "AgentLib.Coding/CodingRunContext.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/CodingRunEntryTests.cs", AgentTarget + "AgentLib.Coding.Tests/CodingRunEntryTests.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/CodingSubAgentOutputTests.cs", AgentTarget + "AgentLib.Coding.Tests/CodingSubAgentOutputTests.cs"),
+    (AgentSource + "AgentLib.Coding/CodingSubAgentTools.cs", AgentTarget + "AgentLib.Coding/CodingSubAgentTools.cs"),
+    (AgentSource + "AgentLib.Coding/CodingSystemPrompt.cs", AgentTarget + "AgentLib.Coding/CodingSystemPrompt.cs"),
+    (AgentSource + "AgentLib.Coding/CodingWorkspaceCache.cs", AgentTarget + "AgentLib.Coding/CodingWorkspaceCache.cs"),
+    (AgentSource + "AgentLib.Coding/CodingWorkspaceContentTools.cs", AgentTarget + "AgentLib.Coding/CodingWorkspaceContentTools.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/CodingWorkspaceContentToolsTests.cs", AgentTarget + "AgentLib.Coding.Tests/CodingWorkspaceContentToolsTests.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/CodingWorkspaceToolProviderTests.cs", AgentTarget + "AgentLib.Coding.Tests/CodingWorkspaceToolProviderTests.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/CodingWorkspaceToolsReuseTests.cs", AgentTarget + "AgentLib.Coding.Tests/CodingWorkspaceToolsReuseTests.cs"),
+    (AgentSource + "AgentLib.Coding/CompletedCodingAgentRunResult.cs", AgentTarget + "AgentLib.Coding/CompletedCodingAgentRunResult.cs"),
+    (AgentSource + "AgentLib.Coding/CompressionToolCallObserver.cs", AgentTarget + "AgentLib.Coding/CompressionToolCallObserver.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatApprovalToolItem.cs", AgentTarget + "AgentLib/Model/CopilotChatApprovalToolItem.cs"),
+    (AgentSource + "AgentLib.Tests/Model/CopilotChatApprovalToolItemTests.cs", AgentTarget + "AgentLib.Tests/Model/CopilotChatApprovalToolItemTests.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatAudioItem.cs", AgentTarget + "AgentLib/Model/CopilotChatAudioItem.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatContext.cs", AgentTarget + "AgentLib/Model/CopilotChatContext.cs"),
+    (AgentSource + "AgentLib/Logging/CopilotChatHistoryXmlCodec.cs", AgentTarget + "AgentLib/Logging/CopilotChatHistoryXmlCodec.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatImageItem.cs", AgentTarget + "AgentLib/Model/CopilotChatImageItem.cs"),
+    (AgentSource + "AgentLib/CopilotChatManager.cs", AgentTarget + "AgentLib/CopilotChatManager.cs"),
+    (AgentSource + "AgentLib.Tests/CopilotChatManagerCancellationTests.cs", AgentTarget + "AgentLib.Tests/CopilotChatManagerCancellationTests.cs"),
+    (AgentSource + "AgentLib/Reducers/CopilotChatManagerChatReducer.cs", AgentTarget + "AgentLib/Reducers/CopilotChatManagerChatReducer.cs"),
+    (AgentSource + "AgentLib.Tests/CopilotChatManagerChatReducerTests.cs", AgentTarget + "AgentLib.Tests/CopilotChatManagerChatReducerTests.cs"),
+    (AgentSource + "AgentLib.Tests/CopilotChatManagerManualSendCancellationTests.cs", AgentTarget + "AgentLib.Tests/CopilotChatManagerManualSendCancellationTests.cs"),
+    (AgentSource + "AgentLib.Tests/CopilotChatManagerSendMessageTests.cs", AgentTarget + "AgentLib.Tests/CopilotChatManagerSendMessageTests.cs"),
+    (AgentSource + "AgentLib.Tests/CopilotChatManagerSessionRestoreTests.cs", AgentTarget + "AgentLib.Tests/CopilotChatManagerSessionRestoreTests.cs"),
+    (AgentSource + "AgentLib.Tests/CopilotChatManagerSessionTests.cs", AgentTarget + "AgentLib.Tests/CopilotChatManagerSessionTests.cs"),
+    (AgentSource + "AgentLib.Tests/CopilotChatManagerSkillTests.cs", AgentTarget + "AgentLib.Tests/CopilotChatManagerSkillTests.cs"),
+    (AgentSource + "AgentLib.Tests/Fakes/CopilotChatManagerTestContext.cs", AgentTarget + "AgentLib.Tests/Fakes/CopilotChatManagerTestContext.cs"),
+    (AgentSource + "AgentLib.Tests/CopilotChatManagerTests.cs", AgentTarget + "AgentLib.Tests/CopilotChatManagerTests.cs"),
+    (AgentSource + "AgentLib/Reducers/CopilotChatManagerToolCallChatReducer.cs", AgentTarget + "AgentLib/Reducers/CopilotChatManagerToolCallChatReducer.cs"),
+    (AgentSource + "AgentLib.Tests/CopilotChatManagerToolCallChatReducerTests.cs", AgentTarget + "AgentLib.Tests/CopilotChatManagerToolCallChatReducerTests.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatMessage.cs", AgentTarget + "AgentLib/Model/CopilotChatMessage.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatMessageItemFormatter.cs", AgentTarget + "AgentLib/Model/CopilotChatMessageItemFormatter.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatMessageResponseInfo.cs", AgentTarget + "AgentLib/Model/CopilotChatMessageResponseInfo.cs"),
+    (AgentSource + "AgentLib.Tests/Model/CopilotChatMessageTests.cs", AgentTarget + "AgentLib.Tests/Model/CopilotChatMessageTests.cs"),
+    (AgentSource + "AgentLib.Tests/Model/CopilotChatOutputTests.cs", AgentTarget + "AgentLib.Tests/Model/CopilotChatOutputTests.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatReasoningItem.cs", AgentTarget + "AgentLib/Model/CopilotChatReasoningItem.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatSession.cs", AgentTarget + "AgentLib/Model/CopilotChatSession.cs"),
+    (AgentSource + "AgentLib/Logging/CopilotChatSessionPersistenceData.cs", AgentTarget + "AgentLib/Logging/CopilotChatSessionPersistenceData.cs"),
+    (AgentSource + "AgentLib/Logging/CopilotChatSessionSummary.cs", AgentTarget + "AgentLib/Logging/CopilotChatSessionSummary.cs"),
+    (AgentSource + "AgentLib.Tests/Model/CopilotChatSessionTests.cs", AgentTarget + "AgentLib.Tests/Model/CopilotChatSessionTests.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatSubAgentItem.cs", AgentTarget + "AgentLib/Model/CopilotChatSubAgentItem.cs"),
+    (AgentSource + "AgentLib.Tests/Model/CopilotChatSubAgentItemTests.cs", AgentTarget + "AgentLib.Tests/Model/CopilotChatSubAgentItemTests.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatTextItem.cs", AgentTarget + "AgentLib/Model/CopilotChatTextItem.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatToolItem.cs", AgentTarget + "AgentLib/Model/CopilotChatToolItem.cs"),
+    (AgentSource + "AgentLib.Tests/Model/CopilotChatToolProcessTests.cs", AgentTarget + "AgentLib.Tests/Model/CopilotChatToolProcessTests.cs"),
+    (AgentSource + "AgentLib/Model/CopilotChatToolState.cs", AgentTarget + "AgentLib/Model/CopilotChatToolState.cs"),
+    (AgentSource + "AgentLib/Model/CopilotResponsesSession.cs", AgentTarget + "AgentLib/Model/CopilotResponsesSession.cs"),
+    (AgentSource + "AgentLib.Tests/CopilotResponsesSessionTests.cs", AgentTarget + "AgentLib.Tests/CopilotResponsesSessionTests.cs"),
+    (AgentSource + "AgentLib/Model/CopilotToolApprovalState.cs", AgentTarget + "AgentLib/Model/CopilotToolApprovalState.cs"),
+    (AgentSource + "AgentLib/Tools/CopilotToolManager.cs", AgentTarget + "AgentLib/Tools/CopilotToolManager.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/DeepSeekProtocolLanguageModelProvider.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/DeepSeekProtocolLanguageModelProvider.cs"),
+    (AgentSource + "AgentLib.Coding/DeepSeekWebToolSource.cs", AgentTarget + "AgentLib.Coding/DeepSeekWebToolSource.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/DeepSeekWebToolSourceTests.cs", AgentTarget + "AgentLib.Coding.Tests/DeepSeekWebToolSourceTests.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/DictionaryModelNameToIdMap.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/DictionaryModelNameToIdMap.cs"),
+    (AgentSource + "AgentLib.Tests/Core/DictionaryModelNameToIdMapTests.cs", AgentTarget + "AgentLib.Tests/Core/DictionaryModelNameToIdMapTests.cs"),
+    (AgentSource + "Directory.Build.props", AgentTarget + "Directory.Build.props"),
+    (AgentSource + "AgentLib.Coding/DotNetApiTools.cs", AgentTarget + "AgentLib.Coding/DotNetApiTools.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/DotNetApiToolsTests.cs", AgentTarget + "AgentLib.Coding.Tests/DotNetApiToolsTests.cs"),
+    (AgentSource + "AgentLib.Coding/DotNetCliTools.cs", AgentTarget + "AgentLib.Coding/DotNetCliTools.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/DotNetCliToolsTests.cs", AgentTarget + "AgentLib.Coding.Tests/DotNetCliToolsTests.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/DouBaoProtocolLanguageModelProvider.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/DouBaoProtocolLanguageModelProvider.cs"),
+    (AgentSource + "AgentLib/Core/DynamicWebProxy.cs", AgentTarget + "AgentLib/Core/DynamicWebProxy.cs"),
+    (AgentSource + "AgentLib/Logging/EmptyCopilotChatLogger.cs", AgentTarget + "AgentLib/Logging/EmptyCopilotChatLogger.cs"),
+    (AgentSource + "AgentLib/Docs/参考/FakeChatClient-ToolCall-Testing.md", AgentTarget + "AgentLib/Docs/参考/FakeChatClient-ToolCall-Testing.md"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/Fakes/FakeLanguageModelProvider.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/Fakes/FakeLanguageModelProvider.cs"),
+    (AgentSource + "AgentLib/Logging/FileCopilotChatLogger.cs", AgentTarget + "AgentLib/Logging/FileCopilotChatLogger.cs"),
+    (AgentSource + "AgentLib.Tests/Logging/FileCopilotChatLoggerTests.cs", AgentTarget + "AgentLib.Tests/Logging/FileCopilotChatLoggerTests.cs"),
+    (AgentSource + "AgentLib/Logging/FileCopilotChatSessionStore.cs", AgentTarget + "AgentLib/Logging/FileCopilotChatSessionStore.cs"),
+    (AgentSource + "AgentLib.Tests/Logging/FileCopilotChatSessionStoreTests.cs", AgentTarget + "AgentLib.Tests/Logging/FileCopilotChatSessionStoreTests.cs"),
+    (AgentSource + "AgentLib/Tools/WorkspaceTools_/FileSnapshotInfo.cs", AgentTarget + "AgentLib/Tools/WorkspaceTools_/FileSnapshotInfo.cs"),
+    (AgentSource + "AgentLib/Tools/GeneratedTextSubmissionTool.cs", AgentTarget + "AgentLib/Tools/GeneratedTextSubmissionTool.cs"),
+    (AgentSource + "AgentLib/Tools/HumanApprovalTool.cs", AgentTarget + "AgentLib/Tools/HumanApprovalTool.cs"),
+    (AgentSource + "AgentLib.Tests/HumanApprovalToolTests.cs", AgentTarget + "AgentLib.Tests/HumanApprovalToolTests.cs"),
+    (AgentSource + "AgentLib/Core/IApiEndpointProvider.cs", AgentTarget + "AgentLib/Core/IApiEndpointProvider.cs"),
+    (AgentSource + "AgentLib.ChatRoom/IChatRoomRoleExecutor.cs", AgentTarget + "AgentLib.ChatRoom/IChatRoomRoleExecutor.cs"),
+    (AgentSource + "AgentLib.ChatRoom/IChatRoomRoleExecutorFactory.cs", AgentTarget + "AgentLib.ChatRoom/IChatRoomRoleExecutorFactory.cs"),
+    (AgentSource + "AgentLib.ChatRoom/IChatRoomRoleFactory.cs", AgentTarget + "AgentLib.ChatRoom/IChatRoomRoleFactory.cs"),
+    (AgentSource + "AgentLib.Coding/ICodingAgentRunResult.cs", AgentTarget + "AgentLib.Coding/ICodingAgentRunResult.cs"),
+    (AgentSource + "AgentLib.Coding/ICodingWorkspaceToolSource.cs", AgentTarget + "AgentLib.Coding/ICodingWorkspaceToolSource.cs"),
+    (AgentSource + "AgentLib/Logging/ICopilotChatLogger.cs", AgentTarget + "AgentLib/Logging/ICopilotChatLogger.cs"),
+    (AgentSource + "AgentLib/Model/ICopilotChatMessageItem.cs", AgentTarget + "AgentLib/Model/ICopilotChatMessageItem.cs"),
+    (AgentSource + "AgentLib/Model/ICopilotChatOutput.cs", AgentTarget + "AgentLib/Model/ICopilotChatOutput.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/IHttpClientProvider.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/IHttpClientProvider.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/ILanguageModel.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/ILanguageModel.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/ILanguageModelProvider.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/ILanguageModelProvider.cs"),
+    (AgentSource + "AgentLib/IMainThreadDispatcher.cs", AgentTarget + "AgentLib/IMainThreadDispatcher.cs"),
+    (AgentSource + "AgentLib/Model/SendMessages_/IManualSendMessageContext.cs", AgentTarget + "AgentLib/Model/SendMessages_/IManualSendMessageContext.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/IModelNameToIdMap.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/IModelNameToIdMap.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/IResponsesClientProvider.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/IResponsesClientProvider.cs"),
+    (AgentSource + "AgentLib.Coding/Sandboxes/IWinRemoteShellRunner.cs", AgentTarget + "AgentLib.Coding/Sandboxes/IWinRemoteShellRunner.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/JsonConfigurations/JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/JsonConfigurations/JsonConfigurationOpenAIProtocolLanguageModelJsonSerializerContext.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/JsonConfigurations/JsonConfigurationOpenAIProtocolLanguageModelProvider.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/JsonConfigurations/JsonConfigurationOpenAIProtocolLanguageModelProvider.cs"),
+    (AgentSource + "AgentLib/Core/LanguageModelCapabilityComparer.cs", AgentTarget + "AgentLib/Core/LanguageModelCapabilityComparer.cs"),
+    (AgentSource + "AgentLib.Tests/Core/LanguageModelCapabilityComparerTests.cs", AgentTarget + "AgentLib.Tests/Core/LanguageModelCapabilityComparerTests.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LindexiAgentConfiguration.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LindexiAgentConfiguration.cs"),
+    (AgentSource + "AgentLib.Tests/LindexiResponsesLiveApiTests.cs", AgentTarget + "AgentLib.Tests/LindexiResponsesLiveApiTests.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/Contexts/LlmModalityCapability.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/Contexts/LlmModalityCapability.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/Contexts/LlmModelCapabilities.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/Contexts/LlmModelCapabilities.cs"),
+    (AgentSource + "AgentLib/Model/SendMessages_/ManualSendMessageContext.cs", AgentTarget + "AgentLib/Model/SendMessages_/ManualSendMessageContext.cs"),
+    (AgentSource + "AgentLib.Tests/ManualSendMessageContextTests.cs", AgentTarget + "AgentLib.Tests/ManualSendMessageContextTests.cs"),
+    (AgentSource + "AgentLib.Tests/ManualSendMessageContextThreadingTests.cs", AgentTarget + "AgentLib.Tests/ManualSendMessageContextThreadingTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/MentionParser.cs", AgentTarget + "AgentLib.ChatRoom/MentionParser.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/MentionParserTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/MentionParserTests.cs"),
+    (AgentSource + "AgentLib.Tests/MiniMaxResponsesLiveApiTests.cs", AgentTarget + "AgentLib.Tests/MiniMaxResponsesLiveApiTests.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/Contexts/ModelDefinition.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/Contexts/ModelDefinition.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Services/ModelProviderService.cs", AgentTarget + "AgentLib.ChatRoom/Services/ModelProviderService.cs"),
+    (AgentSource + "AgentLib.ChatRoom/AppSettings/ModelSetting.cs", AgentTarget + "AgentLib.ChatRoom/AppSettings/ModelSetting.cs"),
+    (AgentSource + "AgentLib/Model/NotifyBase.cs", AgentTarget + "AgentLib/Model/NotifyBase.cs"),
+    (AgentSource + "AgentLib.Tests/Model/NotifyBaseTests.cs", AgentTarget + "AgentLib.Tests/Model/NotifyBaseTests.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/OpenAILanguageModel.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/OpenAILanguageModel.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/JsonConfigurations/OpenAIProtocolLanguageModelConfiguration.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/JsonConfigurations/OpenAIProtocolLanguageModelConfiguration.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/OpenAIProtocolLanguageModelProviderBase.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/OpenAIProtocolLanguageModelProviderBase.cs"),
+    (AgentSource + "AgentLib/Docs/参考/OpenClaw.NET-参考点分析.md", AgentTarget + "AgentLib/Docs/参考/OpenClaw.NET-参考点分析.md"),
+    (AgentSource + "AgentLib/Docs/参考/OpenClaw.NET-记忆召回深度分析.md", AgentTarget + "AgentLib/Docs/参考/OpenClaw.NET-记忆召回深度分析.md"),
+    (AgentSource + "AgentLib.Tests/Assets/TestSkills/dotnet-aot-compat/references/polyfills.md", AgentTarget + "AgentLib.Tests/Assets/TestSkills/dotnet-aot-compat/references/polyfills.md"),
+    (AgentSource + "AgentLib.ChatRoom/Services/PresetTemplates.cs", AgentTarget + "AgentLib.ChatRoom/Services/PresetTemplates.cs"),
+    (AgentSource + "AgentLib.ChatRoom/PrimaryModelNotFoundException.cs", AgentTarget + "AgentLib.ChatRoom/PrimaryModelNotFoundException.cs"),
+    (AgentSource + "AgentLib.ChatRoom/AppSettings/ProviderSetting.cs", AgentTarget + "AgentLib.ChatRoom/AppSettings/ProviderSetting.cs"),
+    (AgentSource + "AgentLib.ChatRoom/README.md", AgentTarget + "AgentLib.ChatRoom/README.md"),
+    (AgentSource + "AgentLib.Tests/Assets/README.md", AgentTarget + "AgentLib.Tests/Assets/README.md"),
+    (AgentSource + "AgentLib.Tests/ReasoningStreamingTests.cs", AgentTarget + "AgentLib.Tests/ReasoningStreamingTests.cs"),
+    (AgentSource + "AgentLib/Tools/WorkspaceTools_/Replace_/ReplaceOperation.cs", AgentTarget + "AgentLib/Tools/WorkspaceTools_/Replace_/ReplaceOperation.cs"),
+    (AgentSource + "AgentLib/Tools/WorkspaceTools_/Replace_/ReplaceResult.cs", AgentTarget + "AgentLib/Tools/WorkspaceTools_/Replace_/ReplaceResult.cs"),
+    (AgentSource + "AgentLib.Tests/ResponsesApiUsageTests.cs", AgentTarget + "AgentLib.Tests/ResponsesApiUsageTests.cs"),
+    (AgentSource + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/ResponsesClientContext.cs", AgentTarget + "AgentLib/Core/AgentApiManagers/LanguageModelProviders/ResponsesClientContext.cs"),
+    (AgentSource + "AgentLib.Tests/Core/ResponsesClientContextTests.cs", AgentTarget + "AgentLib.Tests/Core/ResponsesClientContextTests.cs"),
+    (AgentSource + "AgentLib.Tests/Core/ResponsesClientProviderTests.cs", AgentTarget + "AgentLib.Tests/Core/ResponsesClientProviderTests.cs"),
+    (AgentSource + "AgentLib.Coding/Responses/ResponsesCodingAgent.cs", AgentTarget + "AgentLib.Coding/Responses/ResponsesCodingAgent.cs"),
+    (AgentSource + "AgentLib.Coding/Responses/ResponsesCodingAgentRunner.cs", AgentTarget + "AgentLib.Coding/Responses/ResponsesCodingAgentRunner.cs"),
+    (AgentSource + "AgentLib.Coding/Responses/ResponsesCodingAgentRunResult.cs", AgentTarget + "AgentLib.Coding/Responses/ResponsesCodingAgentRunResult.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/ResponsesCodingAgentTests.cs", AgentTarget + "AgentLib.Coding.Tests/ResponsesCodingAgentTests.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/ResponsesCompactionTests.cs", AgentTarget + "AgentLib.Coding.Tests/ResponsesCompactionTests.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/ResponsesCompletedCompatibilityTests.cs", AgentTarget + "AgentLib.Coding.Tests/ResponsesCompletedCompatibilityTests.cs"),
+    (AgentSource + "AgentLib.Tests/ResponsesImageToolLiveTests.cs", AgentTarget + "AgentLib.Tests/ResponsesImageToolLiveTests.cs"),
+    (AgentSource + "AgentLib.Tests/ResponsesLiveApiTests.cs", AgentTarget + "AgentLib.Tests/ResponsesLiveApiTests.cs"),
+    (AgentSource + "AgentLib/Tools/ResponsesToolHelper.cs", AgentTarget + "AgentLib/Tools/ResponsesToolHelper.cs"),
+    (AgentSource + "AgentLib.Tests/ResponsesToolHelperTests.cs", AgentTarget + "AgentLib.Tests/ResponsesToolHelperTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Model/RoleTemplate.cs", AgentTarget + "AgentLib.ChatRoom/Model/RoleTemplate.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Model/RoleTemplateJsonSerializerContext.cs", AgentTarget + "AgentLib.ChatRoom/Model/RoleTemplateJsonSerializerContext.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Services/RoleTemplateService.cs", AgentTarget + "AgentLib.ChatRoom/Services/RoleTemplateService.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/RoleTemplateServiceTests.cs", AgentTarget + "AgentLib.ChatRoom.Tests/RoleTemplateServiceTests.cs"),
+    (AgentSource + "AgentLib.Coding/RoslynAgentTools.cs", AgentTarget + "AgentLib.Coding/RoslynAgentTools.cs"),
+    (AgentSource + "AgentLib.Coding/RoslynLspClient.cs", AgentTarget + "AgentLib.Coding/RoslynLspClient.cs"),
+    (AgentSource + "AgentLib/Model/SendMessages_/SendMessageRequest.cs", AgentTarget + "AgentLib/Model/SendMessages_/SendMessageRequest.cs"),
+    (AgentSource + "AgentLib/Model/SendMessages_/SendMessageResult.cs", AgentTarget + "AgentLib/Model/SendMessages_/SendMessageResult.cs"),
+    (AgentSource + "AgentLib/Model/SendMessages_/SendMessageRunState.cs", AgentTarget + "AgentLib/Model/SendMessages_/SendMessageRunState.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Services/SessionService.cs", AgentTarget + "AgentLib.ChatRoom/Services/SessionService.cs"),
+    (AgentSource + "AgentLib/Docs/计划/SessionTitleGeneration-Plan.md", AgentTarget + "AgentLib/Docs/计划/SessionTitleGeneration-Plan.md"),
+    (AgentSource + "AgentLib/Docs/计划/SessionTitleGenerator-Delegate-Problem.md", AgentTarget + "AgentLib/Docs/计划/SessionTitleGenerator-Delegate-Problem.md"),
+    (AgentSource + "AgentLib/Docs/计划/SessionTitleGenerator-Refactor.md", AgentTarget + "AgentLib/Docs/计划/SessionTitleGenerator-Refactor.md"),
+    (AgentSource + "AgentLib/SessionTitleGenerator.cs", AgentTarget + "AgentLib/SessionTitleGenerator.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Services/SettingsService.cs", AgentTarget + "AgentLib.ChatRoom/Services/SettingsService.cs"),
+    (AgentSource + "AgentLib.Tests/Fakes/SingleThreadSynchronizationContext.cs", AgentTarget + "AgentLib.Tests/Fakes/SingleThreadSynchronizationContext.cs"),
+    (AgentSource + "AgentLib.Tests/Assets/TestSkills/dotnet-aot-compat/SKILL.md", AgentTarget + "AgentLib.Tests/Assets/TestSkills/dotnet-aot-compat/SKILL.md"),
+    (AgentSource + "AgentLib/Docs/计划/SkillsIntegration-Plan.md", AgentTarget + "AgentLib/Docs/计划/SkillsIntegration-Plan.md"),
+    (AgentSource + "AgentLib.ChatRoom/StandardChatRoomRoleExecutor.cs", AgentTarget + "AgentLib.ChatRoom/StandardChatRoomRoleExecutor.cs"),
+    (AgentSource + "AgentLib/Tools/SubAgentToolProvider.cs", AgentTarget + "AgentLib/Tools/SubAgentToolProvider.cs"),
+    (AgentSource + "AgentLib.ChatRoom.Tests/testconfig.json", AgentTarget + "AgentLib.ChatRoom.Tests/testconfig.json"),
+    (AgentSource + "AgentLib.Coding.Tests/testconfig.json", AgentTarget + "AgentLib.Coding.Tests/testconfig.json"),
+    (AgentSource + "AgentLib.Tests/Fakes/ThrowingTool.cs", AgentTarget + "AgentLib.Tests/Fakes/ThrowingTool.cs"),
+    (AgentSource + "AgentLib/Model/TitleSource.cs", AgentTarget + "AgentLib/Model/TitleSource.cs"),
+    (AgentSource + "AgentLib/Reducers/ToolCallAwareChatReducer.cs", AgentTarget + "AgentLib/Reducers/ToolCallAwareChatReducer.cs"),
+    (AgentSource + "AgentLib/ToolCallHistoryRepairer.cs", AgentTarget + "AgentLib/ToolCallHistoryRepairer.cs"),
+    (AgentSource + "AgentLib.Tests/ToolCallHistoryRepairerTests.cs", AgentTarget + "AgentLib.Tests/ToolCallHistoryRepairerTests.cs"),
+    (AgentSource + "AgentLib/Model/ToolCallPresentation.cs", AgentTarget + "AgentLib/Model/ToolCallPresentation.cs"),
+    (AgentSource + "AgentLib/Tools/ToolCallPresentationCollectionFactory.cs", AgentTarget + "AgentLib/Tools/ToolCallPresentationCollectionFactory.cs"),
+    (AgentSource + "AgentLib/Tools/ToolCallPresentationFactory.cs", AgentTarget + "AgentLib/Tools/ToolCallPresentationFactory.cs"),
+    (AgentSource + "AgentLib/Model/ToolPresentationAction.cs", AgentTarget + "AgentLib/Model/ToolPresentationAction.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/ToolPresentationRegistrationTests.cs", AgentTarget + "AgentLib.Coding.Tests/ToolPresentationRegistrationTests.cs"),
+    (AgentSource + "AgentLib.Tests/Model/ToolPresentationTests.cs", AgentTarget + "AgentLib.Tests/Model/ToolPresentationTests.cs"),
+    (AgentSource + "AgentLib/Tools/ToolRegistration.cs", AgentTarget + "AgentLib/Tools/ToolRegistration.cs"),
+    (AgentSource + "AgentLib/Tools/ToolRegistrationRegistry.cs", AgentTarget + "AgentLib/Tools/ToolRegistrationRegistry.cs"),
+    (AgentSource + "AgentLib.Coding/Sandboxes/WindowsSandboxTools.cs", AgentTarget + "AgentLib.Coding/Sandboxes/WindowsSandboxTools.cs"),
+    (AgentSource + "AgentLib.Coding/Sandboxes/WindowsSandboxToolSource.cs", AgentTarget + "AgentLib.Coding/Sandboxes/WindowsSandboxToolSource.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/WindowsSandboxToolsTests.cs", AgentTarget + "AgentLib.Coding.Tests/WindowsSandboxToolsTests.cs"),
+    (AgentSource + "AgentLib.Coding/Sandboxes/WinRemoteShellProcessRunner.cs", AgentTarget + "AgentLib.Coding/Sandboxes/WinRemoteShellProcessRunner.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/WinRemoteShellProcessRunnerTests.cs", AgentTarget + "AgentLib.Coding.Tests/WinRemoteShellProcessRunnerTests.cs"),
+    (AgentSource + "AgentLib/Tools/WorkspaceTools_/WorkspaceFileLineReader.cs", AgentTarget + "AgentLib/Tools/WorkspaceTools_/WorkspaceFileLineReader.cs"),
+    (AgentSource + "AgentLib/Tools/WorkspaceTools_/PatternMatch_/WorkspaceFileMatchLineResult.cs", AgentTarget + "AgentLib/Tools/WorkspaceTools_/PatternMatch_/WorkspaceFileMatchLineResult.cs"),
+    (AgentSource + "AgentLib/Tools/WorkspaceTools_/PatternMatch_/WorkspaceFileMatchResults.cs", AgentTarget + "AgentLib/Tools/WorkspaceTools_/PatternMatch_/WorkspaceFileMatchResults.cs"),
+    (AgentSource + "AgentLib/Tools/WorkspaceTools_/PatternMatch_/WorkspaceFilePatternMatcher.cs", AgentTarget + "AgentLib/Tools/WorkspaceTools_/PatternMatch_/WorkspaceFilePatternMatcher.cs"),
+    (AgentSource + "AgentLib/Tools/WorkspaceTools_/Replace_/WorkspaceFileStringReplacer.cs", AgentTarget + "AgentLib/Tools/WorkspaceTools_/Replace_/WorkspaceFileStringReplacer.cs"),
+    (AgentSource + "AgentLib.Tests/WorkspaceFileStringReplacerTests.cs", AgentTarget + "AgentLib.Tests/WorkspaceFileStringReplacerTests.cs"),
+    (AgentSource + "AgentLib.ChatRoom/Tools/WorkspacePathTools.cs", AgentTarget + "AgentLib.ChatRoom/Tools/WorkspacePathTools.cs"),
+    (AgentSource + "AgentLib.Coding/WorkspaceProjectCatalog.cs", AgentTarget + "AgentLib.Coding/WorkspaceProjectCatalog.cs"),
+    (AgentSource + "AgentLib.Coding.Tests/WorkspaceProjectCatalogTests.cs", AgentTarget + "AgentLib.Coding.Tests/WorkspaceProjectCatalogTests.cs"),
+    (AgentSource + "AgentLib/Docs/计划/WorkspaceToolProvider-工具参数错误自然语言返回方案.md", AgentTarget + "AgentLib/Docs/计划/WorkspaceToolProvider-工具参数错误自然语言返回方案.md"),
+    (AgentSource + "AgentLib/Tools/WorkspaceTools_/WorkspaceToolProvider.cs", AgentTarget + "AgentLib/Tools/WorkspaceTools_/WorkspaceToolProvider.cs"),
+    (AgentSource + "AgentLib.Tests/WorkspaceToolProviderTests.cs", AgentTarget + "AgentLib.Tests/WorkspaceToolProviderTests.cs"),
+    (AppSource + "Abilities/AbilityCatalog.cs", AppTarget + "Abilities/AbilityCatalog.cs"),
+    (AppSource + "Abilities/AbilityDefinition.cs", AppTarget + "Abilities/AbilityDefinition.cs"),
+    (AppSource + "Abilities/AbilityDirectoryReader.cs", AppTarget + "Abilities/AbilityDirectoryReader.cs"),
+    (AppSource + "ViewModels/AbilityOptionViewModel.cs", AppTarget + "ViewModels/AbilityOptionViewModel.cs"),
+    (AppSource + "App.axaml", AppTarget + "App.axaml"),
+    (AppSource + "App.axaml.cs", AppTarget + "App.axaml.cs"),
+    (AppSource + "app.manifest", AppTarget + "app.manifest"),
+    (AppSource + "ViewModels/ArchivedWorkTaskItemViewModel.cs", AppTarget + "ViewModels/ArchivedWorkTaskItemViewModel.cs"),
+    (AppSource + "Views/ArchivedWorkTasksView.axaml", AppTarget + "Views/ArchivedWorkTasksView.axaml"),
+    (AppSource + "Views/ArchivedWorkTasksView.axaml.cs", AppTarget + "Views/ArchivedWorkTasksView.axaml.cs"),
+    (AppSource + "Infrastructure/AvaloniaMainThreadDispatcher.cs", AppTarget + "Infrastructure/AvaloniaMainThreadDispatcher.cs"),
+    (AppSource + "Views/BinaryImage.cs", AppTarget + "Views/BinaryImage.cs"),
+    (AppSource + "Converters/BoolConverters.cs", AppTarget + "Converters/BoolConverters.cs"),
+    (AppSource + "Views/ChatAutoScrollState.cs", AppTarget + "Views/ChatAutoScrollState.cs"),
+    (AppSource + "Views/ChatMessageItemTemplateSelector.cs", AppTarget + "Views/ChatMessageItemTemplateSelector.cs"),
+    (AppSource + "Views/ChatView.axaml", AppTarget + "Views/ChatView.axaml"),
+    (AppSource + "Views/ChatView.axaml.cs", AppTarget + "Views/ChatView.axaml.cs"),
+    (AppSource + "ViewModels/ChatViewModel.cs", AppTarget + "ViewModels/ChatViewModel.cs"),
+    (AppSource + "Services/Chat/CodingAgentChatRunner.cs", AppTarget + "Services/Chat/CodingAgentChatRunner.cs"),
+    (AppSource + "Services/Chat/CodingAgentRunExtensions.cs", AppTarget + "Services/Chat/CodingAgentRunExtensions.cs"),
+    (AppSource + "Services/Sessions/CodingChatHistoryLoader.cs", AppTarget + "Services/Sessions/CodingChatHistoryLoader.cs"),
+    (AppSource + "Assets/Icons/CodingChatRoom.ico", AppTarget + "Assets/Icons/CodingChatRoom.ico"),
+    (AppSource + "Infrastructure/CodingChatRoomPaths.cs", AppTarget + "Infrastructure/CodingChatRoomPaths.cs"),
+    (AppSource + "Assets/Icons/CodingChatRoom_128x128.png", AppTarget + "Assets/Icons/CodingChatRoom_128x128.png"),
+    (AppSource + "Assets/Icons/CodingChatRoom_16x16.png", AppTarget + "Assets/Icons/CodingChatRoom_16x16.png"),
+    (AppSource + "Assets/Icons/CodingChatRoom_256x256.png", AppTarget + "Assets/Icons/CodingChatRoom_256x256.png"),
+    (AppSource + "Assets/Icons/CodingChatRoom_32x32.png", AppTarget + "Assets/Icons/CodingChatRoom_32x32.png"),
+    (AppSource + "Assets/Icons/CodingChatRoom_48x48.png", AppTarget + "Assets/Icons/CodingChatRoom_48x48.png"),
+    (AppSource + "Assets/Icons/CodingChatRoom_512x512.png", AppTarget + "Assets/Icons/CodingChatRoom_512x512.png"),
+    (AppSource + "Assets/Icons/CodingChatRoom_64x64.png", AppTarget + "Assets/Icons/CodingChatRoom_64x64.png"),
+    (AppSource + "Services/Settings/CodingChatSettingsService.cs", AppTarget + "Services/Settings/CodingChatSettingsService.cs"),
+    (AppSource + "Services/Settings/CodingChatShellSettings.cs", AppTarget + "Services/Settings/CodingChatShellSettings.cs"),
+    (AppSource + "Infrastructure/CodingChatStartupOptions.cs", AppTarget + "Infrastructure/CodingChatStartupOptions.cs"),
+    (AppSource + "Services/Workspace/CodingWorkspaceController.cs", AppTarget + "Services/Workspace/CodingWorkspaceController.cs"),
+    (AppSource + "Services/WorkTasks/CodingWorkTaskController.cs", AppTarget + "Services/WorkTasks/CodingWorkTaskController.cs"),
+    (AppSource + "Services/WorkTasks/CodingWorkTaskRuntime.cs", AppTarget + "Services/WorkTasks/CodingWorkTaskRuntime.cs"),
+    (AppSource + "Services/WorkTasks/CodingWorkTaskRuntimeFactory.cs", AppTarget + "Services/WorkTasks/CodingWorkTaskRuntimeFactory.cs"),
+    (AppSource + "Styles/Colors.axaml", AppTarget + "Styles/Colors.axaml"),
+    (AppSource + "ViewModels/Commands.cs", AppTarget + "ViewModels/Commands.cs"),
+    (AppSource + "Styles/Controls.axaml", AppTarget + "Styles/Controls.axaml"),
+    (AppSource + "Services/Settings/DeepSeekApiKeyResolver.cs", AppTarget + "Services/Settings/DeepSeekApiKeyResolver.cs"),
+    (AppSource + "Abilities/DefaultAbilityInstaller.cs", AppTarget + "Abilities/DefaultAbilityInstaller.cs"),
+    (AppSource + "Localizations/en.toml", AppTarget + "Localizations/en.toml"),
+    (AppSource + "Services/Sessions/FileCodingChatSessionStore.cs", AppTarget + "Services/Sessions/FileCodingChatSessionStore.cs"),
+    (AppSource + "Services/Chat/ICodingChatRunner.cs", AppTarget + "Services/Chat/ICodingChatRunner.cs"),
+    (AppSource + "Services/Sessions/ICodingChatSessionStore.cs", AppTarget + "Services/Sessions/ICodingChatSessionStore.cs"),
+    (AppSource + "ViewModels/ImageAttachmentViewModel.cs", AppTarget + "ViewModels/ImageAttachmentViewModel.cs"),
+    (AppSource + "Services/Integrations/OpenAI/IOpenAIModelCatalogClient.cs", AppTarget + "Services/Integrations/OpenAI/IOpenAIModelCatalogClient.cs"),
+    (AppSource + "Services/Integrations/WindowsSandbox/IWindowsSandboxConnectionTester.cs", AppTarget + "Services/Integrations/WindowsSandbox/IWindowsSandboxConnectionTester.cs"),
+    (AppSource + "Localizations/Lang.cs", AppTarget + "Localizations/Lang.cs"),
+    (AppSource + "ViewModels/LanguageModelOptionViewModel.cs", AppTarget + "ViewModels/LanguageModelOptionViewModel.cs"),
+    (AppSource + "Properties/launchSettings.json", AppTarget + "Properties/launchSettings.json"),
+    (AppSource + "Services/Chat/LoopIterationChatReducer.cs", AppTarget + "Services/Chat/LoopIterationChatReducer.cs"),
+    (AppSource + "Views/MainView.axaml", AppTarget + "Views/MainView.axaml"),
+    (AppSource + "Views/MainView.axaml.cs", AppTarget + "Views/MainView.axaml.cs"),
+    (AppSource + "ViewModels/MainViewModel.cs", AppTarget + "ViewModels/MainViewModel.cs"),
+    (AppSource + "MainWindow.axaml", AppTarget + "MainWindow.axaml"),
+    (AppSource + "MainWindow.axaml.cs", AppTarget + "MainWindow.axaml.cs"),
+    (AppSource + "Styles/MessageBubble.axaml", AppTarget + "Styles/MessageBubble.axaml"),
+    (AppSource + "ViewModels/MessageItemViewModel.cs", AppTarget + "ViewModels/MessageItemViewModel.cs"),
+    (AppSource + "ViewModels/ModelCatalogViewModel.cs", AppTarget + "ViewModels/ModelCatalogViewModel.cs"),
+    (AppSource + "Views/ModelServiceConnectionView.axaml", AppTarget + "Views/ModelServiceConnectionView.axaml"),
+    (AppSource + "Views/ModelServiceConnectionView.axaml.cs", AppTarget + "Views/ModelServiceConnectionView.axaml.cs"),
+    (AppSource + "Views/ModelSettingsView.axaml", AppTarget + "Views/ModelSettingsView.axaml"),
+    (AppSource + "Views/ModelSettingsView.axaml.cs", AppTarget + "Views/ModelSettingsView.axaml.cs"),
+    (AppSource + "Services/Integrations/OpenAI/OpenAIModelCatalogClient.cs", AppTarget + "Services/Integrations/OpenAI/OpenAIModelCatalogClient.cs"),
+    (AppSource + "Services/Integrations/OpenAI/OpenAIModelCatalogResult.cs", AppTarget + "Services/Integrations/OpenAI/OpenAIModelCatalogResult.cs"),
+    (AppSource + "Views/OpenAIModelCatalogView.axaml", AppTarget + "Views/OpenAIModelCatalogView.axaml"),
+    (AppSource + "Views/OpenAIModelCatalogView.axaml.cs", AppTarget + "Views/OpenAIModelCatalogView.axaml.cs"),
+    (AppSource + "PrismCodingAgent.AvaloniaShell.csproj", AppTarget + "PrismCodingAgent.AvaloniaShell.csproj"),
+    (AppSource + "Program.cs", AppTarget + "Program.cs"),
+    (AppSource + "ViewModels/ReasoningEffortOptionViewModel.cs", AppTarget + "ViewModels/ReasoningEffortOptionViewModel.cs"),
+    (AppSource + "Services/Chat/ResponsesCodingChatRunner.cs", AppTarget + "Services/Chat/ResponsesCodingChatRunner.cs"),
+    (AppSource + "Views/SecretInput.axaml", AppTarget + "Views/SecretInput.axaml"),
+    (AppSource + "Views/SecretInput.axaml.cs", AppTarget + "Views/SecretInput.axaml.cs"),
+    (AppSource + "Views/SessionListView.axaml", AppTarget + "Views/SessionListView.axaml"),
+    (AppSource + "Views/SessionListView.axaml.cs", AppTarget + "Views/SessionListView.axaml.cs"),
+    (AppSource + "ViewModels/SessionListViewModel.cs", AppTarget + "ViewModels/SessionListViewModel.cs"),
+    (AppSource + "Styles/Settings.axaml", AppTarget + "Styles/Settings.axaml"),
+    (AppSource + "Views/SettingsView.axaml", AppTarget + "Views/SettingsView.axaml"),
+    (AppSource + "Views/SettingsView.axaml.cs", AppTarget + "Views/SettingsView.axaml.cs"),
+    (AppSource + "ViewModels/SettingsViewModel.cs", AppTarget + "ViewModels/SettingsViewModel.cs"),
+    (AppSource + "ViewModels/StartupFailureViewModel.cs", AppTarget + "ViewModels/StartupFailureViewModel.cs"),
+    (AppSource + "StartupFailureWindow.axaml", AppTarget + "StartupFailureWindow.axaml"),
+    (AppSource + "StartupFailureWindow.axaml.cs", AppTarget + "StartupFailureWindow.axaml.cs"),
+    (AppSource + "Services/Shell/TemporaryImageViewer.cs", AppTarget + "Services/Shell/TemporaryImageViewer.cs"),
+    (AppSource + "ViewModels/ViewModelBase.cs", AppTarget + "ViewModels/ViewModelBase.cs"),
+    (AppSource + "Services/Integrations/WindowsSandbox/WindowsSandboxConnectionTester.cs", AppTarget + "Services/Integrations/WindowsSandbox/WindowsSandboxConnectionTester.cs"),
+    (AppSource + "Services/Integrations/WindowsSandbox/WindowsSandboxConnectionTestResult.cs", AppTarget + "Services/Integrations/WindowsSandbox/WindowsSandboxConnectionTestResult.cs"),
+    (AppSource + "Converters/WorkspaceTitleConverter.cs", AppTarget + "Converters/WorkspaceTitleConverter.cs"),
+    (AppSource + "ViewModels/WorkTaskItemViewModel.cs", AppTarget + "ViewModels/WorkTaskItemViewModel.cs"),
+    (AppSource + "Services/WorkTasks/WorkTaskStore.cs", AppTarget + "Services/WorkTasks/WorkTaskStore.cs"),
+    (AppSource + "Localizations/zh-Hans.toml", AppTarget + "Localizations/zh-Hans.toml"),
+    (TestSource + "AssemblyInfo.cs", TestTarget + "AssemblyInfo.cs"),
+    (TestSource + "AvaloniaTestClassAttribute.cs", TestTarget + "AvaloniaTestClassAttribute.cs"),
+    (TestSource + "AvaloniaTestLifecycleTests.cs", TestTarget + "AvaloniaTestLifecycleTests.cs"),
+    (TestSource + "ChatAutoScrollStateTests.cs", TestTarget + "ChatAutoScrollStateTests.cs"),
+    (TestSource + "ChatOptionLocalizationTests.cs", TestTarget + "ChatOptionLocalizationTests.cs"),
+    (TestSource + "ChatOutputVisualTests.cs", TestTarget + "ChatOutputVisualTests.cs"),
+    (TestSource + "ChatViewModelTests.cs", TestTarget + "ChatViewModelTests.cs"),
+    (TestSource + "CodingChatSendingTests.cs", TestTarget + "CodingChatSendingTests.cs"),
+    (TestSource + "CodingChatStartupOptionsTests.cs", TestTarget + "CodingChatStartupOptionsTests.cs"),
+    (TestSource + "CodingWorkspaceControllerTests.cs", TestTarget + "CodingWorkspaceControllerTests.cs"),
+    (TestSource + "CodingWorkTaskControllerTestFactory.cs", TestTarget + "CodingWorkTaskControllerTestFactory.cs"),
+    (TestSource + "CodingWorkTaskControllerTests.cs", TestTarget + "CodingWorkTaskControllerTests.cs"),
+    (TestSource + "CodingWorkTaskRuntimeFactoryTests.cs", TestTarget + "CodingWorkTaskRuntimeFactoryTests.cs"),
+    (TestSource + "DeepSeekImmediateFillTests.cs", TestTarget + "DeepSeekImmediateFillTests.cs"),
+    (TestSource + "DeepSeekRuntimeUpdateTests.cs", TestTarget + "DeepSeekRuntimeUpdateTests.cs"),
+    (TestSource + "DeepSeekSettingsControlTests.cs", TestTarget + "DeepSeekSettingsControlTests.cs"),
+    (TestSource + "DeepSeekSettingsTests.cs", TestTarget + "DeepSeekSettingsTests.cs"),
+    (TestSource + "HeadlessSessionTests.cs", TestTarget + "HeadlessSessionTests.cs"),
+    (TestSource + "HistoryInteractionTests.cs", TestTarget + "HistoryInteractionTests.cs"),
+    (TestSource + "LocalizationSettingsTests.cs", TestTarget + "LocalizationSettingsTests.cs"),
+    (TestSource + "LocalizationTests.cs", TestTarget + "LocalizationTests.cs"),
+    (TestSource + "MessageInjectingManualSendMessageContextTests.cs", TestTarget + "MessageInjectingManualSendMessageContextTests.cs"),
+    (TestSource + "MissingModelStateTests.cs", TestTarget + "MissingModelStateTests.cs"),
+    (TestSource + "ModelCatalogViewModelTests.cs", TestTarget + "ModelCatalogViewModelTests.cs"),
+    (TestSource + "ModelConfigurationControlTests.cs", TestTarget + "ModelConfigurationControlTests.cs"),
+    (TestSource + "ModelSetupLifecycleTests.cs", TestTarget + "ModelSetupLifecycleTests.cs"),
+    (TestSource + "PrismCodingAgent.AvaloniaShell.Tests.csproj", TestTarget + "PrismCodingAgent.AvaloniaShell.Tests.csproj"),
+    (TestSource + "ResponsesApiControlTests.cs", TestTarget + "ResponsesApiControlTests.cs"),
+    (TestSource + "ResponsesHttpCompactionLiveTests.cs", TestTarget + "ResponsesHttpCompactionLiveTests.cs"),
+    (TestSource + "ResponsesWorkflowLiveTests.cs", TestTarget + "ResponsesWorkflowLiveTests.cs"),
+    (TestSource + "SecretInputControlTests.cs", TestTarget + "SecretInputControlTests.cs"),
+    (TestSource + "SettingsViewModelTests.cs", TestTarget + "SettingsViewModelTests.cs"),
+    (TestSource + "ShellControlStyleTests.cs", TestTarget + "ShellControlStyleTests.cs"),
+    (TestSource + "ShellResourceTests.cs", TestTarget + "ShellResourceTests.cs"),
+    (TestSource + "ShellStructureTests.cs", TestTarget + "ShellStructureTests.cs"),
+    (TestSource + "SimpleAsyncCommandTests.cs", TestTarget + "SimpleAsyncCommandTests.cs"),
+    (TestSource + "StartupLifetimeTests.cs", TestTarget + "StartupLifetimeTests.cs"),
+    (TestSource + "TaskTitleVisualTests.cs", TestTarget + "TaskTitleVisualTests.cs"),
+    (TestSource + "TemporaryImageViewerTests.cs", TestTarget + "TemporaryImageViewerTests.cs"),
+    (TestSource + "Test.runsettings", TestTarget + "Test.runsettings"),
+    (TestSource + "ToolProjectionTests.cs", TestTarget + "ToolProjectionTests.cs"),
+    (TestSource + "ToolProjectionVisualTests.cs", TestTarget + "ToolProjectionVisualTests.cs"),
+    (TestSource + "WorkTaskNavigationTests.cs", TestTarget + "WorkTaskNavigationTests.cs"),
+    (TestSource + "WorkTaskPinningTests.cs", TestTarget + "WorkTaskPinningTests.cs"),
+    (TestSource + "WorkTaskStoreTests.cs", TestTarget + "WorkTaskStoreTests.cs"),
+    (DocsSource + "CodingChatRoom-Responses API/00-阅读导航与设计结论.md", DocsTarget + "CodingChatRoom-Responses API/00-阅读导航与设计结论.md"),
+    (DocsSource + "CodingChatRoom-Responses API/01-现状与约束核查.md", DocsTarget + "CodingChatRoom-Responses API/01-现状与约束核查.md"),
+    (DocsSource + "CodingChatRoom-Responses API/02-目标架构与分支边界.md", DocsTarget + "CodingChatRoom-Responses API/02-目标架构与分支边界.md"),
+    (DocsSource + "CodingChatRoom-Responses API/03-AgentLib兼容扩展设计.md", DocsTarget + "CodingChatRoom-Responses API/03-AgentLib兼容扩展设计.md"),
+    (DocsSource + "CodingChatRoom-Responses API/04-Responses运行与工具循环.md", DocsTarget + "CodingChatRoom-Responses API/04-Responses运行与工具循环.md"),
+    (DocsSource + "CodingChatRoom-Responses API/05-会话状态与持久化.md", DocsTarget + "CodingChatRoom-Responses API/05-会话状态与持久化.md"),
+    (DocsSource + "CodingChatRoom-Responses API/06-界面与交互设计.md", DocsTarget + "CodingChatRoom-Responses API/06-界面与交互设计.md"),
+    (DocsSource + "CodingChatRoom-Responses API/07-配置安全与可观测性.md", DocsTarget + "CodingChatRoom-Responses API/07-配置安全与可观测性.md"),
+    (DocsSource + "CodingChatRoom-Responses API/08-测试与产品验收.md", DocsTarget + "CodingChatRoom-Responses API/08-测试与产品验收.md"),
+    (DocsSource + "CodingChatRoom-Responses API/09-实施依赖顺序与文件清单.md", DocsTarget + "CodingChatRoom-Responses API/09-实施依赖顺序与文件清单.md"),
+    (DocsSource + "CodingChatRoom-Responses API/10-Responses能力覆盖矩阵.md", DocsTarget + "CodingChatRoom-Responses API/10-Responses能力覆盖矩阵.md"),
+    (DocsSource + "CodingChatRoom-Responses API/11-设置界面设计.md", DocsTarget + "CodingChatRoom-Responses API/11-设置界面设计.md"),
+    (DocsSource + "CodingChatRoom-Responses API/12-AgentLib消息API实验与待办.md", DocsTarget + "CodingChatRoom-Responses API/12-AgentLib消息API实验与待办.md"),
+    (DocsSource + "CodingChatRoom-Responses API/13-工具接入边界与既有问题.md", DocsTarget + "CodingChatRoom-Responses API/13-工具接入边界与既有问题.md"),
+    (DocsSource + "CodingChatRoom-Responses API/14-原生压缩续聊调查与交接.md", DocsTarget + "CodingChatRoom-Responses API/14-原生压缩续聊调查与交接.md"),
+    (DocsSource + "Images/coding-chat-en.png", DocsTarget + "Images/coding-chat-en.png"),
+    (DocsSource + "Images/coding-chat-zh-Hans.png", DocsTarget + "Images/coding-chat-zh-Hans.png"),
+    (DocsSource + "归档/CodingChatRoom-CodingAgent思考强度设置方案.md", DocsTarget + "归档/CodingChatRoom-CodingAgent思考强度设置方案.md"),
+    (DocsSource + "归档/CodingChatRoom-Fluent多任务改造交接.md", DocsTarget + "归档/CodingChatRoom-Fluent多任务改造交接.md"),
+    (DocsSource + "归档/CodingChatRoom-LSP服务停止与按需重启.md", DocsTarget + "归档/CodingChatRoom-LSP服务停止与按需重启.md"),
+    (DocsSource + "归档/CodingChatRoom-压缩API结构化结果设计方案.md", DocsTarget + "归档/CodingChatRoom-压缩API结构化结果设计方案.md"),
+    (DocsSource + "归档/CodingChatRoom-压缩对话后展示与新会话探索.md", DocsTarget + "归档/CodingChatRoom-压缩对话后展示与新会话探索.md"),
+    (DocsSource + "归档/CodingChatRoom-图片读取子智能体工具设计方案.md", DocsTarget + "归档/CodingChatRoom-图片读取子智能体工具设计方案.md"),
+    (DocsSource + "归档/CodingChatRoom-多工作任务并行改造设计.md", DocsTarget + "归档/CodingChatRoom-多工作任务并行改造设计.md"),
+    (DocsSource + "归档/CodingChatRoom-多工作任务并行改造需求.md", DocsTarget + "归档/CodingChatRoom-多工作任务并行改造需求.md"),
+    (DocsSource + "归档/CodingChatRoom-多工作任务设计稿开发细节.md", DocsTarget + "归档/CodingChatRoom-多工作任务设计稿开发细节.md"),
+    (DocsSource + "归档/CodingChatRoom-实现细节.md", DocsTarget + "归档/CodingChatRoom-实现细节.md"),
+    (DocsSource + "归档/CodingChatRoom-实现计划.md", DocsTarget + "归档/CodingChatRoom-实现计划.md"),
+    (DocsSource + "CodingChatRoom-尚未完成功能需求.md", DocsTarget + "CodingChatRoom-尚未完成功能需求.md"),
+    (DocsSource + "归档/CodingChatRoom-工作任务运行时命名与职责重构设计.md", DocsTarget + "归档/CodingChatRoom-工作任务运行时命名与职责重构设计.md"),
+    (DocsSource + "CodingChatRoom-工作区文件变更追踪与安全文件操作方案.md", DocsTarget + "CodingChatRoom-工作区文件变更追踪与安全文件操作方案.md"),
+    (DocsSource + "归档/CodingChatRoom-工具调用摘要与交互优化方案.md", DocsTarget + "归档/CodingChatRoom-工具调用摘要与交互优化方案.md"),
+    (DocsSource + "归档/CodingChatRoom-循环迭代功能设计方案.md", DocsTarget + "归档/CodingChatRoom-循环迭代功能设计方案.md"),
+    (DocsSource + "归档/CodingChatRoom-架构设计.md", DocsTarget + "归档/CodingChatRoom-架构设计.md"),
+    (DocsSource + "归档/CodingChatRoom-沙盒工具配置实时更新.md", DocsTarget + "归档/CodingChatRoom-沙盒工具配置实时更新.md"),
+    (DocsSource + "归档/CodingChatRoom-能力选择与内置提示词设计.md", DocsTarget + "归档/CodingChatRoom-能力选择与内置提示词设计.md"),
+    (DocsSource + "归档/CopilotChatManager-会话持久化简化方案.md", DocsTarget + "归档/CopilotChatManager-会话持久化简化方案.md"),
+    (DocsSource + "Docs.csproj", DocsTarget + "Docs.csproj"),
+    (DocsSource + "归档/PrismCodingAgent-编程子智能体实现设计.md", DocsTarget + "归档/PrismCodingAgent-编程子智能体实现设计.md"),
+    (DocsSource + "设计稿/多工作任务设计稿.png", DocsTarget + "设计稿/多工作任务设计稿.png"),
+    (DocsSource + "待办.md", DocsTarget + "待办.md"),
+    ("PrismCodingAgent/Directory.Build.props", "CodingAgent/Directory.Build.props"),
+    ("PrismCodingAgent/PrismCodingAgent.slnx", "CodingAgent/PrismCodingAgent.slnx"),
+    ("PrismCodingAgent/README.en.md", "CodingAgent/README.en.md"),
+    ("PrismCodingAgent/README.md", "CodingAgent/README.md"),
+    (SdkSource + "Code/DeepSeekSDK.Tests/AssemblyInfo.cs", SdkTarget + "Code/DeepSeekSDK.Tests/AssemblyInfo.cs"),
+    (SdkSource + "Code/DeepSeekSDK/DeepSeekClient.cs", SdkTarget + "Code/DeepSeekSDK/DeepSeekClient.cs"),
+    (SdkSource + "Code/DeepSeekSDK.Tests/DeepSeekClientTests.cs", SdkTarget + "Code/DeepSeekSDK.Tests/DeepSeekClientTests.cs"),
+    (SdkSource + "Code/DeepSeekSDK/DeepSeekFetchRequest.cs", SdkTarget + "Code/DeepSeekSDK/DeepSeekFetchRequest.cs"),
+    (SdkSource + "Code/DeepSeekSDK/DeepSeekFetchResponse.cs", SdkTarget + "Code/DeepSeekSDK/DeepSeekFetchResponse.cs"),
+    (SdkSource + "Code/DeepSeekSDK/DeepSeekSDK.csproj", SdkTarget + "Code/DeepSeekSDK/DeepSeekSDK.csproj"),
+    (SdkSource + "DeepSeekSDK.slnx", SdkTarget + "DeepSeekSDK.slnx"),
+    (SdkSource + "Code/DeepSeekSDK.Tests/DeepSeekSDK.Tests.csproj", SdkTarget + "Code/DeepSeekSDK.Tests/DeepSeekSDK.Tests.csproj"),
+    (SdkSource + "Code/DeepSeekSDK/DeepSeekSearchRequest.cs", SdkTarget + "Code/DeepSeekSDK/DeepSeekSearchRequest.cs"),
+    (SdkSource + "Code/DeepSeekSDK/DeepSeekSearchResponse.cs", SdkTarget + "Code/DeepSeekSDK/DeepSeekSearchResponse.cs"),
+    (SdkSource + "Directory.Build.props", SdkTarget + "Directory.Build.props"),
+    (SdkSource + "Code/DeepSeekSDK/HttpErrorMessages.resx", SdkTarget + "Code/DeepSeekSDK/HttpErrorMessages.resx"),
+    (SdkSource + "README.md", SdkTarget + "README.md"),
+    (ExtensionsSource + "src/Microsoft.Extensions.AI.DeepSeek/DeepSeekChatClient.cs", ExtensionsTarget + "src/Microsoft.Extensions.AI.DeepSeek/DeepSeekChatClient.cs"),
+    (ExtensionsSource + "demo/DeepSeekDemo/DeepSeekDemo.csproj", ExtensionsTarget + "demo/DeepSeekDemo/DeepSeekDemo.csproj"),
+    (ExtensionsSource + "Microsoft.Agents.AI.Extensions.slnx", ExtensionsTarget + "Microsoft.Agents.AI.Extensions.slnx"),
+    (ExtensionsSource + "src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj", ExtensionsTarget + "src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj"),
+    (ExtensionsSource + "demo/DeepSeekDemo/Program.cs", ExtensionsTarget + "demo/DeepSeekDemo/Program.cs"),
+    (ReasoningSource + "Microsoft.Agents.AI.Reasoning.csproj", ReasoningTarget + "Microsoft.Agents.AI.Reasoning.csproj"),
+    (ReasoningSource + "ReasoningAgentResponseUpdate.cs", ReasoningTarget + "ReasoningAgentResponseUpdate.cs"),
+    (ReasoningSource + "ReasoningAIAgentExtension.cs", ReasoningTarget + "ReasoningAIAgentExtension.cs"),
 ];
-string[] rootFiles = ["README.md", "README.en.md", "PrismCodingAgent.slnx", "Directory.Build.props"];
-var moves = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-foreach (string file in rootFiles)
-    moves.Add(Absolute($"PrismCodingAgent/{file}"), Absolute($"CodingAgent/{file}"));
-
-// Enumerating before moving preserves the original base of every relative reference.
-var files = SourceFiles(root).ToArray();
-foreach (var (oldDirectory, newDirectory) in directories)
-{
-    string oldPrefix = Absolute(oldDirectory) + Path.DirectorySeparatorChar;
-    foreach (string file in files.Where(file => file.StartsWith(oldPrefix, StringComparison.OrdinalIgnoreCase)))
-        moves.Add(file, Path.Combine(Absolute(newDirectory), file[oldPrefix.Length..]));
-}
-
-string Map(string path)
-{
-    if (moves.TryGetValue(path, out string? destination))
-        return destination;
-    foreach (var (oldDirectory, newDirectory) in directories)
-    {
-        string oldPath = Absolute(oldDirectory);
-        if (path.Equals(oldPath, StringComparison.OrdinalIgnoreCase))
-            return Absolute(newDirectory);
-        string prefix = oldPath + Path.DirectorySeparatorChar;
-        if (path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            return Path.Combine(Absolute(newDirectory), path[prefix.Length..]);
-    }
-    return path;
-}
-
-var xml = files.Where(file => Path.GetExtension(file) is ".csproj" or ".props" or ".targets" or ".slnx")
-    .ToDictionary(file => file, file => XDocument.Load(file, LoadOptions.PreserveWhitespace), StringComparer.OrdinalIgnoreCase);
-var documents = files.Where(file => Path.GetExtension(file).Equals(".md", StringComparison.OrdinalIgnoreCase))
-    .Where(file => moves.ContainsKey(file) || Relative(root, file).StartsWith("ChatRoom/", StringComparison.Ordinal))
-    .ToDictionary(file => file, File.ReadAllText, StringComparer.OrdinalIgnoreCase);
-var knownPaths = new HashSet<string>(files, StringComparer.OrdinalIgnoreCase);
-foreach (string file in files)
-{
-    for (string? directory = Path.GetDirectoryName(file); directory != root && directory != null; directory = Path.GetDirectoryName(directory))
-        knownPaths.Add(directory);
-}
-
-string Resolve(string directory, string value) => Path.GetFullPath(value.Replace('\\', '/'), directory);
-string RewritePath(string file, string value)
-{
-    // MSBuild expressions need evaluation, not filesystem path arithmetic.
-    if (value.IndexOfAny(['$', '%', '@', ';']) >= 0)
-        return value;
-    string target = Resolve(Path.GetDirectoryName(file)!, value);
-    if (Map(file) == file && Map(target) == target)
-        return value;
-    string rewritten = Relative(Path.GetDirectoryName(Map(file))!, Map(target));
-    return rewritten.Equals(value.Replace('\\', '/'), StringComparison.Ordinal) ? value
-        : value.Contains('\\') ? rewritten.Replace('/', '\\') : rewritten;
-}
-
-var changedXml = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-foreach (var (file, document) in xml)
-{
-    bool solution = Path.GetExtension(file) == ".slnx";
-    foreach (XElement element in document.Descendants())
-    {
-        string name = element.Name.LocalName;
-        string[] attributes = solution && name is "Project" or "File" ? ["Path"]
-            : name is "ProjectReference" or "Content" or "None" or "Compile" or "EmbeddedResource" or "Resource" or "AvaloniaResource" or "AdditionalFiles"
-                ? ["Include", "Update", "Remove"] : [];
-        foreach (string attributeName in attributes)
-        {
-            XAttribute? attribute = element.Attribute(attributeName);
-            if (attribute == null)
-                continue;
-            string rewritten = RewritePath(file, attribute.Value);
-            if (rewritten != attribute.Value)
-            {
-                attribute.Value = rewritten;
-                changedXml.Add(file);
-            }
-        }
-        // Link is usually a virtual IDE name; only a known physical target is relocated.
-        foreach (XObject link in element.Attributes("Link").Cast<XObject>().Concat(element.Elements("Link")))
-        {
-            string value = link is XAttribute attribute ? attribute.Value : ((XElement)link).Value;
-            if (value.IndexOfAny(['$', '%', '@', ';']) >= 0
-                || !knownPaths.Contains(Resolve(Path.GetDirectoryName(file)!, value)))
-                continue;
-            string rewritten = RewritePath(file, value);
-            if (rewritten != value)
-            {
-                if (link is XAttribute linkAttribute)
-                    linkAttribute.Value = rewritten;
-                else
-                    ((XElement)link).Value = rewritten;
-                changedXml.Add(file);
-            }
-        }
-    }
-}
-
-string solutionFile = Absolute("PrismCodingAgent/PrismCodingAgent.slnx");
-XElement solutionRoot = xml[solutionFile].Root!;
-string solutionDirectory = Path.GetDirectoryName(Map(solutionFile))!;
-var projects = new HashSet<string>(solutionRoot.Descendants("Project")
-    .Select(project => Resolve(solutionDirectory, project.Attribute("Path")!.Value)), StringComparer.OrdinalIgnoreCase);
-var projectXml = xml.Where(pair => Path.GetExtension(pair.Key) == ".csproj")
-    .ToDictionary(pair => Map(pair.Key), pair => pair.Value, StringComparer.OrdinalIgnoreCase);
-var dependencies = new Queue<string>(projects);
-while (dependencies.TryDequeue(out string? project))
-{
-    foreach (XElement reference in projectXml[project].Descendants("ProjectReference"))
-    {
-        string dependency = Resolve(Path.GetDirectoryName(project)!, reference.Attribute("Include")!.Value);
-        if (projects.Add(dependency))
-            dependencies.Enqueue(dependency);
-    }
-}
-string[] dependencyTests =
-[
-    "AgentLib/AgentLib.Tests/AgentLib.Tests.csproj",
-    "AgentLib/AgentLib.Coding.Tests/AgentLib.Coding.Tests.csproj",
-    "DeepSeekSDK/Code/DeepSeekSDK.Tests/DeepSeekSDK.Tests.csproj"
-];
-foreach (string test in dependencyTests)
-    projects.Add(Map(Absolute(test)));
-XElement libraryFolder = solutionRoot.Elements("Folder").Single(folder => (string?)folder.Attribute("Name") == "/Lib/");
-var listed = new HashSet<string>(solutionRoot.Descendants("Project")
-    .Select(project => Resolve(solutionDirectory, project.Attribute("Path")!.Value)), StringComparer.OrdinalIgnoreCase);
-foreach (string project in projects.Order(StringComparer.OrdinalIgnoreCase))
-{
-    if (listed.Add(project))
-        libraryFolder.Add(new XText("\n    "), new XElement("Project", new XAttribute("Path", Relative(solutionDirectory, project))), new XText("\n  "));
-}
-changedXml.Add(solutionFile);
-
-// Match each original token once: replacements cannot be interpreted as another old path.
-var pathToken = new Regex(@"(?<![\w/\\:.\-])(?:[\w.\-]+[/\\])+[\w.\-/\\]*", RegexOptions.CultureInvariant);
-var changedDocuments = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-foreach (var (file, text) in documents)
-{
-    string rewritten = pathToken.Replace(text, match =>
-    {
-        string value = match.Value;
-        string repositoryTarget = Absolute(value);
-        bool repositoryRelative = knownPaths.Contains(repositoryTarget);
-        string target = repositoryRelative ? repositoryTarget : Resolve(Path.GetDirectoryName(file)!, value);
-        if (!knownPaths.Contains(target))
-            return value;
-        string replacement = repositoryRelative ? Relative(root, Map(target))
-            : Relative(Path.GetDirectoryName(Map(file))!, Map(target));
-        if (value.EndsWith('/') || value.EndsWith('\\'))
-            replacement += "/";
-        return value.Contains('\\') ? replacement.Replace('/', '\\') : replacement;
-    });
-    if (rootFiles.Take(2).Any(name => file.Equals(Absolute($"PrismCodingAgent/{name}"), StringComparison.OrdinalIgnoreCase)))
-    {
-        rewritten = Regex.Replace(rewritten, @"```text\r?\nSemanticKernelSamples/[\s\S]*?```", """
-            ```text
-            SemanticKernelSamples/
-            ├─ ChatRoom/
-            └─ CodingAgent/
-               ├─ PrismCodingAgent.slnx
-               ├─ Directory.Build.props
-               ├─ Code/
-               │  ├─ App/PrismCodingAgent.AvaloniaShell/
-               │  ├─ Test/PrismCodingAgent.AvaloniaShell.Tests/
-               │  ├─ Lib/
-               │  │  ├─ AgentLib/
-               │  │  ├─ DeepSeekSDK/
-               │  │  ├─ Microsoft.Agents.AI.Extensions/
-               │  │  └─ Microsoft.Agents.AI.Reasoning/
-               │  └─ Tool/
-               └─ Docs/
-            ```
-            """);
-    }
-    if (rewritten != text)
-        changedDocuments.Add(file, rewritten);
-}
 
 foreach (var (source, destination) in moves)
 {
     Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
     File.Move(source, destination);
 }
-foreach (string file in changedXml)
-    xml[file].Save(Map(file), SaveOptions.DisableFormatting);
-foreach (var (file, text) in changedDocuments)
-    File.WriteAllText(Map(file), text);
-File.WriteAllText(Absolute("CodingAgent/.gitignore"), File.ReadAllText(Absolute(".gitignore")) + "\nartifacts/\n");
 
-static IEnumerable<string> SourceFiles(string directory)
+const string Layout = """
+    SemanticKernelSamples/
+    ├─ ChatRoom/
+    └─ CodingAgent/
+       ├─ PrismCodingAgent.slnx
+       ├─ Directory.Build.props
+       ├─ Code/
+       │  ├─ App/PrismCodingAgent.AvaloniaShell/
+       │  ├─ Test/PrismCodingAgent.AvaloniaShell.Tests/
+       │  ├─ Lib/
+       │  │  ├─ AgentLib/
+       │  │  ├─ DeepSeekSDK/
+       │  │  ├─ Microsoft.Agents.AI.Extensions/
+       │  │  └─ Microsoft.Agents.AI.Reasoning/
+       │  └─ Tool/
+       └─ Docs/
+    """;
+
+(string File, string Old, string New)[] replacements =
+[
+    (AppTarget + "PrismCodingAgent.AvaloniaShell.csproj",
+        @"..\..\..\AgentLib\AgentLib.Coding\AgentLib.Coding.csproj",
+        @"..\..\Lib\AgentLib\AgentLib.Coding\AgentLib.Coding.csproj"),
+    (TestTarget + "PrismCodingAgent.AvaloniaShell.Tests.csproj",
+        @"..\..\Code\PrismCodingAgent.AvaloniaShell\PrismCodingAgent.AvaloniaShell.csproj",
+        @"..\..\App\PrismCodingAgent.AvaloniaShell\PrismCodingAgent.AvaloniaShell.csproj"),
+    ("ChatRoom/Code/ChatRoom.AvaloniaShell/ChatRoom.AvaloniaShell.csproj",
+        @"..\..\..\AgentLib\AgentLib.ChatRoom\AgentLib.ChatRoom.csproj",
+        @"..\..\..\CodingAgent\Code\Lib\AgentLib\AgentLib.ChatRoom\AgentLib.ChatRoom.csproj"),
+    ("ChatRoom/Code/ChatRoom.Shell.Tests/ChatRoom.Shell.Tests.csproj",
+        @"..\..\..\AgentLib\AgentLib.ChatRoom\AgentLib.ChatRoom.csproj",
+        @"..\..\..\CodingAgent\Code\Lib\AgentLib\AgentLib.ChatRoom\AgentLib.ChatRoom.csproj"),
+    ("ChatRoom/ChatRoom.slnx", "../AgentLib/", "../CodingAgent/Code/Lib/AgentLib/"),
+    ("ChatRoom/ChatRoom.slnx", "../Microsoft.Agents.AI.Extensions/", "../CodingAgent/Code/Lib/Microsoft.Agents.AI.Extensions/"),
+    ("ChatRoom/ChatRoom.slnx", "../Microsoft.Agents.AI.Reasoning/", "../CodingAgent/Code/Lib/Microsoft.Agents.AI.Reasoning/"),
+    ("ChatRoom/README.md", "../AgentLib/", "../CodingAgent/Code/Lib/AgentLib/"),
+    (SdkTarget + "README.md", "`AgentLib/AgentLib.Coding.Tests/DeepSeekWebToolSourceTests.cs`",
+        "[`../AgentLib/AgentLib.Coding.Tests/DeepSeekWebToolSourceTests.cs`](../AgentLib/AgentLib.Coding.Tests/DeepSeekWebToolSourceTests.cs)"),
+    ("CodingAgent/README.md", "PrismCodingAgent/Code/PrismCodingAgent.AvaloniaShell/", "CodingAgent/Code/App/PrismCodingAgent.AvaloniaShell/"),
+    ("CodingAgent/README.md", "PrismCodingAgent/PrismCodingAgent.slnx", "CodingAgent/PrismCodingAgent.slnx"),
+    ("CodingAgent/README.en.md", "PrismCodingAgent/Code/PrismCodingAgent.AvaloniaShell/", "CodingAgent/Code/App/PrismCodingAgent.AvaloniaShell/"),
+    ("CodingAgent/README.en.md", "PrismCodingAgent/PrismCodingAgent.slnx", "CodingAgent/PrismCodingAgent.slnx"),
+    ("CodingAgent/README.md", """
+        SemanticKernelSamples/
+        ├─ AgentLib/
+        │  ├─ AgentLib/                             # 共享智能体基础库
+        │  └─ AgentLib.Coding/                      # 编程智能体与编程工具
+        └─ PrismCodingAgent/
+           ├─ PrismCodingAgent.slnx                 # 解决方案
+           ├─ Code/PrismCodingAgent.AvaloniaShell/  # Avalonia 桌面应用
+           ├─ Tests/PrismCodingAgent.AvaloniaShell.Tests/
+           └─ Docs/                                 # 设计与调查资料
+        """, Layout),
+    ("CodingAgent/README.en.md", """
+        SemanticKernelSamples/
+        ├─ AgentLib/
+        │  ├─ AgentLib/                             # shared agent foundation
+        │  └─ AgentLib.Coding/                      # coding agent and coding tools
+        └─ PrismCodingAgent/
+           ├─ PrismCodingAgent.slnx                 # solution
+           ├─ Code/PrismCodingAgent.AvaloniaShell/  # Avalonia desktop application
+           ├─ Tests/PrismCodingAgent.AvaloniaShell.Tests/
+           └─ Docs/                                 # design and investigation notes
+        """, Layout),
+];
+
+foreach (var group in replacements.GroupBy(item => item.File))
 {
-    foreach (string file in Directory.EnumerateFiles(directory))
-    {
-        string name = Path.GetFileName(file);
-        if (!name.EndsWith(".user", StringComparison.OrdinalIgnoreCase)
-            && !name.EndsWith(".suo", StringComparison.OrdinalIgnoreCase)
-            && !name.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase))
-            yield return file;
-    }
-    foreach (string child in Directory.EnumerateDirectories(directory))
-    {
-        if (Path.GetFileName(child).ToLowerInvariant() is "bin" or "obj" or "artifacts" or ".vs" or ".git" or ".coding-agent" or ".review-build")
-            continue;
-        foreach (string file in SourceFiles(child))
-            yield return file;
-    }
+    string text = File.ReadAllText(group.Key);
+    string newline = text.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
+    foreach (var (_, oldValue, newValue) in group)
+        text = text.Replace(oldValue.ReplaceLineEndings(newline), newValue.ReplaceLineEndings(newline), StringComparison.Ordinal);
+    File.WriteAllText(group.Key, text);
 }
+
+File.WriteAllText("CodingAgent/PrismCodingAgent.slnx", """
+    <Solution>
+      <Folder Name="/App/">
+        <Project Path="Code/App/PrismCodingAgent.AvaloniaShell/PrismCodingAgent.AvaloniaShell.csproj" />
+      </Folder>
+      <Folder Name="/Test/">
+        <Project Path="Code/Test/PrismCodingAgent.AvaloniaShell.Tests/PrismCodingAgent.AvaloniaShell.Tests.csproj" />
+        <Project Path="Code/Lib/AgentLib/AgentLib.Tests/AgentLib.Tests.csproj" />
+        <Project Path="Code/Lib/AgentLib/AgentLib.Coding.Tests/AgentLib.Coding.Tests.csproj" />
+        <Project Path="Code/Lib/DeepSeekSDK/Code/DeepSeekSDK.Tests/DeepSeekSDK.Tests.csproj" />
+      </Folder>
+      <Folder Name="/Lib/">
+        <Project Path="Code/Lib/AgentLib/AgentLib/AgentLib.csproj" />
+        <Project Path="Code/Lib/AgentLib/AgentLib.Coding/AgentLib.Coding.csproj" />
+        <Project Path="Code/Lib/Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
+        <Project Path="Code/Lib/Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />
+        <Project Path="Code/Lib/DeepSeekSDK/Code/DeepSeekSDK/DeepSeekSDK.csproj" />
+      </Folder>
+      <Folder Name="/Docs/">
+        <Project Path="Docs/Docs.csproj" />
+      </Folder>
+    </Solution>
+    """);
+File.WriteAllText("CodingAgent/.gitignore", File.ReadAllText(".gitignore") + "\nartifacts/\n");
