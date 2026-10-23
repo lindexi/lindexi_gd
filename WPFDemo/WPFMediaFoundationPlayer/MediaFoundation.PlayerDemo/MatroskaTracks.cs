@@ -37,15 +37,19 @@ internal static class MatroskaTracks
                         if (++tracks > 256) throw new InvalidDataException();
                         report.AppendLine(reader.Track(entry.End));
                     }
+
                     file.Position = entry.End;
                 }
+
                 if (tracks == 0) throw new InvalidDataException();
                 return report.ToString();
             }
+
             // Random-access skip: no Cluster payload is read, even for multi-GB files.
             if (element.Unknown) throw new InvalidDataException();
             file.Position = element.End;
         }
+
         throw new InvalidDataException();
     }
 
@@ -69,7 +73,12 @@ internal static class MatroskaTracks
         {
             byte first = Byte();
             int length = 1, mask = 0x80;
-            while (length <= 8 && (first & mask) == 0) { length++; mask >>= 1; }
+            while (length <= 8 && (first & mask) == 0)
+            {
+                length++;
+                mask >>= 1;
+            }
+
             if (length > (id ? 4 : 8)) throw new InvalidDataException();
             ulong value = id ? first : (ulong)(first & (mask - 1));
             for (int i = 1; i < length; i++) value = (value << 8) | Byte();
@@ -82,7 +91,8 @@ internal static class MatroskaTracks
             if (++headers > 100000 || file.Position >= parentEnd) throw new InvalidDataException();
             ulong id = Vint(true, out _);
             ulong size = Vint(false, out bool unknown);
-            if (file.Position > parentEnd || (!unknown && size > (ulong)(parentEnd - file.Position))) throw new InvalidDataException();
+            if (file.Position > parentEnd || (!unknown && size > (ulong)(parentEnd - file.Position)))
+                throw new InvalidDataException();
             return new(id, unknown ? parentEnd : checked(file.Position + (long)size), unknown);
         }
 
@@ -113,6 +123,7 @@ internal static class MatroskaTracks
                 values.TryAdd("channels", "1");
                 values.TryAdd("sampleRate", "8000");
             }
+
             return "EBML " + string.Join(" ", values.Select(pair => $"{pair.Key}={pair.Value}"));
         }
 
@@ -128,11 +139,13 @@ internal static class MatroskaTracks
                     0xD7 => "track", 0x83 => "type", 0xB9 => "enabled", 0x88 => "default",
                     0xB0 => "width", 0xBA => "height", 0x9F => "channels", 0x6264 => "bitDepth", _ => null
                 };
-                if (key != null) values[key] = Number(field.End).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if (key != null)
+                    values[key] = Number(field.End).ToString(System.Globalization.CultureInfo.InvariantCulture);
                 else if (field.Id is 0x86 or 0x22B59C or 0x22B59D)
                 {
                     string text = new UTF8Encoding(false, true).GetString(Data(field.End, 1024));
-                    values[field.Id == 0x86 ? "codec" : field.Id == 0x22B59D ? "languageIETF" : "language"] = string.Concat(text.Select(c => char.IsControl(c) || char.IsWhiteSpace(c) ? '_' : c));
+                    values[field.Id == 0x86 ? "codec" : field.Id == 0x22B59D ? "languageIETF" : "language"] =
+                        string.Concat(text.Select(c => char.IsControl(c) || char.IsWhiteSpace(c) ? '_' : c));
                 }
                 else if (field.Id == 0x63A2)
                 {
@@ -145,7 +158,9 @@ internal static class MatroskaTracks
                         values["avcProfile"] = prefix[1].ToString();
                         values["avcLevel"] = prefix[3].ToString();
                     }
-                    if (prefix.Length >= 19 && prefix[0] == 1 && values.GetValueOrDefault("codec") == "V_MPEGH/ISO/HEVC")
+
+                    if (prefix.Length >= 19 && prefix[0] == 1 &&
+                        values.GetValueOrDefault("codec") == "V_MPEGH/ISO/HEVC")
                     {
                         values["hevcProfileIdc"] = (prefix[1] & 31).ToString();
                         values["hevcLevelIdc"] = prefix[12].ToString();
@@ -163,9 +178,11 @@ internal static class MatroskaTracks
                         _ => throw new InvalidDataException()
                     };
                     if (!double.IsFinite(value) || value <= 0) throw new InvalidDataException();
-                    values[field.Id == 0xB5 ? "sampleRate" : "outputSampleRate"] = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    values[field.Id == 0xB5 ? "sampleRate" : "outputSampleRate"] = value.ToString
+                        (System.Globalization.CultureInfo.InvariantCulture);
                 }
                 else if (field.Id is 0xE0 or 0xE1) Fields(field.End, values, depth + 1);
+
                 file.Position = field.End;
             }
         }

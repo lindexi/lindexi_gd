@@ -26,7 +26,10 @@ internal sealed class RenderingModeMenu : IDisposable
         this.control = control;
         var icon = new System.Windows.Shapes.Path
         {
-            Data = System.Windows.Media.Geometry.Parse("M3,10 A2,2 0 1 1 3,14 A2,2 0 1 1 3,10 Z M12,10 A2,2 0 1 1 12,14 A2,2 0 1 1 12,10 Z M21,10 A2,2 0 1 1 21,14 A2,2 0 1 1 21,10 Z")
+            Data = System.Windows.Media.Geometry.Parse
+            (
+                "M3,10 A2,2 0 1 1 3,14 A2,2 0 1 1 3,10 Z M12,10 A2,2 0 1 1 12,14 A2,2 0 1 1 12,10 Z M21,10 A2,2 0 1 1 21,14 A2,2 0 1 1 21,10 Z"
+            )
         };
         icon.SetResourceReference(FrameworkElement.StyleProperty, "PlayerIconStyle");
         more = new Button { Content = icon, ToolTip = Text("DemoMoreText") };
@@ -37,15 +40,20 @@ internal sealed class RenderingModeMenu : IDisposable
         header.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);
         header.SetValue(FrameworkElement.MaxWidthProperty, 500d);
         var menuItemStyle = new Style(typeof(MenuItem));
-        menuItemStyle.Setters.Add(new Setter(HeaderedItemsControl.HeaderTemplateProperty, new DataTemplate { VisualTree = header }));
+        menuItemStyle.Setters.Add
+            (new Setter(HeaderedItemsControl.HeaderTemplateProperty, new DataTemplate { VisualTree = header }));
         menu.Resources.Add(typeof(MenuItem), menuItemStyle);
         more.ContextMenu = menu;
         control.ToolbarContent = more;
-        status = new TextBlock { Margin = new Thickness(8), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
+        status = new TextBlock
+        {
+            Margin = new Thickness(8), VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap
+        };
         status.SetResourceReference(TextBlock.ForegroundProperty, "PlayerForegroundBrush");
         var notice = new Border { Child = status };
         var noticeStyle = new Style(typeof(Border));
-        var emptyNotice = new DataTrigger { Binding = new System.Windows.Data.Binding(nameof(TextBlock.Text)) { Source = status }, Value = "" };
+        var emptyNotice = new DataTrigger
+            { Binding = new System.Windows.Data.Binding(nameof(TextBlock.Text)) { Source = status }, Value = "" };
         emptyNotice.Setters.Add(new Setter(UIElement.VisibilityProperty, Visibility.Collapsed));
         noticeStyle.Triggers.Add(emptyNotice);
         notice.Style = noticeStyle;
@@ -55,27 +63,56 @@ internal sealed class RenderingModeMenu : IDisposable
         layout.Children.Add(control);
         foreach (var mode in Enum.GetValues<VideoRenderingMode>())
         {
-            var item = new MenuItem { Header = Text(mode == VideoRenderingMode.Hwnd ? "DemoHwndText" : "DemoD3DImageText"), IsCheckable = true, Tag = mode };
+            var item = new MenuItem
+            {
+                Header = Text(mode == VideoRenderingMode.Hwnd ? "DemoHwndText" : "DemoD3DImageText"),
+                IsCheckable = true, Tag = mode
+            };
             item.Click += OnSelection;
             items.Add(mode, item);
             menu.Items.Add(item);
         }
+
         menu.Items.Add(new Separator());
         foreach (var scaling in Enum.GetValues<VideoScalingMode>())
         {
-            var item = new MenuItem { Header = Text(scaling == VideoScalingMode.MixerOutput ? "DemoScalingMixerText" : "DemoScalingSurfaceText"), IsCheckable = true };
-            menu.Opened += (_, _) => { item.IsChecked = control.ScalingMode == scaling; item.IsEnabled = !IsSwitching; };
+            var item = new MenuItem
+            {
+                Header = Text
+                    (scaling == VideoScalingMode.MixerOutput ? "DemoScalingMixerText" : "DemoScalingSurfaceText"),
+                IsCheckable = true
+            };
+            menu.Opened += (_, _) =>
+            {
+                item.IsChecked = control.ScalingMode == scaling;
+                item.IsEnabled = !IsSwitching;
+            };
             item.Click += async (_, _) => await SwitchAsync(VideoRenderingMode.D3DImage, scaling);
             menu.Items.Add(item);
         }
+
         menu.Items.Add(new Separator());
         var prototype = new MenuItem { Header = Text("DemoMfPlayPrototypeText") };
         prototype.Click += async (_, _) => await OpenPrototypeAsync();
         menu.Items.Add(prototype);
         var openLogs = new MenuItem { Header = Text("DemoOpenLogsText") };
-        openLogs.Click += (_, _) => DiagnosticAction(() => Process.Start(new ProcessStartInfo(System.IO.Path.GetDirectoryName(PlaybackDiagnostics.LogPath)!) { UseShellExecute = true }));
+        openLogs.Click += (_, _) => DiagnosticAction
+        (() => Process.Start
+            (
+                new ProcessStartInfo(System.IO.Path.GetDirectoryName(PlaybackDiagnostics.LogPath)!)
+                    { UseShellExecute = true }
+            )
+        );
         var copy = new MenuItem { Header = Text("DemoCopyDiagnosticsText") };
-        copy.Click += (_, _) => DiagnosticAction(() => Clipboard.SetText(Text("DemoLocalLogPrivacyText") + Environment.NewLine + PlaybackDiagnostics.Summary + Environment.NewLine + status.Text));
+        copy.Click += (_, _) => DiagnosticAction
+        (() => Clipboard.SetText
+            (
+                Text
+                    ("DemoLocalLogPrivacyText") + Environment.NewLine + PlaybackDiagnostics.Summary +
+                Environment.NewLine +
+                status.Text
+            )
+        );
         var probe = new MenuItem { Header = Text("DemoMediaProbeText") };
         probe.Click += async (_, _) => await ProbeAsync();
         menu.Items.Add(probe);
@@ -92,6 +129,7 @@ internal sealed class RenderingModeMenu : IDisposable
     internal bool IsSwitching { get; private set; }
     internal string ErrorText => status.Text;
     private static string Text(string key) => (string)Application.Current.FindResource(key);
+
     private void OnMore(object sender, RoutedEventArgs e)
     {
         Refresh();
@@ -99,11 +137,13 @@ internal sealed class RenderingModeMenu : IDisposable
         menu.Placement = PlacementMode.Bottom;
         menu.IsOpen = true;
     }
+
     private async void OnSelection(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
         await SwitchAsync((VideoRenderingMode)((MenuItem)sender).Tag);
     }
+
     private async Task OpenPrototypeAsync()
     {
         try
@@ -112,7 +152,8 @@ internal sealed class RenderingModeMenu : IDisposable
             var owner = Window.GetWindow(control);
             if (source == null)
             {
-                var resources = new System.Resources.ResourceManager("MediaFoundation.Controls.Strings", typeof(MediaPlayerControl).Assembly);
+                var resources = new System.Resources.ResourceManager
+                    ("MediaFoundation.Controls.Strings", typeof(MediaPlayerControl).Assembly);
                 var dialog = new Microsoft.Win32.OpenFileDialog
                 {
                     Filter = resources.GetString("FileFilter") ?? throw new InvalidOperationException(),
@@ -121,31 +162,51 @@ internal sealed class RenderingModeMenu : IDisposable
                 if (dialog.ShowDialog(owner) != true) return;
                 source = new Uri(dialog.FileName);
             }
-            Trace.WriteLine($"PROTOTYPE stage=gui-launch renderingModeUnchanged={control.RenderingMode}", "MFPlay.Prototype");
+
+            Trace.WriteLine
+                ($"PROTOTYPE stage=gui-launch renderingModeUnchanged={control.RenderingMode}", "MFPlay.Prototype");
             await MfPlayPrototype.RunAsync(source.IsFile ? source.LocalPath : source.AbsoluteUri, false, owner);
         }
-        catch (Exception error) when (error is ExternalException or InvalidOperationException or System.IO.IOException or UnauthorizedAccessException or ArgumentException)
+        catch (Exception error) when (error is ExternalException or InvalidOperationException or System.IO.IOException
+                                          or UnauthorizedAccessException or ArgumentException)
         {
             PlaybackDiagnostics.Write(error, control.Source);
-            status.Text = string.Format(Text("DemoDiagnosticActionFailedText"), PlaybackDiagnostics.Sanitize(error.Message), PlaybackDiagnostics.LogPath);
+            status.Text = string.Format
+            (
+                Text("DemoDiagnosticActionFailedText"), PlaybackDiagnostics.Sanitize(error.Message),
+                PlaybackDiagnostics.LogPath
+            );
         }
     }
 
     private void DiagnosticAction(Action action)
     {
-        try { action(); }
-        catch (Exception error) when (error is ExternalException or InvalidOperationException or System.IO.IOException or UnauthorizedAccessException)
+        try
+        {
+            action();
+        }
+        catch (Exception error) when (error is ExternalException or InvalidOperationException or System.IO.IOException
+                                          or UnauthorizedAccessException)
         {
             PlaybackDiagnostics.Write(error, control.Player.Source);
-            status.Text = string.Format(Text("DemoDiagnosticActionFailedText"), PlaybackDiagnostics.Sanitize(error.Message), PlaybackDiagnostics.LogPath);
+            status.Text = string.Format
+            (
+                Text("DemoDiagnosticActionFailedText"), PlaybackDiagnostics.Sanitize(error.Message),
+                PlaybackDiagnostics.LogPath
+            );
         }
     }
+
     private async void OnPlaybackFailed(object? sender, PlaybackFailedEventArgs e)
     {
         string path = PlaybackDiagnostics.Write(e.Error, control.Player.Source ?? control.Source);
         var native = e.Error;
         while (native.InnerException != null) native = native.InnerException;
-        status.Text = string.Format(Text("DemoPlaybackFailedText"), $"{PlaybackDiagnostics.Sanitize(e.Error.Message)} (0x{native.HResult:X8})", path);
+        status.Text = string.Format
+        (
+            Text("DemoPlaybackFailedText"), $"{PlaybackDiagnostics.Sanitize(e.Error.Message)} (0x{native.HResult:X8})",
+            path
+        );
         status.ToolTip = status.Text;
         await ProbeAsync();
     }
@@ -159,19 +220,32 @@ internal sealed class RenderingModeMenu : IDisposable
         try
         {
             string report = await MediaProbe.RunAsync(source, lifetime.Token);
-            Trace.WriteLine($"MediaProbe {SourceDiagnostics.Describe(source)}{Environment.NewLine}{report}", "Demo.Diagnostics");
+            Trace.WriteLine
+                ($"MediaProbe {SourceDiagnostics.Describe(source)}{Environment.NewLine}{report}", "Demo.Diagnostics");
             if (disposed || source != (control.Player.Source ?? control.Source)) return;
             status.Text = string.Format(Text("DemoMediaProbeResultText"), report, PlaybackDiagnostics.LogPath);
-            if (control.Player.State == PlaybackState.Failed) status.Text = Text("DemoProbePlaybackStillFailedText") + Environment.NewLine + status.Text;
+            if (control.Player.State == PlaybackState.Failed)
+                status.Text = Text("DemoProbePlaybackStillFailedText") + Environment.NewLine + status.Text;
             status.ToolTip = status.Text;
         }
-        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
-        catch (Exception error) when (error is ExternalException or System.IO.IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException)
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
+        {
+        }
+        catch (Exception error) when (error is ExternalException or System.IO.IOException or UnauthorizedAccessException
+                                          or ArgumentException or InvalidOperationException)
         {
             PlaybackDiagnostics.Write(error, source);
-            if (!disposed) status.Text = string.Format(Text("DemoDiagnosticActionFailedText"), PlaybackDiagnostics.Sanitize(error.Message), PlaybackDiagnostics.LogPath);
+            if (!disposed)
+                status.Text = string.Format
+                (
+                    Text("DemoDiagnosticActionFailedText"), PlaybackDiagnostics.Sanitize(error.Message),
+                    PlaybackDiagnostics.LogPath
+                );
         }
-        finally { probing = false; }
+        finally
+        {
+            probing = false;
+        }
     }
 
     private void OnPlayerChanged(object? sender, PropertyChangedEventArgs e)
@@ -183,8 +257,10 @@ internal sealed class RenderingModeMenu : IDisposable
             recovery = null;
             status.Text = "";
         }
+
         Refresh();
     }
+
     private void Refresh()
     {
         foreach (var pair in items)
@@ -192,6 +268,7 @@ internal sealed class RenderingModeMenu : IDisposable
             pair.Value.IsChecked = pair.Key == control.RenderingMode;
             pair.Value.IsEnabled = !IsSwitching && control.Player.State != PlaybackState.Opening;
         }
+
         more.IsEnabled = true;
     }
 
@@ -199,10 +276,20 @@ internal sealed class RenderingModeMenu : IDisposable
     {
         if (disposed || IsSwitching || control.Player.State == PlaybackState.Opening) return false;
         var player = control.Player;
-        if (mode == control.RenderingMode && (!scaling.HasValue || scaling.Value == control.ScalingMode) && player.State != PlaybackState.Failed && recovery == null) { Refresh(); return true; }
+        if (mode == control.RenderingMode && (!scaling.HasValue || scaling.Value == control.ScalingMode) &&
+            player.State != PlaybackState.Failed && recovery == null)
+        {
+            Refresh();
+            return true;
+        }
+
         var saved = recovery ?? new Snapshot(player.Source ?? control.Source, player.Position, player.State);
         PlaybackDiagnostics.RegisterSource(saved.Source);
-        Trace.WriteLine($"Switch begin from={control.RenderingMode} to={mode} state={saved.State} position={saved.Position} rate={player.PlaybackRate}", "Demo.RenderingMode");
+        Trace.WriteLine
+        (
+            $"Switch begin from={control.RenderingMode} to={mode} state={saved.State} position={saved.Position} rate={player.PlaybackRate}",
+            "Demo.RenderingMode"
+        );
         bool autoPlay = control.AutoPlay;
         IsSwitching = true;
         control.IsEnabled = false;
@@ -228,7 +315,8 @@ internal sealed class RenderingModeMenu : IDisposable
                 control.SetCurrentValue(MediaPlayerControl.SourceProperty, saved.Source);
                 await opened.Task.WaitAsync(deadline.Token);
                 deadline.Token.ThrowIfCancellationRequested();
-                Trace.WriteLine($"Switch restore mode={mode} state={saved.State} position={saved.Position}", "Demo.RenderingMode");
+                Trace.WriteLine
+                    ($"Switch restore mode={mode} state={saved.State} position={saved.Position}", "Demo.RenderingMode");
                 if (saved.Position > TimeSpan.Zero && player.CanSeek) player.Seek(saved.Position);
                 if (saved.State is PlaybackState.Playing or PlaybackState.Paused)
                 {
@@ -242,25 +330,37 @@ internal sealed class RenderingModeMenu : IDisposable
                     }
                 }
             }
+
             recovery = null;
             status.Text = "";
-            Trace.WriteLine($"Switch complete mode={mode} state={player.State} position={player.Position}", "Demo.RenderingMode");
+            Trace.WriteLine
+                ($"Switch complete mode={mode} state={player.State} position={player.Position}", "Demo.RenderingMode");
             return true;
         }
-        catch (Exception error) when (error is ExternalException or InvalidOperationException or ArgumentException or System.IO.IOException or UnauthorizedAccessException or NotSupportedException or OperationCanceledException)
+        catch (Exception error) when (error is ExternalException or InvalidOperationException or ArgumentException
+                                          or System.IO.IOException or UnauthorizedAccessException
+                                          or NotSupportedException or OperationCanceledException)
         {
             if (!disposed)
             {
                 recovery = saved;
-                Trace.WriteLine($"Switch failed mode={mode} state={player.State} position={player.Position}", "Demo.RenderingMode");
+                Trace.WriteLine
+                (
+                    $"Switch failed mode={mode} state={player.State} position={player.Position}", "Demo.RenderingMode"
+                );
                 string logPath = PlaybackDiagnostics.Write(error, saved.Source);
                 var native = error;
                 while (native.InnerException != null) native = native.InnerException;
-                status.Text = string.Format(Text("DemoSwitchFailedText"), $"{PlaybackDiagnostics.Sanitize(error.Message)} (0x{native.HResult:X8})", logPath);
+                status.Text = string.Format
+                (
+                    Text("DemoSwitchFailedText"),
+                    $"{PlaybackDiagnostics.Sanitize(error.Message)} (0x{native.HResult:X8})", logPath
+                );
                 status.ToolTip = status.Text;
                 control.SetCurrentValue(MediaPlayerControl.SourceProperty, null);
                 player.Close();
             }
+
             return false;
         }
         finally

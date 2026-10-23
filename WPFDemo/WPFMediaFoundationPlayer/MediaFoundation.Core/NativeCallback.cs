@@ -37,7 +37,8 @@ internal sealed unsafe class NativeCallback
 
     private static IMFPMediaPlayerCallback.Vtbl* CreateVtable()
     {
-        var table = (IMFPMediaPlayerCallback.Vtbl*)RuntimeHelpers.AllocateTypeAssociatedMemory(typeof(NativeCallback), sizeof(IMFPMediaPlayerCallback.Vtbl));
+        var table = (IMFPMediaPlayerCallback.Vtbl*)RuntimeHelpers.AllocateTypeAssociatedMemory
+            (typeof(NativeCallback), sizeof(IMFPMediaPlayerCallback.Vtbl));
         table->QueryInterface_1 = &QueryInterface;
         table->AddRef_2 = &AddRef;
         table->Release_3 = &Release;
@@ -51,7 +52,8 @@ internal sealed unsafe class NativeCallback
         instance->Vtable = Vtable;
         instance->References = 1;
         instance->Handle = GCHandle.ToIntPtr(GCHandle.Alloc(this));
-        Trace.WriteLine($"MFPlay callback allocated live={Interlocked.Increment(ref liveInstances)}", "MediaFoundation.Core");
+        Trace.WriteLine
+            ($"MFPlay callback allocated live={Interlocked.Increment(ref liveInstances)}", "MediaFoundation.Core");
         return (IMFPMediaPlayerCallback*)instance;
     }
 
@@ -69,7 +71,8 @@ internal sealed unsafe class NativeCallback
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
-    private static uint AddRef(IMFPMediaPlayerCallback* self) => (uint)Interlocked.Increment(ref ((Instance*)self)->References);
+    private static uint AddRef
+        (IMFPMediaPlayerCallback* self) => (uint)Interlocked.Increment(ref ((Instance*)self)->References);
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static uint Release(IMFPMediaPlayerCallback* self)
@@ -80,8 +83,10 @@ internal sealed unsafe class NativeCallback
         {
             GCHandle.FromIntPtr(instance->Handle).Free();
             NativeMemory.Free(instance);
-            Trace.WriteLine($"MFPlay callback released live={Interlocked.Decrement(ref liveInstances)}", "MediaFoundation.Core");
+            Trace.WriteLine
+                ($"MFPlay callback released live={Interlocked.Decrement(ref liveInstances)}", "MediaFoundation.Core");
         }
+
         return (uint)count;
     }
 
@@ -106,12 +111,16 @@ internal sealed unsafe class NativeCallback
         {
             if (closed) return;
             IMFPMediaItem* item = header->eEventType == MFP_EVENT_TYPE.MFP_EVENT_TYPE_MEDIAITEM_CREATED
-                ? ((MFP_MEDIAITEM_CREATED_EVENT*)header)->pMediaItem : null;
+                ? ((MFP_MEDIAITEM_CREATED_EVENT*)header)->pMediaItem
+                : null;
             if (item != null) item->AddRef();
             pending.Enqueue(new(header->eEventType, header->hrEvent, (nint)item));
             if (scheduled) return;
             scheduled = true;
-            try { context.Post(static state => ((NativeCallback)state!).Drain(), this); }
+            try
+            {
+                context.Post(static state => ((NativeCallback)state!).Drain(), this);
+            }
             catch
             {
                 Close();
@@ -127,9 +136,15 @@ internal sealed unsafe class NativeCallback
             Notification notification;
             lock (gate)
             {
-                if (closed || pending.Count == 0) { scheduled = false; return; }
+                if (closed || pending.Count == 0)
+                {
+                    scheduled = false;
+                    return;
+                }
+
                 notification = pending.Dequeue();
             }
+
             try
             {
                 if (owner.TryGetTarget(out var session)) session.HandleNotification(this, notification);
@@ -154,7 +169,8 @@ internal sealed unsafe class NativeCallback
         {
             closed = true;
             while (pending.TryDequeue(out var notification))
-                if (notification.Item != 0) ((IMFPMediaItem*)notification.Item)->Release();
+                if (notification.Item != 0)
+                    ((IMFPMediaItem*)notification.Item)->Release();
         }
     }
 }

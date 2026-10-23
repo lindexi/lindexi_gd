@@ -15,22 +15,29 @@ public static class SourceDiagnostics
         ArgumentNullException.ThrowIfNull(source);
         if (!source.IsAbsoluteUri) throw new ArgumentException(SR.Get("AbsoluteUriRequired"), nameof(source));
         string id = Convert.ToHexString(HMACSHA256.HashData(salt, Encoding.UTF8.GetBytes(source.AbsoluteUri)))[..16];
-        string details = $"sourceId={id} sourceType={(source.IsFile ? "file" : "network")} original=[{Features(source.OriginalString)}] uri=[{Features(source.AbsoluteUri)}]";
+        string details =
+            $"sourceId={id} sourceType={(source.IsFile ? "file" : "network")} original=[{Features(source.OriginalString)}] uri=[{Features(source.AbsoluteUri)}]";
         if (nativeSource != null) details += $" native=[{Features(nativeSource)}]";
         if (!source.IsFile) return details;
         try
         {
             string path = source.LocalPath;
             string extension = Path.GetExtension(path);
-            extension = extension.Length <= 16 && extension.All(c => char.IsAsciiLetterOrDigit(c) || c == '.') ? extension : "other";
+            extension = extension.Length <= 16 && extension.All(c => char.IsAsciiLetterOrDigit(c) || c == '.')
+                ? extension
+                : "other";
             details += $" exists={File.Exists(path)} extension={extension} localLength={path.Length}";
-            using var handle = File.OpenHandle(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var handle = File.OpenHandle
+                (path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
             details += $" readAccess=True bytes={RandomAccess.GetLength(handle)} accessHRESULT=0x00000000";
         }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException or ArgumentException or NotSupportedException)
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException
+                                          or System.Security.SecurityException or ArgumentException
+                                          or NotSupportedException)
         {
             details += $" readAccess=False accessException={error.GetType().Name} accessHRESULT=0x{error.HResult:X8}";
         }
+
         return details;
     }
 

@@ -24,7 +24,8 @@ internal sealed unsafe class LoopbackProbe : IDisposable
         {
             Guid clsid = new("BCDE0395-E52F-467C-8E3D-C4579291692E");
             Guid iid = IMMDeviceEnumerator.IID_Guid;
-            PInvoke.CoCreateInstance(&clsid, null, CLSCTX.CLSCTX_INPROC_SERVER, &iid, (void**)&enumerator).ThrowOnFailure();
+            PInvoke.CoCreateInstance
+                (&clsid, null, CLSCTX.CLSCTX_INPROC_SERVER, &iid, (void**)&enumerator).ThrowOnFailure();
             enumerator->GetDefaultAudioEndpoint(EDataFlow.eRender, ERole.eMultimedia, &device);
             iid = IAudioClient.IID_Guid;
             IAudioClient* activated = null;
@@ -32,9 +33,13 @@ internal sealed unsafe class LoopbackProbe : IDisposable
             client = activated;
             client->GetMixFormat(&format);
             channels = format->nChannels;
-            floating = format->wFormatTag == 3 || (format->wFormatTag == 0xFFFE && *(Guid*)((byte*)format + 24) == new Guid("00000003-0000-0010-8000-00aa00389b71"));
-            if (!(floating && format->wBitsPerSample == 32) && !(format->wFormatTag == 1 && format->wBitsPerSample == 16))
-                throw new NotSupportedException($"Loopback format tag={format->wFormatTag} bits={format->wBitsPerSample}");
+            floating = format->wFormatTag == 3 || (format->wFormatTag == 0xFFFE &&
+                                                   *(Guid*)((byte*)format + 24) == new Guid
+                                                       ("00000003-0000-0010-8000-00aa00389b71"));
+            if (!(floating && format->wBitsPerSample == 32) &&
+                !(format->wFormatTag == 1 && format->wBitsPerSample == 16))
+                throw new NotSupportedException
+                    ($"Loopback format tag={format->wFormatTag} bits={format->wBitsPerSample}");
             client->Initialize(AUDCLNT_SHAREMODE.AUDCLNT_SHAREMODE_SHARED, 0x00020000, 10000000, 0, format, null);
             iid = IAudioCaptureClient.IID_Guid;
             IAudioCaptureClient* service = null;
@@ -42,7 +47,11 @@ internal sealed unsafe class LoopbackProbe : IDisposable
             capture = service;
             client->Start();
         }
-        catch { Dispose(); throw; }
+        catch
+        {
+            Dispose();
+            throw;
+        }
         finally
         {
             if (format != null) PInvoke.CoTaskMemFree(format);
@@ -68,16 +77,30 @@ internal sealed unsafe class LoopbackProbe : IDisposable
                     double sample = (flags & 2) != 0 ? 0 : floating ? ((float*)data)[i] : ((short*)data)[i] / 32768.0;
                     energy += sample * sample;
                 }
+
                 Samples += count;
             }
-            finally { capture->ReleaseBuffer(frames); }
+            finally
+            {
+                capture->ReleaseBuffer(frames);
+            }
+
             capture->GetNextPacketSize(&packet);
         }
     }
 
     public void Dispose()
     {
-        if (capture != null) { capture->Release(); capture = null; }
-        if (client != null) { client->Release(); client = null; }
+        if (capture != null)
+        {
+            capture->Release();
+            capture = null;
+        }
+
+        if (client != null)
+        {
+            client->Release();
+            client = null;
+        }
     }
 }

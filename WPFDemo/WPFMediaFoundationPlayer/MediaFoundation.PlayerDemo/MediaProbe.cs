@@ -9,7 +9,8 @@ namespace MediaFoundation.PlayerDemo;
 
 internal static class MediaProbe
 {
-    internal static Task<string> RunAsync(Uri source, CancellationToken token) => Task.Run(() => Run(source, token), token);
+    internal static Task<string> RunAsync(Uri source, CancellationToken token) => Task.Run
+        (() => Run(source, token), token);
 
     private static unsafe string Run(Uri source, CancellationToken token)
     {
@@ -22,9 +23,17 @@ internal static class MediaProbe
             com = true;
             PInvoke.MFStartup(PInvoke.MF_VERSION, 0).ThrowOnFailure();
             mf = true;
-            try { complete = ReadNative(source, report, token); }
-            catch (COMException error) { report.AppendLine($"MF metadata HRESULT=0x{error.HResult:X8}"); }
-            if (!complete && source.IsFile && Path.GetExtension(source.LocalPath).Equals(".mkv", StringComparison.OrdinalIgnoreCase))
+            try
+            {
+                complete = ReadNative(source, report, token);
+            }
+            catch (COMException error)
+            {
+                report.AppendLine($"MF metadata HRESULT=0x{error.HResult:X8}");
+            }
+
+            if (!complete && source.IsFile && Path.GetExtension(source.LocalPath).Equals
+                    (".mkv", StringComparison.OrdinalIgnoreCase))
             {
                 string tracks = MatroskaTracks.Read(source.LocalPath, token);
                 report.Append(tracks);
@@ -32,7 +41,8 @@ internal static class MediaProbe
                 complete = true;
             }
         }
-        catch (Exception error) when (error is COMException or IOException or UnauthorizedAccessException or InvalidDataException)
+        catch (Exception error) when (error is COMException or IOException or UnauthorizedAccessException
+                                          or InvalidDataException)
         {
             report.AppendLine($"MF metadata HRESULT=0x{error.HResult:X8} {error.GetType().Name}");
         }
@@ -41,14 +51,21 @@ internal static class MediaProbe
             if (mf) PInvoke.MFShutdown();
             if (com) PInvoke.CoUninitialize();
         }
-        if (!complete && source.IsFile && Path.GetExtension(source.LocalPath).Equals(".mkv", StringComparison.OrdinalIgnoreCase))
+
+        if (!complete && source.IsFile && Path.GetExtension(source.LocalPath).Equals
+                (".mkv", StringComparison.OrdinalIgnoreCase))
         {
-            try { report.Append(MatroskaTracks.Read(source.LocalPath, token)); }
-            catch (Exception error) when (error is IOException or UnauthorizedAccessException or InvalidDataException or OverflowException)
+            try
+            {
+                report.Append(MatroskaTracks.Read(source.LocalPath, token));
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or InvalidDataException
+                                              or OverflowException)
             {
                 report.AppendLine($"EBML metadata HRESULT=0x{error.HResult:X8} {error.GetType().Name}");
             }
         }
+
         return report.ToString();
     }
 
@@ -66,10 +83,17 @@ internal static class MediaProbe
             if (source.IsFile)
             {
                 fixed (char* path = source.LocalPath)
-                    PInvoke.MFCreateFile(MF_FILE_ACCESSMODE.MF_ACCESSMODE_READ, MF_FILE_OPENMODE.MF_OPENMODE_FAIL_IF_NOT_EXIST,
-                        MF_FILE_FLAGS.MF_FILEFLAGS_NONE, new Windows.Win32.Foundation.PCWSTR(path), &bytes).ThrowOnFailure();
+                    PInvoke.MFCreateFile
+                    (
+                        MF_FILE_ACCESSMODE.MF_ACCESSMODE_READ, MF_FILE_OPENMODE.MF_OPENMODE_FAIL_IF_NOT_EXIST,
+                        MF_FILE_FLAGS.MF_FILEFLAGS_NONE, new Windows.Win32.Foundation.PCWSTR(path), &bytes
+                    ).ThrowOnFailure();
                 string hint = "media" + Path.GetExtension(source.LocalPath);
-                report.AppendLine("MF resolver=CreateObjectFromByteStream contentTypeHint=unset urlExtension=" + Path.GetExtension(source.LocalPath));
+                report.AppendLine
+                (
+                    "MF resolver=CreateObjectFromByteStream contentTypeHint=unset urlExtension=" + Path.GetExtension
+                        (source.LocalPath)
+                );
                 fixed (char* url = hint)
                     resolver->CreateObjectFromByteStream(bytes, url, 1, null, &kind, &resolved);
             }
@@ -78,6 +102,7 @@ internal static class MediaProbe
                 fixed (char* url = source.AbsoluteUri)
                     resolver->CreateObjectFromURL(url, 1, null, &kind, &resolved);
             }
+
             Guid iid = typeof(IMFMediaSource).GUID;
             void* pointer = null;
             resolved->QueryInterface(&iid, &pointer).ThrowOnFailure();
@@ -112,6 +137,7 @@ internal static class MediaProbe
                         type->GetUINT32(PInvoke.MF_MT_AUDIO_NUM_CHANNELS, out channels);
                         type->GetUINT32(PInvoke.MF_MT_AUDIO_SAMPLES_PER_SECOND, out rate);
                     }
+
                     Windows.Win32.Foundation.PWSTR language = default;
                     uint length;
                     string lang = "und";
@@ -124,8 +150,15 @@ internal static class MediaProbe
                     {
                         lang = "und (MF_SD_LANGUAGE absent)";
                     }
-                    finally { PInvoke.CoTaskMemFree(language.Value); }
-                    report.AppendLine($"MF track={i} selected={selected} major={major} subtype={subtype} codec={CodecName(subtype)} language={lang} width={size >> 32} height={size & uint.MaxValue} channels={channels} sampleRate={rate}");
+                    finally
+                    {
+                        PInvoke.CoTaskMemFree(language.Value);
+                    }
+
+                    report.AppendLine
+                    (
+                        $"MF track={i} selected={selected} major={major} subtype={subtype} codec={CodecName(subtype)} language={lang} width={size >> 32} height={size & uint.MaxValue} channels={channels} sampleRate={rate}"
+                    );
                     if (major == PInvoke.MFMediaType_Video || major == PInvoke.MFMediaType_Audio)
                         Decoders(major, subtype, report);
                 }
@@ -141,12 +174,18 @@ internal static class MediaProbe
                     if (stream != null) stream->Release();
                 }
             }
+
             return complete;
         }
         finally
         {
             if (presentation != null) presentation->Release();
-            if (media != null) { media->Shutdown(); media->Release(); }
+            if (media != null)
+            {
+                media->Shutdown();
+                media->Release();
+            }
+
             if (resolved != null) resolved->Release();
             if (resolver != null) resolver->Release();
             // The resolved media source owns stream shutdown; a second Close can fail and mask the probe result.
@@ -159,7 +198,8 @@ internal static class MediaProbe
         foreach (string line in tracks.Split('\n').Where(line => line.StartsWith("EBML ", StringComparison.Ordinal)))
         {
             token.ThrowIfCancellationRequested();
-            string? codec = line.Split(' ').FirstOrDefault(part => part.StartsWith("codec=", StringComparison.Ordinal))?[6..];
+            string? codec =
+                line.Split(' ').FirstOrDefault(part => part.StartsWith("codec=", StringComparison.Ordinal))?[6..];
             Guid subtype = codec switch
             {
                 "V_MPEG4/ISO/AVC" => new("34363248-0000-0010-8000-00aa00389b71"),
@@ -178,8 +218,14 @@ internal static class MediaProbe
                 report.AppendLine($"EBML codec={codec} MFT mapping=unknown (not evidence of missing decoder)");
                 continue;
             }
+
             report.AppendLine($"EBML codec={codec} mappedSubtype={subtype}");
-            Decoders(codec != null && codec.StartsWith("V_", StringComparison.Ordinal) ? PInvoke.MFMediaType_Video : PInvoke.MFMediaType_Audio, subtype, report);
+            Decoders
+            (
+                codec != null && codec.StartsWith("V_", StringComparison.Ordinal)
+                    ? PInvoke.MFMediaType_Video
+                    : PInvoke.MFMediaType_Audio, subtype, report
+            );
         }
     }
 
@@ -203,9 +249,17 @@ internal static class MediaProbe
         var input = new MFT_REGISTER_TYPE_INFO { guidMajorType = major, guidSubtype = subtype };
         try
         {
-            PInvoke.MFTEnumEx(major == PInvoke.MFMediaType_Video ? PInvoke.MFT_CATEGORY_VIDEO_DECODER : PInvoke.MFT_CATEGORY_AUDIO_DECODER,
-                MFT_ENUM_FLAG.MFT_ENUM_FLAG_ALL, &input, null, &activations, &count).ThrowOnFailure();
-            report.AppendLine($"MFT subtype={subtype} registeredCandidates={count} (registration is not proof of profile/bit-depth support)");
+            PInvoke.MFTEnumEx
+            (
+                major == PInvoke.MFMediaType_Video
+                    ? PInvoke.MFT_CATEGORY_VIDEO_DECODER
+                    : PInvoke.MFT_CATEGORY_AUDIO_DECODER,
+                MFT_ENUM_FLAG.MFT_ENUM_FLAG_ALL, &input, null, &activations, &count
+            ).ThrowOnFailure();
+            report.AppendLine
+            (
+                $"MFT subtype={subtype} registeredCandidates={count} (registration is not proof of profile/bit-depth support)"
+            );
             for (uint i = 0; i < count; i++)
             {
                 Windows.Win32.Foundation.PWSTR name = default;
@@ -217,16 +271,31 @@ internal static class MediaProbe
                     activations[i]->GetGUID(PInvoke.MFT_TRANSFORM_CLSID_Attribute, out clsid);
                     uint hardwareLength = 0;
                     int hardwareResult = 0;
-                    try { activations[i]->GetStringLength(PInvoke.MFT_ENUM_HARDWARE_URL_Attribute, out hardwareLength); }
-                    catch (COMException error) when (error.HResult == unchecked((int)0xC00D36E6)) { hardwareResult = error.HResult; }
-                    report.AppendLine($"MFT candidate={(name.Value == null ? "unknown" : new string(name.Value))} clsid={clsid} hardware={hardwareResult == 0} hardwareAttributeHRESULT=0x{hardwareResult:X8} (candidate, not selected decoder)");
+                    try
+                    {
+                        activations[i]->GetStringLength(PInvoke.MFT_ENUM_HARDWARE_URL_Attribute, out hardwareLength);
+                    }
+                    catch (COMException error) when (error.HResult == unchecked((int)0xC00D36E6))
+                    {
+                        hardwareResult = error.HResult;
+                    }
+
+                    report.AppendLine
+                    (
+                        $"MFT candidate={(name.Value == null ? "unknown" : new string(name.Value))} clsid={clsid} hardware={hardwareResult == 0} hardwareAttributeHRESULT=0x{hardwareResult:X8} (candidate, not selected decoder)"
+                    );
                 }
-                finally { PInvoke.CoTaskMemFree(name.Value); }
+                finally
+                {
+                    PInvoke.CoTaskMemFree(name.Value);
+                }
             }
         }
         finally
         {
-            for (uint i = 0; i < count; i++) if (activations[i] != null) activations[i]->Release();
+            for (uint i = 0; i < count; i++)
+                if (activations[i] != null)
+                    activations[i]->Release();
             PInvoke.CoTaskMemFree(activations);
         }
     }

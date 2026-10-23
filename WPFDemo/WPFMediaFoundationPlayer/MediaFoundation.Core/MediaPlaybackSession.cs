@@ -21,6 +21,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     private readonly HWND window;
     private IMFPMediaPlayer* player;
     private NativeCallback? callback;
+
     /// <summary>实验 surface 释放前在会话线程通知宿主；宿主必须同步解绑 D3DImage。</summary>
     public event EventHandler? PrototypeSurfaceReleasing;
 
@@ -36,7 +37,14 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     }
 
     /// <summary>源、mixer 和展示表面的独立尺寸；尚未协商时为 null。</summary>
-    public VideoSurfaceInfo? VideoSurfaceInfo { get { Verify(); return prototypePresenter?.SurfaceInfo; } }
+    public VideoSurfaceInfo? VideoSurfaceInfo
+    {
+        get
+        {
+            Verify();
+            return prototypePresenter?.SurfaceInfo;
+        }
+    }
 
     /// <summary>在会话线程请求视频内容的整数像素尺寸。零尺寸不分配；同值去重，不影响 HWND。</summary>
     public void RequestVideoTarget(int width, int height)
@@ -52,7 +60,8 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
 
     /// <summary>创建 MFPlay 与自定义 EVR 会话；媒体时钟和 staging 输出不依赖宿主呈现频率。</summary>
     /// <remarks>宿主须在创建线程持有展示表面锁时调用 CopyLatestFrame，并在 SurfaceReleasing 中同步解绑表面。</remarks>
-    public static MediaPlaybackSession CreateD3DImageSession() => CreateD3DImagePrototype((nint)PInvoke.GetDesktopWindow().Value);
+    public static MediaPlaybackSession CreateD3DImageSession() => CreateD3DImagePrototype
+        ((nint)PInvoke.GetDesktopWindow().Value);
 
     /// <summary>展示表面释放前同步通知；宿主必须先停止呈现并解绑表面。</summary>
     public event EventHandler? SurfaceReleasing;
@@ -85,7 +94,14 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     }
 
     /// <summary>自定义 presenter 实际复制到展示 surface 的帧数，不是 UI tick 数。</summary>
-    public long PrototypeFrames { get { Verify(); return prototypePresenter?.Frames ?? 0; } }
+    public long PrototypeFrames
+    {
+        get
+        {
+            Verify();
+            return prototypePresenter?.Frames ?? 0;
+        }
+    }
 
     private void InstallPrototypeSink(IMFPMediaItem* item)
     {
@@ -103,9 +119,13 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
             {
                 item->GetStreamAttribute(index, &key, &value).ThrowOnFailure();
                 video = value.Anonymous.Anonymous.vt == VARENUM.VT_CLSID &&
-                    *value.Anonymous.Anonymous.Anonymous.puuid == PInvoke.MFMediaType_Video;
+                        *value.Anonymous.Anonymous.Anonymous.puuid == PInvoke.MFMediaType_Video;
             }
-            finally { PInvoke.PropVariantClear(&value).ThrowOnFailure(); }
+            finally
+            {
+                PInvoke.PropVariantClear(&value).ThrowOnFailure();
+            }
+
             if (!video) continue;
             prototypePresenter = new EvrPrototypePresenter(scalingMode);
             IMFMediaSink* sink = null;
@@ -119,25 +139,38 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
                 iid = IMFVideoRenderer.IID_Guid;
                 EvrPrototypePresenter.Check(sink->QueryInterface(&iid, (void**)&renderer), "EVR.IMFVideoRenderer");
                 presenter = Marshal.GetComInterfaceForObject(prototypePresenter, typeof(IMFVideoPresenter.Interface));
-                EvrPrototypePresenter.Check(renderer->InitializeRenderer(null, (IMFVideoPresenter*)presenter), "InitializeRenderer(custom presenter)");
+                EvrPrototypePresenter.Check
+                (
+                    renderer->InitializeRenderer(null, (IMFVideoPresenter*)presenter),
+                    "InitializeRenderer(custom presenter)"
+                );
                 IMFStreamSink* streamSink = null;
                 EvrPrototypePresenter.Check(sink->GetStreamSinkByIndex(0, &streamSink), "EVR.GetStreamSinkByIndex");
                 try
                 {
                     var hr = item->SetStreamSink(index, (IUnknown*)streamSink);
-                    Trace.WriteLine($"EVR prototype SetStreamSink argument=IMFStreamSink video={index} HRESULT=0x{hr.Value:X8}; default audio unchanged", "MediaFoundation.Core");
+                    Trace.WriteLine
+                    (
+                        $"EVR prototype SetStreamSink argument=IMFStreamSink video={index} HRESULT=0x{hr.Value:X8}; default audio unchanged",
+                        "MediaFoundation.Core"
+                    );
                     EvrPrototypePresenter.Check(hr, $"SetStreamSink video={index}; default audio unchanged");
                 }
-                finally { streamSink->Release(); }
+                finally
+                {
+                    streamSink->Release();
+                }
             }
             finally
             {
                 if (presenter != 0) Marshal.Release(presenter);
                 if (renderer != null) renderer->Release();
             }
+
             break;
         }
     }
+
     private bool disposed;
     private bool comInitialized;
     private PlaybackState state;
@@ -175,34 +208,104 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
 
     /// <summary>原生事件确认状态改变时通知；在构造同步上下文执行。</summary>
     public event EventHandler? StateChanged;
+
     /// <summary>媒体已设置，元数据可用；不会自动播放。</summary>
     public event EventHandler? MediaOpened;
+
     /// <summary>到达自然末尾时通知，包括循环播放的每次末尾。</summary>
     public event EventHandler? PlaybackEnded;
+
     /// <summary>异步原生操作失败时通知；同步参数或调用错误直接抛出。</summary>
     public event EventHandler<PlaybackFailedEventArgs>? Failed;
 
     /// <summary>当前已确认状态。</summary>
-    public PlaybackState State { get { Verify(); return state; } }
+    public PlaybackState State
+    {
+        get
+        {
+            Verify();
+            return state;
+        }
+    }
+
     /// <summary>最近请求打开的绝对 URI。</summary>
-    public Uri? Source { get { Verify(); return source; } }
+    public Uri? Source
+    {
+        get
+        {
+            Verify();
+            return source;
+        }
+    }
+
     /// <summary>最近一次 Refresh 或定位确认的位置；不会在后台启动计时器。</summary>
-    public TimeSpan Position { get { Verify(); return position; } }
+    public TimeSpan Position
+    {
+        get
+        {
+            Verify();
+            return position;
+        }
+    }
+
     /// <summary>媒体时长；未知或直播时为零。</summary>
-    public TimeSpan Duration { get { Verify(); return duration; } }
+    public TimeSpan Duration
+    {
+        get
+        {
+            Verify();
+            return duration;
+        }
+    }
+
     /// <summary>原生视频像素宽度；纯音频为零。</summary>
-    public int VideoWidth { get { Verify(); return videoWidth; } }
+    public int VideoWidth
+    {
+        get
+        {
+            Verify();
+            return videoWidth;
+        }
+    }
+
     /// <summary>原生视频像素高度；纯音频为零。</summary>
-    public int VideoHeight { get { Verify(); return videoHeight; } }
+    public int VideoHeight
+    {
+        get
+        {
+            Verify();
+            return videoHeight;
+        }
+    }
+
     /// <summary>媒体是否包含已选择的视频流。</summary>
-    public bool HasVideo { get { Verify(); return hasVideo; } }
+    public bool HasVideo
+    {
+        get
+        {
+            Verify();
+            return hasVideo;
+        }
+    }
+
     /// <summary>媒体是否包含已选择的音频流；由 MFPlay 原生音频输出播放。</summary>
-    public bool HasAudio { get { Verify(); return hasAudio; } }
+    public bool HasAudio
+    {
+        get
+        {
+            Verify();
+            return hasAudio;
+        }
+    }
 
     /// <summary>线性音量，范围 0 到 1；重新打开后保留。</summary>
     public double Volume
     {
-        get { Verify(); return volume; }
+        get
+        {
+            Verify();
+            return volume;
+        }
         set
         {
             Verify();
@@ -215,6 +318,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
                 Trace.WriteLine($"MFPlay native volume requested={value} actual={actual}", "MediaFoundation.Core");
                 if (Math.Abs(actual - value) > 0.001) throw new COMException(SR.Get("NativeFailure"));
             }
+
             volume = value;
         }
     }
@@ -222,7 +326,11 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     /// <summary>静音状态；不更改保存的音量，重新打开后保留。</summary>
     public bool IsMuted
     {
-        get { Verify(); return muted; }
+        get
+        {
+            Verify();
+            return muted;
+        }
         set
         {
             Verify();
@@ -234,6 +342,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
                 Trace.WriteLine($"MFPlay native mute requested={value} actual={(bool)actual}", "MediaFoundation.Core");
                 if ((bool)actual != value) throw new COMException(SR.Get("NativeFailure"));
             }
+
             muted = value;
         }
     }
@@ -244,7 +353,11 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     /// </summary>
     public double PlaybackRate
     {
-        get { Verify(); return rate; }
+        get
+        {
+            Verify();
+            return rate;
+        }
         set
         {
             Verify();
@@ -256,7 +369,19 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     }
 
     /// <summary>是否在自然末尾异步定位到零并继续播放。</summary>
-    public bool IsLooping { get { Verify(); return looping; } set { Verify(); looping = value; } }
+    public bool IsLooping
+    {
+        get
+        {
+            Verify();
+            return looping;
+        }
+        set
+        {
+            Verify();
+            looping = value;
+        }
+    }
 
     /// <summary>异步打开绝对文件或网络 URI；替换旧媒体并释放旧管线。通过 MediaOpened 或 Failed 完成通知。</summary>
     public void Open(Uri source)
@@ -264,7 +389,8 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         Verify();
         ArgumentNullException.ThrowIfNull(source);
         if (!source.IsAbsoluteUri) throw new ArgumentException(SR.Get("AbsoluteUriRequired"), nameof(source));
-        Trace.WriteLine($"MFPlay Open {SourceDiagnostics.Describe(source, source.AbsoluteUri)}", "MediaFoundation.Core");
+        Trace.WriteLine
+            ($"MFPlay Open {SourceDiagnostics.Describe(source, source.AbsoluteUri)}", "MediaFoundation.Core");
         ReleasePlayer();
         this.source = source;
         position = duration = TimeSpan.Zero;
@@ -287,10 +413,19 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
                 try
                 {
                     string path = source.LocalPath;
-                    fixed (char* text = path) PInvoke.MFCreateFile(MF_FILE_ACCESSMODE.MF_ACCESSMODE_READ, MF_FILE_OPENMODE.MF_OPENMODE_FAIL_IF_NOT_EXIST, MF_FILE_FLAGS.MF_FILEFLAGS_NONE, new PCWSTR(text), &stream).ThrowOnFailure();
+                    fixed (char* text =
+                               path)
+                        PInvoke.MFCreateFile
+                        (
+                            MF_FILE_ACCESSMODE.MF_ACCESSMODE_READ, MF_FILE_OPENMODE.MF_OPENMODE_FAIL_IF_NOT_EXIST,
+                            MF_FILE_FLAGS.MF_FILEFLAGS_NONE, new PCWSTR(text), &stream
+                        ).ThrowOnFailure();
                     player->CreateMediaItemFromObject((IUnknown*)stream, false, 0, null);
                 }
-                finally { if (stream != null) stream->Release(); }
+                finally
+                {
+                    if (stream != null) stream->Release();
+                }
             }
             else
             {
@@ -304,7 +439,11 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
             ReportFailure(error);
             return;
         }
-        finally { nativeCallback->Release(); }
+        finally
+        {
+            nativeCallback->Release();
+        }
+
         SetState(PlaybackState.Opening);
     }
 
@@ -318,6 +457,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
             if (state == PlaybackState.Ended) QueueSeek(TimeSpan.Zero);
             return;
         }
+
         player->Play();
     }
 
@@ -363,7 +503,10 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
             player->GetPosition(&format, &value);
             position = ReadTime(value);
         }
-        finally { PInvoke.PropVariantClear(&value).ThrowOnFailure(); }
+        finally
+        {
+            PInvoke.PropVariantClear(&value).ThrowOnFailure();
+        }
     }
 
     /// <summary>宿主改变 HWND 尺寸或需要重绘时调用，保持原生渲染器的宽高比策略。</summary>
@@ -373,11 +516,19 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         if (player == null || !hasVideo || state is not (PlaybackState.Playing or PlaybackState.Paused)) return;
         var renderingPlayer = player;
         renderingPlayer->AddRef();
-        try { renderingPlayer->UpdateVideo(); }
-        finally { renderingPlayer->Release(); }
+        try
+        {
+            renderingPlayer->UpdateVideo();
+        }
+        finally
+        {
+            renderingPlayer->Release();
+        }
     }
 
-    private bool IsReady => player != null && state is PlaybackState.Stopped or PlaybackState.Playing or PlaybackState.Paused or PlaybackState.Ended;
+    private bool IsReady => player != null &&
+                            state is PlaybackState.Stopped or PlaybackState.Playing or PlaybackState.Paused
+                                or PlaybackState.Ended;
 
     private void Verify()
     {
@@ -398,9 +549,16 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
             player->SetRate((float)value);
             float actual = 0;
             player->GetRate(&actual);
-            Trace.WriteLine($"MFPlay native rate requested={value} current={actual} (confirmation via RATE_SET event)", "MediaFoundation.Core");
+            Trace.WriteLine
+            (
+                $"MFPlay native rate requested={value} current={actual} (confirmation via RATE_SET event)",
+                "MediaFoundation.Core"
+            );
         }
-        catch (COMException error) { throw new NotSupportedException(SR.Get("UnsupportedRate"), error); }
+        catch (COMException error)
+        {
+            throw new NotSupportedException(SR.Get("UnsupportedRate"), error);
+        }
     }
 
     private void QueueSeek(TimeSpan target)
@@ -427,18 +585,30 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     {
         Verify();
         if (!ReferenceEquals(callback, sender)) return;
-        Trace.WriteLine($"MFPlay event={notification.Type} hr={notification.Result} state={state}", "MediaFoundation.Core");
+        Trace.WriteLine
+            ($"MFPlay event={notification.Type} hr={notification.Result} state={state}", "MediaFoundation.Core");
         if (notification.Result.Failed)
         {
-            Exception error = Marshal.GetExceptionForHR(notification.Result.Value) ?? new COMException(SR.Get("NativeFailure"), notification.Result.Value);
+            Exception error = Marshal.GetExceptionForHR
+                (notification.Result.Value) ?? new COMException(SR.Get("NativeFailure"), notification.Result.Value);
             if (notification.Type == MFP_EVENT_TYPE.MFP_EVENT_TYPE_RATE_SET)
                 error = new NotSupportedException(SR.Get("UnsupportedRate"), error);
             ReportFailure(error);
             return;
         }
-        try { ProcessNotification(sender, notification); }
-        catch (COMException error) { ReportFailure(error); }
-        catch (NotSupportedException error) { ReportFailure(error); }
+
+        try
+        {
+            ProcessNotification(sender, notification);
+        }
+        catch (COMException error)
+        {
+            ReportFailure(error);
+        }
+        catch (NotSupportedException error)
+        {
+            ReportFailure(error);
+        }
     }
 
     private void ProcessNotification(NativeCallback sender, NativeCallback.Notification notification)
@@ -473,15 +643,26 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
             case MFP_EVENT_TYPE.MFP_EVENT_TYPE_POSITION_SET:
                 seekInFlight = false;
                 if (stopping && !stopConfirmed) break;
-                if (pendingSeek.HasValue) { IssueSeek(); break; }
+                if (pendingSeek.HasValue)
+                {
+                    IssueSeek();
+                    break;
+                }
+
                 if (stopping)
                 {
                     stopping = false;
                     SetState(PlaybackState.Stopped);
                     if (disposed || !ReferenceEquals(callback, sender)) return;
                 }
-                if (playAfterSeek) { playAfterSeek = false; player->Play(); }
+
+                if (playAfterSeek)
+                {
+                    playAfterSeek = false;
+                    player->Play();
+                }
                 else if (state == PlaybackState.Ended) SetState(PlaybackState.Paused);
+
                 break;
             case MFP_EVENT_TYPE.MFP_EVENT_TYPE_PLAYBACK_ENDED:
                 if (stopping) break;
@@ -494,6 +675,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
                     playAfterSeek = true;
                     QueueSeek(TimeSpan.Zero);
                 }
+
                 break;
             case MFP_EVENT_TYPE.MFP_EVENT_TYPE_ERROR:
                 ReportFailure(new COMException(SR.Get("NativeFailure"), notification.Result.Value));
@@ -522,13 +704,19 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
                 {
                     BOOL streamSelected = default;
                     item->GetStreamSelection(index, &streamSelected);
-                    Trace.WriteLine($"MFPlay track={index} selected={streamSelected} (media item selection, not resolver default)", "MediaFoundation.Core");
+                    Trace.WriteLine
+                    (
+                        $"MFPlay track={index} selected={streamSelected} (media item selection, not resolver default)",
+                        "MediaFoundation.Core"
+                    );
                 }
             }
             catch (COMException error)
             {
-                Trace.WriteLine($"MFPlay track selection diagnostic HRESULT=0x{error.HResult:X8}", "MediaFoundation.Core");
+                Trace.WriteLine
+                    ($"MFPlay track selection diagnostic HRESULT=0x{error.HResult:X8}", "MediaFoundation.Core");
             }
+
             if (hasVideo && prototypePresenter != null)
                 prototypePresenter.RefreshStatus(out videoWidth, out videoHeight);
             if (hasVideo && !prototype)
@@ -538,6 +726,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
                 videoWidth = size.cx;
                 videoHeight = size.cy;
             }
+
             PROPVARIANT value = default;
             Guid format = PInvoke.MFP_POSITIONTYPE_100NS;
             try
@@ -551,9 +740,15 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
                 Trace.WriteLine(error, "MediaFoundation.Core.Duration");
                 duration = TimeSpan.Zero;
             }
-            finally { PInvoke.PropVariantClear(&value).ThrowOnFailure(); }
+            finally
+            {
+                PInvoke.PropVariantClear(&value).ThrowOnFailure();
+            }
         }
-        finally { if (item != null) item->Release(); }
+        finally
+        {
+            if (item != null) item->Release();
+        }
     }
 
     private static TimeSpan ReadTime(PROPVARIANT value)
@@ -590,12 +785,16 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
             SurfaceReleasing?.Invoke(this, EventArgs.Empty);
             PrototypeSurfaceReleasing?.Invoke(this, EventArgs.Empty);
         }
+
         callback?.Close();
         callback = null;
         var old = player;
         player = null;
         if (old == null) return;
-        try { old->Shutdown(); }
+        try
+        {
+            old->Shutdown();
+        }
         finally
         {
             old->Release();
@@ -603,9 +802,12 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
             {
                 var hr = prototypeSink->Shutdown();
                 Trace.WriteLine($"EVR prototype sink shutdown HRESULT=0x{hr.Value:X8}", "MediaFoundation.Core");
-                prototypeSink->Release(); prototypeSink = null;
+                prototypeSink->Release();
+                prototypeSink = null;
             }
-            prototypePresenter?.Dispose(); prototypePresenter = null;
+
+            prototypePresenter?.Dispose();
+            prototypePresenter = null;
         }
     }
 
@@ -615,12 +817,19 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         if (Environment.CurrentManagedThreadId != threadId) throw new InvalidOperationException(SR.Get("WrongThread"));
         if (disposed) return;
         disposed = true;
-        try { ReleasePlayer(); }
+        try
+        {
+            ReleasePlayer();
+        }
         finally
         {
             StateChanged = MediaOpened = PlaybackEnded = null;
             Failed = null;
-            if (comInitialized) { PInvoke.CoUninitialize(); comInitialized = false; }
+            if (comInitialized)
+            {
+                PInvoke.CoUninitialize();
+                comInitialized = false;
+            }
         }
     }
 }
