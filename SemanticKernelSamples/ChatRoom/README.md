@@ -6,7 +6,7 @@
 
 - **桌面框架**：Avalonia UI 12
 - **运行时**：.NET 10
-- **核心库**：[AgentLib.ChatRoom](../AgentLib/AgentLib.ChatRoom/) — 提供聊天室核心能力（角色管理、发言编排、持久化）
+- **核心库**：[AgentLib.ChatRoom](../CodingAgent/Code/Lib/AgentLib/AgentLib.ChatRoom/) — 提供聊天室核心能力（角色管理、发言编排、持久化）
 - **测试框架**：MSTest
 
 ## 项目结构
@@ -18,7 +18,7 @@ ChatRoom/
 │   └── ChatRoom.Shell.Tests/        # 桌面应用层单元测试
 ├── Docs/
 │   └── 需求文档.md                   # 功能需求清单
-└── ../AgentLib/
+└── ../CodingAgent/Code/Lib/AgentLib/
     ├── AgentLib.ChatRoom/           # 聊天室核心库（ChatRoomManager / ChatRoomRole / ChatRoomService）
     └── AgentLib.ChatRoom.Tests/     # 核心库单元测试
 ```
@@ -100,4 +100,4 @@ DOTNET_ENVIRONMENT=Development dotnet run
 ## 更多信息
 
 - [需求文档](Docs/需求文档.md) — 完整的功能需求清单
-- [AgentLib.ChatRoom README](../AgentLib/AgentLib.ChatRoom/README.md) — 核心库 API 参考和使用示例
+- [AgentLib.ChatRoom README](../CodingAgent/Code/Lib/AgentLib/AgentLib.ChatRoom/README.md) — 核心库 API 参考和使用示例

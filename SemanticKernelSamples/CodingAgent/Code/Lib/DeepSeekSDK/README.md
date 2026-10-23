@@ -43,4 +43,4 @@ HTTP 非成功状态会尝试读取一次响应正文，并直接抛出包含完
 
 运行整个解决方案测试会调用真实后台；密钥文件存在时会产生实际请求，不应将其视为无费用的离线测试。
 
-离线回归测试位于已有的 `AgentLib/AgentLib.Coding.Tests/DeepSeekWebToolSourceTests.cs`，使用 fake HttpMessageHandler，覆盖工具失败返回值、SDK HTTP/传输异常及成功响应正文读取失败的上下文和状态码/异常链、JSON 错误、超时、主动取消及服务错误内容原样保留。仅筛选该测试类运行不会访问真实 DeepSeek 服务或产生费用。
+离线回归测试位于已有的 [`../AgentLib/AgentLib.Coding.Tests/DeepSeekWebToolSourceTests.cs`](../AgentLib/AgentLib.Coding.Tests/DeepSeekWebToolSourceTests.cs)，使用 fake HttpMessageHandler，覆盖工具失败返回值、SDK HTTP/传输异常及成功响应正文读取失败的上下文和状态码/异常链、JSON 错误、超时、主动取消及服务错误内容原样保留。仅筛选该测试类运行不会访问真实 DeepSeek 服务或产生费用。
