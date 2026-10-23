@@ -24,9 +24,9 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     /// <summary>实验 surface 释放前在会话线程通知宿主；宿主必须同步解绑 D3DImage。</summary>
     public event EventHandler? PrototypeSurfaceReleasing;
 
-    private VideoScalingMode scalingMode = VideoScalingMode.PresentationSurface;
+    private VideoScalingMode scalingMode = VideoScalingMode.MixerOutput;
 
-    /// <summary>创建指定缩放位置的 MFPlay D3DImage 会话；默认 PresentationSurface。</summary>
+    /// <summary>创建指定缩放位置的 MFPlay D3DImage 会话；未指定策略的无参入口默认 MixerOutput。</summary>
     public static MediaPlaybackSession CreateD3DImageSession(VideoScalingMode scalingMode)
     {
         if (!Enum.IsDefined(scalingMode)) throw new ArgumentOutOfRangeException(nameof(scalingMode));

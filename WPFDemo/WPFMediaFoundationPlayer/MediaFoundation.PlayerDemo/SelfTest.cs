@@ -14,6 +14,38 @@ internal static class SelfTest
 {
     internal static async Task RunDiagnosticsAsync()
     {
+        if ((int)VideoRenderingMode.Hwnd != 0 || (int)VideoRenderingMode.D3DImage != 1)
+            throw new InvalidOperationException("VideoRenderingMode numeric contract changed");
+        if ((int)VideoScalingMode.MixerOutput != 0 || (int)VideoScalingMode.PresentationSurface != 1)
+            throw new InvalidOperationException("VideoScalingMode numeric contract changed");
+        using (var player = new Player())
+        using (var control = new MediaPlayerControl())
+        {
+            if (player.RenderingMode != VideoRenderingMode.D3DImage || control.RenderingMode != VideoRenderingMode.D3DImage ||
+                control.Player.RenderingMode != VideoRenderingMode.D3DImage ||
+                !Equals(MediaPlayerControl.RenderingModeProperty.GetMetadata(typeof(MediaPlayerControl)).DefaultValue, VideoRenderingMode.D3DImage))
+                throw new InvalidOperationException("Player/Control/metadata default rendering must be D3DImage");
+            player.RenderingMode = VideoRenderingMode.Hwnd;
+            control.RenderingMode = VideoRenderingMode.Hwnd;
+            if (player.RenderingMode != VideoRenderingMode.Hwnd || control.Player.RenderingMode != VideoRenderingMode.Hwnd)
+                throw new InvalidOperationException("Explicit HWND selection not forwarded");
+            control.RenderingMode = VideoRenderingMode.D3DImage;
+            if (control.Player.RenderingMode != VideoRenderingMode.D3DImage)
+                throw new InvalidOperationException("Explicit D3DImage selection not forwarded");
+            if (player.ScalingMode != VideoScalingMode.MixerOutput)
+                throw new InvalidOperationException("MediaPlayer default scaling must be MixerOutput");
+            if (control.ScalingMode != VideoScalingMode.MixerOutput || control.Player.ScalingMode != VideoScalingMode.MixerOutput ||
+                !Equals(MediaPlayerControl.ScalingModeProperty.GetMetadata(typeof(MediaPlayerControl)).DefaultValue, VideoScalingMode.MixerOutput))
+                throw new InvalidOperationException("Control/Player/metadata default scaling must be MixerOutput");
+            control.ScalingMode = VideoScalingMode.PresentationSurface;
+            if (control.Player.ScalingMode != VideoScalingMode.PresentationSurface)
+                throw new InvalidOperationException("Explicit PresentationSurface selection not forwarded");
+            control.ScalingMode = VideoScalingMode.MixerOutput;
+            if (control.Player.ScalingMode != VideoScalingMode.MixerOutput)
+                throw new InvalidOperationException("Explicit MixerOutput selection not forwarded");
+        }
+        Console.WriteLine("PASS rendering defaults D3DImage/Player/Control/metadata/numeric contract/explicit HWND/explicit D3DImage");
+        Console.WriteLine("PASS scaling defaults/numeric contract/explicit B/explicit A");
         var resources = new System.Resources.ResourceManager("MediaFoundation.Controls.Strings", typeof(MediaPlayerControl).Assembly);
         var filter = resources.GetString("FileFilter") ?? throw new InvalidOperationException("Missing FileFilter resource");
         var parts = filter.Split('|');
@@ -160,7 +192,7 @@ internal static class SelfTest
 
     internal static async Task RunAsync(Window window, MediaPlayerControl control, Uri source, Action<string> log, CancellationToken ct)
     {
-        using (var deferred = new Player())
+        using (var deferred = new Player { RenderingMode = VideoRenderingMode.Hwnd })
         {
             var stableView = deferred.VideoView;
             deferred.Open(source);

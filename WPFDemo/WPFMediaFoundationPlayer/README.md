@@ -33,6 +33,26 @@ dotnet publish WPFMediaFoundationPlayer/MediaFoundation.PlayerDemo/MediaFoundati
 
 Close 后可再次 Open，Dispose 后不可重用。媒体定位和倍速以原生媒体能力为准，不支持时报告错误，不伪装成功。详细线程、事件和生命周期契约见两个类库内的 README 及公开 API XML 注释。
 
+## 默认缩放策略
+
+D3DImage 默认使用 A / `VideoScalingMode.MixerOutput`：mixer 输出目标尺寸 RGB32，sample 与 staging 使用目标尺寸，以减少小窗口播放 4K 时的复制带宽；不保证所有设备均支持，不支持时明确报告失败，不静默回退。B / `PresentationSurface` 保留为显式可选策略，在展示复制时执行 GPU LINEAR 缩放。默认呈现为现有 MFPlay / EVR D3DImage（D3D9Ex 表面），不是新后端，也不使用 MediaEngine。
+
+`new MediaPlayer()`、`new MediaPlayerControl()`、Core 无参 `CreateD3DImageSession()` 和诊断 `CreateD3DImagePrototype(...)` 的未配置策略均为 A。枚举数值保持 `MixerOutput=0`、`PresentationSurface=1`，因此 `default(VideoScalingMode)` 也为 A。在 Open/Source 前设置 `ScalingMode`，或 Close 后修改再重新打开。
+
+`new MediaPlayer()`、`new MediaPlayerControl()` 和 Demo 未配置呈现模式时均使用 `VideoRenderingMode.D3DImage`。枚举数值仍为 `Hwnd=0`、`D3DImage=1`，因此 `default(VideoRenderingMode)` 仍是 Hwnd，不代表播放器默认配置。Open 前可显式设置 `RenderingMode = VideoRenderingMode.Hwnd`，菜单也保留 HWND。
+
+Demo 从源码 `dotnet run --project WPFMediaFoundationPlayer/MediaFoundation.PlayerDemo -- <媒体路径>` 启动时默认 D3DImage + A；`--d3dimage` 保留为显式选择，`--hwnd` 显式选择 HWND，同时指定时 HWND 优先并记录冲突日志（独立 `--mfplay-d3dimage` 诊断入口不受影响）。历史 HWND 自测应显式传 `--hwnd`，不要把未指定模式的新运行当成 HWND；`--mixer-output` 显式选择 A，`--presentation-surface` 显式选择 B（同时指定时 A 优先）。“更多”菜单同样保留 A/B 选择。已有 `--scaling-test` 对 A/B 均显式设置策略，不将 B 用例依赖于默认值。历史验证记录中的“默认 B”仅描述当时版本，不代表当前默认。
+
+### 默认呈现切换验证
+
+本次 Windows 沙箱验证使用当前源码 Release 构建，非历史发布目录：
+
+- `--diagnostics-test`：默认 Player / Control / DP metadata 为 D3DImage、枚举数值兼容、显式 HWND 转发与 MixerOutput 默认断言均通过；结果在 `results/default-d3d9-diagnostics-final`。
+- `--self-test --seek-regression --software-wpf`：未传渲染模式，退出 0；日志确认 `backend=MFPlay mode=D3DImage`、`scaling=MixerOutput`，覆盖视频像素、暂停、连续定位、恢复、关闭重开。结果在 `results/default-d3d9-focused-software-final`。这是 WPF `SoftwareOnly` 合成测试，不能据此宣称真实硬件 WPF 合成性能；视频仍走 MFPlay/EVR D3D9Ex。
+- `--self-test --seek-regression --hwnd --d3dimage --software-wpf`：退出 0；日志确认冲突时 HWND 优先及 `backend=MFPlay mode=Hwnd`，聚焦播放/定位/重开通过；结果在 `results/default-d3d9-explicit-hwnd`。菜单测试会有意访问两种模式。
+
+旧延迟 Open 测试已显式指定 HWND，不再依赖播放器默认值。以上为聚焦验证，未执行完整倍速扫描或真实可听音频验证。
+
 ## 控件和定制
 
 `MediaFoundation.Controls.MediaPlayerControl` 提供可绑定的 Source、AutoPlay，以及只读 Player。默认模板提供打开文件、播放暂停、停止、拖动定位、时间、音量、静音、倍速、循环、全屏、加载与错误提示，支持文件拖放和键盘操作。进度拖动期间暂停位置跟随，释放时提交定位。

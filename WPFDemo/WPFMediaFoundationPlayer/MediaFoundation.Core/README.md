@@ -27,6 +27,8 @@ D3DImage 路径需要同一适配器上的 D3D11/D3D9Ex 共享资源和视频支
 
 Core 自身保持 AnyCPU；WPF 双模式库因 CsWin32 0.3.183 的 Direct3D9 架构相关元数据需要明确 x64/x86。AnyCPU 生成 Direct3DCreate9Ex/IDirect3D9Ex 会报告 PInvoke005；当前生成器配置没有独立架构选项。不能把生成 x64 interop 后标为 AnyCPU 当作安全替代。
 
+MFPlay 自定义 EVR 的无参 `CreateD3DImageSession()` 及 `CreateD3DImagePrototype(...)` 默认使用 A / `VideoScalingMode.MixerOutput`，mixer、sample 和 staging 使用目标尺寸以减少小窗口播放高分辨率视频的复制带宽。可通过 `CreateD3DImageSession(VideoScalingMode.PresentationSurface)` 显式选择 B。A 不支持时报告失败，不静默回退。枚举值保持 MixerOutput=0、PresentationSurface=1。
+
 ## 诊断
 
 通过 System.Diagnostics.Trace 输出 `MediaFoundation.Core` 原生事件（类型、HRESULT、状态）、异步失败及不可用时长诊断；宿主可安装 TraceListener。错误文本位于 Strings.resx，可添加区域资源。公开 API XML 文档随程序集生成。

@@ -11,10 +11,10 @@
    <sys:String x:Key="PrototypeMediaRequired">--mfplay-d3dimage 需要显式指定媒体文件路径。</sys:String>
    <sys:String x:Key="DemoTitle">Media Foundation 播放器</sys:String>
    <sys:String x:Key="DemoMoreText">更多</sys:String>
-   <sys:String x:Key="DemoScalingMixerText">D3DImage 缩放 A：mixer 目标尺寸 RGB 输出（不支持即报错）</sys:String>
-   <sys:String x:Key="DemoScalingSurfaceText">D3DImage 缩放 B：展示复制中 GPU LINEAR 缩放（默认）</sys:String>
-   <sys:String x:Key="DemoHwndText">MFPlay / HWND（默认）— 通常开销较低，有原生窗口空域限制</sys:String>
-   <sys:String x:Key="DemoD3DImageText">MFPlay / EVR D3DImage — 可叠加 WPF UI，有额外复制与同步开销</sys:String>
+   <sys:String x:Key="DemoScalingMixerText">D3DImage 缩放 A：mixer 目标尺寸 RGB 输出（默认，不支持即报错）</sys:String>
+   <sys:String x:Key="DemoScalingSurfaceText">D3DImage 缩放 B：展示复制中 GPU LINEAR 缩放（可选）</sys:String>
+   <sys:String x:Key="DemoHwndText">MFPlay / HWND— 通常开销较低，有原生窗口空域限制</sys:String>
+   <sys:String x:Key="DemoD3DImageText">MFPlay / EVR D3DImage（默认，D3D9Ex）— 可叠加 WPF UI，有额外复制与同步开销</sys:String>
    <sys:String x:Key="DemoMfPlayPrototypeText">独立诊断窗口：MFPlay + EVR / D3DImage（非另一种播放后端）</sys:String>
    <sys:String x:Key="DemoSwitchNoticeText">切换将关闭并重新打开媒体，并非无缝切换。</sys:String>
    <sys:String x:Key="DemoTraceOnlyText">日志文件写入失败，请查看标准错误输出。</sys:String>

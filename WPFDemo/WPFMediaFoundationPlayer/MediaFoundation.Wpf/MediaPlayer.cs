@@ -17,10 +17,10 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
     private VideoHost? host;
     private MfPlayD3DImagePresenter? presenter;
     private IPlaybackSession? session;
-    private VideoRenderingMode renderingMode;
-    private VideoScalingMode scalingMode = VideoScalingMode.PresentationSurface;
+    private VideoRenderingMode renderingMode = VideoRenderingMode.D3DImage;
+    private VideoScalingMode scalingMode = VideoScalingMode.MixerOutput;
 
-    /// <summary>D3DImage 缩放位置，默认 PresentationSurface；Open 后锁定，Close 后可更改，不影响 HWND。</summary>
+    /// <summary>D3DImage 缩放位置，默认 MixerOutput；Open 后锁定，Close 后可更改，不影响 HWND。</summary>
     public VideoScalingMode ScalingMode
     {
         get => scalingMode;
@@ -49,14 +49,13 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
         dispatcher = Dispatcher.CurrentDispatcher;
         if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
             throw new InvalidOperationException(Text.Get("StaRequired"));
-        CreateHost();
         timer = new DispatcherTimer(TimeSpan.FromMilliseconds(200), DispatcherPriority.Background, OnTick, dispatcher);
         timer.Stop();
     }
 
     /// <summary>可放入 ContentControl 的唯一视频宿主，不支持同时放入多个可视树。</summary>
     public FrameworkElement VideoView => view;
-    /// <summary>呈现后端，默认 Hwnd。Open（含延迟打开）立即锁定，Close 后可更改；VideoView 对象不变。</summary>
+    /// <summary>呈现方式，默认 MFPlay/EVR D3DImage（D3D9Ex 表面）。Open（含延迟打开）立即锁定，Close 后可更改；VideoView 对象不变。</summary>
     public VideoRenderingMode RenderingMode
     {
         get => renderingMode;

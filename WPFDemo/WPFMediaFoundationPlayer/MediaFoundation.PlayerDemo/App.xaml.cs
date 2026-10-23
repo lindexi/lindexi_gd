@@ -37,7 +37,9 @@ public partial class App : Application
         Console.OutputEncoding = System.Text.Encoding.UTF8;
         bool testing = e.Args.Contains("--self-test") || e.Args.Contains("--source-path-test") || e.Args.Contains("--scaling-test");
         bool scalingTest = e.Args.Contains("--scaling-test");
-        bool d3dImage = e.Args.Contains("--d3dimage");
+        bool d3dImage = !e.Args.Contains("--hwnd");
+        if (!d3dImage && e.Args.Contains("--d3dimage"))
+            Trace.WriteLine("Both --hwnd and --d3dimage specified; --hwnd takes precedence.", "Demo.Diagnostics");
         if (testing && (scalingTest || d3dImage || e.Args.Contains("--mfplay-d3dimage"))) Environment.SetEnvironmentVariable("MF_DIAGNOSE_FRAME", "1");
         if (testing && e.Args.Contains("--software-wpf")) System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
         Trace.WriteLine($"WPF tier={System.Windows.Media.RenderCapability.Tier >> 16} processMode={System.Windows.Media.RenderOptions.ProcessRenderMode}", "Demo.Diagnostics");
@@ -107,7 +109,7 @@ public partial class App : Application
         Window CreateWindow()
         {
             control = new MediaPlayerControl { AutoPlay = !testing, RenderingMode = d3dImage ? VideoRenderingMode.D3DImage : VideoRenderingMode.Hwnd,
-                ScalingMode = e.Args.Contains("--mixer-output") ? MediaFoundation.Core.VideoScalingMode.MixerOutput : MediaFoundation.Core.VideoScalingMode.PresentationSurface };
+                ScalingMode = e.Args.Contains("--presentation-surface") && !e.Args.Contains("--mixer-output") ? MediaFoundation.Core.VideoScalingMode.PresentationSurface : MediaFoundation.Core.VideoScalingMode.MixerOutput };
             var layout = new System.Windows.Controls.DockPanel();
             renderingMenu = new RenderingModeMenu(control, layout);
             window = new Window { Title = (string)FindResource("DemoTitle"), Width = 1100, Height = 720, MinWidth = 640, MinHeight = 360, Content = layout };

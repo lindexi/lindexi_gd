@@ -55,7 +55,7 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
     internal long Frames { get; private set; }
     internal nint Surface => (nint)display;
 
-    internal EvrPrototypePresenter(VideoScalingMode scalingMode = VideoScalingMode.PresentationSurface)
+    internal EvrPrototypePresenter(VideoScalingMode scalingMode = VideoScalingMode.MixerOutput)
     {
         ScalingMode = scalingMode;
         scheduler = new Timer(_ => Pump(), null, Timeout.Infinite, Timeout.Infinite);
