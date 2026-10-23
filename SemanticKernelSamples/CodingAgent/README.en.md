@@ -62,12 +62,11 @@ SemanticKernelSamples/
    ├─ Code/
    │  ├─ App/PrismCodingAgent.AvaloniaShell/
    │  ├─ Test/PrismCodingAgent.AvaloniaShell.Tests/
-   │  ├─ Lib/
-   │  │  ├─ AgentLib/
-   │  │  ├─ DeepSeekSDK/
-   │  │  ├─ Microsoft.Agents.AI.Extensions/
-   │  │  └─ Microsoft.Agents.AI.Reasoning/
-   │  └─ Tool/
+   │  └─ Lib/
+   │     ├─ AgentLib/
+   │     ├─ DeepSeekSDK/
+   │     ├─ Microsoft.Agents.AI.Extensions/
+   │     └─ Microsoft.Agents.AI.Reasoning/
    └─ Docs/
 ```
 

@@ -4,7 +4,7 @@
 
 本文记录 PrismCodingAgent 当前尚未完成或仅部分实现的需求，并保留已实现事项的简要索引，避免重复开发。
 
-当前应用项目为 `PrismCodingAgent/Code/PrismCodingAgent.AvaloniaShell`，不再使用旧项目路径 `CodingChatRoom.AvaloniaShell`。
+当前应用项目为 `CodingAgent/Code/App/PrismCodingAgent.AvaloniaShell`，不再使用旧项目路径 `CodingChatRoom.AvaloniaShell`。
 
 状态依据当前代码及已有测试内容核对；本次为文档整理，未运行测试，也不代表真实模型服务或 Windows 实机验收已经完成。已存在测试与测试已通过是不同结论。
 
