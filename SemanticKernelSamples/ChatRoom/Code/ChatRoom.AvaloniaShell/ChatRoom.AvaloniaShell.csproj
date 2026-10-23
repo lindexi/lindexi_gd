@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AgentLib\AgentLib.ChatRoom\AgentLib.ChatRoom.csproj" />
+    <ProjectReference Include="..\..\..\CodingAgent\Code\Lib\AgentLib\AgentLib.ChatRoom\AgentLib.ChatRoom.csproj" />
   </ItemGroup>
 
   <ItemGroup>

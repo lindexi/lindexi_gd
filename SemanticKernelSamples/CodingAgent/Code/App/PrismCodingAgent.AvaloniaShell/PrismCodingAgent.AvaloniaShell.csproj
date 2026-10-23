@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AgentLib\AgentLib.Coding\AgentLib.Coding.csproj" />
+    <ProjectReference Include="..\..\Lib\AgentLib\AgentLib.Coding\AgentLib.Coding.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/App/">
+    <Project Path="Code/App/PrismCodingAgent.AvaloniaShell/PrismCodingAgent.AvaloniaShell.csproj" />
+  </Folder>
+  <Folder Name="/Test/">
+    <Project Path="Code/Test/PrismCodingAgent.AvaloniaShell.Tests/PrismCodingAgent.AvaloniaShell.Tests.csproj" />
+    <Project Path="Code/Lib/AgentLib/AgentLib.Tests/AgentLib.Tests.csproj" />
+    <Project Path="Code/Lib/AgentLib/AgentLib.Coding.Tests/AgentLib.Coding.Tests.csproj" />
+    <Project Path="Code/Lib/DeepSeekSDK/Code/DeepSeekSDK.Tests/DeepSeekSDK.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Lib/">
+    <Project Path="Code/Lib/AgentLib/AgentLib/AgentLib.csproj" />
+    <Project Path="Code/Lib/AgentLib/AgentLib.Coding/AgentLib.Coding.csproj" />
+    <Project Path="Code/Lib/Microsoft.Agents.AI.Extensions/src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
+    <Project Path="Code/Lib/Microsoft.Agents.AI.Reasoning/Microsoft.Agents.AI.Reasoning.csproj" />
+    <Project Path="Code/Lib/DeepSeekSDK/Code/DeepSeekSDK/DeepSeekSDK.csproj" />
+  </Folder>
+  <Folder Name="/Docs/">
+    <Project Path="Docs/Docs.csproj" />
+  </Folder>
+</Solution>
