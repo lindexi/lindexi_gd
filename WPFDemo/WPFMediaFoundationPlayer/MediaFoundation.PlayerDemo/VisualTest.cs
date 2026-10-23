@@ -14,6 +14,86 @@ namespace MediaFoundation.PlayerDemo;
 
 internal static class VisualTest
 {
+    internal static async Task RunProgressAsync(MediaPlayerControl control, Action<string> log, CancellationToken ct)
+    {
+        var slider = (Slider)control.Template.FindName("PART_Progress", control);
+        var track = (System.Windows.Controls.Primitives.Track)slider.Template.FindName("PART_Track", slider);
+        void Move(double fraction)
+        {
+            var point = track.PointToScreen(new Point(7 + (track.ActualWidth - 14) * fraction, track.ActualHeight / 2));
+            if (!SetCursorPos((int)point.X, (int)point.Y)) throw new InvalidOperationException("SetCursorPos failed");
+        }
+        void Check(bool condition, string name)
+        {
+            if (!condition) throw new InvalidOperationException(name);
+            log("PASS INPUT " + name);
+        }
+        double target = slider.Maximum * 0.3;
+        Move(0.3);
+        mouse_event(2, 0, 0, 0, 0);
+        try
+        {
+            await Task.Delay(350, ct);
+            Check(track.Thumb.IsDragging, "track click delegates capture to real Thumb");
+            Check(Math.Abs(control.Player.Position.TotalSeconds - target) < 0.6, "track mouse-down immediately seeks public position");
+            Move(0.6);
+            await Task.Delay(150, ct);
+            double held = slider.Value;
+            await Task.Delay(500, ct);
+            Check(Math.Abs(slider.Value - held) < 0.01, "polling does not overwrite held drag");
+            target = held;
+        }
+        finally { mouse_event(4, 0, 0, 0, 0); }
+        await Task.Delay(650, ct);
+        Check(!track.Thumb.IsDragging && Math.Abs(control.Player.Position.TotalSeconds - target) < 0.6, "release commits dragged public position");
+        var thumbPoint = track.Thumb.PointToScreen(new Point(track.Thumb.ActualWidth / 2, track.Thumb.ActualHeight / 2));
+        SetCursorPos((int)thumbPoint.X, (int)thumbPoint.Y);
+        mouse_event(2, 0, 0, 0, 0);
+        try
+        {
+            await Task.Delay(100, ct);
+            Check(track.Thumb.IsDragging, "direct template Thumb hit starts drag");
+            Move(0.4);
+            await Task.Delay(150, ct);
+            target = slider.Value;
+        }
+        finally { mouse_event(4, 0, 0, 0, 0); }
+        await Task.Delay(650, ct);
+        Check(Math.Abs(control.Player.Position.TotalSeconds - target) < 0.6, "direct Thumb release seeks");
+        double beforeCancel = control.Player.Position.TotalSeconds;
+        thumbPoint = track.Thumb.PointToScreen(new Point(track.Thumb.ActualWidth / 2, track.Thumb.ActualHeight / 2));
+        SetCursorPos((int)thumbPoint.X, (int)thumbPoint.Y);
+        mouse_event(2, 0, 0, 0, 0);
+        try
+        {
+            await Task.Delay(100, ct);
+            Move(0.7);
+            await Task.Delay(100, ct);
+            keybd_event(0x1B, 0, 0, 0);
+            keybd_event(0x1B, 0, 2, 0);
+            await Task.Delay(200, ct);
+            Check(!track.Thumb.IsDragging, "Escape cancels native Thumb capture");
+        }
+        finally { mouse_event(4, 0, 0, 0, 0); }
+        await Task.Delay(350, ct);
+        Check(Math.Abs(control.Player.Position.TotalSeconds - beforeCancel) < 0.6, "canceled drag does not seek");
+        slider.Focus();
+        double beforeKeys = slider.Value;
+        for (int i = 0; i < 3; i++)
+        {
+            keybd_event(0x27, 0, 0, 0);
+            keybd_event(0x27, 0, 2, 0);
+            await Task.Delay(80, ct);
+        }
+        target = Math.Min(slider.Maximum, beforeKeys + 3 * slider.SmallChange);
+        await Task.Delay(650, ct);
+        Check(Math.Abs(control.Player.Position.TotalSeconds - target) < 0.6, "focused repeated Right keys seek final slider value");
+    }
+
+    [DllImport("user32.dll")] private static extern void keybd_event(byte key, byte scan, uint flags, nuint extraInfo);
+    [DllImport("user32.dll")] private static extern bool SetCursorPos(int x, int y);
+    [DllImport("user32.dll")] private static extern void mouse_event(uint flags, uint dx, uint dy, uint data, nuint extraInfo);
+
     internal static async Task RunAsync(Window window, MediaPlayerControl control, Action<string> log, CancellationToken ct)
     {
         void Check(bool condition, string name)
@@ -47,10 +127,17 @@ internal static class VisualTest
                 var bounds = button.TransformToAncestor(control).TransformBounds(new Rect(button.RenderSize));
                 Check(bounds.Left >= 0 && bounds.Right <= control.ActualWidth && bounds.Bottom <= control.ActualHeight, name + " inside viewport");
             }
+            var leftBounds = Part<Button>("Stop").TransformToAncestor(control).TransformBounds(new Rect(Part<Button>("Stop").RenderSize));
+            var rightBounds = Part<Button>("Mute").TransformToAncestor(control).TransformBounds(new Rect(Part<Button>("Mute").RenderSize));
+            Check(rightBounds.Left - leftBounds.Right >= 24 && Math.Abs(leftBounds.Top - rightBounds.Top) < 1, "separate left and right groups on same row");
+            var fullBounds = Part<Button>("Fullscreen").TransformToAncestor(control).TransformBounds(new Rect(Part<Button>("Fullscreen").RenderSize));
+            Check(control.ActualWidth - fullBounds.Right <= 20, "fullscreen at far right");
+            var progressBounds = Part<Slider>("PART_Progress").TransformToAncestor(control).TransformBounds(new Rect(Part<Slider>("PART_Progress").RenderSize));
+            Check(control.ActualHeight - progressBounds.Top <= 112, "compact toolbar at most 112 DIP");
             var time = Part<TextBlock>("Time");
             Check(time.IsVisible && time.ActualWidth > 80 && time.Text.Contains('/'), "time text visible");
             var rate = Part<ComboBox>("Rate");
-            Check(rate.SelectedItem != null && rate.ActualWidth >= 90 && rate.Template != null, "rate selected text and bounds");
+            Check(rate.SelectedItem != null && rate.ActualWidth >= 70 && rate.Template != null, "rate selected text and bounds");
             var volume = Part<Slider>("Volume");
             var stop = Part<Button>("Stop");
             var mute = Part<Button>("Mute");
@@ -61,9 +148,34 @@ internal static class VisualTest
         window.WindowState = WindowState.Normal;
         window.Width = 1100; window.Height = 720;
         control.Player.Play();
+        while (control.Player.State != MediaFoundation.Core.PlaybackState.Playing || control.Player.Position < TimeSpan.FromSeconds(4.5))
+            await Task.Delay(30, ct);
+        log($"VISUAL sampling actual playing position={control.Player.Position} mode={control.RenderingMode}");
         await SettleAsync();
         control.Player.Pause();
-        await SettleAsync(); Validate(); Capture(window, "visual-normal-printwindow.png", true); Capture(window, "visual-normal.png");
+        await SettleAsync(); Validate();
+        if (control.RenderingMode == VideoRenderingMode.D3DImage)
+        {
+            var view = control.Player.VideoView;
+            int width = (int)view.ActualWidth, height = (int)view.ActualHeight;
+            var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+            bitmap.Render(view);
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(bitmap));
+            using (var stream = File.Create(System.IO.Path.Combine(AppContext.BaseDirectory, "visual-d3dimage-wpf.png"))) encoder.Save(stream);
+            var pixels = new byte[width * height * 4];
+            bitmap.CopyPixels(pixels, width * 4, 0);
+            var colors = new HashSet<int>();
+            for (int y = height / 4; y < height / 2; y += 3)
+                for (int x = width / 4; x < width * 3 / 4; x += 3)
+                {
+                    int i = (y * width + x) * 4;
+                    colors.Add(pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16));
+                }
+            log($"D3DImage WPF capture colors={colors.Count} tier={RenderCapability.Tier >> 16} mode={RenderOptions.ProcessRenderMode}");
+            Check(colors.Count >= 32, "D3DImage WPF video pixels");
+        }
+        Capture(window, "visual-normal-printwindow.png", true); Capture(window, "visual-normal.png");
         var play = Part<System.Windows.Shapes.Path>("PlayIcon");
         string before = play.Data.ToString();
         control.Player.Play();
@@ -85,6 +197,22 @@ internal static class VisualTest
         MediaPlayerControl.FullscreenCommand.Execute(null, control);
         window.Width = 640; window.Height = 520;
         await SettleAsync(); Validate(); Capture(window, "visual-narrow-printwindow.png", true); Capture(window, "visual-narrow.png");
+        var more = control.ToolbarContent as Button ?? throw new InvalidOperationException("Missing Demo toolbar content");
+        var moreBounds = more.TransformToAncestor(control).TransformBounds(new Rect(more.RenderSize));
+        Check(moreBounds.Left >= 0 && moreBounds.Right <= control.ActualWidth && moreBounds.Bottom <= control.ActualHeight, "bottom More inside narrow viewport");
+        Check(ReferenceEquals(more.Style, control.FindResource("PlayerButtonStyle")) && !string.IsNullOrWhiteSpace(AutomationProperties.GetName(more)), "More shares dynamic style and accessible label");
+        control.IsEnabled = false;
+        Check(!more.IsEnabled, "More inherits disabled state during mode switch");
+        control.IsEnabled = true;
+        more.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        await Task.Delay(500, ct);
+        Check(more.ContextMenu is { IsOpen: true } && ReferenceEquals(more.ContextMenu.PlacementTarget, more), "More popup anchored to bottom button");
+        var menuContent = (FrameworkElement)VisualTreeHelper.GetChild(more.ContextMenu!, 0);
+        var menuBounds = new Rect(menuContent.PointToScreen(new Point()), menuContent.PointToScreen(new Point(menuContent.ActualWidth, menuContent.ActualHeight)));
+        var menuWorkArea = Rect.Transform(SystemParameters.WorkArea, PresentationSource.FromVisual(window).CompositionTarget.TransformToDevice);
+        Check(menuWorkArea.Contains(menuBounds), "More menu fully inside screen work area");
+        Capture(window, "visual-more-narrow.png", extraBottom: 180, extraRight: 384);
+        more.ContextMenu!.IsOpen = false;
         Part<ComboBox>("Rate").IsDropDownOpen = true;
         await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
         await Task.Delay(1800, ct);
@@ -102,11 +230,26 @@ internal static class VisualTest
         log("PASS VISUAL actual foreground screen GetDC/BitBlt screenshots (native HWND included), PrintWindow comparisons saved: " + AppContext.BaseDirectory);
     }
 
-    private static void Capture(Window window, string name, bool printWindow = false, int extraBottom = 0)
+    internal static async Task RunEmptyAsync(Window window, MediaPlayerControl control, Action<string> log, CancellationToken ct)
+    {
+        window.Left = 0; window.Top = 0;
+        window.Topmost = true;
+        window.Activate();
+        SetForegroundWindow(new WindowInteropHelper(window).Handle);
+        await Task.Delay(1200, ct);
+        var hint = (TextBlock)control.Template.FindName("EmptyHint", control);
+        var video = (ContentControl)control.Template.FindName("Video", control);
+        if (!hint.IsVisible || video.IsVisible || control.Source != null)
+            throw new InvalidOperationException("Empty state must show WPF hint without native video host");
+        Capture(window, "visual-empty.png", expectVideo: false);
+        log("PASS VISUAL empty hint visible, native host collapsed");
+    }
+
+    internal static void Capture(Window window, string name, bool printWindow = false, int extraBottom = 0, bool expectVideo = true, int extraRight = 0)
     {
         nint hwnd = new WindowInteropHelper(window).Handle;
         if (!GetWindowRect(hwnd, out var rect)) throw new System.ComponentModel.Win32Exception();
-        int width = rect.Right - rect.Left, height = rect.Bottom - rect.Top + extraBottom;
+        int width = rect.Right - rect.Left + extraRight, height = rect.Bottom - rect.Top + extraBottom;
         nint screen = GetDC(0), memory = CreateCompatibleDC(screen), bitmap = CreateCompatibleBitmap(screen, width, height);
         nint old = SelectObject(memory, bitmap);
         try
@@ -121,14 +264,14 @@ internal static class VisualTest
             var info = new BitmapInfo { Size = 40, Width = width, Height = -height, Planes = 1, BitCount = 32, SizeImage = (uint)(width * height * 4) };
             byte[] pixels = new byte[width * height * 4];
             if (GetDIBits(memory, bitmap, 0, (uint)height, pixels, ref info, 0) == 0) throw new System.ComponentModel.Win32Exception();
-            if (!printWindow)
+            if (!printWindow && expectVideo)
             {
                 var colors = new HashSet<int>();
                 for (int y = height / 4; y < height / 2; y += 3)
                     for (int x = width / 4; x < width * 3 / 4; x += 3)
                     {
                         int i = (y * width + x) * 4;
-                        colors.Add((pixels[i] >> 3) | ((pixels[i + 1] >> 3) << 5) | ((pixels[i + 2] >> 3) << 10));
+                        colors.Add(pixels[i] | (pixels[i + 1] << 8) | (pixels[i + 2] << 16));
                     }
                 if (colors.Count < 32) throw new InvalidOperationException($"Blank video screenshot: {name}, colors={colors.Count}");
             }

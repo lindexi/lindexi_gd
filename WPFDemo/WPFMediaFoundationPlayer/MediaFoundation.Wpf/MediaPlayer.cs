@@ -15,9 +15,28 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
     private readonly Grid view = new();
     private readonly DispatcherTimer timer;
     private VideoHost? host;
-    private D3DImagePresenter? presenter;
+    private MfPlayD3DImagePresenter? presenter;
     private IPlaybackSession? session;
     private VideoRenderingMode renderingMode;
+    private VideoScalingMode scalingMode = VideoScalingMode.PresentationSurface;
+
+    /// <summary>D3DImage 缩放位置，默认 PresentationSurface；Open 后锁定，Close 后可更改，不影响 HWND。</summary>
+    public VideoScalingMode ScalingMode
+    {
+        get => scalingMode;
+        set
+        {
+            Verify();
+            if (!Enum.IsDefined(value)) throw new ArgumentOutOfRangeException(nameof(value));
+            if (value == scalingMode) return;
+            if (modeLocked) throw new InvalidOperationException(Text.Get("RenderingModeLocked"));
+            scalingMode = value;
+            Notify();
+        }
+    }
+
+    /// <summary>D3DImage 的实际 GPU 尺寸和策略，HWND 为 null。</summary>
+    public VideoSurfaceInfo? VideoSurfaceInfo => (session as MediaPlaybackSession)?.VideoSurfaceInfo;
     private bool modeLocked;
     private bool disposed;
     private bool playPending;
@@ -116,6 +135,7 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
     {
         Verify(); ArgumentNullException.ThrowIfNull(source);
         if (!source.IsAbsoluteUri) throw new ArgumentException(Text.Get("AbsoluteUriRequired"), nameof(source));
+        System.Diagnostics.Trace.WriteLine($"Open {SourceDiagnostics.Describe(source)} mode={renderingMode}", "MediaFoundation.Controls");
         modeLocked = true;
         ReleaseSession(); Source = source; LastError = null; State = PlaybackState.Opening; Publish();
         if (renderingMode == VideoRenderingMode.D3DImage) StartSession(0);
@@ -161,15 +181,14 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
             IPlaybackSession created;
             if (renderingMode == VideoRenderingMode.D3DImage)
             {
-                if (!OperatingSystem.IsWindowsVersionAtLeast(8)) throw new PlatformNotSupportedException(Text.Get("D3DImagePlatformRequired"));
-                presenter = new D3DImagePresenter(ReportError);
-                var engine = new MediaEngineSession(presenter.Device);
-                created = engine;
-                presenter.Start(engine);
+                created = MediaPlaybackSession.CreateD3DImageSession(scalingMode);
+                session = created;
+                presenter = new MfPlayD3DImagePresenter((MediaPlaybackSession)created, ReportError);
                 view.Children.Add(presenter.View);
             }
             else created = new MediaPlaybackSession(hwnd);
             session = created;
+            System.Diagnostics.Trace.WriteLine($"backend=MFPlay mode={renderingMode} session-created", "MediaFoundation.Controls");
             created.StateChanged += OnStateChanged; created.MediaOpened += OnOpened;
             created.PlaybackEnded += OnEnded; created.Failed += OnFailed;
             created.Volume = volume; created.IsMuted = muted; created.PlaybackRate = rate; created.IsLooping = looping;
@@ -177,23 +196,24 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
             if (created.State != PlaybackState.Failed) timer.Start();
             Snapshot();
         }
-        catch { ReleaseSession(); throw; }
+        catch { ReleaseSession(PlaybackState.Failed); throw; }
         finally { SynchronizationContext.SetSynchronizationContext(previous); }
     }
-    private void ReleaseSession()
+    private void ReleaseSession() => ReleaseSession(PlaybackState.Closed);
+    private void ReleaseSession(PlaybackState finalState)
     {
         timer.Stop(); playPending = false;
+        if (presenter != null)
+        {
+            view.Children.Remove(presenter.View); presenter.Dispose(); presenter = null;
+        }
         if (session is { } old)
         {
             session = null;
             old.StateChanged -= OnStateChanged; old.MediaOpened -= OnOpened;
             old.PlaybackEnded -= OnEnded; old.Failed -= OnFailed; old.Dispose();
         }
-        if (presenter != null && OperatingSystem.IsWindowsVersionAtLeast(8))
-        {
-            view.Children.Remove(presenter.View); presenter.Dispose(); presenter = null;
-        }
-        Position = Duration = TimeSpan.Zero; VideoWidth = VideoHeight = 0; HasVideo = HasAudio = false; State = PlaybackState.Closed;
+        Position = Duration = TimeSpan.Zero; VideoWidth = VideoHeight = 0; HasVideo = HasAudio = false; State = finalState;
         Publish();
     }
     private void OnStateChanged(object? sender, EventArgs e) { if (ReferenceEquals(sender, session)) Snapshot(); }
@@ -216,7 +236,9 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
     private void OnFailed(object? sender, PlaybackFailedEventArgs e) { if (!ReferenceEquals(sender, session)) return; ReportError(e.Error); }
     internal void ReportError(Exception error)
     {
-        timer.Stop(); playPending = false; LastError = error; State = PlaybackState.Failed; Publish();
+        System.Diagnostics.Trace.WriteLine($"Player failure mode={renderingMode} HRESULT=0x{error.HResult:X8} {error}", "MediaFoundation.Controls");
+        LastError = error;
+        ReleaseSession(PlaybackState.Failed);
         Failed?.Invoke(this, new PlaybackFailedEventArgs(error));
     }
     private void OnResize()
@@ -225,9 +247,18 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
         try { session?.ResizeVideo(); }
         catch (ExternalException error) { ReportError(error); }
     }
+    private long lastDiagnosticTick;
     private void OnTick(object? sender, EventArgs e)
     {
-        try { session?.Refresh(); Snapshot(); }
+        try
+        {
+            session?.Refresh(); Snapshot();
+            if (session != null && Environment.TickCount64 - lastDiagnosticTick >= 5000)
+            {
+                lastDiagnosticTick = Environment.TickCount64;
+                System.Diagnostics.Trace.WriteLine($"Player progress mode={renderingMode} state={State} position={Position} duration={Duration} rate={rate} video={VideoWidth}x{VideoHeight}", "MediaFoundation.Controls");
+            }
+        }
         catch (ExternalException error) { ReportError(error); }
         catch (InvalidOperationException error) { ReportError(error); }
     }

@@ -12,6 +12,71 @@ namespace MediaFoundation.PlayerDemo;
 
 internal static class SelfTest
 {
+    internal static async Task RunDiagnosticsAsync()
+    {
+        var resources = new System.Resources.ResourceManager("MediaFoundation.Controls.Strings", typeof(MediaPlayerControl).Assembly);
+        var filter = resources.GetString("FileFilter") ?? throw new InvalidOperationException("Missing FileFilter resource");
+        var parts = filter.Split('|');
+        if (parts.Length != 8 || parts.Any(string.IsNullOrWhiteSpace) || parts[7] != "*.*")
+            throw new InvalidOperationException("Invalid media/video/audio/all-files filter format");
+        var video = parts[3].Split(';');
+        var audio = parts[5].Split(';');
+        var media = parts[1].Split(';');
+        string[] requiredVideo = ["*.mp4", "*.wmv", "*.avi", "*.mov", "*.m4v", "*.mkv", "*.webm", "*.asf", "*.mts", "*.m2ts", "*.ts", "*.mpg", "*.mpeg", "*.vob", "*.3gp", "*.3g2"];
+        string[] requiredAudio = ["*.mp3", "*.wav", "*.wma", "*.aac", "*.flac", "*.m4a", "*.ogg", "*.opus", "*.aiff", "*.aif"];
+        if (requiredVideo.Except(video).Any() || requiredAudio.Except(audio).Any())
+            throw new InvalidOperationException("Missing video/audio file extensions");
+        if (!media.ToHashSet().SetEquals(video.Concat(audio)) || media.Any(pattern => !pattern.StartsWith("*.", StringComparison.Ordinal) || pattern.Length <= 2))
+            throw new InvalidOperationException("Invalid combined media filter patterns");
+        _ = new Microsoft.Win32.OpenFileDialog { Filter = filter };
+        Console.WriteLine("PASS file filter format/categories/extensions including mkv/all-files (not decoder support)");
+        var source = new Uri(@"C:\private-media\diagnostic-secret.mp4");
+        using var registrations = new System.IO.StringWriter();
+        using var registrationListener = new TextWriterTraceListener(registrations);
+        Trace.Listeners.Add(registrationListener);
+        try
+        {
+            PlaybackDiagnostics.RegisterSource(source);
+            for (int i = 0; i < 100; i++)
+                PlaybackDiagnostics.RegisterSource(new Uri(source.AbsoluteUri));
+            Parallel.For(0, 100, _ => PlaybackDiagnostics.RegisterSource(new Uri(source.AbsoluteUri.ToUpperInvariant())));
+        }
+        finally { Trace.Listeners.Remove(registrationListener); }
+        if (registrations.ToString().Split("RegisterSource sourceId=", StringSplitOptions.None).Length != 2)
+            throw new InvalidOperationException("Duplicate source registration");
+        if (PlaybackDiagnostics.Sanitize(source.LocalPath) != source.LocalPath)
+            throw new InvalidOperationException("Local media path removed");
+        if (PlaybackDiagnostics.Sanitize(source.AbsoluteUri) != source.AbsoluteUri)
+            throw new InvalidOperationException("Local file URI removed");
+        if (PlaybackDiagnostics.Sanitize("https://user:password@example.com/media?token=secret").Contains("secret", StringComparison.Ordinal))
+            throw new InvalidOperationException("Network credentials leaked");
+        if (SourceDiagnostics.Describe(source).Contains("diagnostic-secret", StringComparison.Ordinal))
+            throw new InvalidOperationException("Source description leaked media name");
+        var error = new InvalidOperationException("diagnostic failure " + source.LocalPath,
+            new System.Runtime.InteropServices.COMException("stage=DiagnosticProbe", unchecked((int)0x887A0004)));
+        string path = PlaybackDiagnostics.Write(error, source);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        string content;
+        do
+        {
+            await Task.Delay(100, deadline.Token);
+            content = "";
+            if (System.IO.File.Exists(path))
+            {
+                using var stream = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite);
+                using var reader = new System.IO.StreamReader(stream);
+                content = await reader.ReadToEndAsync(deadline.Token);
+            }
+        } while (!content.Contains("stage=DiagnosticProbe", StringComparison.Ordinal));
+        if (!content.Contains("Startup process=", StringComparison.Ordinal)) throw new InvalidOperationException("Missing normal startup diagnostics");
+        if (!content.Contains("HRESULT=0x887A0004", StringComparison.Ordinal)) throw new InvalidOperationException("Missing inner HRESULT");
+        if (!content.Contains("System.InvalidOperationException", StringComparison.Ordinal)) throw new InvalidOperationException("Missing full exception");
+        if (!content.Contains(path, StringComparison.Ordinal)) throw new InvalidOperationException("Missing log path");
+        if (!content.Contains("sourcePath=" + source.LocalPath, StringComparison.Ordinal)) throw new InvalidOperationException("Missing local source path");
+        Console.WriteLine("PASS diagnostics startup/exception/HRESULT/path/privacy/registration-deduplication " + path);
+        await System.IO.File.WriteAllTextAsync(System.IO.Path.Combine(AppContext.BaseDirectory, "diagnostics-result.log"), content);
+    }
+
     internal static async Task RunRenderingMenuAsync(MediaPlayerControl control, RenderingModeMenu menu, Uri source, Action<string> log, CancellationToken ct)
     {
         var initialMode = control.RenderingMode;
@@ -60,7 +125,7 @@ internal static class SelfTest
         else
         {
             if (string.IsNullOrWhiteSpace(menu.ErrorText) || menu.IsSwitching) throw new InvalidOperationException("Mode failure must expose an error and unlock menu.");
-            log("NOT VERIFIED D3DImage media switch: " + menu.ErrorText);
+            throw new InvalidOperationException("D3DImage paused switch: " + menu.ErrorText);
         }
         await CheckSwitchAsync(VideoRenderingMode.Hwnd);
         await WaitAsync(() => control.Player.State == PlaybackState.Paused && Math.Abs((control.Player.Position - position).TotalSeconds) < 0.6);
@@ -76,7 +141,9 @@ internal static class SelfTest
             var switching = menu.SwitchAsync(VideoRenderingMode.D3DImage);
             if (!switching.IsCompleted && await menu.SwitchAsync(VideoRenderingMode.Hwnd))
                 throw new InvalidOperationException("Concurrent mode switch must be rejected.");
-            if (!await switching) log("NOT VERIFIED D3DImage " + intent + ": " + menu.ErrorText);
+            if (!await switching) throw new InvalidOperationException("D3DImage " + intent + ": " + menu.ErrorText);
+            await WaitAsync(() => control.Player.State == intent);
+            log("PASS menu D3DImage restoration intent=" + intent);
             await CheckSwitchAsync(VideoRenderingMode.Hwnd);
             await WaitAsync(() => control.Player.State == intent);
             if (!control.AutoPlay || control.Source != source || control.Player.Source != source)
@@ -149,8 +216,8 @@ internal static class SelfTest
         await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
         control.ApplyTemplate();
         Check(control.Template != null, "默认控件模板加载（未重写）");
-        Check(((SolidColorBrush)control.FindResource("PlayerBackgroundBrush")).Color == Color.FromRgb(0x14, 0x26, 0x38), "FindResource 画刷覆盖");
-        Check(((SolidColorBrush)control.Background).Color == Color.FromRgb(0x14, 0x26, 0x38), "模板使用应用画刷");
+        Check(((SolidColorBrush)control.FindResource("PlayerBackgroundBrush")).Color == Color.FromRgb(0x13, 0x18, 0x20), "FindResource 画刷覆盖");
+        Check(((SolidColorBrush)control.Background).Color == Color.FromRgb(0x13, 0x18, 0x20), "模板使用应用画刷");
         var buttons = Descendants(control).OfType<Button>().ToArray();
         var style = (Style)control.FindResource("PlayerButtonStyle");
         Check(buttons.Length >= 6 && buttons.All(b => ReferenceEquals(b.Style, style) && b.MinHeight == 40), "基础 Button style 覆盖真实模板按钮");
@@ -178,11 +245,31 @@ internal static class SelfTest
         var paused = player.Position;
         await Task.Delay(700, ct);
         Check(Math.Abs((player.Position - paused).TotalMilliseconds) < 100, "暂停位置保持");
+        await VisualTest.RunProgressAsync(control, log, ct);
         var target = TimeSpan.FromSeconds(Math.Min(4, player.Duration.TotalSeconds / 3));
         progress!.Value = target.TotalSeconds;
         await WaitAsync(() => Math.Abs((player.Position - target).TotalSeconds) < 0.4, "进度条触发 Seek 到目标");
         player.Seek(TimeSpan.FromSeconds(1));
         await WaitAsync(() => Math.Abs(player.Position.TotalSeconds - 1) < 0.4, "公开 API Seek");
+        player.Seek(TimeSpan.FromSeconds(6));
+        player.Seek(TimeSpan.FromSeconds(2));
+        player.Seek(TimeSpan.FromSeconds(5));
+        await WaitAsync(() => Math.Abs(player.Position.TotalSeconds - 5) < 0.4, "暂停连续 Seek 保留最后目标");
+        await Task.Delay(500, ct);
+        Check(player.State == PlaybackState.Paused && Math.Abs(player.Position.TotalSeconds - 5) < 0.4, "暂停连续 Seek 后位置稳定");
+        player.Play();
+        await WaitAsync(() => player.State == PlaybackState.Playing && player.Position.TotalSeconds > 5.4, "连续 Seek 后真实 PLAYING 与时钟推进");
+        await PauseAsync();
+        if (Environment.GetCommandLineArgs().Contains("--seek-regression"))
+        {
+            player.Close();
+            await OpenAsync();
+            player.Play();
+            await WaitAsync(() => player.State == PlaybackState.Playing && player.Position > TimeSpan.FromSeconds(0.4), "focused close-reopen clock progression");
+            player.Close();
+            log($"PASS focused {player.RenderingMode} pause/continuous-seek/resume/close-reopen (rate sweep not requested)");
+            return;
+        }
         MediaPlayerControl.StopCommand.Execute(null, control);
         await WaitAsync(() => player.State == PlaybackState.Stopped && player.Position < TimeSpan.FromMilliseconds(100), "Stop 原生确认并归零");
         player.Volume = 0.35;

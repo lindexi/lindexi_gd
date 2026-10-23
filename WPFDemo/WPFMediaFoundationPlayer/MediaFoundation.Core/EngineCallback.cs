@@ -16,13 +16,13 @@ internal sealed unsafe class EngineCallback : IDisposable
 
     private Instance* instance;
     private readonly SynchronizationContext context;
-    private readonly Action<uint, uint> notify;
+    private readonly Action<uint, nuint, uint> notify;
     private int closed;
-    private static readonly Guid NotifyId = new("FEE7C112-E776-42B5-9BBF-0048524E2BD5");
+    private static readonly Guid NotifyId = typeof(Windows.Win32.Media.MediaFoundation.IMFMediaEngineNotify).GUID;
     private static readonly void** Vtable = CreateVtable();
     internal void* Pointer => instance;
 
-    internal EngineCallback(SynchronizationContext context, Action<uint, uint> notify)
+    internal EngineCallback(SynchronizationContext context, Action<uint, nuint, uint> notify)
     {
         this.context = context;
         this.notify = notify;
@@ -74,9 +74,14 @@ internal sealed unsafe class EngineCallback : IDisposable
     {
         try
         {
+            // Media Engine waits for this acknowledgement; dispatching it to the UI can stall seek/play.
+            if (kind == (uint)Windows.Win32.Media.MediaFoundation.MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_NOTIFYSTABLESTATE)
+            {
+                return Windows.Win32.PInvoke.SetEvent(new Windows.Win32.Foundation.HANDLE((void*)first)) ? 0 : Marshal.GetHRForLastWin32Error();
+            }
             var owner = (EngineCallback)GCHandle.FromIntPtr(self->Handle).Target!;
             if (Volatile.Read(ref owner.closed) == 0)
-                owner.context.Post(_ => { if (Volatile.Read(ref owner.closed) == 0) owner.notify(kind, second); }, null);
+                owner.context.Post(_ => { if (Volatile.Read(ref owner.closed) == 0) owner.notify(kind, first, second); }, null);
             return 0;
         }
         // Managed exceptions must never cross a native callback boundary.

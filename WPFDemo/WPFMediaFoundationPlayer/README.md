@@ -20,7 +20,7 @@ dotnet publish WPFMediaFoundationPlayer/MediaFoundation.PlayerDemo/MediaFoundati
 dotnet publish WPFMediaFoundationPlayer/MediaFoundation.PlayerDemo/MediaFoundation.PlayerDemo.csproj -c Release -r win-x86 --self-contained true
 ```
 
-启动发布的 `MediaFoundation.PlayerDemo.exe`，默认显示未打开状态，通过打开文件按钮或拖放选择媒体，也可显式传入媒体文件路径。产品不包含默认测试媒体，不链接仓库视频，也不在构建或发布时复制视频。自测必须使用 `--self-test <媒体文件路径>` 显式提供外部媒体；缺少路径返回退出码 2。支持的媒体格式和协议取决于 Windows 安装的 Media Foundation 组件及解码器。
+启动发布的 `MediaFoundation.PlayerDemo.exe`，默认显示未打开状态，通过打开文件按钮或拖放选择媒体，也可显式传入媒体文件路径。默认构建、发布不包含测试媒体。显式设置 `-p:IncludeSelfTestMedia=true` 时，使用仓库已有 `Video/视频.mp4`，复制为输出及发布目录下的 `self-test.mp4`。`--self-test`、`--scaling-test` 可省略媒体参数以使用该文件；显式相对测试路径以 EXE 所在目录解析，普通启动的相对路径仍以当前目录解析。缺少显式路径且未包含测试媒体时返回退出码 2。支持的媒体格式和协议取决于 Windows 安装的 Media Foundation 组件及解码器。
 
 ## 播放器入口
 

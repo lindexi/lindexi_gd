@@ -12,4 +12,9 @@
   <data name="AbsoluteUriRequired" xml:space="preserve"><value>The source must be an absolute URI.</value></data>
   <data name="UnsupportedRate" xml:space="preserve"><value>The native pipeline does not support the requested playback rate.</value></data>
   <data name="NativeFailure" xml:space="preserve"><value>The native media pipeline failed.</value></data>
+  <data name="NativeStageFailure" xml:space="preserve"><value>Native call failed: {0} (HRESULT=0x{1:X8}).</value></data>
+  <data name="InvalidStepState" xml:space="preserve"><value>The presenter cannot step in the current clock state.</value></data>
+  <data name="GpuFenceTimeout" xml:space="preserve"><value>The D3D9 GPU did not finish copying the video frame within the device deadline.</value></data>
+  <data name="LinearFilteringUnsupported" xml:space="preserve"><value>Native stage scaling.GetDeviceCaps: StretchRect LINEAR min/mag filtering is unsupported.</value></data>
+  <data name="InvalidVideoAperture" xml:space="preserve"><value>The native video aperture is invalid.</value></data>
 </root>

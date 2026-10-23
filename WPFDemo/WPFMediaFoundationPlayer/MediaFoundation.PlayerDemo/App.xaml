@@ -2,24 +2,41 @@
  <Application.Resources>
   <ResourceDictionary xmlns:sys="clr-namespace:System;assembly=System.Runtime">
    <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="/MediaFoundation.Controls;component/Themes/Controls.xaml"/></ResourceDictionary.MergedDictionaries>
+   <sys:String x:Key="PrototypeTitle">MFPlay + EVR D3DImage 实验</sys:String>
+   <sys:String x:Key="PrototypePlay">播放</sys:String>
+   <sys:String x:Key="PrototypePause">暂停</sys:String>
+   <sys:String x:Key="PrototypeSeek">跳转至 2 秒</sys:String>
+   <sys:String x:Key="PrototypeClose">关闭媒体</sys:String>
+   <sys:String x:Key="PrototypeReopen">重新打开</sys:String>
+   <sys:String x:Key="PrototypeMediaRequired">--mfplay-d3dimage 需要显式指定媒体文件路径。</sys:String>
    <sys:String x:Key="DemoTitle">Media Foundation 播放器</sys:String>
-   <sys:String x:Key="DemoMoreText">更多 ▾</sys:String>
-   <sys:String x:Key="DemoHwndText">HWND — 通常开销较低，有原生窗口空域限制</sys:String>
-   <sys:String x:Key="DemoD3DImageText">D3DImage — 可叠加 WPF UI，有额外合成开销</sys:String>
+   <sys:String x:Key="DemoMoreText">更多</sys:String>
+   <sys:String x:Key="DemoScalingMixerText">D3DImage 缩放 A：mixer 目标尺寸 RGB 输出（不支持即报错）</sys:String>
+   <sys:String x:Key="DemoScalingSurfaceText">D3DImage 缩放 B：展示复制中 GPU LINEAR 缩放（默认）</sys:String>
+   <sys:String x:Key="DemoHwndText">MFPlay / HWND（默认）— 通常开销较低，有原生窗口空域限制</sys:String>
+   <sys:String x:Key="DemoD3DImageText">MFPlay / EVR D3DImage — 可叠加 WPF UI，有额外复制与同步开销</sys:String>
+   <sys:String x:Key="DemoMfPlayPrototypeText">独立诊断窗口：MFPlay + EVR / D3DImage（非另一种播放后端）</sys:String>
    <sys:String x:Key="DemoSwitchNoticeText">切换将关闭并重新打开媒体，并非无缝切换。</sys:String>
+   <sys:String x:Key="DemoTraceOnlyText">日志文件写入失败，请查看标准错误输出。</sys:String>
+   <sys:String x:Key="DemoProbePlaybackStillFailedText">播放仍失败；以下仅为元数据诊断，原始 HRESULT 已保留在日志中。</sys:String>
+   <sys:String x:Key="DemoMediaProbeText">媒体诊断（轨道与解码器）</sys:String>
+   <sys:String x:Key="DemoMediaProbeResultText">媒体诊断（不代表播放成功）：{0}
+日志：{1}
+registeredCandidates=0 表示未枚举到匹配编码的 MFT；大于 0 仍需验证编码 profile/位深。EBML type=1 为视频、2 为音频、17 为字幕；codec 为容器声明的编码。若 MF 解析失败，仅有 EBML 信息不能证明解码器缺失。请保留报告以确定具体轨道；不要通过跳过音轨认定完整播放成功。</sys:String>
+   <sys:String x:Key="DemoOpenLogsText">打开日志文件夹</sys:String>
+   <sys:String x:Key="DemoCopyDiagnosticsText">复制诊断信息（含本地路径）</sys:String>
+   <sys:String x:Key="DemoLocalLogPrivacyText">诊断日志仅保存在本机，不自动上传；包含完整本地媒体路径。分享日志或复制信息前请检查隐私。</sys:String>
+   <sys:String x:Key="DemoPlaybackFailedText">播放失败：{0}。诊断日志：{1}</sys:String>
+   <sys:String x:Key="DemoLogFailureText">诊断日志不可用：{0}。错误：{1}。播放可继续，请保留此信息。</sys:String>
+   <sys:String x:Key="DemoDiagnosticActionFailedText">诊断操作失败：{0}。日志路径：{1}</sys:String>
    <sys:String x:Key="DemoSwitchingText">正在重新打开媒体并恢复播放状态…</sys:String>
-   <sys:String x:Key="DemoSwitchFailedText">切换失败：{0}。可在“更多”中重新选择 HWND 重试。</sys:String>
+   <sys:String x:Key="DemoSwitchFailedText">切换失败：{0}。诊断日志：{1}。可在“更多”中重新选择后端重试。</sys:String>
    <sys:String x:Key="SelfTestMediaRequiredText">自测需要显式指定媒体文件路径：--self-test &lt;媒体文件路径&gt;</sys:String>
-   <SolidColorBrush x:Key="PlayerBackgroundBrush" Color="#142638"/>
-   <SolidColorBrush x:Key="PlayerAccentBrush" Color="#FFB347"/>
-   <SolidColorBrush x:Key="PlayerForegroundBrush" Color="#FFF5E0"/>
-   <SolidColorBrush x:Key="PlayerControlBackgroundBrush" Color="#253D50"/>
+   <SolidColorBrush x:Key="PlayerBackgroundBrush" Color="#131820"/>
+   <SolidColorBrush x:Key="PlayerAccentBrush" Color="#64BEFF"/>
+   <SolidColorBrush x:Key="PlayerForegroundBrush" Color="#EEF4FA"/>
+   <SolidColorBrush x:Key="PlayerControlBackgroundBrush" Color="#1C2936"/>
    <Style x:Key="PlayerButtonStyle" TargetType="Button" BasedOn="{StaticResource PlayerBaseButtonStyle}">
-    <Setter Property="Padding" Value="12,7"/>
-    <Setter Property="Margin" Value="4"/>
-    <Setter Property="Background" Value="{DynamicResource PlayerControlBackgroundBrush}"/>
-    <Setter Property="Foreground" Value="{DynamicResource PlayerForegroundBrush}"/>
-    <Setter Property="MinHeight" Value="40"/>
    </Style>
   </ResourceDictionary>
  </Application.Resources>

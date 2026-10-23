@@ -1,4 +1,5 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+ <sys:String x:Key="PlayerEmptyText">打开文件或拖入媒体文件</sys:String>
  <sys:String x:Key="PlayerOpenText">打开文件</sys:String>
  <sys:String x:Key="PlayerPlayText">播放 (Space)</sys:String>
  <sys:String x:Key="PlayerPauseText">暂停 (Space)</sys:String>

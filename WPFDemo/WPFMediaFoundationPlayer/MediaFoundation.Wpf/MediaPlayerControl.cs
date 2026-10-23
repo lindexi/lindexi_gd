@@ -15,6 +15,7 @@ public class MediaPlayerControl : Control, IDisposable
 {
     private Slider? progress;
     private bool seeking, updatingProgress, disposed;
+    private double? committedProgress;
     private Window? owner;
     private Window? fullscreenWindow;
     private WindowStyle previousStyle;
@@ -33,6 +34,7 @@ public class MediaPlayerControl : Control, IDisposable
         Player = new MediaPlayer();
         Player.PropertyChanged += OnPlayerChanged;
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
         AllowDrop = true;
         Focusable = true;
         Bind(PlayPauseCommand, () => { if (Player.CanPause) Player.Pause(); else Player.Play(); }, () => Player.CanPlay || Player.CanPause || Player.State == PlaybackState.Opening);
@@ -61,6 +63,21 @@ public class MediaPlayerControl : Control, IDisposable
         control.Player.RenderingMode = (VideoRenderingMode)value;
         return value;
     }
+    /// <summary>D3DImage 缩放位置；默认 PresentationSurface，Close 后设置并重新 Open 生效。</summary>
+    public VideoScalingMode ScalingMode { get => (VideoScalingMode)GetValue(ScalingModeProperty); set => SetValue(ScalingModeProperty, value); }
+    /// <summary>ScalingMode 依赖属性。</summary>
+    public static readonly DependencyProperty ScalingModeProperty = DependencyProperty.Register(nameof(ScalingMode), typeof(VideoScalingMode), typeof(MediaPlayerControl),
+        new FrameworkPropertyMetadata(VideoScalingMode.PresentationSurface, null, CoerceScalingMode), value => Enum.IsDefined((VideoScalingMode)value));
+    private static object CoerceScalingMode(DependencyObject d, object value)
+    {
+        ((MediaPlayerControl)d).Player.ScalingMode = (VideoScalingMode)value;
+        return value;
+    }
+    /// <summary>默认模板底部工具栏的附加内容；与播放器按钮一起布局，不覆盖视频区域。</summary>
+    public object? ToolbarContent { get => GetValue(ToolbarContentProperty); set => SetValue(ToolbarContentProperty, value); }
+    /// <summary>ToolbarContent 依赖属性。</summary>
+    public static readonly DependencyProperty ToolbarContentProperty = DependencyProperty.Register(nameof(ToolbarContent), typeof(object), typeof(MediaPlayerControl));
+
     /// <summary>打开后自动播放，默认 true。</summary>
     public bool AutoPlay { get => (bool)GetValue(AutoPlayProperty); set => SetValue(AutoPlayProperty, value); }
     /// <summary>AutoPlay 依赖属性。</summary>
@@ -104,8 +121,10 @@ public class MediaPlayerControl : Control, IDisposable
         progress = GetTemplateChild("PART_Progress") as Slider;
         if (progress != null)
         {
-            progress.AddHandler(Thumb.DragStartedEvent, new DragStartedEventHandler(OnDragStarted));
-            progress.AddHandler(Thumb.DragCompletedEvent, new DragCompletedEventHandler(OnDragCompleted));
+            progress.AddHandler(Thumb.DragStartedEvent, new DragStartedEventHandler(OnDragStarted), true);
+            progress.AddHandler(Thumb.DragCompletedEvent, new DragCompletedEventHandler(OnDragCompleted), true);
+            progress.PreviewMouseLeftButtonDown += OnProgressMouseDown;
+            progress.PreviewKeyDown += OnProgressKeyDown;
             progress.ValueChanged += OnProgressChanged;
         }
         UpdatePresentation();
@@ -116,7 +135,7 @@ public class MediaPlayerControl : Control, IDisposable
         control.VerifyAccess(); ObjectDisposedException.ThrowIf(control.disposed, control);
         control.Run(() =>
         {
-            if (e.NewValue is Uri uri) { control.Player.Open(uri); if (control.AutoPlay) control.Player.Play(); }
+            if (e.NewValue is Uri uri) { System.Diagnostics.Trace.WriteLine($"SourceChanged {SourceDiagnostics.Describe(uri)}", "MediaFoundation.Controls"); control.Player.Open(uri); if (control.AutoPlay) control.Player.Play(); }
             else control.Player.Close();
         });
     }
@@ -134,7 +153,12 @@ public class MediaPlayerControl : Control, IDisposable
     private void OpenFile()
     {
         var dialog = new OpenFileDialog { Filter = Text.Get("FileFilter"), CheckFileExists = true, Multiselect = false };
-        if (dialog.ShowDialog(Window.GetWindow(this)) == true) SetCurrentValue(SourceProperty, new Uri(dialog.FileName));
+        if (dialog.ShowDialog(Window.GetWindow(this)) == true)
+        {
+            var source = new Uri(dialog.FileName);
+            System.Diagnostics.Trace.WriteLine($"OpenFile {SourceDiagnostics.Describe(source)}", "MediaFoundation.Controls");
+            SetCurrentValue(SourceProperty, source);
+        }
     }
     private void OnPlayerChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -152,20 +176,80 @@ public class MediaPlayerControl : Control, IDisposable
         }
     }
     private static string Format(TimeSpan time) => $"{(int)time.TotalHours:00}:{time.Minutes:00}:{time.Seconds:00}";
-    private void OnDragStarted(object sender, DragStartedEventArgs e) => seeking = true;
+    private void OnProgressMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (disposed || !Player.CanSeek || progress == null ||
+            progress.Template.FindName("PART_Track", progress) is not Track { Thumb: { } thumb } track || thumb.IsMouseOver) return;
+        double value = track.ValueFromPoint(e.GetPosition(track));
+        if (!double.IsFinite(value)) return;
+        progress.Focus();
+        seeking = true;
+        progress.SetCurrentValue(Slider.ValueProperty, Math.Clamp(value, progress.Minimum, progress.Maximum));
+        CommitProgress();
+        progress.UpdateLayout();
+        // Delegate capture to Thumb so a track click can continue as a native drag.
+        thumb.RaiseEvent(new MouseButtonEventArgs(e.MouseDevice, e.Timestamp, MouseButton.Left)
+        {
+            RoutedEvent = Mouse.MouseDownEvent,
+            Source = thumb
+        });
+        if (!thumb.IsDragging) { seeking = false; UpdatePresentation(); }
+        e.Handled = true;
+    }
+    private void OnProgressKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && progress?.Template.FindName("PART_Track", progress) is Track { Thumb: { IsDragging: true } thumb })
+        {
+            thumb.CancelDrag();
+            e.Handled = true;
+        }
+    }
+    private void OnDragStarted(object sender, DragStartedEventArgs e)
+    {
+        seeking = true;
+        committedProgress ??= progress?.Value;
+    }
     private void OnDragCompleted(object sender, DragCompletedEventArgs e)
     {
+        if (!seeking) return;
+        if (!e.Canceled) CommitProgress();
         seeking = false;
-        if (!e.Canceled && progress != null && !disposed) Run(() => Player.Seek(TimeSpan.FromSeconds(progress.Value)));
+        committedProgress = null;
         UpdatePresentation();
+    }
+    private void CommitProgress()
+    {
+        if (progress == null || disposed || !Player.CanSeek || committedProgress == progress.Value) return;
+        double value = progress.Value;
+        committedProgress = value;
+        Run(() => Player.Seek(TimeSpan.FromSeconds(value)));
     }
     private void OnProgressChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (!updatingProgress && !seeking && !disposed) Run(() => Player.Seek(TimeSpan.FromSeconds(e.NewValue)));
+        if (!updatingProgress && !seeking && !disposed)
+        {
+            committedProgress = null;
+            CommitProgress();
+            committedProgress = null;
+        }
+    }
+    private void CancelProgress()
+    {
+        seeking = false;
+        committedProgress = null;
+        if (progress?.Template.FindName("PART_Track", progress) is Track { Thumb: { IsDragging: true } thumb }) thumb.CancelDrag();
+    }
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        CancelProgress();
+        UpdatePresentation();
     }
     private void DetachProgress()
     {
         if (progress == null) return;
+        CancelProgress();
+        progress.PreviewMouseLeftButtonDown -= OnProgressMouseDown;
+        progress.PreviewKeyDown -= OnProgressKeyDown;
         progress.RemoveHandler(Thumb.DragStartedEvent, new DragStartedEventHandler(OnDragStarted));
         progress.RemoveHandler(Thumb.DragCompletedEvent, new DragCompletedEventHandler(OnDragCompleted));
         progress.ValueChanged -= OnProgressChanged; progress = null; seeking = false;
@@ -203,7 +287,7 @@ public class MediaPlayerControl : Control, IDisposable
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
-        if (disposed || e.Handled || Keyboard.Modifiers != ModifierKeys.None || e.OriginalSource is TextBoxBase or ComboBox or ComboBoxItem or Slider) return;
+        if (disposed || e.Handled || Keyboard.Modifiers != ModifierKeys.None || e.OriginalSource is TextBoxBase or ComboBox or ComboBoxItem or Slider or ButtonBase) return;
         Action? action = e.Key switch
         {
             Key.Space => () => { if (PlayPauseCommand.CanExecute(null, this)) PlayPauseCommand.Execute(null, this); },
@@ -236,7 +320,7 @@ public class MediaPlayerControl : Control, IDisposable
     {
         VerifyAccess(); if (disposed) return;
         ExitFullscreen(); disposed = true;
-        Loaded -= OnLoaded; if (owner != null) owner.Closed -= OnOwnerClosed; owner = null;
+        Loaded -= OnLoaded; Unloaded -= OnUnloaded; if (owner != null) owner.Closed -= OnOwnerClosed; owner = null;
         DetachProgress(); Player.PropertyChanged -= OnPlayerChanged; Player.Dispose();
         CommandManager.InvalidateRequerySuggested();
     }
