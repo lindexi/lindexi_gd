@@ -9,17 +9,17 @@ namespace MediaFoundation.Core;
 
 internal sealed unsafe class NativeCallback
 {
-    private readonly object gate = new();
-    private readonly Queue<Notification> pending = new();
-    private readonly SynchronizationContext context;
-    private readonly WeakReference<MediaPlaybackSession> owner;
-    private bool closed;
-    private bool scheduled;
+    private readonly object _gate = new();
+    private readonly Queue<Notification> _pending = new();
+    private readonly SynchronizationContext _context;
+    private readonly WeakReference<MediaPlaybackSession> _owner;
+    private bool _closed;
+    private bool _scheduled;
 
     internal NativeCallback(MediaPlaybackSession session, SynchronizationContext context)
     {
-        owner = new(session);
-        this.context = context;
+        _owner = new(session);
+        this._context = context;
     }
 
     internal readonly record struct Notification(MFP_EVENT_TYPE Type, HRESULT Result, nint Item);
@@ -32,8 +32,8 @@ internal sealed unsafe class NativeCallback
         internal nint Handle;
     }
 
-    private static readonly IMFPMediaPlayerCallback.Vtbl* Vtable = CreateVtable();
-    private static int liveInstances;
+    private static readonly IMFPMediaPlayerCallback.Vtbl* s_vtable = CreateVtable();
+    private static int s_liveInstances;
 
     private static IMFPMediaPlayerCallback.Vtbl* CreateVtable()
     {
@@ -49,11 +49,11 @@ internal sealed unsafe class NativeCallback
     internal IMFPMediaPlayerCallback* Create()
     {
         var instance = (Instance*)NativeMemory.AllocZeroed((nuint)sizeof(Instance));
-        instance->Vtable = Vtable;
+        instance->Vtable = s_vtable;
         instance->References = 1;
         instance->Handle = GCHandle.ToIntPtr(GCHandle.Alloc(this));
         Trace.WriteLine
-            ($"MFPlay callback allocated live={Interlocked.Increment(ref liveInstances)}", "MediaFoundation.Core");
+            ($"MFPlay callback allocated live={Interlocked.Increment(ref s_liveInstances)}", "MediaFoundation.Core");
         return (IMFPMediaPlayerCallback*)instance;
     }
 
@@ -84,7 +84,7 @@ internal sealed unsafe class NativeCallback
             GCHandle.FromIntPtr(instance->Handle).Free();
             NativeMemory.Free(instance);
             Trace.WriteLine
-                ($"MFPlay callback released live={Interlocked.Decrement(ref liveInstances)}", "MediaFoundation.Core");
+                ($"MFPlay callback released live={Interlocked.Decrement(ref s_liveInstances)}", "MediaFoundation.Core");
         }
 
         return (uint)count;
@@ -107,19 +107,19 @@ internal sealed unsafe class NativeCallback
 
     private void Enqueue(MFP_EVENT_HEADER* header)
     {
-        lock (gate)
+        lock (_gate)
         {
-            if (closed) return;
+            if (_closed) return;
             IMFPMediaItem* item = header->eEventType == MFP_EVENT_TYPE.MFP_EVENT_TYPE_MEDIAITEM_CREATED
                 ? ((MFP_MEDIAITEM_CREATED_EVENT*)header)->pMediaItem
                 : null;
             if (item != null) item->AddRef();
-            pending.Enqueue(new(header->eEventType, header->hrEvent, (nint)item));
-            if (scheduled) return;
-            scheduled = true;
+            _pending.Enqueue(new(header->eEventType, header->hrEvent, (nint)item));
+            if (_scheduled) return;
+            _scheduled = true;
             try
             {
-                context.Post(static state => ((NativeCallback)state!).Drain(), this);
+                _context.Post(static state => ((NativeCallback)state!).Drain(), this);
             }
             catch
             {
@@ -134,20 +134,20 @@ internal sealed unsafe class NativeCallback
         while (true)
         {
             Notification notification;
-            lock (gate)
+            lock (_gate)
             {
-                if (closed || pending.Count == 0)
+                if (_closed || _pending.Count == 0)
                 {
-                    scheduled = false;
+                    _scheduled = false;
                     return;
                 }
 
-                notification = pending.Dequeue();
+                notification = _pending.Dequeue();
             }
 
             try
             {
-                if (owner.TryGetTarget(out var session)) session.HandleNotification(this, notification);
+                if (_owner.TryGetTarget(out var session)) session.HandleNotification(this, notification);
                 else Close();
             }
             catch
@@ -165,10 +165,10 @@ internal sealed unsafe class NativeCallback
 
     internal void Close()
     {
-        lock (gate)
+        lock (_gate)
         {
-            closed = true;
-            while (pending.TryDequeue(out var notification))
+            _closed = true;
+            while (_pending.TryDequeue(out var notification))
                 if (notification.Item != 0)
                     ((IMFPMediaItem*)notification.Item)->Release();
         }

@@ -582,20 +582,23 @@ internal static class SelfTest
 
     private sealed class CallbackCounts : TraceListener
     {
-        private int allocated, released;
-        internal int Allocated => Volatile.Read(ref allocated);
-        internal int Released => Volatile.Read(ref released);
+        private int _allocated;
+        private int _released;
+        internal int Allocated => Volatile.Read(ref _allocated);
+        internal int Released => Volatile.Read(ref _released);
 
+        /// <inheritdoc />
         public override void Write(string? message)
         {
         }
 
+        /// <inheritdoc />
         public override void WriteLine(string? message)
         {
             if (message?.Contains("MFPlay callback allocated live=", StringComparison.Ordinal) == true)
-                Interlocked.Increment(ref allocated);
+                Interlocked.Increment(ref _allocated);
             if (message?.Contains("MFPlay callback released live=", StringComparison.Ordinal) == true)
-                Interlocked.Increment(ref released);
+                Interlocked.Increment(ref _released);
         }
     }
 

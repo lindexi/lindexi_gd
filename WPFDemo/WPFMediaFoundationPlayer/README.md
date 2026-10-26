@@ -1,88 +1,54 @@
-# WPF Media Foundation Player
+# MediaFoundation.Core
 
-独立产品入口为本目录的 `WPFMediaFoundationPlayer.slnx`，与仓库根目录的 demo 解决方案分离，不引用其项目或共享源码。需要支持 .NET 10 的 SDK、Windows WPF 开发环境，以及 Windows Media Foundation。Windows N 版本需要相应媒体组件。
+独立 `net10.0-windows` 库，不引用 WPF。提供两种原生播放会话：`MediaPlaybackSession` 使用 MFPlay 的音频输出、视频 HWND 渲染器和播放时钟；`MediaEngineSession` 使用 Media Engine frame-server、原生音频和媒体时钟，通过宿主提供的 D3D11 设备输出视频纹理。两者实现 `IPlaybackSession`，不使用 SourceReader 视频帧模拟播放。CsWin32 0.3.183 以 PrivateAssets=all 引用；生成 SDK 接口、GUID、事件结构及 callback Vtbl。支持 x86/x64 宿主，不要求宿主启用 unsafe。
 
-## 三项目结构
+## 接入约定
 
-- `MediaFoundation.Core`：不依赖 WPF 的 MFPlay 音视频管线，负责媒体打开、播放时钟、音频输出、视频渲染、异步事件和原生资源生命周期。CsWin32 生成所需互操作声明。
-- `MediaFoundation.Controls`：程序集和 C# 命名空间名称，提供播放器入口 `MediaPlayer` 和位于其上层的开箱即用控件 `MediaPlayerControl`；项目仍位于 `MediaFoundation.Wpf` 目录，项目文件名仍为 `MediaFoundation.Wpf.csproj`。
-- `MediaFoundation.PlayerDemo`：简单窗口承载播放器控件，通过应用资源定制画刷和按钮样式；同时提供可执行的集成自测。
+- 命名空间 `MediaFoundation.Core`，主入口 `public sealed MediaPlaybackSession : IDisposable`。
+- 在 WPF Dispatcher STA 且 `SynchronizationContext.Current` 已安装时构造，传入 HwndHost 的有效子窗口句柄。所有调用、属性访问与 Dispose 均在该线程。宿主必须持续泵消息，不可同步等待 MediaOpened。
+- `Open(Uri)` 请求异步解析；`MediaOpened` 后才调用播放控制。不会自动播放。可在 MediaOpened 中调用 Play。
+- Native callback 仅复制事件并 Post 到构造上下文；不在原生回调线程调用用户代码，不同步等待 UI。原生回调使用生成 Vtbl，IUnknown 引用计数管理 GCHandle。回调持有会话弱引用；仍要求宿主显式 Dispose 释放原生管线。
+- 再次 Open 创建独立管线，旧通知失效，旧媒体由 Shutdown/Release 释放。Dispose 丢弃排队通知，不再触发用户事件。先 Dispose 再销毁 HWND。
+- State 为原生确认状态，不是命令发出状态。Stop 在停止和归零定位完成后确认 Stopped。连续 Seek 合并，原生定位串行执行。不可定位源（例如直播）可能拒绝 Seek/Stop 归零，保留原生错误，不伪装成功。
+- UI timer 调用 Refresh() 后读取 Position；没有 PositionChanged 事件，也没有内部计时器。Position 为最近采样/定位的位置，Duration 为零表示未知。VideoWidth/Height 是原生像素尺寸，不是 WPF DIP。
+- HWND 改变大小或宿主要求重绘时调用 ResizeVideo()。纯音频也必须提供有效 HWND。
+- Volume、IsMuted、PlaybackRate、IsLooping 在 Open 之间保留。PlaybackRate 必须为有限正数；原生不支持时同步抛 NotSupportedException，异步速率拒绝通过 Failed.Error 通知。非 1 倍速是否输出音频由 Windows MF 管线和媒体能力决定。
+- EOF 触发 Ended、PlaybackEnded；循环开启时，随后异步 Seek(0)/Play。处理器可关闭循环、重新打开或释放；库不继续操作旧管线。
+- 同步参数、线程与原生命令错误抛异常；异步失败通过 State=Failed 与 Failed.Error 报告并关闭失败管线。Open 中的即时原生失败也通过 Failed 报告。事件处理器异常属于宿主异常，不应抛出。
+- 支持 Windows 已安装的 MF 解码器及协议。Windows N/精简系统可能需要 Media Feature Pack；编译成功不证明设备、编解码器和真实声音已验证。
 
-目标框架为 `net10.0-windows`，支持 `win-x86`、`win-x64`。演示输出为控制台 EXE，不是 WinExe，便于沙箱等待进程结束并获取退出码。
+## Media Engine / D3DImage 后端
 
-## 构建和运行
+`MediaEngineSession(nint d3d11Device)` 要求 Windows 8+，传入有效的 ID3D11Device，并在会话释放前保持设备有效。仍须在安装了 SynchronizationContext、持续泵消息的 STA 上使用。宿主通过 `TransferFrame(nint destinationTexture, int width, int height)` 在有新帧时传输到兼容纹理；返回 true 才表示完成一次传输，媒体元数据和播放时钟推进不能代替实际出帧证据。Core 不拥有 WPF 的 D3DImage。
 
-在仓库根目录执行：
+WPF 的 `RenderingMode` 是上层选择，不属于 Core 会话；模式在 Open（包括延迟 Open）时锁定，Close 后解锁，切换不更换 VideoView 对象。
 
-```text
-dotnet build WPFMediaFoundationPlayer/WPFMediaFoundationPlayer.slnx -c Release
-dotnet publish WPFMediaFoundationPlayer/MediaFoundation.PlayerDemo/MediaFoundation.PlayerDemo.csproj -c Release -r win-x64 --self-contained true
-dotnet publish WPFMediaFoundationPlayer/MediaFoundation.PlayerDemo/MediaFoundation.PlayerDemo.csproj -c Release -r win-x86 --self-contained true
-```
+D3DImage 路径需要同一适配器上的 D3D11/D3D9Ex 共享资源和视频支持。性能取决于驱动、解码器、视频尺寸、合成及共享资源同步，不保证比 HWND 更快或绝对零拷贝。当前不提供完整设备移除/重置自动恢复，也不静默切换后端；失败后由宿主关闭并重新打开，必要时在 Close 后选择 HWND。
 
-启动发布的 `MediaFoundation.PlayerDemo.exe`，默认显示未打开状态，通过打开文件按钮或拖放选择媒体，也可显式传入媒体文件路径。默认构建、发布不包含测试媒体。显式设置 `-p:IncludeSelfTestMedia=true` 时，使用仓库已有 `Video/视频.mp4`，复制为输出及发布目录下的 `self-test.mp4`。`--self-test`、`--scaling-test` 可省略媒体参数以使用该文件；显式相对测试路径以 EXE 所在目录解析，普通启动的相对路径仍以当前目录解析。缺少显式路径且未包含测试媒体时返回退出码 2。支持的媒体格式和协议取决于 Windows 安装的 Media Foundation 组件及解码器。
+Core 自身保持 AnyCPU；WPF 双模式库因 CsWin32 0.3.183 的 Direct3D9 架构相关元数据需要明确 x64/x86。AnyCPU 生成 Direct3DCreate9Ex/IDirect3D9Ex 会报告 PInvoke005；当前生成器配置没有独立架构选项。不能把生成 x64 interop 后标为 AnyCPU 当作安全替代。
 
-## 播放器入口
+MFPlay 自定义 EVR 的无参 `CreateD3DImageSession()` 及 `CreateD3DImagePrototype(...)` 默认使用 A / `VideoScalingMode.MixerOutput`，mixer、sample 和 staging 使用目标尺寸以减少小窗口播放高分辨率视频的复制带宽。可通过 `CreateD3DImageSession(VideoScalingMode.PresentationSurface)` 显式选择 B。A 不支持时报告失败，不静默回退。枚举值保持 MixerOutput=0、PresentationSurface=1。
 
-`MediaFoundation.Controls.MediaPlayer` 实现 `INotifyPropertyChanged` 和 `IDisposable`。在所属 WPF Dispatcher 创建和调用，并将 `VideoView` 放入可见的内容容器。无需自行管理 HWND。打开是异步操作，通过 `MediaOpened` 或 `Failed` 通知；打开期间调用 Play 会延迟到媒体就绪。
+## 诊断
 
-- 操作：`Open(Uri)`、`Play()`、`Pause()`、`Stop()`、`Seek(TimeSpan)`、`Close()`、`Dispose()`。
-- 设置：`Volume`（0 到 1）、`IsMuted`、`PlaybackRate`、`IsLooping`。
-- 状态：`Source`、`State`、`Position`、`Duration`、`VideoWidth`、`VideoHeight`、`HasVideo`、`HasAudio`、`CanPlay`、`CanPause`、`CanSeek`、`LastError`。
-- 事件：`PropertyChanged`、`MediaOpened`、`PlaybackEnded`、`Failed`。
+通过 System.Diagnostics.Trace 输出 `MediaFoundation.Core` 原生事件（类型、HRESULT、状态）、异步失败及不可用时长诊断；宿主可安装 TraceListener。错误文本位于 Strings.resx，可添加区域资源。公开 API XML 文档随程序集生成。
 
-Close 后可再次 Open，Dispose 后不可重用。媒体定位和倍速以原生媒体能力为准，不支持时报告错误，不伪装成功。详细线程、事件和生命周期契约见两个类库内的 README 及公开 API XML 注释。
+## 公开契约
 
-## 默认缩放策略
+构造：`MediaPlaybackSession(nint videoWindowHandle)`。
 
-D3DImage 默认使用 A / `VideoScalingMode.MixerOutput`：mixer 输出目标尺寸 RGB32，sample 与 staging 使用目标尺寸，以减少小窗口播放 4K 时的复制带宽；不保证所有设备均支持，不支持时明确报告失败，不静默回退。B / `PresentationSurface` 保留为显式可选策略，在展示复制时执行 GPU LINEAR 缩放。默认呈现为现有 MFPlay / EVR D3DImage（D3D9Ex 表面），不是新后端，也不使用 MediaEngine。
+方法：`void Open(Uri source)`、`void Play()`、`void Pause()`、`void Stop()`、`void Seek(TimeSpan position)`、`void Refresh()`、`void ResizeVideo()`、`void Dispose()`。
 
-`new MediaPlayer()`、`new MediaPlayerControl()`、Core 无参 `CreateD3DImageSession()` 和诊断 `CreateD3DImagePrototype(...)` 的未配置策略均为 A。枚举数值保持 `MixerOutput=0`、`PresentationSurface=1`，因此 `default(VideoScalingMode)` 也为 A。在 Open/Source 前设置 `ScalingMode`，或 Close 后修改再重新打开。
+可读写属性：`double Volume`、`bool IsMuted`、`double PlaybackRate`、`bool IsLooping`。
 
-`new MediaPlayer()`、`new MediaPlayerControl()` 和 Demo 未配置呈现模式时均使用 `VideoRenderingMode.D3DImage`。枚举数值仍为 `Hwnd=0`、`D3DImage=1`，因此 `default(VideoRenderingMode)` 仍是 Hwnd，不代表播放器默认配置。Open 前可显式设置 `RenderingMode = VideoRenderingMode.Hwnd`，菜单也保留 HWND。
+只读属性：`TimeSpan Position`、`TimeSpan Duration`、`int VideoWidth`、`int VideoHeight`、`bool HasVideo`、`bool HasAudio`、`PlaybackState State`、`Uri? Source`。
 
-Demo 从源码 `dotnet run --project WPFMediaFoundationPlayer/MediaFoundation.PlayerDemo -- <媒体路径>` 启动时默认 D3DImage + A；`--d3dimage` 保留为显式选择，`--hwnd` 显式选择 HWND，同时指定时 HWND 优先并记录冲突日志（独立 `--mfplay-d3dimage` 诊断入口不受影响）。历史 HWND 自测应显式传 `--hwnd`，不要把未指定模式的新运行当成 HWND；`--mixer-output` 显式选择 A，`--presentation-surface` 显式选择 B（同时指定时 A 优先）。“更多”菜单同样保留 A/B 选择。已有 `--scaling-test` 对 A/B 均显式设置策略，不将 B 用例依赖于默认值。历史验证记录中的“默认 B”仅描述当时版本，不代表当前默认。
+事件：`EventHandler? StateChanged`、`EventHandler? MediaOpened`、`EventHandler? PlaybackEnded`、`EventHandler<PlaybackFailedEventArgs>? Failed`。
 
-### 默认呈现切换验证
+`PlaybackState`：Closed、Opening、Stopped、Playing、Paused、Ended、Failed。
 
-本次 Windows 沙箱验证使用当前源码 Release 构建，非历史发布目录：
+`PlaybackFailedEventArgs(Exception error)`，只读 `Exception Error`。
 
-- `--diagnostics-test`：默认 Player / Control / DP metadata 为 D3DImage、枚举数值兼容、显式 HWND 转发与 MixerOutput 默认断言均通过；结果在 `results/default-d3d9-diagnostics-final`。
-- `--self-test --seek-regression --software-wpf`：未传渲染模式，退出 0；日志确认 `backend=MFPlay mode=D3DImage`、`scaling=MixerOutput`，覆盖视频像素、暂停、连续定位、恢复、关闭重开。结果在 `results/default-d3d9-focused-software-final`。这是 WPF `SoftwareOnly` 合成测试，不能据此宣称真实硬件 WPF 合成性能；视频仍走 MFPlay/EVR D3D9Ex。
-- `--self-test --seek-regression --hwnd --d3dimage --software-wpf`：退出 0；日志确认冲突时 HWND 优先及 `backend=MFPlay mode=Hwnd`，聚焦播放/定位/重开通过；结果在 `results/default-d3d9-explicit-hwnd`。菜单测试会有意访问两种模式。
+## 验证边界
 
-旧延迟 Open 测试已显式指定 HWND，不再依赖播放器默认值。以上为聚焦验证，未执行完整倍速扫描或真实可听音频验证。
-
-## 控件和定制
-
-`MediaFoundation.Controls.MediaPlayerControl` 提供可绑定的 Source、AutoPlay，以及只读 Player。默认模板提供打开文件、播放暂停、停止、拖动定位、时间、音量、静音、倍速、循环、全屏、加载与错误提示，支持文件拖放和键盘操作。进度拖动期间暂停位置跟随，释放时提交定位。
-
-画面与操作栏分行，避免 WPF/原生 HWND 的 airspace 问题。全屏不重新挂载视频 HWND，而是修改并恢复当前窗口属性；宿主可处理 FullscreenRequested 接管全屏策略。
-
-在控件、父容器或应用资源中覆盖以下键即可定制，无需复制整个模板：
-
-- 画刷：`PlayerBackgroundBrush`、`PlayerForegroundBrush`、`PlayerAccentBrush`、`PlayerControlBackgroundBrush`、`PlayerErrorBrush`。
-- 基础控件样式：`PlayerButtonStyle`、`PlayerSliderStyle`、`PlayerComboBoxStyle`。
-- 文本：`Themes/Strings.xaml` 中的 `Player*Text` 资源。
-
-默认模板使用 DynamicResource。演示项目的 App.xaml 提供实际覆盖示例，自测会检查资源与模板。控件在所属窗口关闭时释放，也可显式 Dispose；暂时 Unloaded 不释放，永久移除且不再使用时由宿主释放。
-
-## 已执行的集成验证
-
-发布后在 Windows 沙箱直接运行 EXE 的 `--self-test`，不通过脚本启动。日志见 `results` 中各目录的 `self-test.log`。
-
-| 最终运行 | 退出码 | callback 分配/释放 | 非预期 Failed |
-| --- | ---: | ---: | ---: |
-| win-x86，passed-x86-first | 0 | 13/13 | 0 |
-| win-x86，passed-x86-repeat | 0 | 13/13 | 0 |
-| win-x64，passed-x64 | 0 | 13/13 | 0 |
-
-上述运行覆盖媒体打开、音视频轨信息、时长和尺寸、播放位置推进、暂停保持、定位、停止归零、原生音量和静音读回、2 倍速时钟推进、真实 EOF 与循环、重复打开关闭、错误文件与恢复、资源覆盖、模板部件、全屏恢复、80 次 resize，以及 Dispose 后无迟到通知。2 倍速实测时钟比率约 2.055、2.334、2.298；短期测量受调度影响，不作为性能保证。
-
-8 次生命周期循环中，句柄分别为 699→715、699→712、673→692。callback 平衡与短期句柄检查不等于证明所有托管和原生内存完全无泄漏。
-
-### 必须区分的验证边界
-
-核心使用原生音频输出，不是无声的视频帧模拟。自测另执行 WASAPI loopback，但沙箱获取默认音频端点返回 `0x80070490`，因此未取得回采样本或 RMS 能量。**实际声音输出与音画同步未验证，不能以音轨存在或命令成功替代。** 需要在具有音频端点的 Windows 环境再次运行同一自测，并检查回采结果。
-
-已验证的是上述测试媒体与沙箱环境，不代表所有编解码器、网络协议、直播源和设备组合均通过。MFPlay 渲染更新限于 Playing/Paused 状态；Stopped 状态曾观察到原生渲染器返回 `0xC00D3E85`，未过滤或吞掉该错误，停止状态不请求视频更新。最终两架构及 x86 重复运行均未产生非预期失败。
+本目录通过 Release 构建验证生成 interop 与公开契约。真实窗口、音频设备、音画同步、媒体切换、循环和生命周期运行测试由演示宿主执行，不能以编译通过替代。建议使用带音轨 MP4、纯音频、纯视频、损坏文件、网络失败源，并覆盖播放时 Open、连续 Seek、Stop/Play、回调内 Dispose 和两架构。

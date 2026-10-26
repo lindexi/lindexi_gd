@@ -8,12 +8,12 @@ namespace MediaFoundation.PlayerDemo;
 
 internal static class PlaybackDiagnostics
 {
-    private static readonly ConcurrentDictionary<string, byte> secrets = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly ConcurrentDictionary<string, byte> registeredSources = new(StringComparer.Ordinal);
-    private static readonly BlockingCollection<string> buffer = new(4096);
-    private static readonly SessionListener listener = new();
-    private static Task? writer;
-    private static string? failure;
+    private static readonly ConcurrentDictionary<string, byte> s_secrets = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, byte> s_registeredSources = new(StringComparer.Ordinal);
+    private static readonly BlockingCollection<string> s_buffer = new(4096);
+    private static readonly SessionListener s_listener = new();
+    private static Task? s_writer;
+    private static string? s_failure;
 
     internal static string LogPath { get; } = Path.Combine
     (
@@ -22,13 +22,13 @@ internal static class PlaybackDiagnostics
         $"session-{DateTime.UtcNow:yyyyMMdd-HHmmssfff}-{Environment.ProcessId}-{Guid.NewGuid():N}.log"
     );
 
-    internal static string? Failure => Volatile.Read(ref failure);
+    internal static string? Failure => Volatile.Read(ref s_failure);
     internal static event Action? StorageFailed;
 
     internal static void Start()
     {
-        Trace.Listeners.Add(listener);
-        writer = Task.Run(WriteLoop);
+        Trace.Listeners.Add(s_listener);
+        s_writer = Task.Run(WriteLoop);
         Trace.WriteLine
         (
             $"Startup process={Environment.ProcessId} architecture={RuntimeInformation.ProcessArchitecture} OS={RuntimeInformation.OSDescription} runtime={RuntimeInformation.FrameworkDescription} log={LogPath}",
@@ -40,12 +40,12 @@ internal static class PlaybackDiagnostics
     {
         if (source == null) return;
         string key = source.IsFile ? source.AbsoluteUri.ToUpperInvariant() : source.AbsoluteUri;
-        if (!registeredSources.TryAdd(key, 0)) return;
+        if (!s_registeredSources.TryAdd(key, 0)) return;
         if (!source.IsFile)
         {
-            secrets.TryAdd(source.OriginalString, 0);
-            secrets.TryAdd(source.AbsoluteUri, 0);
-            secrets.TryAdd(source.ToString(), 0);
+            s_secrets.TryAdd(source.OriginalString, 0);
+            s_secrets.TryAdd(source.AbsoluteUri, 0);
+            s_secrets.TryAdd(source.ToString(), 0);
         }
 
         Trace.WriteLine
@@ -57,7 +57,7 @@ internal static class PlaybackDiagnostics
 
     internal static string Sanitize(string text)
     {
-        foreach (string secret in secrets.Keys.OrderByDescending
+        foreach (string secret in s_secrets.Keys.OrderByDescending
                      (s => s.Length)) text = text.Replace(secret, "[media]", StringComparison.OrdinalIgnoreCase);
         return Regex.Replace
         (
@@ -85,15 +85,15 @@ internal static class PlaybackDiagnostics
     internal static void Stop()
     {
         Trace.WriteLine("Shutdown flush/dispose", "Demo.Diagnostics");
-        Trace.Listeners.Remove(listener);
-        lock (listener) buffer.CompleteAdding();
-        if (writer != null && !writer.Wait(TimeSpan.FromSeconds(3)))
+        Trace.Listeners.Remove(s_listener);
+        lock (s_listener) s_buffer.CompleteAdding();
+        if (s_writer != null && !s_writer.Wait(TimeSpan.FromSeconds(3)))
             ReportFailure("Log shutdown flush timed out: " + LogPath);
     }
 
     private static void ReportFailure(string message)
     {
-        if (Interlocked.CompareExchange(ref failure, message, null) != null) return;
+        if (Interlocked.CompareExchange(ref s_failure, message, null) != null) return;
         Console.Error.WriteLine($"Diagnostics storage failure: {LogPath}{Environment.NewLine}{message}");
         StorageFailed?.Invoke();
     }
@@ -126,11 +126,11 @@ internal static class PlaybackDiagnostics
                 new FileStream(LogPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read), System.Text.Encoding.UTF8
             );
             output.WriteLine($"{DateTime.UtcNow:O} LogPath={LogPath}");
-            while (!buffer.IsCompleted)
+            while (!s_buffer.IsCompleted)
             {
                 var interval = Stopwatch.StartNew();
-                while (!buffer.IsCompleted && interval.ElapsedMilliseconds < 500)
-                    if (buffer.TryTake(out string? line, Math.Max(1, 500 - (int)interval.ElapsedMilliseconds)))
+                while (!s_buffer.IsCompleted && interval.ElapsedMilliseconds < 500)
+                    if (s_buffer.TryTake(out string? line, Math.Max(1, 500 - (int)interval.ElapsedMilliseconds)))
                         output.WriteLine(line);
                 output.Flush();
             }
@@ -144,16 +144,19 @@ internal static class PlaybackDiagnostics
 
     private sealed class SessionListener : TraceListener
     {
+        /// <inheritdoc />
         public override bool IsThreadSafe => true;
+        /// <inheritdoc />
         public override void Write(string? message) => WriteLine(message);
 
+        /// <inheritdoc />
         public override void WriteLine(string? message)
         {
             // The log location is intentionally retained; media locations are never recorded.
             string line = $"{DateTime.UtcNow:O} thread={Environment.CurrentManagedThreadId} {Sanitize(message ?? "")}";
             lock (this)
             {
-                if (!buffer.IsAddingCompleted && !buffer.TryAdd(line))
+                if (!s_buffer.IsAddingCompleted && !s_buffer.TryAdd(line))
                     ReportFailure("Diagnostic buffer full; records were lost.");
             }
         }

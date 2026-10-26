@@ -10,18 +10,24 @@ namespace MediaFoundation.Core;
 [System.Runtime.Versioning.SupportedOSPlatform("windows8.0")]
 public sealed unsafe class MediaEngineSession : IPlaybackSession
 {
-    private readonly int threadId = Environment.CurrentManagedThreadId;
-    private readonly SynchronizationContext context;
-    private readonly nint device;
-    private IMFMediaEngine* engine;
-    private IMFByteStream* sourceStream;
-    private IMFDXGIDeviceManager* manager;
-    private EngineCallback? callback;
-    private bool disposed, started, comInitialized, stopping;
-    private double volume = 1, rate = 1;
-    private bool muted, looping, playPending;
-    private TimeSpan? seekPending;
-    private bool seekInFlight;
+    private readonly int _threadId = Environment.CurrentManagedThreadId;
+    private readonly SynchronizationContext _context;
+    private readonly nint _device;
+    private IMFMediaEngine* _engine;
+    private IMFByteStream* _sourceStream;
+    private IMFDXGIDeviceManager* _manager;
+    private EngineCallback? _callback;
+    private bool _disposed;
+    private bool _started;
+    private bool _comInitialized;
+    private bool _stopping;
+    private double _volume = 1;
+    private double _rate = 1;
+    private bool _muted;
+    private bool _looping;
+    private bool _playPending;
+    private TimeSpan? _seekPending;
+    private bool _seekInFlight;
 
     /// <summary>使用宿主持有的 ID3D11Device；设备必须在会话释放前保持有效。</summary>
     public MediaEngineSession(nint d3d11Device)
@@ -29,21 +35,21 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
         if (d3d11Device == 0) throw new ArgumentNullException(nameof(d3d11Device));
         if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
             throw new InvalidOperationException(SR.Get("StaRequired"));
-        context = SynchronizationContext.Current ?? throw new InvalidOperationException(SR.Get("ContextRequired"));
-        if (context.GetType() == typeof(SynchronizationContext))
+        _context = SynchronizationContext.Current ?? throw new InvalidOperationException(SR.Get("ContextRequired"));
+        if (_context.GetType() == typeof(SynchronizationContext))
             throw new InvalidOperationException(SR.Get("ContextRequired"));
-        device = d3d11Device;
+        _device = d3d11Device;
         try
         {
             Check(PInvoke.CoInitializeEx(null, COINIT.COINIT_APARTMENTTHREADED));
-            comInitialized = true;
+            _comInitialized = true;
             Check(PInvoke.MFStartup(PInvoke.MF_VERSION, 0));
-            started = true;
+            _started = true;
             uint token;
             IMFDXGIDeviceManager* created = null;
             Check(PInvoke.MFCreateDXGIDeviceManager(&token, &created));
-            manager = created;
-            Check(manager->ResetDevice((IUnknown*)device, token));
+            _manager = created;
+            Check(_manager->ResetDevice((IUnknown*)_device, token));
         }
         catch
         {
@@ -91,14 +97,14 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
         get
         {
             Verify();
-            return volume;
+            return _volume;
         }
         set
         {
             Verify();
             if (!double.IsFinite(value) || value < 0 || value > 1) throw new ArgumentOutOfRangeException(nameof(value));
-            if (engine != null) engine->SetVolume(value).ThrowOnFailure();
-            volume = value;
+            if (_engine != null) _engine->SetVolume(value).ThrowOnFailure();
+            _volume = value;
         }
     }
 
@@ -108,13 +114,13 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
         get
         {
             Verify();
-            return muted;
+            return _muted;
         }
         set
         {
             Verify();
-            if (engine != null) engine->SetMuted(value).ThrowOnFailure();
-            muted = value;
+            if (_engine != null) _engine->SetMuted(value).ThrowOnFailure();
+            _muted = value;
         }
     }
 
@@ -124,16 +130,16 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
         get
         {
             Verify();
-            return rate;
+            return _rate;
         }
         set
         {
             Verify();
             if (!double.IsFinite(value) || value <= 0 || value > float.MaxValue || (float)value == 0)
                 throw new ArgumentOutOfRangeException(nameof(value));
-            if (engine != null) engine->SetPlaybackRate(value).ThrowOnFailure();
-            rate = value;
-            System.Diagnostics.Trace.WriteLine($"MediaEngine rate={rate} position={Position}", "MediaFoundation.Core");
+            if (_engine != null) _engine->SetPlaybackRate(value).ThrowOnFailure();
+            _rate = value;
+            System.Diagnostics.Trace.WriteLine($"MediaEngine rate={_rate} position={Position}", "MediaFoundation.Core");
         }
     }
 
@@ -143,12 +149,12 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
         get
         {
             Verify();
-            return looping;
+            return _looping;
         }
         set
         {
             Verify();
-            looping = value;
+            _looping = value;
         }
     }
 
@@ -164,24 +170,24 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
         Position = Duration = TimeSpan.Zero;
         VideoWidth = VideoHeight = 0;
         HasVideo = HasAudio = false;
-        stopping = false;
+        _stopping = false;
         State = PlaybackState.Opening;
         IMFAttributes* attributes = null;
         IMFMediaEngineClassFactory* factory = null;
         try
         {
-            callback = new EngineCallback(context, OnEvent);
+            _callback = new EngineCallback(_context, OnEvent);
             Check(PInvoke.MFCreateAttributes(&attributes, 3));
             var key = PInvoke.MF_MEDIA_ENGINE_CALLBACK;
             Check
             (
-                attributes->SetUnknown(&key, (IUnknown*)callback.Pointer),
+                attributes->SetUnknown(&key, (IUnknown*)_callback.Pointer),
                 "IMFAttributes.SetUnknown(MF_MEDIA_ENGINE_CALLBACK)"
             );
             key = PInvoke.MF_MEDIA_ENGINE_DXGI_MANAGER;
             Check
             (
-                attributes->SetUnknown(&key, (IUnknown*)manager),
+                attributes->SetUnknown(&key, (IUnknown*)_manager),
                 "IMFAttributes.SetUnknown(MF_MEDIA_ENGINE_DXGI_MANAGER)"
             );
             key = PInvoke.MF_MEDIA_ENGINE_VIDEO_OUTPUT_FORMAT;
@@ -210,11 +216,11 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
                 factory->CreateInstance(0, attributes, &created),
                 "IMFMediaEngineClassFactory.CreateInstance(frame-server)"
             );
-            engine = created;
-            Check(engine->SetAutoPlay(false));
-            Check(engine->SetVolume(volume));
-            Check(engine->SetMuted(muted));
-            Check(engine->SetPlaybackRate(rate));
+            _engine = created;
+            Check(_engine->SetAutoPlay(false));
+            Check(_engine->SetVolume(_volume));
+            Check(_engine->SetMuted(_muted));
+            Check(_engine->SetPlaybackRate(_rate));
             if (source.IsFile)
             {
                 IMFByteStream* stream = null;
@@ -231,7 +237,7 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
                                 MF_FILE_FLAGS.MF_FILEFLAGS_NONE, new PCWSTR(file), &stream
                             ), "MFCreateFile(local)"
                         );
-                    sourceStream = stream;
+                    _sourceStream = stream;
                     stream = null;
                     string extension = System.IO.Path.GetExtension(path).ToLowerInvariant();
                     string? mime = extension switch
@@ -249,7 +255,7 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
                         void* streamAttributes = null;
                         Check
                         (
-                            sourceStream->QueryInterface(&attributesId, &streamAttributes),
+                            _sourceStream->QueryInterface(&attributesId, &streamAttributes),
                             "IMFByteStream.QueryInterface(IMFAttributes)"
                         );
                         try
@@ -271,7 +277,7 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
 
                     var extendedId = typeof(IMFMediaEngineEx).GUID;
                     void* valueEx = null;
-                    Check(engine->QueryInterface(&extendedId, &valueEx), "QueryInterface(IMFMediaEngineEx)");
+                    Check(_engine->QueryInterface(&extendedId, &valueEx), "QueryInterface(IMFMediaEngineEx)");
                     extended = (IMFMediaEngineEx*)valueEx;
                     string hintExtension = extension.Length <= 16 && extension.All
                         (c => char.IsAsciiLetterOrDigit(c) || c == '.')
@@ -287,7 +293,7 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
                     {
                         Check
                         (
-                            extended->SetSourceFromByteStream(sourceStream, new BSTR((char*)hint)),
+                            extended->SetSourceFromByteStream(_sourceStream, new BSTR((char*)hint)),
                             "IMFMediaEngineEx.SetSourceFromByteStream(local; no Load)"
                         );
                     }
@@ -307,14 +313,14 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
                 nint text = Marshal.StringToBSTR(source.AbsoluteUri);
                 try
                 {
-                    Check(engine->SetSource(new BSTR((char*)text)), "IMFMediaEngine.SetSource");
+                    Check(_engine->SetSource(new BSTR((char*)text)), "IMFMediaEngine.SetSource");
                 }
                 finally
                 {
                     Marshal.FreeBSTR(text);
                 }
 
-                Check(engine->Load());
+                Check(_engine->Load());
             }
         }
         catch
@@ -337,15 +343,15 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
     {
         Ready();
         System.Diagnostics.Trace.WriteLine
-            ($"MediaEngine Play position={Position} rate={rate} seeking={seekInFlight}", "MediaFoundation.Core");
-        stopping = false;
-        if (seekInFlight || engine->IsSeeking())
+            ($"MediaEngine Play position={Position} rate={_rate} seeking={_seekInFlight}", "MediaFoundation.Core");
+        _stopping = false;
+        if (_seekInFlight || _engine->IsSeeking())
         {
-            playPending = true;
+            _playPending = true;
             return;
         }
 
-        engine->Play().ThrowOnFailure();
+        _engine->Play().ThrowOnFailure();
     }
 
     /// <inheritdoc/>
@@ -353,38 +359,38 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
     {
         Ready();
         System.Diagnostics.Trace.WriteLine($"MediaEngine Pause position={Position}", "MediaFoundation.Core");
-        playPending = false;
-        stopping = false;
-        engine->Pause().ThrowOnFailure();
+        _playPending = false;
+        _stopping = false;
+        _engine->Pause().ThrowOnFailure();
     }
 
     /// <inheritdoc/>
     public void Stop()
     {
         Ready();
-        playPending = false;
-        engine->Pause().ThrowOnFailure();
-        stopping = true;
-        if (seekInFlight || engine->IsSeeking())
+        _playPending = false;
+        _engine->Pause().ThrowOnFailure();
+        _stopping = true;
+        if (_seekInFlight || _engine->IsSeeking())
         {
-            seekPending = TimeSpan.Zero;
+            _seekPending = TimeSpan.Zero;
             return;
         }
 
         BeginSeek(TimeSpan.Zero);
-        if (!seekInFlight) ConfirmStop();
+        if (!_seekInFlight) ConfirmStop();
     }
 
     /// <inheritdoc/>
     public void Seek(TimeSpan position)
     {
         Ready();
-        stopping = false;
+        _stopping = false;
         System.Diagnostics.Trace.WriteLine
-            ($"MediaEngine Seek requested={position} current={Position} rate={rate}", "MediaFoundation.Core");
-        if (seekInFlight || engine->IsSeeking())
+            ($"MediaEngine Seek requested={position} current={Position} rate={_rate}", "MediaFoundation.Core");
+        if (_seekInFlight || _engine->IsSeeking())
         {
-            seekPending = position;
+            _seekPending = position;
             return;
         }
 
@@ -395,15 +401,15 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
     public void Refresh()
     {
         Verify();
-        if (engine == null || State == PlaybackState.Opening) return;
-        Position = ToTime(engine->GetCurrentTime());
-        Duration = ToTime(engine->GetDuration());
+        if (_engine == null || State == PlaybackState.Opening) return;
+        Position = ToTime(_engine->GetCurrentTime());
+        Duration = ToTime(_engine->GetDuration());
         uint width = 0, height = 0;
-        if (engine->HasVideo()) Check(engine->GetNativeVideoSize(&width, &height));
+        if (_engine->HasVideo()) Check(_engine->GetNativeVideoSize(&width, &height));
         VideoWidth = checked((int)width);
         VideoHeight = checked((int)height);
-        HasVideo = engine->HasVideo();
-        HasAudio = engine->HasAudio();
+        HasVideo = _engine->HasVideo();
+        HasAudio = _engine->HasAudio();
     }
 
     /// <inheritdoc/>
@@ -415,14 +421,14 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
         Verify();
         if (texture == 0) throw new ArgumentNullException(nameof(texture));
         if (width <= 0 || height <= 0) throw new ArgumentOutOfRangeException(nameof(width));
-        if (engine == null || !HasVideo || State is PlaybackState.Opening or PlaybackState.Failed) return false;
+        if (_engine == null || !HasVideo || State is PlaybackState.Opening or PlaybackState.Failed) return false;
         long timestamp;
-        var result = engine->OnVideoStreamTick(&timestamp);
+        var result = _engine->OnVideoStreamTick(&timestamp);
         Check(result, "IMFMediaEngine.OnVideoStreamTick");
-        if (result.Value != 0 && !engine->IsSeeking()) return false;
+        if (result.Value != 0 && !_engine->IsSeeking()) return false;
         var destination = new RECT(0, 0, width, height);
         var border = new MFARGB { rgbAlpha = 255 };
-        Check(engine->TransferVideoFrame((IUnknown*)texture, null, &destination, &border));
+        Check(_engine->TransferVideoFrame((IUnknown*)texture, null, &destination, &border));
         return true;
     }
 
@@ -440,11 +446,11 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
 
     private void OnEvent(uint kind, nuint mediaError, uint error)
     {
-        if (disposed || engine == null || State == PlaybackState.Failed) return;
+        if (_disposed || _engine == null || State == PlaybackState.Failed) return;
         if ((MF_MEDIA_ENGINE_EVENT)kind != MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_TIMEUPDATE)
             System.Diagnostics.Trace.WriteLine
             (
-                $"MediaEngine event={(MF_MEDIA_ENGINE_EVENT)kind} state={State} seeking={engine->IsSeeking()} paused={engine->IsPaused()} time={engine->GetCurrentTime():F3}",
+                $"MediaEngine event={(MF_MEDIA_ENGINE_EVENT)kind} state={State} seeking={_engine->IsSeeking()} paused={_engine->IsPaused()} time={_engine->GetCurrentTime():F3}",
                 "MediaFoundation.Core"
             );
         switch ((MF_MEDIA_ENGINE_EVENT)kind)
@@ -472,14 +478,14 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
                 State = PlaybackState.Stopped;
                 Refresh();
                 StateChanged?.Invoke(this, EventArgs.Empty);
-                if (!disposed && engine != null) MediaOpened?.Invoke(this, EventArgs.Empty);
+                if (!_disposed && _engine != null) MediaOpened?.Invoke(this, EventArgs.Empty);
                 break;
             case MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_PLAYING:
                 State = PlaybackState.Playing;
                 StateChanged?.Invoke(this, EventArgs.Empty);
                 break;
             case MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_PAUSE:
-                if (!stopping && State != PlaybackState.Stopped)
+                if (!_stopping && State != PlaybackState.Stopped)
                 {
                     State = PlaybackState.Paused;
                     StateChanged?.Invoke(this, EventArgs.Empty);
@@ -487,40 +493,40 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
 
                 break;
             case MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_SEEKED:
-                if (engine->IsSeeking()) break;
-                seekInFlight = false;
+                if (_engine->IsSeeking()) break;
+                _seekInFlight = false;
                 Refresh();
-                if (seekPending is { } target)
+                if (_seekPending is { } target)
                 {
-                    seekPending = null;
+                    _seekPending = null;
                     BeginSeek(target);
-                    if (seekInFlight) break;
+                    if (_seekInFlight) break;
                 }
 
-                if (stopping) ConfirmStop();
+                if (_stopping) ConfirmStop();
                 else
                 {
                     Refresh();
                     StateChanged?.Invoke(this, EventArgs.Empty);
                 }
 
-                if (playPending)
+                if (_playPending)
                 {
-                    playPending = false;
-                    engine->Play().ThrowOnFailure();
+                    _playPending = false;
+                    _engine->Play().ThrowOnFailure();
                 }
 
                 break;
             case MF_MEDIA_ENGINE_EVENT.MF_MEDIA_ENGINE_EVENT_ENDED:
                 State = PlaybackState.Ended;
                 Refresh();
-                var current = engine;
+                var current = _engine;
                 StateChanged?.Invoke(this, EventArgs.Empty);
                 PlaybackEnded?.Invoke(this, EventArgs.Empty);
-                if (!disposed && engine == current && looping)
+                if (!_disposed && _engine == current && _looping)
                 {
-                    engine->SetCurrentTime(0).ThrowOnFailure();
-                    engine->Play().ThrowOnFailure();
+                    _engine->SetCurrentTime(0).ThrowOnFailure();
+                    _engine->Play().ThrowOnFailure();
                 }
 
                 break;
@@ -529,15 +535,15 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
 
     private void BeginSeek(TimeSpan position)
     {
-        engine->SetCurrentTime
+        _engine->SetCurrentTime
             (Math.Clamp(position.TotalSeconds, 0, Duration > TimeSpan.Zero ? Duration.TotalSeconds : double.MaxValue))
             .ThrowOnFailure();
-        seekInFlight = engine->IsSeeking();
+        _seekInFlight = _engine->IsSeeking();
     }
 
     private void ConfirmStop()
     {
-        stopping = false;
+        _stopping = false;
         Position = TimeSpan.Zero;
         State = PlaybackState.Stopped;
         StateChanged?.Invoke(this, EventArgs.Empty);
@@ -551,34 +557,34 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
     private void Ready()
     {
         Verify();
-        if (engine == null || State is PlaybackState.Opening or PlaybackState.Failed or PlaybackState.Closed)
+        if (_engine == null || State is PlaybackState.Opening or PlaybackState.Failed or PlaybackState.Closed)
             throw new InvalidOperationException(SR.Get("NotReady"));
     }
 
     private void Verify()
     {
-        if (threadId != Environment.CurrentManagedThreadId) throw new InvalidOperationException(SR.Get("WrongThread"));
-        ObjectDisposedException.ThrowIf(disposed, this);
+        if (_threadId != Environment.CurrentManagedThreadId) throw new InvalidOperationException(SR.Get("WrongThread"));
+        ObjectDisposedException.ThrowIf(_disposed, this);
     }
 
     private void ReleaseEngine()
     {
-        playPending = false;
-        seekPending = null;
-        seekInFlight = false;
-        callback?.Dispose();
-        callback = null;
-        if (engine != null)
+        _playPending = false;
+        _seekPending = null;
+        _seekInFlight = false;
+        _callback?.Dispose();
+        _callback = null;
+        if (_engine != null)
         {
-            engine->Shutdown();
-            engine->Release();
-            engine = null;
+            _engine->Shutdown();
+            _engine->Release();
+            _engine = null;
         }
 
-        if (sourceStream != null)
+        if (_sourceStream != null)
         {
-            sourceStream->Release();
-            sourceStream = null;
+            _sourceStream->Release();
+            _sourceStream = null;
             System.Diagnostics.Trace.WriteLine("MediaEngine source stream released", "MediaFoundation.Core");
         }
     }
@@ -586,26 +592,26 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
     /// <summary>关闭通知、关闭引擎，再释放 DXGI manager 和 MF/COM 初始化引用。</summary>
     public void Dispose()
     {
-        if (disposed) return;
+        if (_disposed) return;
         Verify();
-        disposed = true;
+        _disposed = true;
         ReleaseEngine();
-        if (manager != null)
+        if (_manager != null)
         {
-            manager->Release();
-            manager = null;
+            _manager->Release();
+            _manager = null;
         }
 
-        if (started)
+        if (_started)
         {
             PInvoke.MFShutdown();
-            started = false;
+            _started = false;
         }
 
-        if (comInitialized)
+        if (_comInitialized)
         {
             PInvoke.CoUninitialize();
-            comInitialized = false;
+            _comInitialized = false;
         }
     }
 }

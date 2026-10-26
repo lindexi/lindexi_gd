@@ -160,7 +160,7 @@ internal static class MediaProbe
                         $"MF track={i} selected={selected} major={major} subtype={subtype} codec={CodecName(subtype)} language={lang} width={size >> 32} height={size & uint.MaxValue} channels={channels} sampleRate={rate}"
                     );
                     if (major == PInvoke.MFMediaType_Video || major == PInvoke.MFMediaType_Audio)
-                        Decoders(major, subtype, report);
+                        EnumerateDecoders(major, subtype, report);
                 }
                 catch (COMException error)
                 {
@@ -220,7 +220,7 @@ internal static class MediaProbe
             }
 
             report.AppendLine($"EBML codec={codec} mappedSubtype={subtype}");
-            Decoders
+            EnumerateDecoders
             (
                 codec != null && codec.StartsWith("V_", StringComparison.Ordinal)
                     ? PInvoke.MFMediaType_Video
@@ -242,7 +242,7 @@ internal static class MediaProbe
         };
     }
 
-    private static unsafe void Decoders(Guid major, Guid subtype, StringBuilder report)
+    private static unsafe void EnumerateDecoders(Guid major, Guid subtype, StringBuilder report)
     {
         IMFActivate** activations = null;
         uint count = 0;

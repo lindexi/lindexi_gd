@@ -4,7 +4,7 @@
 
 ### 已确证契约与修复边界
 
-`results/d3dimage-contract/contract.log` 来自实际 PresentationCore 10.0.0.0：LockImpl 在 WaitOne 返回后无条件 `_lockCount++`；强制未就绪实验得到 `FORCED timeout result=False count=1`，一次 Unlock 后 count=0。Unlock 在 dirty 且计数归零时 SubscribeToCommittingBatch。故 TryLock 正常返回 false 仍必须配对 Unlock，但不能写 backbuffer/dirty；调用抛异常时则不进入配对段。这不是普通 Monitor.TryEnter 的契约。正式 MfPlayD3DImagePresenter 与同类 D3DImagePresenter 均已采用 bool writable + try/finally Unlock。旧的 false 直接返回会积累计数、破坏后续提交；不能将历史失败简单归咎于 sandbox GPU。
+`results/d3dimage-contract/contract.log` 来自实际 PresentationCore 10.0.0.0：LockImpl 在 WaitOne 返回后无条件 `_lockCount++`；强制未就绪实验得到 `FORCED timeout result=False count=1`，一次 Unlock 后 count=0。Unlock 在 dirty 且计数归零时 SubscribeToCommittingBatch。故 TryLock 正常返回 false 仍必须配对 Unlock，但不能写 backbuffer/dirty；调用抛异常时则不进入配对段。这不是普通 Monitor.TryEnter 的契约。正式 MFPlayD3DImagePresenter 与同类 D3DImagePresenter 均已采用 bool writable + try/finally Unlock。旧的 false 直接返回会积累计数、破坏后续提交；不能将历史失败简单归咎于 sandbox GPU。
 
 本轮没有再修改产品源码、超时、断言或默认策略；未新增全局 SoftwareOnly、CPU copy fallback 或未使用产品代码。既有显式 `--software-wpf` 仅作对照，既有 SetBackBuffer 软件可用参数未改变。
 
@@ -52,7 +52,7 @@ focused 两模式覆盖既有菜单双向切换与意图恢复、视觉模板/�
 
 软件 WPF 为明确独立测试模式，仅测试参数显式启用，不是产品回退。A 的 mixer/display 从 757×426 到 650×366、704×396、721×406；B mixer 保持 640×360，display 为上述目标尺寸。每种策略包含暂停 resize、暂停 seek 到 12 秒、20 次暂停 resize、close/reopen、8 次播放 resize。前一同逻辑软件运行 `results/scaling-final-software` 的六张对照截图已逐张检查：暂停前后同片头画面保留；seek 后变为三人看向窗外的电影画面，而非仅工具栏时间变化。最终包重新完整跑过全部 case。
 
-默认 WPF 的精确已观察阻塞阶段：`MfPlayD3DImagePresenter.OnTick -> D3DImage.TryLock(2ms)` 返回 false（frontBufferAvailable=True），并非原生 HRESULT 失败。B 展示仍为 640×360，未到新目标呈现；A 原生 SetOutputType 已成功提交 757×426，随后 display=0×0，未获得 WPF 锁重建展示。不得把软件模式成功写成默认 WPF 可见性成功。沙箱默认合成问题仍未解决；原机普通启动未直接实测，不声称已验证。历史默认合成同样失败，本轮没有以全局软件模式改变产品行为。物理跨屏 DPI、声音和长期泄漏未覆盖。
+默认 WPF 的精确已观察阻塞阶段：`MFPlayD3DImagePresenter.OnTick -> D3DImage.TryLock(2ms)` 返回 false（frontBufferAvailable=True），并非原生 HRESULT 失败。B 展示仍为 640×360，未到新目标呈现；A 原生 SetOutputType 已成功提交 757×426，随后 display=0×0，未获得 WPF 锁重建展示。不得把软件模式成功写成默认 WPF 可见性成功。沙箱默认合成问题仍未解决；原机普通启动未直接实测，不声称已验证。历史默认合成同样失败，本轮没有以全局软件模式改变产品行为。物理跨屏 DPI、声音和长期泄漏未覆盖。
 
 发布复现：`dotnet publish WPFMediaFoundationPlayer/MediaFoundation.PlayerDemo/MediaFoundation.PlayerDemo.csproj -c Release -r win-x64 --self-contained true -p:IncludeSelfTestMedia=true -o WPFMediaFoundationPlayer/publish/scaling-verified`。
 

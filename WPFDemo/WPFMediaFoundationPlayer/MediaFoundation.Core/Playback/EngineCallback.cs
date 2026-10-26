@@ -14,22 +14,22 @@ internal sealed unsafe class EngineCallback : IDisposable
         internal nint Handle;
     }
 
-    private Instance* instance;
-    private readonly SynchronizationContext context;
-    private readonly Action<uint, nuint, uint> notify;
-    private int closed;
-    private static readonly Guid NotifyId = typeof(Windows.Win32.Media.MediaFoundation.IMFMediaEngineNotify).GUID;
-    private static readonly void** Vtable = CreateVtable();
-    internal void* Pointer => instance;
+    private Instance* _instance;
+    private readonly SynchronizationContext _context;
+    private readonly Action<uint, nuint, uint> _notify;
+    private int _closed;
+    private static readonly Guid s_notifyId = typeof(Windows.Win32.Media.MediaFoundation.IMFMediaEngineNotify).GUID;
+    private static readonly void** s_vtable = CreateVtable();
+    internal void* Pointer => _instance;
 
     internal EngineCallback(SynchronizationContext context, Action<uint, nuint, uint> notify)
     {
-        this.context = context;
-        this.notify = notify;
-        instance = (Instance*)NativeMemory.AllocZeroed((nuint)sizeof(Instance));
-        instance->Vtable = Vtable;
-        instance->References = 1;
-        instance->Handle = GCHandle.ToIntPtr(GCHandle.Alloc(this));
+        this._context = context;
+        this._notify = notify;
+        _instance = (Instance*)NativeMemory.AllocZeroed((nuint)sizeof(Instance));
+        _instance->Vtable = s_vtable;
+        _instance->References = 1;
+        _instance->Handle = GCHandle.ToIntPtr(GCHandle.Alloc(this));
     }
 
     private static void** CreateVtable()
@@ -48,7 +48,7 @@ internal sealed unsafe class EngineCallback : IDisposable
         if (result == null) return unchecked((int)0x80004003);
         *result = null;
         if (iid == null) return unchecked((int)0x80004003);
-        if (*iid != NotifyId && *iid != new Guid("00000000-0000-0000-C000-000000000046"))
+        if (*iid != s_notifyId && *iid != new Guid("00000000-0000-0000-C000-000000000046"))
             return unchecked((int)0x80004002);
         Interlocked.Increment(ref self->References);
         *result = self;
@@ -89,12 +89,12 @@ internal sealed unsafe class EngineCallback : IDisposable
             }
 
             var owner = (EngineCallback)GCHandle.FromIntPtr(self->Handle).Target!;
-            if (Volatile.Read(ref owner.closed) == 0)
-                owner.context.Post
+            if (Volatile.Read(ref owner._closed) == 0)
+                owner._context.Post
                 (
                     _ =>
                     {
-                        if (Volatile.Read(ref owner.closed) == 0) owner.notify(kind, first, second);
+                        if (Volatile.Read(ref owner._closed) == 0) owner._notify(kind, first, second);
                     }, null
                 );
             return 0;
@@ -109,10 +109,10 @@ internal sealed unsafe class EngineCallback : IDisposable
 
     public void Dispose()
     {
-        Interlocked.Exchange(ref closed, 1);
-        if (instance == null) return;
-        var old = instance;
-        instance = null;
+        Interlocked.Exchange(ref _closed, 1);
+        if (_instance == null) return;
+        var old = _instance;
+        _instance = null;
         ReleaseCore(old);
     }
 }

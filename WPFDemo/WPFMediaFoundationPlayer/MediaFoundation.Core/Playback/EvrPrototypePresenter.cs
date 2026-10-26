@@ -10,70 +10,79 @@ using Windows.Win32.System.Com;
 namespace MediaFoundation.Core;
 
 [ComVisible(true), ClassInterface(ClassInterfaceType.None)]
-internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface, IMFClockStateSink.Interface,
+internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface, IMFClockStateSink.Interface,
     IMFTopologyServiceLookupClient.Interface, IMFGetService.Interface, IMFVideoDeviceID.Interface,
     IMFVideoDisplayControl.Interface, IMFRateSupport.Interface, IDisposable
 {
-    private readonly object gate = new();
-    private IDirect3D9Ex* api;
-    private IDirect3DDevice9Ex* device;
-    private IDirect3DDeviceManager9* manager;
-    private IMFVideoSampleAllocator* allocator;
-    private int targetWidth, targetHeight, mixerWidth, mixerHeight, displayWidth, displayHeight;
-    private long generation;
-    private double displayAspectRatio;
+    private readonly object _gate = new();
+    private IDirect3D9Ex* _api;
+    private IDirect3DDevice9Ex* _device;
+    private IDirect3DDeviceManager9* _manager;
+    private IMFVideoSampleAllocator* _allocator;
+    private int _targetWidth;
+    private int _targetHeight;
+    private int _mixerWidth;
+    private int _mixerHeight;
+    private int _displayWidth;
+    private int _displayHeight;
+    private long _generation;
+    private double _displayAspectRatio;
     internal VideoScalingMode ScalingMode { get; }
 
     internal VideoSurfaceInfo SurfaceInfo
     {
         get
         {
-            lock (gate)
+            lock (_gate)
                 return new
                 (
-                    Width, Height, displayAspectRatio, mixerWidth, mixerHeight, displayWidth, displayHeight, generation,
+                    Width, Height, _displayAspectRatio, _mixerWidth, _mixerHeight, _displayWidth, _displayHeight, _generation,
                     ScalingMode
                 );
         }
     }
 
-    private HWND videoWindow;
-    private uint aspectRatio = 1;
-    private MFVideoNormalizedRect sourceRect = new() { right = 1, bottom = 1 };
-    private RECT destination;
-    private COLORREF border;
-    private IMFTransform* mixer;
-    private IMFClock* clock;
-    private IMediaEventSink* events;
-    private IMFMediaType* mediaType;
-    private IDirect3DSurface9* display;
-    private IDirect3DSurface9* latest;
-    private IDirect3DQuery9* fence;
-    private readonly Timer scheduler;
-    private long displayedFrames;
-    private readonly nint[] samples = new nint[3];
-    private readonly Queue<int> ready = new();
-    private readonly Queue<int> free = new();
-    private bool input, running, preroll, eos, closed;
-    private float rate = 1;
-    private uint steps;
-    private long inputNotifications, outputAttempts;
-    private long nextDiagnostic;
-    private Exception? failure;
+    private HWND _videoWindow;
+    private uint _aspectRatio = 1;
+    private MFVideoNormalizedRect _sourceRect = new() { right = 1, bottom = 1 };
+    private RECT _destination;
+    private COLORREF _border;
+    private IMFTransform* _mixer;
+    private IMFClock* _clock;
+    private IMediaEventSink* _events;
+    private IMFMediaType* _mediaType;
+    private IDirect3DSurface9* _display;
+    private IDirect3DSurface9* _latest;
+    private IDirect3DQuery9* _fence;
+    private readonly Timer _scheduler;
+    private long _displayedFrames;
+    private readonly nint[] _samples = new nint[3];
+    private readonly Queue<int> _ready = new();
+    private readonly Queue<int> _free = new();
+    private bool _input;
+    private bool _running;
+    private bool _preroll;
+    private bool _eos;
+    private bool _closed;
+    private float _rate = 1;
+    private uint _steps;
+    private long _inputNotifications;
+    private long _outputAttempts;
+    private long _nextDiagnostic;
+    private Exception? _failure;
     internal int Width { get; private set; }
     internal int Height { get; private set; }
     internal long Frames { get; private set; }
-    internal nint Surface => (nint)display;
 
-    internal EvrPrototypePresenter(VideoScalingMode scalingMode = VideoScalingMode.MixerOutput)
+    internal EVRPrototypePresenter(VideoScalingMode scalingMode = VideoScalingMode.MixerOutput)
     {
         ScalingMode = scalingMode;
-        scheduler = new Timer(_ => Pump(), null, Timeout.Infinite, Timeout.Infinite);
+        _scheduler = new Timer(_ => Pump(), null, Timeout.Infinite, Timeout.Infinite);
         try
         {
             IDirect3D9Ex* a = null;
             Check(PInvoke.Direct3DCreate9Ex(PInvoke.D3D_SDK_VERSION, &a), "Direct3DCreate9Ex");
-            api = a;
+            _api = a;
             var window = PInvoke.GetDesktopWindow();
             var pp = new D3DPRESENT_PARAMETERS
             {
@@ -84,7 +93,7 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
             IDirect3DDevice9Ex* d = null;
             Check
             (
-                api->CreateDeviceEx
+                _api->CreateDeviceEx
                 (
                     0, D3DDEVTYPE.D3DDEVTYPE_HAL, window,
                     PInvoke.D3DCREATE_HARDWARE_VERTEXPROCESSING | PInvoke.D3DCREATE_MULTITHREADED |
@@ -92,24 +101,24 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
                     &pp, null, &d
                 ), "CreateDeviceEx"
             );
-            device = d;
+            _device = d;
             uint token = 0;
             IDirect3DDeviceManager9* m = null;
             Check(PInvoke.DXVA2CreateDirect3DDeviceManager9(&token, &m), "DXVA2CreateDirect3DDeviceManager9");
-            manager = m;
-            Check(manager->ResetDevice((IDirect3DDevice9*)device, token), "ResetDevice");
+            _manager = m;
+            Check(_manager->ResetDevice((IDirect3DDevice9*)_device, token), "ResetDevice");
             Guid allocatorId = IMFVideoSampleAllocator.IID_Guid;
             IMFVideoSampleAllocator* allocated = null;
             Check
             (
                 PInvoke.MFCreateVideoSampleAllocator(&allocatorId, (void**)&allocated), "MFCreateVideoSampleAllocator"
             );
-            allocator = allocated;
-            Check(allocator->SetDirectXManager((IUnknown*)manager), "allocator.SetDirectXManager");
+            _allocator = allocated;
+            Check(_allocator->SetDirectXManager((IUnknown*)_manager), "allocator.SetDirectXManager");
             IDirect3DQuery9* query = null;
-            Check(device->CreateQuery(D3DQUERYTYPE.D3DQUERYTYPE_EVENT, &query), "CreateQuery EVENT");
-            fence = query;
-            scheduler.Change(0, 8);
+            Check(_device->CreateQuery(D3DQUERYTYPE.D3DQUERYTYPE_EVENT, &query), "CreateQuery EVENT");
+            _fence = query;
+            _scheduler.Change(0, 8);
         }
         catch
         {
@@ -126,9 +135,9 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
 
     private HRESULT Guard(Action action)
     {
-        lock (gate)
+        lock (_gate)
         {
-            if (closed) return HRESULT.MF_E_SHUTDOWN;
+            if (_closed) return HRESULT.MF_E_SHUTDOWN;
             try
             {
                 action();
@@ -136,9 +145,9 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
             }
             catch (Exception error) when (error is ExternalException or InvalidOperationException or ArgumentException)
             {
-                if (failure == null && events != null)
+                if (_failure == null && _events != null)
                 {
-                    var notification = events->Notify((int)PInvoke.EC_ERRORABORT, error.HResult, 0);
+                    var notification = _events->Notify((int)PInvoke.EC_ERRORABORT, error.HResult, 0);
                     Trace.WriteLine
                     (
                         $"EVR prototype EC_ERRORABORT error=0x{error.HResult:X8} notifyHRESULT=0x{notification.Value:X8}",
@@ -146,7 +155,7 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
                     );
                 }
 
-                failure = error;
+                _failure = error;
                 Trace.WriteLine($"EVR prototype failure {error}", "MediaFoundation.Core");
                 return new(error.HResult);
             }
@@ -160,9 +169,9 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
         (() =>
             {
                 ReleaseServices();
-                mixer = (IMFTransform*)Lookup
+                _mixer = (IMFTransform*)Lookup
                     ((IMFTopologyServiceLookup*)address, PInvoke.MR_VIDEO_MIXER_SERVICE, IMFTransform.IID_Guid);
-                events = (IMediaEventSink*)Lookup
+                _events = (IMediaEventSink*)Lookup
                     ((IMFTopologyServiceLookup*)address, PInvoke.MR_VIDEO_RENDER_SERVICE, IMediaEventSink.IID_Guid);
                 // EVR can initialize before a presentation clock has been assigned.
                 Guid clockService = PInvoke.MR_VIDEO_RENDER_SERVICE, clockId = IMFClock.IID_Guid;
@@ -173,7 +182,7 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
                     MF_SERVICE_LOOKUP_TYPE.MF_SERVICE_LOOKUP_GLOBAL, 0,
                     &clockService, &clockId, &clockResult, &clockCount
                 );
-                if (clockHr.Succeeded) clock = (IMFClock*)clockResult;
+                if (clockHr.Succeeded) _clock = (IMFClock*)clockResult;
                 else if (clockHr.Value == unchecked((int)0x80004002))
                     Trace.WriteLine
                     (
@@ -183,7 +192,7 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
                 else Check(clockHr, "LookupService IMFClock");
                 Guid deviceId = IMFVideoDeviceID.IID_Guid;
                 IMFVideoDeviceID* mixerDevice = null;
-                Check(mixer->QueryInterface(&deviceId, (void**)&mixerDevice), "mixer.IMFVideoDeviceID");
+                Check(_mixer->QueryInterface(&deviceId, (void**)&mixerDevice), "mixer.IMFVideoDeviceID");
                 try
                 {
                     Guid actual = default;
@@ -198,7 +207,7 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
 
                 Check
                 (
-                    mixer->ProcessMessage(MFT_MESSAGE_TYPE.MFT_MESSAGE_SET_D3D_MANAGER, (nuint)manager),
+                    _mixer->ProcessMessage(MFT_MESSAGE_TYPE.MFT_MESSAGE_SET_D3D_MANAGER, (nuint)_manager),
                     "mixer.SET_D3D_MANAGER"
                 );
             }
@@ -223,22 +232,22 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
     {
         Flush();
         ReleaseType();
-        if (mixer != null)
+        if (_mixer != null)
         {
-            mixer->Release();
-            mixer = null;
+            _mixer->Release();
+            _mixer = null;
         }
 
-        if (clock != null)
+        if (_clock != null)
         {
-            clock->Release();
-            clock = null;
+            _clock->Release();
+            _clock = null;
         }
 
-        if (events != null)
+        if (_events != null)
         {
-            events->Release();
-            events = null;
+            _events->Release();
+            _events = null;
         }
     }
 
@@ -255,9 +264,9 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
         if (service == null || iid == null || result == null) return new(unchecked((int)0x80004003));
         *result = null;
         Trace.WriteLine($"EVR prototype GetService service={*service} iid={*iid}", "MediaFoundation.Core");
-        lock (gate)
+        lock (_gate)
         {
-            if (closed) return HRESULT.MF_E_SHUTDOWN;
+            if (_closed) return HRESULT.MF_E_SHUTDOWN;
             if ((*service == PInvoke.MF_RATE_CONTROL_SERVICE || *service == PInvoke.MR_VIDEO_RENDER_SERVICE) &&
                 *iid == IMFRateSupport.IID_Guid)
             {
@@ -266,11 +275,11 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
             }
 
             if (*service == PInvoke.MR_VIDEO_RENDER_SERVICE && *iid == IDirect3DDeviceManager9.IID_Guid)
-                return manager->QueryInterface(iid, result);
+                return _manager->QueryInterface(iid, result);
             if (*service == PInvoke.MR_VIDEO_ACCELERATION_SERVICE)
             {
-                if (*iid == IMFVideoSampleAllocator.IID_Guid) return allocator->QueryInterface(iid, result);
-                return manager->QueryInterface(iid, result);
+                if (*iid == IMFVideoSampleAllocator.IID_Guid) return _allocator->QueryInterface(iid, result);
+                return _manager->QueryInterface(iid, result);
             }
 
             if (*service == PInvoke.MR_VIDEO_RENDER_SERVICE && *iid == IMFVideoDisplayControl.IID_Guid)
@@ -286,11 +295,11 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
 
     public HRESULT GetNativeVideoSize(SIZE* size, SIZE* aspect)
     {
-        lock (gate)
+        lock (_gate)
         {
             if (size != null) *size = new SIZE { cx = Width, cy = Height };
             if (aspect != null) *aspect = new SIZE { cx = Width, cy = Height };
-            return mediaType == null ? HRESULT.MF_E_TRANSFORM_TYPE_NOT_SET : new(0);
+            return _mediaType == null ? HRESULT.MF_E_TRANSFORM_TYPE_NOT_SET : new(0);
         }
     }
 
@@ -305,14 +314,14 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
     (() =>
         {
             if (!PInvoke.IsWindow(window)) throw new ArgumentException("Invalid video HWND");
-            videoWindow = window;
+            _videoWindow = window;
         }
     );
 
     public HRESULT GetVideoWindow(HWND* window)
     {
         if (window == null) return new(unchecked((int)0x80004003));
-        *window = videoWindow;
+        *window = _videoWindow;
         return new(0);
     }
 
@@ -321,20 +330,20 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
         // Cropping/scaling belongs to the WPF Image in this prototype.
         if (source != null && (source->left != 0 || source->top != 0 || source->right != 1 || source->bottom != 1))
             return new(unchecked((int)0x80004001));
-        lock (gate)
+        lock (_gate)
         {
-            if (source != null) sourceRect = *source;
-            if (target != null) destination = *target;
+            if (source != null) _sourceRect = *source;
+            if (target != null) _destination = *target;
             return new(0);
         }
     }
 
     public HRESULT GetVideoPosition(MFVideoNormalizedRect* source, RECT* target)
     {
-        lock (gate)
+        lock (_gate)
         {
-            if (source != null) *source = sourceRect;
-            if (target != null) *target = destination;
+            if (source != null) *source = _sourceRect;
+            if (target != null) *target = _destination;
             return new(0);
         }
     }
@@ -342,14 +351,14 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
     public HRESULT SetAspectRatioMode(uint mode)
     {
         if (mode != 1) return new(unchecked((int)0x80004001));
-        aspectRatio = mode;
+        _aspectRatio = mode;
         return new(0);
     }
 
     public HRESULT GetAspectRatioMode(uint* mode)
     {
         if (mode == null) return new(unchecked((int)0x80004003));
-        *mode = aspectRatio;
+        *mode = _aspectRatio;
         return new(0);
     }
 
@@ -362,14 +371,14 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
     public HRESULT SetBorderColor(COLORREF color)
     {
         if (color.Value != 0) return new(unchecked((int)0x80004001));
-        border = color;
+        _border = color;
         return new(0);
     }
 
     public HRESULT GetBorderColor(COLORREF* color)
     {
         if (color == null) return new(unchecked((int)0x80004003));
-        *color = border;
+        *color = _border;
         return new(0);
     }
 
@@ -396,25 +405,25 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
         {
             Trace.WriteLine
                 ($"EVR prototype OnClockStart systemTime={systemTime} offset={offset}", "MediaFoundation.Core");
-            running = true;
+            _running = true;
         }
     );
 
     public HRESULT OnClockStop(long systemTime) => Guard
     (() =>
         {
-            running = false;
+            _running = false;
             Flush();
         }
     );
 
-    public HRESULT OnClockPause(long systemTime) => Guard(() => running = false);
+    public HRESULT OnClockPause(long systemTime) => Guard(() => _running = false);
 
     public HRESULT OnClockRestart(long systemTime) => Guard
     (() =>
         {
             Trace.WriteLine($"EVR prototype OnClockRestart systemTime={systemTime}", "MediaFoundation.Core");
-            running = true;
+            _running = true;
         }
     );
 
@@ -443,18 +452,18 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
     {
         Trace.WriteLine($"EVR prototype OnClockSetRate systemTime={systemTime} rate={value}", "MediaFoundation.Core");
         if (IsRateSupported(false, value, null).Failed) return HRESULT.MF_E_UNSUPPORTED_RATE;
-        return Guard(() => rate = value);
+        return Guard(() => _rate = value);
     }
 
     public HRESULT GetCurrentMediaType(IMFVideoMediaType** result)
     {
         if (result == null) return new(unchecked((int)0x80004003));
         *result = null;
-        lock (gate)
+        lock (_gate)
         {
-            if (mediaType == null) return HRESULT.MF_E_TRANSFORM_TYPE_NOT_SET;
+            if (_mediaType == null) return HRESULT.MF_E_TRANSFORM_TYPE_NOT_SET;
             Guid iid = IMFVideoMediaType.IID_Guid;
-            return mediaType->QueryInterface(&iid, (void**)result);
+            return _mediaType->QueryInterface(&iid, (void**)result);
         }
     }
 
@@ -469,27 +478,27 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
                 switch (message)
                 {
                     case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_STEP:
-                        if ((running && rate != 0) || (uint)parameter == 0)
+                        if ((_running && _rate != 0) || (uint)parameter == 0)
                             throw new COMException(SR.Get("InvalidStepState"), HRESULT.MF_E_INVALIDREQUEST.Value);
-                        steps = (uint)parameter;
+                        _steps = (uint)parameter;
                         Tick();
                         break;
                     case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_CANCELSTEP: CompleteStep(true, 0); break;
                     case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_FLUSH: Flush(); break;
                     case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_INVALIDATEMEDIATYPE: Negotiate(); break;
                     case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_PROCESSINPUTNOTIFY:
-                        inputNotifications++;
-                        input = true;
+                        _inputNotifications++;
+                        _input = true;
                         Tick();
                         break;
-                    case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_BEGINSTREAMING: preroll = false; break;
+                    case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_BEGINSTREAMING: _preroll = false; break;
                     case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_ENDSTREAMING:
-                        running = false;
+                        _running = false;
                         Flush();
                         break;
                     case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_ENDOFSTREAM:
-                        eos = true;
-                        input = true;
+                        _eos = true;
+                        _input = true;
                         break;
                     default: throw new ArgumentOutOfRangeException(nameof(message));
                 }
@@ -502,7 +511,7 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
         for (uint i = 0;; i++)
         {
             IMFMediaType* candidate = null;
-            var hr = mixer->GetOutputAvailableType(0, i, &candidate);
+            var hr = _mixer->GetOutputAvailableType(0, i, &candidate);
             if (hr == HRESULT.MF_E_NO_MORE_TYPES) Check(hr, "mixer no compatible RGB32 output");
             Check(hr, $"mixer.GetOutputAvailableType[{i}]");
             try
@@ -519,7 +528,7 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
                 CommitOutput(candidate, nativeWidth, nativeHeight);
                 Width = nativeWidth;
                 Height = nativeHeight;
-                displayAspectRatio = aspect;
+                _displayAspectRatio = aspect;
                 return;
             }
             finally
@@ -571,9 +580,9 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
     {
         IMFMediaType* candidate = null;
         IDirect3DSurface9* staging = null;
-        var pool = new nint[samples.Length];
-        int width = ScalingMode == VideoScalingMode.MixerOutput && targetWidth > 0 ? targetWidth : nativeWidth;
-        int height = ScalingMode == VideoScalingMode.MixerOutput && targetHeight > 0 ? targetHeight : nativeHeight;
+        var pool = new nint[_samples.Length];
+        int width = ScalingMode == VideoScalingMode.MixerOutput && _targetWidth > 0 ? _targetWidth : nativeWidth;
+        int height = ScalingMode == VideoScalingMode.MixerOutput && _targetHeight > 0 ? _targetHeight : nativeHeight;
         try
         {
             Check(PInvoke.MFCreateMediaType(&candidate), "resize.CreateMediaType");
@@ -602,7 +611,7 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
 
             Check
             (
-                mixer->SetOutputType(0, candidate, (uint)_MFT_SET_TYPE_FLAGS.MFT_SET_TYPE_TEST_ONLY),
+                _mixer->SetOutputType(0, candidate, (uint)_MFT_SET_TYPE_FLAGS.MFT_SET_TYPE_TEST_ONLY),
                 "mixer.TEST_ONLY requested strategy"
             );
             staging = CreateSurface(width, height);
@@ -622,11 +631,11 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
                 pool[i] = (nint)sample;
             }
 
-            if (latest != null && Frames > 0)
+            if (_latest != null && Frames > 0)
             {
                 Check
                 (
-                    device->StretchRect(latest, null, staging, null, D3DTEXTUREFILTERTYPE.D3DTEXF_LINEAR),
+                    _device->StretchRect(_latest, null, staging, null, D3DTEXTUREFILTERTYPE.D3DTEXF_LINEAR),
                     "resize.preserve paused frame LINEAR"
                 );
             }
@@ -634,29 +643,29 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
             // The gate serializes mixer, clock callbacks and sample recycling. Nothing old is
             // released before TEST_ONLY, allocation and the actual output-type commit succeed.
             SynchronizeGpu();
-            Check(mixer->SetOutputType(0, candidate, 0), "mixer.commit requested strategy");
-            bool hadPreroll = preroll;
+            Check(_mixer->SetOutputType(0, candidate, 0), "mixer.commit requested strategy");
+            bool hadPreroll = _preroll;
             ReleaseType();
-            mediaType = candidate;
+            _mediaType = candidate;
             candidate = null;
-            latest = staging;
+            _latest = staging;
             staging = null;
-            mixerWidth = width;
-            mixerHeight = height;
+            _mixerWidth = width;
+            _mixerHeight = height;
             for (int i = 0; i < pool.Length; i++)
             {
-                samples[i] = pool[i];
+                _samples[i] = pool[i];
                 pool[i] = 0;
-                free.Enqueue(i);
+                _free.Enqueue(i);
             }
 
             // A resize is not a seek: preserve preroll and outstanding STEP, and request more input.
-            preroll = hadPreroll;
-            input = true;
-            generation++;
+            _preroll = hadPreroll;
+            _input = true;
+            _generation++;
             Trace.WriteLine
             (
-                $"EVR scaling requested={ScalingMode} actual={ScalingMode} fallback=none native={nativeWidth}x{nativeHeight} mixer={width}x{height} generation={generation}",
+                $"EVR scaling requested={ScalingMode} actual={ScalingMode} fallback=none native={nativeWidth}x{nativeHeight} mixer={width}x{height} generation={_generation}",
                 "MediaFoundation.Core"
             );
         }
@@ -675,7 +684,7 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
         IDirect3DSurface9* surface = null;
         Check
         (
-            device->CreateRenderTarget
+            _device->CreateRenderTarget
             (
                 (uint)width, (uint)height, D3DFORMAT.D3DFMT_X8R8G8B8,
                 D3DMULTISAMPLE_TYPE.D3DMULTISAMPLE_NONE, 0, false, &surface, null
@@ -686,21 +695,21 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
 
     internal void RequestTarget(int width, int height)
     {
-        lock (gate)
+        lock (_gate)
         {
-            if (closed || width <= 0 || height <= 0 || (width == targetWidth && height == targetHeight)) return;
-            int previousWidth = targetWidth, previousHeight = targetHeight;
-            targetWidth = width;
-            targetHeight = height;
+            if (_closed || width <= 0 || height <= 0 || (width == _targetWidth && height == _targetHeight)) return;
+            int previousWidth = _targetWidth, previousHeight = _targetHeight;
+            _targetWidth = width;
+            _targetHeight = height;
             try
             {
-                if (mediaType != null && ScalingMode == VideoScalingMode.MixerOutput)
-                    CommitOutput(mediaType, Width, Height);
+                if (_mediaType != null && ScalingMode == VideoScalingMode.MixerOutput)
+                    CommitOutput(_mediaType, Width, Height);
             }
             catch
             {
-                targetWidth = previousWidth;
-                targetHeight = previousHeight;
+                _targetWidth = previousWidth;
+                _targetHeight = previousHeight;
                 throw;
             }
         }
@@ -708,19 +717,19 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
 
     private void CompleteStep(bool cancelled, long timestamp)
     {
-        if (steps == 0) return;
-        steps = 0;
-        Check(events->Notify((int)PInvoke.EC_STEP_COMPLETE, cancelled ? 1 : 0, 0), "EC_STEP_COMPLETE");
+        if (_steps == 0) return;
+        _steps = 0;
+        Check(_events->Notify((int)PInvoke.EC_STEP_COMPLETE, cancelled ? 1 : 0, 0), "EC_STEP_COMPLETE");
         Trace.WriteLine
         (
-            $"EVR prototype EC_STEP_COMPLETE cancelled={cancelled} timestamp={timestamp} rate={rate}",
+            $"EVR prototype EC_STEP_COMPLETE cancelled={cancelled} timestamp={timestamp} rate={_rate}",
             "MediaFoundation.Core"
         );
-        if (!cancelled && rate == 0)
+        if (!cancelled && _rate == 0)
         {
             Check
             (
-                events->Notify((int)PInvoke.EC_SCRUB_TIME, (nint)(uint)timestamp, (nint)(uint)((ulong)timestamp >> 32)),
+                _events->Notify((int)PInvoke.EC_SCRUB_TIME, (nint)(uint)timestamp, (nint)(uint)((ulong)timestamp >> 32)),
                 "EC_SCRUB_TIME"
             );
             Trace.WriteLine($"EVR prototype EC_SCRUB_TIME timestamp={timestamp}", "MediaFoundation.Core");
@@ -730,72 +739,72 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
     private void Flush()
     {
         CompleteStep(true, 0);
-        ready.Clear();
-        free.Clear();
-        for (int i = 0; i < samples.Length; i++)
-            if (samples[i] != 0)
-                free.Enqueue(i);
-        input = eos = preroll = false;
+        _ready.Clear();
+        _free.Clear();
+        for (int i = 0; i < _samples.Length; i++)
+            if (_samples[i] != 0)
+                _free.Enqueue(i);
+        _input = _eos = _preroll = false;
     }
 
     private void ReleaseType()
     {
-        ready.Clear();
-        free.Clear();
-        for (int i = 0; i < samples.Length; i++)
+        _ready.Clear();
+        _free.Clear();
+        for (int i = 0; i < _samples.Length; i++)
         {
-            if (samples[i] != 0) ((IMFSample*)samples[i])->Release();
-            samples[i] = 0;
+            if (_samples[i] != 0) ((IMFSample*)_samples[i])->Release();
+            _samples[i] = 0;
         }
 
-        if (mediaType != null)
+        if (_mediaType != null)
         {
-            mediaType->Release();
-            mediaType = null;
+            _mediaType->Release();
+            _mediaType = null;
         }
 
-        if (latest != null)
+        if (_latest != null)
         {
-            latest->Release();
-            latest = null;
+            _latest->Release();
+            _latest = null;
         }
 
-        displayedFrames = Frames;
+        _displayedFrames = Frames;
         // WPF holds its own reference until SetBackBuffer confirms replacement or detachment.
-        if (display != null)
+        if (_display != null)
         {
-            display->Release();
-            display = null;
+            _display->Release();
+            _display = null;
         }
 
-        displayWidth = displayHeight = 0;
+        _displayWidth = _displayHeight = 0;
     }
 
     private void DiagnoseSurface(IDirect3DSurface9* source, string stage, long timestamp)
     {
         D3DSURFACE_DESC description;
         Check(source->GetDesc(&description), "diagnostic.GetDesc");
-        int Width = checked((int)description.Width), Height = checked((int)description.Height);
+        int width = checked((int)description.Width), height = checked((int)description.Height);
         IDirect3DSurface9* readback = null;
         try
         {
             Check
             (
-                device->CreateOffscreenPlainSurface
+                _device->CreateOffscreenPlainSurface
                 (
-                    (uint)Width, (uint)Height, D3DFORMAT.D3DFMT_X8R8G8B8,
+                    (uint)width, (uint)height, D3DFORMAT.D3DFMT_X8R8G8B8,
                     D3DPOOL.D3DPOOL_SYSTEMMEM, &readback, null
                 ), "diagnostic.CreateOffscreenPlainSurface"
             );
-            Check(device->GetRenderTargetData(source, readback), "diagnostic.GetRenderTargetData");
+            Check(_device->GetRenderTargetData(source, readback), "diagnostic.GetRenderTargetData");
             D3DLOCKED_RECT data;
             Check(readback->LockRect(&data, null, 0x10 /* D3DLOCK_READONLY */), "diagnostic.LockRect");
             try
             {
                 var colors = new HashSet<uint>();
                 int minAlpha = 255, maxAlpha = 0;
-                for (int y = Height / 4; y < Height * 3 / 4; y += 3)
-                for (int x = Width / 4; x < Width * 3 / 4; x += 3)
+                for (int y = height / 4; y < height * 3 / 4; y += 3)
+                for (int x = width / 4; x < width * 3 / 4; x += 3)
                 {
                     uint pixel = *(uint*)((byte*)data.pBits + y * data.Pitch + x * 4);
                     colors.Add(pixel & 0xFFFFFF);
@@ -806,7 +815,7 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
 
                 Trace.WriteLine
                 (
-                    $"backend=MFPlay GPU-readback stage={stage} timestamp={timestamp} frames={Frames} size={Width}x{Height} format=X8R8G8B8 rgbColors={colors.Count} unusedAlpha={minAlpha}..{maxAlpha}",
+                    $"backend=MFPlay GPU-readback stage={stage} timestamp={timestamp} frames={Frames} size={width}x{height} format=X8R8G8B8 rgbColors={colors.Count} unusedAlpha={minAlpha}..{maxAlpha}",
                     "MediaFoundation.Core"
                 );
             }
@@ -823,10 +832,10 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
 
     private void SynchronizeGpu()
     {
-        Check(fence->Issue(PInvoke.D3DISSUE_END), "fence.Issue");
+        Check(_fence->Issue(PInvoke.D3DISSUE_END), "fence.Issue");
         long deadline = Environment.TickCount64 + 2000;
         HRESULT hr;
-        while ((hr = fence->GetData(null, 0, PInvoke.D3DGETDATA_FLUSH)).Value == 1)
+        while ((hr = _fence->GetData(null, 0, PInvoke.D3DGETDATA_FLUSH)).Value == 1)
         {
             if (Environment.TickCount64 >= deadline) throw new InvalidOperationException(SR.Get("GpuFenceTimeout"));
             Thread.Yield();
@@ -837,18 +846,18 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
 
     private void Pump()
     {
-        lock (gate)
+        lock (_gate)
         {
-            if (failure != null || closed) return;
+            if (_failure != null || _closed) return;
             Guard(() => Tick());
         }
     }
 
     internal void RefreshStatus(out int width, out int height)
     {
-        lock (gate)
+        lock (_gate)
         {
-            if (failure != null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw();
+            if (_failure != null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(_failure).Throw();
             width = Width;
             height = Height;
         }
@@ -856,149 +865,149 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
 
     internal bool Present(Action<nint, int, int, bool> present, bool force = false)
     {
-        lock (gate)
+        lock (_gate)
         {
-            if (failure != null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw();
-            if (closed || latest == null || Frames == 0 || (!force && displayedFrames == Frames &&
-                                                            displayWidth == targetWidth &&
-                                                            displayHeight == targetHeight)) return false;
+            if (_failure != null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(_failure).Throw();
+            if (_closed || _latest == null || Frames == 0 || (!force && _displayedFrames == Frames &&
+                                                            _displayWidth == _targetWidth &&
+                                                            _displayHeight == _targetHeight)) return false;
             // Only the UI, while holding D3DImage.Lock, writes the WPF-owned surface.
-            int width = targetWidth > 0 ? targetWidth : mixerWidth;
-            int height = targetHeight > 0 ? targetHeight : mixerHeight;
-            if (display == null || displayWidth != width || displayHeight != height)
+            int width = _targetWidth > 0 ? _targetWidth : _mixerWidth;
+            int height = _targetHeight > 0 ? _targetHeight : _mixerHeight;
+            if (_display == null || _displayWidth != width || _displayHeight != height)
             {
                 var replacement = CreateSurface(width, height);
-                if (display != null) display->Release();
-                display = replacement;
-                displayWidth = width;
-                displayHeight = height;
-                generation++;
+                if (_display != null) _display->Release();
+                _display = replacement;
+                _displayWidth = width;
+                _displayHeight = height;
+                _generation++;
                 Trace.WriteLine
                 (
-                    $"EVR display requested={ScalingMode} actual={ScalingMode} native={Width}x{Height} mixer={mixerWidth}x{mixerHeight} display={width}x{height} generation={generation}",
+                    $"EVR display requested={ScalingMode} actual={ScalingMode} native={Width}x{Height} mixer={_mixerWidth}x{_mixerHeight} display={width}x{height} generation={_generation}",
                     "MediaFoundation.Core"
                 );
             }
 
-            present((nint)display, width, height, true);
-            bool scaling = mixerWidth != width || mixerHeight != height;
+            present((nint)_display, width, height, true);
+            bool scaling = _mixerWidth != width || _mixerHeight != height;
             if (scaling)
             {
                 D3DCAPS9 caps;
-                Check(device->GetDeviceCaps(&caps), "scaling.GetDeviceCaps");
-                const uint linearMinMag = 0x200 | 0x2000000;
-                if (((uint)caps.StretchRectFilterCaps & linearMinMag) != linearMinMag)
+                Check(_device->GetDeviceCaps(&caps), "scaling.GetDeviceCaps");
+                const uint LinearMinMag = 0x200 | 0x2000000;
+                if (((uint)caps.StretchRectFilterCaps & LinearMinMag) != LinearMinMag)
                     throw new COMException(SR.Get("LinearFilteringUnsupported"), unchecked((int)0x8876086A));
             }
 
             Check
             (
-                device->StretchRect
+                _device->StretchRect
                 (
-                    latest, null, display, null,
+                    _latest, null, _display, null,
                     scaling ? D3DTEXTUREFILTERTYPE.D3DTEXF_LINEAR : D3DTEXTUREFILTERTYPE.D3DTEXF_NONE
                 ), "present.StretchRect LINEAR"
             );
             SynchronizeGpu();
-            if (displayedFrames < 120 && Frames >= 120 &&
+            if (_displayedFrames < 120 && Frames >= 120 &&
                 Environment.GetEnvironmentVariable("MF_DIAGNOSE_FRAME") == "1")
-                DiagnoseSurface(display, "display", 0);
-            present((nint)display, width, height, false);
-            displayedFrames = Frames;
+                DiagnoseSurface(_display, "display", 0);
+            present((nint)_display, width, height, false);
+            _displayedFrames = Frames;
             return true;
         }
     }
 
     private bool Tick()
     {
-        lock (gate)
+        lock (_gate)
         {
-            if (failure != null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw();
-            if (closed || mediaType == null) return false;
-            if (Environment.TickCount64 >= nextDiagnostic)
+            if (_failure != null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(_failure).Throw();
+            if (_closed || _mediaType == null) return false;
+            if (Environment.TickCount64 >= _nextDiagnostic)
             {
-                nextDiagnostic = Environment.TickCount64 + 5000;
+                _nextDiagnostic = Environment.TickCount64 + 5000;
                 long diagnosticTime = 0, diagnosticSystem = 0, diagnosticSample = 0;
-                var clockHr = clock == null
+                var clockHr = _clock == null
                     ? HRESULT.MF_E_INVALIDREQUEST
-                    : clock->GetCorrelatedTime(0, &diagnosticTime, &diagnosticSystem);
-                if (ready.Count != 0)
+                    : _clock->GetCorrelatedTime(0, &diagnosticTime, &diagnosticSystem);
+                if (_ready.Count != 0)
                     Check
                     (
-                        ((IMFSample*)samples[ready.Peek()])->GetSampleTime(&diagnosticSample),
+                        ((IMFSample*)_samples[_ready.Peek()])->GetSampleTime(&diagnosticSample),
                         "diagnostic.GetSampleTime"
                     );
                 Trace.WriteLine
                 (
-                    $"EVR prototype scheduler running={running} preroll={preroll} input={input} notifications={inputNotifications} outputAttempts={outputAttempts} ready={ready.Count} free={free.Count} frames={Frames} timestamp={diagnosticSample} clock={diagnosticTime} clockHRESULT=0x{clockHr.Value:X8}",
+                    $"EVR prototype scheduler running={_running} preroll={_preroll} input={_input} notifications={_inputNotifications} outputAttempts={_outputAttempts} ready={_ready.Count} free={_free.Count} frames={Frames} timestamp={diagnosticSample} clock={diagnosticTime} clockHRESULT=0x{clockHr.Value:X8}",
                     "MediaFoundation.Core"
                 );
             }
 
-            while (input && free.Count != 0)
+            while (_input && _free.Count != 0)
             {
-                int index = free.Dequeue();
-                var output = new MFT_OUTPUT_DATA_BUFFER { pSample = (IMFSample*)samples[index] };
+                int index = _free.Dequeue();
+                var output = new MFT_OUTPUT_DATA_BUFFER { pSample = (IMFSample*)_samples[index] };
                 uint status = 0;
                 long before = 0, after = 0, correlatedMedia = 0;
-                if (clock != null) Check(clock->GetCorrelatedTime(0, &correlatedMedia, &before), "mixer clock before");
-                var hr = mixer->ProcessOutput(0, 1, &output, &status);
-                if (hr.Succeeded && clock != null && events != null)
+                if (_clock != null) Check(_clock->GetCorrelatedTime(0, &correlatedMedia, &before), "mixer clock before");
+                var hr = _mixer->ProcessOutput(0, 1, &output, &status);
+                if (hr.Succeeded && _clock != null && _events != null)
                 {
-                    Check(clock->GetCorrelatedTime(0, &correlatedMedia, &after), "mixer clock after");
+                    Check(_clock->GetCorrelatedTime(0, &correlatedMedia, &after), "mixer clock after");
                     long latency = after - before;
                     Check
                     (
-                        events->Notify((int)PInvoke.EC_PROCESSING_LATENCY, (nint)(&latency), 0), "EC_PROCESSING_LATENCY"
+                        _events->Notify((int)PInvoke.EC_PROCESSING_LATENCY, (nint)(&latency), 0), "EC_PROCESSING_LATENCY"
                     );
                 }
 
-                outputAttempts++;
-                if (outputAttempts <= 5)
+                _outputAttempts++;
+                if (_outputAttempts <= 5)
                     Trace.WriteLine
                     (
-                        $"EVR prototype mixer.ProcessOutput attempt={outputAttempts} HRESULT=0x{hr.Value:X8}",
+                        $"EVR prototype mixer.ProcessOutput attempt={_outputAttempts} HRESULT=0x{hr.Value:X8}",
                         "MediaFoundation.Core"
                     );
                 if (output.pEvents != null) output.pEvents->Release();
                 if (hr.Failed)
                 {
-                    free.Enqueue(index);
+                    _free.Enqueue(index);
                     if (hr == HRESULT.MF_E_TRANSFORM_NEED_MORE_INPUT)
                     {
-                        input = false;
+                        _input = false;
                         break;
                     }
 
                     Check(hr, "mixer.ProcessOutput");
                 }
 
-                ready.Enqueue(index);
+                _ready.Enqueue(index);
             }
 
             bool changed = false;
-            while (ready.Count != 0 && (steps != 0 || (running && rate != 0) || !preroll))
+            while (_ready.Count != 0 && (_steps != 0 || (_running && _rate != 0) || !_preroll))
             {
-                int index = ready.Peek();
-                var sample = (IMFSample*)samples[index];
+                int index = _ready.Peek();
+                var sample = (IMFSample*)_samples[index];
                 long timestamp = 0, now = 0, system = 0;
                 Check(sample->GetSampleTime(&timestamp), "sample.GetSampleTime");
                 // After flush, EVR needs one preroll sample before the clock can advance.
                 // OnClockStart can arrive while the presentation clock is still waiting for preroll.
-                if (running && preroll && steps == 0)
+                if (_running && _preroll && _steps == 0)
                 {
-                    if (clock == null)
+                    if (_clock == null)
                         throw new InvalidOperationException
                             ("EVR prototype presentation clock unavailable at frame scheduling");
-                    Check(clock->GetCorrelatedTime(0, &now, &system), "clock.GetCorrelatedTime");
-                    if (rate != 0 && (timestamp - now) / rate > 10000) break;
+                    Check(_clock->GetCorrelatedTime(0, &now, &system), "clock.GetCorrelatedTime");
+                    if (_rate != 0 && (timestamp - now) / _rate > 10000) break;
                 }
 
-                ready.Dequeue();
-                if (steps > 1)
+                _ready.Dequeue();
+                if (_steps > 1)
                 {
-                    steps--;
-                    free.Enqueue(index);
+                    _steps--;
+                    _free.Enqueue(index);
                     continue;
                 }
 
@@ -1016,15 +1025,15 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
                     // The staging surface is never attached to WPF. Finish GPU reads before recycling the sample.
                     Check
                     (
-                        device->StretchRect(surface, null, latest, null, D3DTEXTUREFILTERTYPE.D3DTEXF_NONE),
+                        _device->StretchRect(surface, null, _latest, null, D3DTEXTUREFILTERTYPE.D3DTEXF_NONE),
                         "latest.StretchRect"
                     );
                     SynchronizeGpu();
                     Frames++;
-                    changed = preroll = true;
+                    changed = _preroll = true;
                     if (Frames == 120 && Environment.GetEnvironmentVariable("MF_DIAGNOSE_FRAME") == "1")
                     {
-                        DiagnoseSurface(latest, "latest", timestamp);
+                        DiagnoseSurface(_latest, "latest", timestamp);
                     }
 
                     CompleteStep(false, timestamp);
@@ -1040,14 +1049,14 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
                     if (surface != null) surface->Release();
                     if (service != null) service->Release();
                     if (buffer != null) buffer->Release();
-                    free.Enqueue(index);
+                    _free.Enqueue(index);
                 }
             }
 
-            if (eos && !input && ready.Count == 0)
+            if (_eos && !_input && _ready.Count == 0)
             {
-                Check(events->Notify((int)PInvoke.EC_COMPLETE, 0, 0), "EC_COMPLETE");
-                eos = false;
+                Check(_events->Notify((int)PInvoke.EC_COMPLETE, 0, 0), "EC_COMPLETE");
+                _eos = false;
             }
 
             return changed;
@@ -1056,40 +1065,40 @@ internal sealed unsafe class EvrPrototypePresenter : IMFVideoPresenter.Interface
 
     public void Dispose()
     {
-        lock (gate)
+        lock (_gate)
         {
-            if (closed) return;
-            closed = true;
-            scheduler.Dispose();
+            if (_closed) return;
+            _closed = true;
+            _scheduler.Dispose();
             ReleaseServices();
-            if (fence != null)
+            if (_fence != null)
             {
-                fence->Release();
-                fence = null;
+                _fence->Release();
+                _fence = null;
             }
 
-            if (allocator != null)
+            if (_allocator != null)
             {
-                allocator->Release();
-                allocator = null;
+                _allocator->Release();
+                _allocator = null;
             }
 
-            if (manager != null)
+            if (_manager != null)
             {
-                manager->Release();
-                manager = null;
+                _manager->Release();
+                _manager = null;
             }
 
-            if (device != null)
+            if (_device != null)
             {
-                device->Release();
-                device = null;
+                _device->Release();
+                _device = null;
             }
 
-            if (api != null)
+            if (_api != null)
             {
-                api->Release();
-                api = null;
+                _api->Release();
+                _api = null;
             }
         }
     }

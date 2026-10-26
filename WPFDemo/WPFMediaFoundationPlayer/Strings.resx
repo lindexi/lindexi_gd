@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="StaRequired" xml:space="preserve"><value>The session requires an STA thread.</value></data>
+  <data name="ContextRequired" xml:space="preserve"><value>A thread-affine SynchronizationContext and active message loop are required.</value></data>
+  <data name="InvalidWindow" xml:space="preserve"><value>A valid video HWND is required.</value></data>
+  <data name="WrongThread" xml:space="preserve"><value>All session operations must run on the constructing thread.</value></data>
+  <data name="NotReady" xml:space="preserve"><value>Wait for MediaOpened before controlling playback.</value></data>
+  <data name="AbsoluteUriRequired" xml:space="preserve"><value>The source must be an absolute URI.</value></data>
+  <data name="UnsupportedRate" xml:space="preserve"><value>The native pipeline does not support the requested playback rate.</value></data>
+  <data name="NativeFailure" xml:space="preserve"><value>The native media pipeline failed.</value></data>
+  <data name="NativeStageFailure" xml:space="preserve"><value>Native call failed: {0} (HRESULT=0x{1:X8}).</value></data>
+  <data name="InvalidStepState" xml:space="preserve"><value>The presenter cannot step in the current clock state.</value></data>
+  <data name="GpuFenceTimeout" xml:space="preserve"><value>The D3D9 GPU did not finish copying the video frame within the device deadline.</value></data>
+  <data name="LinearFilteringUnsupported" xml:space="preserve"><value>Native stage scaling.GetDeviceCaps: StretchRect LINEAR min/mag filtering is unsupported.</value></data>
+  <data name="InvalidVideoAperture" xml:space="preserve"><value>The native video aperture is invalid.</value></data>
+</root>

@@ -7,13 +7,13 @@ namespace MediaFoundation.PlayerDemo;
 
 internal sealed unsafe class LoopbackProbe : IDisposable
 {
-    private IAudioClient* client;
-    private IAudioCaptureClient* capture;
-    private int channels;
-    private bool floating;
+    private IAudioClient* _client;
+    private IAudioCaptureClient* _capture;
+    private int _channels;
+    private bool _floating;
     internal long Samples { get; private set; }
-    private double energy;
-    internal double Rms => Samples == 0 ? 0 : Math.Sqrt(energy / Samples);
+    private double _energy;
+    internal double Rms => Samples == 0 ? 0 : Math.Sqrt(_energy / Samples);
 
     internal LoopbackProbe()
     {
@@ -30,22 +30,22 @@ internal sealed unsafe class LoopbackProbe : IDisposable
             iid = IAudioClient.IID_Guid;
             IAudioClient* activated = null;
             device->Activate(&iid, CLSCTX.CLSCTX_INPROC_SERVER, null, (void**)&activated);
-            client = activated;
-            client->GetMixFormat(&format);
-            channels = format->nChannels;
-            floating = format->wFormatTag == 3 || (format->wFormatTag == 0xFFFE &&
+            _client = activated;
+            _client->GetMixFormat(&format);
+            _channels = format->nChannels;
+            _floating = format->wFormatTag == 3 || (format->wFormatTag == 0xFFFE &&
                                                    *(Guid*)((byte*)format + 24) == new Guid
                                                        ("00000003-0000-0010-8000-00aa00389b71"));
-            if (!(floating && format->wBitsPerSample == 32) &&
+            if (!(_floating && format->wBitsPerSample == 32) &&
                 !(format->wFormatTag == 1 && format->wBitsPerSample == 16))
                 throw new NotSupportedException
                     ($"Loopback format tag={format->wFormatTag} bits={format->wBitsPerSample}");
-            client->Initialize(AUDCLNT_SHAREMODE.AUDCLNT_SHAREMODE_SHARED, 0x00020000, 10000000, 0, format, null);
+            _client->Initialize(AUDCLNT_SHAREMODE.AUDCLNT_SHAREMODE_SHARED, 0x00020000, 10000000, 0, format, null);
             iid = IAudioCaptureClient.IID_Guid;
             IAudioCaptureClient* service = null;
-            client->GetService(&iid, (void**)&service);
-            capture = service;
-            client->Start();
+            _client->GetService(&iid, (void**)&service);
+            _capture = service;
+            _client->Start();
         }
         catch
         {
@@ -63,44 +63,45 @@ internal sealed unsafe class LoopbackProbe : IDisposable
     internal void Poll()
     {
         uint packet = 0;
-        capture->GetNextPacketSize(&packet);
+        _capture->GetNextPacketSize(&packet);
         while (packet != 0)
         {
             byte* data = null;
             uint frames = 0, flags = 0;
-            capture->GetBuffer(&data, &frames, &flags, null, null);
+            _capture->GetBuffer(&data, &frames, &flags, null, null);
             try
             {
-                int count = checked((int)frames * channels);
+                int count = checked((int)frames * _channels);
                 for (int i = 0; i < count; i++)
                 {
-                    double sample = (flags & 2) != 0 ? 0 : floating ? ((float*)data)[i] : ((short*)data)[i] / 32768.0;
-                    energy += sample * sample;
+                    double sample = (flags & 2) != 0 ? 0 : _floating ? ((float*)data)[i] : ((short*)data)[i] / 32768.0;
+                    _energy += sample * sample;
                 }
 
                 Samples += count;
             }
             finally
             {
-                capture->ReleaseBuffer(frames);
+                _capture->ReleaseBuffer(frames);
             }
 
-            capture->GetNextPacketSize(&packet);
+            _capture->GetNextPacketSize(&packet);
         }
     }
 
+    /// <summary>释放回环音频捕获使用的原生客户端。</summary>
     public void Dispose()
     {
-        if (capture != null)
+        if (_capture != null)
         {
-            capture->Release();
-            capture = null;
+            _capture->Release();
+            _capture = null;
         }
 
-        if (client != null)
+        if (_client != null)
         {
-            client->Release();
-            client = null;
+            _client->Release();
+            _client = null;
         }
     }
 }

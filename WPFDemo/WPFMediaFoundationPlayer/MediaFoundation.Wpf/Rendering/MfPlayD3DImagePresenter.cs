@@ -9,14 +9,15 @@ using MediaFoundation.Core;
 
 namespace MediaFoundation.Controls;
 
-internal sealed class MfPlayD3DImagePresenter : IDisposable
+internal sealed class MFPlayD3DImagePresenter : IDisposable
 {
-    private readonly DiagnosticImage image = new();
-    private readonly Image content;
-    private int targetWidth, targetHeight;
-    private long lastResize;
-    private (int Width, int Height) pendingTarget;
-    private bool diagnosed;
+    private readonly DiagnosticImage _image = new();
+    private readonly Image _content;
+    private int _targetWidth;
+    private int _targetHeight;
+    private long _lastResize;
+    private (int Width, int Height) _pendingTarget;
+    private bool _diagnosed;
 
     private sealed class DiagnosticImage : D3DImage
     {
@@ -55,25 +56,27 @@ internal sealed class MfPlayD3DImagePresenter : IDisposable
         }
     }
 
-    private readonly MediaPlaybackSession session;
-    private readonly Action<Exception> reportError;
-    private readonly DispatcherTimer timer;
-    private nint attached;
-    private bool disposed, force = true, firstFrame;
-    private long nextDiagnostic;
+    private readonly MediaPlaybackSession _session;
+    private readonly Action<Exception> _reportError;
+    private readonly DispatcherTimer _timer;
+    private nint _attached;
+    private bool _disposed;
+    private bool _force = true;
+    private bool _firstFrame;
+    private long _nextDiagnostic;
 
-    internal MfPlayD3DImagePresenter(MediaPlaybackSession session, Action<Exception> reportError)
+    internal MFPlayD3DImagePresenter(MediaPlaybackSession session, Action<Exception> reportError)
     {
-        this.session = session;
-        this.reportError = reportError;
-        content = new Image { Source = image, Stretch = Stretch.Fill, SnapsToDevicePixels = true };
+        _session = session;
+        _reportError = reportError;
+        _content = new Image { Source = _image, Stretch = Stretch.Fill, SnapsToDevicePixels = true };
         View = new Canvas { ClipToBounds = true, UseLayoutRounding = true };
-        View.Children.Add(content);
-        timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(8) };
-        timer.Tick += OnTick;
-        image.IsFrontBufferAvailableChanged += OnFrontBufferChanged;
-        session.SurfaceReleasing += OnSurfaceReleasing;
-        timer.Start();
+        View.Children.Add(_content);
+        _timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(8) };
+        _timer.Tick += OnTick;
+        _image.IsFrontBufferAvailableChanged += OnFrontBufferChanged;
+        _session.SurfaceReleasing += OnSurfaceReleasing;
+        _timer.Start();
         Trace.WriteLine
         (
             "backend=MFPlay mode=D3DImage frame pump started; staging scheduler independent of UI",
@@ -85,7 +88,7 @@ internal sealed class MfPlayD3DImagePresenter : IDisposable
 
     private void UpdateViewport()
     {
-        var info = session.VideoSurfaceInfo;
+        var info = _session.VideoSurfaceInfo;
         var source = PresentationSource.FromVisual(View);
         if (info == null || source?.CompositionTarget == null || !View.IsVisible ||
             Window.GetWindow(View)?.WindowState == WindowState.Minimized) return;
@@ -101,22 +104,22 @@ internal sealed class MfPlayD3DImagePresenter : IDisposable
                    dpi.DpiScaleX;
         double y = (Math.Round(origin.Y * dpi.DpiScaleY + (height - pixelsHigh) / 2) - origin.Y * dpi.DpiScaleY) /
                    dpi.DpiScaleY;
-        Canvas.SetLeft(content, x);
-        Canvas.SetTop(content, y);
-        content.Width = pixelsWide / dpi.DpiScaleX;
-        content.Height = pixelsHigh / dpi.DpiScaleY;
-        if (pendingTarget != (pixelsWide, pixelsHigh))
+        Canvas.SetLeft(_content, x);
+        Canvas.SetTop(_content, y);
+        _content.Width = pixelsWide / dpi.DpiScaleX;
+        _content.Height = pixelsHigh / dpi.DpiScaleY;
+        if (_pendingTarget != (pixelsWide, pixelsHigh))
         {
-            pendingTarget = (pixelsWide, pixelsHigh);
-            lastResize = Environment.TickCount64;
+            _pendingTarget = (pixelsWide, pixelsHigh);
+            _lastResize = Environment.TickCount64;
         }
 
         // Debounce interactive layout/DPI bursts without allocating intermediate surfaces.
-        if ((targetWidth, targetHeight) == pendingTarget || Environment.TickCount64 - lastResize < 80) return;
-        session.RequestVideoTarget(pixelsWide, pixelsHigh);
-        targetWidth = pixelsWide;
-        targetHeight = pixelsHigh;
-        force = true;
+        if ((_targetWidth, _targetHeight) == _pendingTarget || Environment.TickCount64 - _lastResize < 80) return;
+        _session.RequestVideoTarget(pixelsWide, pixelsHigh);
+        _targetWidth = pixelsWide;
+        _targetHeight = pixelsHigh;
+        _force = true;
         Trace.WriteLine
         (
             $"WPF scaling requested={info.ScalingMode} viewportDip={View.ActualWidth:F2}x{View.ActualHeight:F2} dpi={dpi.DpiScaleX:F2}x{dpi.DpiScaleY:F2} target={pixelsWide}x{pixelsHigh} originDip={x:F2},{y:F2}",
@@ -126,39 +129,39 @@ internal sealed class MfPlayD3DImagePresenter : IDisposable
 
     private void OnTick(object? sender, EventArgs e)
     {
-        if (disposed) return;
+        if (_disposed) return;
         try
         {
             // Check scheduler failures even when WPF cannot acquire its display surface.
-            session.Refresh();
-            if (disposed) return;
+            _session.Refresh();
+            if (_disposed) return;
             UpdateViewport();
             if (View.ActualWidth < 1 || View.ActualHeight < 1 ||
                 Window.GetWindow(View)?.WindowState == WindowState.Minimized) return;
-            if (!diagnosed && session.State == PlaybackState.Playing && session.Position > TimeSpan.FromSeconds(4) &&
+            if (!_diagnosed && _session.State == PlaybackState.Playing && _session.Position > TimeSpan.FromSeconds(4) &&
                 Environment.GetEnvironmentVariable("MF_DIAGNOSE_FRAME") == "1")
             {
-                diagnosed = true;
+                _diagnosed = true;
                 Trace.WriteLine
                 (
-                    $"backend=MFPlay pre-lock visible-check state={session.State} position={session.Position} frames={session.PrototypeFrames} image={View.ActualWidth}x{View.ActualHeight} parent={(View.Parent as FrameworkElement)?.RenderSize} stretch={content.Stretch} frontBuffer={image.IsFrontBufferAvailable}",
+                    $"backend=MFPlay pre-lock visible-check state={_session.State} position={_session.Position} frames={_session.PrototypeFrames} image={View.ActualWidth}x{View.ActualHeight} parent={(View.Parent as FrameworkElement)?.RenderSize} stretch={_content.Stretch} frontBuffer={_image.IsFrontBufferAvailable}",
                     "MediaFoundation.Controls"
                 );
-                image.Diagnose();
+                _image.Diagnose();
             }
 
-            bool writable = image.TryLock(new Duration(TimeSpan.FromMilliseconds(2)));
+            bool writable = _image.TryLock(new Duration(TimeSpan.FromMilliseconds(2)));
             try
             {
                 // WPF increments its lock count even when TryLock returns false.
                 if (!writable)
                 {
-                    if (Environment.TickCount64 >= nextDiagnostic)
+                    if (Environment.TickCount64 >= _nextDiagnostic)
                     {
-                        nextDiagnostic = Environment.TickCount64 + 5000;
+                        _nextDiagnostic = Environment.TickCount64 + 5000;
                         Trace.WriteLine
                         (
-                            $"backend=MFPlay mode=D3DImage lock=false frontBufferAvailable={image.IsFrontBufferAvailable} scheduledFrames={session.PrototypeFrames}",
+                            $"backend=MFPlay mode=D3DImage lock=false frontBufferAvailable={_image.IsFrontBufferAvailable} scheduledFrames={_session.PrototypeFrames}",
                             "MediaFoundation.Controls"
                         );
                     }
@@ -166,38 +169,38 @@ internal sealed class MfPlayD3DImagePresenter : IDisposable
                     return;
                 }
 
-                if (session.CopyLatestFrame
+                if (_session.CopyLatestFrame
                     (
                         (surface, width, height, before) =>
                         {
-                            if (before && (attached != surface || force))
+                            if (before && (_attached != surface || _force))
                             {
-                                if (surface != attached) Marshal.AddRef(surface);
+                                if (surface != _attached) Marshal.AddRef(surface);
                                 try
                                 {
-                                    image.SetBackBuffer(D3DResourceType.IDirect3DSurface9, surface, true);
+                                    _image.SetBackBuffer(D3DResourceType.IDirect3DSurface9, surface, true);
                                 }
                                 catch
                                 {
-                                    if (surface != attached) Marshal.Release(surface);
+                                    if (surface != _attached) Marshal.Release(surface);
                                     throw;
                                 }
 
-                                if (attached != 0 && attached != surface) Marshal.Release(attached);
-                                attached = surface;
+                                if (_attached != 0 && _attached != surface) Marshal.Release(_attached);
+                                _attached = surface;
                             }
 
-                            if (!before) image.AddDirtyRect(new Int32Rect(0, 0, width, height));
-                        }, force
+                            if (!before) _image.AddDirtyRect(new Int32Rect(0, 0, width, height));
+                        }, _force
                     ))
                 {
-                    force = false;
-                    if (!firstFrame)
+                    _force = false;
+                    if (!_firstFrame)
                     {
-                        firstFrame = true;
+                        _firstFrame = true;
                         Trace.WriteLine
                         (
-                            $"backend=MFPlay mode=D3DImage first-frame copied GPU-complete size={image.PixelWidth}x{image.PixelHeight}",
+                            $"backend=MFPlay mode=D3DImage first-frame copied GPU-complete size={_image.PixelWidth}x{_image.PixelHeight}",
                             "MediaFoundation.Controls"
                         );
                     }
@@ -205,44 +208,52 @@ internal sealed class MfPlayD3DImagePresenter : IDisposable
             }
             finally
             {
-                image.Unlock();
+                _image.Unlock();
             }
         }
-        catch (Exception error) when (error is ExternalException or InvalidOperationException or ArgumentException)
+        catch (ExternalException error)
         {
-            reportError(error);
+            _reportError(error);
+        }
+        catch (InvalidOperationException error)
+        {
+            _reportError(error);
+        }
+        catch (ArgumentException error)
+        {
+            _reportError(error);
         }
     }
 
     private void OnFrontBufferChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        force = true;
+        _force = true;
         Trace.WriteLine
         (
-            $"backend=MFPlay mode=D3DImage frontBufferAvailable={image.IsFrontBufferAvailable}; rebind pending (not device recovery)",
+            $"backend=MFPlay mode=D3DImage frontBufferAvailable={_image.IsFrontBufferAvailable}; rebind pending (not device recovery)",
             "MediaFoundation.Controls"
         );
     }
 
     private void OnSurfaceReleasing(object? sender, EventArgs e)
     {
-        timer.Stop();
+        _timer.Stop();
         Detach();
     }
 
     private void Detach()
     {
-        image.Lock();
+        _image.Lock();
         try
         {
-            image.SetBackBuffer(D3DResourceType.IDirect3DSurface9, 0);
-            if (attached != 0) Marshal.Release(attached);
-            attached = 0;
-            force = true;
+            _image.SetBackBuffer(D3DResourceType.IDirect3DSurface9, 0);
+            if (_attached != 0) Marshal.Release(_attached);
+            _attached = 0;
+            _force = true;
         }
         finally
         {
-            image.Unlock();
+            _image.Unlock();
         }
 
         Trace.WriteLine
@@ -251,14 +262,14 @@ internal sealed class MfPlayD3DImagePresenter : IDisposable
 
     public void Dispose()
     {
-        if (disposed) return;
-        disposed = true;
-        timer.Stop();
-        timer.Tick -= OnTick;
-        image.IsFrontBufferAvailableChanged -= OnFrontBufferChanged;
-        session.SurfaceReleasing -= OnSurfaceReleasing;
+        if (_disposed) return;
+        _disposed = true;
+        _timer.Stop();
+        _timer.Tick -= OnTick;
+        _image.IsFrontBufferAvailableChanged -= OnFrontBufferChanged;
+        _session.SurfaceReleasing -= OnSurfaceReleasing;
         Detach();
-        content.Source = null;
+        _content.Source = null;
         Trace.WriteLine
             ("backend=MFPlay mode=D3DImage frame pump stopped; handlers detached", "MediaFoundation.Controls");
     }

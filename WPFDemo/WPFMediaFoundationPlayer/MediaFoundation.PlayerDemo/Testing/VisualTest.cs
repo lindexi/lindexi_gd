@@ -33,7 +33,7 @@ internal static class VisualTest
 
         double target = slider.Maximum * 0.3;
         Move(0.3);
-        mouse_event(2, 0, 0, 0, 0);
+        MouseEvent(2, 0, 0, 0, 0);
         try
         {
             await Task.Delay(350, ct);
@@ -52,7 +52,7 @@ internal static class VisualTest
         }
         finally
         {
-            mouse_event(4, 0, 0, 0, 0);
+            MouseEvent(4, 0, 0, 0, 0);
         }
 
         await Task.Delay(650, ct);
@@ -64,7 +64,7 @@ internal static class VisualTest
         var thumbPoint = track.Thumb.PointToScreen
             (new Point(track.Thumb.ActualWidth / 2, track.Thumb.ActualHeight / 2));
         SetCursorPos((int)thumbPoint.X, (int)thumbPoint.Y);
-        mouse_event(2, 0, 0, 0, 0);
+        MouseEvent(2, 0, 0, 0, 0);
         try
         {
             await Task.Delay(100, ct);
@@ -75,7 +75,7 @@ internal static class VisualTest
         }
         finally
         {
-            mouse_event(4, 0, 0, 0, 0);
+            MouseEvent(4, 0, 0, 0, 0);
         }
 
         await Task.Delay(650, ct);
@@ -83,20 +83,20 @@ internal static class VisualTest
         double beforeCancel = control.Player.Position.TotalSeconds;
         thumbPoint = track.Thumb.PointToScreen(new Point(track.Thumb.ActualWidth / 2, track.Thumb.ActualHeight / 2));
         SetCursorPos((int)thumbPoint.X, (int)thumbPoint.Y);
-        mouse_event(2, 0, 0, 0, 0);
+        MouseEvent(2, 0, 0, 0, 0);
         try
         {
             await Task.Delay(100, ct);
             Move(0.7);
             await Task.Delay(100, ct);
-            keybd_event(0x1B, 0, 0, 0);
-            keybd_event(0x1B, 0, 2, 0);
+            KeyboardEvent(0x1B, 0, 0, 0);
+            KeyboardEvent(0x1B, 0, 2, 0);
             await Task.Delay(200, ct);
             Check(!track.Thumb.IsDragging, "Escape cancels native Thumb capture");
         }
         finally
         {
-            mouse_event(4, 0, 0, 0, 0);
+            MouseEvent(4, 0, 0, 0, 0);
         }
 
         await Task.Delay(350, ct);
@@ -105,8 +105,8 @@ internal static class VisualTest
         double beforeKeys = slider.Value;
         for (int i = 0; i < 3; i++)
         {
-            keybd_event(0x27, 0, 0, 0);
-            keybd_event(0x27, 0, 2, 0);
+            KeyboardEvent(0x27, 0, 0, 0);
+            KeyboardEvent(0x27, 0, 2, 0);
             await Task.Delay(80, ct);
         }
 
@@ -119,14 +119,14 @@ internal static class VisualTest
         );
     }
 
-    [DllImport("user32.dll")]
-    private static extern void keybd_event(byte key, byte scan, uint flags, nuint extraInfo);
+    [DllImport("user32.dll", EntryPoint = "keybd_event")]
+    private static extern void KeyboardEvent(byte key, byte scan, uint flags, nuint extraInfo);
 
     [DllImport("user32.dll")]
     private static extern bool SetCursorPos(int x, int y);
 
-    [DllImport("user32.dll")]
-    private static extern void mouse_event(uint flags, uint dx, uint dy, uint data, nuint extraInfo);
+    [DllImport("user32.dll", EntryPoint = "mouse_event")]
+    private static extern void MouseEvent(uint flags, uint dx, uint dy, uint data, nuint extraInfo);
 
     internal static async Task RunAsync
         (Window window, MediaPlayerControl control, Action<string> log, CancellationToken ct)
@@ -445,18 +445,26 @@ internal static class VisualTest
     [StructLayout(LayoutKind.Sequential)]
     private struct RectNative
     {
-        public int Left, Top, Right, Bottom;
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct BitmapInfo
     {
         public uint Size;
-        public int Width, Height;
-        public ushort Planes, BitCount;
-        public uint Compression, SizeImage;
-        public int XPels, YPels;
-        public uint Used, Important;
+        public int Width;
+        public int Height;
+        public ushort Planes;
+        public ushort BitCount;
+        public uint Compression;
+        public uint SizeImage;
+        public int XPels;
+        public int YPels;
+        public uint Used;
+        public uint Important;
     }
 
     [DllImport("user32.dll")]

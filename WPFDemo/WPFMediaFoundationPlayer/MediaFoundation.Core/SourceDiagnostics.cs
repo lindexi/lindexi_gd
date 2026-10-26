@@ -7,14 +7,14 @@ namespace MediaFoundation.Core;
 /// <summary>生成进程内可关联、不包含媒体位置的源诊断，供核心和宿主共用。</summary>
 public static class SourceDiagnostics
 {
-    private static readonly byte[] salt = RandomNumberGenerator.GetBytes(32);
+    private static readonly byte[] s_salt = RandomNumberGenerator.GetBytes(32);
 
     /// <summary>描述 URI 与最终原生参数的类型、转义特征及本地访问结果，不返回路径或 URI。</summary>
     public static string Describe(Uri source, string? nativeSource = null)
     {
         ArgumentNullException.ThrowIfNull(source);
         if (!source.IsAbsoluteUri) throw new ArgumentException(SR.Get("AbsoluteUriRequired"), nameof(source));
-        string id = Convert.ToHexString(HMACSHA256.HashData(salt, Encoding.UTF8.GetBytes(source.AbsoluteUri)))[..16];
+        string id = Convert.ToHexString(HMACSHA256.HashData(s_salt, Encoding.UTF8.GetBytes(source.AbsoluteUri)))[..16];
         string details =
             $"sourceId={id} sourceType={(source.IsFile ? "file" : "network")} original=[{Features(source.OriginalString)}] uri=[{Features(source.AbsoluteUri)}]";
         if (nativeSource != null) details += $" native=[{Features(nativeSource)}]";

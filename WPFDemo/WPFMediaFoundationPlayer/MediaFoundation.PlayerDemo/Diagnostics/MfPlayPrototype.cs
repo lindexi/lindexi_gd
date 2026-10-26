@@ -11,7 +11,7 @@ using MediaFoundation.Core;
 
 namespace MediaFoundation.PlayerDemo;
 
-internal static class MfPlayPrototype
+internal static class MFPlayPrototype
 {
     internal static async Task RunAsync(string path, bool testing, Window? owner = null)
     {
@@ -95,10 +95,10 @@ internal static class MfPlayPrototype
                 $"PROTOTYPE stage=open sourcePath={(source.IsFile ? source.LocalPath : source.AbsoluteUri)}",
                 "MFPlay.Prototype"
             );
-            session!.Open(source);
+            session.Open(source);
         }
 
-        void Button(string key, Action action)
+        void AddButton(string key, Action action)
         {
             var button = new Button { Content = Text(key), Padding = new Thickness(12), Margin = new Thickness(3) };
             button.Click += (_, _) =>
@@ -118,10 +118,10 @@ internal static class MfPlayPrototype
             panel.Children.Add(button);
         }
 
-        Button("PrototypePlay", () => session!.Play());
-        Button("PrototypePause", () => session!.Pause());
-        Button("PrototypeSeek", () => session!.Seek(TimeSpan.FromSeconds(2)));
-        Button
+        AddButton("PrototypePlay", () => session!.Play());
+        AddButton("PrototypePause", () => session!.Pause());
+        AddButton("PrototypeSeek", () => session!.Seek(TimeSpan.FromSeconds(2)));
+        AddButton
         (
             "PrototypeClose", () =>
             {
@@ -130,7 +130,7 @@ internal static class MfPlayPrototype
                 session = null;
             }
         );
-        Button("PrototypeReopen", Open);
+        AddButton("PrototypeReopen", Open);
         var ended = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         window.Closed += (_, _) =>
         {
@@ -186,8 +186,8 @@ internal static class MfPlayPrototype
                         image.Unlock();
                     }
 
-                    status.Text =
-                        $"MFPlay + custom EVR | {session.State} | {session.Position} | actualFrames={session.PrototypeFrames}";
+                    status.Text = string.Format
+                        (Text("PrototypeStatusText"), session.State, session.Position, session.PrototypeFrames);
                 }
                 catch (Exception error) when (error is ExternalException or InvalidOperationException
                                                   or ArgumentException)

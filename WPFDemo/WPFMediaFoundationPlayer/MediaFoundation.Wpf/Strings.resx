@@ -11,4 +11,5 @@
   <data name="RenderingModeLocked" xml:space="preserve"><value>Open 后不能更改呈现模式。请先调用 Close。</value></data>
   <data name="D3DImagePlatformRequired" xml:space="preserve"><value>D3DImage 模式需要 Windows 8 或更高版本及兼容的 Direct3D 设备。</value></data>
   <data name="NativeStageFailure" xml:space="preserve"><value>原生调用失败：{0} (HRESULT=0x{1:X8})。</value></data>
+  <data name="NotReady" xml:space="preserve"><value>等待 GPU 完成视频帧处理超时。</value></data>
 </root>

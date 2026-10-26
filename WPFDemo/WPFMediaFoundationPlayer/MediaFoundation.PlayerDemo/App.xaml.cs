@@ -5,11 +5,14 @@ using MediaFoundation.Controls;
 
 namespace MediaFoundation.PlayerDemo;
 
+/// <summary>提供播放器演示和诊断自测的应用程序入口。</summary>
 public partial class App : Application
 {
     private sealed class SanitizedTestListener(TextWriter writer) : TextWriterTraceListener(writer)
     {
+        /// <inheritdoc />
         public override void Write(string? message) => base.Write(PlaybackDiagnostics.Sanitize(message ?? ""));
+        /// <inheritdoc />
         public override void WriteLine(string? message) => base.WriteLine(PlaybackDiagnostics.Sanitize(message ?? ""));
     }
 
@@ -30,6 +33,7 @@ public partial class App : Application
         );
     }
 
+    /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
         PlaybackDiagnostics.StorageFailed -= OnStorageFailed;
@@ -41,6 +45,7 @@ public partial class App : Application
         base.OnExit(e);
     }
 
+    /// <inheritdoc />
     protected override async void OnStartup(StartupEventArgs e)
     {
         PlaybackDiagnostics.StorageFailed += OnStorageFailed;
@@ -83,7 +88,7 @@ public partial class App : Application
             {
                 if (string.IsNullOrWhiteSpace
                         (path)) throw new ArgumentException((string)FindResource("PrototypeMediaRequired"));
-                await MfPlayPrototype.RunAsync
+                await MFPlayPrototype.RunAsync
                     (Path.GetFullPath(path, AppContext.BaseDirectory), e.Args.Contains("--self-test"));
                 Shutdown();
             }
