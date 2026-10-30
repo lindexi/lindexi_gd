@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><UseAppHost>false</UseAppHost><RuntimeFrameworkVersion>10.0.4-dev</RuntimeFrameworkVersion><RollForward>Disable</RollForward></PropertyGroup></Project>

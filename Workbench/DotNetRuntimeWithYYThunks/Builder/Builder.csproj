@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+   <ItemGroup>
+       <PackageReference Include="yy-thunks" Version="1.2.3" />
+   </ItemGroup>
+</Project>

@@ -1,0 +1,3 @@
+#define FX_VER_FILEDESCRIPTION_STR ".NET Runtime Interpreter"
+#include <fxver.h>
+#include <fxver.rc>

@@ -1,0 +1,6 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildProjectDirectory)'))" />
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Microsoft.NETCore.App.Runtime.CoreCLR' and '$(TargetOS)' == 'windows' and '$(TargetArchitecture)' == 'x64'">
+    <PlatformManifestFileEntry Include="clrinterpreter.dll" IsNative="true" />
+  </ItemGroup>
+</Project>
