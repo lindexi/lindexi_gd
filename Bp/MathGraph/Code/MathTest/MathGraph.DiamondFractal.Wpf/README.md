@@ -1,42 +1,44 @@
-# 有向菱形递归实验
+# 有向菱形三类型递归实验
 
-## 用户意图与默认图
+## 真实拓扑与端口
 
-独立的新 WPF 实验，不替换旧五点环。白底，蓝色节点与箭头，从左到右流动；外部虚点深蓝并标“外部”。根菱形上中间点默认展开为蓝色大圆，内部黄色菱形和箭头；根下中间点保持实节点。后续层交替蓝/黄。根几何约为入口(0.25,0.5)、出口(0.8,0.5)、上中间(0.525,0.25)、下中间(0.525,0.75)。
+初始真实节点 `root/L`（Split）、`root/U`、`root/D`（Transfer）、`root/R`（Merge）；内部边 L→U、L→D、U→R、D→R，加两个不可展开的外部虚点及 S→L、R→T，共4实点、2虚点、6边。默认仍只展开 `root/U`，白底、蓝/黄交替层级。
 
-## 实际拓扑规则
+所有非虚叶节点都可展开，每次删除被替换的真实节点，容器仅用于显示，不是真节点：
 
-diamond 的真实顶点 L、U、D、R，边 L→U、U→R、L→D、D→R，加外部 S→L、R→T。仅叶子 U/D 可展开。
+- **Transfer（1入1出）** → 四点菱形 L（Split）、U/D（Transfer）、R（Merge）。外入接 L，外出从 R 接出。
+- **Split（1入2出）** → A（Split）、B/C（Transfer），内部 A→B、A→C；外入接 A，上/第0外出从 B 接出，下/第1外出从 C 接出。
+- **Merge（2入1出）** → B/C（Transfer）、A（Merge），内部 B→A、C→A；上/第0外入接 B，下/第1外入接 C，外出从 A 接出。
 
-展开 U/D 时**删除原顶点**，以四顶点 diamond 替换，原入边接子 L、子 R 接原出边。超点圆只作视觉容器，不是额外拓扑顶点。所有内部图与外部图通过真实边连通，不是独立图的装饰嵌套。边端避开节点圆心，箭头指向目标圆周；跨容器边穿过圆边界直连内部端口。
+每个真实节点严格保持相应类型度数；模块边界的聚合入/出度也保持原类型。构图递归返回**有序输入、输出端口集合**，按模板指定的端口索引连边，不排序当前端点 ID，也不依赖边的遍历顺序。即使两端和同类 A、异类 B/C 都被递归替换，上下支身份仍保持。稳定路径按父类型验证，例如 `root/L/A/B/R` 合法，`root/L/U` 非法。
 
-每展开一次真实节点+3、总边+4。展开 k 次：真实 V=4+3k，含两外部虚点 V=6+3k，总 E=6+4k。默认 k=1，所以真实7、含外部9、边10。
+展开次数按类型记为 t、s、m：真实 V=4+3t+2(s+m)，含外部 V 再加2，总 E=6+4t+2(s+m)。Transfer 每次增加3点4边，Split/Merge 每次增加2点2边。收起删除整棵后代子树，恢复原节点及两支端口连接。
 
-- 每个 diamond 入口真实入1出2，出口真实入2出1。
-- 叶子中间点入1出1。
-- 超点**作为模块聚合**入1出1；绝不表示内部各顶点都入1出1。
-- 外部 S 仅1出，T 仅1入，不计入真实节点统计。
+## 操作与几何
 
-## 操作
+点击任意非虚小节点展开；小节点命中优先于容器。点击大圆或在侧栏选择模块，按“收起所选子树”。侧栏显示类型及真实/聚合入出度。T/S/M 标签分别表示传递/分流/汇流，蓝黄表示层级，侧栏有图例。
 
-点击任意小中间节点展开，节点命中优先于容器；点击容器或从侧栏选择模块，再按“收起所选子树”。收起删除后代并恢复原节点及父边。稳定路径如 `root/U/D` 不依赖显示顺序。
+- “重置附图”：恢复仅 `root/U` 展开。
+- “重置三类型示例”：根 L/U/R 各展开一次，展示三种真实有向内部结构。
+- “全部收起”：恢复初始图。
+- 保留仅上分支递归、上下中间分支递归；增加“全部类型递归”，按各类型合法子节点完整递归。
+- 生成深度0–6，展开次数预算0–126，实际真实节点硬上限382；完整校验后才提交。预算不足或超硬上限明确报错并保留原图，**不悄悄截断**。
 
-“重置附图”恢复仅展开 root/U；“全部收起”恢复最初四节点。深度滑块0–6，选择仅上分支或上下同时递归，设置展开次数预算后生成。上分支深度 d 展开 d 次；双分支展开 2^(d+1)-2 次。生成前校验完整预算，失败不修改现有图。手动展开同样受硬上限约束：深度6、126次展开、382个真实节点（含外部384），总边最多510。
+全类型深度0/1/2/3分别展开0/4/18/68次，真实点4/14/50/178，边6/18/62/218。深度4需要246次展开，超过硬上限，必须拒绝。旧双中间分支深度6仍为126次展开、382个真实节点。
 
-滚轮以指针为中心缩放，空白拖动平移，支持按钮缩放和适应画布。节点命中半径至少10设备无关像素；深层节点过小隐藏标签。容器按父菱形局部映射递归放置，子图及其容器保持在父圆内；极深层固定命中区域可能重叠，可先缩放再选取。侧栏展示真实统计、所选节点真实度数或模块聚合度数。
+菱形、分流和汇流分别采用局部几何模板；递归子图及子容器圆完整位于父圆内部。滚轮以指针为中心缩放，拖空白平移，支持按钮缩放及适应画布。深层隐藏标签，命中半径至少10设备无关像素；极深层固定命中区域可能重叠，应先缩放再选择。
+
+## API 与测试
+
+模型在 `Model/DiamondGraph.cs`，不依赖 WPF。保留原 `Vertex(Id, IsBoundary, CanExpand)` 构造与解构签名、`Generate(depth, bothBranches, budget)`、`ExpandedPaths`、Expand/Collapse/GetDegree/GetModuleDegree 等 API。增加 `NodeKind`、`Vertex.Kind`、`GetKind(path)`、`GenerationMode` 和枚举生成重载；L/R 现在允许展开，因此旧的“L/R非法”假设不再成立。
+
+相邻 `.Tests` 沿用 MSTest 3.6.4、Microsoft.NET.Test.Sdk 17.12.0；覆盖旧 Transfer 行为、三类型计数与端口、嵌套接线、收起恢复、可达无环和失败原子性。不新增项目、第三方包，不修改 net9.0-windows、SDK 或 Directory.Build.props。所有界面用户文案集中在 Strings.xaml。
+
+Windows 安装 .NET 9 SDK 和桌面运行时后，在 Visual Studio 打开 `MathGraph/MathGraph.slnx`，将本项目设为启动项目。仓库根目录构建和测试目标：
+
+- `dotnet build MathGraph/Code/MathTest/MathGraph.DiamondFractal.Wpf/MathGraph.DiamondFractal.Wpf.csproj`
+- `dotnet test MathGraph/Code/MathTest/MathGraph.DiamondFractal.Wpf.Tests/MathGraph.DiamondFractal.Wpf.Tests.csproj`
 
 ## 数学范围
 
-双分支展开提供“层内无限点”的有限逼近，深度无限仅是数学极限。本程序每次只构造有限有向无环图，不声称生成真正无限节点，也不把视觉缩放比或拓扑替换规则误称为严格 GDIFS 维数。未建立满足分离条件的图导向迭代函数系统、测度和维数证明。
-
-## 目录与启动
-
-`Model/DiamondGraph.cs` 不依赖 WPF，公开 API 用于测试。界面用户文案集中在 `Strings.xaml`；不增加第三方 UI 库或独立模型项目。相邻 `.Tests` 使用已有 Microsoft.NET.Test.Sdk 17.12.0 / MSTest 3.6.4，目标 net9.0-windows。
-
-Windows 安装 .NET 9 SDK 和桌面运行时后，在 Visual Studio 打开 `MathGraph/MathGraph.slnx`，将本项目设为启动项目运行。也可在仓库根目录使用：
-
-- 构建：`dotnet build MathGraph/Code/MathTest/MathGraph.DiamondFractal.Wpf/MathGraph.DiamondFractal.Wpf.csproj`
-- 启动：`dotnet run --project MathGraph/Code/MathTest/MathGraph.DiamondFractal.Wpf/MathGraph.DiamondFractal.Wpf.csproj`
-- 测试：`dotnet test MathGraph/Code/MathTest/MathGraph.DiamondFractal.Wpf.Tests/MathGraph.DiamondFractal.Wpf.Tests.csproj`
-
-实验项目及对应测试统一放在 `MathGraph/Code/MathTest/`，五点环实验也在该目录下。遵循现有 `Directory.Build.props` 的 artifacts 输出约定，不修改其 UseArtifactsOutput 或 LangVersion。
+三类型递归闭合，但程序始终只构造有限有向无环图。无限深度仅是数学极限，不表示已生成真正无限节点；未证明严格 GDIFS 的分离条件、测度或维数。几何缩放不能直接当成拓扑替换的维数结论。

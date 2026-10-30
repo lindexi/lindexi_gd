@@ -36,7 +36,7 @@ public partial class MainWindow : Window
         var degree = module ? Graph.Graph.GetModuleDegree(id) : Graph.Graph.GetDegree(id);
         if (module) Modules.SelectedItem = id;
         SelectionInfo.Text = string.Format(CultureInfo.CurrentCulture, Text(module ? "SelectedModule" : "Selected"),
-            id, degree.Incoming, degree.Outgoing);
+            id, degree.Incoming, degree.Outgoing, Text(Graph.Graph.Vertices.FirstOrDefault(v => v.Id == id)?.Kind.ToString() ?? Graph.Graph.GetKind(id).ToString()));
     }
 
     private void ModuleChanged(object sender, SelectionChangedEventArgs e)
@@ -44,13 +44,22 @@ public partial class MainWindow : Window
         if (Modules.SelectedItem is not string path) return;
         Graph.SelectedModule = path;
         var degree = Graph.Graph.GetModuleDegree(path);
-        SelectionInfo.Text = string.Format(CultureInfo.CurrentCulture, Text("SelectedModule"), path, degree.Incoming, degree.Outgoing);
+        SelectionInfo.Text = string.Format(CultureInfo.CurrentCulture, Text("SelectedModule"), path, degree.Incoming, degree.Outgoing, Text(Graph.Graph.GetKind(path).ToString()));
         Graph.InvalidateVisual();
     }
 
     private void ResetClick(object sender, RoutedEventArgs e)
     {
         Graph.SetGraph(DiamondGraph.CreateDefault());
+        Graph.Fit();
+    }
+
+    private void TypesExampleClick(object sender, RoutedEventArgs e)
+    {
+        var graph = DiamondGraph.CreateDefault();
+        graph.Expand("root/L");
+        graph.Expand("root/R");
+        Graph.SetGraph(graph);
         Graph.Fit();
     }
 
@@ -78,7 +87,7 @@ public partial class MainWindow : Window
         }
         try
         {
-            Graph.Graph.Generate((int)DepthSlider.Value, Mode.SelectedIndex == 1, budget);
+            Graph.Graph.Generate((int)DepthSlider.Value, (GenerationMode)Mode.SelectedIndex, budget);
             Graph.SelectedModule = null;
             Graph.Refresh();
             Graph.Fit();

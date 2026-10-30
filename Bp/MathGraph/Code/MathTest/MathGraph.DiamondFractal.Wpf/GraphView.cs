@@ -122,25 +122,30 @@ internal sealed class GraphView : FrameworkElement
             if (vertex.IsBoundary)
                 DrawText(dc, (string)FindResource("External"), center + new Vector(-18, 25), 13, Brushes.MidnightBlue);
             else if (radius >= 6)
-                DrawText(dc, vertex.Id.Split('/')[^1], center + new Vector(radius + 4, -9), 12, dot.Level % 2 == 0 ? Brushes.RoyalBlue : Brushes.Gold);
+                DrawText(dc, vertex.Id.Split('/')[^1] + " · " + (string)FindResource(vertex.Kind + "Mark"), center + new Vector(radius + 4, -9), 12, dot.Level % 2 == 0 ? Brushes.RoyalBlue : Brushes.Gold);
         }
     }
 
     private void Layout(string path, Point center, double width, double height, int level)
     {
         double radius = width * 0.028;
-        dots[path + "/L"] = new(new Point(center.X - width / 2, center.Y), radius, level);
-        dots[path + "/R"] = new(new Point(center.X + width / 2, center.Y), radius, level);
-        foreach (string branch in new[] { "U", "D" })
+        var kind = path == "root" ? NodeKind.Transfer : graph.GetKind(path);
+        (string Name, double X, double Y)[] positions = kind switch
         {
-            var position = new Point(center.X, center.Y + (branch == "U" ? -1 : 1) * height / 2);
-            string child = path + "/" + branch;
+            NodeKind.Transfer => [("L", -0.5, 0), ("U", 0, -0.5), ("D", 0, 0.5), ("R", 0.5, 0)],
+            NodeKind.Split => [("A", -0.32, 0), ("B", 0.32, -0.32), ("C", 0.32, 0.32)],
+            _ => [("B", -0.32, -0.32), ("C", -0.32, 0.32), ("A", 0.32, 0)]
+        };
+        foreach (var (name, x, y) in positions)
+        {
+            var position = new Point(center.X + x * width, center.Y + y * height);
+            string child = path + "/" + name;
             if (graph.ExpandedPaths.Contains(child))
             {
-                double containerRadius = Math.Min(width * 0.24, height * 0.42);
+                double containerRadius = Math.Min(width * 0.24, height * 0.32);
                 modules.Add(new(child, position, containerRadius, level));
-                // Child extrema remain strictly within the parent disk at every recursive level.
-                Layout(child, position, containerRadius * 1.44, containerRadius * 1.15, level + 1);
+                // Extrema and nested container disks remain strictly inside the parent disk.
+                Layout(child, position, containerRadius * 1.2, containerRadius * 1.2, level + 1);
             }
             else dots[child] = new(position, radius, level);
         }
@@ -187,7 +192,13 @@ internal sealed class GraphView : FrameworkElement
             Selected?.Invoke(vertex.Id, false);
             if (vertex.CanExpand)
             {
-                try { graph.Expand(vertex.Id); Refresh(); }
+                try
+                {
+                    graph.Expand(vertex.Id);
+                    SelectedModule = vertex.Id;
+                    Refresh();
+                    Selected?.Invoke(vertex.Id, true);
+                }
                 catch (ArgumentOutOfRangeException) { LimitReached?.Invoke(); }
                 catch (InvalidOperationException) { LimitReached?.Invoke(); }
             }

@@ -16,9 +16,11 @@
       <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="0,0,8,0">
           <WrapPanel><Button Content="{StaticResource Reset}" Click="ResetClick"/><Button Content="{StaticResource CollapseAll}" Click="CollapseAllClick"/></WrapPanel>
+          <Button Content="{StaticResource TypesExample}" Click="TypesExampleClick"/>
+          <TextBlock Text="{StaticResource Legend}" TextWrapping="Wrap" Margin="0,8,0,0"/>
           <TextBlock Text="{StaticResource Depth}" Margin="0,16,0,5"/>
           <DockPanel><TextBlock DockPanel.Dock="Right" Text="{Binding ElementName=DepthSlider, Path=Value}" Width="24"/><Slider x:Name="DepthSlider" Minimum="0" Maximum="6" Value="1" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="{StaticResource Depth}"/></DockPanel>
-          <ComboBox x:Name="Mode" SelectedIndex="0" Margin="0,10,0,8" Padding="5" AutomationProperties.Name="{StaticResource Generate}"><ComboBoxItem Content="{StaticResource Upper}"/><ComboBoxItem Content="{StaticResource Both}"/></ComboBox>
+          <ComboBox x:Name="Mode" SelectedIndex="0" Margin="0,10,0,8" Padding="5" AutomationProperties.Name="{StaticResource Generate}"><ComboBoxItem Content="{StaticResource Upper}"/><ComboBoxItem Content="{StaticResource Both}"/><ComboBoxItem Content="{StaticResource AllTypes}"/></ComboBox>
           <TextBlock Text="{StaticResource Budget}" Margin="0,6,0,4"/>
           <TextBox x:Name="Budget" Text="126" Padding="5" AutomationProperties.Name="{StaticResource Budget}"/>
           <Button Content="{StaticResource Generate}" Click="GenerateClick"/>
