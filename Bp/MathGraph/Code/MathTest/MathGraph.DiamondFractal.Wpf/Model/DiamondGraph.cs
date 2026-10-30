@@ -43,7 +43,7 @@ public sealed class DiamondGraph
     public IReadOnlyCollection<string> ExpandedPaths => expanded.Order(StringComparer.Ordinal).ToArray();
     /// <summary>Number of actual non-boundary vertices.</summary>
     public int RealVertexCount => vertices.Count - 2;
-    /// <summary>Maximum expanded path depth.</summary>
+    /// <summary>Maximum replacement depth; fixed template groups do not add levels.</summary>
     public int Depth => expanded.Count == 0 ? 0 : expanded.Max(PathDepth);
 
     /// <summary>Creates the reference image with only root/U expanded.</summary>
@@ -58,21 +58,7 @@ public sealed class DiamondGraph
     public NodeKind GetKind(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
-        var parts = path.Split('/');
-        if (parts.Length < 2 || parts[0] != "root") throw new ArgumentException("Invalid path.", nameof(path));
-        var kind = NodeKind.Transfer;
-        foreach (var part in parts.Skip(1))
-            kind = (kind, part) switch
-            {
-                (NodeKind.Transfer, "L") => NodeKind.Split,
-                (NodeKind.Transfer, "R") => NodeKind.Merge,
-                (NodeKind.Transfer, "U" or "D") => NodeKind.Transfer,
-                (NodeKind.Split, "A") => NodeKind.Split,
-                (NodeKind.Merge, "A") => NodeKind.Merge,
-                (NodeKind.Split or NodeKind.Merge, "B" or "C") => NodeKind.Transfer,
-                _ => throw new ArgumentException("Invalid typed path.", nameof(path))
-            };
-        return kind;
+        return ResolvePath(path).Kind;
     }
 
     /// <summary>Replaces an existing real leaf, preserving ordered ports.</summary>
@@ -152,13 +138,37 @@ public sealed class DiamondGraph
         return new(edges.Count(e => !Inside(e.From) && Inside(e.To)), edges.Count(e => Inside(e.From) && !Inside(e.To)));
     }
 
-    private static int PathDepth(string path) => path.Count(c => c == '/');
-    private static int Growth(NodeKind kind) => kind == NodeKind.Transfer ? 3 : 2;
+    private static (NodeKind Kind, int Depth) ResolvePath(string path)
+    {
+        var parts = path.Split('/');
+        if (parts.Length < 2 || parts[0] != "root") throw new ArgumentException("Invalid path.", nameof(path));
+        var kind = NodeKind.Transfer;
+        int depth = 0;
+        for (int index = 1; index < parts.Length; index++)
+        {
+            string name = parts[index];
+            if (kind is NodeKind.Split or NodeKind.Merge && name is "B" or "C")
+            {
+                if (++index >= parts.Length) throw new ArgumentException("Incomplete template path.", nameof(path));
+                name += "/" + parts[index];
+            }
+            var child = Children(kind).FirstOrDefault(c => c.Name == name);
+            if (child.Name is null) throw new ArgumentException("Invalid typed path.", nameof(path));
+            kind = child.Kind;
+            depth++;
+        }
+        return (kind, depth);
+    }
+
+    private static int PathDepth(string path) => ResolvePath(path).Depth;
+    private static int Growth(NodeKind kind) => kind == NodeKind.Transfer ? 3 : 8;
     private static (string Name, NodeKind Kind)[] Children(NodeKind kind) => kind switch
     {
         NodeKind.Transfer => [("L", NodeKind.Split), ("U", NodeKind.Transfer), ("D", NodeKind.Transfer), ("R", NodeKind.Merge)],
-        NodeKind.Split => [("A", NodeKind.Split), ("B", NodeKind.Transfer), ("C", NodeKind.Transfer)],
-        NodeKind.Merge => [("B", NodeKind.Transfer), ("C", NodeKind.Transfer), ("A", NodeKind.Merge)],
+        NodeKind.Split or NodeKind.Merge => [
+            ("A", kind),
+            ("B/L", NodeKind.Split), ("B/U", NodeKind.Transfer), ("B/D", NodeKind.Transfer), ("B/R", NodeKind.Merge),
+            ("C/L", NodeKind.Split), ("C/U", NodeKind.Transfer), ("C/D", NodeKind.Transfer), ("C/R", NodeKind.Merge)],
         _ => throw new ArgumentOutOfRangeException(nameof(kind))
     };
 
@@ -195,14 +205,21 @@ public sealed class DiamondGraph
             Connect("D", 0, "R", 1);
             return new(children["L"].Inputs, children["R"].Outputs);
         }
+        foreach (string group in new[] { "B", "C" })
+        {
+            Connect(group + "/L", 0, group + "/U", 0);
+            Connect(group + "/L", 1, group + "/D", 0);
+            Connect(group + "/U", 0, group + "/R", 0);
+            Connect(group + "/D", 0, group + "/R", 1);
+        }
         if (kind == NodeKind.Split)
         {
-            Connect("A", 0, "B", 0);
-            Connect("A", 1, "C", 0);
-            return new(children["A"].Inputs, [children["B"].Outputs[0], children["C"].Outputs[0]]);
+            Connect("A", 0, "B/L", 0);
+            Connect("A", 1, "C/L", 0);
+            return new(children["A"].Inputs, [children["B/R"].Outputs[0], children["C/R"].Outputs[0]]);
         }
-        Connect("B", 0, "A", 0);
-        Connect("C", 0, "A", 1);
-        return new([children["B"].Inputs[0], children["C"].Inputs[0]], children["A"].Outputs);
+        Connect("B/R", 0, "A", 0);
+        Connect("C/R", 0, "A", 1);
+        return new([children["B/L"].Inputs[0], children["C/L"].Inputs[0]], children["A"].Outputs);
     }
 }

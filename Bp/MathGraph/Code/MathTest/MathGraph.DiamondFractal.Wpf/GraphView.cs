@@ -9,7 +9,7 @@ namespace MathGraph.DiamondFractal.Wpf;
 internal sealed class GraphView : FrameworkElement
 {
     private sealed record Dot(Point Center, double Radius, int Level);
-    private sealed record Module(string Id, Point Center, double Radius, int Level);
+    private sealed record Module(string Id, Point Center, double Radius, int Level, bool IsTemplate = false);
     private readonly Dictionary<string, Dot> dots = [];
     private readonly List<Module> modules = [];
     private DiamondGraph graph = DiamondGraph.CreateDefault();
@@ -126,21 +126,27 @@ internal sealed class GraphView : FrameworkElement
         }
     }
 
-    private void Layout(string path, Point center, double width, double height, int level)
+    private void Layout(string path, Point center, double width, double height, int level, bool template = false)
     {
         double radius = width * 0.028;
-        var kind = path == "root" ? NodeKind.Transfer : graph.GetKind(path);
+        var kind = path == "root" || template ? NodeKind.Transfer : graph.GetKind(path);
         (string Name, double X, double Y)[] positions = kind switch
         {
             NodeKind.Transfer => [("L", -0.5, 0), ("U", 0, -0.5), ("D", 0, 0.5), ("R", 0.5, 0)],
-            NodeKind.Split => [("A", -0.32, 0), ("B", 0.32, -0.32), ("C", 0.32, 0.32)],
-            _ => [("B", -0.32, -0.32), ("C", -0.32, 0.32), ("A", 0.32, 0)]
+            NodeKind.Split => [("A", -0.48, 0), ("B", 0.16, -0.38), ("C", 0.16, 0.38)],
+            _ => [("B", -0.16, -0.38), ("C", -0.16, 0.38), ("A", 0.48, 0)]
         };
         foreach (var (name, x, y) in positions)
         {
             var position = new Point(center.X + x * width, center.Y + y * height);
             string child = path + "/" + name;
-            if (graph.ExpandedPaths.Contains(child))
+            if (kind is NodeKind.Split or NodeKind.Merge && name is "B" or "C")
+            {
+                double groupRadius = Math.Min(width, height) * 0.29;
+                modules.Add(new(child, position, groupRadius, level, true));
+                Layout(child, position, groupRadius * 1.2, groupRadius * 1.2, level + 1, true);
+            }
+            else if (graph.ExpandedPaths.Contains(child))
             {
                 double containerRadius = Math.Min(width * 0.24, height * 0.32);
                 modules.Add(new(child, position, containerRadius, level));
@@ -205,7 +211,7 @@ internal sealed class GraphView : FrameworkElement
             return;
         }
         var module = modules.LastOrDefault(m => (Screen(m.Center) - point).Length <= m.Radius * Scale);
-        if (module is null) return;
+        if (module is null || module.IsTemplate) return;
         SelectedModule = module.Id;
         Selected?.Invoke(module.Id, true);
         InvalidateVisual();
