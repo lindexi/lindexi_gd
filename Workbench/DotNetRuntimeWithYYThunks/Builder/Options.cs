@@ -10,7 +10,8 @@ internal static class Text
 }
 
 internal sealed record Options(string Command, string Arch, string TargetOs, string Runtime, string Yy,
-    string Obj, string? File, string Configuration, int Timeout, bool DryRun, string Root, bool ConfigureOnly, bool FullRuntime)
+    string Obj, string? File, string Configuration, int Timeout, bool DryRun, string Root, bool ConfigureOnly, bool FullRuntime,
+    string ObjectSource)
 {
     internal static Options Parse(string[] args, string root)
     {
@@ -42,9 +43,12 @@ internal sealed record Options(string Command, string Arch, string TargetOs, str
                 throw new ArgumentException(Text.Get("Arguments"));
             return Path.GetFullPath(path);
         }
-        string yy = PathValue(Get("--yy", Path.Combine(root, "..", "YY-Thunks")));
+        string yy = values.ContainsKey("--yy") ? PathValue(Get("--yy")) : "";
+        string objectSource = values.ContainsKey("--obj") ? "ExplicitObject" : yy.Length != 0 ? "ExplicitYYDirectory" : "NuGetPackage";
         return new(args[0], arch, os, PathValue(Get("--runtime", Path.Combine(root, "..", "runtime"))), yy,
-            PathValue(Get("--obj", Path.Combine(yy, "objs", arch, "YY_Thunks_for_Win7.obj"))),
-            values.ContainsKey("--file") ? PathValue(Get("--file")) : null, config, timeout, dry, root, configureOnly, fullRuntime);
+            PathValue(Get("--obj", yy.Length != 0
+                ? Path.Combine(yy, "objs", arch, "YY_Thunks_for_Win7.obj")
+                : Path.Combine(AppContext.BaseDirectory, "yy-thunks", arch, "YY_Thunks_for_Win7.obj"))),
+            values.ContainsKey("--file") ? PathValue(Get("--file")) : null, config, timeout, dry, root, configureOnly, fullRuntime, objectSource);
     }
 }

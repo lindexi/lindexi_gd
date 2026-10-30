@@ -19,11 +19,15 @@ internal static class NativePlanning
             if (!File.Exists(Path.Combine(o.Runtime, file))) blockers.Add(Text.Missing(Path.Combine(o.Runtime, file)));
         if (o.Command != "baseline")
         {
-            if (!File.Exists(o.Obj)) blockers.Add(Text.Get("SourceBlocked"));
+            if (!File.Exists(o.Obj)) blockers.Add(string.Format(Text.Get("ObjectMissing"), o.Obj));
             else
             {
-                try { BinaryInspection.ValidateObject(o.Obj, o.Arch); }
-                catch (Exception ex) when (ex is InvalidDataException or EndOfStreamException) { blockers.Add(Text.Get("Object")); }
+                try
+                {
+                    BinaryInspection.ValidateObject(o.Obj, o.Arch);
+                }
+                catch (InvalidDataException ex) { blockers.Add(ex.Message); }
+                catch (EndOfStreamException) { blockers.Add(Text.Get("Object")); }
             }
         }
         string powershell = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows),

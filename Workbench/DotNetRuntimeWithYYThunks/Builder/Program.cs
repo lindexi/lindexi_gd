@@ -61,7 +61,7 @@ public static class Program
             details = plan;
             foreach (string blocker in plan.Blockers) Console.WriteLine(blocker);
             foreach (string path in new[] { Path.Combine(o.Runtime, "global.json"), Path.Combine(o.Runtime, "src/coreclr/CMakeLists.txt"),
-                         Path.Combine(o.Runtime, "eng/native/configurecompiler.cmake"), Path.Combine(o.Yy, "src/Build.cmd"),
+                         Path.Combine(o.Runtime, "eng/native/configurecompiler.cmake"),
                          Path.Combine(o.Root, "Builder", "NativePlan.cs") }.Concat(o.Command == "baseline" ? [] : new[] { o.Obj }))
                 if (System.IO.File.Exists(path)) hashes[path] = BinaryInspection.Hash(path);
             await SaveAsync(Path.Combine(directory, "plan.json"), plan).ConfigureAwait(false);
@@ -162,10 +162,22 @@ public static class Program
         { status = "Failed"; failure = ex.Message; exit = 2; throw; }
         finally
         {
+            using var package = o.Command != "baseline" && o.ObjectSource == "NuGetPackage"
+                ? JsonDocument.Parse(await System.IO.File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "yy-thunks", "package.json")).ConfigureAwait(false))
+                : null;
             await SaveAsync(Path.Combine(directory, "manifest.json"), new
             {
                 SchemaVersion = 1, Status = status, ExitCode = exit, Failure = failure, Options = o,
                 CompletedUtc = DateTimeOffset.UtcNow, Compatibility = "Unverified", ImportValidation = "NotImplemented",
+                ThunkObject = o.Command == "baseline" ? null : new
+                {
+                    Source = o.ObjectSource,
+                    PackageId = o.ObjectSource == "NuGetPackage" ? "YY-Thunks" : null,
+                    PackageVersion = package?.RootElement.GetProperty("PackageVersion").GetString(),
+                    PackagePath = o.ObjectSource == "NuGetPackage" ? $"build/native/objs/{o.Arch}/YY_Thunks_for_Win7.obj" : null,
+                    FixObj = "NotIndependentlyVerified",
+                    Sha256 = hashes.GetValueOrDefault(o.Obj)
+                },
                 InputsAndOutputsSha256 = hashes, Processes = processResults, Details = details
             }).ConfigureAwait(false);
             Console.WriteLine(directory);
