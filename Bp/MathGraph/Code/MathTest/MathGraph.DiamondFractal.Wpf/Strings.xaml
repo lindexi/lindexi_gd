@@ -1,0 +1,28 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+  <sys:String x:Key="Title">菱形递归 · 有向图实验</sys:String>
+  <sys:String x:Key="Reset">重置附图</sys:String>
+  <sys:String x:Key="CollapseAll">全部收起</sys:String>
+  <sys:String x:Key="Fit">适应画布</sys:String>
+  <sys:String x:Key="ZoomIn">放大 +</sys:String>
+  <sys:String x:Key="ZoomOut">缩小 −</sys:String>
+  <sys:String x:Key="Depth">递归深度（0–6）</sys:String>
+  <sys:String x:Key="Upper">仅上分支递归</sys:String>
+  <sys:String x:Key="Both">上下分支同时递归</sys:String>
+  <sys:String x:Key="Generate">生成有限逼近</sys:String>
+  <sys:String x:Key="Modules">已展开模块（选择后可收起）</sys:String>
+  <sys:String x:Key="Collapse">收起所选子树</sys:String>
+  <sys:String x:Key="Rules">真实拓扑：入口入1出2，出口入2出1；只有叶子中间点入1出1。超点按模块聚合入1出1，不代表内部各点度数相同。外部虚点仅1出或1入，不计入真实节点数。
+
+展开移除父顶点，外入边接子入口，子出口接外出边。每次展开真实节点+3、边+4。
+
+上限：深度6、展开126次、真实节点382个。双分支是层内无限点的有限逼近；无限深度仅为数学极限，不是本演示已生成无限图。</sys:String>
+  <sys:String x:Key="Hint">点击小中间点展开；点击大圆选择模块。滚轮缩放，拖动空白平移。深层标签自动隐藏，节点命中范围保持至少10像素。</sys:String>
+  <sys:String x:Key="External">外部</sys:String>
+  <sys:String x:Key="Statistics">真实节点 {0}（含外部 {1}）
+总边 {2} · 展开 {3} · 层级 {4}</sys:String>
+  <sys:String x:Key="Selected">选中 {0} · 入 {1} / 出 {2}</sys:String>
+  <sys:String x:Key="SelectedModule">模块 {0} · 聚合入 {1} / 出 {2}</sys:String>
+  <sys:String x:Key="Limit">已达到深度或节点预算上限。</sys:String>
+  <sys:String x:Key="Budget">展开次数预算（0–126）</sys:String>
+  <sys:String x:Key="InvalidBudget">请输入0到126之间的整数预算，且预算必须足够生成所选深度。</sys:String>
+</ResourceDictionary>
