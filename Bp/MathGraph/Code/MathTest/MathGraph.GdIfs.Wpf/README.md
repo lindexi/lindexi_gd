@@ -6,9 +6,9 @@
 
 在仓库根目录使用 Visual Studio 打开 `MathGraph/MathGraph.slnx`，将 `MathGraph.GdIfs.Wpf` 设为启动项目并运行。也可以在终端使用：
 
-- 启动：`dotnet run --project MathGraph/Code/MathGraph.GdIfs.Wpf/MathGraph.GdIfs.Wpf.csproj`
-- 构建：`dotnet build MathGraph/Code/MathGraph.GdIfs.Wpf/MathGraph.GdIfs.Wpf.csproj`
-- 测试：`dotnet test MathGraph/Code/MathGraph.GdIfs.Wpf.Tests/MathGraph.GdIfs.Wpf.Tests.csproj`
+- 启动：`dotnet run --project MathGraph/Code/MathTest/MathGraph.GdIfs.Wpf/MathGraph.GdIfs.Wpf.csproj`
+- 构建：`dotnet build MathGraph/Code/MathTest/MathGraph.GdIfs.Wpf/MathGraph.GdIfs.Wpf.csproj`
+- 测试：`dotnet test MathGraph/Code/MathTest/MathGraph.GdIfs.Wpf.Tests/MathGraph.GdIfs.Wpf.Tests.csproj`
 
 输出位置遵循仓库现有 `UseArtifactsOutput` 配置，不假设输出在项目 bin 目录。
 

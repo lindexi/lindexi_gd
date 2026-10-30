@@ -35,8 +35,8 @@ diamond 的真实顶点 L、U、D、R，边 L→U、U→R、L→D、D→R，加�
 
 Windows 安装 .NET 9 SDK 和桌面运行时后，在 Visual Studio 打开 `MathGraph/MathGraph.slnx`，将本项目设为启动项目运行。也可在仓库根目录使用：
 
-- 构建：`dotnet build MathGraph/Code/GraphExperiments/MathGraph.DiamondFractal.Wpf/MathGraph.DiamondFractal.Wpf.csproj`
-- 启动：`dotnet run --project MathGraph/Code/GraphExperiments/MathGraph.DiamondFractal.Wpf/MathGraph.DiamondFractal.Wpf.csproj`
-- 测试：`dotnet test MathGraph/Code/GraphExperiments/MathGraph.DiamondFractal.Wpf.Tests/MathGraph.DiamondFractal.Wpf.Tests.csproj`
+- 构建：`dotnet build MathGraph/Code/MathTest/MathGraph.DiamondFractal.Wpf/MathGraph.DiamondFractal.Wpf.csproj`
+- 启动：`dotnet run --project MathGraph/Code/MathTest/MathGraph.DiamondFractal.Wpf/MathGraph.DiamondFractal.Wpf.csproj`
+- 测试：`dotnet test MathGraph/Code/MathTest/MathGraph.DiamondFractal.Wpf.Tests/MathGraph.DiamondFractal.Wpf.Tests.csproj`
 
-遵循现有 `Directory.Build.props` 的 artifacts 输出约定，不修改其 UseArtifactsOutput 或 LangVersion；旧实验保持原位。
+实验项目及对应测试统一放在 `MathGraph/Code/MathTest/`，五点环实验也在该目录下。遵循现有 `Directory.Build.props` 的 artifacts 输出约定，不修改其 UseArtifactsOutput 或 LangVersion。
