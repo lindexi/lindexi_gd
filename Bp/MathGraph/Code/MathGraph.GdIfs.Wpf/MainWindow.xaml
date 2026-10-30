@@ -1,0 +1,39 @@
+<Window x:Class="MathGraph.GdIfs.Wpf.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:MathGraph.GdIfs.Wpf" Title="{StaticResource WindowTitle}" Width="1280" Height="850" MinWidth="980" MinHeight="680" Background="#0B1220" FontFamily="Microsoft YaHei UI">
+  <Grid Margin="28">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <StackPanel Margin="0,0,0,22">
+      <TextBlock Text="{StaticResource Subtitle}" Foreground="#63D8CB" FontSize="12"/>
+      <TextBlock Text="{StaticResource Title}" FontSize="29" FontWeight="SemiBold" Margin="0,6,0,0"/>
+    </StackPanel>
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="320"/></Grid.ColumnDefinitions>
+      <Border Background="#101C2E" CornerRadius="16" BorderBrush="#26384F" BorderThickness="1" Margin="0,0,20,0" ClipToBounds="True">
+        <Grid><local:GraphView x:Name="Graph" AutomationProperties.Name="{StaticResource CanvasHelp}"/>
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="16">
+            <Button Content="{StaticResource ZoomIn}" Click="ZoomInClick"/>
+            <Button Content="{StaticResource ZoomOut}" Click="ZoomOutClick"/>
+            <Button Content="{StaticResource Reset}" Click="ResetClick"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+      <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,8,0">
+          <TextBlock Text="{StaticResource ControlsTitle}" FontSize="19" FontWeight="SemiBold" Margin="0,0,0,18"/>
+          <TextBlock Text="{StaticResource SelectionLabel}" Margin="0,0,0,8"/>
+          <ComboBox x:Name="Selection" SelectionChanged="SelectionChanged" FontSize="15" Padding="8" AutomationProperties.Name="{StaticResource SelectionLabel}"/>
+          <TextBlock Text="{StaticResource DepthLabel}" Margin="0,20,0,6"/>
+          <DockPanel><TextBlock x:Name="DepthValue" DockPanel.Dock="Right" Width="32" TextAlignment="Right"/><Slider x:Name="Depth" Minimum="0" Maximum="8" Value="3" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="ParameterChanged" AutomationProperties.Name="{StaticResource DepthLabel}"/></DockPanel>
+          <TextBlock Text="{StaticResource RatioLabel}" Margin="0,18,0,6"/>
+          <DockPanel><TextBlock x:Name="RatioValue" DockPanel.Dock="Right" Width="48" TextAlignment="Right"/><Slider x:Name="Ratio" Minimum="0.12" Maximum="0.36" Value="0.28" TickFrequency="0.01" IsSnapToTickEnabled="True" ValueChanged="ParameterChanged" AutomationProperties.Name="{StaticResource RatioLabel}"/></DockPanel>
+          <Border Background="#18283C" CornerRadius="10" Padding="16" Margin="0,24,0,22"><StackPanel>
+            <TextBlock Text="{StaticResource StatsTitle}" Foreground="#63D8CB" FontWeight="SemiBold" Margin="0,0,0,10"/>
+            <TextBlock x:Name="Statistics" LineHeight="25"/>
+          </StackPanel></Border>
+          <TextBlock Text="{StaticResource RulesTitle}" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,12"/>
+          <TextBlock Text="{StaticResource Rules}" TextWrapping="Wrap" Foreground="#A8B9D0" FontSize="13"/>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+    <TextBlock Grid.Row="2" Text="{StaticResource Hint}" Foreground="#8EA4BF" Margin="0,16,0,0" TextWrapping="Wrap" FontSize="12"/>
+  </Grid>
+</Window>
