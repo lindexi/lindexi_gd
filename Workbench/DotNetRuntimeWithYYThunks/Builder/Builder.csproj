@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The native package is a download carrier, never a linker integration. -->
+    <PackageReference Include="yy-thunks" Version="1.2.3" GeneratePathProperty="true" PrivateAssets="all" ExcludeAssets="all" />
+  </ItemGroup>
+  <Target Name="MaterializeYYThunks" BeforeTargets="PrepareForBuild;GetCopyToOutputDirectoryItems" DependsOnTargets="ResolvePackageAssets">
+    <Error Condition="'$(PkgYY-Thunks)' == ''" Text="YY-Thunks package path is unavailable. Restore the Builder project." />
+    <PropertyGroup>
+      <_YYPackageVersion>$([System.IO.Path]::GetFileName('$(PkgYY-Thunks)'))</_YYPackageVersion>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(IntermediateOutputPath)yy-thunks.package.json" Lines="{ &quot;PackageVersion&quot;: &quot;$(_YYPackageVersion)&quot; }" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <_YYObject Include="$(PkgYY-Thunks)/build/native/objs/x86/YY_Thunks_for_Win7.obj" TargetPath="yy-thunks/x86/YY_Thunks_for_Win7.obj" />
+      <_YYObject Include="$(PkgYY-Thunks)/build/native/objs/x64/YY_Thunks_for_Win7.obj" TargetPath="yy-thunks/x64/YY_Thunks_for_Win7.obj" />
+    </ItemGroup>
+    <Error Condition="!Exists('%(_YYObject.Identity)')" Text="YY-Thunks is missing required object: %(_YYObject.Identity)" />
+    <ItemGroup>
+      <Content Include="@(_YYObject)" Link="%(_YYObject.TargetPath)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+      <Content Include="$(IntermediateOutputPath)yy-thunks.package.json" Link="yy-thunks/package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+</Project>

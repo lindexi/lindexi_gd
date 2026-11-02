@@ -1,0 +1,17 @@
+<root>
+<resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader>
+<data name="Help" xml:space="preserve"><value>Builder doctor|plan|baseline|build|inspect --target-os win7|vista|xp --arch x64|x86 [--runtime PATH] [--yy PATH] [--obj PATH] [--file PE] [--configuration Debug|Release|Checked] [--timeout 秒] [--dry-run]
+默认使用 Builder 同级 runtime，以及随 Builder 输出的 NuGet YY-Thunks Win7 OBJ（自动还原）。--obj 优先覆盖；显式 --yy 保留从其 objs/架构 目录选取的兼容行为，不默认依赖源码。编排官方 clr.native、libs.native、host.native 子集，不生成完整 SDK/托管发行版。支持 --full-runtime：构建 clr.runtime+clr.corelib+libs.native+libs.sfx+host.native+host.tools，随后调用官方 Runtime.CoreCLR Build 和 Bundle PublishToDisk；其最终成功路径尚待实际构建验证。支持 --configure-only（libs 官方 Windows 入口仍会构建）。baseline 不注入 OBJ，不代表兼容构建。所有运行输出位于 Builder/artifacts。详见 Docs。</value></data>
+<data name="Arguments"><value>命令或参数无效、重复、缺失，或路径包含不安全字符。</value></data>
+<data name="Unsupported"><value>拒绝 XP/Vista：当前 runtime 的入口点、PE 子系统及依赖尚未可靠验证；不能通过降低版本号假称支持。</value></data>
+<data name="Missing"><value>缺少依赖或输入：{0}</value></data>
+<data name="Object"><value>OBJ 必须是架构匹配的有效普通 COFF 对象（不接受 PE、LIB 或未识别 bigobj）；不据弱符号或 security_cookie 定义推断 FixObj 状态。</value></data>
+<data name="Windows"><value>构建需要 Windows；VS、MSVC、SDK 和 CMake 的可用性由 runtime 官方脚本发现并验证，不安装原生工具。</value></data>
+<data name="Cache"><value>拒绝复用非空构建目录，避免 CMake 缓存污染。</value></data>
+<data name="Unverified"><value>未验证导入表、延迟导入、动态加载 API 和真实 Win7 运行行为；不是兼容性认证。</value></data>
+<data name="Failed"><value>操作失败：{0}</value></data>
+<data name="Cancelled"><value>操作已取消，已终止活动子进程树。</value></data>
+<data name="Timeout"><value>操作超时，已终止活动子进程树。</value></data>
+<data name="ObjectMissing"><value>缺少 YY-Thunks Win7 OBJ：{0}。请重新构建 Builder 以还原并复制 YY-Thunks 的 x86/x64 对象；也可用 --obj 指定现成的架构匹配 COFF 对象。不自动编译 YY-Thunks 源码。</value></data>
+<data name="Pe"><value>PE 架构、CLR 或子系统版本不符合原生 win7 目标。</value></data>
+</root>
