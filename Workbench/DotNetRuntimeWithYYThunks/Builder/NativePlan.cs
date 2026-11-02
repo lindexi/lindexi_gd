@@ -111,7 +111,7 @@ internal static class NativePlanning
             if(NOT imported AND (managed STREQUAL "managed-NOTFOUND") AND
                (kind STREQUAL "EXECUTABLE" OR kind STREQUAL "SHARED_LIBRARY" OR kind STREQUAL "MODULE_LIBRARY"))
         """ + $"\n      if(target STREQUAL \"clrinterpreter\")\n        target_sources(\"${{target}}\" PRIVATE [==[{Path.Combine(o.Root, "Builder", "clrinterpreter.rc").Replace('\\', '/')}]==])\n      endif()\n" +
-        (o.Command == "baseline" ? "\n" : $"\n      target_sources(\"${{target}}\" PRIVATE [==[{o.Obj.Replace('\\', '/')}]==])\n") + """
+        (o.Command == "baseline" ? "\n" : $"\n      if(NOT target MATCHES \"^(mscorrc|clretwrc)$\")\n        target_sources(\"${{target}}\" PRIVATE [==[{o.Obj.Replace('\\', '/')}]==])\n        target_link_options(\"${{target}}\" PRIVATE \"/MAP\")\n      else()\n        message(STATUS \"Builder YY exemption: ${{target}} is a NOENTRY resource-only DLL\")\n      endif()\n") + """
               if(kind STREQUAL "EXECUTABLE")
                 get_target_property(gui "${target}" WIN32_EXECUTABLE)
                 if(gui)
