@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Parse" xml:space="preserve"><value>MPL2 line {0}: {1}</value></data>
+  <data name="Timing" xml:space="preserve"><value>Invalid time range; expected [start][end] with nonnegative ASCII integer deciseconds and end greater than start.</value></data>
+  <data name="Range" xml:space="preserve"><value>The decisecond timestamp exceeds TimeSpan limits.</value></data>
+  <data name="Italic" xml:space="preserve"><value>A leading slash on an MPL2 text line denotes italics and is not supported by this plain-text parser.</value></data>
+  <data name="Text" xml:space="preserve"><value>The subtitle text must not be empty.</value></data>
+  <data name="Empty" xml:space="preserve"><value>No subtitle cues were found.</value></data>
+</root>

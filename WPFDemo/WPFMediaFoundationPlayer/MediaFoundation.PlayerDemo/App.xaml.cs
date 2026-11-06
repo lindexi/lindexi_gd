@@ -124,6 +124,22 @@ public partial class App : Application
             return;
         }
 
+        if (e.Args.Contains("--subtitle-test"))
+        {
+            using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+            try
+            {
+                await SubtitleTest.RunAsync(cancellation.Token);
+                Shutdown(0);
+            }
+            catch (Exception error)
+            {
+                PlaybackDiagnostics.Write(error, null);
+                Shutdown(1);
+            }
+            return;
+        }
+
         if (e.Args.Contains("--diagnostics-test"))
         {
             try
@@ -155,6 +171,7 @@ public partial class App : Application
         MediaPlayerControl? control = null;
         Window? window = null;
         RenderingModeMenu? renderingMenu = null;
+        SubtitleMenu? subtitleMenu = null;
 
         Window CreateWindow()
         {
@@ -167,6 +184,7 @@ public partial class App : Application
             };
             var layout = new System.Windows.Controls.DockPanel();
             renderingMenu = new RenderingModeMenu(control, layout);
+            subtitleMenu = new SubtitleMenu(control);
             window = new Window
             {
                 Title = (string)FindResource("DemoTitle"), Width = 1100, Height = 720, MinWidth = 640, MinHeight = 360,
@@ -174,6 +192,7 @@ public partial class App : Application
             };
             window.Closed += (_, _) =>
             {
+                subtitleMenu.Dispose();
                 renderingMenu.Dispose();
                 control.Dispose();
             };
@@ -266,6 +285,7 @@ public partial class App : Application
         }
         finally
         {
+            subtitleMenu?.Dispose();
             renderingMenu?.Dispose();
             control?.Dispose();
             window?.Close();

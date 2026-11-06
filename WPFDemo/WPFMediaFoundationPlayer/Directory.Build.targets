@@ -1,0 +1,7 @@
+<Project>
+  <ItemDefinitionGroup>
+    <ProjectReference>
+      <SetPlatform>Platform=$(PlatformTarget)</SetPlatform>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+</Project>

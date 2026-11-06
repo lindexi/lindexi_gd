@@ -43,6 +43,27 @@ internal sealed class VideoHost : HwndHost
         if (!PInvoke.DestroyWindow(new HWND(hwnd.Handle))) throw new Win32Exception(Marshal.GetLastWin32Error());
     }
 
+    protected override nint WndProc(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
+    {
+        if (msg == 0x007B)
+        {
+            DependencyObject? element = this;
+            while (element != null)
+            {
+                if (element is FrameworkElement { ContextMenu: { } menu } target)
+                {
+                    menu.PlacementTarget = target;
+                    menu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
+                    menu.IsOpen = true;
+                    handled = true;
+                    return 0;
+                }
+                element = System.Windows.Media.VisualTreeHelper.GetParent(element);
+            }
+        }
+        return base.WndProc(hwnd, msg, wParam, lParam, ref handled);
+    }
+
     protected override void OnWindowPositionChanged(Rect rcBoundingBox)
     {
         base.OnWindowPositionChanged(rcBoundingBox);

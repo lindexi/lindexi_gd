@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Parse" xml:space="preserve"><value>LRC line {0}: {1}</value></data>
+  <data name="Timing" xml:space="preserve"><value>Invalid timestamp or metadata; expected [minutes:ss], [minutes:ss.ff], or [minutes:ss.fff].</value></data>
+  <data name="Offset" xml:space="preserve"><value>Invalid offset; expected signed integer milliseconds within the TimeSpan range.</value></data>
+  <data name="Enhanced" xml:space="preserve"><value>Enhanced LRC word timestamps are not supported.</value></data>
+  <data name="Range" xml:space="preserve"><value>The offset-adjusted timestamp must be less than TimeSpan.MaxValue.</value></data>
+  <data name="Empty" xml:space="preserve"><value>No timed lyric text was found.</value></data>
+</root>

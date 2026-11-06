@@ -14,6 +14,52 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
     private readonly Dispatcher _dispatcher;
     private readonly Grid _view = new();
     private readonly DispatcherTimer _timer;
+    private readonly SubtitlePresenter _subtitles;
+    private SubtitleDocument? _subtitle;
+    private TimeSpan _subtitleDelay;
+
+    /// <summary>当前外挂字幕；加载成功后赋值，null 关闭字幕。打开或关闭媒体时清除。</summary>
+    public SubtitleDocument? Subtitle
+    {
+        get => _subtitle;
+        set
+        {
+            Verify();
+            if (ReferenceEquals(_subtitle, value)) return;
+            _subtitle = value;
+            _subtitles.Update();
+            Notify();
+        }
+    }
+
+    /// <summary>字幕时间偏移；正值表示晚出现，打开或关闭媒体时归零。</summary>
+    public TimeSpan SubtitleDelay
+    {
+        get => _subtitleDelay;
+        set
+        {
+            Verify();
+            if (_subtitleDelay == value) return;
+            _subtitleDelay = value;
+            _subtitles.Update();
+            Notify();
+        }
+    }
+
+    /// <summary>字幕展示失败并已关闭字幕；音视频播放不因此停止，错误保留原始异常。</summary>
+    public event EventHandler<PlaybackFailedEventArgs>? SubtitleFailed;
+
+    internal TimeSpan RefreshSubtitlePosition()
+    {
+        _session?.Refresh();
+        return _session?.Position ?? TimeSpan.Zero;
+    }
+
+    internal void ReportSubtitleFailure(Exception error)
+    {
+        Subtitle = null;
+        SubtitleFailed?.Invoke(this, new PlaybackFailedEventArgs(error));
+    }
     private VideoHost? _host;
     private MFPlayD3DImagePresenter? _presenter;
     private IPlaybackSession? _session;
@@ -54,6 +100,7 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
             throw new InvalidOperationException(Text.Get("StaRequired"));
         _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(200), DispatcherPriority.Background, OnTick, _dispatcher);
         _timer.Stop();
+        _subtitles = new SubtitlePresenter(this, _view);
     }
 
     /// <summary>可放入 ContentControl 的唯一视频宿主，不支持同时放入多个可视树。</summary>
@@ -248,6 +295,7 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
         if (_disposed) return;
         Source = null;
         ReleaseSession();
+        _subtitles.Dispose();
         _disposed = true;
         DestroyHost();
         Publish();
@@ -331,6 +379,11 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
 
     private void ReleaseSession(PlaybackState finalState)
     {
+        _subtitle = null;
+        _subtitleDelay = TimeSpan.Zero;
+        _subtitles.Update();
+        Notify(nameof(Subtitle));
+        Notify(nameof(SubtitleDelay));
         _timer.Stop();
         _playPending = false;
         if (_presenter != null)

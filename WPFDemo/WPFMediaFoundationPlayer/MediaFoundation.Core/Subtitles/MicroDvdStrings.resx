@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Parse" xml:space="preserve"><value>MicroDVD line {0}: {1}</value></data>
+  <data name="Frames" xml:space="preserve"><value>Invalid frame range; expected {start}{end} with nonnegative Int64 frames and end greater than start.</value></data>
+  <data name="FrameRate" xml:space="preserve"><value>The frame rate must be finite and greater than zero.</value></data>
+  <data name="Conflict" xml:space="preserve"><value>The declared frame rate conflicts with the caller-supplied frame rate.</value></data>
+  <data name="MissingFrameRate" xml:space="preserve"><value>No frame rate is available; supply one explicitly or use an initial {0}{0} or {1}{1} declaration.</value></data>
+  <data name="Style" xml:space="preserve"><value>MicroDVD style and control tags in braces are not supported.</value></data>
+  <data name="Text" xml:space="preserve"><value>The subtitle text must not be empty.</value></data>
+  <data name="Range" xml:space="preserve"><value>The converted frame range exceeds TimeSpan limits or collapses at tick precision.</value></data>
+  <data name="Empty" xml:space="preserve"><value>No subtitle cues were found.</value></data>
+</root>

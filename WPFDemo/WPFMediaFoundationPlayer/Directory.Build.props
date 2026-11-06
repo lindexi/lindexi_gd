@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <Platform Condition="'$(RuntimeIdentifier)' == 'win-x86'">x86</Platform>
+    <Platform Condition="'$(RuntimeIdentifier)' == 'win-x64'">x64</Platform>
+  </PropertyGroup>
+</Project>
