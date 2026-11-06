@@ -1,6 +1,7 @@
 <Project>
   <PropertyGroup>
-    <Platform Condition="'$(RuntimeIdentifier)' == 'win-x86'">x86</Platform>
-    <Platform Condition="'$(RuntimeIdentifier)' == 'win-x64'">x64</Platform>
+    <Platforms>x86;x64</Platforms>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <PlatformTarget Condition="'$(PlatformTarget)' == '' and ('$(Platform)' == 'x86' or '$(Platform)' == 'x64')">$(Platform)</PlatformTarget>
   </PropertyGroup>
 </Project>

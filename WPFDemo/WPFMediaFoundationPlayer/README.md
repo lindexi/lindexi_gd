@@ -25,7 +25,18 @@ WPF 的 `RenderingMode` 是上层选择，不属于 Core 会话；模式在 Open
 
 D3DImage 路径需要同一适配器上的 D3D11/D3D9Ex 共享资源和视频支持。性能取决于驱动、解码器、视频尺寸、合成及共享资源同步，不保证比 HWND 更快或绝对零拷贝。当前不提供完整设备移除/重置自动恢复，也不静默切换后端；失败后由宿主关闭并重新打开，必要时在 Close 后选择 HWND。
 
-Core 自身保持 AnyCPU；WPF 双模式库因 CsWin32 0.3.183 的 Direct3D9 架构相关元数据需要明确 x64/x86。AnyCPU 生成 Direct3DCreate9Ex/IDirect3D9Ex 会报告 PInvoke005；当前生成器配置没有独立架构选项。不能把生成 x64 interop 后标为 AnyCPU 当作安全替代。
+Core、WPF 和 Demo 使用相同的 x86/x64 构建平台，匹配 CsWin32 生成的架构相关互操作代码。
+
+## 构建与发布
+
+平台规则集中在 Directory.Build.props；默认构建 x64，也可显式指定 `-p:Platform=x86`。解决方案的平台映射与三个项目保持一致，项目引用使用标准平台传递。输出和中间文件按 SDK 的平台目录隔离。
+
+发布时显式指定匹配的 Platform 与 RID：
+
+- x86：`dotnet publish MediaFoundation.PlayerDemo/MediaFoundation.PlayerDemo.csproj -c Release -p:Platform=x86 -r win-x86 --self-contained true`
+- x64：`dotnet publish MediaFoundation.PlayerDemo/MediaFoundation.PlayerDemo.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained true`
+
+PlatformTarget 与 Platform 不一致或发布 RID 不匹配时，构建明确失败，不自动改选架构。
 
 MFPlay 自定义 EVR 的无参 `CreateD3DImageSession()` 及 `CreateD3DImagePrototype(...)` 默认使用 A / `VideoScalingMode.MixerOutput`，mixer、sample 和 staging 使用目标尺寸以减少小窗口播放高分辨率视频的复制带宽。可通过 `CreateD3DImageSession(VideoScalingMode.PresentationSurface)` 显式选择 B。A 不支持时报告失败，不静默回退。枚举值保持 MixerOutput=0、PresentationSurface=1。
 

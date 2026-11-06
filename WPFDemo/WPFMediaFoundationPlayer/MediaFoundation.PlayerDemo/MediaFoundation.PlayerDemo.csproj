@@ -10,8 +10,6 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>obj/Generated</CompilerGeneratedFilesOutputPath>
     <RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
-    <PlatformTarget Condition="'$(RuntimeIdentifier)' == 'win-x86'">x86</PlatformTarget>
-    <PlatformTarget Condition="'$(PlatformTarget)' == ''">x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup Condition="'$(IncludeSelfTestMedia)' == 'true'">
     <Content Include="../../Video/视频.mp4" Link="self-test.mp4" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />

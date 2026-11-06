@@ -1,7 +1,10 @@
 <Project>
-  <ItemDefinitionGroup>
-    <ProjectReference>
-      <SetPlatform>Platform=$(PlatformTarget)</SetPlatform>
-    </ProjectReference>
-  </ItemDefinitionGroup>
+  <Target Name="ValidatePlayerPlatform" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Platform)' != 'x86' and '$(Platform)' != 'x64'"
+           Text="Platform '$(Platform)' is not supported. Specify -p:Platform=x86 or -p:Platform=x64." />
+    <Error Condition="'$(PlatformTarget)' != '$(Platform)'"
+           Text="PlatformTarget '$(PlatformTarget)' must match Platform '$(Platform)'." />
+    <Error Condition="'$(RuntimeIdentifier)' != '' and '$(RuntimeIdentifier)' != 'win-$(Platform)'"
+           Text="RuntimeIdentifier '$(RuntimeIdentifier)' must match Platform '$(Platform)'. Use win-$(Platform)." />
+  </Target>
 </Project>

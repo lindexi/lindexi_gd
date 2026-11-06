@@ -1,5 +1,18 @@
 <Solution>
-  <Project Path="MediaFoundation.Core/MediaFoundation.Core.csproj" />
-  <Project Path="MediaFoundation.Wpf/MediaFoundation.Wpf.csproj" />
-  <Project Path="MediaFoundation.PlayerDemo/MediaFoundation.PlayerDemo.csproj" />
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="MediaFoundation.Core/MediaFoundation.Core.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+  </Project>
+  <Project Path="MediaFoundation.Wpf/MediaFoundation.Wpf.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+  </Project>
+  <Project Path="MediaFoundation.PlayerDemo/MediaFoundation.PlayerDemo.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+  </Project>
 </Solution>
