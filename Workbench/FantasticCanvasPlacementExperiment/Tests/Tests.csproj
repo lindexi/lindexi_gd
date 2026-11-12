@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <VSTestLogger>trx</VSTestLogger>
+  </PropertyGroup>
+  <ItemGroup><PackageReference Include="MSTest" Version="4.0.1" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="..\Lib\Lib.csproj" /></ItemGroup>
+</Project>

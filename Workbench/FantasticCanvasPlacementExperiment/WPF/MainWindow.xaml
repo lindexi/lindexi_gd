@@ -1,0 +1,28 @@
+<Window x:Class="FantasticCanvasPlacementExperiment.WPF.MainWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ Title="{StaticResource Title}" Width="1180" Height="780" MinWidth="900" MinHeight="500"
+ Background="#F3F6FB" FontFamily="Microsoft YaHei UI" Foreground="#24334C">
+ <Grid>
+  <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <Grid x:Name="Viewport" Background="Transparent" ClipToBounds="True"
+   SizeChanged="OnViewportSizeChanged" MouseDown="OnPointerDown" MouseMove="OnPointerMove"
+   MouseUp="OnPointerUp" LostMouseCapture="OnLostCapture" MouseWheel="OnWheel">
+   <Canvas x:Name="World" IsHitTestVisible="False"/>
+   <Border Margin="12" BorderBrush="#668CBDEB" BorderThickness="1" IsHitTestVisible="False"/>
+  </Grid>
+  <Border Grid.Row="1" Background="White" Padding="20,14" BorderBrush="#DFE5EF" BorderThickness="0,1,0,0">
+   <StackPanel>
+    <TextBlock Text="{StaticResource Hint}" FontSize="12" Foreground="#64748B" Margin="0,0,0,12"/>
+    <DockPanel>
+     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+      <Button Content="{StaticResource Portrait}" Tag="Portrait" Click="OnAdd"/>
+      <Button Content="{StaticResource Landscape}" Tag="Landscape" Click="OnAdd"/>
+      <Button Content="{StaticResource Wide}" Tag="Wide" Click="OnAdd"/>
+     </StackPanel>
+     <TextBlock x:Name="Status" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+    </DockPanel>
+   </StackPanel>
+  </Border>
+ </Grid>
+</Window>

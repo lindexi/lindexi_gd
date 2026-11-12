@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+ <sys:String x:Key="Title">矩形放置 · 独立实验</sys:String>
+ <sys:String x:Key="Hint">Ctrl + 滚轮：鼠标中心缩放　|　右拖：平移　|　左拖：移动容器（允许重叠）　|　蓝虚线：可视边界</sys:String>
+ <sys:String x:Key="Portrait">A4 竖向</sys:String>
+ <sys:String x:Key="Landscape">横向课件</sys:String>
+ <sys:String x:Key="Wide">宽多页课件</sys:String>
+ <sys:String x:Key="Status">容器 {0}　缩放 {1:P0}</sys:String>
+ <sys:String x:Key="Failure">计算失败：{0}</sys:String>
+</ResourceDictionary>
