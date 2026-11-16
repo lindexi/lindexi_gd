@@ -3,7 +3,7 @@ using XiaoXiIme.Foundation;
 
 namespace XiaoXiIme.ImeCore;
 
-public sealed class ImeContext
+public sealed partial class ImeContext
 {
     private readonly IImeDictionary _dictionary;
     private readonly IShapeDictionary? _shapeDictionary;
@@ -25,13 +25,77 @@ public sealed class ImeContext
         _shapeDictionary = dictionary as IShapeDictionary;
         _symbolDictionary = dictionary as ISymbolDictionary;
         _learn = learn;
+        var lexicon = dictionary.GetLexicon();
+        _options = new ImeInputOptions
+        {
+            CasePolicy = ImeShapeCasePolicy.UppercaseOnly,
+            Placement = ImeShapePlacement.Both,
+            LengthPolicy = ImeShapeLengthPolicy.OptionalOneOrTwo,
+            EnableLegacyXx = true,
+            EnableStandaloneShape = true
+        };
+        ValidateProjection(lexicon, _options.FuzzyRules);
     }
 
     public ImeSessionSnapshot Snapshot => CreateSnapshot();
 
+    /// <summary>Prepares this session against another canonical dictionary without committing, learning, or mutation.</summary>
+    public ImeContext PrepareDictionaryChange(IImeDictionary dictionary)
+    {
+        ArgumentNullException.ThrowIfNull(dictionary);
+        var prepared = new ImeContext(dictionary, _options, _learn)
+        {
+            _reading = _reading,
+            _caretIndex = _caretIndex,
+            _selection = _selection,
+            _eatConfirmationSpace = _eatConfirmationSpace,
+            _revision = _revision + 1,
+            _decodingIndex = ReferenceEquals(dictionary, _dictionary) ? _decodingIndex : null
+        };
+        prepared.RefreshCandidates();
+        if (_candidates.Count > _selection)
+        {
+            var selected = _candidates[_selection];
+            var index = prepared._candidates.FindIndex(c => c.Text == selected.Text && c.Reading == selected.Reading);
+            prepared._selection = index >= 0 ? index : 0;
+            prepared.NormalizeCandidateWindow();
+        }
+        return prepared;
+    }
+
+    /// <summary>Predicts key ownership from a published snapshot without changing composition or learning.</summary>
+    public static bool ShouldProcessKey(ImeKey key, ImeSessionSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        if (key.Kind == ImeKeyKind.Other) return false;
+        if (key.Kind != ImeKeyKind.Character)
+        {
+            return key.Kind switch
+            {
+                ImeKeyKind.Space when snapshot.EatsConfirmationSpace => true,
+                ImeKeyKind.PreviousCandidate or ImeKeyKind.NextCandidate or
+                ImeKeyKind.PreviousCandidatePage or ImeKeyKind.NextCandidatePage or
+                ImeKeyKind.FirstCandidate or ImeKeyKind.LastCandidate => snapshot.IsComposing && snapshot.Candidates.Count > 0,
+                _ => snapshot.IsComposing
+            };
+        }
+        if (snapshot.Composition.Reading.Length >= 64 &&
+            (IsAsciiLetter(key.Character) || key.Character == ';' && snapshot.AcceptsSemicolon ||
+             key.Character == '\'' && snapshot.AcceptsApostrophe && !snapshot.Composition.Reading.StartsWith('/') ||
+             snapshot.Composition.Reading.StartsWith('/') && char.IsAsciiDigit(key.Character)))
+            return false;
+        var character = key.Character;
+        if (char.IsControl(character) || char.IsWhiteSpace(character)) return false;
+        return snapshot.IsComposing || IsAsciiLetter(character) || character == '/' ||
+            character == ';' && snapshot.AcceptsSemicolon;
+    }
+
     public ImeProcessResult ProcessKey(ImeKey key)
     {
-        return key.Kind switch
+        var eat = _eatConfirmationSpace && key.Kind == ImeKeyKind.Space;
+        _eatConfirmationSpace = false;
+        if (eat) return new ImeProcessResult(Snapshot, null, true);
+        var result = key.Kind switch
         {
             ImeKeyKind.Character => ProcessCharacter(key.Character),
             ImeKeyKind.Backspace => ProcessBackspace(),
@@ -51,6 +115,7 @@ public sealed class ImeContext
                 : CommitCandidateInCurrentPage(key.CandidateIndex),
             _ => new ImeProcessResult(Snapshot, null, false)
         };
+        return result with { Snapshot = Snapshot };
     }
 
     /// <summary>
@@ -60,7 +125,8 @@ public sealed class ImeContext
     public ImeProcessResult SetComposition(string composition)
     {
         ArgumentNullException.ThrowIfNull(composition);
-        if (!IsValidComposition(composition))
+        if (composition == _reading) return new ImeProcessResult(Snapshot, null, true);
+        if (composition.Length > 64 || !IsValidComposition(composition))
         {
             return new ImeProcessResult(Snapshot, null, false);
         }
@@ -89,12 +155,9 @@ public sealed class ImeContext
             return [];
         }
 
-        var count = maxCount <= 0 ? MaxCandidateCount : Math.Min(maxCount, MaxCandidateCount);
+        var count = maxCount <= 0 ? int.MaxValue : maxCount;
         return QueryCandidates(
             NormalizeComposition(composition),
-            _dictionary,
-            _shapeDictionary,
-            _symbolDictionary,
             count);
     }
 
@@ -125,14 +188,8 @@ public sealed class ImeContext
             return false;
         }
 
-        if (_learn is not null)
-        {
-            _learn(learning);
-        }
-        else
-        {
-            userDictionary.Learn(learning);
-        }
+        userDictionary.Learn(learning);
+        if (userDictionary.IsBackgroundPublicationEnabled) userDictionary.PrepareAndPublish();
 
         return true;
     }
@@ -144,7 +201,9 @@ public sealed class ImeContext
     {
         ArgumentNullException.ThrowIfNull(reading);
         ArgumentNullException.ThrowIfNull(text);
-        return _dictionary is UserDictionary userDictionary && userDictionary.Forget(text, reading);
+        if (_dictionary is not UserDictionary userDictionary || !userDictionary.Forget(text, reading)) return false;
+        if (userDictionary.IsBackgroundPublicationEnabled) userDictionary.PrepareAndPublish();
+        return true;
     }
 
     /// <summary>
@@ -163,11 +222,22 @@ public sealed class ImeContext
 
     private ImeProcessResult ProcessCharacter(char character)
     {
+        if (character is >= '0' and <= '9')
+        {
+            var index = character == '0' ? 9 : character - '1';
+            if (IsSymbolComposition) return ProcessSymbolDigit(index);
+            if (_candidates.Count > 0) return CommitCandidateInCurrentPage(index);
+        }
+        if (!CanInsertCharacter(character) && !char.IsControl(character) && !char.IsWhiteSpace(character))
+            return CommitBeforeCharacter(character);
+        if (_reading.Length >= 64)
+            return new ImeProcessResult(Snapshot, null, false);
         if (!CanInsertCharacter(character))
         {
             return new ImeProcessResult(Snapshot, null, false);
         }
 
+        var appended = _caretIndex == _reading.Length;
         var normalizedCharacter = IsSymbolComposition || character == '/'
             ? char.ToLowerInvariant(character)
             : character;
@@ -176,13 +246,34 @@ public sealed class ImeContext
         _selection = 0;
         RefreshCandidates();
 
-        if (string.Equals(_reading, AutoCommitReading, StringComparison.Ordinal)
+        if (_options.EnableLegacyXx && string.Equals(_reading, AutoCommitReading, StringComparison.Ordinal)
             && _candidates.Count > 0)
         {
-            return CommitCandidate(0);
+            var result = CommitCandidate(0);
+            _eatConfirmationSpace = result.CommitText is not null && _options.EatConfirmationSpace;
+            return result;
         }
 
+        if (appended && TryAutomaticCommit() is { } automatic) return automatic;
+
         return new ImeProcessResult(Snapshot, null, true);
+    }
+
+    private ImeProcessResult CommitBeforeCharacter(char character)
+    {
+        if (!IsComposing) return new ImeProcessResult(Snapshot, null, false);
+
+        var text = new System.Text.StringBuilder();
+        while (IsComposing)
+        {
+            var before = _reading.Length;
+            var result = CommitCandidate(_selection);
+            text.Append(result.CommitText);
+            // Incomplete or unmatched input must be preserved rather than silently dropped.
+            if (_reading.Length >= before) text.Append(CommitReading().CommitText);
+        }
+        text.Append(character);
+        return new ImeProcessResult(Snapshot, text.ToString(), true);
     }
 
     private ImeProcessResult ProcessSymbolDigit(int candidateIndex)
@@ -191,6 +282,8 @@ public sealed class ImeContext
         {
             return new ImeProcessResult(Snapshot, null, true);
         }
+
+        if (_reading.Length >= 64) return new ImeProcessResult(Snapshot, null, false);
 
         var digit = candidateIndex == 9 ? '0' : (char)('1' + candidateIndex);
         _reading = _reading.Insert(_caretIndex, digit.ToString());
@@ -264,11 +357,21 @@ public sealed class ImeContext
             return new ImeProcessResult(Snapshot, null, false);
         }
 
+        // Another session can learn into the shared dictionary while this composition is inactive.
+        if (!IsSymbolComposition && _dictionary is not UserDictionary { IsBackgroundPublicationEnabled: true } &&
+            !ReferenceEquals(_displayedLexicon, _dictionary.GetLexicon()))
+            RefreshCandidates();
+
         if ((uint)candidateIndex >= (uint)_candidates.Count)
         {
             return new ImeProcessResult(Snapshot, null, true);
         }
 
+        if (!IsSymbolComposition)
+        {
+            var detailed = _displayedCandidates[candidateIndex];
+            return detailed.SelectionId is { } id ? SelectCandidate(id) : new ImeProcessResult(Snapshot, null, true);
+        }
         var selectedCandidate = _candidates[candidateIndex];
         var originalInput = _reading;
         var shouldLearn = IsPhoneticComposition(originalInput);
@@ -319,15 +422,22 @@ public sealed class ImeContext
     private void RefreshCandidates()
     {
         _candidates.Clear();
+        _revision++;
+        if (!IsComposing) _displayedLexicon = null;
+        if (IsComposing && !IsSymbolComposition)
+        {
+            _displayedCandidates = Decode(_reading);
+            _displayedLexicon = _decodedLexicon;
+            _candidates.AddRange(_displayedCandidates.Select(c => c.Candidate));
+            NormalizeCandidateWindow();
+            return;
+        }
 
         if (IsComposing)
         {
             _candidates.AddRange(QueryCandidates(
                 _reading,
-                _dictionary,
-                _shapeDictionary,
-                _symbolDictionary,
-                MaxCandidateCount));
+                int.MaxValue));
         }
 
         NormalizeCandidateWindow();
@@ -335,6 +445,11 @@ public sealed class ImeContext
 
     private void Clear()
     {
+        _revision++;
+        _decodedCandidates = [];
+        _displayedCandidates = [];
+        _displayedLexicon = null;
+        _decodedInput = null;
         _reading = string.Empty;
         _caretIndex = 0;
         _candidates.Clear();
@@ -364,7 +479,12 @@ public sealed class ImeContext
     {
         if (!IsComposing)
         {
-            return ImeSessionSnapshot.Empty;
+            return ImeSessionSnapshot.Empty with
+            {
+                AcceptsSemicolon = IsPhoneticCharacter(';'),
+                EatsConfirmationSpace = _eatConfirmationSpace,
+                AcceptsApostrophe = IsPhoneticCharacter('\'')
+            };
         }
 
         return new ImeSessionSnapshot(
@@ -372,7 +492,10 @@ public sealed class ImeContext
             _candidates.ToArray(),
             CreateCandidateWindowState(),
             true,
-            CreateGuideline());
+            CreateGuideline(),
+            IsPhoneticCharacter(';'),
+            _eatConfirmationSpace,
+            IsPhoneticCharacter('\''));
     }
 
     private ImeGuideline CreateGuideline()
@@ -405,15 +528,20 @@ public sealed class ImeContext
 
     private bool CanInsertCharacter(char character)
     {
+        if (character == '\'') return IsComposing && !IsSymbolComposition && IsPhoneticCharacter(character);
         if (character == '/')
         {
             return !IsComposing;
         }
 
-        return IsAsciiLetter(character);
+        return IsPhoneticCharacter(character);
     }
 
-    private static bool IsValidComposition(string composition)
+    private bool IsPhoneticCharacter(char character) => IsAsciiLetter(character) ||
+        character == '\'' && _dictionary.GetLexicon().Projection.Name == ImeProjectionDefinition.FullPinyin.Name ||
+        character == ';' && _dictionary.Projection?.Entries.Any(entry => entry.Input.Contains(';')) == true;
+
+    private bool IsValidComposition(string composition)
     {
         if (composition.Length == 0)
         {
@@ -436,7 +564,7 @@ public sealed class ImeContext
 
         for (var index = 0; index < composition.Length; index++)
         {
-            if (!IsAsciiLetter(composition[index]))
+            if (!IsPhoneticCharacter(composition[index]))
             {
                 return false;
             }
@@ -452,11 +580,8 @@ public sealed class ImeContext
             : composition;
     }
 
-    private static IReadOnlyList<ImeCandidate> QueryCandidates(
+    private IReadOnlyList<ImeCandidate> QueryCandidates(
         string composition,
-        IImeDictionary dictionary,
-        IShapeDictionary? shapeDictionary,
-        ISymbolDictionary? symbolDictionary,
         int maxCount)
     {
         if (composition.Length == 0)
@@ -466,33 +591,10 @@ public sealed class ImeContext
 
         if (composition[0] == '/')
         {
-            return symbolDictionary?.QuerySymbols(composition, maxCount) ?? [];
+            return _symbolDictionary?.QuerySymbols(composition, maxCount) ?? [];
         }
 
-        var shapeStart = FindShapeStart(composition);
-        if (shapeStart == 0)
-        {
-            return (shapeDictionary?.QueryShape(composition.ToLowerInvariant(), maxCount) ?? [])
-                .Select(entry => new ImeCandidate(entry.Text, entry.ShapeCode))
-                .ToArray();
-        }
-
-        if (shapeStart > 0)
-        {
-            var phoneticCandidates = dictionary.Query(new ImeDictionaryQuery(
-                composition[..shapeStart],
-                maxCount,
-                ImeDictionaryMatchMode.ExactAndPrefix));
-            return shapeDictionary?.FilterByShape(
-                phoneticCandidates,
-                composition[shapeStart..],
-                maxCount) ?? [];
-        }
-
-        return dictionary.Query(new ImeDictionaryQuery(
-            composition,
-            maxCount,
-            ImeDictionaryMatchMode.ExactAndPrefix));
+        return Decode(composition).Take(maxCount).Select(c => c.Candidate).ToArray();
     }
 
     private static bool TryCreateLearning(string reading, string text, out ImeDictionaryLearning learning)

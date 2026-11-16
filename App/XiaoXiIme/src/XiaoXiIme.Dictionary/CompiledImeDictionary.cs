@@ -7,6 +7,7 @@ namespace XiaoXiIme.Dictionary;
 /// </summary>
 public sealed class CompiledImeDictionary : IImeDictionary, IShapeDictionary, ISymbolDictionary
 {
+    private ImeLexicon? _lexicon;
     private readonly ImeCandidate[] _candidates;
     private readonly IReadOnlyDictionary<string, int[]> _exactIndex;
     private readonly IReadOnlyDictionary<string, int[]> _prefixIndex;
@@ -21,8 +22,9 @@ public sealed class CompiledImeDictionary : IImeDictionary, IShapeDictionary, IS
         IReadOnlyDictionary<string, int[]> prefixIndex,
         ShapeDictionaryEntry[] shapeEntries,
         IReadOnlyDictionary<string, IReadOnlyList<ImeCandidate>> symbols,
-        string inputScheme)
+        string inputScheme, ImeLexicon? lexicon = null)
     {
+        _lexicon = lexicon;
         _candidates = candidates;
         _exactIndex = exactIndex;
         _prefixIndex = prefixIndex;
@@ -48,6 +50,36 @@ public sealed class CompiledImeDictionary : IImeDictionary, IShapeDictionary, IS
     /// Gets the encoding space recorded by the compiled package.
     /// </summary>
     public string InputScheme { get; }
+
+    /// <inheritdoc />
+    public ImeProjectionDefinition Projection => _lexicon?.Projection ?? ImeProjectionDefinition.ForScheme(InputScheme);
+
+    /// <inheritdoc />
+    public ImeLexicon GetLexicon()
+    {
+        if (_lexicon is not null) return _lexicon;
+        var projection = ImeProjectionDefinition.ForScheme(InputScheme);
+        var syllables = projection.Entries.Select(p => p.Initial + p.Final).ToHashSet(StringComparer.Ordinal);
+        var entries = new List<ImePhoneticEntry>();
+        var aliases = new List<ImeLookupAlias>();
+        foreach (var candidate in _candidates)
+        {
+            // This first-party abbreviation is registered alongside its canonical reading in the term source.
+            if (candidate.Text == "小希" && candidate.Reading == "xx")
+            {
+                if (!_candidates.Any(c => c.Text == "小希" && c.Reading == "xiao xi"))
+                    entries.Add(new("小希", "xiao xi", candidate.Score));
+                aliases.Add(new("小希", "xiao xi", "xx"));
+                continue;
+            }
+            var reading = PhoneticInputProjection.CanonicalizeReading(candidate.Reading);
+            if (!ImeLexiconValidator.IsReading(reading) || reading.Split(' ').Any(s => !syllables.Contains(s)))
+                throw new NotSupportedException(DictionaryResources.InvalidReading);
+            entries.Add(new(candidate.Text, reading, candidate.Score));
+        }
+        return _lexicon = new InMemoryImeDictionary(new ImeLexicon(entries, _shapeEntries, projection, 0)
+        { LookupAliases = aliases }).GetLexicon();
+    }
 
     /// <inheritdoc />
     public IReadOnlyList<ImeCandidate> Query(ImeDictionaryQuery query)

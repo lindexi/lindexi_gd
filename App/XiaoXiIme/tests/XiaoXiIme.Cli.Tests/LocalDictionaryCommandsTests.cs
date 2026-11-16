@@ -330,7 +330,7 @@ public class LocalDictionaryCommandsTests
         Directory.CreateDirectory(Path.Combine(sourceDirectory, "symbols"));
         File.WriteAllText(
             Path.Combine(sourceDirectory, "phonetic", "sewzc-default.phonetic.tsv"),
-            "你好\tni hao\t100");
+            "你好\tni hao\t100\n你\tni\t100");
         XiaoXiImeProjectTerms.WriteTo(Path.Combine(sourceDirectory, XiaoXiImeProjectTerms.OutputRelativePath));
         File.WriteAllText(Path.Combine(sourceDirectory, "shape", "sewzc-moqi.shape.tsv"), "你\trb\t亻尔");
         File.WriteAllText(Path.Combine(sourceDirectory, "symbols", "sewzc-default.symbols.tsv"), "/xh\t★\t☆");

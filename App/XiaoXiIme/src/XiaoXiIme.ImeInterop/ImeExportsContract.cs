@@ -12,7 +12,7 @@ public static class ImeExportsContract
     {
         return new ImeInquireInfo
         {
-            PrivateDataSize = 0,
+            PrivateDataSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf<ImePrivateData>(),
             Property = ImeConstants.ImePropKbdCharFirst | ImeConstants.ImePropSpecialUi | ImeConstants.ImePropCandidateListStartsAtOne | ImeConstants.ImePropUnicode,
             ConversionCaps = ImeConstants.ImeCmodeNative | ImeConstants.ImeCmodeFullShape,
             SentenceCaps = 0,

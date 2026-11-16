@@ -55,7 +55,9 @@ public static class CandidateWindowStateMapper
             uiState.AnchorX,
             uiState.AnchorY,
             uiState.EffectiveAbout.Notice,
-            uiState.DiagnosticText ?? string.Empty);
+            uiState.DiagnosticText ?? string.Empty,
+            uiState.Anchor,
+            uiState.SessionId);
     }
 
     private static int NormalizePageSize(int pageSize, int candidateCount)

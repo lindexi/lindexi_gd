@@ -67,14 +67,30 @@ public sealed class ImeHostBridge : IDisposable
             || message.Contains("connect", StringComparison.OrdinalIgnoreCase);
     }
 
+    internal void UpdateInputTarget(ImeInputTargetUpdate request)
+    {
+        try
+        {
+            _client.UpdateInputTargetAsync(request).ConfigureAwait(false).GetAwaiter().GetResult();
+            _lastError = null;
+        }
+        catch (ImeHostUnavailableException exception)
+        {
+            _lastError = exception.Message;
+        }
+    }
+
     public ImeProcessResult ProcessKey(ImeKey key) => ProcessKey(key, ImeSessionId.Default);
 
-    public ImeProcessResult ProcessKey(ImeKey key, ImeSessionId sessionId)
+    public ImeProcessResult ProcessKey(ImeKey key, ImeSessionId sessionId) => ProcessKey(key, sessionId, null);
+
+    /// <summary>Processes a key with an optional immutable candidate position snapshot.</summary>
+    public ImeProcessResult ProcessKey(ImeKey key, ImeSessionId sessionId, ImeCandidateAnchor? anchor)
     {
         sessionId = sessionId.Effective;
         try
         {
-            var result = _client.ProcessKeyAsync(key, sessionId).ConfigureAwait(false).GetAwaiter().GetResult();
+            var result = _client.ProcessKeyAsync(key, sessionId, anchor).ConfigureAwait(false).GetAwaiter().GetResult();
             _lastError = null;
             return result;
         }
@@ -242,7 +258,13 @@ public sealed class ImeHostBridge : IDisposable
 
     internal interface IImeHostBridgeClient : IDisposable
     {
+        Task<ImeInputTargetUpdateResponse> UpdateInputTargetAsync(ImeInputTargetUpdate request) =>
+            Task.FromResult(new ImeInputTargetUpdateResponse(false));
+
         Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId);
+
+        Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId, ImeCandidateAnchor? anchor) =>
+            ProcessKeyAsync(key, sessionId);
 
         Task<ImeSessionSnapshot> GetSnapshotAsync(ImeSessionId sessionId);
 
@@ -322,9 +344,19 @@ public sealed class ImeHostBridge : IDisposable
             _client = new XiaoXiImeIpcClient(options);
         }
 
+        public Task<ImeInputTargetUpdateResponse> UpdateInputTargetAsync(ImeInputTargetUpdate request) =>
+            InvokeAsync(() => _client.UpdateInputTargetAsync(request));
+
         public Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId)
         {
             return InvokeAsync(() => _client.ProcessKeyAsync(key, sessionId));
+        }
+
+        public async Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId, ImeCandidateAnchor? anchor)
+        {
+            var response = await InvokeAsync(() => _client.ProcessKeyRequestAsync(
+                new ImeProcessKeyRequest(key, sessionId, Anchor: anchor))).ConfigureAwait(false);
+            return response.Result;
         }
 
         public Task<ImeSessionSnapshot> GetSnapshotAsync(ImeSessionId sessionId)

@@ -242,6 +242,41 @@ public class ImeHostIpcIntegrationTests
         Assert.Empty(lastActiveAfterCommit.Candidates);
     }
 
+    [Theory(Timeout = 5_000)]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task IpcClient_WhenInterleavedSecondSessionCancelsOrRecomposesAndCommitsThenKeepsFirstSession(bool commit)
+    {
+        var options = new XiaoXiImeIpcOptions($"XiaoXiIme_Test_{Guid.NewGuid():N}");
+        var hostRoot = CreateHostLayout();
+        using var host = new ImeHostService(options, hostBaseDirectory: hostRoot);
+        using var client = new XiaoXiImeIpcClient(options);
+        var firstSession = ImeSessionId.FromHimc(0x11);
+        var secondSession = ImeSessionId.FromHimc(0x22);
+        host.Start();
+        await client.ConnectAsync();
+        await client.ProcessKeyAsync(ImeKey.FromCharacter('n'), firstSession);
+        await client.ProcessKeyAsync(ImeKey.FromCharacter('n'), secondSession);
+        await client.ProcessKeyAsync(ImeKey.FromCharacter('i'), firstSession);
+        await client.ProcessKeyAsync(ImeKey.FromCharacter('i'), secondSession);
+        var before = await client.GetSnapshotAsync(firstSession);
+
+        await client.ProcessKeyAsync(new ImeKey(ImeKeyKind.Escape), secondSession);
+        var afterCancel = await client.GetSnapshotAsync(firstSession);
+        await ProcessCharactersAsync(client, "ni", secondSession);
+        await client.ProcessKeyAsync(new ImeKey(commit ? ImeKeyKind.Space : ImeKeyKind.Escape), secondSession);
+        var after = await client.GetSnapshotAsync(firstSession);
+
+        Assert.Equal(
+            new[] { (true, "ni", "你"), (true, "ni", "你"), (true, "ni", "你") },
+            new[]
+            {
+                (before.IsComposing, before.Composition.Reading, before.Candidates[0].Text),
+                (afterCancel.IsComposing, afterCancel.Composition.Reading, afterCancel.Candidates[0].Text),
+                (after.IsComposing, after.Composition.Reading, after.Candidates[0].Text),
+            });
+    }
+
     [Fact(Timeout = 5_000)]
     public async Task IpcClient_WhenSessionIsResetThenDropsOnlyThatContext()
     {
@@ -554,7 +589,7 @@ public class ImeHostIpcIntegrationTests
     private static string CreateHostLayout()
     {
         var hostRoot = Path.Combine(Path.GetTempPath(), $"XiaoXiIme_HostLayout_{Guid.NewGuid():N}");
-        var entries = new List<PhoneticDictionaryEntry> { new("你好", "ni hao", 200) };
+        var entries = new List<PhoneticDictionaryEntry> { new("你", "ni", 100), new("你好", "ni hao", 200) };
         entries.AddRange(XiaoXiImeProjectTerms.Parse());
         DictionaryPackageCompiler.Compile(
             entries,

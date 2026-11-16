@@ -129,6 +129,7 @@ public sealed class IntegrationTestRunnerTests
     public void VerifyDictionaryPackages_WhenPackagesAreValidThenReturnsNull()
     {
         using var directory = new TemporaryDirectory();
+        CompileSupportedPackages(directory.Path);
         var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
         var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
         CompilePackage(fullPinyin, DefaultDictionaryPackageBuilder.FullPinyinInputScheme);
@@ -289,6 +290,44 @@ public sealed class IntegrationTestRunnerTests
     }
 
     [Fact]
+    public void VerifyHostDictionaryPackages_WhenNiEntryIsMissingThenReturnsError()
+    {
+        using var directory = new TemporaryDirectory();
+        var sourceDirectory = CreateNativeSources(directory.Path);
+        File.WriteAllText(Path.Combine(sourceDirectory, "phonetic", "sewzc-default.phonetic.tsv"), "你好\tni hao\t100");
+        DefaultDictionaryPackageBuilder.Build(sourceDirectory, directory.Path);
+
+        var result = IntegrationTestRunner.VerifyHostDictionaryPackages(directory.Path);
+
+        Assert.Contains("Expected 'ni' to return candidates", result);
+    }
+
+    [Fact]
+    public void VerifyHostDictionaryPackages_WhenNiFirstCandidateIsWrongThenReturnsError()
+    {
+        using var directory = new TemporaryDirectory();
+        var sourceDirectory = CreateNativeSources(directory.Path);
+        File.AppendAllText(Path.Combine(sourceDirectory, "phonetic", "sewzc-default.phonetic.tsv"), "\n尼\tni\t1000");
+        DefaultDictionaryPackageBuilder.Build(sourceDirectory, directory.Path);
+
+        var result = IntegrationTestRunner.VerifyHostDictionaryPackages(directory.Path);
+
+        Assert.Contains($"Expected 'ni' to return '你' for input scheme '{DictionaryPackageLocations.FullPinyinInputScheme}', but found '尼'", result);
+    }
+
+    [Fact]
+    public void VerifyHostDictionaryPackages_WhenNiFirstCandidateIsCorrectThenSucceeds()
+    {
+        using var directory = new TemporaryDirectory();
+        var sourceDirectory = CreateNativeSources(directory.Path);
+        DefaultDictionaryPackageBuilder.Build(sourceDirectory, directory.Path);
+
+        var result = IntegrationTestRunner.VerifyHostDictionaryPackages(directory.Path);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public void VerifyDictionaryPackages_WhenExpectedQueryIsMissingThenReturnsError()
     {
         using var directory = new TemporaryDirectory();
@@ -346,6 +385,7 @@ public sealed class IntegrationTestRunnerTests
     public void VerifyDictionaryPackages_WhenXiaoheProjectTermQueryIsMissingThenReturnsError()
     {
         using var directory = new TemporaryDirectory();
+        CompileSupportedPackages(directory.Path);
         var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
         var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
         CompilePackage(fullPinyin, DefaultDictionaryPackageBuilder.FullPinyinInputScheme);
@@ -364,6 +404,7 @@ public sealed class IntegrationTestRunnerTests
     public void VerifyDictionaryPackages_WhenXiaoheProjectTermTextDoesNotMatchThenReturnsError()
     {
         using var directory = new TemporaryDirectory();
+        CompileSupportedPackages(directory.Path);
         var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
         var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
         CompilePackage(fullPinyin, DefaultDictionaryPackageBuilder.FullPinyinInputScheme);
@@ -468,9 +509,15 @@ public sealed class IntegrationTestRunnerTests
         }
     }
 
+    private static void CompileSupportedPackages(string root)
+    {
+        foreach (var scheme in PhoneticSchemeCatalog.All.Where(item => item.ProductScheme.HasValue))
+            CompilePackage(Path.Combine(root, "app", "host", DictionaryPackageLocations.GetRelativePackageDirectory(scheme.SchemeId)), scheme.SchemeId);
+    }
+
     private static void CompilePackage(string packageDirectory, string inputScheme)
     {
-        var entries = new List<PhoneticDictionaryEntry> { new("你好", "ni hao", 100) };
+        var entries = new List<PhoneticDictionaryEntry> { new("你好", "ni hao", 100), new("你", "ni", 100) };
         entries.AddRange(XiaoXiImeProjectTerms.Parse());
         DictionaryPackageCompiler.Compile(
             entries,
@@ -484,7 +531,7 @@ public sealed class IntegrationTestRunnerTests
         Directory.CreateDirectory(Path.Combine(sourceDirectory, "phonetic"));
         Directory.CreateDirectory(Path.Combine(sourceDirectory, "shape"));
         Directory.CreateDirectory(Path.Combine(sourceDirectory, "symbols"));
-        File.WriteAllText(Path.Combine(sourceDirectory, "phonetic", "sewzc-default.phonetic.tsv"), "你好\tni hao\t100");
+        File.WriteAllText(Path.Combine(sourceDirectory, "phonetic", "sewzc-default.phonetic.tsv"), "你好\tni hao\t100\n你\tni\t100");
         XiaoXiImeProjectTerms.WriteTo(Path.Combine(sourceDirectory, XiaoXiImeProjectTerms.OutputRelativePath));
         File.WriteAllText(Path.Combine(sourceDirectory, "shape", "sewzc-moqi.shape.tsv"), "你\trb\t亻尔");
         File.WriteAllText(Path.Combine(sourceDirectory, "symbols", "sewzc-default.symbols.tsv"), "/xh\t★\t☆");

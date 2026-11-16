@@ -101,6 +101,34 @@ public static class UserDictionaryStore
         }
     }
 
+    /// <summary>Writes a cancellable temporary file and replaces the destination only after a successful flush.</summary>
+    public static async Task SaveAsync(string path, IReadOnlyList<UserDictionaryEntry> entries, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException(DictionaryResources.InvalidUserDictionaryPath, nameof(path));
+        ArgumentNullException.ThrowIfNull(entries);
+        if (entries.Count > MaxEntryCount) throw new ArgumentOutOfRangeException(nameof(entries), DictionaryResources.UserDictionaryEntryCountTooLarge);
+        cancellationToken.ThrowIfCancellationRequested();
+        var fullPath = Path.GetFullPath(path);
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+        var temporaryPath = fullPath + $".{Guid.NewGuid():N}.tmp";
+        try
+        {
+            await using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None,
+                4096, FileOptions.Asynchronous | FileOptions.WriteThrough))
+            {
+                await JsonSerializer.SerializeAsync(stream, new UserDictionaryDocument(FormatVersion, entries.ToArray()),
+                    UserDictionaryJsonSerializerContext.Default.UserDictionaryDocument, cancellationToken).ConfigureAwait(false);
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            File.Move(temporaryPath, fullPath, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
+        }
+    }
+
     private static string? IsolateCorruptFile(string path)
     {
         try

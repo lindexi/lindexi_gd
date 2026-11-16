@@ -68,6 +68,9 @@ internal sealed class SystemTestRunOptions
 [Command("payload-build", Description = "Build a self-contained integration-test payload directory.")]
 internal sealed class PayloadBuildOptions
 {
+    [Option("experience", Description = "Build a standalone zero-configuration experience with one win-x64 UI runtime.")]
+    public bool Experience { get; init; }
+
     [Option("output", Description = "Payload output directory.", ValueName = "directory")]
     public string? Output { get; init; }
 

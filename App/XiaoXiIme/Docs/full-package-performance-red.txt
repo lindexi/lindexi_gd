@@ -1,0 +1,5 @@
+2026-02-25 dotnet test IntegrationTests filter FullPackageDecodingPerformanceTests; exit 1; 2 failed/0 passed/0 skipped; duration 50s.
+fullPinyin niRXhaoNZ; manifestSHA256=C354BB7BC91FB97F40B422BED323CAF74A75C9FE589C2C39D9137688A8475AA5; entries=374471; shapes=40502; load=1084.0ms; canonical=1019.0ms; context=8170.8ms; cold decode exceeded 15s.
+xiaoheDoublePinyin niRXhcNZ; manifestSHA256=4C9C5157C397627BBC4E88B0774FC28ADA1D09DBF199FF4A62BBD315E90470E5; entries=374471; shapes=40502; load=866.1ms; canonical=1205.6ms; context=8098.7ms; cold decode exceeded 15s.
+The guard timed out the await, not the synchronous decoder. Background work survived until testhost exit; no warm measurement or successful candidate count was obtained. Do not interpret these lower bounds as completed decode times.
+Source diagnosis: VisitSegments loops all 374471 entries per reachable output path. Each matching entry scans 40502 shapes per character, repeatedly splits reading, builds fuzzy sets and filters projection. ValidateProjection loops every word syllable and scans projection for each alias. No beam or depth limit exists.

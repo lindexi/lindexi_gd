@@ -30,10 +30,11 @@ public static class DictionaryPackageLoader
         {
             throw;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or InvalidDataException or ArgumentException)
-        {
-            throw new DictionaryPackageException(packageDirectory, exception.Message);
-        }
+        catch (IOException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (UnauthorizedAccessException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (JsonException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (InvalidDataException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (ArgumentException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
     }
 
     /// <summary>
@@ -56,10 +57,11 @@ public static class DictionaryPackageLoader
         {
             throw;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or InvalidDataException or ArgumentException)
-        {
-            throw new DictionaryPackageException(packageDirectory, exception.Message);
-        }
+        catch (IOException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (UnauthorizedAccessException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (JsonException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (InvalidDataException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
+        catch (ArgumentException exception) { throw new DictionaryPackageException(packageDirectory, exception.Message); }
     }
 
     private static (DictionaryPackageManifest Manifest, Dictionary<string, string> Shards) ReadAndValidatePackage(string rootPath)
@@ -103,18 +105,28 @@ public static class DictionaryPackageLoader
         var symbols = ReadSymbolEntries(
             shards[DictionaryPackageFormat.SymbolsRole],
             manifest.Counts.SymbolInputs);
+        ImeLexicon? lexicon = null;
+        if (manifest.FormatVersion == 2)
+        {
+            if (!shards.TryGetValue("lexicon", out var lexiconPath))
+                throw new InvalidDataException(DictionaryResources.InvalidManifest);
+            using var stream = File.OpenRead(lexiconPath);
+            var data = JsonSerializer.Deserialize<ImeLexicon>(stream, JsonOptions)
+                ?? throw new InvalidDataException(DictionaryResources.InvalidManifest);
+            lexicon = new InMemoryImeDictionary(data).GetLexicon();
+        }
         return new CompiledImeDictionary(
             candidates,
             exactIndex,
             prefixIndex,
             shapeEntries,
             symbols,
-            manifest.Parameters.InputScheme);
+            manifest.Parameters.InputScheme, lexicon);
     }
 
     private static void ValidateManifest(DictionaryPackageManifest manifest)
     {
-        if (manifest.FormatVersion != DictionaryPackageManifest.CurrentFormatVersion)
+        if (manifest.FormatVersion != DictionaryPackageManifest.CurrentFormatVersion && manifest.FormatVersion != 2)
         {
             throw new InvalidDataException(DictionaryResources.UnsupportedPackageVersion);
         }
@@ -126,13 +138,18 @@ public static class DictionaryPackageLoader
 
         if ((!string.IsNullOrEmpty(manifest.CompilerVersion)
                 && !string.Equals(manifest.CompilerVersion, DictionaryPackageManifest.CurrentCompilerVersion, StringComparison.Ordinal))
-            || (!string.Equals(manifest.Parameters.InputScheme, DictionaryPackageFormat.FullPinyinInputScheme, StringComparison.Ordinal)
-                && !string.Equals(manifest.Parameters.InputScheme, DictionaryPackageFormat.XiaoheDoublePinyinInputScheme, StringComparison.Ordinal))
+            || !PhoneticSchemeCatalog.All.Any(item => item.SchemeId == manifest.Parameters.InputScheme && (item.Layout?.ZeroInitialCodes is not null || item.SchemeId == "fullPinyin"))
             || manifest.Parameters.MaxPrefixCandidatesPerKey <= 0
             || manifest.Parameters.MaxPrefixCandidatesPerKey > DictionaryPackageFormat.MaxCandidatesPerKey)
         {
             throw new InvalidDataException(DictionaryResources.InvalidCompilerParameters);
         }
+
+        var definition = PhoneticSchemeCatalog.All.Single(item => item.SchemeId == manifest.Parameters.InputScheme);
+        var requiresIdentity = manifest.Parameters.InputScheme is not ("fullPinyin" or "xiaoheDoublePinyin");
+        if ((requiresIdentity || manifest.Parameters.ProjectionVersion is not null) &&
+            (manifest.Parameters.ProjectionVersion != definition.ProjectionVersion || manifest.Parameters.RulesSha256 != definition.ContentSha256))
+            throw new InvalidDataException(DictionaryResources.InvalidCompilerParameters);
 
         if (manifest.Sources.Count > DictionaryPackageFormat.MaxManifestItems
             || manifest.Shards.Count > DictionaryPackageFormat.MaxManifestItems)

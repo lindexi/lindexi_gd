@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace XiaoXiIme.Foundation;
 
-[JsonConverter(typeof(JsonCamelCaseStringEnumConverter))]
+[JsonConverter(typeof(JsonCamelCaseStringEnumConverter<ImeGuidelineLevel>))]
 public enum ImeGuidelineLevel
 {
     None,

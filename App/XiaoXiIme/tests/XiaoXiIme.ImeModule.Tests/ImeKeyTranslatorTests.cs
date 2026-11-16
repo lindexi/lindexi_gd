@@ -33,15 +33,14 @@ public class ImeKeyTranslatorTests
     }
 
     [Theory]
-    [InlineData(ImeConstants.Vk1, 0)]
-    [InlineData(ImeConstants.Vk9, 8)]
-    [InlineData(ImeConstants.Vk0, 9)]
-    public void Translate_NumberKey_ReturnsCandidateSelection(ushort virtualKey, int expectedCandidateIndex)
+    [InlineData(ImeConstants.Vk1, '1')]
+    [InlineData(ImeConstants.Vk9, '9')]
+    [InlineData(ImeConstants.Vk0, '0')]
+    public void Translate_NumberKey_ReturnsCharacter(ushort virtualKey, char expectedCharacter)
     {
         var key = ImeKeyTranslator.Translate(virtualKey);
 
-        Assert.Equal(ImeKeyKind.CandidateSelection, key.Kind);
-        Assert.Equal(expectedCandidateIndex, key.CandidateIndex);
+        Assert.Equal(ImeKey.FromCharacter(expectedCharacter), key);
     }
 
     [Theory]

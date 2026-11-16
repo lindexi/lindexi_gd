@@ -44,15 +44,14 @@ public class CompiledDictionaryCandidateSelectionTests
             candidate => Assert.Equal("候选08", candidate.Text),
             candidate => Assert.Equal("候选09", candidate.Text),
             candidate => Assert.Equal("候选10", candidate.Text),
-            candidate => Assert.Equal("候选11", candidate.Text),
-            candidate => Assert.Equal("高频前缀", candidate.Text));
+            candidate => Assert.Equal("候选11", candidate.Text));
 
         var pageResult = context.ProcessKey(ImeKey.NextCandidatePage());
         var commitResult = context.ProcessKey(ImeKey.SelectCandidate(1));
 
         Assert.Equal(9, pageResult.Snapshot.CandidateWindow.Selection);
         Assert.Equal(9, pageResult.Snapshot.CandidateWindow.PageStart);
-        Assert.Equal(4, pageResult.Snapshot.CandidateWindow.PageSize);
+        Assert.Equal(3, pageResult.Snapshot.CandidateWindow.PageSize);
         Assert.Equal("候选10", commitResult.CommitText);
         Assert.False(commitResult.Snapshot.IsComposing);
     }

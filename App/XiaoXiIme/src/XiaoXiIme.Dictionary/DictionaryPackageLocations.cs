@@ -41,24 +41,20 @@ public static class DictionaryPackageLocations
     }
 
     /// <summary>
-    /// Resolves an input scheme from an explicit value or <c>XIAOXIIME_INPUT_SCHEME</c>.
+    /// Resolves an input scheme from an explicit value or the full Pinyin default.
     /// Unknown values fall back to full Pinyin so the host can keep a diagnosable package path.
     /// </summary>
     public static string ResolveInputScheme(string? inputScheme = null)
     {
-        var requested = string.IsNullOrWhiteSpace(inputScheme)
-            ? Environment.GetEnvironmentVariable(InputSchemeEnvironmentVariableName)
-            : inputScheme;
+        var requested = inputScheme;
         if (string.IsNullOrWhiteSpace(requested)
             || string.Equals(requested, FullPinyinInputScheme, StringComparison.OrdinalIgnoreCase))
         {
             return FullPinyinInputScheme;
         }
 
-        if (string.Equals(requested, XiaoheDoublePinyinInputScheme, StringComparison.OrdinalIgnoreCase))
-        {
-            return XiaoheDoublePinyinInputScheme;
-        }
+        var registered = PhoneticSchemeCatalog.All.FirstOrDefault(item => item.ProductScheme.HasValue && string.Equals(item.SchemeId, requested, StringComparison.OrdinalIgnoreCase));
+        if (registered is not null) return registered.SchemeId;
 
         return FullPinyinInputScheme;
     }
@@ -68,8 +64,7 @@ public static class DictionaryPackageLocations
     /// </summary>
     public static string GetRelativePackageDirectory(string inputScheme)
     {
-        return string.Equals(ResolveInputScheme(inputScheme), XiaoheDoublePinyinInputScheme, StringComparison.Ordinal)
-            ? XiaoheDoublePinyinPackageRelativePath
-            : FullPinyinPackageDirectoryName;
+        var scheme = ResolveInputScheme(inputScheme);
+        return scheme == FullPinyinInputScheme ? FullPinyinPackageDirectoryName : Path.Combine(PackageRootDirectoryName, scheme);
     }
 }

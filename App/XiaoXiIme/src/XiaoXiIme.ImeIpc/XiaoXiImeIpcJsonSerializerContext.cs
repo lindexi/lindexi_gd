@@ -6,7 +6,7 @@ namespace XiaoXiIme.ImeIpc;
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     UseStringEnumConverter = true,
-    Converters = [typeof(ImeSessionIdJsonConverter), typeof(JsonCamelCaseStringEnumConverter)])]
+    Converters = [typeof(ImeSessionIdJsonConverter)])]
 [JsonSerializable(typeof(ImeCandidate))]
 [JsonSerializable(typeof(ImeCandidate[]))]
 [JsonSerializable(typeof(ImeCandidateWindowState))]
@@ -15,12 +15,15 @@ namespace XiaoXiIme.ImeIpc;
 [JsonSerializable(typeof(CompositionText))]
 [JsonSerializable(typeof(ImeSessionSnapshot))]
 [JsonSerializable(typeof(ImeUiState))]
+[JsonSerializable(typeof(ImeCandidateAnchor))]
 [JsonSerializable(typeof(ImeAboutState))]
 [JsonSerializable(typeof(ImeKey))]
 [JsonSerializable(typeof(ImeKeyKind))]
 [JsonSerializable(typeof(ImeSessionId))]
 [JsonSerializable(typeof(ImeProcessResult))]
 [JsonSerializable(typeof(ImeHostStatus))]
+[JsonSerializable(typeof(ImeInputTargetUpdate))]
+[JsonSerializable(typeof(ImeInputTargetUpdateResponse))]
 [JsonSerializable(typeof(ImeProcessKeyRequest))]
 [JsonSerializable(typeof(ImeProcessKeyResponse))]
 [JsonSerializable(typeof(ImeSnapshotRequest))]
@@ -42,6 +45,10 @@ namespace XiaoXiIme.ImeIpc;
 [JsonSerializable(typeof(ImeRegisterWordEntry[]))]
 [JsonSerializable(typeof(ImeRegisterWordAction))]
 [JsonSerializable(typeof(ImeSnapshotChangedNotification))]
+[JsonSerializable(typeof(ImeProductSettings))]
+[JsonSerializable(typeof(ImeProductSettingsRequest))]
+[JsonSerializable(typeof(ImeSaveProductSettingsRequest))]
+[JsonSerializable(typeof(ImeProductSettingsResponse))]
 [JsonSerializable(typeof(object))]
 public sealed partial class XiaoXiImeIpcJsonSerializerContext : JsonSerializerContext
 {

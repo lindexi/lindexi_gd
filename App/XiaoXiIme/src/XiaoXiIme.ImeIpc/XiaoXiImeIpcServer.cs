@@ -18,8 +18,11 @@ public sealed class XiaoXiImeIpcServer : IDisposable
         Func<ImeSetCompositionRequest, Task<ImeSetCompositionResponse>>? setCompositionAsync = null,
         Func<ImeConversionListRequest, Task<ImeConversionListResponse>>? queryConversionListAsync = null,
         Func<ImeRegisterWordRequest, Task<ImeRegisterWordResponse>>? registerWordAsync = null,
-        XiaoXiImeIpcOptions? options = null)
-        : this(XiaoXiImeIpcProviderFactory.CreateServerProvider(options), processKeyAsync, getSnapshotAsync, getUiStateAsync, getHostStatusAsync, resetSessionAsync, setCompositionAsync, queryConversionListAsync, registerWordAsync)
+        XiaoXiImeIpcOptions? options = null,
+        Func<Task<ImeProductSettingsResponse>>? getProductSettingsAsync = null,
+        Func<ImeSaveProductSettingsRequest, Task<ImeProductSettingsResponse>>? saveProductSettingsAsync = null,
+        Func<ImeInputTargetUpdate, Task<ImeInputTargetUpdateResponse>>? updateInputTargetAsync = null)
+        : this(XiaoXiImeIpcProviderFactory.CreateServerProvider(options), processKeyAsync, getSnapshotAsync, getUiStateAsync, getHostStatusAsync, resetSessionAsync, setCompositionAsync, queryConversionListAsync, registerWordAsync, getProductSettingsAsync, saveProductSettingsAsync, updateInputTargetAsync)
     {
     }
 
@@ -32,12 +35,26 @@ public sealed class XiaoXiImeIpcServer : IDisposable
         Func<ImeResetSessionRequest, Task<ImeResetSessionResponse>>? resetSessionAsync = null,
         Func<ImeSetCompositionRequest, Task<ImeSetCompositionResponse>>? setCompositionAsync = null,
         Func<ImeConversionListRequest, Task<ImeConversionListResponse>>? queryConversionListAsync = null,
-        Func<ImeRegisterWordRequest, Task<ImeRegisterWordResponse>>? registerWordAsync = null)
+        Func<ImeRegisterWordRequest, Task<ImeRegisterWordResponse>>? registerWordAsync = null,
+        Func<Task<ImeProductSettingsResponse>>? getProductSettingsAsync = null,
+        Func<ImeSaveProductSettingsRequest, Task<ImeProductSettingsResponse>>? saveProductSettingsAsync = null,
+        Func<ImeInputTargetUpdate, Task<ImeInputTargetUpdateResponse>>? updateInputTargetAsync = null)
     {
         _provider = provider ?? throw new ArgumentNullException(nameof(provider));
         ArgumentNullException.ThrowIfNull(processKeyAsync);
         ArgumentNullException.ThrowIfNull(getSnapshotAsync);
         _getHostStatusAsync = getHostStatusAsync ?? (() => Task.FromResult(_started ? ImeHostStatus.Running : ImeHostStatus.Stopped));
+
+        if (updateInputTargetAsync is not null)
+            _provider.AddRequestHandler<ImeInputTargetUpdate, ImeInputTargetUpdateResponse>(
+                XiaoXiImeIpcRoutes.UpdateInputTarget, updateInputTargetAsync);
+
+        if (getProductSettingsAsync is not null)
+            _provider.AddRequestHandler<ImeProductSettingsRequest, ImeProductSettingsResponse>(
+                XiaoXiImeIpcRoutes.GetProductSettings, _ => getProductSettingsAsync());
+        if (saveProductSettingsAsync is not null)
+            _provider.AddRequestHandler<ImeSaveProductSettingsRequest, ImeProductSettingsResponse>(
+                XiaoXiImeIpcRoutes.SaveProductSettings, saveProductSettingsAsync);
 
         _provider.AddRequestHandler<ImeProcessKeyRequest, ImeProcessKeyResponse>(
             XiaoXiImeIpcRoutes.ProcessKey,

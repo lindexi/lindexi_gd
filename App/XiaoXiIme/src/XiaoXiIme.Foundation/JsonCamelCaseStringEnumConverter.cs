@@ -8,7 +8,8 @@ namespace XiaoXiIme.Foundation;
 /// The converter is public and has a parameterless constructor so other assemblies
 /// can list it in <c>JsonSourceGenerationOptions.Converters</c>.
 /// </summary>
-public sealed class JsonCamelCaseStringEnumConverter : JsonStringEnumConverter
+public sealed class JsonCamelCaseStringEnumConverter<TEnum> : JsonStringEnumConverter<TEnum>
+    where TEnum : struct, Enum
 {
     public JsonCamelCaseStringEnumConverter()
         : base(JsonNamingPolicy.CamelCase)

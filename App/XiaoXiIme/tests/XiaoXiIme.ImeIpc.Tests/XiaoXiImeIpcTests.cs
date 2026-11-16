@@ -68,7 +68,7 @@ public class XiaoXiImeIpcTests
         Assert.Equal(sessionId, snapshot?.SessionId);
         Assert.Equal(sessionId, uiState?.SessionId);
         Assert.Equal(sessionId, processKey?.EffectiveSessionId);
-        Assert.Equal("himc:1234", sessionId.Value);
+        Assert.Equal($"himc:{Environment.ProcessId:x}:1234", sessionId.Value);
         Assert.False(sessionId.IsUnspecified);
     }
 

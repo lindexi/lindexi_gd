@@ -4,6 +4,12 @@ namespace XiaoXiIme.Dictionary;
 
 public interface IImeDictionary
 {
+    /// <summary>Gets available input projection metadata without requiring canonical lexicon access.</summary>
+    ImeProjectionDefinition? Projection => null;
+
+    /// <summary>Gets complete canonical data, independent of bounded legacy query caches.</summary>
+    ImeLexicon GetLexicon() => throw new NotSupportedException();
+
     /// <summary>
     /// Queries ranked candidates for the current input. Implementations rank internally and return
     /// core-facing <see cref="ImeCandidate"/> values.

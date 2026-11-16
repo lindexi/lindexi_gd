@@ -17,6 +17,10 @@
     <ProjectReference Include="..\XiaoXiIme.ImeIpc\XiaoXiIme.ImeIpc.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(IncludeDictionarySources)' == 'true'">
+    <Content Include="..\..\data\dictionaries\**\*" Link="data\dictionaries\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="XiaoXiIme.Cli.Tests" />
   </ItemGroup>

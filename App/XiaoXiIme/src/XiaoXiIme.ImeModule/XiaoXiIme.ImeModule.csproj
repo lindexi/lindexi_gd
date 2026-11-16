@@ -23,7 +23,8 @@
 
   <Target Name="CreateImeModule" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' != ''">
     <Delete Files="$(PublishDir)XiaoXiIme.ime;$(PublishDir)XiaoXiIme.ImeCoreNative.dll" />
-    <Move SourceFiles="$(PublishDir)$(AssemblyName).dll" DestinationFiles="$(PublishDir)XiaoXiIme.ime" />
+    <Error Condition="!Exists('$(TargetDir)native\$(AssemblyName).dll')" Text="Native IME output is missing: $(TargetDir)native\$(AssemblyName).dll" />
+    <Copy SourceFiles="$(TargetDir)native\$(AssemblyName).dll" DestinationFiles="$(PublishDir)XiaoXiIme.ime" />
   </Target>
 
 </Project>

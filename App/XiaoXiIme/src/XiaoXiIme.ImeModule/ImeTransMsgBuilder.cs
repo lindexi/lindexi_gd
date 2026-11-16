@@ -4,7 +4,9 @@ namespace XiaoXiIme.ImeModule;
 
 public static class ImeTransMsgBuilder
 {
-    public static TransMsg[] BuildMessages(ImeToAsciiResult result)
+    public static TransMsg[] BuildMessages(ImeToAsciiResult result) => BuildMessages(result, wasComposing: false);
+
+    internal static TransMsg[] BuildMessages(ImeToAsciiResult result, bool wasComposing)
     {
         ArgumentNullException.ThrowIfNull(result);
 
@@ -32,7 +34,7 @@ public static class ImeTransMsgBuilder
 
         if (result.Snapshot.IsComposing)
         {
-            return
+            TransMsg[] messages =
             [
                 new TransMsg
                 {
@@ -49,6 +51,12 @@ public static class ImeTransMsgBuilder
                         | ImeConstants.GcsPrivate),
                 },
             ];
+            return wasComposing ? messages[1..] : messages;
+        }
+
+        if (!wasComposing)
+        {
+            return [];
         }
 
         return

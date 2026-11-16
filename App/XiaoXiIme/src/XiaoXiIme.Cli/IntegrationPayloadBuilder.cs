@@ -38,7 +38,9 @@ internal static class IntegrationPayloadBuilder
         if (!options.NoBuild)
         {
             Directory.CreateDirectory(stagingDirectory);
-            var commands = CreateBuildCommands(solutionDirectory!, stagingDirectory);
+            var commands = options.Experience
+                ? new[] { Publish(solutionDirectory!, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.ImeUi.Avalonia/XiaoXiIme.ImeUi.Avalonia.csproj", Path.Combine("app", "ui"), false) }
+                : CreateBuildCommands(solutionDirectory!, stagingDirectory);
             foreach (var command in commands)
             {
                 var exitCode = await RunProcessAsync(command, solutionDirectory!, log);
@@ -49,11 +51,22 @@ internal static class IntegrationPayloadBuilder
             }
         }
 
-        var sources = CreateSources(stagingDirectory);
+        var sources = options.Experience
+            ? new[] { new PayloadSource(Path.Combine(stagingDirectory, "app", "ui", "XiaoXiIme.ImeUi.Avalonia.exe"), Path.Combine("app", "ui")) }
+            : CreateSources(stagingDirectory);
         var missing = sources.Where(source => !File.Exists(source.SourcePath)).Select(source => source.SourcePath).ToArray();
         if (missing.Length > 0)
         {
             log.Error("payload", "Required publish outputs are missing.", missing);
+            return 11;
+        }
+
+        var uiRoot = Path.Combine(stagingDirectory, "app", "ui");
+        var requiredUiFiles = new[] { "XiaoXiIme.ImeUi.Avalonia.dll", "XiaoXiIme.ImeUi.Avalonia.deps.json", "XiaoXiIme.ImeUi.Avalonia.runtimeconfig.json", "coreclr.dll", "hostfxr.dll", "hostpolicy.dll", "System.Private.CoreLib.dll", "Avalonia.Controls.dll", "Avalonia.Fonts.Inter.dll", "Avalonia.Themes.Fluent.dll", "av_libglesv2.dll", "libSkiaSharp.dll" };
+        var missingUiFiles = requiredUiFiles.Where(file => !File.Exists(Path.Combine(uiRoot, file))).ToArray();
+        if (missingUiFiles.Length > 0)
+        {
+            log.Error("payload", "Required UI runtime resources are missing.", missingUiFiles);
             return 11;
         }
 
@@ -75,7 +88,7 @@ internal static class IntegrationPayloadBuilder
             return 14;
         }
 
-        if (OperatingSystem.IsWindows())
+        if (!options.Experience && OperatingSystem.IsWindows())
         {
             foreach (var runtimeIdentifier in NativeRuntimeIdentifiers)
             {
@@ -96,14 +109,14 @@ internal static class IntegrationPayloadBuilder
         var manifest = new IntegrationPayloadManifest(
             3,
             DateTimeOffset.UtcNow,
-            new Dictionary<string, NativePayloadComponents>
+            options.Experience ? new Dictionary<string, NativePayloadComponents>() : new Dictionary<string, NativePayloadComponents>
             {
                 ["x86"] = new("win-x86", "native/win-x86/ime/XiaoXiIme.ime", "native/win-x86/tsf/XiaoXiIme.TsfModule.dll", "native/win-x86/tools/XiaoXiIme.TsfAbiHost.exe"),
                 ["x64"] = new("win-x64", "native/win-x64/ime/XiaoXiIme.ime", "native/win-x64/tsf/XiaoXiIme.TsfModule.dll", "native/win-x64/tools/XiaoXiIme.TsfAbiHost.exe"),
             },
-            "app/cli/XiaoXiIme.Cli.exe",
-            "app/host/XiaoXiIme.ImeHost.exe",
-            ["app/tests/XiaoXiIme.IntegrationTestHost.exe"],
+            options.Experience ? "app/ui/XiaoXiIme.ImeUi.Avalonia.exe" : "app/cli/XiaoXiIme.Cli.exe",
+            options.Experience ? "app/ui/XiaoXiIme.ImeUi.Avalonia.exe" : "app/host/XiaoXiIme.ImeHost.exe",
+            options.Experience ? [] : ["app/tests/XiaoXiIme.IntegrationTestHost.exe"],
             files);
         var manifestPath = Path.Combine(outputDirectory, IntegrationPayloadManifest.FileName);
         manifest.Save(manifestPath);
@@ -136,13 +149,14 @@ internal static class IntegrationPayloadBuilder
         {
             var hostOutputDirectory = Path.Combine(payloadDirectory, "app", "host");
             Directory.CreateDirectory(hostOutputDirectory);
-            CopyPackageDirectory(
-                Path.Combine(dictionaryStagingDirectory, DictionaryPackageLocations.FullPinyinPackageDirectoryName),
-                Path.Combine(hostOutputDirectory, DictionaryPackageLocations.FullPinyinPackageDirectoryName));
-            CopyPackageDirectory(
-                Path.Combine(dictionaryStagingDirectory, DictionaryPackageLocations.XiaoheDoublePinyinPackageRelativePath),
-                Path.Combine(hostOutputDirectory, DictionaryPackageLocations.XiaoheDoublePinyinPackageRelativePath));
-            return IntegrationTestRunner.VerifyDictionaryPackages(payloadDirectory);
+            foreach (var scheme in PhoneticSchemeCatalog.All.Where(item => item.ProductScheme.HasValue))
+            {
+                var relativePath = DictionaryPackageLocations.GetRelativePackageDirectory(scheme.SchemeId);
+                CopyPackageDirectory(Path.Combine(dictionaryStagingDirectory, relativePath), Path.Combine(hostOutputDirectory, relativePath));
+                CopyPackageDirectory(Path.Combine(dictionaryStagingDirectory, relativePath), Path.Combine(payloadDirectory, "app", "ui", relativePath));
+            }
+            return IntegrationTestRunner.VerifyDictionaryPackages(payloadDirectory)
+                ?? IntegrationTestRunner.VerifyHostDictionaryPackages(Path.Combine(payloadDirectory, "app", "ui"));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or DirectoryNotFoundException)
         {

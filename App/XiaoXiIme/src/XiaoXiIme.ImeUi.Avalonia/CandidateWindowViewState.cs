@@ -13,7 +13,9 @@ public sealed record CandidateWindowViewState(
     int AnchorX,
     int AnchorY,
     string AttributionText = "",
-    string DiagnosticText = "")
+    string DiagnosticText = "",
+    XiaoXiIme.Foundation.ImeCandidateAnchor? Anchor = null,
+    XiaoXiIme.Foundation.ImeSessionId SessionId = default)
 {
     public string PageText => TotalPages > 1 ? $"{CurrentPage}/{TotalPages}" : string.Empty;
 

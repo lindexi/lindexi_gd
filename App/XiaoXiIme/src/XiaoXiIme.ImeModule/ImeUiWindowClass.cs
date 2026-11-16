@@ -16,6 +16,14 @@ internal static unsafe class ImeUiWindowClass
     [UnmanagedCallersOnly(EntryPoint = "UIWindowProcedure", CallConvs = [typeof(CallConvStdcall)])]
     private static nint UIWindowProcedure(nint window, uint message, nuint wParam, nint lParam)
     {
+        // IMM also delivers activation through the IME UI window; an initial selection
+        // need not call the ImeSetActiveContext export with active=1.
+        if (message == 0x0281)
+        {
+            var context = GetWindowLongPtr(window, 0);
+            if (context != 0)
+                ImeExports.ImeSetActiveContextManaged(context, wParam != 0 ? 1 : 0);
+        }
         return DefWindowProc(window, message, wParam, lParam);
     }
 
@@ -69,6 +77,9 @@ internal static unsafe class ImeUiWindowClass
 
     [DllImport("user32.dll", EntryPoint = "RegisterClassExW", SetLastError = true)]
     private static extern ushort RegisterClassEx(WindowClassEx* windowClass);
+
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
+    private static extern nint GetWindowLongPtr(nint window, int index);
 
     [DllImport("user32.dll", EntryPoint = "DefWindowProcW")]
     private static extern nint DefWindowProc(nint window, uint message, nuint wParam, nint lParam);

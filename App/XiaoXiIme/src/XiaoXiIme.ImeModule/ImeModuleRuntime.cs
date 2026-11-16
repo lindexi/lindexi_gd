@@ -11,6 +11,7 @@ public static class ImeModuleRuntime
 {
     private static readonly Lock SyncRoot = new();
     private static readonly Dictionary<ImeSessionId, ImeSessionSnapshot> s_snapshots = [];
+    private static readonly HashSet<HImc> s_activeContexts = [];
     private static ImeHostBridge? s_bridge;
     private static ImeSessionId s_lastSessionId = ImeSessionId.Default;
     private static ImeProcessResult s_lastResult = new(ImeSessionSnapshot.Empty, null, false);
@@ -37,10 +38,14 @@ public static class ImeModuleRuntime
 
     public static ImeProcessResult ProcessTranslatedKey(ImeKey key, HImc inputContext)
     {
-        var sessionId = ImeSessionId.FromHimc(inputContext.Value);
-        var result = ProcessKey(key, sessionId);
+        var sessionId = ImeInputIdentity.Resolve(inputContext);
+        var result = ProcessKey(key, sessionId, inputContext);
         SetSnapshot(sessionId, result.Snapshot);
         SetLastResult(sessionId, result);
+        if (key.Kind == ImeKeyKind.Escape)
+        {
+            ImeLifecycleDiagnostics.Record("ProcessTranslatedKey.Escape", inputContext.Value, 0, "after-host");
+        }
         return result;
     }
 
@@ -58,7 +63,7 @@ public static class ImeModuleRuntime
     public static ImeProcessResult SetComposition(string composition, HImc inputContext)
     {
         ArgumentNullException.ThrowIfNull(composition);
-        var sessionId = ImeSessionId.FromHimc(inputContext.Value);
+        var sessionId = ImeInputIdentity.Resolve(inputContext);
         var result = SetHostComposition(composition, sessionId);
         SetSnapshot(sessionId, result.Snapshot);
         SetLastResult(sessionId, result);
@@ -76,7 +81,7 @@ public static class ImeModuleRuntime
     public static ImeCandidate[] QueryConversionList(string source, HImc inputContext)
     {
         ArgumentNullException.ThrowIfNull(source);
-        var sessionId = ImeSessionId.FromHimc(inputContext.Value);
+        var sessionId = ImeInputIdentity.Resolve(inputContext);
         return QueryHostConversionList(source, sessionId, ImeConversionListKind.Conversion);
     }
 
@@ -86,7 +91,7 @@ public static class ImeModuleRuntime
     public static ImeCandidate[] QueryReverseConversionList(string source, HImc inputContext)
     {
         ArgumentNullException.ThrowIfNull(source);
-        var sessionId = ImeSessionId.FromHimc(inputContext.Value);
+        var sessionId = ImeInputIdentity.Resolve(inputContext);
         return QueryHostConversionList(source, sessionId, ImeConversionListKind.ReverseConversion);
     }
 
@@ -96,13 +101,14 @@ public static class ImeModuleRuntime
     public static ImeRegisterWordResponse RegisterWord(ImeRegisterWordRequest request, HImc inputContext)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var sessionId = ImeSessionId.FromHimc(inputContext.Value);
+        var sessionId = ImeInputIdentity.Resolve(inputContext);
         return RegisterHostWord(request with { SessionId = sessionId.IsUnspecified ? request.SessionId : sessionId });
     }
 
     public static ImeResetSessionResponse ResetSession(HImc inputContext)
     {
-        var sessionId = ImeSessionId.FromHimc(inputContext.Value);
+        ImeLifecycleDiagnostics.Record("ResetSession", inputContext.Value, 0, "before");
+        var sessionId = ImeInputIdentity.Resolve(inputContext);
         var response = ResetHostSession(new ImeResetSessionRequest(sessionId));
         lock (SyncRoot)
         {
@@ -135,21 +141,68 @@ public static class ImeModuleRuntime
         return ShouldProcessVirtualKey(virtualKey, modifiers, default);
     }
 
-    public static bool ShouldProcessVirtualKey(ushort virtualKey, uint modifiers, HImc inputContext)
+    public static bool ShouldProcessVirtualKey(ushort virtualKey, uint modifiers, HImc inputContext) =>
+        ShouldProcessTranslatedKey(ImeKeyTranslator.Translate(virtualKey, modifiers), inputContext);
+
+    /// <summary>Checks ownership of already layout-resolved input using the shared core contract.</summary>
+    public static bool ShouldProcessTranslatedKey(ImeKey key, HImc inputContext)
     {
-        if (ImeKeyTranslator.ShouldProcess(virtualKey, modifiers))
-        {
-            return true;
-        }
-
-        if (s_compositionContextReader.IsComposing(inputContext))
-        {
-            return true;
-        }
-
+        if (key.Kind == ImeKeyKind.Other || !s_compositionContextReader.IsReceivingChinese(inputContext)) return false;
+        var sessionId = ImeInputIdentity.Resolve(inputContext);
+        ImeSessionSnapshot snapshot;
         lock (SyncRoot)
         {
-            return GetSnapshot(ImeSessionId.FromHimc(inputContext.Value)).IsComposing;
+            if (!s_snapshots.TryGetValue(sessionId, out var cached))
+                snapshot = key.Character == ';' ? (s_bridge ?? GetBridge()).GetSnapshot(sessionId) : ImeSessionSnapshot.Empty;
+            else snapshot = cached;
+        }
+        return XiaoXiIme.ImeCore.ImeContext.ShouldProcessKey(key, snapshot);
+    }
+
+    internal static bool IsComposing(HImc inputContext)
+    {
+        lock (SyncRoot)
+        {
+            return GetSnapshot(ImeInputIdentity.Resolve(inputContext)).IsComposing;
+        }
+    }
+
+    internal static void ActivateSelectedContext(HImc inputContext)
+    {
+        if (!OperatingSystem.IsWindows() || inputContext.Value == 0 || !ImeInputIdentity.UsesNativeContext)
+            return;
+        var session = ImeInputIdentity.Resolve(inputContext);
+        var anchor = ImeCandidateAnchorReader.Read(inputContext, session);
+        if (anchor is { IsValid: true } && anchor.WindowHandle == (long)GetFocus())
+            SetActiveContext(inputContext, true);
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern nint GetFocus();
+
+    internal static void SetActiveContext(HImc inputContext, bool active)
+    {
+        if (!OperatingSystem.IsWindows() || inputContext.Value == 0 || !ImeInputIdentity.UsesNativeContext)
+            return;
+        lock (SyncRoot)
+        {
+            if (active)
+                s_activeContexts.Add(inputContext);
+            else
+                s_activeContexts.Remove(inputContext);
+            var sessionId = ImeInputIdentity.Resolve(inputContext);
+            GetBridge().UpdateInputTarget(new ImeInputTargetUpdate(ImeInputIdentity.OwnerId,
+                ImeInputIdentity.NextSequence(), sessionId, $"{unchecked((ulong)inputContext.Value):x}", active,
+                ImeCandidateAnchorReader.Read(inputContext, sessionId)));
+        }
+    }
+
+    internal static void RefreshInputTarget(HImc inputContext)
+    {
+        lock (SyncRoot)
+        {
+            if (s_activeContexts.Contains(inputContext))
+                SetActiveContext(inputContext, true);
         }
     }
 
@@ -254,6 +307,7 @@ public static class ImeModuleRuntime
     internal static void SetCompositionContextReaderForTesting(ImeCompositionContextReader? reader)
     {
         s_compositionContextReader = reader ?? new ImeCompositionContextReader(ImmContextAccessor.Instance);
+        ImeInputIdentity.ContextAccessor = s_compositionContextReader.ContextAccessor;
     }
 
     private static void SetSnapshot(ImeSessionId sessionId, ImeSessionSnapshot snapshot)
@@ -280,6 +334,8 @@ public static class ImeModuleRuntime
         }
     }
 
+    internal static string? LastBridgeError => s_bridge?.LastError;
+
     private static ImeHostBridge GetBridge()
     {
         lock (SyncRoot)
@@ -288,7 +344,7 @@ public static class ImeModuleRuntime
         }
     }
 
-    private static ImeProcessResult ProcessKey(ImeKey key, ImeSessionId sessionId)
+    private static ImeProcessResult ProcessKey(ImeKey key, ImeSessionId sessionId, HImc inputContext)
     {
         Func<ImeKey, ImeProcessResult>? processKey;
         ImeHostBridge? bridge;
@@ -303,7 +359,8 @@ public static class ImeModuleRuntime
             return processKey(key);
         }
 
-        return (bridge ?? GetBridge()).ProcessKey(key, sessionId);
+        return (bridge ?? GetBridge()).ProcessKey(key, sessionId,
+            ImeCandidateAnchorReader.Read(inputContext, sessionId));
     }
 
     private static ImeProcessResult SetHostComposition(string composition, ImeSessionId sessionId)

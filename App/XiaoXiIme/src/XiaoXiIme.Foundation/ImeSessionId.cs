@@ -19,7 +19,7 @@ public readonly record struct ImeSessionId(string Value)
     /// Maps a process-local HIMC handle to a stable IPC session id without sending a dereferenceable pointer.
     /// </summary>
     public static ImeSessionId FromHimc(nint handle) =>
-        handle == 0 ? Default : new($"himc:{unchecked((ulong)handle):x}");
+        handle == 0 ? Default : new($"himc:{Environment.ProcessId:x}:{unchecked((ulong)handle):x}");
 
     /// <summary>
     /// True when the id was omitted and the host should fall back to its last active session.
@@ -42,7 +42,7 @@ public sealed class ImeSessionIdJsonConverter : JsonConverter<ImeSessionId>
         return reader.TokenType switch
         {
             JsonTokenType.Null => ImeSessionId.Unspecified,
-            JsonTokenType.String => new ImeSessionId(reader.GetString()),
+            JsonTokenType.String => new ImeSessionId(reader.GetString() ?? string.Empty),
             _ => throw new JsonException($"Unexpected token {reader.TokenType} when reading {nameof(ImeSessionId)}."),
         };
     }

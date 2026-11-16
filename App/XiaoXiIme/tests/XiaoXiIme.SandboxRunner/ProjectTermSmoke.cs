@@ -69,7 +69,7 @@ internal static class ProjectTermSmoke
             AssertProcessKey(hostRoot, DictionaryPackageLocations.FullPinyinInputScheme, "xiaoxiaimuyi", "XiaoXiIme", queries);
             AssertProcessKey(hostRoot, DictionaryPackageLocations.XiaoheDoublePinyinInputScheme, "xnxiaimuyi", "XiaoXiIme", queries);
             AssertImeSelectCancel(hostRoot, DictionaryPackageLocations.FullPinyinInputScheme, "xiaoxiaimuyi", queries);
-            AssertImeSetActiveContextCancel(hostRoot, DictionaryPackageLocations.FullPinyinInputScheme, "xiaoxiaimuyi", queries);
+            AssertImeSetActiveContextPreserve(hostRoot, DictionaryPackageLocations.FullPinyinInputScheme, "xiaoxiaimuyi", queries);
             AssertNotifyImeCancel(hostRoot, DictionaryPackageLocations.FullPinyinInputScheme, "xiaoxiaimuyi", queries);
             AssertNotifyImeComplete(hostRoot, DictionaryPackageLocations.XiaoheDoublePinyinInputScheme, "xnxiaimuyi", "XiaoXiIme", queries);
             AssertNotifyImeSelectCandidate(hostRoot, DictionaryPackageLocations.FullPinyinInputScheme, "xiaoxiaimuyi", "XiaoXiIme", queries);
@@ -100,7 +100,7 @@ internal static class ProjectTermSmoke
                 "ime-configure:fullPinyin:xiaoxiaimuyi",
                 "ime-configure-enum:fullPinyin:xiaoxiaimuyi",
                 "ime-select-cancel:fullPinyin:xiaoxiaimuyi",
-                "ime-set-active-cancel:fullPinyin:xiaoxiaimuyi",
+                "ime-set-active-preserve:fullPinyin:xiaoxiaimuyi",
                 "notify-cancel:fullPinyin:xiaoxiaimuyi",
                 "notify-complete:xiaoheDoublePinyin:xnxiaimuyi",
                 "notify-select:fullPinyin:xiaoxiaimuyi",
@@ -818,7 +818,7 @@ internal static class ProjectTermSmoke
                 : ImeModuleRuntime.GetLastProcessResultForTesting().Snapshot.Candidates[0].Text;
             queries.Add(new SmokeQuery($"{pathName}:{inputScheme}:{input}", expectedText, actual, (int)result));
             if (!string.Equals(actual, expectedText, StringComparison.Ordinal)
-                || himc.CompositionString->CompStrLength != (uint)(input.Length * sizeof(char))
+                || himc.CompositionString->CompStrLength != (uint)input.Length
                 || !string.Equals(himc.ReadCompositionText(), input, StringComparison.Ordinal)
                 || himc.CandidateInfo->Count != 1
                 || !string.Equals(himc.ReadFirstCandidateText(), expectedText, StringComparison.Ordinal))
@@ -841,7 +841,7 @@ internal static class ProjectTermSmoke
                 || list->Message.WParam != expectedText[0]
                 || list->Message.LParam != (nint)ImeConstants.GcsResultStr
                 || (&list->Message)[1].Message != ImeConstants.WmImeEndComposition
-                || himc.CompositionString->ResultStrLength != (uint)(expectedText.Length * sizeof(char))
+                || himc.CompositionString->ResultStrLength != (uint)expectedText.Length
                 || !string.Equals(himc.ReadResultText(), expectedText, StringComparison.Ordinal)
                 || himc.CompositionString->CompStrLength != 0)
             {
@@ -1021,7 +1021,7 @@ internal static class ProjectTermSmoke
             expectHostSessionReset: true);
     }
 
-    private static unsafe void AssertImeSetActiveContextCancel(string hostRoot, string inputScheme, string input, List<SmokeQuery> queries)
+    private static unsafe void AssertImeSetActiveContextPreserve(string hostRoot, string inputScheme, string input, List<SmokeQuery> queries)
     {
         AssertNotifyControl(
             hostRoot,
@@ -1029,10 +1029,11 @@ internal static class ProjectTermSmoke
             input,
             expectedText: string.Empty,
             queries,
-            "ime-set-active-cancel",
-            himc => ImeExports.ImeSetActiveContextManaged(himc.Handle, 0) == 1,
+            "ime-set-active-preserve",
+            himc => ImeExports.ImeSetActiveContextManaged(himc.Handle, 0) == 1
+                && ImeExports.ImeSetActiveContextManaged(himc.Handle, 1) == 1,
             expectCommit: false,
-            expectHostSessionReset: true);
+            expectCompositionPreserved: true);
     }
 
     private static unsafe void AssertNotifyImeCancel(string hostRoot, string inputScheme, string input, List<SmokeQuery> queries)
@@ -1096,7 +1097,8 @@ internal static class ProjectTermSmoke
         string pathName,
         Func<InMemoryImmContext, bool> control,
         bool expectCommit,
-        bool expectHostSessionReset = false)
+        bool expectHostSessionReset = false,
+        bool expectCompositionPreserved = false)
     {
         var options = new XiaoXiImeIpcOptions($"XiaoXiIme_Smoke_{pathName}_{Guid.NewGuid():N}");
         using var host = new ImeHostService(
@@ -1132,6 +1134,21 @@ internal static class ProjectTermSmoke
             }
 
             var lastResult = ImeModuleRuntime.GetLastProcessResultForTesting();
+            if (expectCompositionPreserved)
+            {
+                var session = ImeSessionId.FromHimc(himc.Handle);
+                var actualReading = host.GetSnapshotAsync(session).GetAwaiter().GetResult().Composition.Reading;
+                if (!lastResult.Snapshot.IsComposing || lastResult.CommitText is not null
+                    || himc.ReadCompositionText() != input || actualReading != input
+                    || himc.ReadFirstCandidateText() != "XiaoXiIme")
+                {
+                    throw new InvalidOperationException($"Expected {pathName} to preserve '{inputScheme}:{input}'.");
+                }
+
+                queries.Add(new SmokeQuery($"{pathName}:{inputScheme}:{input}", input, actualReading, (int)himc.CandidateInfo->Count));
+                return;
+            }
+
             var actual = lastResult.CommitText ?? string.Empty;
             queries.Add(new SmokeQuery($"{pathName}:{inputScheme}:{input}", expectedText, actual, (int)himc.CandidateInfo->Count));
             if (lastResult.Snapshot.IsComposing

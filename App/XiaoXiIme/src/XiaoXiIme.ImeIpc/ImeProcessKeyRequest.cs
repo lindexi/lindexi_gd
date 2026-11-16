@@ -6,7 +6,8 @@ public sealed record ImeProcessKeyRequest(
     ImeKey Key,
     ImeSessionId SessionId = default,
     long Generation = 0,
-    long SequenceNumber = 0)
+    long SequenceNumber = 0,
+    ImeCandidateAnchor? Anchor = null)
 {
     public ImeSessionId EffectiveSessionId => SessionId.Effective;
 }
