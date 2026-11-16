@@ -1,6 +1,7 @@
 namespace XiaoXiIme.Foundation;
 
-public sealed record ImeUiState(
+public sealed record ImeUiState
+(
     bool CandidateWindowVisible,
     CompositionText Composition,
     IReadOnlyList<ImeCandidate> Candidates,
@@ -13,27 +14,33 @@ public sealed record ImeUiState(
     bool IsHostUnavailable = false,
     bool IsUsingFallbackDictionary = false,
     ImeCandidateAnchor? Anchor = null,
-    ImeSessionId SessionId = default)
+    ImeSessionId SessionId = default
+)
 {
     public ImeAboutState EffectiveAbout => About ?? ImeAboutState.SeWzc;
 
-    public static ImeUiState Empty { get; } = new(
+    public static ImeUiState Empty { get; } = new
+    (
         CandidateWindowVisible: false,
         CompositionText.Empty,
         Array.Empty<ImeCandidate>(),
         ImeCandidateWindowState.Empty,
         ImeGuideline.Empty,
-        About: ImeAboutState.SeWzc);
+        About: ImeAboutState.SeWzc
+    );
 
-    public static ImeUiState FromSnapshot(
+    public static ImeUiState FromSnapshot
+    (
         ImeSessionSnapshot snapshot,
         string? diagnosticText = null,
         bool isHostUnavailable = false,
-        bool isUsingFallbackDictionary = false)
+        bool isUsingFallbackDictionary = false
+    )
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
-        return new ImeUiState(
+        return new ImeUiState
+        (
             CandidateWindowVisible: snapshot.IsComposing && snapshot.Candidates.Count > 0,
             snapshot.Composition,
             snapshot.Candidates,
@@ -42,6 +49,7 @@ public sealed record ImeUiState(
             About: ImeAboutState.SeWzc,
             DiagnosticText: diagnosticText,
             IsHostUnavailable: isHostUnavailable,
-            IsUsingFallbackDictionary: isUsingFallbackDictionary);
+            IsUsingFallbackDictionary: isUsingFallbackDictionary
+        );
     }
 }

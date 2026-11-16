@@ -14,9 +14,11 @@ public static class UserDictionaryLocations
     /// </summary>
     public static string GetDefaultDirectory()
     {
-        return Path.Combine(
+        return Path.Combine
+        (
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            ApplicationDirectoryName);
+            ApplicationDirectoryName
+        );
     }
 
     /// <summary>

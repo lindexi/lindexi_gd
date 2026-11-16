@@ -23,8 +23,10 @@ public sealed class ImeIpcSession
     public async Task<ImeProcessKeyResponse?> ProcessKeyAsync(ImeKey key)
     {
         var sequenceNumber = Interlocked.Increment(ref _sequenceNumber);
-        var response = await _client.ProcessKeyRequestAsync(
-            new ImeProcessKeyRequest(key, SessionId, Generation, sequenceNumber)).ConfigureAwait(false);
+        var response = await _client.ProcessKeyRequestAsync
+        (
+            new ImeProcessKeyRequest(key, SessionId, Generation, sequenceNumber)
+        ).ConfigureAwait(false);
 
         if (response.SessionId != SessionId || response.Generation != Generation ||
             response.ProcessedThroughSequence < LastAppliedSequence)

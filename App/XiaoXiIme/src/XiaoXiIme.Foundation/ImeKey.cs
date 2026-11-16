@@ -1,9 +1,11 @@
 ﻿namespace XiaoXiIme.Foundation;
 
-public readonly record struct ImeKey(
+public readonly record struct ImeKey
+(
     ImeKeyKind Kind,
     char Character = '\0',
-    int CandidateIndex = -1)
+    int CandidateIndex = -1
+)
 {
     public static ImeKey FromCharacter(char character) => new(ImeKeyKind.Character, character);
 
@@ -23,5 +25,6 @@ public readonly record struct ImeKey(
 
     public static ImeKey MoveCompositionCaretRight() => new(ImeKeyKind.MoveCompositionCaretRight);
 
-    public static ImeKey SelectCandidate(int candidateIndex) => new(ImeKeyKind.CandidateSelection, CandidateIndex: candidateIndex);
+    public static ImeKey SelectCandidate
+        (int candidateIndex) => new(ImeKeyKind.CandidateSelection, CandidateIndex: candidateIndex);
 }

@@ -29,10 +29,12 @@ public class XiaoXiImeProjectTermsTests
         var fullPinyinPath = Path.Combine(root, "fullPinyin");
         var xiaohePath = Path.Combine(root, "xiaoheDoublePinyin");
         DictionaryPackageCompiler.Compile(entries, fullPinyinPath);
-        DictionaryPackageCompiler.Compile(
+        DictionaryPackageCompiler.Compile
+        (
             entries,
             xiaohePath,
-            new DictionaryPackageParameters { InputScheme = DictionaryPackageLocations.XiaoheDoublePinyinInputScheme });
+            new DictionaryPackageParameters { InputScheme = DictionaryPackageLocations.XiaoheDoublePinyinInputScheme }
+        );
         var fullPinyin = DictionaryPackageLoader.Load(fullPinyinPath);
         var xiaohe = DictionaryPackageLoader.Load(xiaohePath);
 
@@ -46,7 +48,11 @@ public class XiaoXiImeProjectTermsTests
     [Fact]
     public void WriteTo_WhenPathIsProvidedThenCreatesParseableNativeSource()
     {
-        var path = Path.Combine(Path.GetTempPath(), "XiaoXiIme.Dictionary.Tests", Guid.NewGuid().ToString("N"), XiaoXiImeProjectTerms.OutputRelativePath);
+        var path = Path.Combine
+        (
+            Path.GetTempPath(), "XiaoXiIme.Dictionary.Tests", Guid.NewGuid().ToString("N"),
+            XiaoXiImeProjectTerms.OutputRelativePath
+        );
 
         XiaoXiImeProjectTerms.WriteTo(path);
 

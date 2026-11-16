@@ -1,6 +1,8 @@
 ﻿namespace XiaoXiIme.Foundation;
 
-public sealed record ImeProcessResult(
+public sealed record ImeProcessResult
+(
     ImeSessionSnapshot Snapshot,
     string? CommitText,
-    bool Handled);
+    bool Handled
+);

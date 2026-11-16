@@ -7,10 +7,12 @@ public class DictionaryPackageLocationsTests
     {
         var packageDirectory = Path.Combine(Path.GetTempPath(), "explicit-package");
 
-        var resolved = DictionaryPackageLocations.ResolvePackageDirectory(
+        var resolved = DictionaryPackageLocations.ResolvePackageDirectory
+        (
             packageDirectory,
             DictionaryPackageLocations.XiaoheDoublePinyinInputScheme,
-            Path.GetTempPath());
+            Path.GetTempPath()
+        );
 
         Assert.Equal(Path.GetFullPath(packageDirectory), resolved);
     }
@@ -20,14 +22,18 @@ public class DictionaryPackageLocationsTests
     {
         var hostRoot = Path.Combine(Path.GetTempPath(), "XiaoXiIme.HostRoot");
 
-        var resolved = DictionaryPackageLocations.ResolvePackageDirectory(
+        var resolved = DictionaryPackageLocations.ResolvePackageDirectory
+        (
             packageDirectory: null,
             inputScheme: DictionaryPackageLocations.FullPinyinInputScheme,
-            baseDirectory: hostRoot);
+            baseDirectory: hostRoot
+        );
 
-        Assert.Equal(
+        Assert.Equal
+        (
             Path.GetFullPath(Path.Combine(hostRoot, DictionaryPackageLocations.FullPinyinPackageDirectoryName)),
-            resolved);
+            resolved
+        );
     }
 
     [Fact]
@@ -35,14 +41,18 @@ public class DictionaryPackageLocationsTests
     {
         var hostRoot = Path.Combine(Path.GetTempPath(), "XiaoXiIme.HostRoot");
 
-        var resolved = DictionaryPackageLocations.ResolvePackageDirectory(
+        var resolved = DictionaryPackageLocations.ResolvePackageDirectory
+        (
             packageDirectory: null,
             inputScheme: DictionaryPackageLocations.XiaoheDoublePinyinInputScheme,
-            baseDirectory: hostRoot);
+            baseDirectory: hostRoot
+        );
 
-        Assert.Equal(
+        Assert.Equal
+        (
             Path.GetFullPath(Path.Combine(hostRoot, DictionaryPackageLocations.XiaoheDoublePinyinPackageRelativePath)),
-            resolved);
+            resolved
+        );
     }
 
     [Theory]
@@ -58,16 +68,21 @@ public class DictionaryPackageLocationsTests
     [Fact]
     public void ResolveInputScheme_WhenEnvironmentVariableIsXiaoheThenUsesFullPinyin()
     {
-        var previous = Environment.GetEnvironmentVariable(DictionaryPackageLocations.InputSchemeEnvironmentVariableName);
+        var previous = Environment.GetEnvironmentVariable
+            (DictionaryPackageLocations.InputSchemeEnvironmentVariableName);
         try
         {
-            Environment.SetEnvironmentVariable(
+            Environment.SetEnvironmentVariable
+            (
                 DictionaryPackageLocations.InputSchemeEnvironmentVariableName,
-                DictionaryPackageLocations.XiaoheDoublePinyinInputScheme);
+                DictionaryPackageLocations.XiaoheDoublePinyinInputScheme
+            );
 
-            Assert.Equal(
+            Assert.Equal
+            (
                 DictionaryPackageLocations.FullPinyinInputScheme,
-                DictionaryPackageLocations.ResolveInputScheme());
+                DictionaryPackageLocations.ResolveInputScheme()
+            );
         }
         finally
         {

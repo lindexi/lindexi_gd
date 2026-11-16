@@ -83,8 +83,8 @@ public class PhoneticDictionarySourceParserTests
     {
         using var reader = CreateReader(source);
 
-        var exception = Assert.Throws<PhoneticDictionarySourceException>(
-            () => PhoneticDictionarySourceParser.Parse(reader, "invalid.phonetic.tsv"));
+        var exception = Assert.Throws<PhoneticDictionarySourceException>
+            (() => PhoneticDictionarySourceParser.Parse(reader, "invalid.phonetic.tsv"));
 
         Assert.Equal(("invalid.phonetic.tsv", expectedLineNumber), (exception.FilePath, exception.LineNumber));
     }
@@ -95,8 +95,8 @@ public class PhoneticDictionarySourceParserTests
         var text = new string('字', PhoneticDictionarySourceParser.MaxTextLength + 1);
         using var reader = CreateReader($"{text}\tzi\t100");
 
-        Assert.Throws<PhoneticDictionarySourceException>(
-            () => PhoneticDictionarySourceParser.Parse(reader, "large.phonetic.tsv"));
+        Assert.Throws<PhoneticDictionarySourceException>
+            (() => PhoneticDictionarySourceParser.Parse(reader, "large.phonetic.tsv"));
     }
 
     [Fact]
@@ -105,8 +105,8 @@ public class PhoneticDictionarySourceParserTests
         var reading = new string('a', PhoneticDictionarySourceParser.MaxReadingLength + 1);
         using var reader = CreateReader($"字\t{reading}\t100");
 
-        Assert.Throws<PhoneticDictionarySourceException>(
-            () => PhoneticDictionarySourceParser.Parse(reader, "large.phonetic.tsv"));
+        Assert.Throws<PhoneticDictionarySourceException>
+            (() => PhoneticDictionarySourceParser.Parse(reader, "large.phonetic.tsv"));
     }
 
     [Fact]
@@ -115,8 +115,8 @@ public class PhoneticDictionarySourceParserTests
         var line = new string('a', PhoneticDictionarySourceParser.MaxLineLength + 1);
         using var reader = CreateReader(line);
 
-        Assert.Throws<PhoneticDictionarySourceException>(
-            () => PhoneticDictionarySourceParser.Parse(reader, "large.phonetic.tsv"));
+        Assert.Throws<PhoneticDictionarySourceException>
+            (() => PhoneticDictionarySourceParser.Parse(reader, "large.phonetic.tsv"));
     }
 
     private static StringReader CreateReader(string source)

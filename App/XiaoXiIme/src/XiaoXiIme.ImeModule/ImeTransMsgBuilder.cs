@@ -44,11 +44,11 @@ public static class ImeTransMsgBuilder
                 {
                     Message = ImeConstants.WmImeComposition,
                     LParam = (nint)(ImeConstants.GcsCompStr
-                        | ImeConstants.GcsCompReadStr
-                        | ImeConstants.GcsCursorPos
-                        | ImeConstants.GcsCandidateInfo
-                        | ImeConstants.GcsGuideLine
-                        | ImeConstants.GcsPrivate),
+                                    | ImeConstants.GcsCompReadStr
+                                    | ImeConstants.GcsCursorPos
+                                    | ImeConstants.GcsCandidateInfo
+                                    | ImeConstants.GcsGuideLine
+                                    | ImeConstants.GcsPrivate),
                 },
             ];
             return wasComposing ? messages[1..] : messages;

@@ -31,7 +31,8 @@ public class XiaoXiImeIpcTests
         var request = new ImeProcessKeyRequest(ImeKey.FromCharacter('n'));
 
         var json = JsonSerializer.Serialize(request, XiaoXiImeIpcJsonSerializerContext.Default.ImeProcessKeyRequest);
-        var deserialized = JsonSerializer.Deserialize(json, XiaoXiImeIpcJsonSerializerContext.Default.ImeProcessKeyRequest);
+        var deserialized = JsonSerializer.Deserialize
+            (json, XiaoXiImeIpcJsonSerializerContext.Default.ImeProcessKeyRequest);
 
         Assert.NotNull(deserialized);
         Assert.Equal(ImeKeyKind.Character, deserialized.Key.Kind);
@@ -46,7 +47,8 @@ public class XiaoXiImeIpcTests
         var request = new ImeProcessKeyRequest(ImeKey.SelectCandidate(0));
 
         var json = JsonSerializer.Serialize(request, XiaoXiImeIpcJsonSerializerContext.Default.ImeProcessKeyRequest);
-        var deserialized = JsonSerializer.Deserialize(json, XiaoXiImeIpcJsonSerializerContext.Default.ImeProcessKeyRequest);
+        var deserialized = JsonSerializer.Deserialize
+            (json, XiaoXiImeIpcJsonSerializerContext.Default.ImeProcessKeyRequest);
 
         Assert.NotNull(deserialized);
         Assert.Equal(ImeKeyKind.CandidateSelection, deserialized.Key.Kind);
@@ -58,12 +60,21 @@ public class XiaoXiImeIpcTests
     public void JsonSerializerContext_RoundTripsSessionScopedSnapshotAndUiStateRequests()
     {
         var sessionId = ImeSessionId.FromHimc(0x1234);
-        var snapshotJson = JsonSerializer.Serialize(new ImeSnapshotRequest(sessionId), XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest);
-        var snapshot = JsonSerializer.Deserialize(snapshotJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest);
-        var uiStateJson = JsonSerializer.Serialize(new ImeUiStateRequest(sessionId), XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest);
-        var uiState = JsonSerializer.Deserialize(uiStateJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest);
-        var processKeyJson = JsonSerializer.Serialize(new ImeProcessKeyRequest(ImeKey.FromCharacter('x'), sessionId), XiaoXiImeIpcJsonSerializerContext.Default.ImeProcessKeyRequest);
-        var processKey = JsonSerializer.Deserialize(processKeyJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeProcessKeyRequest);
+        var snapshotJson = JsonSerializer.Serialize
+            (new ImeSnapshotRequest(sessionId), XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest);
+        var snapshot = JsonSerializer.Deserialize
+            (snapshotJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest);
+        var uiStateJson = JsonSerializer.Serialize
+            (new ImeUiStateRequest(sessionId), XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest);
+        var uiState = JsonSerializer.Deserialize
+            (uiStateJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest);
+        var processKeyJson = JsonSerializer.Serialize
+        (
+            new ImeProcessKeyRequest(ImeKey.FromCharacter('x'), sessionId),
+            XiaoXiImeIpcJsonSerializerContext.Default.ImeProcessKeyRequest
+        );
+        var processKey = JsonSerializer.Deserialize
+            (processKeyJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeProcessKeyRequest);
 
         Assert.Equal(sessionId, snapshot?.SessionId);
         Assert.Equal(sessionId, uiState?.SessionId);
@@ -75,10 +86,14 @@ public class XiaoXiImeIpcTests
     [Fact]
     public void JsonSerializerContext_RoundTripsUnspecifiedSessionAsLastActiveFallback()
     {
-        var snapshotJson = JsonSerializer.Serialize(new ImeSnapshotRequest(), XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest);
-        var snapshot = JsonSerializer.Deserialize(snapshotJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest);
-        var uiStateJson = JsonSerializer.Serialize(new ImeUiStateRequest(), XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest);
-        var uiState = JsonSerializer.Deserialize(uiStateJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest);
+        var snapshotJson = JsonSerializer.Serialize
+            (new ImeSnapshotRequest(), XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest);
+        var snapshot = JsonSerializer.Deserialize
+            (snapshotJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest);
+        var uiStateJson = JsonSerializer.Serialize
+            (new ImeUiStateRequest(), XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest);
+        var uiState = JsonSerializer.Deserialize
+            (uiStateJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest);
 
         Assert.True(snapshot?.SessionId.IsUnspecified);
         Assert.True(uiState?.SessionId.IsUnspecified);
@@ -129,12 +144,23 @@ public class XiaoXiImeIpcTests
     public void JsonSerializerContext_RoundTripsResetSessionRequestForAot()
     {
         var sessionId = ImeSessionId.FromHimc(0x11);
-        var requestJson = JsonSerializer.Serialize(new ImeResetSessionRequest(sessionId), XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionRequest);
-        var request = JsonSerializer.Deserialize(requestJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionRequest);
-        var resetAllJson = JsonSerializer.Serialize(new ImeResetSessionRequest(ResetAll: true), XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionRequest);
-        var resetAll = JsonSerializer.Deserialize(resetAllJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionRequest);
-        var responseJson = JsonSerializer.Serialize(new ImeResetSessionResponse(sessionId, true), XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionResponse);
-        var response = JsonSerializer.Deserialize(responseJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionResponse);
+        var requestJson = JsonSerializer.Serialize
+            (new ImeResetSessionRequest(sessionId), XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionRequest);
+        var request = JsonSerializer.Deserialize
+            (requestJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionRequest);
+        var resetAllJson = JsonSerializer.Serialize
+        (
+            new ImeResetSessionRequest(ResetAll: true), XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionRequest
+        );
+        var resetAll = JsonSerializer.Deserialize
+            (resetAllJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionRequest);
+        var responseJson = JsonSerializer.Serialize
+        (
+            new ImeResetSessionResponse(sessionId, true),
+            XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionResponse
+        );
+        var response = JsonSerializer.Deserialize
+            (responseJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeResetSessionResponse);
 
         Assert.Equal(sessionId, request?.SessionId);
         Assert.False(request?.ResetAll);
@@ -148,19 +174,27 @@ public class XiaoXiImeIpcTests
     public void JsonSerializerContext_RoundTripsSetCompositionRequestForAot()
     {
         var sessionId = ImeSessionId.FromHimc(0x22);
-        var snapshot = new ImeSessionSnapshot(
+        var snapshot = new ImeSessionSnapshot
+        (
             new CompositionText("xiaoxiaimuyi", "xiaoxiaimuyi", 12),
             [new ImeCandidate("XiaoXiIme", "xiao xi ai mu yi")],
             new ImeCandidateWindowState(0, 0, 1),
-            IsComposing: true);
-        var requestJson = JsonSerializer.Serialize(
+            IsComposing: true
+        );
+        var requestJson = JsonSerializer.Serialize
+        (
             new ImeSetCompositionRequest("xiaoxiaimuyi", sessionId),
-            XiaoXiImeIpcJsonSerializerContext.Default.ImeSetCompositionRequest);
-        var request = JsonSerializer.Deserialize(requestJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeSetCompositionRequest);
-        var responseJson = JsonSerializer.Serialize(
+            XiaoXiImeIpcJsonSerializerContext.Default.ImeSetCompositionRequest
+        );
+        var request = JsonSerializer.Deserialize
+            (requestJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeSetCompositionRequest);
+        var responseJson = JsonSerializer.Serialize
+        (
             new ImeSetCompositionResponse(new ImeProcessResult(snapshot, null, true), sessionId),
-            XiaoXiImeIpcJsonSerializerContext.Default.ImeSetCompositionResponse);
-        var response = JsonSerializer.Deserialize(responseJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeSetCompositionResponse);
+            XiaoXiImeIpcJsonSerializerContext.Default.ImeSetCompositionResponse
+        );
+        var response = JsonSerializer.Deserialize
+            (responseJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeSetCompositionResponse);
 
         Assert.Equal("xiaoxiaimuyi", request?.Composition);
         Assert.Equal(sessionId, request?.EffectiveSessionId);
@@ -175,14 +209,20 @@ public class XiaoXiImeIpcTests
     public void JsonSerializerContext_RoundTripsConversionListRequestForAot()
     {
         var sessionId = ImeSessionId.FromHimc(0x33);
-        var requestJson = JsonSerializer.Serialize(
+        var requestJson = JsonSerializer.Serialize
+        (
             new ImeConversionListRequest("xiaoxiaimuyi", 9, sessionId),
-            XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListRequest);
-        var request = JsonSerializer.Deserialize(requestJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListRequest);
-        var responseJson = JsonSerializer.Serialize(
+            XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListRequest
+        );
+        var request = JsonSerializer.Deserialize
+            (requestJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListRequest);
+        var responseJson = JsonSerializer.Serialize
+        (
             new ImeConversionListResponse([new ImeCandidate("XiaoXiIme", "xiao xi ai mu yi")], sessionId),
-            XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListResponse);
-        var response = JsonSerializer.Deserialize(responseJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListResponse);
+            XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListResponse
+        );
+        var response = JsonSerializer.Deserialize
+            (responseJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListResponse);
 
         Assert.Equal("xiaoxiaimuyi", request?.Source);
         Assert.Equal(9, request?.MaxCount);
@@ -196,10 +236,13 @@ public class XiaoXiImeIpcTests
     public void JsonSerializerContext_RoundTripsReverseConversionListRequestForAot()
     {
         var sessionId = ImeSessionId.FromHimc(0x34);
-        var requestJson = JsonSerializer.Serialize(
+        var requestJson = JsonSerializer.Serialize
+        (
             new ImeConversionListRequest("XiaoXiIme", 9, sessionId, ImeConversionListKind.ReverseConversion),
-            XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListRequest);
-        var request = JsonSerializer.Deserialize(requestJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListRequest);
+            XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListRequest
+        );
+        var request = JsonSerializer.Deserialize
+            (requestJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeConversionListRequest);
 
         Assert.Equal("XiaoXiIme", request?.Source);
         Assert.Equal(9, request?.MaxCount);
@@ -212,14 +255,20 @@ public class XiaoXiImeIpcTests
     public void JsonSerializerContext_RoundTripsRegisterWordRequestForAot()
     {
         var sessionId = ImeSessionId.FromHimc(0x44);
-        var requestJson = JsonSerializer.Serialize(
+        var requestJson = JsonSerializer.Serialize
+        (
             new ImeRegisterWordRequest(ImeRegisterWordAction.Register, "zidingyi", "自定义", 0x80000000, sessionId),
-            XiaoXiImeIpcJsonSerializerContext.Default.ImeRegisterWordRequest);
-        var request = JsonSerializer.Deserialize(requestJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeRegisterWordRequest);
-        var responseJson = JsonSerializer.Serialize(
+            XiaoXiImeIpcJsonSerializerContext.Default.ImeRegisterWordRequest
+        );
+        var request = JsonSerializer.Deserialize
+            (requestJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeRegisterWordRequest);
+        var responseJson = JsonSerializer.Serialize
+        (
             new ImeRegisterWordResponse(true, [new ImeRegisterWordEntry("zidingyi", "自定义")], sessionId),
-            XiaoXiImeIpcJsonSerializerContext.Default.ImeRegisterWordResponse);
-        var response = JsonSerializer.Deserialize(responseJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeRegisterWordResponse);
+            XiaoXiImeIpcJsonSerializerContext.Default.ImeRegisterWordResponse
+        );
+        var response = JsonSerializer.Deserialize
+            (responseJson, XiaoXiImeIpcJsonSerializerContext.Default.ImeRegisterWordResponse);
 
         Assert.Equal(ImeRegisterWordAction.Register, request?.Action);
         Assert.Equal("zidingyi", request?.Reading);
@@ -248,16 +297,19 @@ public class XiaoXiImeIpcTests
     [Fact]
     public void JsonSerializerContext_RoundTripsSnapshotWithGuidelineAndCandidateWindow()
     {
-        var snapshot = new ImeSessionSnapshot(
+        var snapshot = new ImeSessionSnapshot
+        (
             new CompositionText("ni", "ni", 2),
             [new ImeCandidate("你", "ni")],
             new ImeCandidateWindowState(0, 0, 1),
             IsComposing: true,
-            new ImeGuideline(ImeGuidelineLevel.Reading, "ni"));
+            new ImeGuideline(ImeGuidelineLevel.Reading, "ni")
+        );
         var response = new ImeSnapshotResponse(snapshot);
 
         var json = JsonSerializer.Serialize(response, XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotResponse);
-        var deserialized = JsonSerializer.Deserialize(json, XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotResponse);
+        var deserialized = JsonSerializer.Deserialize
+            (json, XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotResponse);
 
         Assert.NotNull(deserialized);
         Assert.True(deserialized.Snapshot.IsComposing);
@@ -270,15 +322,19 @@ public class XiaoXiImeIpcTests
     [Fact]
     public void JsonSerializerContext_RoundTripsUiStateResponseForAot()
     {
-        var uiState = new ImeUiState(
+        var uiState = new ImeUiState
+        (
             CandidateWindowVisible: true,
             new CompositionText("ni", "ni", 2),
             [new ImeCandidate("你", "ni")],
             new ImeCandidateWindowState(0, 0, 1),
-            new ImeGuideline(ImeGuidelineLevel.Reading, "ni"));
+            new ImeGuideline(ImeGuidelineLevel.Reading, "ni")
+        );
 
-        var json = JsonSerializer.Serialize(new ImeUiStateResponse(uiState), XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateResponse);
-        var deserialized = JsonSerializer.Deserialize(json, XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateResponse);
+        var json = JsonSerializer.Serialize
+            (new ImeUiStateResponse(uiState), XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateResponse);
+        var deserialized = JsonSerializer.Deserialize
+            (json, XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateResponse);
 
         Assert.NotNull(deserialized);
         Assert.True(deserialized.UiState.CandidateWindowVisible);
@@ -292,17 +348,23 @@ public class XiaoXiImeIpcTests
     [Fact]
     public void JsonSerializerContext_RoundTripsHostStatusResponseForAot()
     {
-        var response = new ImeHostStatusResponse(new ImeHostStatus(
-            IsRunning: true,
-            LastError: null,
-            DictionaryPackagePath: @"C:\XiaoXiIme.DictionaryPackage",
-            IsUsingFallbackDictionary: true,
-            About: ImeAboutState.SeWzc,
-            DictionaryLoadError: "Fallback dictionary is active.",
-            DictionaryInputScheme: "xiaoheDoublePinyin"));
+        var response = new ImeHostStatusResponse
+        (
+            new ImeHostStatus
+            (
+                IsRunning: true,
+                LastError: null,
+                DictionaryPackagePath: @"C:\XiaoXiIme.DictionaryPackage",
+                IsUsingFallbackDictionary: true,
+                About: ImeAboutState.SeWzc,
+                DictionaryLoadError: "Fallback dictionary is active.",
+                DictionaryInputScheme: "xiaoheDoublePinyin"
+            )
+        );
 
         var json = JsonSerializer.Serialize(response, XiaoXiImeIpcJsonSerializerContext.Default.ImeHostStatusResponse);
-        var deserialized = JsonSerializer.Deserialize(json, XiaoXiImeIpcJsonSerializerContext.Default.ImeHostStatusResponse);
+        var deserialized = JsonSerializer.Deserialize
+            (json, XiaoXiImeIpcJsonSerializerContext.Default.ImeHostStatusResponse);
 
         Assert.NotNull(deserialized);
         Assert.True(deserialized.Status.IsRunning);
@@ -317,14 +379,18 @@ public class XiaoXiImeIpcTests
     [Fact]
     public void JsonSerializerContext_RoundTripsHostUnavailableUiStateForAot()
     {
-        var uiState = ImeUiState.FromSnapshot(
+        var uiState = ImeUiState.FromSnapshot
+        (
             ImeSessionSnapshot.Empty,
             "Host unavailable; using the minimal fallback dictionary.",
             isHostUnavailable: true,
-            isUsingFallbackDictionary: false);
+            isUsingFallbackDictionary: false
+        );
 
-        var json = JsonSerializer.Serialize(new ImeUiStateResponse(uiState), XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateResponse);
-        var deserialized = JsonSerializer.Deserialize(json, XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateResponse);
+        var json = JsonSerializer.Serialize
+            (new ImeUiStateResponse(uiState), XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateResponse);
+        var deserialized = JsonSerializer.Deserialize
+            (json, XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateResponse);
 
         Assert.NotNull(deserialized);
         Assert.True(deserialized.UiState.IsHostUnavailable);
@@ -335,12 +401,18 @@ public class XiaoXiImeIpcTests
     [Fact]
     public void JsonSerializerContext_RoundTripsParameterlessRequestDtosForAot()
     {
-        var snapshot = JsonSerializer.Deserialize(
-            JsonSerializer.Serialize(new ImeSnapshotRequest(), XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest),
-            XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest);
-        var uiState = JsonSerializer.Deserialize(
-            JsonSerializer.Serialize(new ImeUiStateRequest(), XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest),
-            XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest);
+        var snapshot = JsonSerializer.Deserialize
+        (
+            JsonSerializer.Serialize
+                (new ImeSnapshotRequest(), XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest),
+            XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest
+        );
+        var uiState = JsonSerializer.Deserialize
+        (
+            JsonSerializer.Serialize
+                (new ImeUiStateRequest(), XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest),
+            XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest
+        );
         RoundTrip(new ImeSnapshotRequest(), XiaoXiImeIpcJsonSerializerContext.Default.ImeSnapshotRequest);
         RoundTrip(new ImeUiStateRequest(), XiaoXiImeIpcJsonSerializerContext.Default.ImeUiStateRequest);
         RoundTrip(new ImeHostStatusRequest(), XiaoXiImeIpcJsonSerializerContext.Default.ImeHostStatusRequest);
@@ -370,4 +442,3 @@ public class XiaoXiImeIpcTests
 
     private sealed record UnknownSerializerProbe(string Value);
 }
-

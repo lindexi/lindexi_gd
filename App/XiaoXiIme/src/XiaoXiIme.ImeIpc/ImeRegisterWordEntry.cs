@@ -1,6 +1,8 @@
 namespace XiaoXiIme.ImeIpc;
 
-public sealed record ImeRegisterWordEntry(
+public sealed record ImeRegisterWordEntry
+(
     string Reading,
     string Text,
-    uint Style = 0);
+    uint Style = 0
+);

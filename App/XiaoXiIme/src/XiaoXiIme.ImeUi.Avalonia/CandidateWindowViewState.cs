@@ -1,6 +1,7 @@
 namespace XiaoXiIme.ImeUi.Avalonia;
 
-public sealed record CandidateWindowViewState(
+public sealed record CandidateWindowViewState
+(
     bool IsVisible,
     string CompositionText,
     IReadOnlyList<CandidateWindowCandidateViewModel> Candidates,
@@ -15,7 +16,8 @@ public sealed record CandidateWindowViewState(
     string AttributionText = "",
     string DiagnosticText = "",
     XiaoXiIme.Foundation.ImeCandidateAnchor? Anchor = null,
-    XiaoXiIme.Foundation.ImeSessionId SessionId = default)
+    XiaoXiIme.Foundation.ImeSessionId SessionId = default
+)
 {
     public string PageText => TotalPages > 1 ? $"{CurrentPage}/{TotalPages}" : string.Empty;
 
@@ -29,7 +31,8 @@ public sealed record CandidateWindowViewState(
 
     public bool HasFooter => HasGuideline || HasAttribution || HasDiagnostic;
 
-    public static CandidateWindowViewState Hidden { get; } = new(
+    public static CandidateWindowViewState Hidden { get; } = new
+    (
         IsVisible: false,
         CompositionText: string.Empty,
         Array.Empty<CandidateWindowCandidateViewModel>(),
@@ -40,5 +43,6 @@ public sealed record CandidateWindowViewState(
         TotalPages: 0,
         GuidelineText: string.Empty,
         AnchorX: 0,
-        AnchorY: 0);
+        AnchorY: 0
+    );
 }

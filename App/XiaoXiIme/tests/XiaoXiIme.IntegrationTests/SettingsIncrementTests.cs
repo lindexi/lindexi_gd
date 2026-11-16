@@ -11,7 +11,8 @@ public class SettingsIncrementTests
     [Fact]
     public async Task WhenUnchangedSettingsAreSubmittedThenRevisionRemainsZero()
     {
-        var path = Path.Combine(Path.GetTempPath(), "XiaoXiIme-settings-increment", Guid.NewGuid().ToString("N"), "settings.json");
+        var path = Path.Combine
+            (Path.GetTempPath(), "XiaoXiIme-settings-increment", Guid.NewGuid().ToString("N"), "settings.json");
         using var host = new ImeHostService(productSettingsPath: path, userDictionaryPath: path + ".user");
         var state = await host.GetProductSettingsAsync();
         var saved = await host.SaveProductSettingsAsync(new(state.HostInstanceId, Guid.NewGuid(), 0, state.Settings));
@@ -46,7 +47,11 @@ public class DebugSettingsIncrementTests(ProductionDictionaryFixture fixture)
     [Fact]
     public async Task WhenPreparingFuzzyInBackgroundThenPendingInputIsPreserved()
     {
-        var session = new DictionaryDebugSession(new InMemoryImeDictionary(new ImeLexicon([new("张", "zhang", 123)], [], ImeProjectionDefinition.FullPinyin, 0)));
+        var session = new DictionaryDebugSession
+        (
+            new InMemoryImeDictionary
+                (new ImeLexicon([new("张", "zhang", 123)], [], ImeProjectionDefinition.FullPinyin, 0))
+        );
         session.ProcessKey(Key.Z);
         session.ProcessKey(Key.A);
         session.ProcessKey(Key.N);
@@ -57,10 +62,17 @@ public class DebugSettingsIncrementTests(ProductionDictionaryFixture fixture)
     [Fact]
     public async Task WhenPreparationIsCancelledThenNoReplacementIsReturned()
     {
-        var session = new DictionaryDebugSession(new InMemoryImeDictionary(new ImeLexicon([new("张", "zhang", 123)], [], ImeProjectionDefinition.FullPinyin, 0)));
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => session.PrepareSettingsChangeAsync(null, 5, new CancellationToken(true)));
+        var session = new DictionaryDebugSession
+        (
+            new InMemoryImeDictionary
+                (new ImeLexicon([new("张", "zhang", 123)], [], ImeProjectionDefinition.FullPinyin, 0))
+        );
+        await Assert.ThrowsAnyAsync<OperationCanceledException>
+            (() => session.PrepareSettingsChangeAsync(null, 5, new CancellationToken(true)));
     }
 
-    private IImeDictionary Load(string scheme) => DictionaryPackageLoader.Load(
-        DictionaryPackageLocations.ResolvePackageDirectory(inputScheme: scheme, baseDirectory: fixture.HostRoot));
+    private IImeDictionary Load(string scheme) => DictionaryPackageLoader.Load
+    (
+        DictionaryPackageLocations.ResolvePackageDirectory(inputScheme: scheme, baseDirectory: fixture.HostRoot)
+    );
 }

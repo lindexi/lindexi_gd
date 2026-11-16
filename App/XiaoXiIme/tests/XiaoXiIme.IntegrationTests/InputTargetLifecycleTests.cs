@@ -9,21 +9,43 @@ namespace XiaoXiIme.IntegrationTests;
 
 public class InputTargetLifecycleTests
 {
-    private static ImeHostService CreateHost() => new(productSettingsPath: Path.Combine(
-        Path.GetTempPath(), "XiaoXiIme-target-tests", Guid.NewGuid().ToString("N"), "settings.json"));
+    private static ImeHostService CreateHost() => new
+    (
+        productSettingsPath: Path.Combine
+        (
+            Path.GetTempPath(), "XiaoXiIme-target-tests", Guid.NewGuid().ToString("N"), "settings.json"
+        )
+    );
 
-    private static ImeInputTargetUpdate Update(string session, long sequence, bool active = true,
-        string context = "context", int x = 10) => new("owner", sequence, new(session), context, active,
-            new(new(session), 123, 456, 789, x, 30, x, 30, 20, 96, "candidate-exclude", true,
-                ClientExclusion: new(0, 20, 100, 30)));
+    private static ImeInputTargetUpdate Update
+    (
+        string session, long sequence, bool active = true,
+        string context = "context", int x = 10
+    ) => new
+    (
+        "owner", sequence, new(session), context, active,
+        new
+        (
+            new(session), 123, 456, 789, x, 30, x, 30, 20, 96, "candidate-exclude", true,
+            ClientExclusion: new(0, 20, 100, 30)
+        )
+    );
 
     [Fact]
     public async Task ActivationWithoutKeyPublishesAnchor()
     {
         using var host = CreateHost();
         await host.UpdateInputTargetAsync(Update("first", 1));
-        Assert.Equal(10, (await host.GetUiStateAsync(new ImeUiStateRequest(
-            FocusWindowHandle: 123, FocusProcessId: 456))).Anchor?.ScreenX);
+        Assert.Equal
+        (
+            10, (await host.GetUiStateAsync
+            (
+                new ImeUiStateRequest
+                (
+                    FocusWindowHandle: 123, FocusProcessId: 456
+                )
+            )).Anchor?.ScreenX
+        );
     }
 
     [Fact]
@@ -33,8 +55,16 @@ public class InputTargetLifecycleTests
         await host.UpdateInputTargetAsync(Update("first", 1, context: "a"));
         await host.UpdateInputTargetAsync(Update("second", 2, context: "b", x: 70));
         await host.UpdateInputTargetAsync(Update("first", 3, context: "a"));
-        Assert.Equal(new ImeSessionId("first"), (await host.GetUiStateAsync(new ImeUiStateRequest(
-            FocusWindowHandle: 123, FocusProcessId: 456))).SessionId);
+        Assert.Equal
+        (
+            new ImeSessionId("first"), (await host.GetUiStateAsync
+            (
+                new ImeUiStateRequest
+                (
+                    FocusWindowHandle: 123, FocusProcessId: 456
+                )
+            )).SessionId
+        );
     }
 
     [Fact]
@@ -43,8 +73,16 @@ public class InputTargetLifecycleTests
         using var host = CreateHost();
         await host.UpdateInputTargetAsync(Update("first", 1));
         await host.UpdateInputTargetAsync(Update("first", 2, false) with { Anchor = null });
-        Assert.Null((await host.GetUiStateAsync(new ImeUiStateRequest(
-            FocusWindowHandle: 123, FocusProcessId: 456))).Anchor);
+        Assert.Null
+        (
+            (await host.GetUiStateAsync
+            (
+                new ImeUiStateRequest
+                (
+                    FocusWindowHandle: 123, FocusProcessId: 456
+                )
+            )).Anchor
+        );
     }
 
     [Fact]
@@ -82,8 +120,13 @@ public class InputTargetLifecycleTests
         using var host = CreateHost();
         await host.UpdateInputTargetAsync(Update("first", 1));
         await host.UpdateInputTargetAsync(Update("replacement", 2));
-        var response = await host.ProcessKeyAsync(new ImeProcessKeyRequest(
-            new(ImeKeyKind.Character, 'n'), new("first")));
+        var response = await host.ProcessKeyAsync
+        (
+            new ImeProcessKeyRequest
+            (
+                new(ImeKeyKind.Character, 'n'), new("first")
+            )
+        );
         Assert.False(response.Result.Handled);
     }
 
@@ -102,22 +145,33 @@ public class InputTargetLifecycleTests
     {
         var update = Update("first", 1);
         var json = JsonSerializer.Serialize(update, XiaoXiImeIpcJsonSerializerContext.Default.ImeInputTargetUpdate);
-        Assert.Equal(update, JsonSerializer.Deserialize(json, XiaoXiImeIpcJsonSerializerContext.Default.ImeInputTargetUpdate));
+        Assert.Equal
+            (update, JsonSerializer.Deserialize(json, XiaoXiImeIpcJsonSerializerContext.Default.ImeInputTargetUpdate));
     }
 
     [Fact]
     public void PlacementClampedAtBottomAvoidsExclusionAbove()
     {
-        Assert.Equal(new PixelPoint(100, 600), CandidateWindowPlacement.Calculate(
-            new PixelPoint(100, 850), 800, new Size(200, 200), 1,
-            new PixelRect(0, 0, 1000, 900), new PixelRect(0, 800, 500, 100)));
+        Assert.Equal
+        (
+            new PixelPoint(100, 600), CandidateWindowPlacement.Calculate
+            (
+                new PixelPoint(100, 850), 800, new Size(200, 200), 1,
+                new PixelRect(0, 0, 1000, 900), new PixelRect(0, 800, 500, 100)
+            )
+        );
     }
 
     [Fact]
     public void PlacementUsesFreeSideWhenNeitherVerticalSideFits()
     {
-        Assert.Equal(new PixelPoint(500, 400), CandidateWindowPlacement.Calculate(
-            new PixelPoint(100, 400), 0, new Size(200, 200), 1,
-            new PixelRect(0, 0, 1000, 900), new PixelRect(0, 0, 500, 900)));
+        Assert.Equal
+        (
+            new PixelPoint(500, 400), CandidateWindowPlacement.Calculate
+            (
+                new PixelPoint(100, 400), 0, new Size(200, 200), 1,
+                new PixelRect(0, 0, 1000, 900), new PixelRect(0, 0, 500, 900)
+            )
+        );
     }
 }

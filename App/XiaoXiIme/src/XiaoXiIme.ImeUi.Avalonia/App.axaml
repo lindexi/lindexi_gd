@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="XiaoXiIme.ImeUi.Avalonia.App"
              RequestedThemeVariant="Light">
-  <Application.Styles>
-    <FluentTheme />
-  </Application.Styles>
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
 </Application>

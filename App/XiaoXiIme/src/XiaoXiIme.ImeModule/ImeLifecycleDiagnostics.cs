@@ -48,7 +48,8 @@ internal static unsafe class ImeLifecycleDiagnostics
 
             var session = ImeInputIdentity.Resolve(new HImc(himc));
             var snapshot = ImeModuleRuntime.GetSnapshotForTesting(session);
-            var line = $"{DateTimeOffset.UtcNow:O}|{source}|{phase}|parameter={parameter}|himc=0x{himc:X}|hwnd=0x{hwnd:X}|focus=0x{GetFocus():X}|foreground=0x{GetForegroundWindow():X}|session={session}|immLength={compositionLength}|cachedComposing={snapshot.IsComposing}|cachedReadingLength={snapshot.Composition.Reading.Length}\n";
+            var line =
+                $"{DateTimeOffset.UtcNow:O}|{source}|{phase}|parameter={parameter}|himc=0x{himc:X}|hwnd=0x{hwnd:X}|focus=0x{GetFocus():X}|foreground=0x{GetForegroundWindow():X}|session={session}|immLength={compositionLength}|cachedComposing={snapshot.IsComposing}|cachedReadingLength={snapshot.Composition.Reading.Length}\n";
             lock (SyncRoot)
             {
                 File.AppendAllText(path, line);

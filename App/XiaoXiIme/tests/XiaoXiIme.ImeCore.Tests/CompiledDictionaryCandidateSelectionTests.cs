@@ -8,21 +8,27 @@ public class CompiledDictionaryCandidateSelectionTests
     [Theory]
     [InlineData("fullPinyin", "nihao")]
     [InlineData("xiaoheDoublePinyin", "nihc")]
-    public void ProcessKey_WhenCompiledPackageIsUsedThenRanksAndSelectsCandidates(
+    public void ProcessKey_WhenCompiledPackageIsUsedThenRanksAndSelectsCandidates
+    (
         string inputScheme,
-        string input)
+        string input
+    )
     {
-        var packagePath = Path.Combine(
+        var packagePath = Path.Combine
+        (
             Path.GetTempPath(),
             "XiaoXiIme.ImeCore.Tests",
-            Guid.NewGuid().ToString("N"));
+            Guid.NewGuid().ToString("N")
+        );
         var entries = Enumerable.Range(0, 12)
             .Select(index => new PhoneticDictionaryEntry($"候选{index:00}", "ni hao", 100))
             .Append(new PhoneticDictionaryEntry("高频前缀", "ni hao a", 1000));
-        DictionaryPackageCompiler.Compile(
+        DictionaryPackageCompiler.Compile
+        (
             entries,
             packagePath,
-            new DictionaryPackageParameters { InputScheme = inputScheme });
+            new DictionaryPackageParameters { InputScheme = inputScheme }
+        );
         var context = new ImeContext(DictionaryPackageLoader.Load(packagePath));
 
         ImeProcessResult inputResult = default!;
@@ -31,7 +37,8 @@ public class CompiledDictionaryCandidateSelectionTests
             inputResult = context.ProcessKey(ImeKey.FromCharacter(character));
         }
 
-        Assert.Collection(
+        Assert.Collection
+        (
             inputResult.Snapshot.Candidates,
             candidate => Assert.Equal("候选00", candidate.Text),
             candidate => Assert.Equal("候选01", candidate.Text),
@@ -44,7 +51,8 @@ public class CompiledDictionaryCandidateSelectionTests
             candidate => Assert.Equal("候选08", candidate.Text),
             candidate => Assert.Equal("候选09", candidate.Text),
             candidate => Assert.Equal("候选10", candidate.Text),
-            candidate => Assert.Equal("候选11", candidate.Text));
+            candidate => Assert.Equal("候选11", candidate.Text)
+        );
 
         var pageResult = context.ProcessKey(ImeKey.NextCandidatePage());
         var commitResult = context.ProcessKey(ImeKey.SelectCandidate(1));

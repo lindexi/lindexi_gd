@@ -9,28 +9,32 @@ internal sealed class InventedSoundShapeFixture
     internal List<ImeDictionaryLearning> Learning { get; } = [];
     internal ImeContext Context { get; }
 
-    internal InventedSoundShapeFixture(string set, ImeInputOptions? options = null, string projection = "F", int aFrequency = 120)
+    internal InventedSoundShapeFixture
+        (string set, ImeInputOptions? options = null, string projection = "F", int aFrequency = 120)
     {
-        Context = new ImeContext(new InMemoryImeDictionary(Lexicon(set, projection, aFrequency)), options ?? Options(), Learning.Add);
+        Context = new ImeContext
+            (new InMemoryImeDictionary(Lexicon(set, projection, aFrequency)), options ?? Options(), Learning.Add);
     }
 
-    internal static ImeInputOptions Options(
+    internal static ImeInputOptions Options
+    (
         ImeShapeCasePolicy casePolicy = ImeShapeCasePolicy.UppercaseOrGuess,
         ImeShapePlacement placement = ImeShapePlacement.PerCharacter,
         ImeShapeLengthPolicy length = ImeShapeLengthPolicy.OptionalOneOrTwo,
         ImeCandidateSortPolicy sort = ImeCandidateSortPolicy.PhoneticFirst,
         ImeAutoCommitPolicy auto = ImeAutoCommitPolicy.Off,
         bool eat = false,
-        IReadOnlyList<ImeFuzzyRule>? rules = null) => new()
-        {
-            CasePolicy = casePolicy,
-            Placement = placement,
-            LengthPolicy = length,
-            SortPolicy = sort,
-            AutoCommit = auto,
-            EatConfirmationSpace = eat,
-            FuzzyRules = rules ?? [],
-        };
+        IReadOnlyList<ImeFuzzyRule>? rules = null
+    ) => new()
+    {
+        CasePolicy = casePolicy,
+        Placement = placement,
+        LengthPolicy = length,
+        SortPolicy = sort,
+        AutoCommit = auto,
+        EatConfirmationSpace = eat,
+        FuzzyRules = rules ?? [],
+    };
 
     internal ImeProcessResult Type(string input)
     {
@@ -39,12 +43,16 @@ internal sealed class InventedSoundShapeFixture
         {
             result = Context.ProcessKey(ImeKey.FromCharacter(character));
         }
+
         return result;
     }
 
     internal ImeConversionCandidate Find(string text, int end, ImeInterpretationKind kind) =>
-        Context.QueryInterpretations(Context.Snapshot.Composition.Reading).Candidates.Single(candidate =>
-            candidate.Candidate.Text == text && candidate.Interpretations.Any(path => path.Kind == kind && path.CoverageEnd == end));
+        Context.QueryInterpretations(Context.Snapshot.Composition.Reading).Candidates.Single
+        (candidate =>
+            candidate.Candidate.Text == text && candidate.Interpretations.Any
+                (path => path.Kind == kind && path.CoverageEnd == end)
+        );
 
     internal ImeProcessResult Pick(string text, int end, ImeInterpretationKind kind = ImeInterpretationKind.Complete) =>
         Context.SelectCandidate(Find(text, end, kind).SelectionId!.Value);
@@ -79,22 +87,30 @@ internal sealed class InventedSoundShapeFixture
         {
             "Full" => ImeProjectionDefinition.FullPinyin,
             "Xiaohe" => ImeProjectionDefinition.XiaoheDoublePinyin,
-            _ => new ImeProjectionDefinition(projection,
-            [
-                new("n", "i", "ni"), new("h", "ao", projection == "X" ? "hk" : "hc"),
-                new("h", "ang", "kr"), new("r", "ang", "rh"), new("c", "ao", "cc"),
-                new("m", "a", "ma"), new("w", "o", "wo"), new("n", "a", "nz"),
-            ]),
+            _ => new ImeProjectionDefinition
+            (
+                projection,
+                [
+                    new("n", "i", "ni"), new("h", "ao", projection == "X" ? "hk" : "hc"),
+                    new("h", "ang", "kr"), new("r", "ang", "rh"), new("c", "ao", "cc"),
+                    new("m", "a", "ma"), new("w", "o", "wo"), new("n", "a", "nz"),
+                ]
+            ),
         };
-        return new ImeLexicon(sets[set].Select(id => entries[id]).ToArray(),
+        return new ImeLexicon
+        (
+            sets[set].Select(id => entries[id]).ToArray(),
             shapes.Where(shape => shape.Text != "拟" || set == "NP")
-                .Select(shape => new ShapeDictionaryEntry(shape.Text, shape.Code, "人工夹具")).ToArray(), definition, 1);
+                .Select(shape => new ShapeDictionaryEntry(shape.Text, shape.Code, "人工夹具")).ToArray(), definition, 1
+        );
     }
 
-    internal static ImeLexicon Z(string projection = "Full") => new(
+    internal static ImeLexicon Z(string projection = "Full") => new
+    (
         [new("张", "zhang", 80), new("脏", "zang", 70), new("毡", "zhan", 60), new("簪", "zan", 50)],
         [new("张", "zc", "人工夹具"), new("脏", "od", "人工夹具"), new("毡", "mz", "人工夹具"), new("簪", "vv", "人工夹具")],
-        projection == "Full" ? ImeProjectionDefinition.FullPinyin : ImeProjectionDefinition.XiaoheDoublePinyin, 1);
+        projection == "Full" ? ImeProjectionDefinition.FullPinyin : ImeProjectionDefinition.XiaoheDoublePinyin, 1
+    );
 
     internal static ImeLexicon TS(string projection)
     {
@@ -102,8 +118,13 @@ internal sealed class InventedSoundShapeFixture
         string[] readings = ["zhuan", "zuan", "zhuang", "zuan"];
         string[] last = ["身", "森", "升", "僧"];
         string[] endings = ["shen", "sen", "sheng", "seng"];
-        return new ImeLexicon(Enumerable.Range(0, 4).SelectMany(i => Enumerable.Range(0, 4)
-            .Select(j => new ImePhoneticEntry(first[i] + last[j], readings[i] + " " + endings[j], 200 - 4 * i - j))).ToArray(), [],
-            projection == "Full" ? ImeProjectionDefinition.FullPinyin : ImeProjectionDefinition.XiaoheDoublePinyin, 1);
+        return new ImeLexicon
+        (
+            Enumerable.Range(0, 4).SelectMany
+            (i => Enumerable.Range(0, 4)
+                .Select(j => new ImePhoneticEntry(first[i] + last[j], readings[i] + " " + endings[j], 200 - 4 * i - j))
+            ).ToArray(), [],
+            projection == "Full" ? ImeProjectionDefinition.FullPinyin : ImeProjectionDefinition.XiaoheDoublePinyin, 1
+        );
     }
 }

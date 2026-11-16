@@ -7,13 +7,16 @@ public class ImeDictionaryContractTests
     [Fact]
     public void Query_WhenExactAndPrefixThenExactCandidateIsFirst()
     {
-        var dictionary = new InMemoryImeDictionary(
-        [
-            new ImeCandidate("你", "ni", 10),
-            new ImeCandidate("你好", "nihao", 100),
-        ]);
+        var dictionary = new InMemoryImeDictionary
+        (
+            [
+                new ImeCandidate("你", "ni", 10),
+                new ImeCandidate("你好", "nihao", 100),
+            ]
+        );
 
-        var candidates = dictionary.Query(new ImeDictionaryQuery("ni", MatchMode: ImeDictionaryMatchMode.ExactAndPrefix));
+        var candidates = dictionary.Query
+            (new ImeDictionaryQuery("ni", MatchMode: ImeDictionaryMatchMode.ExactAndPrefix));
 
         Assert.Equal("你", candidates[0].Text);
     }
@@ -21,11 +24,13 @@ public class ImeDictionaryContractTests
     [Fact]
     public void Query_WhenExactAndPrefixThenRespectsMaxCount()
     {
-        var dictionary = new InMemoryImeDictionary(
-        [
-            new ImeCandidate("你", "ni", 100),
-            new ImeCandidate("你好", "nihao", 90),
-        ]);
+        var dictionary = new InMemoryImeDictionary
+        (
+            [
+                new ImeCandidate("你", "ni", 100),
+                new ImeCandidate("你好", "nihao", 90),
+            ]
+        );
 
         var candidates = dictionary.Query(new ImeDictionaryQuery("ni", 1, ImeDictionaryMatchMode.ExactAndPrefix));
 
@@ -35,29 +40,36 @@ public class ImeDictionaryContractTests
     [Fact]
     public void Query_WhenExactAndPrefixThenUsesStableOrdering()
     {
-        var dictionary = new InMemoryImeDictionary(
-        [
-            new ImeCandidate("你们", "nimen", 80),
-            new ImeCandidate("你好", "nihao", 80),
-        ]);
+        var dictionary = new InMemoryImeDictionary
+        (
+            [
+                new ImeCandidate("你们", "nimen", 80),
+                new ImeCandidate("你好", "nihao", 80),
+            ]
+        );
 
-        var candidates = dictionary.Query(new ImeDictionaryQuery("ni", MatchMode: ImeDictionaryMatchMode.ExactAndPrefix));
+        var candidates = dictionary.Query
+            (new ImeDictionaryQuery("ni", MatchMode: ImeDictionaryMatchMode.ExactAndPrefix));
 
-        Assert.Collection(
+        Assert.Collection
+        (
             candidates,
             candidate => Assert.Equal("你们", candidate.Text),
-            candidate => Assert.Equal("你好", candidate.Text));
+            candidate => Assert.Equal("你好", candidate.Text)
+        );
     }
 
     [Fact]
     public void DictionaryCandidate_WhenMappedThenUsesLayeredFrequencyAsScore()
     {
-        var candidate = new DictionaryCandidate(
+        var candidate = new DictionaryCandidate
+        (
             "你",
             "ni",
             BaseFrequency: 100,
             DictionaryCandidateSourceKind.System,
-            DictionaryCandidateMatchKind.Exact);
+            DictionaryCandidateMatchKind.Exact
+        );
 
         Assert.Equal(new ImeCandidate("你", "ni", 100), candidate.ToImeCandidate());
     }

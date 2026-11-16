@@ -10,6 +10,7 @@ public static class UserDictionaryStore
     private const int FormatVersion = 1;
     private const int MaxFileLength = 16 * 1024 * 1024;
     private const int MaxEntryCount = 100_000;
+
     /// <summary>
     /// Loads a user dictionary file, isolating invalid files for later diagnosis.
     /// </summary>
@@ -35,23 +36,28 @@ public static class UserDictionaryStore
             }
 
             using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            var document = JsonSerializer.Deserialize(stream, UserDictionaryJsonSerializerContext.Default.UserDictionaryDocument);
-            if (document is null || document.FormatVersion != FormatVersion || document.Entries is null || document.Entries.Length > MaxEntryCount)
+            var document = JsonSerializer.Deserialize
+                (stream, UserDictionaryJsonSerializerContext.Default.UserDictionaryDocument);
+            if (document is null || document.FormatVersion != FormatVersion || document.Entries is null ||
+                document.Entries.Length > MaxEntryCount)
             {
                 throw new InvalidDataException(DictionaryResources.InvalidUserDictionary);
             }
 
-            if (document.Entries.Any(entry =>
+            if (document.Entries.Any
+                (entry =>
                     string.IsNullOrWhiteSpace(entry.Text) ||
                     string.IsNullOrWhiteSpace(entry.Reading) ||
-                    entry.SelectionCount <= 0))
+                    entry.SelectionCount <= 0
+                ))
             {
                 throw new InvalidDataException(DictionaryResources.InvalidUserDictionary);
             }
 
             return new UserDictionaryLoadResult(document.Entries, null, null);
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException or InvalidDataException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException
+                                              or InvalidDataException)
         {
             var isolatedPath = IsolateCorruptFile(fullPath);
             return new UserDictionaryLoadResult([], exception.Message, isolatedPath);
@@ -71,11 +77,13 @@ public static class UserDictionaryStore
         ArgumentNullException.ThrowIfNull(entries);
         if (entries.Count > MaxEntryCount)
         {
-            throw new ArgumentOutOfRangeException(nameof(entries), DictionaryResources.UserDictionaryEntryCountTooLarge);
+            throw new ArgumentOutOfRangeException
+                (nameof(entries), DictionaryResources.UserDictionaryEntryCountTooLarge);
         }
 
         var fullPath = Path.GetFullPath(path);
-        var directory = Path.GetDirectoryName(fullPath) ?? throw new ArgumentException(DictionaryResources.InvalidUserDictionaryPath, nameof(path));
+        var directory = Path.GetDirectoryName
+            (fullPath) ?? throw new ArgumentException(DictionaryResources.InvalidUserDictionaryPath, nameof(path));
         Directory.CreateDirectory(directory);
         var temporaryPath = fullPath + $".{Guid.NewGuid():N}.tmp";
 
@@ -83,10 +91,12 @@ public static class UserDictionaryStore
         {
             using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                JsonSerializer.Serialize(
+                JsonSerializer.Serialize
+                (
                     stream,
                     new UserDictionaryDocument(FormatVersion, entries.ToArray()),
-                    UserDictionaryJsonSerializerContext.Default.UserDictionaryDocument);
+                    UserDictionaryJsonSerializerContext.Default.UserDictionaryDocument
+                );
                 stream.Flush(flushToDisk: true);
             }
 
@@ -102,30 +112,50 @@ public static class UserDictionaryStore
     }
 
     /// <summary>Writes a cancellable temporary file and replaces the destination only after a successful flush.</summary>
-    public static async Task SaveAsync(string path, IReadOnlyList<UserDictionaryEntry> entries, CancellationToken cancellationToken = default)
+    public static async Task SaveAsync
+        (string path, IReadOnlyList<UserDictionaryEntry> entries, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException(DictionaryResources.InvalidUserDictionaryPath, nameof(path));
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            throw new ArgumentException(DictionaryResources.InvalidUserDictionaryPath, nameof(path));
+        }
+
         ArgumentNullException.ThrowIfNull(entries);
-        if (entries.Count > MaxEntryCount) throw new ArgumentOutOfRangeException(nameof(entries), DictionaryResources.UserDictionaryEntryCountTooLarge);
+        if (entries.Count > MaxEntryCount)
+        {
+            throw new ArgumentOutOfRangeException
+                (nameof(entries), DictionaryResources.UserDictionaryEntryCountTooLarge);
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
         var fullPath = Path.GetFullPath(path);
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
         var temporaryPath = fullPath + $".{Guid.NewGuid():N}.tmp";
         try
         {
-            await using (var stream = new FileStream(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None,
-                4096, FileOptions.Asynchronous | FileOptions.WriteThrough))
+            await using (var stream = new FileStream
+                         (
+                             temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None,
+                             4096, FileOptions.Asynchronous | FileOptions.WriteThrough
+                         ))
             {
-                await JsonSerializer.SerializeAsync(stream, new UserDictionaryDocument(FormatVersion, entries.ToArray()),
-                    UserDictionaryJsonSerializerContext.Default.UserDictionaryDocument, cancellationToken).ConfigureAwait(false);
+                await JsonSerializer.SerializeAsync
+                (
+                    stream, new UserDictionaryDocument(FormatVersion, entries.ToArray()),
+                    UserDictionaryJsonSerializerContext.Default.UserDictionaryDocument, cancellationToken
+                ).ConfigureAwait(false);
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
+
             cancellationToken.ThrowIfCancellationRequested();
             File.Move(temporaryPath, fullPath, overwrite: true);
         }
         finally
         {
-            if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
+            if (File.Exists(temporaryPath))
+            {
+                File.Delete(temporaryPath);
+            }
         }
     }
 

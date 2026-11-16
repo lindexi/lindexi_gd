@@ -18,14 +18,21 @@ public class ProductionIpcPerformanceTests(ProductionDictionaryFixture fixture)
         var trace = new List<string>();
         var evidence = Path.Combine(AppContext.BaseDirectory, $"production-ipc-performance-{scheme}.txt");
         var watch = Stopwatch.StartNew();
+
         void Record(string stage)
         {
             trace.Add($"{stage}={watch.Elapsed.TotalMilliseconds:F1}ms");
             File.WriteAllLines(evidence, trace);
             watch.Restart();
         }
-        var dictionary = DictionaryPackageLoader.Load(DictionaryPackageLocations.ResolvePackageDirectory(
-            inputScheme: scheme, baseDirectory: fixture.HostRoot));
+
+        var dictionary = DictionaryPackageLoader.Load
+        (
+            DictionaryPackageLocations.ResolvePackageDirectory
+            (
+                inputScheme: scheme, baseDirectory: fixture.HostRoot
+            )
+        );
         Record("load");
         _ = dictionary.GetLexicon();
         Record("canonical");
@@ -45,6 +52,7 @@ public class ProductionIpcPerformanceTests(ProductionDictionaryFixture fixture)
             _ = JsonSerializer.Serialize(result);
             Record($"direct/{character}/serialization");
         }
+
         var options = new XiaoXiImeIpcOptions($"XiaoXiIme_Performance_{Guid.NewGuid():N}");
         watch.Restart();
         using var host = fixture.CreateHost(options, scheme);
@@ -67,7 +75,14 @@ public class ProductionIpcPerformanceTests(ProductionDictionaryFixture fixture)
             Record("ipc/timeout");
             throw;
         }
-        Assert.All(directTimes, elapsed => Assert.True(elapsed < options.EffectiveRequestTimeout,
-            string.Join(Environment.NewLine, trace)));
+
+        Assert.All
+        (
+            directTimes, elapsed => Assert.True
+            (
+                elapsed < options.EffectiveRequestTimeout,
+                string.Join(Environment.NewLine, trace)
+            )
+        );
     }
 }

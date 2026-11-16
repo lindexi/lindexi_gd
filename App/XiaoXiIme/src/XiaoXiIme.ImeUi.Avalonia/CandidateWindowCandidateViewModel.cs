@@ -1,11 +1,13 @@
 namespace XiaoXiIme.ImeUi.Avalonia;
 
-public sealed record CandidateWindowCandidateViewModel(
+public sealed record CandidateWindowCandidateViewModel
+(
     int DisplayIndex,
     int CandidateIndex,
     string Text,
     string Reading,
-    bool IsSelected)
+    bool IsSelected
+)
 {
     public string Background => IsSelected ? "#DCEAFF" : "#00FFFFFF";
 

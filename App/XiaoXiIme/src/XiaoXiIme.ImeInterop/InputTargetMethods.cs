@@ -12,16 +12,21 @@ public static class InputTargetMethods
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool IsWindow(nint window);
+
     [DllImport("user32.dll")]
     public static extern uint GetWindowThreadProcessId(nint window, out uint processId);
+
     [DllImport("user32.dll")]
     public static extern uint GetDpiForWindow(nint window);
+
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool ClientToScreen(nint window, ref Point point);
+
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool LogicalToPhysicalPointForPerMonitorDPI(nint window, ref Point point);
+
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool GetGUIThreadInfo(uint threadId, ref GuiThreadInfo info);
@@ -31,6 +36,6 @@ public static class InputTargetMethods
     {
         point = new Point { X = x, Y = y };
         return IsWindow(window) && ClientToScreen(window, ref point)
-            && LogicalToPhysicalPointForPerMonitorDPI(window, ref point);
+                                && LogicalToPhysicalPointForPerMonitorDPI(window, ref point);
     }
 }

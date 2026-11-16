@@ -15,8 +15,10 @@ public interface IShapeDictionary
     /// <summary>
     /// Filters phonetic candidates by a shape-code prefix while preserving candidate order.
     /// </summary>
-    IReadOnlyList<ImeCandidate> FilterByShape(
+    IReadOnlyList<ImeCandidate> FilterByShape
+    (
         IReadOnlyList<ImeCandidate> candidates,
         string shapeCode,
-        int maxCount = 9);
+        int maxCount = 9
+    );
 }

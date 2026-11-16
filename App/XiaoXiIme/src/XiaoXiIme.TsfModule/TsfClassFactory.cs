@@ -31,7 +31,7 @@ internal static unsafe class TsfClassFactory
             return TsfHResults.E_NOINTERFACE;
         }
 
-        var instance = (ClassFactoryObject*) NativeMemory.AllocZeroed((nuint) sizeof(ClassFactoryObject));
+        var instance = (ClassFactoryObject*)NativeMemory.AllocZeroed((nuint)sizeof(ClassFactoryObject));
         if (instance is null)
         {
             return TsfHResults.E_OUTOFMEMORY;
@@ -40,23 +40,23 @@ internal static unsafe class TsfClassFactory
         instance->Vtable = s_vtable;
         instance->ReferenceCount = 1;
         TsfComServer.AddObject();
-        *result = (nint) instance;
+        *result = (nint)instance;
         return TsfHResults.S_OK;
     }
 
     private static void** CreateVtable()
     {
-        var vtable = (void**) NativeMemory.Alloc((nuint) (sizeof(void*) * 5));
+        var vtable = (void**)NativeMemory.Alloc((nuint)(sizeof(void*) * 5));
         if (vtable is null)
         {
             Environment.FailFast("Unable to allocate the TSF class factory vtable.");
         }
 
-        vtable[0] = (void*) (delegate* unmanaged[Stdcall]<ClassFactoryObject*, Guid*, nint*, int>) &QueryInterface;
-        vtable[1] = (void*) (delegate* unmanaged[Stdcall]<ClassFactoryObject*, uint>) &AddRef;
-        vtable[2] = (void*) (delegate* unmanaged[Stdcall]<ClassFactoryObject*, uint>) &Release;
-        vtable[3] = (void*) (delegate* unmanaged[Stdcall]<ClassFactoryObject*, nint, Guid*, nint*, int>) &CreateInstance;
-        vtable[4] = (void*) (delegate* unmanaged[Stdcall]<ClassFactoryObject*, int, int>) &LockServer;
+        vtable[0] = (void*)(delegate* unmanaged[Stdcall]<ClassFactoryObject*, Guid*, nint*, int>)&QueryInterface;
+        vtable[1] = (void*)(delegate* unmanaged[Stdcall]<ClassFactoryObject*, uint>)&AddRef;
+        vtable[2] = (void*)(delegate* unmanaged[Stdcall]<ClassFactoryObject*, uint>)&Release;
+        vtable[3] = (void*)(delegate* unmanaged[Stdcall]<ClassFactoryObject*, nint, Guid*, nint*, int>)&CreateInstance;
+        vtable[4] = (void*)(delegate* unmanaged[Stdcall]<ClassFactoryObject*, int, int>)&LockServer;
         return vtable;
     }
 
@@ -80,7 +80,7 @@ internal static unsafe class TsfClassFactory
         }
 
         AddRefCore(self);
-        *result = (nint) self;
+        *result = (nint)self;
         return TsfHResults.S_OK;
     }
 
@@ -99,7 +99,7 @@ internal static unsafe class TsfClassFactory
 
     private static uint AddRefCore(ClassFactoryObject* self)
     {
-        return unchecked((uint) Interlocked.Increment(ref self->ReferenceCount));
+        return unchecked((uint)Interlocked.Increment(ref self->ReferenceCount));
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
@@ -119,7 +119,7 @@ internal static unsafe class TsfClassFactory
                 TsfComServer.ReleaseObject();
             }
 
-            return referenceCount < 0 ? 0 : unchecked((uint) referenceCount);
+            return referenceCount < 0 ? 0 : unchecked((uint)referenceCount);
         }
         catch
         {
@@ -130,35 +130,39 @@ internal static unsafe class TsfClassFactory
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static int CreateInstance(ClassFactoryObject* self, nint outerUnknown, Guid* interfaceId, nint* result)
     {
-        return TsfUnmanagedBoundary.Invoke(() =>
-        {
-            if (self is null || interfaceId is null || result is null)
+        return TsfUnmanagedBoundary.Invoke
+        (() =>
             {
-                return TsfHResults.E_POINTER;
-            }
+                if (self is null || interfaceId is null || result is null)
+                {
+                    return TsfHResults.E_POINTER;
+                }
 
-            *result = 0;
-            if (outerUnknown != 0)
-            {
-                return TsfHResults.CLASS_E_NOAGGREGATION;
-            }
+                *result = 0;
+                if (outerUnknown != 0)
+                {
+                    return TsfHResults.CLASS_E_NOAGGREGATION;
+                }
 
-            return TsfHResults.E_NOINTERFACE;
-        });
+                return TsfHResults.E_NOINTERFACE;
+            }
+        );
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static int LockServer(ClassFactoryObject* self, int lockServer)
     {
-        return TsfUnmanagedBoundary.Invoke(() =>
-        {
-            if (self is null)
+        return TsfUnmanagedBoundary.Invoke
+        (() =>
             {
-                return TsfHResults.E_POINTER;
-            }
+                if (self is null)
+                {
+                    return TsfHResults.E_POINTER;
+                }
 
-            TsfComServer.LockServer(lockServer != 0);
-            return TsfHResults.S_OK;
-        });
+                TsfComServer.LockServer(lockServer != 0);
+                return TsfHResults.S_OK;
+            }
+        );
     }
 }

@@ -19,8 +19,11 @@ public class ImeContextTests
 
         var result = first.ProcessKey(new ImeKey(kind, CandidateIndex: 0));
 
-        Assert.Equal((true, "你", false, ""),
-            (result.Handled, result.CommitText, result.Snapshot.IsComposing, result.Snapshot.Composition.Reading));
+        Assert.Equal
+        (
+            (true, "你", false, ""),
+            (result.Handled, result.CommitText, result.Snapshot.IsComposing, result.Snapshot.Composition.Reading)
+        );
     }
 
     [Fact]
@@ -47,27 +50,39 @@ public class ImeContextTests
     [Fact]
     public void ProcessKey_WhenInputIsSingleSyllablePrefixThenExcludesExtraSyllables()
     {
-        var context = CreateContext(CanonicalDictionaryFixture.Create(
-        [
-            new ImeCandidate("你", "ni", 100),
-            new ImeCandidate("你好", "ni hao", 200),
-        ]));
+        var context = CreateContext
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                [
+                    new ImeCandidate("你", "ni", 100),
+                    new ImeCandidate("你好", "ni hao", 200),
+                ]
+            )
+        );
 
         var result = context.ProcessKey(ImeKey.FromCharacter('n'));
 
-        Assert.Collection(
+        Assert.Collection
+        (
             result.Snapshot.Candidates,
-            candidate => Assert.Equal("你", candidate.Text));
+            candidate => Assert.Equal("你", candidate.Text)
+        );
     }
 
     [Fact]
     public void ProcessKey_WhenContinuousInputCompletesPhraseThenExactPhraseIsFirst()
     {
-        var context = CreateContext(CanonicalDictionaryFixture.Create(
-        [
-            new ImeCandidate("你好", "ni hao", 200),
-            new ImeCandidate("你好啊", "ni hao a", 300),
-        ]));
+        var context = CreateContext
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                [
+                    new ImeCandidate("你好", "ni hao", 200),
+                    new ImeCandidate("你好啊", "ni hao a", 300),
+                ]
+            )
+        );
         ImeProcessResult result = default!;
 
         foreach (var character in "nihao")
@@ -97,25 +112,32 @@ public class ImeContextTests
     public void ProcessKey_WhenCandidateCommittedThenReportsCandidateAndOriginalInputForLearning()
     {
         ImeDictionaryLearning? learning = null;
-        var context = new ImeContext(
+        var context = new ImeContext
+        (
             CanonicalDictionaryFixture.Create([new ImeCandidate("你", "ni", 100)]),
-            value => learning = value);
+            value => learning = value
+        );
         context.ProcessKey(ImeKey.FromCharacter('n'));
         context.ProcessKey(ImeKey.FromCharacter('i'));
 
         context.ProcessKey(new ImeKey(ImeKeyKind.Space));
 
-        Assert.Equal((new ImeCandidate("你", "ni", 100), "ni", new ImeConfirmedSegment("你", "ni", 0, 2, 0, 1)),
-            (learning?.Candidate, learning?.OriginalInput, Assert.Single(learning!.Segments)));
+        Assert.Equal
+        (
+            (new ImeCandidate("你", "ni", 100), "ni", new ImeConfirmedSegment("你", "ni", 0, 2, 0, 1)),
+            (learning?.Candidate, learning?.OriginalInput, Assert.Single(learning!.Segments))
+        );
     }
 
     [Fact]
     public void ProcessKey_WhenReadingCommittedThenDoesNotReportLearning()
     {
         var learningCount = 0;
-        var context = new ImeContext(
+        var context = new ImeContext
+        (
             CanonicalDictionaryFixture.Create([new ImeCandidate("你", "ni", 100)]),
-            _ => learningCount++);
+            _ => learningCount++
+        );
         context.ProcessKey(ImeKey.FromCharacter('x'));
 
         context.ProcessKey(new ImeKey(ImeKeyKind.Enter));
@@ -145,10 +167,12 @@ public class ImeContextTests
     public void ProcessKey_WhenCompiledPackageContainsAbbreviationThenSecondXCommitsXiaoXi()
     {
         var packagePath = Path.Combine(Path.GetTempPath(), "XiaoXiIme.ImeCore.Tests", Guid.NewGuid().ToString("N"));
-        DictionaryPackageCompiler.Compile(
+        DictionaryPackageCompiler.Compile
+        (
             [new PhoneticDictionaryEntry("小希", "xx", 100)],
             packagePath,
-            new DictionaryPackageParameters { InputScheme = "xiaoheDoublePinyin" });
+            new DictionaryPackageParameters { InputScheme = "xiaoheDoublePinyin" }
+        );
         var context = new ImeContext(DictionaryPackageLoader.Load(packagePath));
 
         var composingResult = context.ProcessKey(ImeKey.FromCharacter('x'));
@@ -164,10 +188,12 @@ public class ImeContextTests
     public void ProcessKey_WhenCompiledXiaohePackageContainsProjectTermThenProjectedKeysCommit()
     {
         var packagePath = Path.Combine(Path.GetTempPath(), "XiaoXiIme.ImeCore.Tests", Guid.NewGuid().ToString("N"));
-        DictionaryPackageCompiler.Compile(
+        DictionaryPackageCompiler.Compile
+        (
             XiaoXiImeProjectTerms.Parse(),
             packagePath,
-            new DictionaryPackageParameters { InputScheme = DictionaryPackageLocations.XiaoheDoublePinyinInputScheme });
+            new DictionaryPackageParameters { InputScheme = DictionaryPackageLocations.XiaoheDoublePinyinInputScheme }
+        );
         var context = new ImeContext(DictionaryPackageLoader.Load(packagePath));
         ImeProcessResult result = default!;
 
@@ -272,10 +298,15 @@ public class ImeContextTests
     [Fact]
     public void RegisterWord_WhenUserDictionaryThenAddsWordWithoutChangingComposition()
     {
-        var dictionary = new UserDictionary(CanonicalDictionaryFixture.Create(
-        [
-            new ImeCandidate("你", "ni", 100),
-        ]));
+        var dictionary = new UserDictionary
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                [
+                    new ImeCandidate("你", "ni", 100),
+                ]
+            )
+        );
         var context = new ImeContext(dictionary);
         context.ProcessKey(ImeKey.FromCharacter('n'));
 
@@ -294,10 +325,15 @@ public class ImeContextTests
     [Fact]
     public void UnregisterWord_WhenUserWordExistsThenRemovesItWithoutChangingComposition()
     {
-        var dictionary = new UserDictionary(CanonicalDictionaryFixture.Create(
-        [
-            new ImeCandidate("你", "ni", 100),
-        ]));
+        var dictionary = new UserDictionary
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                [
+                    new ImeCandidate("你", "ni", 100),
+                ]
+            )
+        );
         var context = new ImeContext(dictionary);
         context.RegisterWord("zidingyi", "自定义");
         context.ProcessKey(ImeKey.FromCharacter('n'));
@@ -464,11 +500,16 @@ public class ImeContextTests
     [Fact]
     public void ProcessKey_MoveCompositionCaretChangesSnapshotCaretIndex()
     {
-        var context = CreateContext(CanonicalDictionaryFixture.Create(
-        [
-            new ImeCandidate("按", "an", 100),
-            new ImeCandidate("拿", "na", 100),
-        ]));
+        var context = CreateContext
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                [
+                    new ImeCandidate("按", "an", 100),
+                    new ImeCandidate("拿", "na", 100),
+                ]
+            )
+        );
         context.ProcessKey(ImeKey.FromCharacter('n'));
         context.ProcessKey(ImeKey.FromCharacter('a'));
 
@@ -484,11 +525,16 @@ public class ImeContextTests
     [Fact]
     public void ProcessKey_CharacterInsertsAtCompositionCaret()
     {
-        var context = CreateContext(CanonicalDictionaryFixture.Create(
-        [
-            new ImeCandidate("按", "an", 100),
-            new ImeCandidate("拿", "na", 100),
-        ]));
+        var context = CreateContext
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                [
+                    new ImeCandidate("按", "an", 100),
+                    new ImeCandidate("拿", "na", 100),
+                ]
+            )
+        );
         context.ProcessKey(ImeKey.FromCharacter('a'));
         context.ProcessKey(ImeKey.MoveCompositionCaretLeft());
 
@@ -503,11 +549,16 @@ public class ImeContextTests
     [Fact]
     public void ProcessKey_BackspaceRemovesCharacterBeforeCompositionCaret()
     {
-        var context = CreateContext(CanonicalDictionaryFixture.Create(
-        [
-            new ImeCandidate("安", "an", 100),
-            new ImeCandidate("拿", "na", 100),
-        ]));
+        var context = CreateContext
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                [
+                    new ImeCandidate("安", "an", 100),
+                    new ImeCandidate("拿", "na", 100),
+                ]
+            )
+        );
         context.ProcessKey(ImeKey.FromCharacter('n'));
         context.ProcessKey(ImeKey.FromCharacter('a'));
         context.ProcessKey(ImeKey.MoveCompositionCaretLeft());
@@ -565,12 +616,17 @@ public class ImeContextTests
     [Fact]
     public void ProcessKey_BackspaceNormalizesSelectionAfterCandidateRefresh()
     {
-        var context = CreateContext(CanonicalDictionaryFixture.Create(
-        [
-            new ImeCandidate("啊", "a", 100),
-            new ImeCandidate("阿", "a", 90),
-            new ImeCandidate("安", "an", 100),
-        ]));
+        var context = CreateContext
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                [
+                    new ImeCandidate("啊", "a", 100),
+                    new ImeCandidate("阿", "a", 90),
+                    new ImeCandidate("安", "an", 100),
+                ]
+            )
+        );
         context.ProcessKey(ImeKey.FromCharacter('a'));
         context.ProcessKey(ImeKey.NextCandidate());
 
@@ -644,9 +700,14 @@ public class ImeContextTests
 
         var result = context.ProcessKey(ImeKey.FromCharacter('A'));
 
-        Assert.Collection(context.QueryInterpretations("niA").Candidates.Where(c =>
-            c.Interpretations.Any(p => p.Kind == ImeInterpretationKind.Complete)),
-            candidate => Assert.Equal("你", candidate.Candidate.Text));
+        Assert.Collection
+        (
+            context.QueryInterpretations("niA").Candidates.Where
+            (c =>
+                c.Interpretations.Any(p => p.Kind == ImeInterpretationKind.Complete)
+            ),
+            candidate => Assert.Equal("你", candidate.Candidate.Text)
+        );
     }
 
     [Fact]
@@ -670,10 +731,12 @@ public class ImeContextTests
         var result = context.ProcessKey(ImeKey.FromCharacter('H'));
 
         Assert.Equal("/xh", result.Snapshot.Composition.Reading);
-        Assert.Collection(
+        Assert.Collection
+        (
             result.Snapshot.Candidates,
             candidate => Assert.Equal("★", candidate.Text),
-            candidate => Assert.Equal("☆", candidate.Text));
+            candidate => Assert.Equal("☆", candidate.Text)
+        );
     }
 
     [Fact]
@@ -709,9 +772,12 @@ public class ImeContextTests
     {
         public ImeLexicon GetLexicon() => Lexicon;
         public ImeProjectionDefinition Projection => Lexicon.Projection;
-        private static readonly ImeLexicon Lexicon = new(
+
+        private static readonly ImeLexicon Lexicon = new
+        (
             [new("你", "ni", 100), new("呢", "ni", 90)],
-            [new("你", "ab", "fixture")], ImeProjectionDefinition.FullPinyin, 1);
+            [new("你", "ab", "fixture")], ImeProjectionDefinition.FullPinyin, 1
+        );
 
         private static readonly IReadOnlyList<ImeCandidate> PhoneticCandidates =
         [
@@ -733,10 +799,12 @@ public class ImeContextTests
                 : [];
         }
 
-        public IReadOnlyList<ImeCandidate> FilterByShape(
+        public IReadOnlyList<ImeCandidate> FilterByShape
+        (
             IReadOnlyList<ImeCandidate> candidates,
             string shapeCode,
-            int maxCount = 9)
+            int maxCount = 9
+        )
         {
             return shapeCode.Equals("a", StringComparison.OrdinalIgnoreCase)
                 ? candidates.Where(candidate => candidate.Text == "你").Take(maxCount).ToArray()
@@ -756,11 +824,16 @@ public class ImeContextTests
 
     private static ImeContext CreateContext()
     {
-        return CreateContext(CanonicalDictionaryFixture.Create(
-        [
-            new ImeCandidate("你", "ni", 100),
-            new ImeCandidate("呢", "ni", 90),
-        ]));
+        return CreateContext
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                [
+                    new ImeCandidate("你", "ni", 100),
+                    new ImeCandidate("呢", "ni", 90),
+                ]
+            )
+        );
     }
 
     private static ImeContext CreateContext(InMemoryImeDictionary dictionary)
@@ -770,8 +843,13 @@ public class ImeContextTests
 
     private static ImeContext CreatePagedContext()
     {
-        return CreateContext(CanonicalDictionaryFixture.Create(Enumerable.Range(0, 12)
-            .Select(index => new ImeCandidate($"候选{index}", "a", 100 - index))));
+        return CreateContext
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                Enumerable.Range(0, 12)
+                    .Select(index => new ImeCandidate($"候选{index}", "a", 100 - index))
+            )
+        );
     }
 }
-

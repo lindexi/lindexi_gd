@@ -1,6 +1,7 @@
 namespace XiaoXiIme.Cli;
 
-internal sealed record ImeEnvironmentDiagnostic(
+internal sealed record ImeEnvironmentDiagnostic
+(
     string OperatingSystem,
     string OsArchitecture,
     string ProcessArchitecture,
@@ -10,4 +11,5 @@ internal sealed record ImeEnvironmentDiagnostic(
     string CurrentDirectory,
     string WindowsDirectory,
     string SystemDirectory,
-    string SystemX86Directory);
+    string SystemX86Directory
+);

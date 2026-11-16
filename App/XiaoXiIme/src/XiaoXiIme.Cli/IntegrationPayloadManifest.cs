@@ -2,21 +2,23 @@ using System.Text.Json;
 
 namespace XiaoXiIme.Cli;
 
-internal sealed record IntegrationPayloadManifest(
+internal sealed record IntegrationPayloadManifest
+(
     int SchemaVersion,
     DateTimeOffset CreatedAtUtc,
     IReadOnlyDictionary<string, NativePayloadComponents> NativeComponents,
     string CliExecutable,
     string ImeHostExecutable,
     IReadOnlyList<string> TestHostExecutables,
-    IReadOnlyList<PayloadFile> Files)
+    IReadOnlyList<PayloadFile> Files
+)
 {
     public const string FileName = "xiaoxiime-payload.json";
 
     public static IntegrationPayloadManifest Load(string path)
     {
         var manifest = JsonSerializer.Deserialize<IntegrationPayloadManifest>(File.ReadAllText(path), JsonOptions)
-            ?? throw new InvalidDataException($"Invalid payload manifest: {path}");
+                       ?? throw new InvalidDataException($"Invalid payload manifest: {path}");
         return manifest;
     }
 

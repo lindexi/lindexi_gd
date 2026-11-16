@@ -20,13 +20,17 @@ internal sealed class CompositeImmContextAccessor : IImmContextAccessor
 
     public bool UnlockInputContext(HImc inputContext) => UnlockAll(context => context.UnlockInputContext(inputContext));
 
-    public nint LockCompositionString(nint compositionString) => FirstNonZero(context => context.LockCompositionString(compositionString));
+    public nint LockCompositionString(nint compositionString) => FirstNonZero
+        (context => context.LockCompositionString(compositionString));
 
-    public bool UnlockCompositionString(nint compositionString) => UnlockAll(context => context.UnlockCompositionString(compositionString));
+    public bool UnlockCompositionString(nint compositionString) => UnlockAll
+        (context => context.UnlockCompositionString(compositionString));
 
-    public nint LockCandidateInfo(nint candidateInfo) => FirstNonZero(context => context.LockCandidateInfo(candidateInfo));
+    public nint LockCandidateInfo(nint candidateInfo) => FirstNonZero
+        (context => context.LockCandidateInfo(candidateInfo));
 
-    public bool UnlockCandidateInfo(nint candidateInfo) => UnlockAll(context => context.UnlockCandidateInfo(candidateInfo));
+    public bool UnlockCandidateInfo(nint candidateInfo) => UnlockAll
+        (context => context.UnlockCandidateInfo(candidateInfo));
 
     public nint LockGuideLine(nint guideLine) => FirstNonZero(context => context.LockGuideLine(guideLine));
 

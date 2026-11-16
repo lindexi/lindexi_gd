@@ -12,8 +12,13 @@ public class LegacySentenceTests
             new("大", "da", 100000), new("字", "zi", 100), new("在", "zai", 90),
             new("好", "hao", 100), new("本", "ben", 100), new("额", "e", 90)
         };
-        if (word) entries.Add(new("大字", "da zi", 1));
-        return new(new InMemoryImeDictionary(new ImeLexicon(entries, [], ImeProjectionDefinition.ForScheme(scheme), 1)));
+        if (word)
+        {
+            entries.Add(new("大字", "da zi", 1));
+        }
+
+        return new
+            (new InMemoryImeDictionary(new ImeLexicon(entries, [], ImeProjectionDefinition.ForScheme(scheme), 1)));
     }
 
     [Fact]
@@ -67,11 +72,16 @@ public class LegacySentenceTests
         Assert.DoesNotContain(context.QueryConversionList("be"), c => c.Text == "本额");
     }
 
-    private static ImeContext Create(Action<ImeDictionaryLearning>? learn = null) => new(CanonicalDictionaryFixture.Create(
-    [
-        new("比", "bi", 100), new("笔", "bi", 90), new("闭", "bi", 80), new("臂", "bi", 70),
-        new("醋", "cu", 100), new("粗", "cu", 90), new("贝", "bei", 110), new("尔", "er", 100),
-    ]), learn);
+    private static ImeContext Create(Action<ImeDictionaryLearning>? learn = null) => new
+    (
+        CanonicalDictionaryFixture.Create
+        (
+            [
+                new("比", "bi", 100), new("笔", "bi", 90), new("闭", "bi", 80), new("臂", "bi", 70),
+                new("醋", "cu", 100), new("粗", "cu", 90), new("贝", "bei", 110), new("尔", "er", 100),
+            ]
+        ), learn
+    );
 
     [Fact]
     public void MissingWholeWordProducesSentenceAndLocalCharacters()
@@ -87,7 +97,11 @@ public class LegacySentenceTests
         var context = Create();
         context.SetComposition("bicu");
         var result = context.ProcessKey(ImeKey.SelectCandidate(2));
-        Assert.Equal(("笔", "cu", "醋"), (result.CommitText, result.Snapshot.Composition.Reading, result.Snapshot.Candidates.FirstOrDefault()?.Text));
+        Assert.Equal
+        (
+            ("笔", "cu", "醋"),
+            (result.CommitText, result.Snapshot.Composition.Reading, result.Snapshot.Candidates.FirstOrDefault()?.Text)
+        );
     }
 
     [Fact]
@@ -128,15 +142,26 @@ public class LegacySentenceTests
         context.ProcessKey(new(ImeKeyKind.MoveCompositionCaretLeft));
         context.ProcessKey(ImeKey.FromCharacter('q'));
         context.ProcessKey(new(ImeKeyKind.Backspace));
-        Assert.Equal(("bicu", 3, "比醋"), (context.Snapshot.Composition.Reading,
-            context.Snapshot.Composition.CaretIndex, context.Snapshot.Candidates[0].Text));
+        Assert.Equal
+        (
+            ("bicu", 3, "比醋"), (context.Snapshot.Composition.Reading,
+                context.Snapshot.Composition.CaretIndex, context.Snapshot.Candidates[0].Text)
+        );
     }
 
     [Fact]
     public void DoublePinyinDoesNotUseFullPinyinInteriorPrefixes()
     {
-        var context = new ImeContext(new InMemoryImeDictionary(new ImeLexicon(
-            [new("贝", "bei", 100), new("尔", "er", 90)], [], ImeProjectionDefinition.XiaoheDoublePinyin, 1)));
+        var context = new ImeContext
+        (
+            new InMemoryImeDictionary
+            (
+                new ImeLexicon
+                (
+                    [new("贝", "bei", 100), new("尔", "er", 90)], [], ImeProjectionDefinition.XiaoheDoublePinyin, 1
+                )
+            )
+        );
         Assert.DoesNotContain(context.QueryConversionList("be"), c => c.Text == "贝尔");
     }
 
@@ -145,8 +170,11 @@ public class LegacySentenceTests
     [InlineData(true)]
     public void FrequencyChoosesBestThreeSegmentPathRegardlessOfLoadOrder(bool reverse)
     {
-        ImeCandidate[] entries = [new("低频词", "bi cu", 1), new("比", "bi", 100),
-            new("醋", "cu", 100), new("好", "hao", 100)];
+        ImeCandidate[] entries =
+        [
+            new("低频词", "bi cu", 1), new("比", "bi", 100),
+            new("醋", "cu", 100), new("好", "hao", 100)
+        ];
         var context = new ImeContext(CanonicalDictionaryFixture.Create(reverse ? entries.Reverse() : entries));
         Assert.Equal("比醋好", context.QueryConversionList("bicuhao")[0].Text);
     }
@@ -154,22 +182,34 @@ public class LegacySentenceTests
     [Fact]
     public void PrefixPathComparesAllSplitsRatherThanLongestHead()
     {
-        var context = new ImeContext(CanonicalDictionaryFixture.Create(new ImeCandidate[]
-        {
-            new("冷", "bei", 1), new("儿", "er", 1),
-            new("不", "bu", 100), new("额", "en", 100), new("好", "hao", 100)
-        }));
+        var context = new ImeContext
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                new ImeCandidate[]
+                {
+                    new("冷", "bei", 1), new("儿", "er", 1),
+                    new("不", "bu", 100), new("额", "en", 100), new("好", "hao", 100)
+                }
+            )
+        );
         Assert.Empty(context.QueryConversionList("behao"));
     }
 
     [Fact]
     public void CompleteSegmentsBeatHigherFrequencyAbbreviations()
     {
-        var context = new ImeContext(CanonicalDictionaryFixture.Create(new ImeCandidate[]
-        {
-            new("比", "bi", 1), new("醋", "cu", 1),
-            new("边", "bian", 10000), new("粗", "cuan", 10000)
-        }));
+        var context = new ImeContext
+        (
+            CanonicalDictionaryFixture.Create
+            (
+                new ImeCandidate[]
+                {
+                    new("比", "bi", 1), new("醋", "cu", 1),
+                    new("边", "bian", 10000), new("粗", "cuan", 10000)
+                }
+            )
+        );
         Assert.Equal("比醋", context.QueryConversionList("bicu")[0].Text);
     }
 
@@ -180,11 +220,19 @@ public class LegacySentenceTests
         var context = Create(learned.Add);
         context.SetComposition("be");
         context.ProcessKey(ImeKey.SelectCandidate(0));
-        Assert.Equal((1, "be", "bei", "", "be:bei"),
+        Assert.Equal
+        (
+            (1, "be", "bei", "", "be:bei"),
             (learned.Count, learned[0].OriginalInput, learned[0].Candidate.Reading,
                 context.Snapshot.Composition.Reading,
-                string.Join("|", learned[0].Segments.Select(s =>
-                    "be".Substring(s.InputStart, s.InputLength) + ":" + s.CanonicalReading))));
+                string.Join
+                (
+                    "|", learned[0].Segments.Select
+                    (s =>
+                        "be".Substring(s.InputStart, s.InputLength) + ":" + s.CanonicalReading
+                    )
+                ))
+        );
     }
 
     [Fact]
@@ -196,9 +244,12 @@ public class LegacySentenceTests
         var index = context.Snapshot.Candidates.ToList().FindIndex(c => c.Text == "贝");
         Assert.True(index >= 0);
         var result = context.ProcessKey(ImeKey.SelectCandidate(index));
-        Assert.Equal(("贝", "", 1, "be", "bei"), (result.CommitText,
-            result.Snapshot.Composition.Reading, learned.Count,
-            learned[0].OriginalInput, learned[0].Candidate.Reading));
+        Assert.Equal
+        (
+            ("贝", "", 1, "be", "bei"), (result.CommitText,
+                result.Snapshot.Composition.Reading, learned.Count,
+                learned[0].OriginalInput, learned[0].Candidate.Reading)
+        );
     }
 
     [Fact]

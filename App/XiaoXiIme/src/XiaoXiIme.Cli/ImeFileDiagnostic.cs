@@ -1,6 +1,7 @@
 namespace XiaoXiIme.Cli;
 
-internal sealed record ImeFileDiagnostic(
+internal sealed record ImeFileDiagnostic
+(
     string FullPath,
     bool Exists,
     long? Length,
@@ -10,4 +11,5 @@ internal sealed record ImeFileDiagnostic(
     string? ReadError,
     bool HasMarkOfTheWeb,
     string? FileVersion,
-    string? ProductVersion);
+    string? ProductVersion
+);

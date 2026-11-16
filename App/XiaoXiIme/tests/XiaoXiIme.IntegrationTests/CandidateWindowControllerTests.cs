@@ -9,14 +9,16 @@ public class CandidateWindowControllerTests
     public Task Update_VisibleUiState_ShowsCurrentPageAndSelectedCandidate()
     {
         var controller = new CandidateWindowController();
-        var uiState = new ImeUiState(
+        var uiState = new ImeUiState
+        (
             CandidateWindowVisible: true,
             new CompositionText("ni", "ni", 2),
             CreateCandidates(12),
             new ImeCandidateWindowState(10, 9, 3),
             new ImeGuideline(ImeGuidelineLevel.Reading, "ni"),
             AnchorX: 100,
-            AnchorY: 200);
+            AnchorY: 200
+        );
 
         var state = controller.Update(uiState);
 
@@ -41,14 +43,16 @@ public class CandidateWindowControllerTests
     public Task Update_HiddenUiState_HidesCandidateWindowButKeepsCompositionAndGuideline()
     {
         var controller = new CandidateWindowController();
-        var uiState = new ImeUiState(
+        var uiState = new ImeUiState
+        (
             CandidateWindowVisible: false,
             new CompositionText("zz", "zz", 2),
             Array.Empty<ImeCandidate>(),
             ImeCandidateWindowState.Empty,
             new ImeGuideline(ImeGuidelineLevel.NoCandidate, "无候选：zz"),
             DiagnosticText: "Using the minimal fallback dictionary.",
-            IsUsingFallbackDictionary: true);
+            IsUsingFallbackDictionary: true
+        );
 
         var state = controller.Update(uiState);
 
@@ -66,12 +70,14 @@ public class CandidateWindowControllerTests
     public Task Update_SelectionOutsidePage_NormalizesPageToSelection()
     {
         var controller = new CandidateWindowController();
-        var uiState = new ImeUiState(
+        var uiState = new ImeUiState
+        (
             CandidateWindowVisible: true,
             new CompositionText("test", "test", 4),
             CreateCandidates(10),
             new ImeCandidateWindowState(9, 0, 1),
-            ImeGuideline.Empty);
+            ImeGuideline.Empty
+        );
 
         var state = controller.Update(uiState);
 
@@ -91,24 +97,39 @@ public class CandidateWindowControllerTests
         var controller = new CandidateWindowController();
         var candidates = CreateCandidates(12);
 
-        var firstPage = controller.Update(new ImeUiState(
-            CandidateWindowVisible: true,
-            new CompositionText("test", "test", 4),
-            candidates,
-            new ImeCandidateWindowState(8, 0, 9),
-            ImeGuideline.Empty));
-        var secondPage = controller.Update(new ImeUiState(
-            CandidateWindowVisible: true,
-            new CompositionText("test", "test", 4),
-            candidates,
-            new ImeCandidateWindowState(9, 9, 3),
-            ImeGuideline.Empty));
-        var returnedPage = controller.Update(new ImeUiState(
-            CandidateWindowVisible: true,
-            new CompositionText("test", "test", 4),
-            candidates,
-            new ImeCandidateWindowState(8, 0, 9),
-            ImeGuideline.Empty));
+        var firstPage = controller.Update
+        (
+            new ImeUiState
+            (
+                CandidateWindowVisible: true,
+                new CompositionText("test", "test", 4),
+                candidates,
+                new ImeCandidateWindowState(8, 0, 9),
+                ImeGuideline.Empty
+            )
+        );
+        var secondPage = controller.Update
+        (
+            new ImeUiState
+            (
+                CandidateWindowVisible: true,
+                new CompositionText("test", "test", 4),
+                candidates,
+                new ImeCandidateWindowState(9, 9, 3),
+                ImeGuideline.Empty
+            )
+        );
+        var returnedPage = controller.Update
+        (
+            new ImeUiState
+            (
+                CandidateWindowVisible: true,
+                new CompositionText("test", "test", 4),
+                candidates,
+                new ImeCandidateWindowState(8, 0, 9),
+                ImeGuideline.Empty
+            )
+        );
 
         Assert.Equal(1, firstPage.CurrentPage);
         Assert.Equal(9, firstPage.Candidates.Single(candidate => candidate.IsSelected).DisplayIndex);
@@ -125,12 +146,17 @@ public class CandidateWindowControllerTests
     public Task Hide_ReturnsHiddenState()
     {
         var controller = new CandidateWindowController();
-        controller.Update(new ImeUiState(
-            CandidateWindowVisible: true,
-            new CompositionText("ni", "ni", 2),
-            CreateCandidates(1),
-            new ImeCandidateWindowState(0, 0, 1),
-            ImeGuideline.Empty));
+        controller.Update
+        (
+            new ImeUiState
+            (
+                CandidateWindowVisible: true,
+                new CompositionText("ni", "ni", 2),
+                CreateCandidates(1),
+                new ImeCandidateWindowState(0, 0, 1),
+                ImeGuideline.Empty
+            )
+        );
 
         var state = controller.Hide();
 

@@ -5,13 +5,15 @@ namespace XiaoXiIme.Dictionary;
 /// <summary>
 /// Internal dictionary result used for layered ranking before mapping to <see cref="ImeCandidate"/>.
 /// </summary>
-public sealed record DictionaryCandidate(
+public sealed record DictionaryCandidate
+(
     string Text,
     string Reading,
     int BaseFrequency,
     DictionaryCandidateSourceKind SourceKind,
     DictionaryCandidateMatchKind MatchKind,
-    int UserFrequency = 0)
+    int UserFrequency = 0
+)
 {
     public string Text
     {

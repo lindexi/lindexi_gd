@@ -1,10 +1,12 @@
 namespace XiaoXiIme.ImeIpc;
 
-public sealed record XiaoXiImeIpcOptions(
+public sealed record XiaoXiImeIpcOptions
+(
     string ServerName,
     TimeSpan? ConnectTimeout = null,
     TimeSpan? RequestTimeout = null,
-    int RetryCount = 0)
+    int RetryCount = 0
+)
 {
     public const string DefaultServerName = "XiaoXiIme_ImeHost";
 

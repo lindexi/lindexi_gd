@@ -18,15 +18,23 @@ public sealed unsafe class ImeCompositionContextReader
     /// <summary>Checks the target IMM context rather than another session's conversion mode.</summary>
     public bool IsReceivingChinese(HImc inputContext)
     {
-        if (inputContext.Value == 0) return true;
+        if (inputContext.Value == 0)
+        {
+            return true;
+        }
+
         var pointer = _contextAccessor.LockInputContext(inputContext);
-        if (pointer == 0) return false;
+        if (pointer == 0)
+        {
+            return false;
+        }
+
         try
         {
             var context = (InputContext*)pointer;
             return context->FOpen != 0 &&
-                (context->FdwConversion & ImeConstants.ImeCmodeNative) != 0 &&
-                (context->FdwConversion & ImeConstants.ImeCmodeNoConversion) == 0;
+                   (context->FdwConversion & ImeConstants.ImeCmodeNative) != 0 &&
+                   (context->FdwConversion & ImeConstants.ImeCmodeNoConversion) == 0;
         }
         finally
         {
@@ -104,14 +112,15 @@ public sealed unsafe class ImeCompositionContextReader
             return false;
         }
 
-        var compositionBytes = new ReadOnlySpan<byte>((byte*)compositionString + compositionString->CompStrOffset, (int)byteLength);
+        var compositionBytes = new ReadOnlySpan<byte>
+            ((byte*)compositionString + compositionString->CompStrOffset, (int)byteLength);
         return !string.IsNullOrEmpty(Encoding.Unicode.GetString(compositionBytes));
     }
 
     private static bool IsValidRange(uint size, uint offset, uint length)
     {
         return offset >= Unsafe.SizeOf<CompositionString>()
-            && offset <= size
-            && length <= size - offset;
+               && offset <= size
+               && length <= size - offset;
     }
 }

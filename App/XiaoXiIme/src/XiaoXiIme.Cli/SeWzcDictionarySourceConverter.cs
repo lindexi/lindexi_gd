@@ -39,7 +39,8 @@ internal static class SeWzcDictionarySourceConverter
             throw new DirectoryNotFoundException($"Dictionary snapshot directory was not found: {sourceRoot}");
         }
 
-        var stagingRoot = Path.Combine(Path.GetTempPath(), "XiaoXiIme.DictionarySourceConversion", Guid.NewGuid().ToString("N"));
+        var stagingRoot = Path.Combine
+            (Path.GetTempPath(), "XiaoXiIme.DictionarySourceConversion", Guid.NewGuid().ToString("N"));
         try
         {
             var phoneticOutput = Path.Combine(stagingRoot, PhoneticOutputRelativePath);
@@ -57,12 +58,14 @@ internal static class SeWzcDictionarySourceConverter
             ValidateOutput(shapeOutput, ShapeDictionarySourceParser.Parse);
             ValidateOutput(symbolOutput, SymbolDictionarySourceParser.Parse);
 
-            InstallOutputs(
+            InstallOutputs
+            (
                 targetRoot,
                 (phoneticOutput, PhoneticOutputRelativePath),
                 (projectTermsOutput, ProjectTermsOutputRelativePath),
                 (shapeOutput, ShapeOutputRelativePath),
-                (symbolOutput, SymbolOutputRelativePath));
+                (symbolOutput, SymbolOutputRelativePath)
+            );
         }
         finally
         {
@@ -99,7 +102,12 @@ internal static class SeWzcDictionarySourceConverter
                 }
 
                 var frequency = columns.Skip(2)
-                    .Select(column => int.TryParse(column, NumberStyles.None, CultureInfo.InvariantCulture, out var value) ? value : (int?) null)
+                    .Select
+                    (column => int.TryParse
+                            (column, NumberStyles.None, CultureInfo.InvariantCulture, out var value)
+                            ? value
+                            : (int?)null
+                    )
                     .FirstOrDefault(value => value.HasValue);
                 if (frequency is null)
                 {
@@ -158,7 +166,8 @@ internal static class SeWzcDictionarySourceConverter
 
             foreach (var candidate in columns.Skip(1))
             {
-                if (candidate.Length > 0 && candidates.Count < SymbolDictionarySourceParser.MaxCandidatesPerInput && seenByInput[input].Add(candidate))
+                if (candidate.Length > 0 && candidates.Count < SymbolDictionarySourceParser.MaxCandidatesPerInput &&
+                    seenByInput[input].Add(candidate))
                 {
                     candidates.Add(candidate);
                 }
@@ -173,6 +182,7 @@ internal static class SeWzcDictionarySourceConverter
                 writer.Write('\t');
                 writer.Write(candidate);
             }
+
             writer.WriteLine();
         }
     }
@@ -202,8 +212,10 @@ internal static class SeWzcDictionarySourceConverter
             if (File.Exists(Path.Combine(current.FullName, "ImeLab.slnx"))
                 && Directory.Exists(Path.Combine(current.FullName, "src", "Ime.RimeShim.NativeAot")))
             {
-                throw new InvalidOperationException(
-                    "dictionary-convert-sewzc does not accept a SeWZC_IME repository path. Copy data/dictionaries to a decoupled snapshot first.");
+                throw new InvalidOperationException
+                (
+                    "dictionary-convert-sewzc does not accept a SeWZC_IME repository path. Copy data/dictionaries to a decoupled snapshot first."
+                );
             }
 
             current = current.Parent;
@@ -212,7 +224,8 @@ internal static class SeWzcDictionarySourceConverter
 
     private static void InstallOutputs(string targetRoot, params (string SourcePath, string RelativePath)[] outputs)
     {
-        var transactionRoot = Path.Combine(Path.GetTempPath(), "XiaoXiIme.DictionarySourceInstallation", Guid.NewGuid().ToString("N"));
+        var transactionRoot = Path.Combine
+            (Path.GetTempPath(), "XiaoXiIme.DictionarySourceInstallation", Guid.NewGuid().ToString("N"));
         var installedPaths = new List<string>();
         var backups = new List<(string BackupPath, string TargetPath)>();
         try

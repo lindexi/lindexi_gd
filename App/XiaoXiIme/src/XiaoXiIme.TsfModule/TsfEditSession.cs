@@ -22,7 +22,7 @@ internal static unsafe class TsfEditSession
         }
 
         *result = 0;
-        var instance = (EditSessionObject*) NativeMemory.AllocZeroed((nuint) sizeof(EditSessionObject));
+        var instance = (EditSessionObject*)NativeMemory.AllocZeroed((nuint)sizeof(EditSessionObject));
         if (instance is null)
         {
             return TsfHResults.E_OUTOFMEMORY;
@@ -31,44 +31,46 @@ internal static unsafe class TsfEditSession
         instance->Vtable = s_vtable;
         instance->ReferenceCount = 1;
         TsfComServer.AddObject();
-        *result = (nint) instance;
+        *result = (nint)instance;
         return TsfHResults.S_OK;
     }
 
     private static void** CreateVtable()
     {
-        var vtable = (void**) NativeMemory.Alloc((nuint) (sizeof(void*) * 4));
+        var vtable = (void**)NativeMemory.Alloc((nuint)(sizeof(void*) * 4));
         if (vtable is null)
         {
             Environment.FailFast("Unable to allocate the TSF edit session vtable.");
         }
 
-        vtable[0] = (void*) (delegate* unmanaged[Stdcall]<EditSessionObject*, Guid*, nint*, int>) &QueryInterface;
-        vtable[1] = (void*) (delegate* unmanaged[Stdcall]<EditSessionObject*, uint>) &AddRef;
-        vtable[2] = (void*) (delegate* unmanaged[Stdcall]<EditSessionObject*, uint>) &Release;
-        vtable[3] = (void*) (delegate* unmanaged[Stdcall]<EditSessionObject*, uint, int>) &DoEditSession;
+        vtable[0] = (void*)(delegate* unmanaged[Stdcall]<EditSessionObject*, Guid*, nint*, int>)&QueryInterface;
+        vtable[1] = (void*)(delegate* unmanaged[Stdcall]<EditSessionObject*, uint>)&AddRef;
+        vtable[2] = (void*)(delegate* unmanaged[Stdcall]<EditSessionObject*, uint>)&Release;
+        vtable[3] = (void*)(delegate* unmanaged[Stdcall]<EditSessionObject*, uint, int>)&DoEditSession;
         return vtable;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static int QueryInterface(EditSessionObject* self, Guid* interfaceId, nint* result) =>
-        TsfUnmanagedBoundary.Invoke(() =>
-        {
-            if (self is null || interfaceId is null || result is null)
+        TsfUnmanagedBoundary.Invoke
+        (() =>
             {
-                return TsfHResults.E_POINTER;
-            }
+                if (self is null || interfaceId is null || result is null)
+                {
+                    return TsfHResults.E_POINTER;
+                }
 
-            *result = 0;
-            if (*interfaceId != TsfNative.IUnknownId && *interfaceId != TsfNative.IEditSessionId)
-            {
-                return TsfHResults.E_NOINTERFACE;
-            }
+                *result = 0;
+                if (*interfaceId != TsfNative.IUnknownId && *interfaceId != TsfNative.IEditSessionId)
+                {
+                    return TsfHResults.E_NOINTERFACE;
+                }
 
-            AddRefCore(self);
-            *result = (nint) self;
-            return TsfHResults.S_OK;
-        });
+                AddRefCore(self);
+                *result = (nint)self;
+                return TsfHResults.S_OK;
+            }
+        );
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static uint AddRef(EditSessionObject* self)
@@ -84,7 +86,7 @@ internal static unsafe class TsfEditSession
     }
 
     private static uint AddRefCore(EditSessionObject* self) =>
-        unchecked((uint) Interlocked.Increment(ref self->ReferenceCount));
+        unchecked((uint)Interlocked.Increment(ref self->ReferenceCount));
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static uint Release(EditSessionObject* self)
@@ -103,7 +105,7 @@ internal static unsafe class TsfEditSession
                 TsfComServer.ReleaseObject();
             }
 
-            return referenceCount < 0 ? 0 : unchecked((uint) referenceCount);
+            return referenceCount < 0 ? 0 : unchecked((uint)referenceCount);
         }
         catch
         {

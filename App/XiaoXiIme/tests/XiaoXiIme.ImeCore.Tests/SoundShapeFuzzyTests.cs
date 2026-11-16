@@ -12,7 +12,8 @@ public class SoundShapeFuzzyTests
         string[][] exact = [["张"], ["脏"], ["毡"], ["簪"]];
         string[][] initials = [["张", "脏"], ["张", "脏"], ["毡", "簪"], ["毡", "簪"]];
         string[][] finals = [["张", "毡"], ["脏", "簪"], ["张", "毡"], ["脏", "簪"]];
-        IReadOnlyList<ImeFuzzyRule>[] rules = [[], [ImeFuzzyRule.ZhZ], [ImeFuzzyRule.AngAn], [ImeFuzzyRule.ZhZ, ImeFuzzyRule.AngAn]];
+        IReadOnlyList<ImeFuzzyRule>[] rules =
+            [[], [ImeFuzzyRule.ZhZ], [ImeFuzzyRule.AngAn], [ImeFuzzyRule.ZhZ, ImeFuzzyRule.AngAn]];
         string[][][] outputs = [exact, initials, finals, Enumerable.Repeat(new[] { "张", "脏", "毡", "簪" }, 4).ToArray()];
         for (var rule = 0; rule < 4; rule++)
         {
@@ -26,19 +27,34 @@ public class SoundShapeFuzzyTests
 
     [Theory]
     [MemberData(nameof(ZhangCases))]
-    public void F01_F04_H08_ZhangHasCompleteBidirectionalClosure(string id, string projection, string input,
-        IReadOnlyList<ImeFuzzyRule> rules, string[] expected)
+    public void F01_F04_H08_ZhangHasCompleteBidirectionalClosure
+    (
+        string id, string projection, string input,
+        IReadOnlyList<ImeFuzzyRule> rules, string[] expected
+    )
     {
         var context = Create(InventedSoundShapeFixture.Z(projection), rules);
         Type(context, input);
 
-        var backed = Complete(context).Where(c => c.Interpretations.Any(p =>
-            string.Concat(p.Evidence.Where(e => e.Kind == ImeEvidenceKind.Phonetic).Select(e => e.Input)) == input &&
-            p.Evidence.Where(e => e.Kind == ImeEvidenceKind.Phonetic).All(e =>
-                projection != "Full" || e.Range.Length == (p.Evidence.FirstOrDefault(f =>
-                    f.Kind == ImeEvidenceKind.Fuzzy && f.Range == e.Range)?.Input ?? e.CanonicalReading).Length)));
-        Assert.True(expected.SequenceEqual(backed.Select(candidate => candidate.Candidate.Text)),
-            $"{id}: fuzzy closure differs for {projection}/{input}");
+        var backed = Complete(context).Where
+        (c => c.Interpretations.Any
+            (p =>
+                string.Concat
+                    (p.Evidence.Where(e => e.Kind == ImeEvidenceKind.Phonetic).Select(e => e.Input)) == input &&
+                p.Evidence.Where(e => e.Kind == ImeEvidenceKind.Phonetic).All
+                (e =>
+                    projection != "Full" || e.Range.Length == (p.Evidence.FirstOrDefault
+                    (f =>
+                        f.Kind == ImeEvidenceKind.Fuzzy && f.Range == e.Range
+                    )?.Input ?? e.CanonicalReading).Length
+                )
+            )
+        );
+        Assert.True
+        (
+            expected.SequenceEqual(backed.Select(candidate => candidate.Candidate.Text)),
+            $"{id}: fuzzy closure differs for {projection}/{input}"
+        );
     }
 
     public static IEnumerable<object[]> TsCases()
@@ -65,9 +81,15 @@ public class SoundShapeFuzzyTests
         var context = Create(lexicon, [ImeFuzzyRule.ZhZ, ImeFuzzyRule.UanUang, ImeFuzzyRule.ShS, ImeFuzzyRule.EngEn]);
         Type(context, input);
 
-        Assert.Equal(lexicon.Entries.Select(entry => (entry.Text, entry.CanonicalReading, entry.BaseFrequency, input.Length, "")),
-            Complete(context).Select(candidate => (candidate.Candidate.Text, candidate.Candidate.Reading, candidate.Rank.Frequency,
-                candidate.Interpretations.First().CoverageEnd, candidate.Interpretations.First().RemainingInput)));
+        Assert.Equal
+        (
+            lexicon.Entries.Select
+                (entry => (entry.Text, entry.CanonicalReading, entry.BaseFrequency, input.Length, "")),
+            Complete(context).Select
+            (candidate => (candidate.Candidate.Text, candidate.Candidate.Reading, candidate.Rank.Frequency,
+                candidate.Interpretations.First().CoverageEnd, candidate.Interpretations.First().RemainingInput)
+            )
+        );
     }
 
     [Fact]
@@ -78,16 +100,23 @@ public class SoundShapeFuzzyTests
         context.UpdateFuzzyRules([ImeFuzzyRule.ZhZ, ImeFuzzyRule.AngAn]);
         context.UpdateFuzzyRules([]);
 
-        Assert.Equal(("zhang", 5, "张"), (context.Snapshot.Composition.Reading,
-            context.Snapshot.Composition.CaretIndex, string.Join('|', Complete(context).Select(candidate => candidate.Candidate.Text))));
+        Assert.Equal
+        (
+            ("zhang", 5, "张"), (context.Snapshot.Composition.Reading,
+                context.Snapshot.Composition.CaretIndex,
+                string.Join('|', Complete(context).Select(candidate => candidate.Candidate.Text)))
+        );
     }
 
     [Fact]
     public void F07_UpdatingRulesNeverCommitsOrLearns()
     {
         var learning = new List<ImeDictionaryLearning>();
-        var context = new ImeContext(new InMemoryImeDictionary(InventedSoundShapeFixture.Z()),
-            InventedSoundShapeFixture.Options(auto: ImeAutoCommitPolicy.Unique), learning.Add);
+        var context = new ImeContext
+        (
+            new InMemoryImeDictionary(InventedSoundShapeFixture.Z()),
+            InventedSoundShapeFixture.Options(auto: ImeAutoCommitPolicy.Unique), learning.Add
+        );
         Type(context, "za");
 
         var result = context.UpdateFuzzyRules([ImeFuzzyRule.ZhZ, ImeFuzzyRule.AngAn]);
@@ -98,7 +127,10 @@ public class SoundShapeFuzzyTests
     [Fact]
     public void F08_DuplicateRulesDoNotMultiplyFrequency()
     {
-        var context = Create(InventedSoundShapeFixture.Z(), [ImeFuzzyRule.ZhZ, ImeFuzzyRule.ZhZ, ImeFuzzyRule.AngAn, ImeFuzzyRule.AngAn]);
+        var context = Create
+        (
+            InventedSoundShapeFixture.Z(), [ImeFuzzyRule.ZhZ, ImeFuzzyRule.ZhZ, ImeFuzzyRule.AngAn, ImeFuzzyRule.AngAn]
+        );
         Type(context, "zhang");
 
         Assert.Equal(new[] { 80, 70, 60, 50 }, Complete(context).Select(candidate => candidate.Rank.Frequency));
@@ -122,8 +154,11 @@ public class SoundShapeFuzzyTests
         Type(first, "zhang");
         Type(second, "zhang");
 
-        Assert.Equal(("张|脏|毡|簪", "张"), (string.Join('|', Complete(first).Select(candidate => candidate.Candidate.Text)),
-            string.Join('|', Complete(second).Select(candidate => candidate.Candidate.Text))));
+        Assert.Equal
+        (
+            ("张|脏|毡|簪", "张"), (string.Join('|', Complete(first).Select(candidate => candidate.Candidate.Text)),
+                string.Join('|', Complete(second).Select(candidate => candidate.Candidate.Text)))
+        );
     }
 
     [Fact]
@@ -136,7 +171,11 @@ public class SoundShapeFuzzyTests
     }
 
     private static ImeContext Create(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules) =>
-        new(new InMemoryImeDictionary(lexicon), InventedSoundShapeFixture.Options(sort: ImeCandidateSortPolicy.Automatic, rules: rules), null);
+        new
+        (
+            new InMemoryImeDictionary(lexicon),
+            InventedSoundShapeFixture.Options(sort: ImeCandidateSortPolicy.Automatic, rules: rules), null
+        );
 
     internal static void Type(ImeContext context, string input)
     {

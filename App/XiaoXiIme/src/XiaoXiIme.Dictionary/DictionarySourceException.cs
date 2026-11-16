@@ -8,12 +8,17 @@ namespace XiaoXiIme.Dictionary;
 public sealed class DictionarySourceException : FormatException
 {
     internal DictionarySourceException(string filePath, int lineNumber, string reason)
-        : base(string.Format(
-            CultureInfo.CurrentCulture,
-            DictionaryResources.InvalidDictionarySourceLine,
-            filePath,
-            lineNumber,
-            reason))
+        : base
+        (
+            string.Format
+            (
+                CultureInfo.CurrentCulture,
+                DictionaryResources.InvalidDictionarySourceLine,
+                filePath,
+                lineNumber,
+                reason
+            )
+        )
     {
         FilePath = filePath;
         LineNumber = lineNumber;

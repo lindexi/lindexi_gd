@@ -7,16 +7,19 @@ internal static class SystemTestRunner
 {
     public const string VmConfirmation = "I-UNDERSTAND-THIS-MODIFIES-WINDOWS";
 
-    public static async Task<int> RunAsync(
+    public static async Task<int> RunAsync
+    (
         IReadOnlyList<SystemTestCommand> commands,
         string reportPath,
         bool allowDestructive,
         TextWriter output,
-        TextWriter error)
+        TextWriter error
+    )
     {
         if (!allowDestructive)
         {
-            error.WriteLine($"System test execution is blocked. Pass --confirm {VmConfirmation} only inside a disposable VM.");
+            error.WriteLine
+                ($"System test execution is blocked. Pass --confirm {VmConfirmation} only inside a disposable VM.");
             return 6;
         }
 
@@ -36,7 +39,7 @@ internal static class SystemTestRunner
             }
 
             using var process = Process.Start(startInfo)
-                ?? throw new InvalidOperationException($"Unable to start {command.FileName}.");
+                                ?? throw new InvalidOperationException($"Unable to start {command.FileName}.");
             var standardOutput = await process.StandardOutput.ReadToEndAsync();
             var standardError = await process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
@@ -53,7 +56,8 @@ internal static class SystemTestRunner
             Directory.CreateDirectory(directory);
         }
 
-        await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true }));
+        await File.WriteAllTextAsync
+            (reportPath, JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true }));
         var failed = results.FirstOrDefault(result => result.ExitCode != 0);
         if (failed is not null)
         {

@@ -3,7 +3,8 @@ using XiaoXiIme.Foundation;
 namespace XiaoXiIme.ImeIpc;
 
 /// <summary>Authoritative configuration and startup-only scheme status, without input text.</summary>
-public sealed record ImeProductSettingsResponse(
+public sealed record ImeProductSettingsResponse
+(
     Guid HostInstanceId,
     ImeProductSettings Settings,
     string? CurrentInputScheme,
@@ -11,4 +12,5 @@ public sealed record ImeProductSettingsResponse(
     bool RequiresHostRestart,
     ImeProductSettingsError Error = ImeProductSettingsError.None,
     Guid? LastOperationId = null,
-    ImeProductSettingsError LoadError = ImeProductSettingsError.None);
+    ImeProductSettingsError LoadError = ImeProductSettingsError.None
+);

@@ -2,7 +2,11 @@ using DotNetCampus.Cli.Compiler;
 
 namespace XiaoXiIme.Cli;
 
-[Command("dictionary-build-packages", Description = "Compile full Pinyin and Xiaohe packages from native TSV sources without Native AOT publish.")]
+[Command
+(
+    "dictionary-build-packages",
+    Description = "Compile full Pinyin and Xiaohe packages from native TSV sources without Native AOT publish."
+)]
 internal sealed class DictionaryBuildPackagesOptions
 {
     [Value(0, Description = "XiaoXiIme native TSV source directory.")]

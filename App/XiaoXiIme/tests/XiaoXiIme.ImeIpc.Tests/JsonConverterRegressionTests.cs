@@ -18,14 +18,16 @@ public class JsonConverterRegressionTests
     [Fact]
     public void GuidelineLevel_WhenSerializedThenUsesCamelCase()
     {
-        var json = JsonSerializer.Serialize(ImeGuidelineLevel.NoCandidate, XiaoXiImeIpcJsonSerializerContext.Default.ImeGuidelineLevel);
+        var json = JsonSerializer.Serialize
+            (ImeGuidelineLevel.NoCandidate, XiaoXiImeIpcJsonSerializerContext.Default.ImeGuidelineLevel);
         Assert.Equal("\"noCandidate\"", json);
     }
 
     [Fact]
     public void RegisterAction_WhenSerializedThenUsesCamelCase()
     {
-        var json = JsonSerializer.Serialize(ImeRegisterWordAction.Unregister, XiaoXiImeIpcJsonSerializerContext.Default.ImeRegisterWordAction);
+        var json = JsonSerializer.Serialize
+            (ImeRegisterWordAction.Unregister, XiaoXiImeIpcJsonSerializerContext.Default.ImeRegisterWordAction);
         Assert.Equal("\"unregister\"", json);
     }
 

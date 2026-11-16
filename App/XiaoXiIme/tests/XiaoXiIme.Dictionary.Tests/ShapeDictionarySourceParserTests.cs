@@ -35,8 +35,8 @@ public class ShapeDictionarySourceParserTests
     {
         using var reader = new StringReader(source);
 
-        var exception = Assert.Throws<DictionarySourceException>(
-            () => ShapeDictionarySourceParser.Parse(reader, "invalid.shape.tsv"));
+        var exception = Assert.Throws<DictionarySourceException>
+            (() => ShapeDictionarySourceParser.Parse(reader, "invalid.shape.tsv"));
 
         Assert.Equal(("invalid.shape.tsv", 1), (exception.FilePath, exception.LineNumber));
     }

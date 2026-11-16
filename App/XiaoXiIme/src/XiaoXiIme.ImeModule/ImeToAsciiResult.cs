@@ -2,10 +2,12 @@ using XiaoXiIme.Foundation;
 
 namespace XiaoXiIme.ImeModule;
 
-public sealed record ImeToAsciiResult(
+public sealed record ImeToAsciiResult
+(
     bool Handled,
     string? CommitText,
-    ImeSessionSnapshot Snapshot)
+    ImeSessionSnapshot Snapshot
+)
 {
     public static ImeToAsciiResult NotHandled { get; } = new(false, null, ImeSessionSnapshot.Empty);
 

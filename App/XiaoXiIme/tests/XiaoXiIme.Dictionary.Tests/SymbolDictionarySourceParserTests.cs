@@ -42,8 +42,8 @@ public class SymbolDictionarySourceParserTests
     {
         using var reader = new StringReader(source);
 
-        var exception = Assert.Throws<DictionarySourceException>(
-            () => SymbolDictionarySourceParser.Parse(reader, "invalid.symbols.tsv"));
+        var exception = Assert.Throws<DictionarySourceException>
+            (() => SymbolDictionarySourceParser.Parse(reader, "invalid.symbols.tsv"));
 
         Assert.Equal(("invalid.symbols.tsv", 1), (exception.FilePath, exception.LineNumber));
     }

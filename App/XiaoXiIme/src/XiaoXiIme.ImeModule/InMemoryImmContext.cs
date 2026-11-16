@@ -22,21 +22,25 @@ internal sealed unsafe class InMemoryImmContext : IImmContextAccessor, IDisposab
     private readonly nint _handle;
     private bool _disposed;
 
-    public InMemoryImmContext(
+    public InMemoryImmContext
+    (
         int compositionBufferSize = 2048,
         int candidateBufferSize = 65536,
         int guideLineBufferSize = 2048,
-        int privateBufferSize = 256)
+        int privateBufferSize = 256
+    )
         : this(AllocateHandle(), compositionBufferSize, candidateBufferSize, guideLineBufferSize, privateBufferSize)
     {
     }
 
-    public InMemoryImmContext(
+    public InMemoryImmContext
+    (
         nint handle,
         int compositionBufferSize = 2048,
         int candidateBufferSize = 65536,
         int guideLineBufferSize = 2048,
-        int privateBufferSize = 256)
+        int privateBufferSize = 256
+    )
     {
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(handle, 0);
         ArgumentOutOfRangeException.ThrowIfLessThan(compositionBufferSize, sizeof(CompositionString));

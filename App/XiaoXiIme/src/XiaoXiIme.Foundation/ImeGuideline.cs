@@ -1,8 +1,10 @@
 namespace XiaoXiIme.Foundation;
 
-public sealed record ImeGuideline(
+public sealed record ImeGuideline
+(
     ImeGuidelineLevel Level,
-    string Text)
+    string Text
+)
 {
     public static ImeGuideline Empty { get; } = new(ImeGuidelineLevel.None, string.Empty);
 }

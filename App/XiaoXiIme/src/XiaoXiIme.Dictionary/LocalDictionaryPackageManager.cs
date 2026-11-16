@@ -17,9 +17,11 @@ public static class LocalDictionaryPackageManager
     /// <summary>
     /// Compiles local TSV sources when the existing package cannot be reused.
     /// </summary>
-    public static LocalDictionaryPackageUpdateResult UpdateWithReuse(
+    public static LocalDictionaryPackageUpdateResult UpdateWithReuse
+    (
         LocalDictionaryPackageUpdate update,
-        string packageDirectory)
+        string packageDirectory
+    )
     {
         ArgumentNullException.ThrowIfNull(update);
         ValidatePackageDirectory(packageDirectory);
@@ -30,7 +32,8 @@ public static class LocalDictionaryPackageManager
 
         var packagePath = Path.GetFullPath(packageDirectory);
         var parentPath = Directory.GetParent(packagePath)?.FullName
-            ?? throw new ArgumentException("The package directory must have a parent directory.", nameof(packageDirectory));
+                         ?? throw new ArgumentException
+                             ("The package directory must have a parent directory.", nameof(packageDirectory));
         Directory.CreateDirectory(parentPath);
         var sources = CreateSourceRecords(update);
         if (TryReuseExistingPackage(packagePath, update.Parameters, sources, out var reusedManifest))
@@ -44,13 +47,15 @@ public static class LocalDictionaryPackageManager
             var phoneticEntries = ParseSources(update.PhoneticSourcePaths, PhoneticDictionarySourceParser.Parse);
             var shapeEntries = ParseSources(update.ShapeSourcePaths, ShapeDictionarySourceParser.Parse);
             var symbolEntries = ParseSources(update.SymbolSourcePaths, SymbolDictionarySourceParser.Parse);
-            var manifest = DictionaryPackageCompiler.Compile(
+            var manifest = DictionaryPackageCompiler.Compile
+            (
                 phoneticEntries,
                 stagingPath,
                 update.Parameters,
                 sources,
                 shapeEntries,
-                symbolEntries);
+                symbolEntries
+            );
 
             DictionaryPackageLoader.Load(stagingPath);
             ReplacePackage(packagePath, stagingPath);
@@ -112,9 +117,11 @@ public static class LocalDictionaryPackageManager
         }
     }
 
-    private static IReadOnlyList<TEntry> ParseSources<TEntry>(
+    private static IReadOnlyList<TEntry> ParseSources<TEntry>
+    (
         IReadOnlyList<string> sourcePaths,
-        Func<TextReader, string, IReadOnlyList<TEntry>> parser)
+        Func<TextReader, string, IReadOnlyList<TEntry>> parser
+    )
     {
         var entries = new List<TEntry>();
         foreach (var sourcePath in NormalizeSourcePaths(sourcePaths))
@@ -126,11 +133,13 @@ public static class LocalDictionaryPackageManager
         return entries;
     }
 
-    private static bool TryReuseExistingPackage(
+    private static bool TryReuseExistingPackage
+    (
         string packagePath,
         DictionaryPackageParameters parameters,
         IReadOnlyList<DictionaryPackageSource> sources,
-        out DictionaryPackageManifest manifest)
+        out DictionaryPackageManifest manifest
+    )
     {
         manifest = null!;
         if (!Directory.Exists(packagePath))
@@ -155,23 +164,31 @@ public static class LocalDictionaryPackageManager
         }
     }
 
-    private static bool CanReuse(
+    private static bool CanReuse
+    (
         DictionaryPackageManifest existing,
         DictionaryPackageParameters parameters,
-        IReadOnlyList<DictionaryPackageSource> sources)
+        IReadOnlyList<DictionaryPackageSource> sources
+    )
     {
         return existing.FormatVersion == DictionaryPackageManifest.CurrentFormatVersion
-            && string.Equals(existing.PackageKind, DictionaryPackageManifest.ExpectedPackageKind, StringComparison.Ordinal)
-            && string.Equals(existing.CompilerVersion, DictionaryPackageManifest.CurrentCompilerVersion, StringComparison.Ordinal)
-            && string.Equals(existing.Parameters.InputScheme, parameters.InputScheme, StringComparison.Ordinal)
-            && existing.Parameters.EnablePrefixIndex == parameters.EnablePrefixIndex
-            && existing.Parameters.MaxPrefixCandidatesPerKey == parameters.MaxPrefixCandidatesPerKey
-            && SourcesMatch(existing.Sources, sources);
+               && string.Equals
+                   (existing.PackageKind, DictionaryPackageManifest.ExpectedPackageKind, StringComparison.Ordinal)
+               && string.Equals
+               (
+                   existing.CompilerVersion, DictionaryPackageManifest.CurrentCompilerVersion, StringComparison.Ordinal
+               )
+               && string.Equals(existing.Parameters.InputScheme, parameters.InputScheme, StringComparison.Ordinal)
+               && existing.Parameters.EnablePrefixIndex == parameters.EnablePrefixIndex
+               && existing.Parameters.MaxPrefixCandidatesPerKey == parameters.MaxPrefixCandidatesPerKey
+               && SourcesMatch(existing.Sources, sources);
     }
 
-    private static bool SourcesMatch(
+    private static bool SourcesMatch
+    (
         IReadOnlyList<DictionaryPackageSource> existing,
-        IReadOnlyList<DictionaryPackageSource> current)
+        IReadOnlyList<DictionaryPackageSource> current
+    )
     {
         if (existing.Count != current.Count)
         {
@@ -202,27 +219,36 @@ public static class LocalDictionaryPackageManager
             .ToArray();
         var commonDirectory = FindCommonDirectory(paths);
         return paths
-            .Select(path =>
-            {
-                var info = new FileInfo(path);
-                return new DictionaryPackageSource(
-                    Path.GetRelativePath(commonDirectory, path).Replace('\\', '/'),
-                    info.Length,
-                    info.LastWriteTimeUtc.Ticks);
-            })
+            .Select
+            (path =>
+                {
+                    var info = new FileInfo(path);
+                    return new DictionaryPackageSource
+                    (
+                        Path.GetRelativePath(commonDirectory, path).Replace('\\', '/'),
+                        info.Length,
+                        info.LastWriteTimeUtc.Ticks
+                    );
+                }
+            )
             .ToArray();
     }
 
     private static string FindCommonDirectory(IReadOnlyList<string> paths)
     {
         var commonDirectory = Path.GetDirectoryName(paths[0])!;
-        while (paths.Any(path => !Path.GetFullPath(path).StartsWith(
-                   commonDirectory + Path.DirectorySeparatorChar,
-                   StringComparison.OrdinalIgnoreCase)))
+        while (paths.Any
+               (path => !Path.GetFullPath(path).StartsWith
+                   (
+                       commonDirectory + Path.DirectorySeparatorChar,
+                       StringComparison.OrdinalIgnoreCase
+                   )
+               ))
         {
             commonDirectory = Directory.GetParent(commonDirectory)?.FullName
-                ?? Path.GetPathRoot(paths[0])!;
+                              ?? Path.GetPathRoot(paths[0])!;
         }
+
         return commonDirectory;
     }
 
@@ -230,15 +256,17 @@ public static class LocalDictionaryPackageManager
     {
         ArgumentNullException.ThrowIfNull(sourcePaths);
         return sourcePaths
-            .Select(path =>
-            {
-                if (string.IsNullOrWhiteSpace(path))
+            .Select
+            (path =>
                 {
-                    throw new ArgumentException("Dictionary source paths cannot be empty.", nameof(sourcePaths));
-                }
+                    if (string.IsNullOrWhiteSpace(path))
+                    {
+                        throw new ArgumentException("Dictionary source paths cannot be empty.", nameof(sourcePaths));
+                    }
 
-                return Path.GetFullPath(path);
-            })
+                    return Path.GetFullPath(path);
+                }
+            )
             .Distinct(StringComparer.Ordinal)
             .Order(StringComparer.Ordinal)
             .ToArray();

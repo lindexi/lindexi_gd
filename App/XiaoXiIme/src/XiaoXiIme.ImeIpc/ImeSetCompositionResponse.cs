@@ -2,6 +2,8 @@ using XiaoXiIme.Foundation;
 
 namespace XiaoXiIme.ImeIpc;
 
-public sealed record ImeSetCompositionResponse(
+public sealed record ImeSetCompositionResponse
+(
     ImeProcessResult Result,
-    ImeSessionId SessionId = default);
+    ImeSessionId SessionId = default
+);

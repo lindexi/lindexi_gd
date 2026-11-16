@@ -3,10 +3,12 @@ using XiaoXiIme.Foundation;
 
 namespace XiaoXiIme.ImeIpc;
 
-[JsonSourceGenerationOptions(
+[JsonSourceGenerationOptions
+(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     UseStringEnumConverter = true,
-    Converters = [typeof(ImeSessionIdJsonConverter)])]
+    Converters = [typeof(ImeSessionIdJsonConverter)]
+)]
 [JsonSerializable(typeof(ImeCandidate))]
 [JsonSerializable(typeof(ImeCandidate[]))]
 [JsonSerializable(typeof(ImeCandidateWindowState))]
@@ -52,5 +54,4 @@ namespace XiaoXiIme.ImeIpc;
 [JsonSerializable(typeof(object))]
 public sealed partial class XiaoXiImeIpcJsonSerializerContext : JsonSerializerContext
 {
-
 }

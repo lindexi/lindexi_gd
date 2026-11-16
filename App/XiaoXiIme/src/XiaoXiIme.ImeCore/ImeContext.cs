@@ -60,6 +60,7 @@ public sealed partial class ImeContext
             prepared._selection = index >= 0 ? index : 0;
             prepared.NormalizeCandidateWindow();
         }
+
         return prepared;
     }
 
@@ -67,34 +68,51 @@ public sealed partial class ImeContext
     public static bool ShouldProcessKey(ImeKey key, ImeSessionSnapshot snapshot)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
-        if (key.Kind == ImeKeyKind.Other) return false;
+        if (key.Kind == ImeKeyKind.Other)
+        {
+            return false;
+        }
+
         if (key.Kind != ImeKeyKind.Character)
         {
             return key.Kind switch
             {
                 ImeKeyKind.Space when snapshot.EatsConfirmationSpace => true,
                 ImeKeyKind.PreviousCandidate or ImeKeyKind.NextCandidate or
-                ImeKeyKind.PreviousCandidatePage or ImeKeyKind.NextCandidatePage or
-                ImeKeyKind.FirstCandidate or ImeKeyKind.LastCandidate => snapshot.IsComposing && snapshot.Candidates.Count > 0,
+                    ImeKeyKind.PreviousCandidatePage or ImeKeyKind.NextCandidatePage or
+                    ImeKeyKind.FirstCandidate
+                    or ImeKeyKind.LastCandidate => snapshot.IsComposing && snapshot.Candidates.Count > 0,
                 _ => snapshot.IsComposing
             };
         }
+
         if (snapshot.Composition.Reading.Length >= 64 &&
             (IsAsciiLetter(key.Character) || key.Character == ';' && snapshot.AcceptsSemicolon ||
              key.Character == '\'' && snapshot.AcceptsApostrophe && !snapshot.Composition.Reading.StartsWith('/') ||
              snapshot.Composition.Reading.StartsWith('/') && char.IsAsciiDigit(key.Character)))
+        {
             return false;
+        }
+
         var character = key.Character;
-        if (char.IsControl(character) || char.IsWhiteSpace(character)) return false;
+        if (char.IsControl(character) || char.IsWhiteSpace(character))
+        {
+            return false;
+        }
+
         return snapshot.IsComposing || IsAsciiLetter(character) || character == '/' ||
-            character == ';' && snapshot.AcceptsSemicolon;
+               character == ';' && snapshot.AcceptsSemicolon;
     }
 
     public ImeProcessResult ProcessKey(ImeKey key)
     {
         var eat = _eatConfirmationSpace && key.Kind == ImeKeyKind.Space;
         _eatConfirmationSpace = false;
-        if (eat) return new ImeProcessResult(Snapshot, null, true);
+        if (eat)
+        {
+            return new ImeProcessResult(Snapshot, null, true);
+        }
+
         var result = key.Kind switch
         {
             ImeKeyKind.Character => ProcessCharacter(key.Character),
@@ -125,7 +143,11 @@ public sealed partial class ImeContext
     public ImeProcessResult SetComposition(string composition)
     {
         ArgumentNullException.ThrowIfNull(composition);
-        if (composition == _reading) return new ImeProcessResult(Snapshot, null, true);
+        if (composition == _reading)
+        {
+            return new ImeProcessResult(Snapshot, null, true);
+        }
+
         if (composition.Length > 64 || !IsValidComposition(composition))
         {
             return new ImeProcessResult(Snapshot, null, false);
@@ -156,9 +178,11 @@ public sealed partial class ImeContext
         }
 
         var count = maxCount <= 0 ? int.MaxValue : maxCount;
-        return QueryCandidates(
+        return QueryCandidates
+        (
             NormalizeComposition(composition),
-            count);
+            count
+        );
     }
 
     /// <summary>
@@ -189,7 +213,10 @@ public sealed partial class ImeContext
         }
 
         userDictionary.Learn(learning);
-        if (userDictionary.IsBackgroundPublicationEnabled) userDictionary.PrepareAndPublish();
+        if (userDictionary.IsBackgroundPublicationEnabled)
+        {
+            userDictionary.PrepareAndPublish();
+        }
 
         return true;
     }
@@ -201,8 +228,16 @@ public sealed partial class ImeContext
     {
         ArgumentNullException.ThrowIfNull(reading);
         ArgumentNullException.ThrowIfNull(text);
-        if (_dictionary is not UserDictionary userDictionary || !userDictionary.Forget(text, reading)) return false;
-        if (userDictionary.IsBackgroundPublicationEnabled) userDictionary.PrepareAndPublish();
+        if (_dictionary is not UserDictionary userDictionary || !userDictionary.Forget(text, reading))
+        {
+            return false;
+        }
+
+        if (userDictionary.IsBackgroundPublicationEnabled)
+        {
+            userDictionary.PrepareAndPublish();
+        }
+
         return true;
     }
 
@@ -225,13 +260,27 @@ public sealed partial class ImeContext
         if (character is >= '0' and <= '9')
         {
             var index = character == '0' ? 9 : character - '1';
-            if (IsSymbolComposition) return ProcessSymbolDigit(index);
-            if (_candidates.Count > 0) return CommitCandidateInCurrentPage(index);
+            if (IsSymbolComposition)
+            {
+                return ProcessSymbolDigit(index);
+            }
+
+            if (_candidates.Count > 0)
+            {
+                return CommitCandidateInCurrentPage(index);
+            }
         }
+
         if (!CanInsertCharacter(character) && !char.IsControl(character) && !char.IsWhiteSpace(character))
+        {
             return CommitBeforeCharacter(character);
+        }
+
         if (_reading.Length >= 64)
+        {
             return new ImeProcessResult(Snapshot, null, false);
+        }
+
         if (!CanInsertCharacter(character))
         {
             return new ImeProcessResult(Snapshot, null, false);
@@ -247,21 +296,27 @@ public sealed partial class ImeContext
         RefreshCandidates();
 
         if (_options.EnableLegacyXx && string.Equals(_reading, AutoCommitReading, StringComparison.Ordinal)
-            && _candidates.Count > 0)
+                                    && _candidates.Count > 0)
         {
             var result = CommitCandidate(0);
             _eatConfirmationSpace = result.CommitText is not null && _options.EatConfirmationSpace;
             return result;
         }
 
-        if (appended && TryAutomaticCommit() is { } automatic) return automatic;
+        if (appended && TryAutomaticCommit() is { } automatic)
+        {
+            return automatic;
+        }
 
         return new ImeProcessResult(Snapshot, null, true);
     }
 
     private ImeProcessResult CommitBeforeCharacter(char character)
     {
-        if (!IsComposing) return new ImeProcessResult(Snapshot, null, false);
+        if (!IsComposing)
+        {
+            return new ImeProcessResult(Snapshot, null, false);
+        }
 
         var text = new System.Text.StringBuilder();
         while (IsComposing)
@@ -270,8 +325,12 @@ public sealed partial class ImeContext
             var result = CommitCandidate(_selection);
             text.Append(result.CommitText);
             // Incomplete or unmatched input must be preserved rather than silently dropped.
-            if (_reading.Length >= before) text.Append(CommitReading().CommitText);
+            if (_reading.Length >= before)
+            {
+                text.Append(CommitReading().CommitText);
+            }
         }
+
         text.Append(character);
         return new ImeProcessResult(Snapshot, text.ToString(), true);
     }
@@ -283,7 +342,10 @@ public sealed partial class ImeContext
             return new ImeProcessResult(Snapshot, null, true);
         }
 
-        if (_reading.Length >= 64) return new ImeProcessResult(Snapshot, null, false);
+        if (_reading.Length >= 64)
+        {
+            return new ImeProcessResult(Snapshot, null, false);
+        }
 
         var digit = candidateIndex == 9 ? '0' : (char)('1' + candidateIndex);
         _reading = _reading.Insert(_caretIndex, digit.ToString());
@@ -360,7 +422,9 @@ public sealed partial class ImeContext
         // Another session can learn into the shared dictionary while this composition is inactive.
         if (!IsSymbolComposition && _dictionary is not UserDictionary { IsBackgroundPublicationEnabled: true } &&
             !ReferenceEquals(_displayedLexicon, _dictionary.GetLexicon()))
+        {
             RefreshCandidates();
+        }
 
         if ((uint)candidateIndex >= (uint)_candidates.Count)
         {
@@ -372,6 +436,7 @@ public sealed partial class ImeContext
             var detailed = _displayedCandidates[candidateIndex];
             return detailed.SelectionId is { } id ? SelectCandidate(id) : new ImeProcessResult(Snapshot, null, true);
         }
+
         var selectedCandidate = _candidates[candidateIndex];
         var originalInput = _reading;
         var shouldLearn = IsPhoneticComposition(originalInput);
@@ -423,7 +488,11 @@ public sealed partial class ImeContext
     {
         _candidates.Clear();
         _revision++;
-        if (!IsComposing) _displayedLexicon = null;
+        if (!IsComposing)
+        {
+            _displayedLexicon = null;
+        }
+
         if (IsComposing && !IsSymbolComposition)
         {
             _displayedCandidates = Decode(_reading);
@@ -435,9 +504,14 @@ public sealed partial class ImeContext
 
         if (IsComposing)
         {
-            _candidates.AddRange(QueryCandidates(
-                _reading,
-                int.MaxValue));
+            _candidates.AddRange
+            (
+                QueryCandidates
+                (
+                    _reading,
+                    int.MaxValue
+                )
+            );
         }
 
         NormalizeCandidateWindow();
@@ -487,7 +561,8 @@ public sealed partial class ImeContext
             };
         }
 
-        return new ImeSessionSnapshot(
+        return new ImeSessionSnapshot
+        (
             new CompositionText(_reading, _reading, _caretIndex),
             _candidates.ToArray(),
             CreateCandidateWindowState(),
@@ -495,7 +570,8 @@ public sealed partial class ImeContext
             CreateGuideline(),
             IsPhoneticCharacter(';'),
             _eatConfirmationSpace,
-            IsPhoneticCharacter('\''));
+            IsPhoneticCharacter('\'')
+        );
     }
 
     private ImeGuideline CreateGuideline()
@@ -520,15 +596,21 @@ public sealed partial class ImeContext
             return ImeCandidateWindowState.Empty;
         }
 
-        return new ImeCandidateWindowState(
+        return new ImeCandidateWindowState
+        (
             Selection: _selection,
             PageStart: _pageStart,
-            PageSize: _pageSize);
+            PageSize: _pageSize
+        );
     }
 
     private bool CanInsertCharacter(char character)
     {
-        if (character == '\'') return IsComposing && !IsSymbolComposition && IsPhoneticCharacter(character);
+        if (character == '\'')
+        {
+            return IsComposing && !IsSymbolComposition && IsPhoneticCharacter(character);
+        }
+
         if (character == '/')
         {
             return !IsComposing;
@@ -538,8 +620,10 @@ public sealed partial class ImeContext
     }
 
     private bool IsPhoneticCharacter(char character) => IsAsciiLetter(character) ||
-        character == '\'' && _dictionary.GetLexicon().Projection.Name == ImeProjectionDefinition.FullPinyin.Name ||
-        character == ';' && _dictionary.Projection?.Entries.Any(entry => entry.Input.Contains(';')) == true;
+                                                        character == '\'' && _dictionary.GetLexicon().Projection.Name ==
+                                                        ImeProjectionDefinition.FullPinyin.Name ||
+                                                        character == ';' && _dictionary.Projection?.Entries.Any
+                                                            (entry => entry.Input.Contains(';')) == true;
 
     private bool IsValidComposition(string composition)
     {
@@ -580,9 +664,11 @@ public sealed partial class ImeContext
             : composition;
     }
 
-    private IReadOnlyList<ImeCandidate> QueryCandidates(
+    private IReadOnlyList<ImeCandidate> QueryCandidates
+    (
         string composition,
-        int maxCount)
+        int maxCount
+    )
     {
         if (composition.Length == 0)
         {
@@ -642,4 +728,3 @@ public sealed partial class ImeContext
         return character is >= 'a' and <= 'z' or >= 'A' and <= 'Z';
     }
 }
-

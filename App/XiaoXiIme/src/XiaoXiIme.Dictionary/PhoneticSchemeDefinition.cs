@@ -3,7 +3,8 @@ using XiaoXiIme.Foundation;
 namespace XiaoXiIme.Dictionary;
 
 /// <summary>Source evidence and stable product identity for a phonetic scheme. A null product identity cannot be selected.</summary>
-public sealed record PhoneticSchemeDefinition(
+public sealed record PhoneticSchemeDefinition
+(
     string SchemeId,
     string DisplayResourceKey,
     ImeProductInputScheme? ProductScheme,
@@ -14,4 +15,5 @@ public sealed record PhoneticSchemeDefinition(
     string? Rules = null,
     string? ContentSha256 = null,
     PhoneticLayout? Layout = null,
-    IReadOnlyList<string>? UnresolvedItems = null);
+    IReadOnlyList<string>? UnresolvedItems = null
+);

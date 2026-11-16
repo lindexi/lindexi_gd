@@ -21,14 +21,16 @@ internal static class IntegrationPayloadBuilder
             dictionarySourceDirectory = ResolveDictionarySourceDirectory(options, stagingDirectory, solutionDirectory);
             DefaultDictionaryPackageBuilder.EnsureRequiredSources(dictionarySourceDirectory);
         }
-        catch (Exception exception) when (exception is ArgumentException or DirectoryNotFoundException or InvalidOperationException)
+        catch (Exception exception) when (exception is ArgumentException or DirectoryNotFoundException
+                                              or InvalidOperationException)
         {
             log.Error("payload", exception.Message);
             return 13;
         }
 
         var dictionaryStagingDirectory = GetDictionaryPackageStagingDirectory(stagingDirectory);
-        var dictionaryCompileError = CompileAndVerifyDictionaryPackages(dictionarySourceDirectory, dictionaryStagingDirectory);
+        var dictionaryCompileError = CompileAndVerifyDictionaryPackages
+            (dictionarySourceDirectory, dictionaryStagingDirectory);
         if (dictionaryCompileError is not null)
         {
             log.Error("payload", dictionaryCompileError);
@@ -39,7 +41,14 @@ internal static class IntegrationPayloadBuilder
         {
             Directory.CreateDirectory(stagingDirectory);
             var commands = options.Experience
-                ? new[] { Publish(solutionDirectory!, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.ImeUi.Avalonia/XiaoXiIme.ImeUi.Avalonia.csproj", Path.Combine("app", "ui"), false) }
+                ? new[]
+                {
+                    Publish
+                    (
+                        solutionDirectory!, stagingDirectory, SharedRuntimeIdentifier,
+                        "src/XiaoXiIme.ImeUi.Avalonia/XiaoXiIme.ImeUi.Avalonia.csproj", Path.Combine("app", "ui"), false
+                    )
+                }
                 : CreateBuildCommands(solutionDirectory!, stagingDirectory);
             foreach (var command in commands)
             {
@@ -52,9 +61,17 @@ internal static class IntegrationPayloadBuilder
         }
 
         var sources = options.Experience
-            ? new[] { new PayloadSource(Path.Combine(stagingDirectory, "app", "ui", "XiaoXiIme.ImeUi.Avalonia.exe"), Path.Combine("app", "ui")) }
+            ? new[]
+            {
+                new PayloadSource
+                (
+                    Path.Combine(stagingDirectory, "app", "ui", "XiaoXiIme.ImeUi.Avalonia.exe"),
+                    Path.Combine("app", "ui")
+                )
+            }
             : CreateSources(stagingDirectory);
-        var missing = sources.Where(source => !File.Exists(source.SourcePath)).Select(source => source.SourcePath).ToArray();
+        var missing = sources.Where(source => !File.Exists(source.SourcePath)).Select
+            (source => source.SourcePath).ToArray();
         if (missing.Length > 0)
         {
             log.Error("payload", "Required publish outputs are missing.", missing);
@@ -62,7 +79,13 @@ internal static class IntegrationPayloadBuilder
         }
 
         var uiRoot = Path.Combine(stagingDirectory, "app", "ui");
-        var requiredUiFiles = new[] { "XiaoXiIme.ImeUi.Avalonia.dll", "XiaoXiIme.ImeUi.Avalonia.deps.json", "XiaoXiIme.ImeUi.Avalonia.runtimeconfig.json", "coreclr.dll", "hostfxr.dll", "hostpolicy.dll", "System.Private.CoreLib.dll", "Avalonia.Controls.dll", "Avalonia.Fonts.Inter.dll", "Avalonia.Themes.Fluent.dll", "av_libglesv2.dll", "libSkiaSharp.dll" };
+        var requiredUiFiles = new[]
+        {
+            "XiaoXiIme.ImeUi.Avalonia.dll", "XiaoXiIme.ImeUi.Avalonia.deps.json",
+            "XiaoXiIme.ImeUi.Avalonia.runtimeconfig.json", "coreclr.dll", "hostfxr.dll", "hostpolicy.dll",
+            "System.Private.CoreLib.dll", "Avalonia.Controls.dll", "Avalonia.Fonts.Inter.dll",
+            "Avalonia.Themes.Fluent.dll", "av_libglesv2.dll", "libSkiaSharp.dll"
+        };
         var missingUiFiles = requiredUiFiles.Where(file => !File.Exists(Path.Combine(uiRoot, file))).ToArray();
         if (missingUiFiles.Length > 0)
         {
@@ -74,11 +97,13 @@ internal static class IntegrationPayloadBuilder
         {
             Directory.Delete(outputDirectory, true);
         }
+
         Directory.CreateDirectory(outputDirectory);
 
         foreach (var source in sources)
         {
-            CopyDirectory(Path.GetDirectoryName(source.SourcePath)!, Path.Combine(outputDirectory, source.TargetDirectory));
+            CopyDirectory
+                (Path.GetDirectoryName(source.SourcePath)!, Path.Combine(outputDirectory, source.TargetDirectory));
         }
 
         var dictionaryPayloadError = CopyAndVerifyDictionaryPackages(dictionaryStagingDirectory, outputDirectory);
@@ -106,21 +131,36 @@ internal static class IntegrationPayloadBuilder
             .Select(path => CreatePayloadFile(outputDirectory, path))
             .OrderBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
             .ToArray();
-        var manifest = new IntegrationPayloadManifest(
+        var manifest = new IntegrationPayloadManifest
+        (
             3,
             DateTimeOffset.UtcNow,
-            options.Experience ? new Dictionary<string, NativePayloadComponents>() : new Dictionary<string, NativePayloadComponents>
-            {
-                ["x86"] = new("win-x86", "native/win-x86/ime/XiaoXiIme.ime", "native/win-x86/tsf/XiaoXiIme.TsfModule.dll", "native/win-x86/tools/XiaoXiIme.TsfAbiHost.exe"),
-                ["x64"] = new("win-x64", "native/win-x64/ime/XiaoXiIme.ime", "native/win-x64/tsf/XiaoXiIme.TsfModule.dll", "native/win-x64/tools/XiaoXiIme.TsfAbiHost.exe"),
-            },
+            options.Experience
+                ? new Dictionary<string, NativePayloadComponents>()
+                : new Dictionary<string, NativePayloadComponents>
+                {
+                    ["x86"] = new
+                    (
+                        "win-x86", "native/win-x86/ime/XiaoXiIme.ime", "native/win-x86/tsf/XiaoXiIme.TsfModule.dll",
+                        "native/win-x86/tools/XiaoXiIme.TsfAbiHost.exe"
+                    ),
+                    ["x64"] = new
+                    (
+                        "win-x64", "native/win-x64/ime/XiaoXiIme.ime", "native/win-x64/tsf/XiaoXiIme.TsfModule.dll",
+                        "native/win-x64/tools/XiaoXiIme.TsfAbiHost.exe"
+                    ),
+                },
             options.Experience ? "app/ui/XiaoXiIme.ImeUi.Avalonia.exe" : "app/cli/XiaoXiIme.Cli.exe",
             options.Experience ? "app/ui/XiaoXiIme.ImeUi.Avalonia.exe" : "app/host/XiaoXiIme.ImeHost.exe",
             options.Experience ? [] : ["app/tests/XiaoXiIme.IntegrationTestHost.exe"],
-            files);
+            files
+        );
         var manifestPath = Path.Combine(outputDirectory, IntegrationPayloadManifest.FileName);
         manifest.Save(manifestPath);
-        log.Information("payload", "Integration payload created.", new { outputDirectory, manifestPath, fileCount = files.Length });
+        log.Information
+        (
+            "payload", "Integration payload created.", new { outputDirectory, manifestPath, fileCount = files.Length }
+        );
         return 0;
     }
 
@@ -130,14 +170,17 @@ internal static class IntegrationPayloadBuilder
         return Path.Combine(Path.GetFullPath(stagingDirectory), "dictionary-packages");
     }
 
-    internal static string? CompileAndVerifyDictionaryPackages(string dictionarySourceDirectory, string dictionaryStagingDirectory)
+    internal static string? CompileAndVerifyDictionaryPackages
+        (string dictionarySourceDirectory, string dictionaryStagingDirectory)
     {
         try
         {
             DefaultDictionaryPackageBuilder.Build(dictionarySourceDirectory, dictionaryStagingDirectory);
             return IntegrationTestRunner.VerifyHostDictionaryPackages(dictionaryStagingDirectory);
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or DictionarySourceException or DictionaryPackageException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException
+                                              or InvalidOperationException or DictionarySourceException
+                                              or DictionaryPackageException)
         {
             return exception.Message;
         }
@@ -152,13 +195,23 @@ internal static class IntegrationPayloadBuilder
             foreach (var scheme in PhoneticSchemeCatalog.All.Where(item => item.ProductScheme.HasValue))
             {
                 var relativePath = DictionaryPackageLocations.GetRelativePackageDirectory(scheme.SchemeId);
-                CopyPackageDirectory(Path.Combine(dictionaryStagingDirectory, relativePath), Path.Combine(hostOutputDirectory, relativePath));
-                CopyPackageDirectory(Path.Combine(dictionaryStagingDirectory, relativePath), Path.Combine(payloadDirectory, "app", "ui", relativePath));
+                CopyPackageDirectory
+                (
+                    Path.Combine(dictionaryStagingDirectory, relativePath),
+                    Path.Combine(hostOutputDirectory, relativePath)
+                );
+                CopyPackageDirectory
+                (
+                    Path.Combine(dictionaryStagingDirectory, relativePath),
+                    Path.Combine(payloadDirectory, "app", "ui", relativePath)
+                );
             }
+
             return IntegrationTestRunner.VerifyDictionaryPackages(payloadDirectory)
-                ?? IntegrationTestRunner.VerifyHostDictionaryPackages(Path.Combine(payloadDirectory, "app", "ui"));
+                   ?? IntegrationTestRunner.VerifyHostDictionaryPackages(Path.Combine(payloadDirectory, "app", "ui"));
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or DirectoryNotFoundException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException
+                                              or InvalidOperationException or DirectoryNotFoundException)
         {
             return exception.Message;
         }
@@ -188,18 +241,73 @@ internal static class IntegrationPayloadBuilder
         foreach (var runtimeIdentifier in NativeRuntimeIdentifiers)
         {
             var nativeRoot = Path.Combine("native", runtimeIdentifier);
-            commands.Add(Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj", Path.Combine(nativeRoot, "ime"), true));
-            commands.Add(Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "src/XiaoXiIme.TsfModule/XiaoXiIme.TsfModule.csproj", Path.Combine(nativeRoot, "tsf"), true));
-            commands.Add(Publish(solutionDirectory, stagingDirectory, runtimeIdentifier, "tests/XiaoXiIme.TsfAbiHost/XiaoXiIme.TsfAbiHost.csproj", Path.Combine(nativeRoot, "tools"), false));
+            commands.Add
+            (
+                Publish
+                (
+                    solutionDirectory, stagingDirectory, runtimeIdentifier,
+                    "src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj", Path.Combine(nativeRoot, "ime"), true
+                )
+            );
+            commands.Add
+            (
+                Publish
+                (
+                    solutionDirectory, stagingDirectory, runtimeIdentifier,
+                    "src/XiaoXiIme.TsfModule/XiaoXiIme.TsfModule.csproj", Path.Combine(nativeRoot, "tsf"), true
+                )
+            );
+            commands.Add
+            (
+                Publish
+                (
+                    solutionDirectory, stagingDirectory, runtimeIdentifier,
+                    "tests/XiaoXiIme.TsfAbiHost/XiaoXiIme.TsfAbiHost.csproj", Path.Combine(nativeRoot, "tools"), false
+                )
+            );
         }
-        commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj", Path.Combine("app", "cli"), false));
-        commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.ImeHost/XiaoXiIme.ImeHost.csproj", Path.Combine("app", "host"), false));
-        commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.ImeUi.Avalonia/XiaoXiIme.ImeUi.Avalonia.csproj", Path.Combine("app", "ui"), false));
-        commands.Add(Publish(solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "tests/XiaoXiIme.IntegrationTestHost/XiaoXiIme.IntegrationTestHost.csproj", Path.Combine("app", "tests"), false));
+
+        commands.Add
+        (
+            Publish
+            (
+                solutionDirectory, stagingDirectory, SharedRuntimeIdentifier, "src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj",
+                Path.Combine("app", "cli"), false
+            )
+        );
+        commands.Add
+        (
+            Publish
+            (
+                solutionDirectory, stagingDirectory, SharedRuntimeIdentifier,
+                "src/XiaoXiIme.ImeHost/XiaoXiIme.ImeHost.csproj", Path.Combine("app", "host"), false
+            )
+        );
+        commands.Add
+        (
+            Publish
+            (
+                solutionDirectory, stagingDirectory, SharedRuntimeIdentifier,
+                "src/XiaoXiIme.ImeUi.Avalonia/XiaoXiIme.ImeUi.Avalonia.csproj", Path.Combine("app", "ui"), false
+            )
+        );
+        commands.Add
+        (
+            Publish
+            (
+                solutionDirectory, stagingDirectory, SharedRuntimeIdentifier,
+                "tests/XiaoXiIme.IntegrationTestHost/XiaoXiIme.IntegrationTestHost.csproj",
+                Path.Combine("app", "tests"), false
+            )
+        );
         return commands;
     }
 
-    private static BuildCommand Publish(string solutionDirectory, string stagingDirectory, string runtimeIdentifier, string project, string folder, bool nativeAot)
+    private static BuildCommand Publish
+    (
+        string solutionDirectory, string stagingDirectory, string runtimeIdentifier, string project, string folder,
+        bool nativeAot
+    )
     {
         var arguments = new List<string>
         {
@@ -210,21 +318,50 @@ internal static class IntegrationPayloadBuilder
         {
             arguments.Add("-p:PublishAot=true");
         }
+
         return new BuildCommand($"publish-{folder}", arguments);
     }
 
     private static PayloadSource[] CreateSources(string stagingDirectory) =>
     [
-        new(Path.Combine(stagingDirectory, "native", "win-x86", "ime", "XiaoXiIme.ime"), Path.Combine("native", "win-x86", "ime")),
-        new(Path.Combine(stagingDirectory, "native", "win-x86", "tsf", "XiaoXiIme.TsfModule.dll"), Path.Combine("native", "win-x86", "tsf")),
-        new(Path.Combine(stagingDirectory, "native", "win-x86", "tools", "XiaoXiIme.TsfAbiHost.exe"), Path.Combine("native", "win-x86", "tools")),
-        new(Path.Combine(stagingDirectory, "native", "win-x64", "ime", "XiaoXiIme.ime"), Path.Combine("native", "win-x64", "ime")),
-        new(Path.Combine(stagingDirectory, "native", "win-x64", "tsf", "XiaoXiIme.TsfModule.dll"), Path.Combine("native", "win-x64", "tsf")),
-        new(Path.Combine(stagingDirectory, "native", "win-x64", "tools", "XiaoXiIme.TsfAbiHost.exe"), Path.Combine("native", "win-x64", "tools")),
+        new
+        (
+            Path.Combine(stagingDirectory, "native", "win-x86", "ime", "XiaoXiIme.ime"),
+            Path.Combine("native", "win-x86", "ime")
+        ),
+        new
+        (
+            Path.Combine(stagingDirectory, "native", "win-x86", "tsf", "XiaoXiIme.TsfModule.dll"),
+            Path.Combine("native", "win-x86", "tsf")
+        ),
+        new
+        (
+            Path.Combine(stagingDirectory, "native", "win-x86", "tools", "XiaoXiIme.TsfAbiHost.exe"),
+            Path.Combine("native", "win-x86", "tools")
+        ),
+        new
+        (
+            Path.Combine(stagingDirectory, "native", "win-x64", "ime", "XiaoXiIme.ime"),
+            Path.Combine("native", "win-x64", "ime")
+        ),
+        new
+        (
+            Path.Combine(stagingDirectory, "native", "win-x64", "tsf", "XiaoXiIme.TsfModule.dll"),
+            Path.Combine("native", "win-x64", "tsf")
+        ),
+        new
+        (
+            Path.Combine(stagingDirectory, "native", "win-x64", "tools", "XiaoXiIme.TsfAbiHost.exe"),
+            Path.Combine("native", "win-x64", "tools")
+        ),
         new(Path.Combine(stagingDirectory, "app", "cli", "XiaoXiIme.Cli.exe"), Path.Combine("app", "cli")),
         new(Path.Combine(stagingDirectory, "app", "host", "XiaoXiIme.ImeHost.exe"), Path.Combine("app", "host")),
         new(Path.Combine(stagingDirectory, "app", "ui", "XiaoXiIme.ImeUi.Avalonia.exe"), Path.Combine("app", "ui")),
-        new(Path.Combine(stagingDirectory, "app", "tests", "XiaoXiIme.IntegrationTestHost.exe"), Path.Combine("app", "tests")),
+        new
+        (
+            Path.Combine(stagingDirectory, "app", "tests", "XiaoXiIme.IntegrationTestHost.exe"),
+            Path.Combine("app", "tests")
+        ),
     ];
 
     private static async Task<int> RunProcessAsync(BuildCommand command, string workingDirectory, StructuredConsole log)
@@ -241,6 +378,7 @@ internal static class IntegrationPayloadBuilder
         {
             startInfo.ArgumentList.Add(argument);
         }
+
         using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Unable to start dotnet.");
         var standardOutput = await process.StandardOutput.ReadToEndAsync();
         var standardError = await process.StandardError.ReadToEndAsync();
@@ -249,10 +387,12 @@ internal static class IntegrationPayloadBuilder
         {
             log.Information(command.Id, "dotnet output", standardOutput);
         }
+
         if (!string.IsNullOrWhiteSpace(standardError))
         {
             log.Error(command.Id, "dotnet error output", standardError);
         }
+
         return process.ExitCode;
     }
 
@@ -263,6 +403,7 @@ internal static class IntegrationPayloadBuilder
         {
             File.Copy(file, Path.Combine(targetDirectory, Path.GetFileName(file)), true);
         }
+
         foreach (var directory in Directory.EnumerateDirectories(sourceDirectory))
         {
             CopyDirectory(directory, Path.Combine(targetDirectory, Path.GetFileName(directory)));
@@ -272,7 +413,11 @@ internal static class IntegrationPayloadBuilder
     private static PayloadFile CreatePayloadFile(string root, string path)
     {
         using var stream = File.OpenRead(path);
-        return new PayloadFile(Path.GetRelativePath(root, path).Replace('\\', '/'), stream.Length, Convert.ToHexString(SHA256.HashData(stream)));
+        return new PayloadFile
+        (
+            Path.GetRelativePath(root, path).Replace('\\', '/'), stream.Length,
+            Convert.ToHexString(SHA256.HashData(stream))
+        );
     }
 
     private static string FindPublishDirectory(params string[] startDirectories)
@@ -287,10 +432,13 @@ internal static class IntegrationPayloadBuilder
                 {
                     return directory.FullName;
                 }
+
                 directory = directory.Parent;
             }
         }
-        throw new DirectoryNotFoundException("Unable to locate the integration publish directory from the CLI or current directory.");
+
+        throw new DirectoryNotFoundException
+            ("Unable to locate the integration publish directory from the CLI or current directory.");
     }
 
     internal static string ResolveStagingDirectory(PayloadBuildOptions options)
@@ -306,10 +454,12 @@ internal static class IntegrationPayloadBuilder
             : Path.Combine(FindSolutionDirectory(AppContext.BaseDirectory), "artifacts", "integration-publish");
     }
 
-    internal static string ResolveDictionarySourceDirectory(
+    internal static string ResolveDictionarySourceDirectory
+    (
         PayloadBuildOptions options,
         string stagingDirectory,
-        string? solutionDirectory)
+        string? solutionDirectory
+    )
     {
         ArgumentNullException.ThrowIfNull(options);
         if (!string.IsNullOrWhiteSpace(options.DictionarySource))
@@ -319,7 +469,11 @@ internal static class IntegrationPayloadBuilder
 
         return options.NoBuild
             ? FindDictionarySourceDirectory(stagingDirectory)
-            : Path.Combine(solutionDirectory ?? throw new InvalidOperationException("A solution directory is required to locate data/dictionaries."), "data", "dictionaries");
+            : Path.Combine
+            (
+                solutionDirectory ?? throw new InvalidOperationException
+                    ("A solution directory is required to locate data/dictionaries."), "data", "dictionaries"
+            );
     }
 
     internal static string FindDictionarySourceDirectory(params string[] startDirectories)
@@ -367,11 +521,14 @@ internal static class IntegrationPayloadBuilder
             {
                 return directory.FullName;
             }
+
             directory = directory.Parent;
         }
+
         throw new DirectoryNotFoundException("Unable to locate XiaoXiIme.slnx from the CLI directory.");
     }
 
     private sealed record BuildCommand(string Id, IReadOnlyList<string> Arguments);
+
     private sealed record PayloadSource(string SourcePath, string TargetDirectory);
 }

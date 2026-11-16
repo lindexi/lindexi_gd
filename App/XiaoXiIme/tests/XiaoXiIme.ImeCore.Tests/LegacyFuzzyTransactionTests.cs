@@ -19,7 +19,8 @@ public class LegacyFuzzyTransactionTests
     [InlineData(ImeFuzzyRule.UnOng, "chun", "chong")]
     public void WhenPreparingRuleThenCandidateChangesWithoutLearning(ImeFuzzyRule rule, string canonical, string alias)
     {
-        var dictionary = new InMemoryImeDictionary(new ImeLexicon([new("词", canonical, 123)], [], ImeProjectionDefinition.FullPinyin, 0));
+        var dictionary = new InMemoryImeDictionary
+            (new ImeLexicon([new("词", canonical, 123)], [], ImeProjectionDefinition.FullPinyin, 0));
         var learned = new List<ImeDictionaryLearning>();
         var context = new ImeContext(dictionary, learned.Add);
         context.SetComposition(alias);
@@ -30,12 +31,14 @@ public class LegacyFuzzyTransactionTests
     [Fact]
     public void WhenPreparingThenOriginalAndLearningRemainUnchanged()
     {
-        var dictionary = new InMemoryImeDictionary(new ImeLexicon([new("张", "zhang", 123)], [], ImeProjectionDefinition.FullPinyin, 0));
+        var dictionary = new InMemoryImeDictionary
+            (new ImeLexicon([new("张", "zhang", 123)], [], ImeProjectionDefinition.FullPinyin, 0));
         var learned = new List<ImeDictionaryLearning>();
         var context = new ImeContext(dictionary, learned.Add);
         context.SetComposition("zan");
         var original = context.Snapshot;
         context.PrepareFuzzyRulesChange([ImeFuzzyRule.ZhZ, ImeFuzzyRule.AngAn]);
-        Assert.Equivalent(new { Snapshot = original, Learned = 0 }, new { Snapshot = context.Snapshot, Learned = learned.Count });
+        Assert.Equivalent
+            (new { Snapshot = original, Learned = 0 }, new { Snapshot = context.Snapshot, Learned = learned.Count });
     }
 }

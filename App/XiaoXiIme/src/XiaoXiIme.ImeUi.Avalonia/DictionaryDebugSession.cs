@@ -31,34 +31,45 @@ public sealed class DictionaryDebugSession
     public DictionaryDebugSession PrepareFuzzyRulesChange(int mask)
     {
         var rules = Enum.GetValues<ImeFuzzyRule>().Where(r => (mask & (1 << (int)r)) != 0).ToArray();
-        return new(context.PrepareFuzzyRulesChange(rules), CommittedText,
-            rules.Aggregate(0, (effectiveMask, rule) => effectiveMask | (1 << (int)rule)));
+        return new
+        (
+            context.PrepareFuzzyRulesChange(rules), CommittedText,
+            rules.Aggregate(0, (effectiveMask, rule) => effectiveMask | (1 << (int)rule))
+        );
     }
 
     /// <summary>Prepares a private replacement on a worker while the owning UI keeps input suspended.</summary>
-    public Task<DictionaryDebugSession> PrepareSettingsChangeAsync(IImeDictionary? dictionary, int mask, CancellationToken cancellationToken) =>
-        Task.Run(() =>
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var started = System.Diagnostics.Stopwatch.GetTimestamp();
-            SettingsApplyTrace.Mark("worker-prepare-start", started);
-            var prepared = dictionary is null ? this : PrepareDictionaryChange(dictionary);
-            cancellationToken.ThrowIfCancellationRequested();
-            SettingsApplyTrace.Mark("worker-fuzzy-start", started);
-            prepared = prepared.PrepareFuzzyRulesChange(mask);
-            SettingsApplyTrace.Mark("worker-fuzzy-end", started);
-            cancellationToken.ThrowIfCancellationRequested();
-            return prepared;
-        }, cancellationToken);
+    public Task<DictionaryDebugSession> PrepareSettingsChangeAsync
+        (IImeDictionary? dictionary, int mask, CancellationToken cancellationToken) =>
+        Task.Run
+        (
+            () =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var started = System.Diagnostics.Stopwatch.GetTimestamp();
+                SettingsApplyTrace.Mark("worker-prepare-start", started);
+                var prepared = dictionary is null ? this : PrepareDictionaryChange(dictionary);
+                cancellationToken.ThrowIfCancellationRequested();
+                SettingsApplyTrace.Mark("worker-fuzzy-start", started);
+                prepared = prepared.PrepareFuzzyRulesChange(mask);
+                SettingsApplyTrace.Mark("worker-fuzzy-end", started);
+                cancellationToken.ThrowIfCancellationRequested();
+                return prepared;
+            }, cancellationToken
+        );
 
     internal int CompositionCaret => context.Snapshot.Composition.CaretIndex;
+
     internal object ValidationState => new
     {
         engineCandidates = context.Snapshot.Candidates,
         contextmask = fuzzyRuleMask
     };
+
     public string CommittedText { get; private set; } = string.Empty;
-    public CandidateWindowViewState Candidates => CandidateWindowStateMapper.Map(ImeUiState.FromSnapshot(context.Snapshot));
+
+    public CandidateWindowViewState Candidates => CandidateWindowStateMapper.Map
+        (ImeUiState.FromSnapshot(context.Snapshot));
 
     /// <summary>
     /// Processes physical key events using the same core as the installed input method.
@@ -69,7 +80,9 @@ public sealed class DictionaryDebugSession
     public bool ProcessKey(Key key, KeyModifiers modifiers, string? keySymbol)
     {
         if ((modifiers & (KeyModifiers.Control | KeyModifiers.Alt | KeyModifiers.Meta)) != 0)
+        {
             return false;
+        }
 
         var character = GetCharacter(key, modifiers, keySymbol);
         if (character is { } value)
@@ -77,7 +90,11 @@ public sealed class DictionaryDebugSession
             var characterResult = context.ProcessKey(ImeKey.FromCharacter(value));
             CommittedText += characterResult.CommitText;
             // This read-only experience simulates the host receiving an unhandled character.
-            if (!characterResult.Handled) CommittedText += value;
+            if (!characterResult.Handled)
+            {
+                CommittedText += value;
+            }
+
             return true;
         }
 
@@ -98,7 +115,9 @@ public sealed class DictionaryDebugSession
             _ => null,
         };
         if (input is null)
+        {
             return false;
+        }
 
         var result = context.ProcessKey(input.Value);
         CommittedText += result.CommitText;
@@ -114,7 +133,10 @@ public sealed class DictionaryDebugSession
     private static char? GetCharacter(Key key, KeyModifiers modifiers, string? keySymbol)
     {
         if (keySymbol is { Length: 1 } && !char.IsControl(keySymbol[0]) && !char.IsWhiteSpace(keySymbol[0]))
+        {
             return keySymbol[0];
+        }
+
         var shift = (modifiers & KeyModifiers.Shift) != 0;
         return key switch
         {

@@ -35,19 +35,23 @@ public static class DictionaryCandidateRanking
         return RankCore(candidates, maxCount, groupByReading: true, reverse: true);
     }
 
-    private static IReadOnlyList<ImeCandidate> RankCore(
+    private static IReadOnlyList<ImeCandidate> RankCore
+    (
         IEnumerable<DictionaryCandidate> candidates,
         int maxCount,
         bool groupByReading,
-        bool reverse)
+        bool reverse
+    )
     {
         IComparer<DictionaryCandidate> comparer = reverse
             ? ReverseComparer.Instance
             : Comparer.Instance;
         return candidates
-            .GroupBy(
+            .GroupBy
+            (
                 candidate => groupByReading ? candidate.Reading : candidate.Text,
-                StringComparer.Ordinal)
+                StringComparer.Ordinal
+            )
             .Select(group => group.Order(comparer).First())
             .Order(comparer)
             .Take(maxCount)

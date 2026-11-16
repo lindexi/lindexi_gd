@@ -16,14 +16,18 @@ public class ProductionDictionaryKeystrokeTests(ProductionDictionaryFixture fixt
     [InlineData("shurufa", "输入法")]
     [InlineData("xiaoxishurufa", "小希输入法")]
     [InlineData("xiaoxiaimuyi", "XiaoXiIme")]
-    public async Task FullPinyin_WhenKeysAreProcessedThroughIpcThenExpectedFirstCandidateIsCommitted(
+    public async Task FullPinyin_WhenKeysAreProcessedThroughIpcThenExpectedFirstCandidateIsCommitted
+    (
         string input,
-        string expectedText)
+        string expectedText
+    )
     {
-        await AssertInputCommitsExpectedTextAsync(
+        await AssertInputCommitsExpectedTextAsync
+        (
             input,
             expectedText,
-            DictionaryPackageLocations.FullPinyinInputScheme);
+            DictionaryPackageLocations.FullPinyinInputScheme
+        );
     }
 
     [Theory(Timeout = 30_000)]
@@ -34,14 +38,18 @@ public class ProductionDictionaryKeystrokeTests(ProductionDictionaryFixture fixt
     [InlineData("uurufa", "输入法")]
     [InlineData("xnxiuurufa", "小希输入法")]
     [InlineData("xnxiaimuyi", "XiaoXiIme")]
-    public async Task XiaoheDoublePinyin_WhenKeysAreProcessedThroughIpcThenExpectedFirstCandidateIsCommitted(
+    public async Task XiaoheDoublePinyin_WhenKeysAreProcessedThroughIpcThenExpectedFirstCandidateIsCommitted
+    (
         string input,
-        string expectedText)
+        string expectedText
+    )
     {
-        await AssertInputCommitsExpectedTextAsync(
+        await AssertInputCommitsExpectedTextAsync
+        (
             input,
             expectedText,
-            DictionaryPackageLocations.XiaoheDoublePinyinInputScheme);
+            DictionaryPackageLocations.XiaoheDoublePinyinInputScheme
+        );
     }
 
     [Fact(Timeout = 30_000)]
@@ -195,8 +203,14 @@ public sealed class ProductionDictionaryFixture : IDisposable
         watch.Restart();
         CompilePackage(DictionaryPackageLocations.XiaoheDoublePinyinInputScheme);
         XiaoheBuildTime = watch.Elapsed;
-        foreach (var scheme in new[] { "sogouDoublePinyin", "microsoftDoublePinyin", "abcDoublePinyin", "jiajiaDoublePinyin", "naturalCodeDoublePinyin" })
+        foreach (var scheme in new[]
+                 {
+                     "sogouDoublePinyin", "microsoftDoublePinyin", "abcDoublePinyin", "jiajiaDoublePinyin",
+                     "naturalCodeDoublePinyin"
+                 })
+        {
             CompilePackage(scheme);
+        }
     }
 
     public string HostRoot { get; }
@@ -205,11 +219,13 @@ public sealed class ProductionDictionaryFixture : IDisposable
 
     public ImeHostService CreateHost(XiaoXiImeIpcOptions options, string inputScheme)
     {
-        return new ImeHostService(
+        return new ImeHostService
+        (
             options,
             inputScheme: inputScheme,
             hostBaseDirectory: HostRoot,
-            userDictionaryPath: Path.Combine(userDictionaryRoot, $"{Guid.NewGuid():N}.json"));
+            userDictionaryPath: Path.Combine(userDictionaryRoot, $"{Guid.NewGuid():N}.json")
+        );
     }
 
     public void Dispose()
@@ -226,11 +242,14 @@ public sealed class ProductionDictionaryFixture : IDisposable
         var phoneticSources = Directory.GetFiles(sourceRoot, "*.phonetic.tsv", SearchOption.AllDirectories);
         var shapeSources = Directory.GetFiles(sourceRoot, "*.shape.tsv", SearchOption.AllDirectories);
         var symbolSources = Directory.GetFiles(sourceRoot, "*.symbols.tsv", SearchOption.AllDirectories);
-        var packagePath = DictionaryPackageLocations.ResolvePackageDirectory(
+        var packagePath = DictionaryPackageLocations.ResolvePackageDirectory
+        (
             inputScheme: inputScheme,
-            baseDirectory: HostRoot);
+            baseDirectory: HostRoot
+        );
 
-        LocalDictionaryPackageManager.Update(
+        LocalDictionaryPackageManager.Update
+        (
             new LocalDictionaryPackageUpdate
             {
                 PhoneticSourcePaths = phoneticSources,
@@ -238,6 +257,7 @@ public sealed class ProductionDictionaryFixture : IDisposable
                 SymbolSourcePaths = symbolSources,
                 Parameters = new DictionaryPackageParameters { InputScheme = inputScheme },
             },
-            packagePath);
+            packagePath
+        );
     }
 }

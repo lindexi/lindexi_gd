@@ -2,7 +2,8 @@ using XiaoXiIme.Foundation;
 
 namespace XiaoXiIme.ImeIpc;
 
-public sealed record ImeHostStatus(
+public sealed record ImeHostStatus
+(
     bool IsRunning,
     string? LastError = null,
     string? DictionaryPackagePath = null,
@@ -12,7 +13,8 @@ public sealed record ImeHostStatus(
     string? IsolatedUserDictionaryPath = null,
     ImeAboutState? About = null,
     string? DictionaryLoadError = null,
-    string? DictionaryInputScheme = null)
+    string? DictionaryInputScheme = null
+)
 {
     public ImeAboutState EffectiveAbout => About ?? ImeAboutState.SeWzc;
 

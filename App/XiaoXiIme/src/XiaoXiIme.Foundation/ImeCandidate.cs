@@ -1,6 +1,8 @@
 ﻿namespace XiaoXiIme.Foundation;
 
-public sealed record ImeCandidate(
+public sealed record ImeCandidate
+(
     string Text,
     string Reading,
-    int Score = 0);
+    int Score = 0
+);

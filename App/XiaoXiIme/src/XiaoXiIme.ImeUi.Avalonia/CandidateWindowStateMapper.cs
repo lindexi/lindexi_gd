@@ -34,15 +34,21 @@ public static class CandidateWindowStateMapper
         for (var index = pageStart; index < pageEnd; index++)
         {
             var candidate = uiState.Candidates[index];
-            candidates.Add(new CandidateWindowCandidateViewModel(
-                DisplayIndex: index - pageStart + 1,
-                CandidateIndex: index,
-                candidate.Text,
-                candidate.Reading,
-                IsSelected: index == selection));
+            candidates.Add
+            (
+                new CandidateWindowCandidateViewModel
+                (
+                    DisplayIndex: index - pageStart + 1,
+                    CandidateIndex: index,
+                    candidate.Text,
+                    candidate.Reading,
+                    IsSelected: index == selection
+                )
+            );
         }
 
-        return new CandidateWindowViewState(
+        return new CandidateWindowViewState
+        (
             IsVisible: true,
             uiState.Composition.DisplayText,
             candidates,
@@ -57,7 +63,8 @@ public static class CandidateWindowStateMapper
             uiState.EffectiveAbout.Notice,
             uiState.DiagnosticText ?? string.Empty,
             uiState.Anchor,
-            uiState.SessionId);
+            uiState.SessionId
+        );
     }
 
     private static int NormalizePageSize(int pageSize, int candidateCount)

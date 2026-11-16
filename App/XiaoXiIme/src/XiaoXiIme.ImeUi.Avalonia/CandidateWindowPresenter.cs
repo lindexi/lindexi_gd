@@ -43,11 +43,13 @@ internal sealed class CandidateWindowPresenter : IDisposable
                 var request = new ImeUiStateRequest();
                 if (OperatingSystem.IsWindows())
                 {
-                    var gui = new GuiThreadInfo { Size = (uint)System.Runtime.InteropServices.Marshal.SizeOf<GuiThreadInfo>() };
+                    var gui = new GuiThreadInfo
+                        { Size = (uint)System.Runtime.InteropServices.Marshal.SizeOf<GuiThreadInfo>() };
                     var focus = InputTargetMethods.GetGUIThreadInfo(0, ref gui) ? gui.Focus : 0;
                     InputTargetMethods.GetWindowThreadProcessId(focus, out var process);
                     request = new ImeUiStateRequest(FocusWindowHandle: (long)focus, FocusProcessId: process);
                 }
+
                 var uiState = await _client.GetUiStateAsync(request).ConfigureAwait(false);
                 var viewState = _controller.Update(uiState);
                 await Dispatcher.UIThread.InvokeAsync(() => ApplyState(viewState));
@@ -84,13 +86,18 @@ internal sealed class CandidateWindowPresenter : IDisposable
             WriteStatus("anchor-validation-failed", state);
             return;
         }
+
         if (!_window.IsVisible)
         {
             _window.Show();
         }
 
-        WriteStatus(state.Anchor is { IsValid: false } || (state.Anchor is null && state.AnchorX == 0 && state.AnchorY == 0)
-            ? "visible-fallback-no-valid-anchor" : "visible", state);
+        WriteStatus
+        (
+            state.Anchor is { IsValid: false } || (state.Anchor is null && state.AnchorX == 0 && state.AnchorY == 0)
+                ? "visible-fallback-no-valid-anchor"
+                : "visible", state
+        );
     }
 
     private bool PositionWindow(CandidateWindowViewState state)
@@ -101,46 +108,74 @@ internal sealed class CandidateWindowPresenter : IDisposable
         if (state.Anchor is { IsValid: true } anchor)
         {
             if (anchor.SessionId != state.SessionId || !OperatingSystem.IsWindows())
+            {
                 return false;
+            }
+
             var window = (nint)anchor.WindowHandle;
             var thread = InputTargetMethods.GetWindowThreadProcessId(window, out var process);
             if (!InputTargetMethods.IsWindow(window) || process != anchor.ProcessId || thread != anchor.ThreadId
                 || (anchor.WindowIdentityProperty is { } property
-                    && (anchor.WindowIdentity == 0 || (long)InputTargetMethods.GetWindowProperty(window, property) != anchor.WindowIdentity))
+                    && (anchor.WindowIdentity == 0 || (long)InputTargetMethods.GetWindowProperty(window, property) !=
+                        anchor.WindowIdentity))
                 || !InputTargetMethods.TryGetPhysicalPoint(window, anchor.ClientX, anchor.ClientY, out var current))
+            {
                 return false;
+            }
+
             var gui = new GuiThreadInfo { Size = (uint)System.Runtime.InteropServices.Marshal.SizeOf<GuiThreadInfo>() };
             if (!InputTargetMethods.GetGUIThreadInfo(0, ref gui) || gui.Focus != window
-                || InputTargetMethods.GetWindowThreadProcessId(gui.Active, out var foregroundProcess) != thread
-                || foregroundProcess != process)
+                                                                 || InputTargetMethods.GetWindowThreadProcessId
+                                                                     (gui.Active, out var foregroundProcess) != thread
+                                                                 || foregroundProcess != process)
+            {
                 return false;
+            }
+
             point = new PixelPoint(current.X, current.Y);
             if (anchor.ClientExclusion is { } area)
             {
                 if (area.Left > area.Right || area.Top > area.Bottom
-                    || !InputTargetMethods.TryGetPhysicalPoint(window, area.Left, area.Top, out var start)
-                    || !InputTargetMethods.TryGetPhysicalPoint(window, area.Right, area.Bottom, out var end)
-                    || end.X < start.X || end.Y < start.Y)
+                                           || !InputTargetMethods.TryGetPhysicalPoint
+                                               (window, area.Left, area.Top, out var start)
+                                           || !InputTargetMethods.TryGetPhysicalPoint
+                                               (window, area.Right, area.Bottom, out var end)
+                                           || end.X < start.X || end.Y < start.Y)
+                {
                     return false;
+                }
+
                 exclusion = new PixelRect(start.X, start.Y, end.X - start.X, end.Y - start.Y);
             }
+
             if (anchor.ClientExcludeTop is { } clientTop
                 && InputTargetMethods.TryGetPhysicalPoint(window, anchor.ClientX, clientTop, out var upper))
+            {
                 top = upper.Y;
+            }
             else
+            {
                 top = current.Y + anchor.ExcludeTop - anchor.ScreenY;
+            }
         }
         else if (state.Anchor is not null || (state.AnchorX == 0 && state.AnchorY == 0))
         {
             WriteStatus("hidden-no-valid-anchor", state);
             return false;
         }
+
         var screen = _window.Screens.ScreenFromPoint(point) ?? _window.Screens.Primary;
         if (screen is null)
+        {
             return false;
+        }
+
         _window.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-        _window.Position = CandidateWindowPlacement.Calculate(point, top, _window.DesiredSize,
-            screen.Scaling, screen.WorkingArea, exclusion);
+        _window.Position = CandidateWindowPlacement.Calculate
+        (
+            point, top, _window.DesiredSize,
+            screen.Scaling, screen.WorkingArea, exclusion
+        );
         return true;
     }
 
@@ -169,9 +204,11 @@ internal sealed class CandidateWindowPresenter : IDisposable
             }
 
             var temporary = _statusFilePath + ".tmp";
-            File.WriteAllText(
+            File.WriteAllText
+            (
                 temporary,
-                $"{visibility}|{state.CompositionText}|{state.Candidates.Count}|{state.Selection}|{DateTimeOffset.UtcNow:O}|session={state.SessionId}|source={state.Anchor?.Source}|failure={state.Anchor?.Failure}|position={_window.Position}|scaling={_window.RenderScaling}");
+                $"{visibility}|{state.CompositionText}|{state.Candidates.Count}|{state.Selection}|{DateTimeOffset.UtcNow:O}|session={state.SessionId}|source={state.Anchor?.Source}|failure={state.Anchor?.Failure}|position={_window.Position}|scaling={_window.RenderScaling}"
+            );
             File.Move(temporary, _statusFilePath, true);
         }
         catch (IOException exception)

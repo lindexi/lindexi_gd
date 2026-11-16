@@ -15,18 +15,29 @@ public class FullPackageReadingTests(ProductionDictionaryFixture fixture)
     [InlineData("naturalCodeDoublePinyin")]
     public void CompleteProductionPackagePreservesCanonicalEntriesAndRegisteredAlias(string scheme)
     {
-        var dictionary = DictionaryPackageLoader.Load(DictionaryPackageLocations.ResolvePackageDirectory(
-            inputScheme: scheme, baseDirectory: fixture.HostRoot));
+        var dictionary = DictionaryPackageLoader.Load
+        (
+            DictionaryPackageLocations.ResolvePackageDirectory
+            (
+                inputScheme: scheme, baseDirectory: fixture.HostRoot
+            )
+        );
         var lexicon = dictionary.GetLexicon();
         var root = Path.Combine(AppContext.BaseDirectory, "DictionarySources", "phonetic");
-        var expected = Directory.GetFiles(root, "*.phonetic.tsv").SelectMany(path =>
-        {
-            using var reader = File.OpenText(path);
-            return PhoneticDictionarySourceParser.Parse(reader, path);
-        }).Where(e => e.Reading != "xx").Select(e => (e.Text, e.Reading)).Distinct().OrderBy(e => e.Text, StringComparer.Ordinal)
+        var expected = Directory.GetFiles(root, "*.phonetic.tsv").SelectMany
+            (path =>
+                {
+                    using var reader = File.OpenText(path);
+                    return PhoneticDictionarySourceParser.Parse(reader, path);
+                }
+            ).Where(e => e.Reading != "xx").Select(e => (e.Text, e.Reading)).Distinct().OrderBy
+                (e => e.Text, StringComparer.Ordinal)
             .ThenBy(e => e.Reading, StringComparer.Ordinal).ToArray();
-        Assert.Equal(expected, lexicon.Entries.Select(e => (e.Text, Reading: e.CanonicalReading))
-            .OrderBy(e => e.Text, StringComparer.Ordinal).ThenBy(e => e.Reading, StringComparer.Ordinal));
+        Assert.Equal
+        (
+            expected, lexicon.Entries.Select(e => (e.Text, Reading: e.CanonicalReading))
+                .OrderBy(e => e.Text, StringComparer.Ordinal).ThenBy(e => e.Reading, StringComparer.Ordinal)
+        );
     }
 
     [Fact]

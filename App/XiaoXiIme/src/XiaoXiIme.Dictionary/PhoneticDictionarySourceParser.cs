@@ -66,7 +66,8 @@ public static class PhoneticDictionarySourceParser
                 throw CreateException(filePath, lineNumber, DictionaryResources.LineTooLong);
             }
 
-            if (string.IsNullOrWhiteSpace(line) || line.AsSpan().TrimStart().StartsWith(ImeDictionarySourceFormat.CommentMarker))
+            if (string.IsNullOrWhiteSpace
+                    (line) || line.AsSpan().TrimStart().StartsWith(ImeDictionarySourceFormat.CommentMarker))
             {
                 continue;
             }

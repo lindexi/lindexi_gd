@@ -46,6 +46,7 @@ public static class ImeModuleRuntime
         {
             ImeLifecycleDiagnostics.Record("ProcessTranslatedKey.Escape", inputContext.Value, 0, "after-host");
         }
+
         return result;
     }
 
@@ -147,15 +148,27 @@ public static class ImeModuleRuntime
     /// <summary>Checks ownership of already layout-resolved input using the shared core contract.</summary>
     public static bool ShouldProcessTranslatedKey(ImeKey key, HImc inputContext)
     {
-        if (key.Kind == ImeKeyKind.Other || !s_compositionContextReader.IsReceivingChinese(inputContext)) return false;
+        if (key.Kind == ImeKeyKind.Other || !s_compositionContextReader.IsReceivingChinese(inputContext))
+        {
+            return false;
+        }
+
         var sessionId = ImeInputIdentity.Resolve(inputContext);
         ImeSessionSnapshot snapshot;
         lock (SyncRoot)
         {
             if (!s_snapshots.TryGetValue(sessionId, out var cached))
-                snapshot = key.Character == ';' ? (s_bridge ?? GetBridge()).GetSnapshot(sessionId) : ImeSessionSnapshot.Empty;
-            else snapshot = cached;
+            {
+                snapshot = key.Character == ';'
+                    ? (s_bridge ?? GetBridge()).GetSnapshot(sessionId)
+                    : ImeSessionSnapshot.Empty;
+            }
+            else
+            {
+                snapshot = cached;
+            }
         }
+
         return XiaoXiIme.ImeCore.ImeContext.ShouldProcessKey(key, snapshot);
     }
 
@@ -170,11 +183,16 @@ public static class ImeModuleRuntime
     internal static void ActivateSelectedContext(HImc inputContext)
     {
         if (!OperatingSystem.IsWindows() || inputContext.Value == 0 || !ImeInputIdentity.UsesNativeContext)
+        {
             return;
+        }
+
         var session = ImeInputIdentity.Resolve(inputContext);
         var anchor = ImeCandidateAnchorReader.Read(inputContext, session);
         if (anchor is { IsValid: true } && anchor.WindowHandle == (long)GetFocus())
+        {
             SetActiveContext(inputContext, true);
+        }
     }
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
@@ -183,17 +201,31 @@ public static class ImeModuleRuntime
     internal static void SetActiveContext(HImc inputContext, bool active)
     {
         if (!OperatingSystem.IsWindows() || inputContext.Value == 0 || !ImeInputIdentity.UsesNativeContext)
+        {
             return;
+        }
+
         lock (SyncRoot)
         {
             if (active)
+            {
                 s_activeContexts.Add(inputContext);
+            }
             else
+            {
                 s_activeContexts.Remove(inputContext);
+            }
+
             var sessionId = ImeInputIdentity.Resolve(inputContext);
-            GetBridge().UpdateInputTarget(new ImeInputTargetUpdate(ImeInputIdentity.OwnerId,
-                ImeInputIdentity.NextSequence(), sessionId, $"{unchecked((ulong)inputContext.Value):x}", active,
-                ImeCandidateAnchorReader.Read(inputContext, sessionId)));
+            GetBridge().UpdateInputTarget
+            (
+                new ImeInputTargetUpdate
+                (
+                    ImeInputIdentity.OwnerId,
+                    ImeInputIdentity.NextSequence(), sessionId, $"{unchecked((ulong)inputContext.Value):x}", active,
+                    ImeCandidateAnchorReader.Read(inputContext, sessionId)
+                )
+            );
         }
     }
 
@@ -202,7 +234,9 @@ public static class ImeModuleRuntime
         lock (SyncRoot)
         {
             if (s_activeContexts.Contains(inputContext))
+            {
                 SetActiveContext(inputContext, true);
+            }
         }
     }
 
@@ -254,7 +288,8 @@ public static class ImeModuleRuntime
         }
     }
 
-    internal static void SetReverseConversionListHandlerForTesting(Func<string, ImeCandidate[]>? queryReverseConversionList)
+    internal static void SetReverseConversionListHandlerForTesting
+        (Func<string, ImeCandidate[]>? queryReverseConversionList)
     {
         lock (SyncRoot)
         {
@@ -262,7 +297,8 @@ public static class ImeModuleRuntime
         }
     }
 
-    internal static void SetRegisterWordHandlerForTesting(Func<ImeRegisterWordRequest, ImeRegisterWordResponse>? registerWord)
+    internal static void SetRegisterWordHandlerForTesting
+        (Func<ImeRegisterWordRequest, ImeRegisterWordResponse>? registerWord)
     {
         lock (SyncRoot)
         {
@@ -359,8 +395,11 @@ public static class ImeModuleRuntime
             return processKey(key);
         }
 
-        return (bridge ?? GetBridge()).ProcessKey(key, sessionId,
-            ImeCandidateAnchorReader.Read(inputContext, sessionId));
+        return (bridge ?? GetBridge()).ProcessKey
+        (
+            key, sessionId,
+            ImeCandidateAnchorReader.Read(inputContext, sessionId)
+        );
     }
 
     private static ImeProcessResult SetHostComposition(string composition, ImeSessionId sessionId)
@@ -388,7 +427,8 @@ public static class ImeModuleRuntime
         return (bridge ?? GetBridge()).SetComposition(composition, sessionId);
     }
 
-    private static ImeCandidate[] QueryHostConversionList(string source, ImeSessionId sessionId, ImeConversionListKind kind)
+    private static ImeCandidate[] QueryHostConversionList
+        (string source, ImeSessionId sessionId, ImeConversionListKind kind)
     {
         Func<string, ImeCandidate[]>? queryConversionList;
         ImeHostBridge? bridge;
@@ -438,9 +478,11 @@ public static class ImeModuleRuntime
 
         if (processKey is not null)
         {
-            return new ImeResetSessionResponse(
+            return new ImeResetSessionResponse
+            (
                 request.ResetAll ? ImeSessionId.Unspecified : request.SessionId.Effective,
-                true);
+                true
+            );
         }
 
         return (bridge ?? GetBridge()).ResetSession(request);

@@ -76,12 +76,26 @@ public class DictionaryDebugSessionTests(ProductionDictionaryFixture fixture)
     [Fact]
     public void LegacyExperienceNumberSelectionRetainsUnconsumedInput()
     {
-        var session = new DictionaryDebugSession(new InMemoryImeDictionary(new ImeLexicon(
-        [new("比", "bi", 100), new("笔", "bi", 90), new("闭", "bi", 80), new("臂", "bi", 70),
-         new("醋", "cu", 100), new("粗", "cu", 90)], [], ImeProjectionDefinition.FullPinyin, 1)));
+        var session = new DictionaryDebugSession
+        (
+            new InMemoryImeDictionary
+            (
+                new ImeLexicon
+                (
+                    [
+                        new("比", "bi", 100), new("笔", "bi", 90), new("闭", "bi", 80), new("臂", "bi", 70),
+                        new("醋", "cu", 100), new("粗", "cu", 90)
+                    ], [], ImeProjectionDefinition.FullPinyin, 1
+                )
+            )
+        );
         Type(session, "bicu");
         session.ProcessKey(Key.D3);
-        Assert.Equal(("笔", "cu", "醋"), (session.CommittedText, session.Candidates.CompositionText, session.Candidates.Candidates[0].Text));
+        Assert.Equal
+        (
+            ("笔", "cu", "醋"),
+            (session.CommittedText, session.Candidates.CompositionText, session.Candidates.Candidates[0].Text)
+        );
     }
 
     [Theory]
@@ -198,7 +212,8 @@ public class DictionaryDebugSessionTests(ProductionDictionaryFixture fixture)
     [InlineData(Key.D1, KeyModifiers.None, "&")]
     [InlineData(Key.OemPeriod, KeyModifiers.Shift, ":")]
     [InlineData(Key.NumPad0, KeyModifiers.None, ",")]
-    public void ProcessKey_WhenLayoutSymbolAvailableThenUsesItInsteadOfPhysicalLabel(Key key, KeyModifiers modifiers, string symbol)
+    public void ProcessKey_WhenLayoutSymbolAvailableThenUsesItInsteadOfPhysicalLabel
+        (Key key, KeyModifiers modifiers, string symbol)
     {
         var session = CreateSession();
         session.ProcessKey(key, modifiers, symbol);
@@ -252,13 +267,22 @@ public class DictionaryDebugSessionTests(ProductionDictionaryFixture fixture)
         Assert.False(session.ProcessKey(Key.F5));
     }
 
-    private DictionaryDebugSession CreateSession(string scheme = "fullPinyin") => new(
-        DictionaryPackageLoader.Load(DictionaryPackageLocations.ResolvePackageDirectory(
-            inputScheme: scheme, baseDirectory: fixture.HostRoot)));
+    private DictionaryDebugSession CreateSession(string scheme = "fullPinyin") => new
+    (
+        DictionaryPackageLoader.Load
+        (
+            DictionaryPackageLocations.ResolvePackageDirectory
+            (
+                inputScheme: scheme, baseDirectory: fixture.HostRoot
+            )
+        )
+    );
 
     private static void Type(DictionaryDebugSession session, string input)
     {
         foreach (var character in input)
+        {
             session.ProcessKey((Key)((int)Key.A + character - 'a'));
+        }
     }
 }

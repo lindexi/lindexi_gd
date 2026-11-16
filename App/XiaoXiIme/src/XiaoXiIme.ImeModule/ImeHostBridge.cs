@@ -55,16 +55,16 @@ public sealed class ImeHostBridge : IDisposable
 
         var message = invalidOperation.Message;
         return message.Contains("timed out", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("empty process-key response", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("empty snapshot response", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("empty UI-state response", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("empty host-status response", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("empty reset-session response", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("empty set-composition response", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("empty conversion-list response", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("empty register-word response", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("Unable to connect", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("connect", StringComparison.OrdinalIgnoreCase);
+               || message.Contains("empty process-key response", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("empty snapshot response", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("empty UI-state response", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("empty host-status response", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("empty reset-session response", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("empty set-composition response", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("empty conversion-list response", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("empty register-word response", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("Unable to connect", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("connect", StringComparison.OrdinalIgnoreCase);
     }
 
     internal void UpdateInputTarget(ImeInputTargetUpdate request)
@@ -131,11 +131,13 @@ public sealed class ImeHostBridge : IDisposable
         catch (ImeHostUnavailableException exception)
         {
             _lastError = exception.Message;
-            return ImeUiState.FromSnapshot(
+            return ImeUiState.FromSnapshot
+            (
                 GetFallbackContext(sessionId.Effective).Snapshot,
                 $"Host unavailable; using the minimal fallback dictionary: {exception.Message}",
                 isHostUnavailable: true,
-                isUsingFallbackDictionary: false);
+                isUsingFallbackDictionary: false
+            );
         }
     }
 
@@ -159,9 +161,11 @@ public sealed class ImeHostBridge : IDisposable
         {
             _lastError = exception.Message;
             ResetFallback(request);
-            return new ImeResetSessionResponse(
+            return new ImeResetSessionResponse
+            (
                 request.ResetAll ? ImeSessionId.Unspecified : request.SessionId.Effective,
-                true);
+                true
+            );
         }
     }
 
@@ -183,7 +187,8 @@ public sealed class ImeHostBridge : IDisposable
         catch (ImeHostUnavailableException exception)
         {
             _lastError = exception.Message;
-            var result = GetFallbackContext(request.EffectiveSessionId).SetComposition(request.Composition ?? string.Empty);
+            var result = GetFallbackContext(request.EffectiveSessionId).SetComposition
+                (request.Composition ?? string.Empty);
             return new ImeSetCompositionResponse(result, request.EffectiveSessionId);
         }
     }
@@ -237,8 +242,10 @@ public sealed class ImeHostBridge : IDisposable
             var context = GetFallbackContext(request.EffectiveSessionId);
             var succeeded = request.Action switch
             {
-                ImeRegisterWordAction.Register => context.RegisterWord(request.Reading ?? string.Empty, request.Text ?? string.Empty),
-                ImeRegisterWordAction.Unregister => context.UnregisterWord(request.Reading ?? string.Empty, request.Text ?? string.Empty),
+                ImeRegisterWordAction.Register => context.RegisterWord
+                    (request.Reading ?? string.Empty, request.Text ?? string.Empty),
+                ImeRegisterWordAction.Unregister => context.UnregisterWord
+                    (request.Reading ?? string.Empty, request.Text ?? string.Empty),
                 ImeRegisterWordAction.Enumerate => true,
                 _ => false,
             };
@@ -352,10 +359,15 @@ public sealed class ImeHostBridge : IDisposable
             return InvokeAsync(() => _client.ProcessKeyAsync(key, sessionId));
         }
 
-        public async Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId, ImeCandidateAnchor? anchor)
+        public async Task<ImeProcessResult> ProcessKeyAsync
+            (ImeKey key, ImeSessionId sessionId, ImeCandidateAnchor? anchor)
         {
-            var response = await InvokeAsync(() => _client.ProcessKeyRequestAsync(
-                new ImeProcessKeyRequest(key, sessionId, Anchor: anchor))).ConfigureAwait(false);
+            var response = await InvokeAsync
+            (() => _client.ProcessKeyRequestAsync
+                (
+                    new ImeProcessKeyRequest(key, sessionId, Anchor: anchor)
+                )
+            ).ConfigureAwait(false);
             return response.Result;
         }
 

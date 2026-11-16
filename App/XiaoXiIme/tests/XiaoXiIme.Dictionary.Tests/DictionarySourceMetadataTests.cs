@@ -11,7 +11,10 @@ public class DictionarySourceMetadataTests
     [InlineData("sort", "by_weight")]
     public void ParseDocument_WhenHeaderExistsThenPreservesMetadata(string field, string expected)
     {
-        using var reader = new StringReader("# source\n---\nname: core\nversion: '2026-01'\ndescription: |\n  First line\n  second line\nsort: by_weight\n...\n你\tni\t100\n");
+        using var reader = new StringReader
+        (
+            "# source\n---\nname: core\nversion: '2026-01'\ndescription: |\n  First line\n  second line\nsort: by_weight\n...\n你\tni\t100\n"
+        );
         var document = PhoneticDictionarySourceParser.ParseDocument(reader, "core.phonetic.tsv");
         Assert.Equal(expected, ((YamlScalarNode)document.Metadata.Fields.Children[new YamlScalarNode(field)]).Value);
     }
@@ -34,7 +37,8 @@ public class DictionarySourceMetadataTests
     public void ParseDocument_WhenHeaderIsAbsentThenMetadataIsEmpty()
     {
         using var reader = new StringReader("你\tni\t100");
-        Assert.Empty(PhoneticDictionarySourceParser.ParseDocument(reader, "core.phonetic.tsv").Metadata.Fields.Children);
+        Assert.Empty
+            (PhoneticDictionarySourceParser.ParseDocument(reader, "core.phonetic.tsv").Metadata.Fields.Children);
     }
 
     [Fact]
@@ -53,14 +57,16 @@ public class DictionarySourceMetadataTests
     public void ParseDocument_WhenHeaderIsInvalidThenReportsSourceError(string source)
     {
         using var reader = new StringReader(source);
-        Assert.Throws<DictionarySourceException>(() => PhoneticDictionarySourceParser.ParseDocument(reader, "core.phonetic.tsv"));
+        Assert.Throws<DictionarySourceException>
+            (() => PhoneticDictionarySourceParser.ParseDocument(reader, "core.phonetic.tsv"));
     }
 
     [Fact]
     public void Parse_WhenHeaderPrecedesInvalidEntryThenPreservesPhysicalLineNumber()
     {
         using var reader = new StringReader("---\nname: core\n...\nbad");
-        var exception = Assert.Throws<PhoneticDictionarySourceException>(() => PhoneticDictionarySourceParser.Parse(reader, "core.phonetic.tsv"));
+        var exception = Assert.Throws<PhoneticDictionarySourceException>
+            (() => PhoneticDictionarySourceParser.Parse(reader, "core.phonetic.tsv"));
         Assert.Contains("(4)", exception.Message);
     }
 
@@ -69,7 +75,8 @@ public class DictionarySourceMetadataTests
     {
         using var writer = new StringWriter();
         writer.WriteLine("---");
-        new YamlStream(new YamlDocument(new YamlMappingNode { { "name", "core" }, { "sort", "by_weight" } })).Save(writer, false);
+        new YamlStream(new YamlDocument(new YamlMappingNode { { "name", "core" }, { "sort", "by_weight" } })).Save
+            (writer, false);
         writer.WriteLine("你\tni\t100");
         using var reader = new StringReader(writer.ToString());
         Assert.Single(PhoneticDictionarySourceParser.Parse(reader, "core.phonetic.tsv"));

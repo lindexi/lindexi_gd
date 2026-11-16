@@ -32,7 +32,8 @@ internal static class LocalDictionaryCommands
                 return 3;
             }
 
-            var result = LocalDictionaryPackageManager.UpdateWithReuse(
+            var result = LocalDictionaryPackageManager.UpdateWithReuse
+            (
                 new LocalDictionaryPackageUpdate
                 {
                     PhoneticSourcePaths = phoneticSources,
@@ -40,16 +41,22 @@ internal static class LocalDictionaryCommands
                     SymbolSourcePaths = FindSources(sourceDirectory, "*.symbols.tsv"),
                     Parameters = new DictionaryPackageParameters { InputScheme = options.Scheme },
                 },
-                options.PackageDirectory);
+                options.PackageDirectory
+            );
 
-            output.WriteLine(result.ReusedExistingPackage
-                ? $"Dictionary package reused: {Path.GetFullPath(options.PackageDirectory)}"
-                : $"Dictionary package updated: {Path.GetFullPath(options.PackageDirectory)}");
+            output.WriteLine
+            (
+                result.ReusedExistingPackage
+                    ? $"Dictionary package reused: {Path.GetFullPath(options.PackageDirectory)}"
+                    : $"Dictionary package updated: {Path.GetFullPath(options.PackageDirectory)}"
+            );
             output.WriteLine($"Input scheme: {result.Manifest.Parameters.InputScheme}");
             output.WriteLine($"Candidates: {result.Manifest.Counts.Candidates}");
             return 0;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or DictionarySourceException or DictionaryPackageException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException
+                                              or InvalidOperationException or DictionarySourceException
+                                              or DictionaryPackageException)
         {
             error.WriteLine(exception.Message);
             return 4;
@@ -74,7 +81,8 @@ internal static class LocalDictionaryCommands
             output.WriteLine($"Dictionary package rolled back: {Path.GetFullPath(options.PackageDirectory)}");
             return 0;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or DictionaryPackageException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException
+                                              or InvalidOperationException or DictionaryPackageException)
         {
             error.WriteLine(exception.Message);
             return 4;
@@ -99,7 +107,8 @@ internal static class LocalDictionaryCommands
             output.WriteLine($"SeWZC dictionary snapshot converted: {Path.GetFullPath(options.TargetDirectory)}");
             return 0;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or DictionarySourceException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException
+                                              or InvalidOperationException or DictionarySourceException)
         {
             error.WriteLine(exception.Message);
             return 4;
@@ -112,7 +121,8 @@ internal static class LocalDictionaryCommands
         ArgumentNullException.ThrowIfNull(output);
         ArgumentNullException.ThrowIfNull(error);
 
-        if (string.IsNullOrWhiteSpace(options.SourceDirectory) || string.IsNullOrWhiteSpace(options.HostOutputDirectory))
+        if (string.IsNullOrWhiteSpace(options.SourceDirectory) || string.IsNullOrWhiteSpace
+                (options.HostOutputDirectory))
         {
             error.WriteLine("dictionary-build-packages requires <source-directory> <host-output-directory>.");
             return 2;
@@ -129,11 +139,19 @@ internal static class LocalDictionaryCommands
             }
 
             output.WriteLine($"Dictionary packages built: {Path.GetFullPath(options.HostOutputDirectory)}");
-            output.WriteLine($"Full Pinyin package: {Path.Combine(Path.GetFullPath(options.HostOutputDirectory), DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)}");
-            output.WriteLine($"Xiaohe package: {Path.Combine(Path.GetFullPath(options.HostOutputDirectory), DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath)}");
+            output.WriteLine
+            (
+                $"Full Pinyin package: {Path.Combine(Path.GetFullPath(options.HostOutputDirectory), DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)}"
+            );
+            output.WriteLine
+            (
+                $"Xiaohe package: {Path.Combine(Path.GetFullPath(options.HostOutputDirectory), DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath)}"
+            );
             return 0;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or DictionarySourceException or DictionaryPackageException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException
+                                              or InvalidOperationException or DictionarySourceException
+                                              or DictionaryPackageException)
         {
             error.WriteLine(exception.Message);
             return 4;
@@ -157,9 +175,14 @@ internal static class LocalDictionaryCommands
             var inspection = DictionaryPackageLoader.Inspect(options.PackageDirectory);
             if (options.Json)
             {
-                output.WriteLine(System.Text.Json.JsonSerializer.Serialize(
-                    CreateInspectReport(inspection),
-                    new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                output.WriteLine
+                (
+                    System.Text.Json.JsonSerializer.Serialize
+                    (
+                        CreateInspectReport(inspection),
+                        new System.Text.Json.JsonSerializerOptions { WriteIndented = true }
+                    )
+                );
                 return 0;
             }
 
@@ -178,7 +201,8 @@ internal static class LocalDictionaryCommands
             output.WriteLine("Validation: passed");
             return 0;
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or DictionaryPackageException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException
+                                              or DictionaryPackageException)
         {
             error.WriteLine(exception.Message);
             return 4;

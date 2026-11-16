@@ -42,7 +42,8 @@ public sealed class IntegrationTestRunnerTests
         using var directory = new TemporaryDirectory();
         var manifestPath = directory.CreateManifest();
         var currentDirectory = Directory.CreateDirectory(Path.Combine(directory.Path, "work", "child")).FullName;
-        var unrelatedDirectory = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), $"XiaoXiIme.Cli.Tests-{Guid.NewGuid():N}")).FullName;
+        var unrelatedDirectory = Directory.CreateDirectory
+            (Path.Combine(Path.GetTempPath(), $"XiaoXiIme.Cli.Tests-{Guid.NewGuid():N}")).FullName;
         try
         {
             var result = IntegrationTestRunner.ResolveManifestPath(null, unrelatedDirectory, currentDirectory);
@@ -81,7 +82,8 @@ public sealed class IntegrationTestRunnerTests
     [InlineData(0, false, 15)]
     [InlineData(14, true, 14)]
     [InlineData(14, false, 14)]
-    public void GetFinalExitCodePreservesStageFailureAndReportsCleanupFailure(int exitCode, bool cleanupSucceeded, int expected)
+    public void GetFinalExitCodePreservesStageFailureAndReportsCleanupFailure
+        (int exitCode, bool cleanupSucceeded, int expected)
     {
         var result = IntegrationTestRunner.GetFinalExitCode(exitCode, cleanupSucceeded);
 
@@ -99,10 +101,12 @@ public sealed class IntegrationTestRunnerTests
     [Fact]
     public void InstallationFailureCanIdentifyExistingFileConflict()
     {
-        var result = ImeInstallationResult.Failure(
+        var result = ImeInstallationResult.Failure
+        (
             "Existing file differs.",
             installedPath: @"C:\Windows\System32\XiaoXiIme.ime",
-            failureKind: ImeInstallationFailureKind.ExistingFileConflict);
+            failureKind: ImeInstallationFailureKind.ExistingFileConflict
+        );
 
         Assert.False(result.Succeeded);
         Assert.Equal(ImeInstallationFailureKind.ExistingFileConflict, result.FailureKind);
@@ -113,12 +117,14 @@ public sealed class IntegrationTestRunnerTests
     public void UninstallationResultCanRequireRestartForPendingFileDeletion()
     {
         var pendingPath = @"C:\Windows\System32\XiaoXiIme.ime";
-        var result = new ImeUninstallationResult(
+        var result = new ImeUninstallationResult
+        (
             false,
             [],
             "Restart required.",
             RebootRequired: true,
-            PendingDeletePaths: [pendingPath]);
+            PendingDeletePaths: [pendingPath]
+        );
 
         Assert.False(result.Succeeded);
         Assert.True(result.RebootRequired);
@@ -130,8 +136,10 @@ public sealed class IntegrationTestRunnerTests
     {
         using var directory = new TemporaryDirectory();
         CompileSupportedPackages(directory.Path);
-        var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
-        var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
+        var fullPinyin = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
+        var xiaohe = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
         CompilePackage(fullPinyin, DefaultDictionaryPackageBuilder.FullPinyinInputScheme);
         CompilePackage(xiaohe, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinInputScheme);
 
@@ -144,8 +152,10 @@ public sealed class IntegrationTestRunnerTests
     public void VerifyDictionaryPackages_WhenInputSchemesAreSwappedThenReturnsError()
     {
         using var directory = new TemporaryDirectory();
-        var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
-        var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
+        var fullPinyin = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
+        var xiaohe = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
         CompilePackage(fullPinyin, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinInputScheme);
         CompilePackage(xiaohe, DefaultDictionaryPackageBuilder.FullPinyinInputScheme);
 
@@ -172,10 +182,12 @@ public sealed class IntegrationTestRunnerTests
         var sourceDirectory = Path.Combine(directory.Path, "copied-dictionaries");
         Directory.CreateDirectory(sourceDirectory);
 
-        var resolved = IntegrationPayloadBuilder.ResolveDictionarySourceDirectory(
+        var resolved = IntegrationPayloadBuilder.ResolveDictionarySourceDirectory
+        (
             new PayloadBuildOptions { DictionarySource = sourceDirectory },
             stagingDirectory: Path.Combine(directory.Path, "staging"),
-            solutionDirectory: directory.Path);
+            solutionDirectory: directory.Path
+        );
 
         Assert.Equal(Path.GetFullPath(sourceDirectory), resolved);
     }
@@ -189,10 +201,12 @@ public sealed class IntegrationTestRunnerTests
         var stagingDirectory = Path.Combine(directory.Path, "artifacts", "integration-publish");
         Directory.CreateDirectory(stagingDirectory);
 
-        var resolved = IntegrationPayloadBuilder.ResolveDictionarySourceDirectory(
+        var resolved = IntegrationPayloadBuilder.ResolveDictionarySourceDirectory
+        (
             new PayloadBuildOptions { NoBuild = true },
             stagingDirectory,
-            solutionDirectory: null);
+            solutionDirectory: null
+        );
 
         Assert.Equal(Path.GetFullPath(sourceDirectory), resolved);
     }
@@ -204,7 +218,8 @@ public sealed class IntegrationTestRunnerTests
         using var output = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = await IntegrationPayloadBuilder.BuildAsync(
+        var exitCode = await IntegrationPayloadBuilder.BuildAsync
+        (
             new PayloadBuildOptions
             {
                 Output = Path.Combine(directory.Path, "payload"),
@@ -213,10 +228,12 @@ public sealed class IntegrationTestRunnerTests
                 NoBuild = true,
             },
             output,
-            error);
+            error
+        );
 
         Assert.Equal(13, exitCode);
-        Assert.Contains("dictionary source directory was not found", error.ToString(), StringComparison.OrdinalIgnoreCase);
+        Assert.Contains
+            ("dictionary source directory was not found", error.ToString(), StringComparison.OrdinalIgnoreCase);
         Assert.False(Directory.Exists(Path.Combine(directory.Path, "payload")));
     }
 
@@ -229,7 +246,8 @@ public sealed class IntegrationTestRunnerTests
         using var output = new StringWriter();
         using var error = new StringWriter();
 
-        var exitCode = await IntegrationPayloadBuilder.BuildAsync(
+        var exitCode = await IntegrationPayloadBuilder.BuildAsync
+        (
             new PayloadBuildOptions
             {
                 Output = Path.Combine(directory.Path, "payload"),
@@ -238,26 +256,69 @@ public sealed class IntegrationTestRunnerTests
                 NoBuild = true,
             },
             output,
-            error);
+            error
+        );
 
         Assert.Equal(11, exitCode);
         Assert.Contains("Required publish outputs are missing", error.ToString());
         Assert.False(Directory.Exists(Path.Combine(directory.Path, "payload")));
-        Assert.False(Directory.Exists(Path.Combine(stagingRoot, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)));
+        Assert.False
+        (
+            Directory.Exists
+            (
+                Path.Combine(stagingRoot, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)
+            )
+        );
         var dictionaryStaging = IntegrationPayloadBuilder.GetDictionaryPackageStagingDirectory(stagingRoot);
         Assert.Null(IntegrationTestRunner.VerifyHostDictionaryPackages(dictionaryStaging));
-        Assert.Equal(
+        Assert.Equal
+        (
             "你好",
-            Assert.Single(DictionaryPackageLoader.Load(Path.Combine(dictionaryStaging, DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)).Query(new ImeDictionaryQuery("nihao"))).Text);
-        Assert.Equal(
+            Assert.Single
+            (
+                DictionaryPackageLoader.Load
+                    (
+                        Path.Combine(dictionaryStaging, DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)
+                    )
+                    .Query(new ImeDictionaryQuery("nihao"))
+            ).Text
+        );
+        Assert.Equal
+        (
             "你好",
-            Assert.Single(DictionaryPackageLoader.Load(Path.Combine(dictionaryStaging, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath)).Query(new ImeDictionaryQuery("nihc"))).Text);
-        Assert.Equal(
+            Assert.Single
+            (
+                DictionaryPackageLoader.Load
+                (
+                    Path.Combine
+                        (dictionaryStaging, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath)
+                ).Query(new ImeDictionaryQuery("nihc"))
+            ).Text
+        );
+        Assert.Equal
+        (
             "XiaoXiIme",
-            Assert.Single(DictionaryPackageLoader.Load(Path.Combine(dictionaryStaging, DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)).Query(new ImeDictionaryQuery("xiaoxiaimuyi"))).Text);
-        Assert.Equal(
+            Assert.Single
+            (
+                DictionaryPackageLoader.Load
+                    (
+                        Path.Combine(dictionaryStaging, DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)
+                    )
+                    .Query(new ImeDictionaryQuery("xiaoxiaimuyi"))
+            ).Text
+        );
+        Assert.Equal
+        (
             "XiaoXiIme",
-            Assert.Single(DictionaryPackageLoader.Load(Path.Combine(dictionaryStaging, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath)).Query(new ImeDictionaryQuery("xnxiaimuyi"))).Text);
+            Assert.Single
+            (
+                DictionaryPackageLoader.Load
+                (
+                    Path.Combine
+                        (dictionaryStaging, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath)
+                ).Query(new ImeDictionaryQuery("xnxiaimuyi"))
+            ).Text
+        );
     }
 
     [Fact]
@@ -275,18 +336,52 @@ public sealed class IntegrationTestRunnerTests
         Assert.Null(IntegrationPayloadBuilder.CopyAndVerifyDictionaryPackages(dictionaryStaging, payloadDirectory));
         Assert.True(File.Exists(Path.Combine(hostDirectory, "XiaoXiIme.ImeHost.exe")));
         Assert.Null(IntegrationTestRunner.VerifyDictionaryPackages(payloadDirectory));
-        Assert.Equal(
+        Assert.Equal
+        (
             "你好",
-            Assert.Single(DictionaryPackageLoader.Load(Path.Combine(hostDirectory, DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)).Query(new ImeDictionaryQuery("nihao"))).Text);
-        Assert.Equal(
+            Assert.Single
+            (
+                DictionaryPackageLoader.Load
+                    (Path.Combine(hostDirectory, DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)).Query
+                    (new ImeDictionaryQuery("nihao"))
+            ).Text
+        );
+        Assert.Equal
+        (
             "你好",
-            Assert.Single(DictionaryPackageLoader.Load(Path.Combine(hostDirectory, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath)).Query(new ImeDictionaryQuery("nihc"))).Text);
-        Assert.Equal(
+            Assert.Single
+            (
+                DictionaryPackageLoader.Load
+                    (
+                        Path.Combine
+                            (hostDirectory, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath)
+                    )
+                    .Query(new ImeDictionaryQuery("nihc"))
+            ).Text
+        );
+        Assert.Equal
+        (
             "XiaoXiIme",
-            Assert.Single(DictionaryPackageLoader.Load(Path.Combine(hostDirectory, DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)).Query(new ImeDictionaryQuery("xiaoxiaimuyi"))).Text);
-        Assert.Equal(
+            Assert.Single
+            (
+                DictionaryPackageLoader.Load
+                    (Path.Combine(hostDirectory, DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName)).Query
+                    (new ImeDictionaryQuery("xiaoxiaimuyi"))
+            ).Text
+        );
+        Assert.Equal
+        (
             "XiaoXiIme",
-            Assert.Single(DictionaryPackageLoader.Load(Path.Combine(hostDirectory, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath)).Query(new ImeDictionaryQuery("xnxiaimuyi"))).Text);
+            Assert.Single
+            (
+                DictionaryPackageLoader.Load
+                    (
+                        Path.Combine
+                            (hostDirectory, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath)
+                    )
+                    .Query(new ImeDictionaryQuery("xnxiaimuyi"))
+            ).Text
+        );
     }
 
     [Fact]
@@ -312,7 +407,11 @@ public sealed class IntegrationTestRunnerTests
 
         var result = IntegrationTestRunner.VerifyHostDictionaryPackages(directory.Path);
 
-        Assert.Contains($"Expected 'ni' to return '你' for input scheme '{DictionaryPackageLocations.FullPinyinInputScheme}', but found '尼'", result);
+        Assert.Contains
+        (
+            $"Expected 'ni' to return '你' for input scheme '{DictionaryPackageLocations.FullPinyinInputScheme}', but found '尼'",
+            result
+        );
     }
 
     [Fact]
@@ -331,12 +430,16 @@ public sealed class IntegrationTestRunnerTests
     public void VerifyDictionaryPackages_WhenExpectedQueryIsMissingThenReturnsError()
     {
         using var directory = new TemporaryDirectory();
-        var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
-        var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
-        DictionaryPackageCompiler.Compile(
+        var fullPinyin = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
+        var xiaohe = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
+        DictionaryPackageCompiler.Compile
+        (
             [new PhoneticDictionaryEntry("测试", "ce shi", 100)],
             fullPinyin,
-            new DictionaryPackageParameters { InputScheme = DefaultDictionaryPackageBuilder.FullPinyinInputScheme });
+            new DictionaryPackageParameters { InputScheme = DefaultDictionaryPackageBuilder.FullPinyinInputScheme }
+        );
         CompilePackage(xiaohe, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinInputScheme);
 
         var result = IntegrationTestRunner.VerifyDictionaryPackages(directory.Path);
@@ -349,12 +452,16 @@ public sealed class IntegrationTestRunnerTests
     public void VerifyDictionaryPackages_WhenProjectTermQueryIsMissingThenReturnsError()
     {
         using var directory = new TemporaryDirectory();
-        var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
-        var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
-        DictionaryPackageCompiler.Compile(
+        var fullPinyin = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
+        var xiaohe = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
+        DictionaryPackageCompiler.Compile
+        (
             [new PhoneticDictionaryEntry("你好", "ni hao", 100)],
             fullPinyin,
-            new DictionaryPackageParameters { InputScheme = DefaultDictionaryPackageBuilder.FullPinyinInputScheme });
+            new DictionaryPackageParameters { InputScheme = DefaultDictionaryPackageBuilder.FullPinyinInputScheme }
+        );
         CompilePackage(xiaohe, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinInputScheme);
 
         var result = IntegrationTestRunner.VerifyDictionaryPackages(directory.Path);
@@ -367,12 +474,19 @@ public sealed class IntegrationTestRunnerTests
     public void VerifyDictionaryPackages_WhenProjectTermTextDoesNotMatchThenReturnsError()
     {
         using var directory = new TemporaryDirectory();
-        var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
-        var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
-        DictionaryPackageCompiler.Compile(
-            [new PhoneticDictionaryEntry("你好", "ni hao", 100), new PhoneticDictionaryEntry("别名", "xiao xi ai mu yi", 100)],
+        var fullPinyin = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
+        var xiaohe = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
+        DictionaryPackageCompiler.Compile
+        (
+            [
+                new PhoneticDictionaryEntry("你好", "ni hao", 100),
+                new PhoneticDictionaryEntry("别名", "xiao xi ai mu yi", 100)
+            ],
             fullPinyin,
-            new DictionaryPackageParameters { InputScheme = DefaultDictionaryPackageBuilder.FullPinyinInputScheme });
+            new DictionaryPackageParameters { InputScheme = DefaultDictionaryPackageBuilder.FullPinyinInputScheme }
+        );
         CompilePackage(xiaohe, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinInputScheme);
 
         var result = IntegrationTestRunner.VerifyDictionaryPackages(directory.Path);
@@ -386,13 +500,18 @@ public sealed class IntegrationTestRunnerTests
     {
         using var directory = new TemporaryDirectory();
         CompileSupportedPackages(directory.Path);
-        var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
-        var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
+        var fullPinyin = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
+        var xiaohe = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
         CompilePackage(fullPinyin, DefaultDictionaryPackageBuilder.FullPinyinInputScheme);
-        DictionaryPackageCompiler.Compile(
+        DictionaryPackageCompiler.Compile
+        (
             [new PhoneticDictionaryEntry("你好", "ni hao", 100)],
             xiaohe,
-            new DictionaryPackageParameters { InputScheme = DefaultDictionaryPackageBuilder.XiaoheDoublePinyinInputScheme });
+            new DictionaryPackageParameters
+                { InputScheme = DefaultDictionaryPackageBuilder.XiaoheDoublePinyinInputScheme }
+        );
 
         var result = IntegrationTestRunner.VerifyDictionaryPackages(directory.Path);
 
@@ -405,13 +524,21 @@ public sealed class IntegrationTestRunnerTests
     {
         using var directory = new TemporaryDirectory();
         CompileSupportedPackages(directory.Path);
-        var fullPinyin = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
-        var xiaohe = Path.Combine(directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
+        var fullPinyin = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName);
+        var xiaohe = Path.Combine
+            (directory.Path, "app", "host", DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath);
         CompilePackage(fullPinyin, DefaultDictionaryPackageBuilder.FullPinyinInputScheme);
-        DictionaryPackageCompiler.Compile(
-            [new PhoneticDictionaryEntry("你好", "ni hao", 100), new PhoneticDictionaryEntry("别名", "xiao xi ai mu yi", 100)],
+        DictionaryPackageCompiler.Compile
+        (
+            [
+                new PhoneticDictionaryEntry("你好", "ni hao", 100),
+                new PhoneticDictionaryEntry("别名", "xiao xi ai mu yi", 100)
+            ],
             xiaohe,
-            new DictionaryPackageParameters { InputScheme = DefaultDictionaryPackageBuilder.XiaoheDoublePinyinInputScheme });
+            new DictionaryPackageParameters
+                { InputScheme = DefaultDictionaryPackageBuilder.XiaoheDoublePinyinInputScheme }
+        );
 
         var result = IntegrationTestRunner.VerifyDictionaryPackages(directory.Path);
 
@@ -436,9 +563,11 @@ public sealed class IntegrationTestRunnerTests
     [Fact]
     public void ImeHostProcessManager_WhenHostDoesNotBecomeReadyThenReportsFailure()
     {
-        var result = ImeHostProcessManager.WaitUntilReady(
+        var result = ImeHostProcessManager.WaitUntilReady
+        (
             new XiaoXiImeIpcOptions($"XiaoXiIme_Missing_{Guid.NewGuid():N}"),
-            TimeSpan.FromMilliseconds(200));
+            TimeSpan.FromMilliseconds(200)
+        );
 
         Assert.False(result.Succeeded);
         Assert.Contains("IME host did not become ready", result.Message);
@@ -475,12 +604,15 @@ public sealed class IntegrationTestRunnerTests
     [Fact]
     public void UninstallationResultCanReportRetiredFileWithoutRequiringRestart()
     {
-        var retiredPath = @"C:\Windows\System32\XiaoXiIme.retired-20260726T132255Z-0123456789abcdef0123456789abcdef.ime";
-        var result = new ImeUninstallationResult(
+        var retiredPath =
+            @"C:\Windows\System32\XiaoXiIme.retired-20260726T132255Z-0123456789abcdef0123456789abcdef.ime";
+        var result = new ImeUninstallationResult
+        (
             true,
             [],
             "Moved the loaded IME aside.",
-            RetiredFilePaths: [retiredPath]);
+            RetiredFilePaths: [retiredPath]
+        );
 
         Assert.True(result.Succeeded);
         Assert.False(result.RebootRequired);
@@ -491,7 +623,9 @@ public sealed class IntegrationTestRunnerTests
     {
         public TemporaryDirectory()
         {
-            Path = Directory.CreateDirectory(System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"XiaoXiIme.Cli.Tests-{Guid.NewGuid():N}")).FullName;
+            Path = Directory.CreateDirectory
+                    (System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"XiaoXiIme.Cli.Tests-{Guid.NewGuid():N}"))
+                .FullName;
         }
 
         public string Path { get; }
@@ -512,17 +646,26 @@ public sealed class IntegrationTestRunnerTests
     private static void CompileSupportedPackages(string root)
     {
         foreach (var scheme in PhoneticSchemeCatalog.All.Where(item => item.ProductScheme.HasValue))
-            CompilePackage(Path.Combine(root, "app", "host", DictionaryPackageLocations.GetRelativePackageDirectory(scheme.SchemeId)), scheme.SchemeId);
+        {
+            CompilePackage
+            (
+                Path.Combine
+                    (root, "app", "host", DictionaryPackageLocations.GetRelativePackageDirectory(scheme.SchemeId)),
+                scheme.SchemeId
+            );
+        }
     }
 
     private static void CompilePackage(string packageDirectory, string inputScheme)
     {
         var entries = new List<PhoneticDictionaryEntry> { new("你好", "ni hao", 100), new("你", "ni", 100) };
         entries.AddRange(XiaoXiImeProjectTerms.Parse());
-        DictionaryPackageCompiler.Compile(
+        DictionaryPackageCompiler.Compile
+        (
             entries,
             packageDirectory,
-            new DictionaryPackageParameters { InputScheme = inputScheme });
+            new DictionaryPackageParameters { InputScheme = inputScheme }
+        );
     }
 
     private static string CreateNativeSources(string root)
@@ -531,7 +674,8 @@ public sealed class IntegrationTestRunnerTests
         Directory.CreateDirectory(Path.Combine(sourceDirectory, "phonetic"));
         Directory.CreateDirectory(Path.Combine(sourceDirectory, "shape"));
         Directory.CreateDirectory(Path.Combine(sourceDirectory, "symbols"));
-        File.WriteAllText(Path.Combine(sourceDirectory, "phonetic", "sewzc-default.phonetic.tsv"), "你好\tni hao\t100\n你\tni\t100");
+        File.WriteAllText
+            (Path.Combine(sourceDirectory, "phonetic", "sewzc-default.phonetic.tsv"), "你好\tni hao\t100\n你\tni\t100");
         XiaoXiImeProjectTerms.WriteTo(Path.Combine(sourceDirectory, XiaoXiImeProjectTerms.OutputRelativePath));
         File.WriteAllText(Path.Combine(sourceDirectory, "shape", "sewzc-moqi.shape.tsv"), "你\trb\t亻尔");
         File.WriteAllText(Path.Combine(sourceDirectory, "symbols", "sewzc-default.symbols.tsv"), "/xh\t★\t☆");

@@ -1,9 +1,11 @@
 namespace XiaoXiIme.Dictionary;
 
-public sealed record ImeDictionaryQuery(
+public sealed record ImeDictionaryQuery
+(
     string Input,
     int MaxCount = 9,
-    ImeDictionaryMatchMode MatchMode = ImeDictionaryMatchMode.Exact)
+    ImeDictionaryMatchMode MatchMode = ImeDictionaryMatchMode.Exact
+)
 {
     public string Input
     {

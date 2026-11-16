@@ -7,8 +7,16 @@ public class PhoneticSchemeCatalogTests
     [Fact]
     public void WhenCatalogIsReadThenProductOrderContainsExactlyEightDoublePinyinSchemes()
     {
-        Assert.Equal(new[] { "fullPinyin", "sogouDoublePinyin", "microsoftDoublePinyin", "naturalCodeDoublePinyin", "abcDoublePinyin", "daniuDoublePinyin", "jiajiaDoublePinyin", "xiaoheDoublePinyin", "xiaoyueDoublePinyin" },
-            PhoneticSchemeCatalog.All.Select(scheme => scheme.SchemeId));
+        Assert.Equal
+        (
+            new[]
+            {
+                "fullPinyin", "sogouDoublePinyin", "microsoftDoublePinyin", "naturalCodeDoublePinyin",
+                "abcDoublePinyin", "daniuDoublePinyin", "jiajiaDoublePinyin", "xiaoheDoublePinyin",
+                "xiaoyueDoublePinyin"
+            },
+            PhoneticSchemeCatalog.All.Select(scheme => scheme.SchemeId)
+        );
     }
 
     [Theory]
@@ -31,7 +39,12 @@ public class PhoneticSchemeCatalogTests
     public void WhenXiaoheBaselineIsReadThenCompleteRulesHaveAReproducibleFingerprint()
     {
         var scheme = PhoneticSchemeCatalog.All.Single(scheme => scheme.SchemeId == "xiaoheDoublePinyin");
-        Assert.Equal(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(scheme.Rules!))), scheme.ContentSha256);
+        Assert.Equal
+        (
+            Convert.ToHexString
+                (System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(scheme.Rules!))),
+            scheme.ContentSha256
+        );
     }
 
     [Theory]
@@ -46,7 +59,8 @@ public class PhoneticSchemeCatalogTests
     [InlineData("normalize:lowerInvariant;u:=v;ü=v;y/w=ordinary-initials")]
     public void WhenXiaoheBaselineIsReadThenMappingAndSpecialRulesAreRecorded(string rule)
     {
-        Assert.Contains(rule, PhoneticSchemeCatalog.All.Single(scheme => scheme.SchemeId == "xiaoheDoublePinyin").Rules);
+        Assert.Contains
+            (rule, PhoneticSchemeCatalog.All.Single(scheme => scheme.SchemeId == "xiaoheDoublePinyin").Rules);
     }
 
     [Theory]
@@ -74,8 +88,11 @@ public class PhoneticSchemeCatalogTests
     public void WhenBaselineSpecialSpellingIsCompiledThenDocumentedCodeFindsCandidate(string reading, string code)
     {
         var path = Path.Combine(Path.GetTempPath(), "XiaoXiIme-catalog-tests", Guid.NewGuid().ToString("N"));
-        DictionaryPackageCompiler.Compile([new PhoneticDictionaryEntry("fixture", reading, 1)], path,
-            new DictionaryPackageParameters { InputScheme = "xiaoheDoublePinyin" });
+        DictionaryPackageCompiler.Compile
+        (
+            [new PhoneticDictionaryEntry("fixture", reading, 1)], path,
+            new DictionaryPackageParameters { InputScheme = "xiaoheDoublePinyin" }
+        );
         var dictionary = DictionaryPackageLoader.Load(path);
         Assert.Equal("fixture", Assert.Single(dictionary.Query(new ImeDictionaryQuery(code))).Text);
     }

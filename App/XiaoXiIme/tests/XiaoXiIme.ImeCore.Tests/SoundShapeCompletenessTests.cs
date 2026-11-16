@@ -23,8 +23,11 @@ public class SoundShapeCompletenessTests
         var first = context.QueryInterpretations("ni", limit: 100);
         var last = context.QueryInterpretations("ni", offset: 100, limit: 100);
 
-        Assert.Equal((101, true, false, 101), (first.TotalCount, first.HasMore, last.HasMore,
-            first.Candidates.Concat(last.Candidates).Select(c => c.Candidate.Text).Distinct().Count()));
+        Assert.Equal
+        (
+            (101, true, false, 101), (first.TotalCount, first.HasMore, last.HasMore,
+                first.Candidates.Concat(last.Candidates).Select(c => c.Candidate.Text).Distinct().Count())
+        );
     }
 
     [Fact]
@@ -33,7 +36,11 @@ public class SoundShapeCompletenessTests
         var context = CreateMany();
         SoundShapeFuzzyTests.Type(context, "niR");
 
-        Assert.Equal(new[] { "目" }, context.QueryInterpretations("niR", limit: 1).Candidates.Select(candidate => candidate.Candidate.Text));
+        Assert.Equal
+        (
+            new[] { "目" },
+            context.QueryInterpretations("niR", limit: 1).Candidates.Select(candidate => candidate.Candidate.Text)
+        );
     }
 
     [Fact]
@@ -42,8 +49,11 @@ public class SoundShapeCompletenessTests
         var context = CreateMany();
         SoundShapeFuzzyTests.Type(context, "ni");
 
-        Assert.Equal(context.QueryInterpretations("ni", offset: 99, limit: 2).Candidates.Last().SelectionId,
-            context.QueryInterpretations("ni", offset: 100, limit: 1).Candidates.Single().SelectionId);
+        Assert.Equal
+        (
+            context.QueryInterpretations("ni", offset: 99, limit: 2).Candidates.Last().SelectionId,
+            context.QueryInterpretations("ni", offset: 100, limit: 1).Candidates.Single().SelectionId
+        );
     }
 
     [Fact]
@@ -110,8 +120,12 @@ public class SoundShapeCompletenessTests
 
         var result = fixture.Context.ProcessKey(ImeKey.FromCharacter('n'));
 
-        Assert.Equal((false, new string('n', 64), 64, revision), (result.Handled,
-            result.Snapshot.Composition.Reading, result.Snapshot.Composition.CaretIndex, fixture.Context.DetailedSnapshot.Revision));
+        Assert.Equal
+        (
+            (false, new string('n', 64), 64, revision), (result.Handled,
+                result.Snapshot.Composition.Reading, result.Snapshot.Composition.CaretIndex,
+                fixture.Context.DetailedSnapshot.Revision)
+        );
     }
 
     [Fact]
@@ -168,7 +182,8 @@ public class SoundShapeCompletenessTests
         var lexicon = InventedSoundShapeFixture.TS(projection);
         var path = Path.Combine(Path.GetTempPath(), "XiaoXiIme.SoundShape", Guid.NewGuid().ToString("N"));
         DictionaryPackageCompiler.CompileLexicon(lexicon, path);
-        var options = InventedSoundShapeFixture.Options(rules: [ImeFuzzyRule.ZhZ, ImeFuzzyRule.ShS, ImeFuzzyRule.EngEn, ImeFuzzyRule.UanUang]);
+        var options = InventedSoundShapeFixture.Options
+            (rules: [ImeFuzzyRule.ZhZ, ImeFuzzyRule.ShS, ImeFuzzyRule.EngEn, ImeFuzzyRule.UanUang]);
         var memory = new ImeContext(new InMemoryImeDictionary(lexicon), options, null);
         var compiled = new ImeContext(DictionaryPackageLoader.Load(path), options, null);
 
@@ -180,7 +195,8 @@ public class SoundShapeCompletenessTests
     {
         var dictionary = new InMemoryImeDictionary([new ImeCandidate("你", "ni", 40)]);
 
-        Assert.Throws<NotSupportedException>(() => new ImeContext(dictionary, InventedSoundShapeFixture.Options(), null));
+        Assert.Throws<NotSupportedException>
+            (() => new ImeContext(dictionary, InventedSoundShapeFixture.Options(), null));
     }
 
     [Fact]
@@ -191,33 +207,55 @@ public class SoundShapeCompletenessTests
 
         var result = fixture.Context.ProcessKey(new ImeKey(ImeKeyKind.Space));
 
-        Assert.Equal((true, null, "n", 1, 0), (result.Handled, result.CommitText,
-            result.Snapshot.Composition.Reading, result.Snapshot.Composition.CaretIndex, fixture.Learning.Count));
+        Assert.Equal
+        (
+            (true, null, "n", 1, 0), (result.Handled, result.CommitText,
+                result.Snapshot.Composition.Reading, result.Snapshot.Composition.CaretIndex, fixture.Learning.Count)
+        );
     }
 
     [Fact]
     public void HalfShapeOnly_SpaceDoesNotCommitOrLearn()
     {
-        var fixture = new InventedSoundShapeFixture("N", InventedSoundShapeFixture.Options(length: ImeShapeLengthPolicy.RequiredTwo));
+        var fixture = new InventedSoundShapeFixture
+            ("N", InventedSoundShapeFixture.Options(length: ImeShapeLengthPolicy.RequiredTwo));
         fixture.Type("nir");
 
         var result = fixture.Context.ProcessKey(new ImeKey(ImeKeyKind.Space));
 
-        Assert.Equal((true, null, "nir", 3, 0), (result.Handled, result.CommitText,
-            result.Snapshot.Composition.Reading, result.Snapshot.Composition.CaretIndex, fixture.Learning.Count));
+        Assert.Equal
+        (
+            (true, null, "nir", 3, 0), (result.Handled, result.CommitText,
+                result.Snapshot.Composition.Reading, result.Snapshot.Composition.CaretIndex, fixture.Learning.Count)
+        );
     }
 
     private static ImeContext CreateMany(ImeAutoCommitPolicy auto = ImeAutoCommitPolicy.Off)
     {
-        var entries = Enumerable.Range(0, 100).Select(i => new ImePhoneticEntry(((char)(0x4E00 + i)).ToString(), "ni", 1000 - i))
+        var entries = Enumerable.Range(0, 100).Select
+                (i => new ImePhoneticEntry(((char)(0x4E00 + i)).ToString(), "ni", 1000 - i))
             .Append(new ImePhoneticEntry("目", "ni", 1)).ToArray();
-        var lexicon = new ImeLexicon(entries, [new("目", "rx", "人工夹具")],
-            InventedSoundShapeFixture.Lexicon("N").Projection, 1);
-        return new ImeContext(new InMemoryImeDictionary(lexicon),
-            InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly, auto: auto), null);
+        var lexicon = new ImeLexicon
+        (
+            entries, [new("目", "rx", "人工夹具")],
+            InventedSoundShapeFixture.Lexicon("N").Projection, 1
+        );
+        return new ImeContext
+        (
+            new InMemoryImeDictionary(lexicon),
+            InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly, auto: auto), null
+        );
     }
 
-    private static IEnumerable<string> Semantics(ImeConversionPage page) => page.Candidates.Select(candidate =>
-        $"{candidate.Candidate.Text}|{candidate.Candidate.Reading}|{candidate.Rank}|" + string.Join(';', candidate.Interpretations.Select(path =>
-            $"{path.Kind}:{path.CoverageEnd}:{path.ConsumedRange}:{path.RemainingInput}:" + string.Join(',', path.Evidence))));
+    private static IEnumerable<string> Semantics(ImeConversionPage page) => page.Candidates.Select
+    (candidate =>
+        $"{candidate.Candidate.Text}|{candidate.Candidate.Reading}|{candidate.Rank}|" + string.Join
+        (
+            ';', candidate.Interpretations.Select
+            (path =>
+                $"{path.Kind}:{path.CoverageEnd}:{path.ConsumedRange}:{path.RemainingInput}:" + string.Join
+                    (',', path.Evidence)
+            )
+        )
+    );
 }

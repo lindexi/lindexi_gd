@@ -58,20 +58,24 @@ internal sealed class DictionarySourceReader : TextReader
                 Metadata = new DictionarySourceMetadata(fields);
                 foreach (var key in new[] { "name", "version", "description", "sort" })
                 {
-                    if (fields.Children.TryGetValue(new YamlScalarNode(key), out var value) && value is not YamlScalarNode)
+                    if (fields.Children.TryGetValue
+                            (new YamlScalarNode(key), out var value) && value is not YamlScalarNode)
                     {
-                        throw new DictionarySourceException(filePath, headerStart, DictionaryResources.InvalidSourceHeader);
+                        throw new DictionarySourceException
+                            (filePath, headerStart, DictionaryResources.InvalidSourceHeader);
                     }
                 }
 
                 if (Metadata.Sort is not null and not "by_weight")
                 {
-                    throw new DictionarySourceException(filePath, headerStart, DictionaryResources.UnsupportedSourceSort);
+                    throw new DictionarySourceException
+                        (filePath, headerStart, DictionaryResources.UnsupportedSourceSort);
                 }
             }
             catch (YamlException exception)
             {
-                throw new DictionarySourceException(filePath, headerStart + (int)exception.Start.Line, DictionaryResources.InvalidSourceHeader);
+                throw new DictionarySourceException
+                    (filePath, headerStart + (int)exception.Start.Line, DictionaryResources.InvalidSourceHeader);
             }
 
             return;

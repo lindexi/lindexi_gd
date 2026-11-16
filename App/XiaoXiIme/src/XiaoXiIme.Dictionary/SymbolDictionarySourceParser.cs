@@ -45,7 +45,8 @@ public static class SymbolDictionarySourceParser
                 throw CreateException(filePath, lineNumber, DictionaryResources.LineTooLong);
             }
 
-            if (string.IsNullOrWhiteSpace(line) || line.AsSpan().TrimStart().StartsWith(ImeDictionarySourceFormat.CommentMarker))
+            if (string.IsNullOrWhiteSpace
+                    (line) || line.AsSpan().TrimStart().StartsWith(ImeDictionarySourceFormat.CommentMarker))
             {
                 continue;
             }
@@ -57,7 +58,8 @@ public static class SymbolDictionarySourceParser
             }
 
             var input = columns[0].Trim().ToLowerInvariant();
-            if (input.Length is 0 or > MaxInputLength || input.Any(character => character > 0x7F || char.IsWhiteSpace(character)))
+            if (input.Length is 0 or > MaxInputLength || input.Any
+                    (character => character > 0x7F || char.IsWhiteSpace(character)))
             {
                 throw CreateException(filePath, lineNumber, DictionaryResources.InvalidSymbolInput);
             }

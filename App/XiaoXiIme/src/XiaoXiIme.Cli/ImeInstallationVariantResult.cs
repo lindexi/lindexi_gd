@@ -1,6 +1,7 @@
 namespace XiaoXiIme.Cli;
 
-internal sealed record ImeInstallationVariantResult(
+internal sealed record ImeInstallationVariantResult
+(
     string Id,
     string ProbePath,
     bool Copied,
@@ -10,4 +11,5 @@ internal sealed record ImeInstallationVariantResult(
     string? Win32ErrorMessage,
     bool UninstallSucceeded,
     bool CleanupSucceeded,
-    IReadOnlyList<string> Notes);
+    IReadOnlyList<string> Notes
+);

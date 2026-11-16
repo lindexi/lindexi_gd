@@ -17,8 +17,12 @@ public class CharacterInputContractTests
         var context = CreateContext();
         var key = ImeKey.FromCharacter(character);
         var result = context.ProcessKey(key);
-        Assert.Equal((false, false, (string?)null, ""),
-            (ImeContext.ShouldProcessKey(key, context.Snapshot), result.Handled, result.CommitText, result.Snapshot.Composition.Reading));
+        Assert.Equal
+        (
+            (false, false, (string?)null, ""),
+            (ImeContext.ShouldProcessKey(key, context.Snapshot), result.Handled, result.CommitText,
+                result.Snapshot.Composition.Reading)
+        );
     }
 
     [Theory]
@@ -33,8 +37,11 @@ public class CharacterInputContractTests
         var key = ImeKey.FromCharacter(character);
         var owns = ImeContext.ShouldProcessKey(key, context.Snapshot);
         var result = context.ProcessKey(key);
-        Assert.Equal((true, true, expected, ""),
-            (owns, result.Handled, result.CommitText, result.Snapshot.Composition.Reading));
+        Assert.Equal
+        (
+            (true, true, expected, ""),
+            (owns, result.Handled, result.CommitText, result.Snapshot.Composition.Reading)
+        );
     }
 
     [Fact]
@@ -65,14 +72,23 @@ public class CharacterInputContractTests
         var context = CreateContext();
         context.ProcessKey(ImeKey.FromCharacter('/'));
         var result = context.ProcessKey(ImeKey.FromCharacter('2'));
-        Assert.Equal((true, (string?)null, "/2"), (result.Handled, result.CommitText, result.Snapshot.Composition.Reading));
+        Assert.Equal
+            ((true, (string?)null, "/2"), (result.Handled, result.CommitText, result.Snapshot.Composition.Reading));
     }
 
     [Fact]
     public void WhenFullPinyinSeparatorThenItConstrainsSyllableBoundary()
     {
-        var context = new ImeContext(new InMemoryImeDictionary(new ImeLexicon(
-            [new("西安", "xi an", 100), new("先", "xian", 1000)], [], ImeProjectionDefinition.FullPinyin, 1)));
+        var context = new ImeContext
+        (
+            new InMemoryImeDictionary
+            (
+                new ImeLexicon
+                (
+                    [new("西安", "xi an", 100), new("先", "xian", 1000)], [], ImeProjectionDefinition.FullPinyin, 1
+                )
+            )
+        );
         context.SetComposition("xi'an");
         var result = context.ProcessKey(ImeKey.FromCharacter('!'));
         Assert.Equal("西安!", result.CommitText);
@@ -104,15 +120,39 @@ public class CharacterInputContractTests
     public void WhenPreflightRepeatedThenNoLearningOrCompositionMutationOccurs()
     {
         var learning = new List<ImeDictionaryLearning>();
-        var context = new ImeContext(new InMemoryImeDictionary(new ImeLexicon(
-            [new("你", "ni", 100)], [], ImeProjectionDefinition.FullPinyin, 1)), learning.Add);
+        var context = new ImeContext
+        (
+            new InMemoryImeDictionary
+            (
+                new ImeLexicon
+                (
+                    [new("你", "ni", 100)], [], ImeProjectionDefinition.FullPinyin, 1
+                )
+            ), learning.Add
+        );
         context.SetComposition("ni");
         var before = context.Snapshot;
-        for (var i = 0; i < 10; i++) ImeContext.ShouldProcessKey(ImeKey.FromCharacter('!'), before);
-        Assert.Equal(("ni", 0, string.Join('|', before.Candidates)),
-            (context.Snapshot.Composition.Reading, learning.Count, string.Join('|', context.Snapshot.Candidates)));
+        for (var i = 0; i < 10; i++)
+        {
+            ImeContext.ShouldProcessKey(ImeKey.FromCharacter('!'), before);
+        }
+
+        Assert.Equal
+        (
+            ("ni", 0, string.Join('|', before.Candidates)),
+            (context.Snapshot.Composition.Reading, learning.Count, string.Join('|', context.Snapshot.Candidates))
+        );
     }
 
-    private static ImeContext CreateContext() => new(new InMemoryImeDictionary(new ImeLexicon(
-        [new("你", "ni", 100), new("呢", "ni", 90), new("好", "hao", 100)], [], ImeProjectionDefinition.FullPinyin, 1)));
+    private static ImeContext CreateContext() => new
+    (
+        new InMemoryImeDictionary
+        (
+            new ImeLexicon
+            (
+                [new("你", "ni", 100), new("呢", "ni", 90), new("好", "hao", 100)], [], ImeProjectionDefinition.FullPinyin,
+                1
+            )
+        )
+    );
 }

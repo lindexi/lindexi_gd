@@ -52,7 +52,8 @@ public sealed class XiaoXiImeAotJsonIpcObjectSerializer : IIpcObjectSerializer
 
         return new IpcJsonElement
         {
-            RawValueOnSystemTextJson = JsonSerializer.SerializeToElement(value, value.GetType(), _jsonSerializerContext),
+            RawValueOnSystemTextJson = JsonSerializer.SerializeToElement
+                (value, value.GetType(), _jsonSerializerContext),
         };
     }
 
@@ -61,7 +62,7 @@ public sealed class XiaoXiImeAotJsonIpcObjectSerializer : IIpcObjectSerializer
         ArgumentNullException.ThrowIfNull(byteList);
 
         return TryGetJsonTypeInfo<T>(out var jsonTypeInfo)
-            ? JsonSerializer.Deserialize(new ReadOnlySpan<byte>(byteList, offset, count), jsonTypeInfo)! 
+            ? JsonSerializer.Deserialize(new ReadOnlySpan<byte>(byteList, offset, count), jsonTypeInfo)!
             : default!;
     }
 
@@ -70,7 +71,7 @@ public sealed class XiaoXiImeAotJsonIpcObjectSerializer : IIpcObjectSerializer
         ArgumentNullException.ThrowIfNull(stream);
 
         return TryGetJsonTypeInfo<T>(out var jsonTypeInfo)
-            ? JsonSerializer.Deserialize(stream, jsonTypeInfo)! 
+            ? JsonSerializer.Deserialize(stream, jsonTypeInfo)!
             : default!;
     }
 
@@ -82,7 +83,7 @@ public sealed class XiaoXiImeAotJsonIpcObjectSerializer : IIpcObjectSerializer
         }
 
         return TryGetJsonTypeInfo<T>(out var jsonTypeInfo)
-            ? JsonSerializer.Deserialize(rawValue, jsonTypeInfo)! 
+            ? JsonSerializer.Deserialize(rawValue, jsonTypeInfo)!
             : default!;
     }
 
@@ -91,7 +92,8 @@ public sealed class XiaoXiImeAotJsonIpcObjectSerializer : IIpcObjectSerializer
         var jsonTypeInfo = _jsonSerializerContext.GetTypeInfo(typeof(T));
         if (jsonTypeInfo is not JsonTypeInfo<T> typedJsonTypeInfo)
         {
-            throw new InvalidOperationException($"JSON type info for {typeof(T)} is not available in {nameof(XiaoXiImeIpcJsonSerializerContext)}.");
+            throw new InvalidOperationException
+                ($"JSON type info for {typeof(T)} is not available in {nameof(XiaoXiImeIpcJsonSerializerContext)}.");
         }
 
         return typedJsonTypeInfo;

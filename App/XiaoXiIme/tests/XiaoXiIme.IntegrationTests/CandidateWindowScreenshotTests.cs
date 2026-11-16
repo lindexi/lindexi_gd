@@ -13,30 +13,34 @@ public class CandidateWindowScreenshotTests(CandidateWindowScreenshotFixture fix
     {
         var screenshotPath = GetScreenshotPath("candidate-window.png");
 
-        await fixture.Session.Dispatch(() =>
-        {
-            var window = new CandidateWindow
+        await fixture.Session.Dispatch
+        (
+            () =>
             {
-                DataContext = CreateState(),
-            };
-            window.Show();
+                var window = new CandidateWindow
+                {
+                    DataContext = CreateState(),
+                };
+                window.Show();
 
-            using var bitmap = window.CaptureRenderedFrame();
-            Assert.NotNull(bitmap);
-            Assert.InRange(bitmap.PixelSize.Width, 320, 760);
-            Assert.InRange(bitmap.PixelSize.Height, 70, 140);
+                using var bitmap = window.CaptureRenderedFrame();
+                Assert.NotNull(bitmap);
+                Assert.InRange(bitmap.PixelSize.Width, 320, 760);
+                Assert.InRange(bitmap.PixelSize.Height, 70, 140);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(screenshotPath)!);
-            bitmap.Save(screenshotPath);
-            window.Close();
-        }, CancellationToken.None);
+                Directory.CreateDirectory(Path.GetDirectoryName(screenshotPath)!);
+                bitmap.Save(screenshotPath);
+                window.Close();
+            }, CancellationToken.None
+        );
 
         Assert.True(new FileInfo(screenshotPath).Length > 0);
     }
 
     private static CandidateWindowViewState CreateState()
     {
-        return new CandidateWindowViewState(
+        return new CandidateWindowViewState
+        (
             IsVisible: true,
             CompositionText: "nihao",
             Candidates:
@@ -54,7 +58,8 @@ public class CandidateWindowScreenshotTests(CandidateWindowScreenshotFixture fix
             TotalPages: 2,
             GuidelineText: string.Empty,
             AnchorX: 0,
-            AnchorY: 0);
+            AnchorY: 0
+        );
     }
 
     private static string GetScreenshotPath(string fileName)
@@ -66,7 +71,7 @@ public class CandidateWindowScreenshotTests(CandidateWindowScreenshotFixture fix
         }
 
         var projectRoot = directory?.FullName
-            ?? throw new DirectoryNotFoundException("Could not locate the XiaoXiIme project root.");
+                          ?? throw new DirectoryNotFoundException("Could not locate the XiaoXiIme project root.");
         return Path.Combine(projectRoot, "artifacts", "test-screenshots", fileName);
     }
 }
@@ -95,10 +100,13 @@ public static class CandidateWindowHeadlessProgram
     {
         return AppBuilder.Configure<App>()
             .UseSkia()
-            .UseHeadless(new AvaloniaHeadlessPlatformOptions
-            {
-                UseHeadlessDrawing = false,
-            })
+            .UseHeadless
+            (
+                new AvaloniaHeadlessPlatformOptions
+                {
+                    UseHeadlessDrawing = false,
+                }
+            )
             .WithInterFont()
             .LogToTrace();
     }

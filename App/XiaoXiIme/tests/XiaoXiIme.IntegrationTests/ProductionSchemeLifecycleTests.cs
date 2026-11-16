@@ -17,20 +17,34 @@ public class ProductionSchemeLifecycleTests(ProductionDictionaryFixture fixture)
     [InlineData("abcDoublePinyin", ImeProductInputScheme.AbcDoublePinyin, "nihk")]
     [InlineData("jiajiaDoublePinyin", ImeProductInputScheme.JiajiaDoublePinyin, "nihd")]
     [InlineData("naturalCodeDoublePinyin", (ImeProductInputScheme)6, "nihk")]
-    public async Task WhenSavedHostRestartsThenTargetCompletePackageIsQueried(string scheme, ImeProductInputScheme product, string input)
+    public async Task WhenSavedHostRestartsThenTargetCompletePackageIsQueried
+        (string scheme, ImeProductInputScheme product, string input)
     {
         var path = Path.Combine(fixture.HostRoot, Guid.NewGuid().ToString("N"), "settings.json");
-        using (var host = new ImeHostService(hostBaseDirectory: fixture.HostRoot, productSettingsPath: path, userDictionaryPath: path + ".user"))
+        using (var host = new ImeHostService
+                   (hostBaseDirectory: fixture.HostRoot, productSettingsPath: path, userDictionaryPath: path + ".user"))
         {
             var state = await host.GetProductSettingsAsync();
-            await host.SaveProductSettingsAsync(new(state.HostInstanceId, Guid.NewGuid(), state.Settings.Revision, state.Settings with { InputScheme = product }));
+            await host.SaveProductSettingsAsync
+            (
+                new
+                (
+                    state.HostInstanceId, Guid.NewGuid(), state.Settings.Revision,
+                    state.Settings with { InputScheme = product }
+                )
+            );
         }
-        using var restarted = new ImeHostService(hostBaseDirectory: fixture.HostRoot, productSettingsPath: path, userDictionaryPath: path + ".user");
+
+        using var restarted = new ImeHostService
+            (hostBaseDirectory: fixture.HostRoot, productSettingsPath: path, userDictionaryPath: path + ".user");
         var status = await restarted.GetHostStatusAsync();
         Assert.Equal(scheme, status.DictionaryInputScheme);
         Assert.False(status.IsUsingFallbackDictionary);
         foreach (var character in input)
+        {
             await restarted.ProcessKeyAsync(ImeKey.FromCharacter(character));
+        }
+
         Assert.Equal("你好", (await restarted.ProcessKeyAsync(new ImeKey(ImeKeyKind.Space))).CommitText);
         var dictionary = Load(scheme);
         Assert.Contains(dictionary.Query(new ImeDictionaryQuery(input)), candidate => candidate.Text == "你好");
@@ -70,11 +84,18 @@ public class ProductionSchemeLifecycleTests(ProductionDictionaryFixture fixture)
         var directory = Path.Combine(fixture.HostRoot, Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         var path = Path.Combine(directory, "settings.json");
-        File.WriteAllText(path, $"{{\"schemaVersion\":1,\"revision\":1,\"inputScheme\":{number},\"statusBarVisible\":true,\"fuzzyRuleMask\":0}}");
-        using var host = new ImeHostService(hostBaseDirectory: fixture.HostRoot, productSettingsPath: path, userDictionaryPath: path + ".user");
+        File.WriteAllText
+        (
+            path,
+            $"{{\"schemaVersion\":1,\"revision\":1,\"inputScheme\":{number},\"statusBarVisible\":true,\"fuzzyRuleMask\":0}}"
+        );
+        using var host = new ImeHostService
+            (hostBaseDirectory: fixture.HostRoot, productSettingsPath: path, userDictionaryPath: path + ".user");
         Assert.Equal(scheme, (await host.GetHostStatusAsync()).DictionaryInputScheme);
     }
 
-    private IImeDictionary Load(string scheme) => DictionaryPackageLoader.Load(
-        DictionaryPackageLocations.ResolvePackageDirectory(inputScheme: scheme, baseDirectory: fixture.HostRoot));
+    private IImeDictionary Load(string scheme) => DictionaryPackageLoader.Load
+    (
+        DictionaryPackageLocations.ResolvePackageDirectory(inputScheme: scheme, baseDirectory: fixture.HostRoot)
+    );
 }

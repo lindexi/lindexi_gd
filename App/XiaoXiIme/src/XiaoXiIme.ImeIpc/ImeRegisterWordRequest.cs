@@ -5,12 +5,14 @@ namespace XiaoXiIme.ImeIpc;
 /// <summary>
 /// Registers, unregisters, or enumerates user dictionary words without changing the session composition.
 /// </summary>
-public sealed record ImeRegisterWordRequest(
+public sealed record ImeRegisterWordRequest
+(
     ImeRegisterWordAction Action = ImeRegisterWordAction.Register,
     string Reading = "",
     string Text = "",
     uint Style = 0,
-    ImeSessionId SessionId = default)
+    ImeSessionId SessionId = default
+)
 {
     public ImeSessionId EffectiveSessionId => SessionId.Effective;
 }

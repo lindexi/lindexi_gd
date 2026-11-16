@@ -7,7 +7,9 @@ internal static class DefaultDictionaryPackageBuilder
     internal const string FullPinyinPackageDirectoryName = DictionaryPackageLocations.FullPinyinPackageDirectoryName;
     internal const string FullPinyinInputScheme = DictionaryPackageLocations.FullPinyinInputScheme;
     internal const string XiaoheDoublePinyinInputScheme = DictionaryPackageLocations.XiaoheDoublePinyinInputScheme;
-    internal static readonly string XiaoheDoublePinyinPackageRelativePath = DictionaryPackageLocations.XiaoheDoublePinyinPackageRelativePath;
+
+    internal static readonly string XiaoheDoublePinyinPackageRelativePath =
+        DictionaryPackageLocations.XiaoheDoublePinyinPackageRelativePath;
 
     internal static void Build(string sourceDirectory, string hostOutputDirectory)
     {
@@ -29,22 +31,30 @@ internal static class DefaultDictionaryPackageBuilder
         var symbolSources = FindSources(sourceRoot, "*.symbols.tsv");
         Directory.CreateDirectory(hostRoot);
         foreach (var scheme in PhoneticSchemeCatalog.All.Where(item => item.ProductScheme.HasValue))
-            BuildPackage(hostRoot, DictionaryPackageLocations.GetRelativePackageDirectory(scheme.SchemeId),
-                scheme.SchemeId, phoneticSources, shapeSources, symbolSources);
+        {
+            BuildPackage
+            (
+                hostRoot, DictionaryPackageLocations.GetRelativePackageDirectory(scheme.SchemeId),
+                scheme.SchemeId, phoneticSources, shapeSources, symbolSources
+            );
+        }
     }
 
-    private static void BuildPackage(
+    private static void BuildPackage
+    (
         string hostRoot,
         string relativePackagePath,
         string inputScheme,
         IReadOnlyList<string> phoneticSources,
         IReadOnlyList<string> shapeSources,
-        IReadOnlyList<string> symbolSources)
+        IReadOnlyList<string> symbolSources
+    )
     {
         var packagePath = Path.Combine(hostRoot, relativePackagePath);
         DeleteDirectoryIfExists(packagePath);
         DeleteDirectoryIfExists($"{packagePath}.previous");
-        LocalDictionaryPackageManager.Update(
+        LocalDictionaryPackageManager.Update
+        (
             new LocalDictionaryPackageUpdate
             {
                 PhoneticSourcePaths = phoneticSources,
@@ -52,7 +62,8 @@ internal static class DefaultDictionaryPackageBuilder
                 SymbolSourcePaths = symbolSources,
                 Parameters = new DictionaryPackageParameters { InputScheme = inputScheme },
             },
-            packagePath);
+            packagePath
+        );
     }
 
     internal static string EnsureRequiredSources(string sourceDirectory)
@@ -80,7 +91,10 @@ internal static class DefaultDictionaryPackageBuilder
         var sourcePath = Path.Combine(sourceRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
         if (!File.Exists(sourcePath))
         {
-            throw new InvalidOperationException($"Required XiaoXiIme default dictionary source was not found: {relativePath}. Run dictionary-convert-sewzc first.");
+            throw new InvalidOperationException
+            (
+                $"Required XiaoXiIme default dictionary source was not found: {relativePath}. Run dictionary-convert-sewzc first."
+            );
         }
     }
 

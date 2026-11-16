@@ -69,10 +69,12 @@ public class ImeHostIpcIntegrationTests
     {
         var options = new XiaoXiImeIpcOptions($"XiaoXiIme_Test_{Guid.NewGuid():N}");
         var hostRoot = CreateHostLayout();
-        using var host = new ImeHostService(
+        using var host = new ImeHostService
+        (
             options,
             inputScheme: DictionaryPackageLocations.XiaoheDoublePinyinInputScheme,
-            hostBaseDirectory: hostRoot);
+            hostBaseDirectory: hostRoot
+        );
         using var client = new XiaoXiImeIpcClient(options);
 
         host.Start();
@@ -148,7 +150,8 @@ public class ImeHostIpcIntegrationTests
         var options = new XiaoXiImeIpcOptions($"XiaoXiIme_Test_{Guid.NewGuid():N}");
         var hostRoot = CreateHostLayout();
         var userDictionaryPath = Path.Combine(hostRoot, "user-dictionary.json");
-        using var host = new ImeHostService(options, hostBaseDirectory: hostRoot, userDictionaryPath: userDictionaryPath);
+        using var host = new ImeHostService
+            (options, hostBaseDirectory: hostRoot, userDictionaryPath: userDictionaryPath);
         using var client = new XiaoXiImeIpcClient(options);
 
         host.Start();
@@ -169,14 +172,18 @@ public class ImeHostIpcIntegrationTests
     [Fact]
     public async Task ImeHostService_WhenWordIsRegisteredThenPersistsForNewHost()
     {
-        var packagePath = CreatePackage(
-        [
-            new PhoneticDictionaryEntry("你", "ni", 100),
-        ]);
-        var userDictionaryPath = Path.Combine(Path.GetTempPath(), $"XiaoXiIme_User_{Guid.NewGuid():N}", "user-dictionary.json");
+        var packagePath = CreatePackage
+        (
+            [
+                new PhoneticDictionaryEntry("你", "ni", 100),
+            ]
+        );
+        var userDictionaryPath = Path.Combine
+            (Path.GetTempPath(), $"XiaoXiIme_User_{Guid.NewGuid():N}", "user-dictionary.json");
         var options = new XiaoXiImeIpcOptions($"XiaoXiIme_Test_{Guid.NewGuid():N}");
 
-        using (var host = new ImeHostService(options, dictionaryPackagePath: packagePath, userDictionaryPath: userDictionaryPath))
+        using (var host = new ImeHostService
+                   (options, dictionaryPackagePath: packagePath, userDictionaryPath: userDictionaryPath))
         using (var client = new XiaoXiImeIpcClient(options))
         {
             host.Start();
@@ -186,13 +193,19 @@ public class ImeHostIpcIntegrationTests
             Assert.True(registered.Succeeded);
         }
 
-        using var reloadedHost = new ImeHostService(dictionaryPackagePath: packagePath, userDictionaryPath: userDictionaryPath);
+        using var reloadedHost = new ImeHostService
+            (dictionaryPackagePath: packagePath, userDictionaryPath: userDictionaryPath);
         var result = await reloadedHost.SetCompositionAsync("zidingyi");
-        var unregistered = await reloadedHost.RegisterWordAsync(new ImeRegisterWordRequest(ImeRegisterWordAction.Unregister, "zidingyi", "自定义"));
+        var unregistered = await reloadedHost.RegisterWordAsync
+            (new ImeRegisterWordRequest(ImeRegisterWordAction.Unregister, "zidingyi", "自定义"));
 
         Assert.Equal("自定义", result.Snapshot.Candidates[0].Text);
         Assert.True(unregistered.Succeeded);
-        Assert.Empty((await reloadedHost.RegisterWordAsync(new ImeRegisterWordRequest(ImeRegisterWordAction.Enumerate, "zidingyi", "自定义"))).Entries);
+        Assert.Empty
+        (
+            (await reloadedHost.RegisterWordAsync
+                (new ImeRegisterWordRequest(ImeRegisterWordAction.Enumerate, "zidingyi", "自定义"))).Entries
+        );
     }
 
     [Fact(Timeout = 5_000)]
@@ -245,7 +258,8 @@ public class ImeHostIpcIntegrationTests
     [Theory(Timeout = 5_000)]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task IpcClient_WhenInterleavedSecondSessionCancelsOrRecomposesAndCommitsThenKeepsFirstSession(bool commit)
+    public async Task IpcClient_WhenInterleavedSecondSessionCancelsOrRecomposesAndCommitsThenKeepsFirstSession
+        (bool commit)
     {
         var options = new XiaoXiImeIpcOptions($"XiaoXiIme_Test_{Guid.NewGuid():N}");
         var hostRoot = CreateHostLayout();
@@ -267,14 +281,16 @@ public class ImeHostIpcIntegrationTests
         await client.ProcessKeyAsync(new ImeKey(commit ? ImeKeyKind.Space : ImeKeyKind.Escape), secondSession);
         var after = await client.GetSnapshotAsync(firstSession);
 
-        Assert.Equal(
+        Assert.Equal
+        (
             new[] { (true, "ni", "你"), (true, "ni", "你"), (true, "ni", "你") },
             new[]
             {
                 (before.IsComposing, before.Composition.Reading, before.Candidates[0].Text),
                 (afterCancel.IsComposing, afterCancel.Composition.Reading, afterCancel.Candidates[0].Text),
                 (after.IsComposing, after.Composition.Reading, after.Candidates[0].Text),
-            });
+            }
+        );
     }
 
     [Fact(Timeout = 5_000)]
@@ -330,9 +346,11 @@ public class ImeHostIpcIntegrationTests
     [Fact]
     public async Task ImeHostService_WhenXiaohePackageIsLoadedThenQueriesProjectedKeys()
     {
-        var packagePath = CreatePackage(
+        var packagePath = CreatePackage
+        (
             [new PhoneticDictionaryEntry("你好", "ni hao", 200)],
-            new DictionaryPackageParameters { InputScheme = DictionaryPackageLocations.XiaoheDoublePinyinInputScheme });
+            new DictionaryPackageParameters { InputScheme = DictionaryPackageLocations.XiaoheDoublePinyinInputScheme }
+        );
         using var host = new ImeHostService(dictionaryPackagePath: packagePath);
 
         await host.ProcessKeyAsync(ImeKey.FromCharacter('n'));
@@ -356,9 +374,12 @@ public class ImeHostIpcIntegrationTests
 
         Assert.True(status.IsUsingFallbackDictionary);
         Assert.Equal(DictionaryPackageLocations.XiaoheDoublePinyinInputScheme, status.DictionaryInputScheme);
-        Assert.Equal(
-            DictionaryPackageLocations.ResolvePackageDirectory(inputScheme: DictionaryPackageLocations.XiaoheDoublePinyinInputScheme),
-            status.DictionaryPackagePath);
+        Assert.Equal
+        (
+            DictionaryPackageLocations.ResolvePackageDirectory
+                (inputScheme: DictionaryPackageLocations.XiaoheDoublePinyinInputScheme),
+            status.DictionaryPackagePath
+        );
     }
 
     [Fact]
@@ -377,18 +398,22 @@ public class ImeHostIpcIntegrationTests
         Assert.Equal("你好", result.Snapshot.Candidates[0].Text);
         Assert.False(status.IsUsingFallbackDictionary);
         Assert.Equal(DictionaryPackageLocations.FullPinyinInputScheme, status.DictionaryInputScheme);
-        Assert.Equal(
+        Assert.Equal
+        (
             DictionaryPackageLocations.ResolvePackageDirectory(baseDirectory: hostRoot),
-            status.DictionaryPackagePath);
+            status.DictionaryPackagePath
+        );
     }
 
     [Fact]
     public async Task ImeHostService_WhenHostLayoutRequestsXiaoheThenLoadsProjectedPackage()
     {
         var hostRoot = CreateHostLayout();
-        using var host = new ImeHostService(
+        using var host = new ImeHostService
+        (
             inputScheme: DictionaryPackageLocations.XiaoheDoublePinyinInputScheme,
-            hostBaseDirectory: hostRoot);
+            hostBaseDirectory: hostRoot
+        );
 
         await host.ProcessKeyAsync(ImeKey.FromCharacter('n'));
         await host.ProcessKeyAsync(ImeKey.FromCharacter('i'));
@@ -399,20 +424,26 @@ public class ImeHostIpcIntegrationTests
         Assert.Equal("你好", result.Snapshot.Candidates[0].Text);
         Assert.False(status.IsUsingFallbackDictionary);
         Assert.Equal(DictionaryPackageLocations.XiaoheDoublePinyinInputScheme, status.DictionaryInputScheme);
-        Assert.Equal(
-            DictionaryPackageLocations.ResolvePackageDirectory(
+        Assert.Equal
+        (
+            DictionaryPackageLocations.ResolvePackageDirectory
+            (
                 inputScheme: DictionaryPackageLocations.XiaoheDoublePinyinInputScheme,
-                baseDirectory: hostRoot),
-            status.DictionaryPackagePath);
+                baseDirectory: hostRoot
+            ),
+            status.DictionaryPackagePath
+        );
     }
 
     [Fact]
     public async Task ImeHostService_WhenHostLayoutContainsProjectTermsThenFullPinyinQueryHitsCanonicalKey()
     {
         var hostRoot = CreateHostLayout();
-        using var host = new ImeHostService(
+        using var host = new ImeHostService
+        (
             hostBaseDirectory: hostRoot,
-            userDictionaryPath: Path.Combine(hostRoot, "user-dictionary.json"));
+            userDictionaryPath: Path.Combine(hostRoot, "user-dictionary.json")
+        );
 
         ImeProcessResult result = default!;
         foreach (var character in "xiaoxiaimuyi")
@@ -432,10 +463,12 @@ public class ImeHostIpcIntegrationTests
     public async Task ImeHostService_WhenHostLayoutRequestsXiaoheThenProjectTermUsesProjectedKey()
     {
         var hostRoot = CreateHostLayout();
-        using var host = new ImeHostService(
+        using var host = new ImeHostService
+        (
             inputScheme: DictionaryPackageLocations.XiaoheDoublePinyinInputScheme,
             hostBaseDirectory: hostRoot,
-            userDictionaryPath: Path.Combine(hostRoot, "user-dictionary.json"));
+            userDictionaryPath: Path.Combine(hostRoot, "user-dictionary.json")
+        );
 
         ImeProcessResult result = default!;
         foreach (var character in "xnxiaimuyi")
@@ -479,14 +512,18 @@ public class ImeHostIpcIntegrationTests
     [Fact]
     public async Task ImeHostService_WhenCandidateSelectedThenPersistsLearningForNewHost()
     {
-        var packagePath = CreatePackage(
-        [
-            new PhoneticDictionaryEntry("你", "ni", 100),
-            new PhoneticDictionaryEntry("呢", "ni", 60),
-        ]);
-        var userDictionaryPath = Path.Combine(Path.GetTempPath(), $"XiaoXiIme_User_{Guid.NewGuid():N}", "user-dictionary.json");
+        var packagePath = CreatePackage
+        (
+            [
+                new PhoneticDictionaryEntry("你", "ni", 100),
+                new PhoneticDictionaryEntry("呢", "ni", 60),
+            ]
+        );
+        var userDictionaryPath = Path.Combine
+            (Path.GetTempPath(), $"XiaoXiIme_User_{Guid.NewGuid():N}", "user-dictionary.json");
 
-        using (var host = new ImeHostService(dictionaryPackagePath: packagePath, userDictionaryPath: userDictionaryPath))
+        using (var host = new ImeHostService
+                   (dictionaryPackagePath: packagePath, userDictionaryPath: userDictionaryPath))
         {
             await host.ProcessKeyAsync(ImeKey.FromCharacter('n'));
             await host.ProcessKeyAsync(ImeKey.FromCharacter('i'));
@@ -494,7 +531,8 @@ public class ImeHostIpcIntegrationTests
             await host.ProcessKeyAsync(new ImeKey(ImeKeyKind.Space));
         }
 
-        using var reloadedHost = new ImeHostService(dictionaryPackagePath: packagePath, userDictionaryPath: userDictionaryPath);
+        using var reloadedHost = new ImeHostService
+            (dictionaryPackagePath: packagePath, userDictionaryPath: userDictionaryPath);
         await reloadedHost.ProcessKeyAsync(ImeKey.FromCharacter('n'));
         var result = await reloadedHost.ProcessKeyAsync(ImeKey.FromCharacter('i'));
 
@@ -505,7 +543,8 @@ public class ImeHostIpcIntegrationTests
     public async Task ImeHostService_WhenUserDictionaryIsCorruptThenReportsIsolationAndContinues()
     {
         var packagePath = CreatePackage([new PhoneticDictionaryEntry("你", "ni", 100)]);
-        var userDictionaryPath = Path.Combine(Path.GetTempPath(), $"XiaoXiIme_User_{Guid.NewGuid():N}", "user-dictionary.json");
+        var userDictionaryPath = Path.Combine
+            (Path.GetTempPath(), $"XiaoXiIme_User_{Guid.NewGuid():N}", "user-dictionary.json");
         Directory.CreateDirectory(Path.GetDirectoryName(userDictionaryPath)!);
         File.WriteAllText(userDictionaryPath, "invalid-json");
 
@@ -557,16 +596,18 @@ public class ImeHostIpcIntegrationTests
         var options = new XiaoXiImeIpcOptions($"XiaoXiIme_Missing_{Guid.NewGuid():N}");
         using var client = new XiaoXiImeIpcClient(options);
 
-        var exception = await Assert.ThrowsAsync<TimeoutException>(
-            () => client.WaitUntilReadyAsync(TimeSpan.FromMilliseconds(200)));
+        var exception = await Assert.ThrowsAsync<TimeoutException>
+            (() => client.WaitUntilReadyAsync(TimeSpan.FromMilliseconds(200)));
 
         Assert.Contains("did not become ready", exception.Message, StringComparison.Ordinal);
     }
 
-    private static async Task<ImeProcessResult> ProcessCharactersAsync(
+    private static async Task<ImeProcessResult> ProcessCharactersAsync
+    (
         XiaoXiImeIpcClient client,
         string input,
-        ImeSessionId sessionId)
+        ImeSessionId sessionId
+    )
     {
         ImeProcessResult result = default!;
         foreach (var character in input)
@@ -577,9 +618,11 @@ public class ImeHostIpcIntegrationTests
         return result;
     }
 
-    private static string CreatePackage(
+    private static string CreatePackage
+    (
         IReadOnlyList<PhoneticDictionaryEntry> entries,
-        DictionaryPackageParameters? parameters = null)
+        DictionaryPackageParameters? parameters = null
+    )
     {
         var packagePath = Path.Combine(Path.GetTempPath(), $"XiaoXiIme_HostPackage_{Guid.NewGuid():N}");
         DictionaryPackageCompiler.Compile(entries, packagePath, parameters);
@@ -591,14 +634,17 @@ public class ImeHostIpcIntegrationTests
         var hostRoot = Path.Combine(Path.GetTempPath(), $"XiaoXiIme_HostLayout_{Guid.NewGuid():N}");
         var entries = new List<PhoneticDictionaryEntry> { new("你", "ni", 100), new("你好", "ni hao", 200) };
         entries.AddRange(XiaoXiImeProjectTerms.Parse());
-        DictionaryPackageCompiler.Compile(
+        DictionaryPackageCompiler.Compile
+        (
             entries,
-            Path.Combine(hostRoot, DictionaryPackageLocations.FullPinyinPackageDirectoryName));
-        DictionaryPackageCompiler.Compile(
+            Path.Combine(hostRoot, DictionaryPackageLocations.FullPinyinPackageDirectoryName)
+        );
+        DictionaryPackageCompiler.Compile
+        (
             entries,
             Path.Combine(hostRoot, DictionaryPackageLocations.XiaoheDoublePinyinPackageRelativePath),
-            new DictionaryPackageParameters { InputScheme = DictionaryPackageLocations.XiaoheDoublePinyinInputScheme });
+            new DictionaryPackageParameters { InputScheme = DictionaryPackageLocations.XiaoheDoublePinyinInputScheme }
+        );
         return hostRoot;
     }
 }
-

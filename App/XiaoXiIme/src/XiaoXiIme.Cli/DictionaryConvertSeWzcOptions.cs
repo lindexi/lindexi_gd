@@ -2,7 +2,11 @@ using DotNetCampus.Cli.Compiler;
 
 namespace XiaoXiIme.Cli;
 
-[Command("dictionary-convert-sewzc", Description = "One-time conversion of a SeWZC dictionary snapshot into XiaoXiIme native TSV sources.")]
+[Command
+(
+    "dictionary-convert-sewzc",
+    Description = "One-time conversion of a SeWZC dictionary snapshot into XiaoXiIme native TSV sources."
+)]
 internal sealed class DictionaryConvertSeWzcOptions
 {
     [Value(0, Description = "Copied SeWZC data/dictionaries snapshot directory.")]

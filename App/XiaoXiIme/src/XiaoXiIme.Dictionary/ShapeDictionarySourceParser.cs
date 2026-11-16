@@ -43,7 +43,8 @@ public static class ShapeDictionarySourceParser
                 throw CreateException(filePath, lineNumber, DictionaryResources.LineTooLong);
             }
 
-            if (string.IsNullOrWhiteSpace(line) || line.AsSpan().TrimStart().StartsWith(ImeDictionarySourceFormat.CommentMarker))
+            if (string.IsNullOrWhiteSpace
+                    (line) || line.AsSpan().TrimStart().StartsWith(ImeDictionarySourceFormat.CommentMarker))
             {
                 continue;
             }

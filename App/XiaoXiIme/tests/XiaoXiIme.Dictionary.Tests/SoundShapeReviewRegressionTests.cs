@@ -38,19 +38,36 @@ public class SoundShapeReviewRegressionTests
             _ => new ImeConfirmedSegment("你", "ni", 2, 2, 1, 1),
         };
         var text = defect is "gap" or "incomplete" ? "你你你" : "你你";
-        var error = Record.Exception(() => dictionary.Learn(new(new ImeCandidate(text, "ni ni", 40), "nini")
-        { Segments = [new("你", "ni", 0, 2, 0, 1), second] }));
-        Assert.Equal((typeof(ArgumentException), 0, 1L), (error?.GetType(), dictionary.GetEntries().Count, dictionary.GetLexicon().Version));
+        var error = Record.Exception
+        (() => dictionary.Learn
+            (
+                new(new ImeCandidate(text, "ni ni", 40), "nini")
+                    { Segments = [new("你", "ni", 0, 2, 0, 1), second] }
+            )
+        );
+        Assert.Equal
+        (
+            (typeof(ArgumentException), 0, 1L),
+            (error?.GetType(), dictionary.GetEntries().Count, dictionary.GetLexicon().Version)
+        );
     }
 
     [Fact]
     public void R06_InputGapRejectsEntireLearningEvent()
     {
         var dictionary = new UserDictionary(new InMemoryImeDictionary(CreateLexicon()));
-        var error = Record.Exception(() => dictionary.Learn(new(new ImeCandidate("你你", "ni ni", 40), "niqni")
-        { Segments = [new("你", "ni", 0, 2, 0, 1), new("你", "ni", 3, 2, 1, 1)] }));
-        Assert.Equal((typeof(ArgumentException), 0, 1L),
-            (error?.GetType(), dictionary.GetEntries().Count, dictionary.GetLexicon().Version));
+        var error = Record.Exception
+        (() => dictionary.Learn
+            (
+                new(new ImeCandidate("你你", "ni ni", 40), "niqni")
+                    { Segments = [new("你", "ni", 0, 2, 0, 1), new("你", "ni", 3, 2, 1, 1)] }
+            )
+        );
+        Assert.Equal
+        (
+            (typeof(ArgumentException), 0, 1L),
+            (error?.GetType(), dictionary.GetEntries().Count, dictionary.GetLexicon().Version)
+        );
     }
 
     [Theory]
@@ -59,8 +76,11 @@ public class SoundShapeReviewRegressionTests
     public void R07_V1RecoversAllCandidatesBeyondPrefixCache(string scheme)
     {
         var path = Path.Combine(Path.GetTempPath(), "XiaoXiIme.Review", Guid.NewGuid().ToString("N"));
-        DictionaryPackageCompiler.Compile(Enumerable.Range(0, 110).Select(i => new PhoneticDictionaryEntry($"词{i}", "ni", i)), path,
-            new DictionaryPackageParameters { InputScheme = scheme, MaxPrefixCandidatesPerKey = 1 });
+        DictionaryPackageCompiler.Compile
+        (
+            Enumerable.Range(0, 110).Select(i => new PhoneticDictionaryEntry($"词{i}", "ni", i)), path,
+            new DictionaryPackageParameters { InputScheme = scheme, MaxPrefixCandidatesPerKey = 1 }
+        );
         Assert.Equal(110, DictionaryPackageLoader.Load(path).GetLexicon().Entries.Count);
     }
 

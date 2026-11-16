@@ -39,7 +39,8 @@ public static unsafe class ImeExports
             *inquireInfo = ImeExportsContract.CreateDefaultInquireInfo();
             if (className is not null)
             {
-                CopyNullTerminated(ImeExportsContract.ImeUiClassName, className, ImeExportsContract.ImeUiClassBufferLength);
+                CopyNullTerminated
+                    (ImeExportsContract.ImeUiClassName, className, ImeExportsContract.ImeUiClassBufferLength);
             }
 
             return 1;
@@ -66,11 +67,15 @@ public static unsafe class ImeExports
             }
 
             var registerWord = (RegisterWord*)data;
-            return MutateRegisterWord(
+            return MutateRegisterWord
+            (
                 ImeRegisterWordAction.Register,
                 registerWord->Reading,
                 ImeConstants.ImeRegWordStyleUserFirst,
-                registerWord->Word) ? 1 : 0;
+                registerWord->Word
+            )
+                ? 1
+                : 0;
         }
         catch
         {
@@ -79,16 +84,19 @@ public static unsafe class ImeExports
     }
 
     [UnmanagedCallersOnly(EntryPoint = "ImeConversionList", CallConvs = [typeof(CallConvStdcall)])]
-    public static uint ImeConversionList(nint inputContext, char* source, void* destination, uint bufferLength, uint flag)
+    public static uint ImeConversionList
+        (nint inputContext, char* source, void* destination, uint bufferLength, uint flag)
     {
         return ImeConversionListManaged(inputContext, source, destination, bufferLength, flag);
     }
 
-    internal static uint ImeConversionListManaged(nint inputContext, char* source, void* destination, uint bufferLength, uint flag)
+    internal static uint ImeConversionListManaged
+        (nint inputContext, char* source, void* destination, uint bufferLength, uint flag)
     {
         try
         {
-            if (flag is not (ImeConstants.GclConversion or ImeConstants.GclReverseConversion or ImeConstants.GclReverseLength))
+            if (flag is not (ImeConstants.GclConversion or ImeConstants.GclReverseConversion
+                or ImeConstants.GclReverseLength))
             {
                 return 0;
             }
@@ -181,17 +189,24 @@ public static unsafe class ImeExports
 
         try
         {
-            var key = ImeKeyTranslator.TranslateNative(normalizedVirtualKey,
-                (uint)((unchecked((ulong)keyData) >> 16) & 0xFF), keyState, GetModifiers(keyState));
+            var key = ImeKeyTranslator.TranslateNative
+            (
+                normalizedVirtualKey,
+                (uint)((unchecked((ulong)keyData) >> 16) & 0xFF), keyState, GetModifiers(keyState)
+            );
             var handled = ImeModuleRuntime.ShouldProcessTranslatedKey(key, new HImc(inputContext));
             ImeKeystrokeDiagnostics.RecordImeProcessKey(normalizedVirtualKey, handled);
             if (normalizedVirtualKey == 0x20)
+            {
                 ImeLifecycleDiagnostics.Record("ImeProcessKey.Space", inputContext, handled ? 1 : 0, "decision");
+            }
+
             return handled;
         }
         catch (Exception exception)
         {
-            ImeKeystrokeDiagnostics.RecordImeProcessKey(normalizedVirtualKey, false, unchecked((uint)exception.HResult));
+            ImeKeystrokeDiagnostics.RecordImeProcessKey
+                (normalizedVirtualKey, false, unchecked((uint)exception.HResult));
             return false;
         }
     }
@@ -235,7 +250,11 @@ public static unsafe class ImeExports
 
             var style = (StyleBuf*)styleBuffer;
             style->Style = ImeConstants.ImeRegWordStyleUserFirst;
-            CopyNullTerminated(ImeExportsContract.UserWordStyleDescription, style->Description, ImeConstants.StyleDescriptionBufferLength);
+            CopyNullTerminated
+            (
+                ImeExportsContract.UserWordStyleDescription, style->Description,
+                ImeConstants.StyleDescriptionBufferLength
+            );
             return 1;
         }
         catch
@@ -265,10 +284,15 @@ public static unsafe class ImeExports
                 return 0;
             }
 
-            var response = ImeModuleRuntime.RegisterWord(new ImeRegisterWordRequest(
-                ImeRegisterWordAction.Enumerate,
-                ReadNullTerminated(reading) ?? string.Empty,
-                ReadNullTerminated(value) ?? string.Empty));
+            var response = ImeModuleRuntime.RegisterWord
+            (
+                new ImeRegisterWordRequest
+                (
+                    ImeRegisterWordAction.Enumerate,
+                    ReadNullTerminated(reading) ?? string.Empty,
+                    ReadNullTerminated(value) ?? string.Empty
+                )
+            );
             var nativeCallback = enumProc == 0
                 ? null
                 : (delegate* unmanaged[Stdcall]<char*, uint, char*, void*, int>)enumProc;
@@ -311,7 +335,10 @@ public static unsafe class ImeExports
         try
         {
             if (select != 0)
+            {
                 ImeModuleRuntime.ActivateSelectedContext(new HImc(inputContext));
+            }
+
             if (select == 0)
             {
                 ImeModuleRuntime.SetActiveContext(new HImc(inputContext), false);
@@ -352,12 +379,15 @@ public static unsafe class ImeExports
     }
 
     [UnmanagedCallersOnly(EntryPoint = "ImeSetCompositionString", CallConvs = [typeof(CallConvStdcall)])]
-    public static int ImeSetCompositionString(nint inputContext, uint index, void* composition, uint compositionLength, void* reading, uint readingLength)
+    public static int ImeSetCompositionString
+        (nint inputContext, uint index, void* composition, uint compositionLength, void* reading, uint readingLength)
     {
-        return ImeSetCompositionStringManaged(inputContext, index, composition, compositionLength, reading, readingLength);
+        return ImeSetCompositionStringManaged
+            (inputContext, index, composition, compositionLength, reading, readingLength);
     }
 
-    internal static int ImeSetCompositionStringManaged(nint inputContext, uint index, void* composition, uint compositionLength, void* reading, uint readingLength)
+    internal static int ImeSetCompositionStringManaged
+        (nint inputContext, uint index, void* composition, uint compositionLength, void* reading, uint readingLength)
     {
         try
         {
@@ -394,20 +424,26 @@ public static unsafe class ImeExports
     }
 
     [UnmanagedCallersOnly(EntryPoint = "ImeToAsciiEx", CallConvs = [typeof(CallConvStdcall)])]
-    public static uint ImeToAsciiEx(uint virtualKey, uint scanCode, byte* keyState, nint transKey, uint state, nint inputContext)
+    public static uint ImeToAsciiEx
+        (uint virtualKey, uint scanCode, byte* keyState, nint transKey, uint state, nint inputContext)
     {
         return ImeToAsciiExManaged(virtualKey, scanCode, keyState, transKey, state, inputContext);
     }
 
-    internal static uint ImeToAsciiExManaged(uint virtualKey, uint scanCode, byte* keyState, nint transKey, uint state, nint inputContext)
+    internal static uint ImeToAsciiExManaged
+        (uint virtualKey, uint scanCode, byte* keyState, nint transKey, uint state, nint inputContext)
     {
         var normalizedVirtualKey = (ushort)virtualKey;
         if (normalizedVirtualKey == 0x20)
+        {
             ImeLifecycleDiagnostics.Record("ImeToAsciiEx.Space", inputContext, 0, "entry");
+        }
+
         uint stage = 1;
         try
         {
-            var key = ImeKeyTranslator.TranslateNative(normalizedVirtualKey, scanCode, keyState, GetModifiers(keyState));
+            var key = ImeKeyTranslator.TranslateNative
+                (normalizedVirtualKey, scanCode, keyState, GetModifiers(keyState));
             stage = 2;
             var wasComposing = ImeModuleRuntime.IsComposing(new HImc(inputContext));
             var processResult = key.Kind is ImeKeyKind.Other
@@ -415,7 +451,11 @@ public static unsafe class ImeExports
                 : ImeModuleRuntime.ProcessTranslatedKey(key, new HImc(inputContext));
             var result = ImeToAsciiResult.FromProcessResult(processResult);
             if (normalizedVirtualKey == 0x20)
-                ImeLifecycleDiagnostics.Record("ImeToAsciiEx.Space", inputContext, result.Handled ? 1 : 0, "after-host");
+            {
+                ImeLifecycleDiagnostics.Record
+                    ("ImeToAsciiEx.Space", inputContext, result.Handled ? 1 : 0, "after-host");
+            }
+
             stage = 3;
             var compositionWriteSucceeded = s_compositionContextWriter.TryWrite(new HImc(inputContext), result);
             stage = 4;
@@ -425,14 +465,22 @@ public static unsafe class ImeExports
             var written = ImeTransMsgWriter.Write(transKey, messages);
             var returnValue = written != 0 ? written : result.Handled ? 1u : 0u;
             if (normalizedVirtualKey == 0x20)
-                ImeLifecycleDiagnostics.Record("ImeToAsciiEx.Space", inputContext, compositionWriteSucceeded ? 1 : 0,
-                    $"return handled={result.Handled} commit={result.CommitText} capacity={capacity} messages={messages.Length} written={written} return={returnValue} bridgeError={ImeModuleRuntime.LastBridgeError}");
-            ImeKeystrokeDiagnostics.RecordImeToAsciiEx(normalizedVirtualKey, result.Handled, compositionWriteSucceeded, written, returnValue, stage: stage);
+            {
+                ImeLifecycleDiagnostics.Record
+                (
+                    "ImeToAsciiEx.Space", inputContext, compositionWriteSucceeded ? 1 : 0,
+                    $"return handled={result.Handled} commit={result.CommitText} capacity={capacity} messages={messages.Length} written={written} return={returnValue} bridgeError={ImeModuleRuntime.LastBridgeError}"
+                );
+            }
+
+            ImeKeystrokeDiagnostics.RecordImeToAsciiEx
+                (normalizedVirtualKey, result.Handled, compositionWriteSucceeded, written, returnValue, stage: stage);
             return returnValue;
         }
         catch (Exception exception)
         {
-            ImeKeystrokeDiagnostics.RecordImeToAsciiEx(normalizedVirtualKey, false, false, 0, 0, unchecked((uint)exception.HResult), stage);
+            ImeKeystrokeDiagnostics.RecordImeToAsciiEx
+                (normalizedVirtualKey, false, false, 0, 0, unchecked((uint)exception.HResult), stage);
             return 0;
         }
     }
@@ -450,9 +498,13 @@ public static unsafe class ImeExports
         {
             return action switch
             {
-                ImeConstants.NiSelectCandidateStr => ApplyTranslatedKey(
+                ImeConstants.NiSelectCandidateStr => ApplyTranslatedKey
+                (
                     ImeKey.SelectCandidate(unchecked((int)value)),
-                    inputContext).Handled ? 1 : 0,
+                    inputContext
+                ).Handled
+                    ? 1
+                    : 0,
                 ImeConstants.NiCompositionStr => ApplyCompositionNotify(value, inputContext),
                 0x0003 => RefreshInputTarget(inputContext),
                 _ => 0,
@@ -494,7 +546,8 @@ public static unsafe class ImeExports
         return virtualKey == 0 ? 0 : ApplyControlKey(virtualKey, inputContext).Handled ? 1 : 0;
     }
 
-    private static ImeToAsciiResult ApplyControlKey(ushort virtualKey, nint inputContext, [CallerMemberName] string source = "")
+    private static ImeToAsciiResult ApplyControlKey
+        (ushort virtualKey, nint inputContext, [CallerMemberName] string source = "")
     {
         ImeLifecycleDiagnostics.Record(source, inputContext, virtualKey, "control-key");
         return ApplyTranslatedKey(ImeKeyTranslator.Translate(virtualKey), inputContext);
@@ -560,12 +613,32 @@ public static unsafe class ImeExports
     {
         const int shiftVirtualKey = 0x10;
         const byte keyDownMask = 0x80;
-        if (keyState is null) return 0;
+        if (keyState is null)
+        {
+            return 0;
+        }
+
         uint modifiers = 0;
-        if ((keyState[shiftVirtualKey] & keyDownMask) != 0) modifiers |= ImeKeyTranslator.ShiftModifier;
-        if ((keyState[0x11] & keyDownMask) != 0) modifiers |= ImeKeyTranslator.ControlModifier;
-        if ((keyState[0x12] & keyDownMask) != 0) modifiers |= ImeKeyTranslator.AltModifier;
-        if (((keyState[0x5B] | keyState[0x5C]) & keyDownMask) != 0) modifiers |= ImeKeyTranslator.MetaModifier;
+        if ((keyState[shiftVirtualKey] & keyDownMask) != 0)
+        {
+            modifiers |= ImeKeyTranslator.ShiftModifier;
+        }
+
+        if ((keyState[0x11] & keyDownMask) != 0)
+        {
+            modifiers |= ImeKeyTranslator.ControlModifier;
+        }
+
+        if ((keyState[0x12] & keyDownMask) != 0)
+        {
+            modifiers |= ImeKeyTranslator.AltModifier;
+        }
+
+        if (((keyState[0x5B] | keyState[0x5C]) & keyDownMask) != 0)
+        {
+            modifiers |= ImeKeyTranslator.MetaModifier;
+        }
+
         return modifiers;
     }
 

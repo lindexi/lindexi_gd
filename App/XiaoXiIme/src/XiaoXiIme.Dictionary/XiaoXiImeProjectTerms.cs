@@ -48,6 +48,7 @@ public static class XiaoXiImeProjectTerms
     private static Stream Open()
     {
         return typeof(XiaoXiImeProjectTerms).Assembly.GetManifestResourceStream(ResourceName)
-            ?? throw new InvalidOperationException($"Embedded XiaoXiIme project-term source was not found: {ResourceName}");
+               ?? throw new InvalidOperationException
+                   ($"Embedded XiaoXiIme project-term source was not found: {ResourceName}");
     }
 }

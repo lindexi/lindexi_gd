@@ -37,7 +37,7 @@ internal static unsafe class TsfTextService
         }
 
         *result = 0;
-        var instance = (TextServiceObject*) NativeMemory.AllocZeroed((nuint) sizeof(TextServiceObject));
+        var instance = (TextServiceObject*)NativeMemory.AllocZeroed((nuint)sizeof(TextServiceObject));
         if (instance is null)
         {
             return TsfHResults.E_OUTOFMEMORY;
@@ -59,32 +59,32 @@ internal static unsafe class TsfTextService
     private static void** CreateTextInputProcessorVtable()
     {
         var vtable = AllocateVtable(5);
-        vtable[0] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, Guid*, nint*, int>) &QueryInterface;
-        vtable[1] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, uint>) &AddRef;
-        vtable[2] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, uint>) &Release;
-        vtable[3] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, nint, uint, int>) &Activate;
-        vtable[4] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, int>) &Deactivate;
+        vtable[0] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, Guid*, nint*, int>)&QueryInterface;
+        vtable[1] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, uint>)&AddRef;
+        vtable[2] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, uint>)&Release;
+        vtable[3] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, nint, uint, int>)&Activate;
+        vtable[4] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, int>)&Deactivate;
         return vtable;
     }
 
     private static void** CreateKeyEventSinkVtable()
     {
         var vtable = AllocateVtable(9);
-        vtable[0] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, Guid*, nint*, int>) &QueryInterface;
-        vtable[1] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, uint>) &AddRef;
-        vtable[2] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, uint>) &Release;
-        vtable[3] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, int, int>) &OnSetFocus;
-        vtable[4] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, nint, nuint, nint, int*, int>) &OnTestKeyDown;
-        vtable[5] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, nint, nuint, nint, int*, int>) &OnTestKeyUp;
-        vtable[6] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, nint, nuint, nint, int*, int>) &OnKeyDown;
-        vtable[7] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, nint, nuint, nint, int*, int>) &OnKeyUp;
-        vtable[8] = (void*) (delegate* unmanaged[Stdcall]<InterfaceNode*, nint, Guid*, int*, int>) &OnPreservedKey;
+        vtable[0] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, Guid*, nint*, int>)&QueryInterface;
+        vtable[1] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, uint>)&AddRef;
+        vtable[2] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, uint>)&Release;
+        vtable[3] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, int, int>)&OnSetFocus;
+        vtable[4] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, nint, nuint, nint, int*, int>)&OnTestKeyDown;
+        vtable[5] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, nint, nuint, nint, int*, int>)&OnTestKeyUp;
+        vtable[6] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, nint, nuint, nint, int*, int>)&OnKeyDown;
+        vtable[7] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, nint, nuint, nint, int*, int>)&OnKeyUp;
+        vtable[8] = (void*)(delegate* unmanaged[Stdcall]<InterfaceNode*, nint, Guid*, int*, int>)&OnPreservedKey;
         return vtable;
     }
 
     private static void** AllocateVtable(int slots)
     {
-        var vtable = (void**) NativeMemory.Alloc((nuint) (sizeof(void*) * slots));
+        var vtable = (void**)NativeMemory.Alloc((nuint)(sizeof(void*) * slots));
         if (vtable is null)
         {
             Environment.FailFast("Unable to allocate a TSF text service vtable.");
@@ -95,15 +95,17 @@ internal static unsafe class TsfTextService
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static int QueryInterface(InterfaceNode* self, Guid* interfaceId, nint* result) =>
-        TsfUnmanagedBoundary.Invoke(() =>
-        {
-            if (self is null || interfaceId is null)
+        TsfUnmanagedBoundary.Invoke
+        (() =>
             {
-                return TsfHResults.E_POINTER;
-            }
+                if (self is null || interfaceId is null)
+                {
+                    return TsfHResults.E_POINTER;
+                }
 
-            return QueryInterfaceCore(self, *interfaceId, result);
-        });
+                return QueryInterfaceCore(self, *interfaceId, result);
+            }
+        );
 
     private static int QueryInterfaceCore(InterfaceNode* self, Guid interfaceId, nint* result)
     {
@@ -145,7 +147,7 @@ internal static unsafe class TsfTextService
     }
 
     private static uint AddRefCore(TextServiceObject* owner) =>
-        unchecked((uint) Interlocked.Increment(ref owner->ReferenceCount));
+        unchecked((uint)Interlocked.Increment(ref owner->ReferenceCount));
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static uint Release(InterfaceNode* self)
@@ -170,7 +172,7 @@ internal static unsafe class TsfTextService
             TsfComServer.ReleaseObject();
         }
 
-        return count < 0 ? 0 : unchecked((uint) count);
+        return count < 0 ? 0 : unchecked((uint)count);
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
@@ -179,7 +181,8 @@ internal static unsafe class TsfTextService
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static int Deactivate(InterfaceNode* self) =>
-        TsfUnmanagedBoundary.Invoke(() => self is null ? TsfHResults.E_POINTER : DeactivateCore(self->Owner, enforceApartment: true));
+        TsfUnmanagedBoundary.Invoke
+            (() => self is null ? TsfHResults.E_POINTER : DeactivateCore(self->Owner, enforceApartment: true));
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static int OnSetFocus(InterfaceNode* self, int foreground) =>
@@ -270,8 +273,10 @@ internal static unsafe class TsfTextService
         }
 
         owner->KeystrokeManager = keystrokeManager;
-        var vtable = *(void***) keystrokeManager;
-        var advise = (delegate* unmanaged[Stdcall]<nint, uint, nint, int, int>) vtable[TsfNative.KeystrokeManagerAdviseKeyEventSinkSlot];
+        var vtable = *(void***)keystrokeManager;
+        var advise =
+            (delegate* unmanaged[Stdcall]<nint, uint, nint, int, int>)vtable[
+                TsfNative.KeystrokeManagerAdviseKeyEventSinkSlot];
         hr = advise(keystrokeManager, clientId, (nint)(&owner->KeyEventSink), 1);
         if (hr < 0)
         {
@@ -299,8 +304,10 @@ internal static unsafe class TsfTextService
         var result = TsfHResults.S_OK;
         if (owner->IsKeyEventSinkAdvised != 0 && owner->KeystrokeManager != 0)
         {
-            var vtable = *(void***) owner->KeystrokeManager;
-            var unadvise = (delegate* unmanaged[Stdcall]<nint, uint, int>) vtable[TsfNative.KeystrokeManagerUnadviseKeyEventSinkSlot];
+            var vtable = *(void***)owner->KeystrokeManager;
+            var unadvise =
+                (delegate* unmanaged[Stdcall]<nint, uint, int>)vtable[
+                    TsfNative.KeystrokeManagerUnadviseKeyEventSinkSlot];
             result = unadvise(owner->KeystrokeManager, owner->ClientId);
         }
 
@@ -359,16 +366,18 @@ internal static unsafe class TsfTextService
 
         try
         {
-            var vtable = *(void***) context;
+            var vtable = *(void***)context;
             var requestEditSession = (delegate* unmanaged[Stdcall]<nint, uint, nint, uint, int*, int>)
                 vtable[TsfNative.ContextRequestEditSessionSlot];
             var sessionResult = TsfHResults.E_UNEXPECTED;
-            hr = requestEditSession(
+            hr = requestEditSession
+            (
                 context,
                 clientId,
                 editSession,
                 TsfNative.TfEditSessionSync | TsfNative.TfEditSessionReadWrite,
-                &sessionResult);
+                &sessionResult
+            );
             return hr < 0 ? hr : sessionResult;
         }
         finally

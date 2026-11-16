@@ -40,23 +40,27 @@ public sealed unsafe class ImeCompositionContextWriter
                 if (!string.IsNullOrEmpty(result.CommitText))
                 {
                     return TryWriteResultString(inputContext, context, result.CommitText)
-                        & TryWriteCandidateInfo(inputContext, context, ImeSessionSnapshot.Empty)
-                        & TryWriteGuideLine(inputContext, context, ImeSessionSnapshot.Empty)
-                        & TryWritePrivateData(inputContext, context, ImeSessionSnapshot.Empty);
+                           & TryWriteCandidateInfo(inputContext, context, ImeSessionSnapshot.Empty)
+                           & TryWriteGuideLine(inputContext, context, ImeSessionSnapshot.Empty)
+                           & TryWritePrivateData(inputContext, context, ImeSessionSnapshot.Empty);
                 }
 
                 if (result.Snapshot.IsComposing)
                 {
-                    return TryWriteCompositionString(inputContext, context, result.Snapshot.Composition.DisplayText, result.Snapshot.Composition.Reading, result.Snapshot.Composition.CaretIndex)
-                        & TryWriteCandidateInfo(inputContext, context, result.Snapshot)
-                        & TryWriteGuideLine(inputContext, context, result.Snapshot)
-                        & TryWritePrivateData(inputContext, context, result.Snapshot);
+                    return TryWriteCompositionString
+                           (
+                               inputContext, context, result.Snapshot.Composition.DisplayText,
+                               result.Snapshot.Composition.Reading, result.Snapshot.Composition.CaretIndex
+                           )
+                           & TryWriteCandidateInfo(inputContext, context, result.Snapshot)
+                           & TryWriteGuideLine(inputContext, context, result.Snapshot)
+                           & TryWritePrivateData(inputContext, context, result.Snapshot);
                 }
 
                 return TryClearCompositionString(inputContext, context)
-                    & TryWriteCandidateInfo(inputContext, context, result.Snapshot)
-                    & TryWriteGuideLine(inputContext, context, result.Snapshot)
-                    & TryWritePrivateData(inputContext, context, result.Snapshot);
+                       & TryWriteCandidateInfo(inputContext, context, result.Snapshot)
+                       & TryWriteGuideLine(inputContext, context, result.Snapshot)
+                       & TryWritePrivateData(inputContext, context, result.Snapshot);
             }
         }
         finally
@@ -79,7 +83,8 @@ public sealed unsafe class ImeCompositionContextWriter
         return WriteCompositionString(compositionString, text, text, cursorPos);
     }
 
-    public bool TryWriteCompositionStringForTesting(CompositionString* compositionString, string text, string reading, int cursorPos)
+    public bool TryWriteCompositionStringForTesting
+        (CompositionString* compositionString, string text, string reading, int cursorPos)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(reading);
@@ -87,7 +92,11 @@ public sealed unsafe class ImeCompositionContextWriter
         return WriteCompositionString(compositionString, text, reading, cursorPos);
     }
 
-    public bool TryWriteCandidateListForTesting(CandidateInfo* candidateInfo, IReadOnlyList<ImeCandidate> candidates, ImeCandidateWindowState? candidateWindow = null)
+    public bool TryWriteCandidateListForTesting
+    (
+        CandidateInfo* candidateInfo, IReadOnlyList<ImeCandidate> candidates,
+        ImeCandidateWindowState? candidateWindow = null
+    )
     {
         ArgumentNullException.ThrowIfNull(candidates);
 
@@ -100,11 +109,13 @@ public sealed unsafe class ImeCompositionContextWriter
         return GetRequiredCandidateListSize(candidates, writeReading);
     }
 
-    public bool TryWriteConversionList(
+    public bool TryWriteConversionList
+    (
         void* destination,
         uint bufferLength,
         IReadOnlyList<ImeCandidate> candidates,
-        bool writeReading = false)
+        bool writeReading = false
+    )
     {
         ArgumentNullException.ThrowIfNull(candidates);
         if (destination is null || bufferLength == 0)
@@ -196,7 +207,8 @@ public sealed unsafe class ImeCompositionContextWriter
         return _contextAccessor.GenerateMessage(inputContext);
     }
 
-    private bool TryWriteCompositionString(HImc inputContext, InputContext* context, string text, string reading, int cursorPos)
+    private bool TryWriteCompositionString
+        (HImc inputContext, InputContext* context, string text, string reading, int cursorPos)
     {
         var requiredSize = GetRequiredSize(resultText: null, compositionText: text, compositionReading: reading);
         var compositionHandle = EnsureCompositionString(context, requiredSize);
@@ -481,11 +493,16 @@ public sealed unsafe class ImeCompositionContextWriter
 
         var target = (byte*)compositionString + compositionString->ResultStrOffset;
         resultBytes.CopyTo(new Span<byte>(target, resultBytes.Length));
-        WriteClause((uint*)((byte*)compositionString + compositionString->ResultClauseOffset), compositionString->ResultStrLength);
+        WriteClause
+        (
+            (uint*)((byte*)compositionString + compositionString->ResultClauseOffset),
+            compositionString->ResultStrLength
+        );
         return true;
     }
 
-    private static bool WriteCompositionString(CompositionString* compositionString, string text, string reading, int cursorPos)
+    private static bool WriteCompositionString
+        (CompositionString* compositionString, string text, string reading, int cursorPos)
     {
         var compositionBytes = Encoding.Unicode.GetBytes(text);
         var readingBytes = Encoding.Unicode.GetBytes(reading);
@@ -514,18 +531,25 @@ public sealed unsafe class ImeCompositionContextWriter
 
         var readingTarget = (byte*)compositionString + compositionString->CompReadStrOffset;
         readingBytes.CopyTo(new Span<byte>(readingTarget, readingBytes.Length));
-        var readingAttributes = new Span<byte>((byte*)compositionString + compositionString->CompReadAttrOffset, reading.Length);
+        var readingAttributes = new Span<byte>
+            ((byte*)compositionString + compositionString->CompReadAttrOffset, reading.Length);
         readingAttributes.Fill((byte)ImeConstants.AttrInput);
-        WriteClause((uint*)((byte*)compositionString + compositionString->CompReadClauseOffset), compositionString->CompReadStrLength);
+        WriteClause
+        (
+            (uint*)((byte*)compositionString + compositionString->CompReadClauseOffset),
+            compositionString->CompReadStrLength
+        );
         var target = (byte*)compositionString + compositionString->CompStrOffset;
         compositionBytes.CopyTo(new Span<byte>(target, compositionBytes.Length));
         var attributes = new Span<byte>((byte*)compositionString + compositionString->CompAttrOffset, text.Length);
         attributes.Fill((byte)ImeConstants.AttrInput);
-        WriteClause((uint*)((byte*)compositionString + compositionString->CompClauseOffset), compositionString->CompStrLength);
+        WriteClause
+            ((uint*)((byte*)compositionString + compositionString->CompClauseOffset), compositionString->CompStrLength);
         return true;
     }
 
-    private static bool WriteCandidateInfo(CandidateInfo* candidateInfo, IReadOnlyList<ImeCandidate> candidates, ImeCandidateWindowState candidateWindow)
+    private static bool WriteCandidateInfo
+        (CandidateInfo* candidateInfo, IReadOnlyList<ImeCandidate> candidates, ImeCandidateWindowState candidateWindow)
     {
         var requiredSize = GetRequiredCandidateInfoSize(candidates);
         Unsafe.InitBlockUnaligned(candidateInfo, 0, requiredSize);
@@ -538,17 +562,21 @@ public sealed unsafe class ImeCompositionContextWriter
         }
 
         candidateInfo->Offset[0] = (uint)Unsafe.SizeOf<CandidateInfo>();
-        return WriteCandidateList(
+        return WriteCandidateList
+        (
             (CandidateList*)((byte*)candidateInfo + candidateInfo->Offset[0]),
             candidates,
-            candidateWindow);
+            candidateWindow
+        );
     }
 
-    private static bool WriteCandidateList(
+    private static bool WriteCandidateList
+    (
         CandidateList* candidateList,
         IReadOnlyList<ImeCandidate> candidates,
         ImeCandidateWindowState candidateWindow,
-        bool writeReading = false)
+        bool writeReading = false
+    )
     {
         var candidateListSize = GetRequiredCandidateListSize(candidates, writeReading);
         candidateList->Size = candidateListSize;
@@ -556,7 +584,8 @@ public sealed unsafe class ImeCompositionContextWriter
         candidateList->Count = (uint)candidates.Count;
         candidateList->Selection = GetCandidateSelection(candidates.Count, candidateWindow.Selection);
         candidateList->PageStart = GetCandidatePageStart(candidates.Count, candidateWindow);
-        candidateList->PageSize = GetCandidatePageSize(candidates.Count, candidateList->PageStart, candidateWindow.PageSize);
+        candidateList->PageSize = GetCandidatePageSize
+            (candidates.Count, candidateList->PageStart, candidateWindow.PageSize);
 
         var textOffset = (uint)Unsafe.SizeOf<CandidateList>();
         if (candidates.Count > 1)
@@ -610,9 +639,11 @@ public sealed unsafe class ImeCompositionContextWriter
         privateData->Size = requiredSize;
         privateData->Version = ImeConstants.XiaoXiImePrivateDataVersion;
         privateData->CandidateCount = (uint)snapshot.Candidates.Count;
-        privateData->CandidateSelection = GetCandidateSelection(snapshot.Candidates.Count, snapshot.CandidateWindow.Selection);
+        privateData->CandidateSelection = GetCandidateSelection
+            (snapshot.Candidates.Count, snapshot.CandidateWindow.Selection);
         privateData->CandidatePageStart = GetCandidatePageStart(snapshot.Candidates.Count, snapshot.CandidateWindow);
-        privateData->CandidatePageSize = GetCandidatePageSize(snapshot.Candidates.Count, privateData->CandidatePageStart, snapshot.CandidateWindow.PageSize);
+        privateData->CandidatePageSize = GetCandidatePageSize
+            (snapshot.Candidates.Count, privateData->CandidatePageStart, snapshot.CandidateWindow.PageSize);
         privateData->CompositionLength = (uint)snapshot.Composition.DisplayText.Length;
         privateData->ReadingLength = (uint)snapshot.Composition.Reading.Length;
         privateData->GuidelineLevel = ToGuideLineLevel(snapshot.EffectiveGuideline.Level);

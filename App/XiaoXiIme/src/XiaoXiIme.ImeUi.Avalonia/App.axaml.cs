@@ -9,7 +9,10 @@ public sealed partial class App : Application
 {
     internal static ProductUiEntry? ProductEntry { get; set; }
     internal static Exception? StartupError { get; set; }
-    private static readonly Dictionary<string, DictionaryDebugWindow> ExperienceWindows = new(StringComparer.OrdinalIgnoreCase);
+
+    private static readonly Dictionary<string, DictionaryDebugWindow> ExperienceWindows =
+        new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Overrides the experience settings file for an embedded application instance.</summary>
     public string? ExperienceSettingsPath { get; init; }
 
@@ -20,6 +23,7 @@ public sealed partial class App : Application
         product.OpenSettings();
         return product;
     }
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -35,13 +39,28 @@ public sealed partial class App : Application
             string? packagePath = null;
             for (var i = 1; i < debugArgs.Length; i++)
             {
-                if (debugArgs[i] == "--settings") continue;
-                if (debugArgs[i] == "--debug-settings-path" && i + 1 < debugArgs.Length && Path.IsPathFullyQualified(debugArgs[i + 1]))
-                { settingsPath = debugArgs[++i]; continue; }
-                if (debugArgs[0] == "--dictionary-debug" && debugArgs[i] == "--debug-package-path" && i + 1 < debugArgs.Length && Path.IsPathFullyQualified(debugArgs[i + 1]))
-                { packagePath = debugArgs[++i]; continue; }
+                if (debugArgs[i] == "--settings")
+                {
+                    continue;
+                }
+
+                if (debugArgs[i] == "--debug-settings-path" && i + 1 < debugArgs.Length && Path.IsPathFullyQualified
+                        (debugArgs[i + 1]))
+                {
+                    settingsPath = debugArgs[++i];
+                    continue;
+                }
+
+                if (debugArgs[0] == "--dictionary-debug" && debugArgs[i] == "--debug-package-path" &&
+                    i + 1 < debugArgs.Length && Path.IsPathFullyQualified(debugArgs[i + 1]))
+                {
+                    packagePath = debugArgs[++i];
+                    continue;
+                }
+
                 throw new ArgumentException(ProductResources.Text("InvalidSettings"));
             }
+
             ProductValidationBounds.Start(standalone);
             var profile = DictionaryDebugSettings.ResolvePath(settingsPath);
             try
@@ -64,8 +83,15 @@ public sealed partial class App : Application
                     ProductEntry?.Attach(window.OpenFromEntry, () => window.Close());
                 }
             }
-            catch (IOException exception) { ShowStartupError(standalone, exception, profile); }
-            catch (UnauthorizedAccessException exception) { ShowStartupError(standalone, exception, profile); }
+            catch (IOException exception)
+            {
+                ShowStartupError(standalone, exception, profile);
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                ShowStartupError(standalone, exception, profile);
+            }
+
             standalone.ShutdownMode = global::Avalonia.Controls.ShutdownMode.OnMainWindowClose;
         }
         else if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -78,12 +104,25 @@ public sealed partial class App : Application
             var statusFilePath = positional.Length > 1 ? positional[1] : null;
             var product = new ProductUiController(options);
             desktop.Exit += (_, _) => product.Dispose();
-            ProductEntry?.Attach(async settings =>
+            ProductEntry?.Attach
+            (
+                async settings =>
+                {
+                    if (settings)
+                    {
+                        product.OpenSettings();
+                    }
+                    else
+                    {
+                        await product.ChangeVisibilityAsync(true);
+                    }
+                }, () => desktop.Shutdown()
+            );
+            if (openSettings)
             {
-                if (settings) product.OpenSettings();
-                else await product.ChangeVisibilityAsync(true);
-            }, () => desktop.Shutdown());
-            if (openSettings) product.OpenSettings();
+                product.OpenSettings();
+            }
+
             var window = new CandidateWindow();
             var client = new XiaoXiImeIpcClient(options);
             var presenter = new CandidateWindowPresenter(window, client, statusFilePath);
@@ -97,18 +136,28 @@ public sealed partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    private static void ShowStartupError(IClassicDesktopStyleApplicationLifetime lifetime, Exception exception, string profile)
+    private static void ShowStartupError
+        (IClassicDesktopStyleApplicationLifetime lifetime, Exception exception, string profile)
     {
-        System.Diagnostics.Trace.WriteLine($"Experience startup: profile={profile}; HRESULT=0x{exception.HResult:X8}; {exception}");
+        System.Diagnostics.Trace.WriteLine
+            ($"Experience startup: profile={profile}; HRESULT=0x{exception.HResult:X8}; {exception}");
         var conflict = exception is IOException && (exception.HResult & 0xffff) is 32 or 33;
         var close = new global::Avalonia.Controls.Button { Content = ProductResources.Text("OK") };
         var panel = new global::Avalonia.Controls.StackPanel { Margin = new Thickness(24), Spacing = 16 };
-        panel.Children.Add(new global::Avalonia.Controls.TextBlock
-        {
-            Text = ProductResources.Text(conflict ? "ExperienceWriterBusy" : "ExperienceStartupUnavailable") + "\n" +
-                string.Format(ProductResources.Text("ExperienceStartupDetails"), profile, exception.HResult, exception.Message),
-            TextWrapping = global::Avalonia.Media.TextWrapping.Wrap
-        });
+        panel.Children.Add
+        (
+            new global::Avalonia.Controls.TextBlock
+            {
+                Text = ProductResources.Text
+                           (conflict ? "ExperienceWriterBusy" : "ExperienceStartupUnavailable") + "\n" +
+                       string.Format
+                       (
+                           ProductResources.Text("ExperienceStartupDetails"), profile, exception.HResult,
+                           exception.Message
+                       ),
+                TextWrapping = global::Avalonia.Media.TextWrapping.Wrap
+            }
+        );
         panel.Children.Add(close);
         var window = new global::Avalonia.Controls.Window
         {
@@ -117,6 +166,13 @@ public sealed partial class App : Application
         };
         close.Click += (_, _) => window.Close();
         lifetime.MainWindow = window;
-        ProductEntry?.Attach(_ => { window.Show(); window.Activate(); }, () => window.Close());
+        ProductEntry?.Attach
+        (
+            _ =>
+            {
+                window.Show();
+                window.Activate();
+            }, () => window.Close()
+        );
     }
 }

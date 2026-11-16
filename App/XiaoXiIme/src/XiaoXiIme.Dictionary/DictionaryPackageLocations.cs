@@ -15,9 +15,11 @@ public static class DictionaryPackageLocations
 
     public const string InputSchemeEnvironmentVariableName = "XIAOXIIME_INPUT_SCHEME";
 
-    public static readonly string XiaoheDoublePinyinPackageRelativePath = Path.Combine(
+    public static readonly string XiaoheDoublePinyinPackageRelativePath = Path.Combine
+    (
         PackageRootDirectoryName,
-        XiaoheDoublePinyinInputScheme);
+        XiaoheDoublePinyinInputScheme
+    );
 
     /// <summary>
     /// Resolves the installed package directory for an input scheme.
@@ -25,10 +27,12 @@ public static class DictionaryPackageLocations
     /// <c>XiaoXiIme.DictionaryPackage</c> for full Pinyin and
     /// <c>XiaoXiIme.DictionaryPackages/xiaoheDoublePinyin</c> for Xiaohe double Pinyin.
     /// </summary>
-    public static string ResolvePackageDirectory(
+    public static string ResolvePackageDirectory
+    (
         string? packageDirectory = null,
         string? inputScheme = null,
-        string? baseDirectory = null)
+        string? baseDirectory = null
+    )
     {
         if (!string.IsNullOrWhiteSpace(packageDirectory))
         {
@@ -53,8 +57,14 @@ public static class DictionaryPackageLocations
             return FullPinyinInputScheme;
         }
 
-        var registered = PhoneticSchemeCatalog.All.FirstOrDefault(item => item.ProductScheme.HasValue && string.Equals(item.SchemeId, requested, StringComparison.OrdinalIgnoreCase));
-        if (registered is not null) return registered.SchemeId;
+        var registered = PhoneticSchemeCatalog.All.FirstOrDefault
+        (item => item.ProductScheme.HasValue && string.Equals
+            (item.SchemeId, requested, StringComparison.OrdinalIgnoreCase)
+        );
+        if (registered is not null)
+        {
+            return registered.SchemeId;
+        }
 
         return FullPinyinInputScheme;
     }
@@ -65,6 +75,8 @@ public static class DictionaryPackageLocations
     public static string GetRelativePackageDirectory(string inputScheme)
     {
         var scheme = ResolveInputScheme(inputScheme);
-        return scheme == FullPinyinInputScheme ? FullPinyinPackageDirectoryName : Path.Combine(PackageRootDirectoryName, scheme);
+        return scheme == FullPinyinInputScheme
+            ? FullPinyinPackageDirectoryName
+            : Path.Combine(PackageRootDirectoryName, scheme);
     }
 }

@@ -22,18 +22,23 @@ internal static unsafe class ImeUiWindowClass
         {
             var context = GetWindowLongPtr(window, 0);
             if (context != 0)
+            {
                 ImeExports.ImeSetActiveContextManaged(context, wParam != 0 ? 1 : 0);
+            }
         }
+
         return DefWindowProc(window, message, wParam, lParam);
     }
 
     internal static bool EnsureRegistered()
     {
         var windowProcedure = (nint)(delegate* unmanaged[Stdcall]<nint, uint, nuint, nint, nint>)&UIWindowProcedure;
-        if (!GetModuleHandleEx(
+        if (!GetModuleHandleEx
+            (
                 GetModuleHandleExFlagFromAddress | GetModuleHandleExFlagUnchangedRefCount,
                 windowProcedure,
-                out var module))
+                out var module
+            ))
         {
             return false;
         }

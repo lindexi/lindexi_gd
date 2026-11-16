@@ -18,11 +18,29 @@ internal static class Program
                 var path = index >= 0 && index + 1 < args.Length ? args[index + 1] : null;
                 identity = "experience\0" + DictionaryDebugSettings.ResolvePath(path).ToUpperInvariant();
             }
-            try { entry = new ProductUiEntry(args, identity); }
-            catch (IOException exception) { App.StartupError = exception; }
-            catch (TimeoutException exception) { App.StartupError = exception; }
-            catch (UnauthorizedAccessException exception) { App.StartupError = exception; }
-            if (entry is not null && (!entry.IsOwner || args.Contains("--exit"))) return;
+
+            try
+            {
+                entry = new ProductUiEntry(args, identity);
+            }
+            catch (IOException exception)
+            {
+                App.StartupError = exception;
+            }
+            catch (TimeoutException exception)
+            {
+                App.StartupError = exception;
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                App.StartupError = exception;
+            }
+
+            if (entry is not null && (!entry.IsOwner || args.Contains("--exit")))
+            {
+                return;
+            }
+
             App.ProductEntry = entry;
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }

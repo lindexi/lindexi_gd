@@ -23,9 +23,11 @@ public class DictionaryPerformanceTests
 
         stopwatch.Stop();
         GC.KeepAlive(dictionary);
-        Assert.True(
+        Assert.True
+        (
             stopwatch.Elapsed <= _fixture.Budget.LoadAndValidateTime,
-            $"Package load and validation took {stopwatch.Elapsed.TotalMilliseconds:F2} ms; budget is {_fixture.Budget.LoadAndValidateTime.TotalMilliseconds:F2} ms.");
+            $"Package load and validation took {stopwatch.Elapsed.TotalMilliseconds:F2} ms; budget is {_fixture.Budget.LoadAndValidateTime.TotalMilliseconds:F2} ms."
+        );
     }
 
     [Fact]
@@ -41,9 +43,11 @@ public class DictionaryPerformanceTests
 
         GC.KeepAlive(dictionary);
         var managedMemoryIncrease = Math.Max(0, after - before);
-        Assert.True(
+        Assert.True
+        (
             managedMemoryIncrease <= _fixture.Budget.ManagedMemoryBytes,
-            $"Managed memory increased by {managedMemoryIncrease / 1024d / 1024d:F2} MiB; budget is {_fixture.Budget.ManagedMemoryBytes / 1024d / 1024d:F2} MiB.");
+            $"Managed memory increased by {managedMemoryIncrease / 1024d / 1024d:F2} MiB; budget is {_fixture.Budget.ManagedMemoryBytes / 1024d / 1024d:F2} MiB."
+        );
     }
 
     [Theory]
@@ -52,7 +56,9 @@ public class DictionaryPerformanceTests
     public void WhenExactQueriesRunThenLatencyPercentileStaysWithinBudget(int percentile)
     {
         var actual = GetPercentile(MeasureQueries(ImeDictionaryMatchMode.Exact, _fixture.ExactQueries), percentile);
-        var budget = percentile == 50 ? _fixture.Budget.ExactQueryP50Microseconds : _fixture.Budget.ExactQueryP95Microseconds;
+        var budget = percentile == 50
+            ? _fixture.Budget.ExactQueryP50Microseconds
+            : _fixture.Budget.ExactQueryP95Microseconds;
 
         Assert.True(actual <= budget, $"Exact query P{percentile} was {actual:F2} us; budget is {budget:F2} us.");
     }
@@ -62,8 +68,11 @@ public class DictionaryPerformanceTests
     [InlineData(95)]
     public void WhenPrefixQueriesRunThenLatencyPercentileStaysWithinBudget(int percentile)
     {
-        var actual = GetPercentile(MeasureQueries(ImeDictionaryMatchMode.ExactAndPrefix, _fixture.PrefixQueries), percentile);
-        var budget = percentile == 50 ? _fixture.Budget.PrefixQueryP50Microseconds : _fixture.Budget.PrefixQueryP95Microseconds;
+        var actual = GetPercentile
+            (MeasureQueries(ImeDictionaryMatchMode.ExactAndPrefix, _fixture.PrefixQueries), percentile);
+        var budget = percentile == 50
+            ? _fixture.Budget.PrefixQueryP50Microseconds
+            : _fixture.Budget.PrefixQueryP95Microseconds;
 
         Assert.True(actual <= budget, $"Prefix query P{percentile} was {actual:F2} us; budget is {budget:F2} us.");
     }
@@ -78,9 +87,11 @@ public class DictionaryPerformanceTests
         UserDictionaryStore.Save(path, entries);
 
         stopwatch.Stop();
-        Assert.True(
+        Assert.True
+        (
             stopwatch.Elapsed <= _fixture.Budget.UserDictionarySaveTime,
-            $"User dictionary save took {stopwatch.Elapsed.TotalMilliseconds:F2} ms; budget is {_fixture.Budget.UserDictionarySaveTime.TotalMilliseconds:F2} ms.");
+            $"User dictionary save took {stopwatch.Elapsed.TotalMilliseconds:F2} ms; budget is {_fixture.Budget.UserDictionarySaveTime.TotalMilliseconds:F2} ms."
+        );
     }
 
     private double[] MeasureQueries(ImeDictionaryMatchMode matchMode, IReadOnlyList<string> inputs)
@@ -122,7 +133,8 @@ public sealed class DictionaryPerformanceFixture
     public DictionaryPerformanceFixture()
     {
         Budget = DictionaryPerformanceBudget.Load();
-        WorkingDirectory = Path.Combine(Path.GetTempPath(), "XiaoXiIme.Dictionary.PerformanceTests", Guid.NewGuid().ToString("N"));
+        WorkingDirectory = Path.Combine
+            (Path.GetTempPath(), "XiaoXiIme.Dictionary.PerformanceTests", Guid.NewGuid().ToString("N"));
         PackagePath = Path.Combine(WorkingDirectory, "XiaoXiIme.DictionaryPackage");
 
         var entries = CreateEntries(Budget.RepresentativeEntryCount);
@@ -153,7 +165,10 @@ public sealed class DictionaryPerformanceFixture
     {
         var count = Math.Min(Budget.RepresentativeEntryCount, 10_000);
         return Enumerable.Range(0, count)
-            .Select(index => new UserDictionaryEntry($"用户候选{index:D6}", ExactQueries[index % ExactQueries.Count], index + 1))
+            .Select
+            (index => new UserDictionaryEntry
+                ($"用户候选{index:D6}", ExactQueries[index % ExactQueries.Count], index + 1)
+            )
             .ToArray();
     }
 
@@ -177,14 +192,16 @@ public sealed class DictionaryPerformanceFixture
             var third = syllables[value % syllables.Length];
             value /= syllables.Length;
             var fourth = syllables[value % syllables.Length];
-            entries[index] = new PhoneticDictionaryEntry($"候选{index:D6}", $"{first} {second} {third} {fourth}", count - index);
+            entries[index] = new PhoneticDictionaryEntry
+                ($"候选{index:D6}", $"{first} {second} {third} {fourth}", count - index);
         }
 
         return entries;
     }
 }
 
-public sealed record DictionaryPerformanceBudget(
+public sealed record DictionaryPerformanceBudget
+(
     int RepresentativeEntryCount,
     TimeSpan LoadAndValidateTime,
     long ManagedMemoryBytes,
@@ -192,11 +209,13 @@ public sealed record DictionaryPerformanceBudget(
     double ExactQueryP95Microseconds,
     double PrefixQueryP50Microseconds,
     double PrefixQueryP95Microseconds,
-    TimeSpan UserDictionarySaveTime)
+    TimeSpan UserDictionarySaveTime
+)
 {
     public static DictionaryPerformanceBudget Load()
     {
-        return new DictionaryPerformanceBudget(
+        return new DictionaryPerformanceBudget
+        (
             ReadPositiveInt32("XIAOXIIME_PERF_ENTRY_COUNT", 25_000),
             TimeSpan.FromMilliseconds(ReadPositiveDouble("XIAOXIIME_PERF_LOAD_MS", 5_000)),
             checked((long)(ReadPositiveDouble("XIAOXIIME_PERF_MEMORY_MIB", 512) * 1024 * 1024)),
@@ -204,7 +223,8 @@ public sealed record DictionaryPerformanceBudget(
             ReadPositiveDouble("XIAOXIIME_PERF_EXACT_P95_US", 1_500),
             ReadPositiveDouble("XIAOXIIME_PERF_PREFIX_P50_US", 1_000),
             ReadPositiveDouble("XIAOXIIME_PERF_PREFIX_P95_US", 3_000),
-            TimeSpan.FromMilliseconds(ReadPositiveDouble("XIAOXIIME_PERF_USER_SAVE_MS", 5_000)));
+            TimeSpan.FromMilliseconds(ReadPositiveDouble("XIAOXIIME_PERF_USER_SAVE_MS", 5_000))
+        );
     }
 
     private static int ReadPositiveInt32(string name, int defaultValue)

@@ -8,7 +8,11 @@ public sealed class ImeProjectionDefinition
     {
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(entries);
-        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException(nameof(name), nameof(name));
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException(nameof(name), nameof(name));
+        }
+
         foreach (var entry in entries)
         {
             ArgumentNullException.ThrowIfNull(entry);
@@ -18,12 +22,16 @@ public sealed class ImeProjectionDefinition
             if (entry.Final.Length == 0 || entry.Input.Length == 0 ||
                 (entry.Initial + entry.Final).Any(c => c is < 'a' or > 'z') ||
                 entry.Input.Any(c => c is not (>= 'a' and <= 'z') and not ';'))
+            {
                 throw new ArgumentException(DictionaryResources.InvalidReading, nameof(entries));
+            }
         }
+
         Name = name;
         Entries = Array.AsReadOnly(entries.Distinct().ToArray());
         IsFixedTwoKey = Entries.Count > 0 && Entries.All(entry => entry.Input.Length == 2);
     }
+
     public string Name { get; }
     public IReadOnlyList<ImeProjectionEntry> Entries { get; }
     public bool IsFixedTwoKey { get; }
@@ -33,8 +41,16 @@ public sealed class ImeProjectionDefinition
     /// <summary>Gets the registered production projection, preserving colliding component evidence.</summary>
     public static ImeProjectionDefinition ForScheme(string scheme)
     {
-        if (scheme == "fullPinyin") return FullPinyin;
-        if (scheme == "xiaoheDoublePinyin") return XiaoheDoublePinyin;
+        if (scheme == "fullPinyin")
+        {
+            return FullPinyin;
+        }
+
+        if (scheme == "xiaoheDoublePinyin")
+        {
+            return XiaoheDoublePinyin;
+        }
+
         var layout = PhoneticSchemeCatalog.All.Single(item => item.SchemeId == scheme).Layout
                      ?? throw new NotSupportedException();
         var entries = new List<ImeProjectionEntry>();
@@ -42,8 +58,11 @@ public sealed class ImeProjectionDefinition
         foreach (var final in layout.Finals.Keys.Concat(new[] { "ve", "ue" }).Distinct())
         {
             if (PhoneticInputProjection.TryProjectReading(initial + final, scheme, out var code))
+            {
                 entries.Add(new(initial, final, code));
+            }
         }
+
         return new(scheme, entries);
     }
 

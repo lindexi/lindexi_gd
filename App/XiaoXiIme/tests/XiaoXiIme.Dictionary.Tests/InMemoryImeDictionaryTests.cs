@@ -7,18 +7,22 @@ public class InMemoryImeDictionaryTests
     [Fact]
     public void Query_ReturnsCandidatesByScore()
     {
-        var dictionary = new InMemoryImeDictionary(
-        [
-            new ImeCandidate("呢", "ni", 20),
-            new ImeCandidate("你", "ni", 100),
-        ]);
+        var dictionary = new InMemoryImeDictionary
+        (
+            [
+                new ImeCandidate("呢", "ni", 20),
+                new ImeCandidate("你", "ni", 100),
+            ]
+        );
 
         var candidates = dictionary.Query("ni");
 
-        Assert.Collection(
+        Assert.Collection
+        (
             candidates,
             candidate => Assert.Equal("你", candidate.Text),
-            candidate => Assert.Equal("呢", candidate.Text));
+            candidate => Assert.Equal("呢", candidate.Text)
+        );
     }
 
     [Fact]
@@ -46,11 +50,13 @@ public class InMemoryImeDictionaryTests
     [Fact]
     public void Query_RespectsMaxCount()
     {
-        var dictionary = new InMemoryImeDictionary(
-        [
-            new ImeCandidate("你", "ni", 100),
-            new ImeCandidate("呢", "ni", 90),
-        ]);
+        var dictionary = new InMemoryImeDictionary
+        (
+            [
+                new ImeCandidate("你", "ni", 100),
+                new ImeCandidate("呢", "ni", 90),
+            ]
+        );
 
         var candidates = dictionary.Query("ni", maxCount: 1);
 
@@ -72,16 +78,19 @@ public class InMemoryImeDictionaryTests
     [Fact]
     public void QueryByText_WhenExactTextThenReturnsCanonicalReadingBeforeAbbreviation()
     {
-        var dictionary = new InMemoryImeDictionary(
-        [
-            new ImeCandidate("小希", "xx", 100),
-            new ImeCandidate("小希", "xiao xi", 100),
-            new ImeCandidate("你", "ni", 100),
-        ]);
+        var dictionary = new InMemoryImeDictionary
+        (
+            [
+                new ImeCandidate("小希", "xx", 100),
+                new ImeCandidate("小希", "xiao xi", 100),
+                new ImeCandidate("你", "ni", 100),
+            ]
+        );
 
         var candidates = dictionary.QueryByText("小希");
 
-        Assert.Collection(
+        Assert.Collection
+        (
             candidates,
             candidate =>
             {
@@ -92,7 +101,8 @@ public class InMemoryImeDictionaryTests
             {
                 Assert.Equal("小希", candidate.Text);
                 Assert.Equal("xx", candidate.Reading);
-            });
+            }
+        );
         Assert.Empty(dictionary.QueryByText(""));
         Assert.Empty(dictionary.QueryByText("missing"));
     }
@@ -100,12 +110,14 @@ public class InMemoryImeDictionaryTests
     [Fact]
     public void Constructor_IgnoresEntriesWithoutTextOrReading()
     {
-        var dictionary = new InMemoryImeDictionary(
-        [
-            new ImeCandidate("你", "ni", 100),
-            new ImeCandidate("", "ni", 90),
-            new ImeCandidate("呢", "", 80),
-        ]);
+        var dictionary = new InMemoryImeDictionary
+        (
+            [
+                new ImeCandidate("你", "ni", 100),
+                new ImeCandidate("", "ni", 90),
+                new ImeCandidate("呢", "", 80),
+            ]
+        );
 
         var candidates = dictionary.Query("ni");
 
@@ -113,4 +125,3 @@ public class InMemoryImeDictionaryTests
         Assert.Equal("你", candidates[0].Text);
     }
 }
-

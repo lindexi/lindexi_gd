@@ -8,12 +8,17 @@ namespace XiaoXiIme.Dictionary;
 public sealed class PhoneticDictionarySourceException : FormatException
 {
     internal PhoneticDictionarySourceException(string filePath, int lineNumber, string reason)
-        : base(string.Format(
-            CultureInfo.CurrentCulture,
-            DictionaryResources.InvalidPhoneticSourceLine,
-            filePath,
-            lineNumber,
-            reason))
+        : base
+        (
+            string.Format
+            (
+                CultureInfo.CurrentCulture,
+                DictionaryResources.InvalidPhoneticSourceLine,
+                filePath,
+                lineNumber,
+                reason
+            )
+        )
     {
         FilePath = filePath;
         LineNumber = lineNumber;

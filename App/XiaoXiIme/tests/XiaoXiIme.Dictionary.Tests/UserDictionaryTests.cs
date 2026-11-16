@@ -66,11 +66,16 @@ public class UserDictionaryTests
     [Fact]
     public void Learn_WhenPhraseCandidateSelectedThenContinuousInputPromotesIt()
     {
-        var dictionary = new UserDictionary(new InMemoryImeDictionary(
-        [
-            new ImeCandidate("你号", "ni hao", 200),
-            new ImeCandidate("你好", "ni hao", 100),
-        ]));
+        var dictionary = new UserDictionary
+        (
+            new InMemoryImeDictionary
+            (
+                [
+                    new ImeCandidate("你号", "ni hao", 200),
+                    new ImeCandidate("你好", "ni hao", 100),
+                ]
+            )
+        );
 
         dictionary.Learn(new ImeDictionaryLearning(new ImeCandidate("你好", "ni hao", 100), "nihao"));
         var result = dictionary.Query("nihao");
@@ -81,20 +86,27 @@ public class UserDictionaryTests
     [Fact]
     public void Query_WhenUserExactAndSystemPrefixThenUserExactIsFirst()
     {
-        var dictionary = new UserDictionary(new InMemoryImeDictionary(
-        [
-            new ImeCandidate("你", "ni", 100),
-            new ImeCandidate("你好", "ni hao", 200),
-        ]));
+        var dictionary = new UserDictionary
+        (
+            new InMemoryImeDictionary
+            (
+                [
+                    new ImeCandidate("你", "ni", 100),
+                    new ImeCandidate("你好", "ni hao", 200),
+                ]
+            )
+        );
         dictionary.Learn(new ImeDictionaryLearning(new ImeCandidate("呢", "ni"), "ni"));
 
         var result = dictionary.Query(new ImeDictionaryQuery("ni", MatchMode: ImeDictionaryMatchMode.ExactAndPrefix));
 
-        Assert.Collection(
+        Assert.Collection
+        (
             result,
             candidate => Assert.Equal("呢", candidate.Text),
             candidate => Assert.Equal("你", candidate.Text),
-            candidate => Assert.Equal("你好", candidate.Text));
+            candidate => Assert.Equal("你好", candidate.Text)
+        );
     }
 
     [Fact]
@@ -112,10 +124,12 @@ public class UserDictionaryTests
     public void Query_WhenDoublePinyinUserEntryMatchesSystemCandidateThenDoesNotDuplicateIt()
     {
         var packagePath = Path.Combine(Path.GetTempPath(), "XiaoXiIme.Dictionary.Tests", Guid.NewGuid().ToString("N"));
-        DictionaryPackageCompiler.Compile(
+        DictionaryPackageCompiler.Compile
+        (
             [new PhoneticDictionaryEntry("你好", "ni hao", 100)],
             packagePath,
-            new DictionaryPackageParameters { InputScheme = "xiaoheDoublePinyin" });
+            new DictionaryPackageParameters { InputScheme = "xiaoheDoublePinyin" }
+        );
         var dictionary = new UserDictionary(DictionaryPackageLoader.Load(packagePath));
         dictionary.Learn(new ImeDictionaryLearning(new ImeCandidate("你好", "ni hao"), "nihc"));
 
@@ -127,16 +141,22 @@ public class UserDictionaryTests
     [Fact]
     public void QueryByText_WhenUserWordExistsThenRanksUserReadingBeforeSystemCanonicalReading()
     {
-        var dictionary = new UserDictionary(new InMemoryImeDictionary(
-        [
-            new ImeCandidate("小希", "xx", 100),
-            new ImeCandidate("小希", "xiao xi", 100),
-        ]));
+        var dictionary = new UserDictionary
+        (
+            new InMemoryImeDictionary
+            (
+                [
+                    new ImeCandidate("小希", "xx", 100),
+                    new ImeCandidate("小希", "xiao xi", 100),
+                ]
+            )
+        );
         dictionary.Learn(new ImeDictionaryLearning(new ImeCandidate("小希", "xx"), "xx"));
 
         var result = dictionary.QueryByText("小希");
 
-        Assert.Collection(
+        Assert.Collection
+        (
             result,
             candidate =>
             {
@@ -147,7 +167,8 @@ public class UserDictionaryTests
             {
                 Assert.Equal("小希", candidate.Text);
                 Assert.Equal("xiao xi", candidate.Reading);
-            });
+            }
+        );
     }
 
     [Fact]
@@ -204,7 +225,11 @@ public class UserDictionaryTests
         var path = UserDictionaryLocations.GetDefaultFilePath();
 
         Assert.Equal(UserDictionaryLocations.FileName, Path.GetFileName(path));
-        Assert.Contains(Path.DirectorySeparatorChar + UserDictionaryLocations.ApplicationDirectoryName + Path.DirectorySeparatorChar, path + Path.DirectorySeparatorChar);
+        Assert.Contains
+        (
+            Path.DirectorySeparatorChar + UserDictionaryLocations.ApplicationDirectoryName +
+            Path.DirectorySeparatorChar, path + Path.DirectorySeparatorChar
+        );
         Assert.DoesNotContain("XiaoXiIme.DictionaryPackage", path, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(Environment.SystemDirectory, path, StringComparison.OrdinalIgnoreCase);
     }
@@ -231,10 +256,12 @@ public class UserDictionaryTests
         public IReadOnlyList<ShapeDictionaryEntry> QueryShape(string shapeCode, int maxCount = 9) =>
             [new ShapeDictionaryEntry("你", "ab", "亻尔")];
 
-        public IReadOnlyList<ImeCandidate> FilterByShape(
+        public IReadOnlyList<ImeCandidate> FilterByShape
+        (
             IReadOnlyList<ImeCandidate> candidates,
             string shapeCode,
-            int maxCount = 9) => candidates.Take(maxCount).ToArray();
+            int maxCount = 9
+        ) => candidates.Take(maxCount).ToArray();
 
         public IReadOnlyList<ImeCandidate> QuerySymbols(string input, int maxCount = 9) =>
             [new ImeCandidate("★", input)];
@@ -242,11 +269,16 @@ public class UserDictionaryTests
 
     private static UserDictionary CreateDictionary()
     {
-        return new UserDictionary(new InMemoryImeDictionary(
-        [
-            new ImeCandidate("你", "ni", 100),
-            new ImeCandidate("呢", "ni", 60),
-        ]));
+        return new UserDictionary
+        (
+            new InMemoryImeDictionary
+            (
+                [
+                    new ImeCandidate("你", "ni", 100),
+                    new ImeCandidate("呢", "ni", 60),
+                ]
+            )
+        );
     }
 
     private static string CreatePath()

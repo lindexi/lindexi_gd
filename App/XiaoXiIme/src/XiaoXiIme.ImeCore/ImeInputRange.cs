@@ -8,9 +8,15 @@ public readonly record struct ImeInputRange
     {
         ArgumentOutOfRangeException.ThrowIfNegative(start);
         ArgumentOutOfRangeException.ThrowIfNegative(length);
-        if (start > int.MaxValue - length) throw new ArgumentOutOfRangeException(nameof(length));
-        Start = start; Length = length;
+        if (start > int.MaxValue - length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(length));
+        }
+
+        Start = start;
+        Length = length;
     }
+
     public int Start { get; }
     public int Length { get; }
     public int End => Start + Length;

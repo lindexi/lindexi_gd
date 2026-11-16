@@ -10,8 +10,9 @@ internal static unsafe class TsfComPointer
         }
 
         *result = 0;
-        var vtable = *(void***) instance;
-        var queryInterface = (delegate* unmanaged[Stdcall]<nint, Guid*, nint*, int>) vtable[TsfNative.IUnknownQueryInterfaceSlot];
+        var vtable = *(void***)instance;
+        var queryInterface =
+            (delegate* unmanaged[Stdcall]<nint, Guid*, nint*, int>)vtable[TsfNative.IUnknownQueryInterfaceSlot];
         return queryInterface(instance, &interfaceId, result);
     }
 
@@ -22,8 +23,8 @@ internal static unsafe class TsfComPointer
             return 0;
         }
 
-        var vtable = *(void***) instance;
-        var addRef = (delegate* unmanaged[Stdcall]<nint, uint>) vtable[TsfNative.IUnknownAddRefSlot];
+        var vtable = *(void***)instance;
+        var addRef = (delegate* unmanaged[Stdcall]<nint, uint>)vtable[TsfNative.IUnknownAddRefSlot];
         return addRef(instance);
     }
 
@@ -34,8 +35,8 @@ internal static unsafe class TsfComPointer
             return 0;
         }
 
-        var vtable = *(void***) instance;
-        var release = (delegate* unmanaged[Stdcall]<nint, uint>) vtable[TsfNative.IUnknownReleaseSlot];
+        var vtable = *(void***)instance;
+        var release = (delegate* unmanaged[Stdcall]<nint, uint>)vtable[TsfNative.IUnknownReleaseSlot];
         return release(instance);
     }
 }

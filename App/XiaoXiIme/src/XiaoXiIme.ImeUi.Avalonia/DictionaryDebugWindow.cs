@@ -15,15 +15,25 @@ internal sealed class DictionaryDebugWindow : Window
         AcceptsReturn = true,
         TextWrapping = global::Avalonia.Media.TextWrapping.Wrap,
     };
+
     private readonly TextBox log = new()
     {
         IsReadOnly = true,
         AcceptsReturn = true,
         TextWrapping = global::Avalonia.Media.TextWrapping.Wrap,
     };
+
     private readonly CandidateWindow candidates = new();
-    private readonly Button previousPage = new() { Name = "DictionaryDebugPreviousPage", Content = DebugResources.PreviousPage, Focusable = false, IsEnabled = false };
-    private readonly Button nextPage = new() { Name = "DictionaryDebugNextPage", Content = DebugResources.NextPage, Focusable = false, IsEnabled = false };
+
+    private readonly Button previousPage = new()
+    {
+        Name = "DictionaryDebugPreviousPage", Content = DebugResources.PreviousPage, Focusable = false,
+        IsEnabled = false
+    };
+
+    private readonly Button nextPage = new()
+        { Name = "DictionaryDebugNextPage", Content = DebugResources.NextPage, Focusable = false, IsEnabled = false };
+
     private DictionaryDebugSession? session;
     private readonly SemaphoreSlim keyQueue = new(1, 1);
     private object? processingValidation;
@@ -63,7 +73,8 @@ internal sealed class DictionaryDebugWindow : Window
         Grid.SetRow(splitter, 2);
         Grid.SetRow(logPanel, 3);
         var toolbar = new StackPanel { Orientation = global::Avalonia.Layout.Orientation.Horizontal, Spacing = 12 };
-        var settingsButton = new Button { Name = "DictionaryDebugSettings", Content = ProductResources.Text("Settings") };
+        var settingsButton = new Button
+            { Name = "DictionaryDebugSettings", Content = ProductResources.Text("Settings") };
         global::Avalonia.Automation.AutomationProperties.SetAutomationId(settingsButton, settingsButton.Name);
         global::Avalonia.Automation.AutomationProperties.SetAutomationId(previousPage, previousPage.Name);
         global::Avalonia.Automation.AutomationProperties.SetAutomationId(nextPage, nextPage.Name);
@@ -89,33 +100,65 @@ internal sealed class DictionaryDebugWindow : Window
             candidates.Hide();
         };
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
-        AddHandler(TextInputEvent, (_, args) =>
-        {
-            // Printable keys are committed by the serialized key path, never a second time as text.
-            if (!settingsActive && output.IsKeyboardFocusWithin)
-                args.Handled = true;
-        }, RoutingStrategies.Tunnel);
+        AddHandler
+        (
+            TextInputEvent, (_, args) =>
+            {
+                // Printable keys are committed by the serialized key path, never a second time as text.
+                if (!settingsActive && output.IsKeyboardFocusWithin)
+                {
+                    args.Handled = true;
+                }
+            }, RoutingStrategies.Tunnel
+        );
         Opened += OnOpened;
-        if (openSettings) Opened += OnSettingsClick;
+        if (openSettings)
+        {
+            Opened += OnSettingsClick;
+        }
+
         Deactivated += (_, _) =>
         {
-            if (settingsActive) return;
+            if (settingsActive)
+            {
+                return;
+            }
+
             session?.CancelComposition();
             UpdatePagingControls();
             candidates.Hide();
         };
         PositionChanged += (_, _) => PositionCandidates();
-        try { settings = new(this, settingsPath, packagePath); }
-        catch (IOException) { candidates.Close(); throw; }
-        catch (UnauthorizedAccessException) { candidates.Close(); throw; }
+        try
+        {
+            settings = new(this, settingsPath, packagePath);
+        }
+        catch (IOException)
+        {
+            candidates.Close();
+            throw;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            candidates.Close();
+            throw;
+        }
+
         Closing += async (_, args) =>
         {
             settings.PrepareOwnerClose();
             var pending = settings.PendingSave;
-            if (pending.IsCompleted) return;
+            if (pending.IsCompleted)
+            {
+                return;
+            }
+
             args.Cancel = true;
             await pending;
-            if (!closed) Close();
+            if (!closed)
+            {
+                Close();
+            }
         };
         Closed += (_, _) =>
         {
@@ -127,41 +170,59 @@ internal sealed class DictionaryDebugWindow : Window
 
     private void OnSettingsClick(object? sender, EventArgs args)
     {
-        if (processingValidation is null) settings.Open();
+        if (processingValidation is null)
+        {
+            settings.Open();
+        }
     }
 
     internal void OpenFromEntry(bool openSettings)
     {
         Show();
-        if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+        if (WindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
+        }
+
         Activate();
-        if (openSettings) settings.Open();
+        if (openSettings)
+        {
+            settings.Open();
+        }
     }
 
     private async void OnOpened(object? sender, EventArgs args)
     {
-        var packagePath = DictionaryPackageLocations.ResolvePackageDirectory(this.packagePath, inputScheme: settings.InitialScheme);
+        var packagePath = DictionaryPackageLocations.ResolvePackageDirectory
+            (this.packagePath, inputScheme: settings.InitialScheme);
         Title = DebugResources.LoadingTitle;
         AppendLog(string.Format(DebugResources.PackagePath, packagePath));
         AppendLog(DebugResources.LoadingTitle);
         try
         {
             var initialRuleMask = settings.InitialRuleMask;
-            var prepared = await Task.Run(() =>
-            {
-                var dictionary = DictionaryPackageLoader.Load(packagePath);
-                var session = new DictionaryDebugSession(dictionary).PrepareFuzzyRulesChange(initialRuleMask);
-                return (Session: session, Scheme: dictionary.InputScheme);
-            });
+            var prepared = await Task.Run
+            (() =>
+                {
+                    var dictionary = DictionaryPackageLoader.Load(packagePath);
+                    var session = new DictionaryDebugSession(dictionary).PrepareFuzzyRulesChange(initialRuleMask);
+                    return (Session: session, Scheme: dictionary.InputScheme);
+                }
+            );
             if (closed)
+            {
                 return;
+            }
+
             session = prepared.Session;
             settings.SetScheme(prepared.Scheme);
             UpdatePagingControls();
             Title = DebugResources.WindowTitle;
             AppendLog(DebugResources.LoadSucceeded);
             if (!log.IsKeyboardFocusWithin)
+            {
                 output.Focus();
+            }
         }
         catch (DictionaryPackageException exception)
         {
@@ -177,39 +238,52 @@ internal sealed class DictionaryDebugWindow : Window
     private async void OnKeyDown(object? sender, KeyEventArgs args)
     {
         if (settingsActive || !output.IsKeyboardFocusWithin || session is null && processingValidation is null)
+        {
             return;
+        }
+
         if (!DictionaryDebugSession.CanProcessKey(args.Key, args.KeyModifiers, args.KeySymbol))
+        {
             return;
+        }
 
         args.Handled = true;
         var key = args.Key;
         var modifiers = args.KeyModifiers;
         var keySymbol = args.KeySymbol;
         var started = System.Diagnostics.Stopwatch.GetTimestamp();
+
         void Phase(string phase)
         {
             Volatile.Write(ref keyPhase, $"{key}:{phase}");
             SettingsApplyTrace.Mark(KeyPhase, started);
         }
+
         Phase("queue-wait");
         await keyQueue.WaitAsync();
         Phase("queue-acquired");
         bool handled;
         try
         {
-            if (closed || settingsActive || session is null) return;
+            if (closed || settingsActive || session is null)
+            {
+                return;
+            }
+
             var active = session;
             processingValidation = ValidationState;
             session = null;
             try
             {
-                handled = await Task.Run(() =>
-                {
-                    Phase("worker-start");
-                    var result = active.ProcessKey(key, modifiers, keySymbol);
-                    Phase("worker-end");
-                    return result;
-                });
+                handled = await Task.Run
+                (() =>
+                    {
+                        Phase("worker-start");
+                        var result = active.ProcessKey(key, modifiers, keySymbol);
+                        Phase("worker-end");
+                        return result;
+                    }
+                );
                 Phase("dispatcher-resumed");
             }
             finally
@@ -217,18 +291,28 @@ internal sealed class DictionaryDebugWindow : Window
                 session = active;
                 processingValidation = null;
             }
-            if (closed) return;
+
+            if (closed)
+            {
+                return;
+            }
         }
         finally
         {
             keyQueue.Release();
         }
+
         Phase("render-start");
         UpdatePagingControls();
         Phase("paging-updated");
-        AppendLog($"Key={args.Key}; Modifiers={args.KeyModifiers}; Handled={handled}; Composition={session.Candidates.CompositionText}; Page={session.Candidates.CurrentPage}; Candidates={session.Candidates.Candidates.Count}");
+        AppendLog
+        (
+            $"Key={args.Key}; Modifiers={args.KeyModifiers}; Handled={handled}; Composition={session.Candidates.CompositionText}; Page={session.Candidates.CurrentPage}; Candidates={session.Candidates.Candidates.Count}"
+        );
         if (!handled)
+        {
             return;
+        }
 
         Phase("log-updated");
         args.Handled = true;
@@ -240,16 +324,27 @@ internal sealed class DictionaryDebugWindow : Window
         {
             PositionCandidates();
             if (!candidates.IsVisible)
+            {
                 candidates.Show(this);
+            }
         }
         else
         {
             candidates.Hide();
         }
+
         Phase("completed");
     }
 
-    internal object ValidationState => processingValidation ?? new { reading = session?.Candidates.CompositionText, caret = session?.CompositionCaret, output = session?.CommittedText, candidates = session?.Candidates.Candidates, page = session?.Candidates.CurrentPage, totalPages = session?.Candidates.TotalPages, engine = session?.ValidationState, rulemask = settings.AppliedRuleMask, settingsActive, loaded = session is not null, focused = output.IsKeyboardFocusWithin, log = log.Text };
+    internal object ValidationState => processingValidation ?? new
+    {
+        reading = session?.Candidates.CompositionText, caret = session?.CompositionCaret,
+        output = session?.CommittedText, candidates = session?.Candidates.Candidates,
+        page = session?.Candidates.CurrentPage, totalPages = session?.Candidates.TotalPages,
+        engine = session?.ValidationState, rulemask = settings.AppliedRuleMask, settingsActive,
+        loaded = session is not null, focused = output.IsKeyboardFocusWithin, log = log.Text
+    };
+
     private void UpdatePagingControls()
     {
         var state = session?.Candidates;
@@ -263,7 +358,9 @@ internal sealed class DictionaryDebugWindow : Window
     private void ChangePage(Key key)
     {
         if (session is null || settingsActive || !(key == Key.PageUp ? previousPage.IsEnabled : nextPage.IsEnabled))
+        {
             return;
+        }
 
         session.ProcessKey(key);
         UpdatePagingControls();
@@ -272,14 +369,27 @@ internal sealed class DictionaryDebugWindow : Window
         if (session.Candidates.IsVisible && IsVisible)
         {
             PositionCandidates();
-            if (!candidates.IsVisible) candidates.Show(this);
+            if (!candidates.IsVisible)
+            {
+                candidates.Show(this);
+            }
         }
     }
 
-    internal void SuspendSettings() { settingsActive = true; UpdatePagingControls(); candidates.Hide(); }
+    internal void SuspendSettings()
+    {
+        settingsActive = true;
+        UpdatePagingControls();
+        candidates.Hide();
+    }
+
     internal void ResumeSettings()
     {
-        if (closed) return;
+        if (closed)
+        {
+            return;
+        }
+
         settingsActive = false;
         UpdatePagingControls();
         output.Focus();
@@ -290,12 +400,16 @@ internal sealed class DictionaryDebugWindow : Window
             candidates.Show(this);
         }
     }
+
     internal DictionaryDebugSession CaptureSettingsSession() =>
         settingsActive ? session ?? throw new InvalidOperationException() : throw new InvalidOperationException();
+
     internal DictionaryDebugSession PrepareDictionaryChange(IImeDictionary dictionary) =>
         (session ?? throw new InvalidOperationException()).PrepareDictionaryChange(dictionary);
+
     internal DictionaryDebugSession PrepareFuzzyRulesChange(int mask) =>
         (session ?? throw new InvalidOperationException()).PrepareFuzzyRulesChange(mask);
+
     internal void PublishSession(DictionaryDebugSession prepared)
     {
         session = prepared;
@@ -306,7 +420,9 @@ internal sealed class DictionaryDebugWindow : Window
     {
         log.Text += $"[{DateTime.Now:HH:mm:ss.fff}] {message}{Environment.NewLine}";
         if (!log.IsKeyboardFocusWithin)
+        {
             log.CaretIndex = log.Text.Length;
+        }
     }
 
     private void PositionCandidates()

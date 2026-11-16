@@ -2,6 +2,8 @@ using XiaoXiIme.Foundation;
 
 namespace XiaoXiIme.ImeIpc;
 
-public sealed record ImeConversionListResponse(
+public sealed record ImeConversionListResponse
+(
     ImeCandidate[] Candidates,
-    ImeSessionId SessionId = default);
+    ImeSessionId SessionId = default
+);

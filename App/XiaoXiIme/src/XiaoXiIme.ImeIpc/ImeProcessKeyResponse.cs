@@ -2,8 +2,10 @@
 
 namespace XiaoXiIme.ImeIpc;
 
-public sealed record ImeProcessKeyResponse(
+public sealed record ImeProcessKeyResponse
+(
     ImeProcessResult Result,
     ImeSessionId SessionId = default,
     long Generation = 0,
-    long ProcessedThroughSequence = 0);
+    long ProcessedThroughSequence = 0
+);

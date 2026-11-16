@@ -64,7 +64,11 @@ public static unsafe class ImeKeystrokeDiagnostics
         Volatile.Write(ref s_lastProcessError, unchecked((int)error));
     }
 
-    internal static void RecordImeToAsciiEx(uint virtualKey, bool handled, bool compositionWriteSucceeded, uint messageCount, uint returnValue, uint error = 0, uint stage = 0)
+    internal static void RecordImeToAsciiEx
+    (
+        uint virtualKey, bool handled, bool compositionWriteSucceeded, uint messageCount, uint returnValue,
+        uint error = 0, uint stage = 0
+    )
     {
         Interlocked.Increment(ref s_imeToAsciiExCallCount);
         if (handled)

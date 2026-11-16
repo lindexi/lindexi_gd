@@ -53,11 +53,11 @@ public unsafe class TsfTextServiceTests
         {
             _requestResult = requestResult;
             _sessionResult = sessionResult;
-            _vtable = (nint) NativeMemory.AllocZeroed((nuint) (sizeof(void*) * 4));
-            _instance = (nint) NativeMemory.AllocZeroed((nuint) sizeof(nint));
-            *(nint*) _instance = _vtable;
-            ((void**) _vtable)[TsfNative.ContextRequestEditSessionSlot] =
-                (void*) (delegate* unmanaged[Stdcall]<nint, uint, nint, uint, int*, int>) &RequestEditSession;
+            _vtable = (nint)NativeMemory.AllocZeroed((nuint)(sizeof(void*) * 4));
+            _instance = (nint)NativeMemory.AllocZeroed((nuint)sizeof(nint));
+            *(nint*)_instance = _vtable;
+            ((void**)_vtable)[TsfNative.ContextRequestEditSessionSlot] =
+                (void*)(delegate* unmanaged[Stdcall]<nint, uint, nint, uint, int*, int>)&RequestEditSession;
             s_current = this;
         }
 
@@ -74,7 +74,8 @@ public unsafe class TsfTextServiceTests
         public int OutstandingSessionReferences { get; private set; }
 
         [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
-        private static int RequestEditSession(nint context, uint clientId, nint editSession, uint flags, int* sessionResult)
+        private static int RequestEditSession
+            (nint context, uint clientId, nint editSession, uint flags, int* sessionResult)
         {
             var current = s_current!;
             current.ClientId = clientId;
@@ -85,8 +86,8 @@ public unsafe class TsfTextServiceTests
             {
                 if (current._requestResult >= 0)
                 {
-                    var vtable = *(void***) editSession;
-                    var doEditSession = (delegate* unmanaged[Stdcall]<nint, uint, int>) vtable[3];
+                    var vtable = *(void***)editSession;
+                    var doEditSession = (delegate* unmanaged[Stdcall]<nint, uint, int>)vtable[3];
                     current.DoEditSessionCalls++;
                     var actualResult = doEditSession(editSession, 42);
                     *sessionResult = current._sessionResult < 0 ? current._sessionResult : actualResult;
@@ -104,8 +105,8 @@ public unsafe class TsfTextServiceTests
         public void Dispose()
         {
             s_current = null;
-            NativeMemory.Free((void*) _instance);
-            NativeMemory.Free((void*) _vtable);
+            NativeMemory.Free((void*)_instance);
+            NativeMemory.Free((void*)_vtable);
         }
     }
 }

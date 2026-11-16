@@ -15,14 +15,21 @@ public class BackgroundLearningTests
     public async Task WhenPersistenceIsPausedThenQueueDropsOldestWithoutBlockingProducer()
     {
         var entered = NewSignal();
-        using var worker = new UserDictionaryLearningCoordinator(CreateDictionary(), async (_, token) =>
-        {
-            entered.TrySetResult();
-            await Task.Delay(Timeout.Infinite, token);
-        });
+        using var worker = new UserDictionaryLearningCoordinator
+        (
+            CreateDictionary(), async (_, token) =>
+            {
+                entered.TrySetResult();
+                await Task.Delay(Timeout.Infinite, token);
+            }
+        );
         worker.TryEnqueue("你", "ni");
         await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
-        for (var i = 0; i < UserDictionaryLearningCoordinator.Capacity + 17; i++) worker.TryEnqueue("你", "ni");
+        for (var i = 0; i < UserDictionaryLearningCoordinator.Capacity + 17; i++)
+        {
+            worker.TryEnqueue("你", "ni");
+        }
+
         Assert.Equal(17, worker.Statistics.Dropped);
     }
 
@@ -30,13 +37,21 @@ public class BackgroundLearningTests
     public async Task WhenDuplicateContributionsArriveThenBatchMergesAndEventuallyLearns()
     {
         var dictionary = CreateDictionary();
-        var saved = new TaskCompletionSource<IReadOnlyList<UserDictionaryEntry>>(TaskCreationOptions.RunContinuationsAsynchronously);
-        using var worker = new UserDictionaryLearningCoordinator(dictionary, (entries, _) =>
+        var saved = new TaskCompletionSource<IReadOnlyList<UserDictionaryEntry>>
+            (TaskCreationOptions.RunContinuationsAsynchronously);
+        using var worker = new UserDictionaryLearningCoordinator
+        (
+            dictionary, (entries, _) =>
+            {
+                saved.TrySetResult(entries);
+                return Task.CompletedTask;
+            }
+        );
+        for (var i = 0; i < 32; i++)
         {
-            saved.TrySetResult(entries);
-            return Task.CompletedTask;
-        });
-        for (var i = 0; i < 32; i++) worker.TryEnqueue("你", "ni");
+            worker.TryEnqueue("你", "ni");
+        }
+
         var entries = await saved.Task.WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Equal(32, entries.Single(e => e.Text == "你").SelectionCount);
         Assert.Equal(31, worker.Statistics.Merged);
@@ -46,11 +61,14 @@ public class BackgroundLearningTests
     public async Task WhenSaveFailsThenFailureIsObservableAndInputProducerStillWorks()
     {
         var failed = NewSignal();
-        using var worker = new UserDictionaryLearningCoordinator(CreateDictionary(), (_, _) =>
-        {
-            failed.TrySetResult();
-            throw new IOException("injected-save-failure");
-        });
+        using var worker = new UserDictionaryLearningCoordinator
+        (
+            CreateDictionary(), (_, _) =>
+            {
+                failed.TrySetResult();
+                throw new IOException("injected-save-failure");
+            }
+        );
         worker.TryEnqueue("你", "ni");
         await failed.Task.WaitAsync(TimeSpan.FromSeconds(5));
         worker.Dispose();
@@ -62,12 +80,21 @@ public class BackgroundLearningTests
     {
         var entered = NewSignal();
         var cancelled = NewSignal();
-        var worker = new UserDictionaryLearningCoordinator(CreateDictionary(), async (_, token) =>
-        {
-            entered.TrySetResult();
-            try { await Task.Delay(Timeout.Infinite, token); }
-            finally { cancelled.TrySetResult(); }
-        });
+        var worker = new UserDictionaryLearningCoordinator
+        (
+            CreateDictionary(), async (_, token) =>
+            {
+                entered.TrySetResult();
+                try
+                {
+                    await Task.Delay(Timeout.Infinite, token);
+                }
+                finally
+                {
+                    cancelled.TrySetResult();
+                }
+            }
+        );
         worker.TryEnqueue("你", "ni");
         await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
         var watch = Stopwatch.StartNew();
@@ -106,7 +133,8 @@ public class BackgroundLearningTests
         var expected = context.Snapshot.Candidates[0].Text;
         dictionary.LearnBatch([new("尼", "ni", 1000)]);
         dictionary.PrepareAndPublish();
-        var result = explicitId ? context.SelectCandidate(candidate.SelectionId!.Value)
+        var result = explicitId
+            ? context.SelectCandidate(candidate.SelectionId!.Value)
             : context.ProcessKey(new(ImeKeyKind.Space));
         Assert.Equal(expected, result.CommitText);
     }
@@ -130,11 +158,14 @@ public class BackgroundLearningTests
     public async Task WhenUnexpectedPersistenceFailureOccursThenWorkerObservesIt()
     {
         var entered = NewSignal();
-        var worker = new UserDictionaryLearningCoordinator(CreateDictionary(), (_, _) =>
-        {
-            entered.TrySetResult();
-            throw new System.Security.SecurityException("injected-unexpected-failure");
-        });
+        var worker = new UserDictionaryLearningCoordinator
+        (
+            CreateDictionary(), (_, _) =>
+            {
+                entered.TrySetResult();
+                throw new System.Security.SecurityException("injected-unexpected-failure");
+            }
+        );
         worker.TryEnqueue("你", "ni");
         await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
         worker.Dispose();
@@ -147,18 +178,29 @@ public class BackgroundLearningTests
         var dictionary = CreateDictionary();
         using var entered = new ManualResetEventSlim();
         using var release = new ManualResetEventSlim();
-        var old = Task.Run(() => dictionary.EnableBackgroundPublication(_ =>
-        {
-            entered.Set();
-            if (!release.Wait(TimeSpan.FromSeconds(5))) throw new TimeoutException();
-        }));
+        var old = Task.Run
+        (() => dictionary.EnableBackgroundPublication
+            (_ =>
+                {
+                    entered.Set();
+                    if (!release.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        throw new TimeoutException();
+                    }
+                }
+            )
+        );
         Assert.True(entered.Wait(TimeSpan.FromSeconds(5)));
         var prepared = 0;
-        var replacement = Task.Run(() => dictionary.EnableBackgroundPublication(l =>
-        {
-            ImeContext.PrepareLexicon(l, [ImeFuzzyRule.ZhZ]);
-            Interlocked.Increment(ref prepared);
-        }));
+        var replacement = Task.Run
+        (() => dictionary.EnableBackgroundPublication
+            (l =>
+                {
+                    ImeContext.PrepareLexicon(l, [ImeFuzzyRule.ZhZ]);
+                    Interlocked.Increment(ref prepared);
+                }
+            )
+        );
         release.Set();
         await Task.WhenAll(old, replacement);
         dictionary.LearnBatch([new("你", "ni", 1)]);

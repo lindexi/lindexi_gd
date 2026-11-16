@@ -26,26 +26,49 @@ internal sealed class DictionaryDebugSettings : IDisposable
 
     internal static string ResolvePath(string? path)
     {
-        var formal = Path.GetFullPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "XiaoXiIme", "product-settings.json"));
-        var isolated = Path.GetFullPath(path ?? Path.Combine(Path.GetDirectoryName(formal)!, "debug-product-settings.json"));
-        if (string.Equals(formal, isolated, StringComparison.OrdinalIgnoreCase)) throw new ArgumentException(nameof(path));
+        var formal = Path.GetFullPath
+        (
+            Path.Combine
+            (
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "XiaoXiIme",
+                "product-settings.json"
+            )
+        );
+        var isolated = Path.GetFullPath
+            (path ?? Path.Combine(Path.GetDirectoryName(formal)!, "debug-product-settings.json"));
+        if (string.Equals(formal, isolated, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException(nameof(path));
+        }
+
         return isolated;
     }
 
     internal int InitialRuleMask => store.Settings.FuzzyRuleMask;
     internal int AppliedRuleMask => store.Settings.FuzzyRuleMask;
     internal string InitialScheme => ProductSettingsStore.GetScheme(store.Settings.InputScheme);
+
     internal void SetScheme(string value)
     {
         scheme = value;
         window?.Observe(Read());
         window?.SetAvailable(true);
     }
-    private ImeProductSettingsResponse Read() => store.Read(scheme, "dictionaryDebug") with { RequiresHostRestart = false };
+
+    private ImeProductSettingsResponse Read() => store.Read
+            (scheme, "dictionaryDebug") with
+        {
+            RequiresHostRestart = false
+        };
 
     internal void Open()
     {
-        if (window is not null) { window.Activate(); return; }
+        if (window is not null)
+        {
+            window.Activate();
+            return;
+        }
+
         owner.SuspendSettings();
         window = new ProductSettingsWindow(RefreshAsync, SaveAsync);
         window.Closing += (_, args) =>
@@ -59,7 +82,10 @@ internal sealed class DictionaryDebugSettings : IDisposable
         window.Closed += (_, _) =>
         {
             window = null;
-            if (transaction.CurrentCount != 0) owner.ResumeSettings();
+            if (transaction.CurrentCount != 0)
+            {
+                owner.ResumeSettings();
+            }
         };
         window.Observe(Read());
         window.SetAvailable(scheme is not null);
@@ -74,9 +100,14 @@ internal sealed class DictionaryDebugSettings : IDisposable
         return Task.CompletedTask;
     }
 
-    private async Task<bool> SaveAsync(ImeProductSettingsResponse baseline, ImeProductSettings draft, ProductSettingsWindow target)
+    private async Task<bool> SaveAsync
+        (ImeProductSettingsResponse baseline, ImeProductSettings draft, ProductSettingsWindow target)
     {
-        if (lifetime.IsCancellationRequested || !await transaction.WaitAsync(0)) return false;
+        if (lifetime.IsCancellationRequested || !await transaction.WaitAsync(0))
+        {
+            return false;
+        }
+
         saveCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
         var started = System.Diagnostics.Stopwatch.GetTimestamp();
         SettingsApplyTrace.Mark("ui-apply-start", started);
@@ -89,23 +120,48 @@ internal sealed class DictionaryDebugSettings : IDisposable
             var nextScheme = ProductSettingsStore.GetScheme(draft.InputScheme);
             if (nextScheme != scheme)
             {
-                dictionary = await Task.Run(() => DictionaryPackageLoader.Load(
-                    DictionaryPackageLocations.ResolvePackageDirectory(packagePath, inputScheme: nextScheme)), lifetime.Token);
-                if (dictionary.InputScheme != nextScheme) { target.Message("PackageUnavailable"); return false; }
+                dictionary = await Task.Run
+                (
+                    () => DictionaryPackageLoader.Load
+                    (
+                        DictionaryPackageLocations.ResolvePackageDirectory(packagePath, inputScheme: nextScheme)
+                    ), lifetime.Token
+                );
+                if (dictionary.InputScheme != nextScheme)
+                {
+                    target.Message("PackageUnavailable");
+                    return false;
+                }
+
                 SettingsApplyTrace.Mark("package-load-end", started);
             }
+
             SettingsApplyTrace.Mark("fuzzy-query-prepare-start", started);
             var prepared = await original.PrepareSettingsChangeAsync(dictionary, draft.FuzzyRuleMask, lifetime.Token);
             SettingsApplyTrace.Mark("fuzzy-query-prepare-end", started);
             lifetime.Token.ThrowIfCancellationRequested();
             SettingsApplyTrace.Mark("store-commit-start", started);
-            var result = await store.SaveAsync(new(baseline.HostInstanceId, Guid.NewGuid(), baseline.Settings.Revision, draft), scheme, "dictionaryDebug", null);
+            var result = await store.SaveAsync
+            (
+                new(baseline.HostInstanceId, Guid.NewGuid(), baseline.Settings.Revision, draft), scheme,
+                "dictionaryDebug", null
+            );
             SettingsApplyTrace.Mark("store-commit-end", started);
-            if (result.Error != ImeProductSettingsError.None) { target.Message(result.Error.ToString()); return false; }
+            if (result.Error != ImeProductSettingsError.None)
+            {
+                target.Message(result.Error.ToString());
+                return false;
+            }
+
             lifetime.Token.ThrowIfCancellationRequested();
-            if (prepared is not null) owner.PublishSession(prepared);
+            if (prepared is not null)
+            {
+                owner.PublishSession(prepared);
+            }
+
             SettingsApplyTrace.Mark("publish-end", started);
-            global::Avalonia.Threading.Dispatcher.UIThread.Post(() => SettingsApplyTrace.Mark("dispatcher-response", started));
+            global::Avalonia.Threading.Dispatcher.UIThread.Post
+                (() => SettingsApplyTrace.Mark("dispatcher-response", started));
             scheme = nextScheme;
             target.Saved(Read());
             target.Message("DebugSaved");
@@ -117,12 +173,19 @@ internal sealed class DictionaryDebugSettings : IDisposable
             target.Message("PackageUnavailable");
             return false;
         }
-        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { return false; }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
+        {
+            return false;
+        }
         finally
         {
             target.SetBusy(false);
             transaction.Release();
-            if (window is null && !lifetime.IsCancellationRequested) owner.ResumeSettings();
+            if (window is null && !lifetime.IsCancellationRequested)
+            {
+                owner.ResumeSettings();
+            }
+
             saveCompletion.TrySetResult();
         }
     }
