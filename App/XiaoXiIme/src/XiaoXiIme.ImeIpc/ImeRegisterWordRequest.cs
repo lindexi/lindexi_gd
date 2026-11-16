@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using XiaoXiIme.Foundation;
 
 namespace XiaoXiIme.ImeIpc;
@@ -14,12 +13,4 @@ public sealed record ImeRegisterWordRequest(
     ImeSessionId SessionId = default)
 {
     public ImeSessionId EffectiveSessionId => SessionId.Effective;
-}
-
-[JsonConverter(typeof(JsonCamelCaseStringEnumConverter<ImeRegisterWordAction>))]
-public enum ImeRegisterWordAction
-{
-    Register,
-    Unregister,
-    Enumerate,
 }

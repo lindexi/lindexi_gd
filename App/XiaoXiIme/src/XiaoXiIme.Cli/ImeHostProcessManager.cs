@@ -3,13 +3,6 @@ using XiaoXiIme.ImeIpc;
 
 namespace XiaoXiIme.Cli;
 
-internal sealed record ImeHostProcessStartResult(
-    bool Succeeded,
-    string Message,
-    string ExecutablePath,
-    int? ProcessId = null,
-    ImeHostStatus? HostStatus = null);
-
 internal sealed class ImeHostProcessManager : IDisposable
 {
     private Process? _process;
@@ -34,7 +27,8 @@ internal sealed class ImeHostProcessManager : IDisposable
                     process.WaitForExit(5_000);
                 }
             }
-            catch (Exception exception) when (exception is InvalidOperationException or System.ComponentModel.Win32Exception)
+            catch (Exception exception) when (exception is InvalidOperationException
+                                                  or System.ComponentModel.Win32Exception)
             {
             }
             finally
@@ -73,12 +67,15 @@ internal sealed class ImeHostProcessManager : IDisposable
         {
             _process = Process.Start(startInfo);
         }
-        catch (Exception exception) when (exception is InvalidOperationException or System.ComponentModel.Win32Exception)
+        catch (Exception exception) when
+            (exception is InvalidOperationException or System.ComponentModel.Win32Exception)
         {
-            return new ImeHostProcessStartResult(
+            return new ImeHostProcessStartResult
+            (
                 false,
                 $"Unable to start the IME host: {exception.GetType().Name}: {exception.Message}",
-                fullPath);
+                fullPath
+            );
         }
 
         if (_process is null)
@@ -93,10 +90,12 @@ internal sealed class ImeHostProcessManager : IDisposable
             var exitCode = _process.ExitCode;
             _process.Dispose();
             _process = null;
-            return new ImeHostProcessStartResult(
+            return new ImeHostProcessStartResult
+            (
                 false,
                 $"IME host exited immediately with code {exitCode}: {fullPath}",
-                fullPath);
+                fullPath
+            );
         }
 
         var processId = _process.Id;
@@ -105,11 +104,13 @@ internal sealed class ImeHostProcessManager : IDisposable
         {
             Stop();
             StopExisting(ipcOptions.ServerName);
-            return new ImeHostProcessStartResult(
+            return new ImeHostProcessStartResult
+            (
                 false,
                 ready.Message,
                 fullPath,
-                processId);
+                processId
+            );
         }
 
         if (keepRunning)
@@ -118,12 +119,14 @@ internal sealed class ImeHostProcessManager : IDisposable
             _process = null;
         }
 
-        return new ImeHostProcessStartResult(
+        return new ImeHostProcessStartResult
+        (
             true,
             $"IME host started and is ready: {fullPath}",
             fullPath,
             processId,
-            ready.HostStatus);
+            ready.HostStatus
+        );
     }
 
     internal static ImeHostProcessStartResult WaitUntilReady(XiaoXiImeIpcOptions options, TimeSpan? timeout = null)
@@ -138,21 +141,25 @@ internal sealed class ImeHostProcessManager : IDisposable
             var fallbackNote = status.IsUsingFallbackDictionary
                 ? " Host is using the minimal fallback dictionary."
                 : string.Empty;
-            return new ImeHostProcessStartResult(
+            return new ImeHostProcessStartResult
+            (
                 true,
                 $"IME host is ready.{fallbackNote}",
                 string.Empty,
-                HostStatus: status);
+                HostStatus: status
+            );
         }
         catch (Exception exception) when (exception is TimeoutException
-            or IOException
-            or InvalidOperationException
-            or System.ComponentModel.Win32Exception)
+                                              or IOException
+                                              or InvalidOperationException
+                                              or System.ComponentModel.Win32Exception)
         {
-            return new ImeHostProcessStartResult(
+            return new ImeHostProcessStartResult
+            (
                 false,
                 $"IME host did not become ready: {exception.Message}",
-                string.Empty);
+                string.Empty
+            );
         }
     }
 
@@ -171,7 +178,8 @@ internal sealed class ImeHostProcessManager : IDisposable
                 _process.WaitForExit(5_000);
             }
         }
-        catch (Exception exception) when (exception is InvalidOperationException or System.ComponentModel.Win32Exception)
+        catch (Exception exception) when
+            (exception is InvalidOperationException or System.ComponentModel.Win32Exception)
         {
         }
         finally

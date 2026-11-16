@@ -28,7 +28,3 @@ internal sealed record IntegrationPayloadManifest(
         WriteIndented = true,
     };
 }
-
-internal sealed record NativePayloadComponents(string RuntimeIdentifier, string ImeFile, string TsfModule, string TsfAbiHostExecutable);
-
-internal sealed record PayloadFile(string Path, long Length, string Sha256);

@@ -398,8 +398,3 @@ public sealed class UserDictionary : IImeDictionary, IShapeDictionary, ISymbolDi
 
     private readonly record struct UserDictionaryKey(string Text, string Reading);
 }
-
-/// <summary>
-/// Represents one persisted user dictionary entry.
-/// </summary>
-public sealed record UserDictionaryEntry(string Text, string Reading, int SelectionCount);

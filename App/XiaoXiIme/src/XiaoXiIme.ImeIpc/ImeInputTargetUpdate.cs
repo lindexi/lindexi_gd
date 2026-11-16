@@ -10,6 +10,3 @@ public sealed record ImeInputTargetUpdate(
     string ContextKey,
     bool Active,
     ImeCandidateAnchor? Anchor);
-
-/// <summary>Reports whether the observation superseded the owner's previous observation.</summary>
-public sealed record ImeInputTargetUpdateResponse(bool Accepted);

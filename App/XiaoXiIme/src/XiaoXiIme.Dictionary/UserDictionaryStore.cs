@@ -149,11 +149,3 @@ public static class UserDictionaryStore
 
     internal sealed record UserDictionaryDocument(int FormatVersion, UserDictionaryEntry[] Entries);
 }
-
-/// <summary>
-/// Reports loaded entries and any recovery action taken for an invalid user dictionary.
-/// </summary>
-public sealed record UserDictionaryLoadResult(
-    IReadOnlyList<UserDictionaryEntry> Entries,
-    string? Error,
-    string? IsolatedCorruptFilePath);

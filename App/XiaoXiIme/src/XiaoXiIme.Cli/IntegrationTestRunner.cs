@@ -5,15 +5,6 @@ using XiaoXiIme.Dictionary;
 
 namespace XiaoXiIme.Cli;
 
-internal sealed record IntegrationStageResult(
-    string Id,
-    bool Succeeded,
-    int ExitCode,
-    string Message,
-    string StandardOutput,
-    string StandardError,
-    object? Data = null);
-
 internal static class IntegrationTestRunner
 {
     public static async Task<int> RunAsync(

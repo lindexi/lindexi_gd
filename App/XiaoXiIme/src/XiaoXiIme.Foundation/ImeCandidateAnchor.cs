@@ -20,6 +20,3 @@ public sealed record ImeCandidateAnchor(
     long WindowIdentity = 0,
     long ObservationSequence = 0,
     ImeAnchorRectangle? ClientExclusion = null);
-
-/// <summary>Ordered rectangle in target client coordinates, including zero and negative origins.</summary>
-public sealed record ImeAnchorRectangle(int Left, int Top, int Right, int Bottom);

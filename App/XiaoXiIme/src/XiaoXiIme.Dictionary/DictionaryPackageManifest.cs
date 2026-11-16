@@ -24,33 +24,3 @@ public sealed record DictionaryPackageManifest
 
     public DictionaryPackageCounts Counts { get; init; } = new();
 }
-
-public sealed record DictionaryPackageSource(string Path, long Length, long LastWriteTimeUtcTicks);
-
-public sealed record DictionaryPackageParameters
-{
-    public string InputScheme { get; init; } = DictionaryPackageFormat.FullPinyinInputScheme;
-
-    public string? ProjectionVersion { get; init; }
-
-    public string? RulesSha256 { get; init; }
-
-    public bool EnablePrefixIndex { get; init; } = true;
-
-    public int MaxPrefixCandidatesPerKey { get; init; } = 128;
-}
-
-public sealed record DictionaryPackageShard(string Role, string Path, long Length);
-
-public sealed record DictionaryPackageCounts
-{
-    public int Candidates { get; init; }
-
-    public int ExactKeys { get; init; }
-
-    public int PrefixKeys { get; init; }
-
-    public int ShapeEntries { get; init; }
-
-    public int SymbolInputs { get; init; }
-}

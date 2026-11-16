@@ -3,10 +3,6 @@ using System.Text.Json;
 
 namespace XiaoXiIme.Cli;
 
-internal sealed record SystemTestCommand(string Id, string FileName, IReadOnlyList<string> Arguments);
-
-internal sealed record SystemTestCommandResult(string Id, int ExitCode, string StandardOutput, string StandardError);
-
 internal static class SystemTestRunner
 {
     public const string VmConfirmation = "I-UNDERSTAND-THIS-MODIFIES-WINDOWS";

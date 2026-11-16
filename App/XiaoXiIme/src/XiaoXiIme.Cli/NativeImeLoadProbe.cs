@@ -5,15 +5,6 @@ using System.Text.Json;
 
 namespace XiaoXiIme.Cli;
 
-internal sealed record NativeImeLoadProbeResult(
-    string ImePath,
-    bool LoadSucceeded,
-    int LoadErrorCode,
-    string? LoadErrorMessage,
-    IReadOnlyDictionary<string, bool> RequiredExports,
-    bool AllRequiredExportsFound,
-    bool ImeEnumRegisterWordCallSucceeded);
-
 internal static unsafe class NativeImeLoadProbe
 {
     private const uint LoadLibrarySearchDllLoadDir = 0x00000100;

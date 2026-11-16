@@ -2,13 +2,6 @@ using System.Text.Json;
 
 namespace XiaoXiIme.Cli;
 
-internal sealed record SystemTestStep(
-    string Id,
-    string Area,
-    string Description,
-    bool Destructive,
-    string Evidence);
-
 internal sealed record SystemTestPlan(
     string Name,
     IReadOnlyList<SystemTestStep> Steps)

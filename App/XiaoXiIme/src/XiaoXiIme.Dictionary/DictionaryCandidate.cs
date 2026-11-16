@@ -3,25 +3,6 @@ using XiaoXiIme.Foundation;
 namespace XiaoXiIme.Dictionary;
 
 /// <summary>
-/// Identifies whether a ranked candidate came from user learning, the system package, or the fallback dictionary.
-/// </summary>
-public enum DictionaryCandidateSourceKind
-{
-    User,
-    System,
-    Fallback,
-}
-
-/// <summary>
-/// Identifies whether a ranked candidate matched the query exactly or as a bounded prefix.
-/// </summary>
-public enum DictionaryCandidateMatchKind
-{
-    Exact,
-    Prefix,
-}
-
-/// <summary>
 /// Internal dictionary result used for layered ranking before mapping to <see cref="ImeCandidate"/>.
 /// </summary>
 public sealed record DictionaryCandidate(

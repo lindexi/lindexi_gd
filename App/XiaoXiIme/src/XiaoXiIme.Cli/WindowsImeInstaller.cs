@@ -8,15 +8,6 @@ using Microsoft.Win32;
 
 namespace XiaoXiIme.Cli;
 
-internal interface IImeInstaller
-{
-    ImeInstallationResult Install(string imeFilePath, string displayName);
-
-    ImeInstallationResult InstallPair(string x64ImeFilePath, string x86ImeFilePath, string displayName);
-
-    ImeUninstallationResult UninstallExisting(string displayName, string imeFileName);
-}
-
 [SupportedOSPlatform("windows")]
 internal sealed class WindowsImeInstaller : IImeInstaller
 {
@@ -475,48 +466,3 @@ internal sealed class WindowsImeInstaller : IImeInstaller
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool MoveFileEx(string existingFileName, string? newFileName, uint flags);
 }
-
-internal enum ImeInstallationFailureKind
-{
-    None,
-    ExistingFileConflict,
-    ImmInstallImeFailure,
-    Other,
-}
-
-internal readonly record struct ImeInstallationResult(
-    bool Succeeded,
-    string Message,
-    int? Win32ErrorCode,
-    string? SourcePath,
-    string? InstalledPath,
-    bool CopiedToSystemDirectory,
-    bool? RollbackSucceeded,
-    string? RollbackError,
-    ImeInstallationFailureKind FailureKind = ImeInstallationFailureKind.None)
-{
-    public static ImeInstallationResult Failure(
-        string message,
-        int? win32ErrorCode = null,
-        string? installedPath = null,
-        bool copiedToSystemDirectory = false,
-        bool? rollbackSucceeded = null,
-        string? rollbackError = null,
-        ImeInstallationFailureKind failureKind = ImeInstallationFailureKind.Other) =>
-        new(false, message, win32ErrorCode, null, installedPath, copiedToSystemDirectory, rollbackSucceeded, rollbackError, failureKind);
-}
-
-internal readonly record struct ImeUninstallationResult(
-    bool Succeeded,
-    IReadOnlyList<string> RemovedLayoutIds,
-    string Message,
-    bool RebootRequired = false,
-    IReadOnlyList<string>? PendingDeletePaths = null,
-    IReadOnlyList<string>? RetiredFilePaths = null);
-
-internal readonly record struct ImeFileCleanupResult(
-    bool Succeeded,
-    IReadOnlyList<string> Messages,
-    bool RebootRequired,
-    IReadOnlyList<string> PendingDeletePaths,
-    IReadOnlyList<string> RetiredFilePaths);
