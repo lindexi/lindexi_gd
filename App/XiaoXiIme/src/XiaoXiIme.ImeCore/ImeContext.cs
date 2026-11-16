@@ -63,12 +63,39 @@ public sealed partial class ImeContext
         return prepared;
     }
 
+    /// <summary>Predicts key ownership from a published snapshot without changing composition or learning.</summary>
+    public static bool ShouldProcessKey(ImeKey key, ImeSessionSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        if (key.Kind == ImeKeyKind.Other) return false;
+        if (key.Kind != ImeKeyKind.Character)
+        {
+            return key.Kind switch
+            {
+                ImeKeyKind.Space when snapshot.EatsConfirmationSpace => true,
+                ImeKeyKind.PreviousCandidate or ImeKeyKind.NextCandidate or
+                ImeKeyKind.PreviousCandidatePage or ImeKeyKind.NextCandidatePage or
+                ImeKeyKind.FirstCandidate or ImeKeyKind.LastCandidate => snapshot.IsComposing && snapshot.Candidates.Count > 0,
+                _ => snapshot.IsComposing
+            };
+        }
+        if (snapshot.Composition.Reading.Length >= 64 &&
+            (IsAsciiLetter(key.Character) || key.Character == ';' && snapshot.AcceptsSemicolon ||
+             key.Character == '\'' && snapshot.AcceptsApostrophe && !snapshot.Composition.Reading.StartsWith('/') ||
+             snapshot.Composition.Reading.StartsWith('/') && char.IsAsciiDigit(key.Character)))
+            return false;
+        var character = key.Character;
+        if (char.IsControl(character) || char.IsWhiteSpace(character)) return false;
+        return snapshot.IsComposing || IsAsciiLetter(character) || character == '/' ||
+            character == ';' && snapshot.AcceptsSemicolon;
+    }
+
     public ImeProcessResult ProcessKey(ImeKey key)
     {
         var eat = _eatConfirmationSpace && key.Kind == ImeKeyKind.Space;
         _eatConfirmationSpace = false;
         if (eat) return new ImeProcessResult(Snapshot, null, true);
-        return key.Kind switch
+        var result = key.Kind switch
         {
             ImeKeyKind.Character => ProcessCharacter(key.Character),
             ImeKeyKind.Backspace => ProcessBackspace(),
@@ -88,6 +115,7 @@ public sealed partial class ImeContext
                 : CommitCandidateInCurrentPage(key.CandidateIndex),
             _ => new ImeProcessResult(Snapshot, null, false)
         };
+        return result with { Snapshot = Snapshot };
     }
 
     /// <summary>
@@ -194,6 +222,14 @@ public sealed partial class ImeContext
 
     private ImeProcessResult ProcessCharacter(char character)
     {
+        if (character is >= '0' and <= '9')
+        {
+            var index = character == '0' ? 9 : character - '1';
+            if (IsSymbolComposition) return ProcessSymbolDigit(index);
+            if (_candidates.Count > 0) return CommitCandidateInCurrentPage(index);
+        }
+        if (!CanInsertCharacter(character) && !char.IsControl(character) && !char.IsWhiteSpace(character))
+            return CommitBeforeCharacter(character);
         if (_reading.Length >= 64)
             return new ImeProcessResult(Snapshot, null, false);
         if (!CanInsertCharacter(character))
@@ -223,12 +259,31 @@ public sealed partial class ImeContext
         return new ImeProcessResult(Snapshot, null, true);
     }
 
+    private ImeProcessResult CommitBeforeCharacter(char character)
+    {
+        if (!IsComposing) return new ImeProcessResult(Snapshot, null, false);
+
+        var text = new System.Text.StringBuilder();
+        while (IsComposing)
+        {
+            var before = _reading.Length;
+            var result = CommitCandidate(_selection);
+            text.Append(result.CommitText);
+            // Incomplete or unmatched input must be preserved rather than silently dropped.
+            if (_reading.Length >= before) text.Append(CommitReading().CommitText);
+        }
+        text.Append(character);
+        return new ImeProcessResult(Snapshot, text.ToString(), true);
+    }
+
     private ImeProcessResult ProcessSymbolDigit(int candidateIndex)
     {
         if ((uint)candidateIndex >= 10)
         {
             return new ImeProcessResult(Snapshot, null, true);
         }
+
+        if (_reading.Length >= 64) return new ImeProcessResult(Snapshot, null, false);
 
         var digit = candidateIndex == 9 ? '0' : (char)('1' + candidateIndex);
         _reading = _reading.Insert(_caretIndex, digit.ToString());
@@ -424,7 +479,12 @@ public sealed partial class ImeContext
     {
         if (!IsComposing)
         {
-            return ImeSessionSnapshot.Empty with { AcceptsSemicolon = IsPhoneticCharacter(';') };
+            return ImeSessionSnapshot.Empty with
+            {
+                AcceptsSemicolon = IsPhoneticCharacter(';'),
+                EatsConfirmationSpace = _eatConfirmationSpace,
+                AcceptsApostrophe = IsPhoneticCharacter('\'')
+            };
         }
 
         return new ImeSessionSnapshot(
@@ -433,7 +493,9 @@ public sealed partial class ImeContext
             CreateCandidateWindowState(),
             true,
             CreateGuideline(),
-            IsPhoneticCharacter(';'));
+            IsPhoneticCharacter(';'),
+            _eatConfirmationSpace,
+            IsPhoneticCharacter('\''));
     }
 
     private ImeGuideline CreateGuideline()
@@ -466,6 +528,7 @@ public sealed partial class ImeContext
 
     private bool CanInsertCharacter(char character)
     {
+        if (character == '\'') return IsComposing && !IsSymbolComposition && IsPhoneticCharacter(character);
         if (character == '/')
         {
             return !IsComposing;
@@ -475,6 +538,7 @@ public sealed partial class ImeContext
     }
 
     private bool IsPhoneticCharacter(char character) => IsAsciiLetter(character) ||
+        character == '\'' && _dictionary.GetLexicon().Projection.Name == ImeProjectionDefinition.FullPinyin.Name ||
         character == ';' && _dictionary.Projection?.Entries.Any(entry => entry.Input.Contains(';')) == true;
 
     private bool IsValidComposition(string composition)

@@ -6,7 +6,9 @@ public sealed record ImeSessionSnapshot(
     ImeCandidateWindowState CandidateWindow,
     bool IsComposing,
     ImeGuideline? Guideline = null,
-    bool AcceptsSemicolon = false)
+    bool AcceptsSemicolon = false,
+    bool EatsConfirmationSpace = false,
+    bool AcceptsApostrophe = false)
 {
     public ImeGuideline EffectiveGuideline => Guideline ?? ImeGuideline.Empty;
 

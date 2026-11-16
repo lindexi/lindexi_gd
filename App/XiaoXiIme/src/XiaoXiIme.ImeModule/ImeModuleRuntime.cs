@@ -28,8 +28,6 @@ public static class ImeModuleRuntime
     public static ImeProcessResult ProcessVirtualKey(ushort virtualKey, uint modifiers, HImc inputContext)
     {
         var key = ImeKeyTranslator.Translate(virtualKey, modifiers);
-        if (key.Character == ';' && !ShouldProcessVirtualKey(virtualKey, modifiers, inputContext))
-            return new ImeProcessResult(ImeSessionSnapshot.Empty, null, false);
         if (key.Kind is ImeKeyKind.Other)
         {
             return new ImeProcessResult(ImeSessionSnapshot.Empty, CommitText: null, Handled: false);
@@ -143,38 +141,22 @@ public static class ImeModuleRuntime
         return ShouldProcessVirtualKey(virtualKey, modifiers, default);
     }
 
-    public static bool ShouldProcessVirtualKey(ushort virtualKey, uint modifiers, HImc inputContext)
+    public static bool ShouldProcessVirtualKey(ushort virtualKey, uint modifiers, HImc inputContext) =>
+        ShouldProcessTranslatedKey(ImeKeyTranslator.Translate(virtualKey, modifiers), inputContext);
+
+    /// <summary>Checks ownership of already layout-resolved input using the shared core contract.</summary>
+    public static bool ShouldProcessTranslatedKey(ImeKey key, HImc inputContext)
     {
-        if (virtualKey == 0xBA)
-        {
-            if ((modifiers & ImeKeyTranslator.ShiftModifier) != 0 ||
-                !s_compositionContextReader.IsReceivingChinese(inputContext))
-                return false;
-            var sessionId = ImeInputIdentity.Resolve(inputContext);
-            ImeHostBridge? bridge;
-            lock (SyncRoot)
-            {
-                bridge = s_bridge;
-                if (bridge is null && s_snapshots.TryGetValue(sessionId, out var snapshot))
-                    return snapshot.AcceptsSemicolon;
-            }
-            return (bridge ?? GetBridge()).GetSnapshot(sessionId).AcceptsSemicolon;
-        }
-
-        if (ImeKeyTranslator.ShouldProcess(virtualKey, modifiers))
-        {
-            return true;
-        }
-
-        if (s_compositionContextReader.IsComposing(inputContext))
-        {
-            return true;
-        }
-
+        if (key.Kind == ImeKeyKind.Other || !s_compositionContextReader.IsReceivingChinese(inputContext)) return false;
+        var sessionId = ImeInputIdentity.Resolve(inputContext);
+        ImeSessionSnapshot snapshot;
         lock (SyncRoot)
         {
-            return GetSnapshot(ImeInputIdentity.Resolve(inputContext)).IsComposing;
+            if (!s_snapshots.TryGetValue(sessionId, out var cached))
+                snapshot = key.Character == ';' ? (s_bridge ?? GetBridge()).GetSnapshot(sessionId) : ImeSessionSnapshot.Empty;
+            else snapshot = cached;
         }
+        return XiaoXiIme.ImeCore.ImeContext.ShouldProcessKey(key, snapshot);
     }
 
     internal static bool IsComposing(HImc inputContext)

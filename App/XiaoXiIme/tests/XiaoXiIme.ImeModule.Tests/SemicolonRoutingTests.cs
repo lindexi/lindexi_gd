@@ -12,11 +12,11 @@ public class SemicolonRoutingTests
     [Theory]
     [InlineData("sogouDoublePinyin", true)]
     [InlineData("microsoftDoublePinyin", true)]
-    [InlineData("fullPinyin", false)]
-    [InlineData("xiaoheDoublePinyin", false)]
-    [InlineData("abcDoublePinyin", false)]
-    [InlineData("jiajiaDoublePinyin", false)]
-    [InlineData("naturalCodeDoublePinyin", false)]
+    [InlineData("fullPinyin", true)]
+    [InlineData("xiaoheDoublePinyin", true)]
+    [InlineData("abcDoublePinyin", true)]
+    [InlineData("jiajiaDoublePinyin", true)]
+    [InlineData("naturalCodeDoublePinyin", true)]
     public unsafe void WhenNativeEntryReceivesSemicolonThenOnlyTargetSchemeClaimsIt(string scheme, bool expected)
     {
         var context = new ImeContext(new InMemoryImeDictionary(new ImeLexicon(

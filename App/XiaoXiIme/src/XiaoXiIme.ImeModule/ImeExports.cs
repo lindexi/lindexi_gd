@@ -181,10 +181,9 @@ public static unsafe class ImeExports
 
         try
         {
-            var handled = ImeModuleRuntime.ShouldProcessVirtualKey(
-                normalizedVirtualKey,
-                GetModifiers(keyState),
-                new HImc(inputContext));
+            var key = ImeKeyTranslator.TranslateNative(normalizedVirtualKey,
+                (uint)((unchecked((ulong)keyData) >> 16) & 0xFF), keyState, GetModifiers(keyState));
+            var handled = ImeModuleRuntime.ShouldProcessTranslatedKey(key, new HImc(inputContext));
             ImeKeystrokeDiagnostics.RecordImeProcessKey(normalizedVirtualKey, handled);
             if (normalizedVirtualKey == 0x20)
                 ImeLifecycleDiagnostics.Record("ImeProcessKey.Space", inputContext, handled ? 1 : 0, "decision");
@@ -408,7 +407,7 @@ public static unsafe class ImeExports
         uint stage = 1;
         try
         {
-            var key = ImeKeyTranslator.Translate(normalizedVirtualKey, GetModifiers(keyState));
+            var key = ImeKeyTranslator.TranslateNative(normalizedVirtualKey, scanCode, keyState, GetModifiers(keyState));
             stage = 2;
             var wasComposing = ImeModuleRuntime.IsComposing(new HImc(inputContext));
             var processResult = key.Kind is ImeKeyKind.Other
@@ -561,9 +560,13 @@ public static unsafe class ImeExports
     {
         const int shiftVirtualKey = 0x10;
         const byte keyDownMask = 0x80;
-        return keyState is not null && (keyState[shiftVirtualKey] & keyDownMask) != 0
-            ? ImeKeyTranslator.ShiftModifier
-            : 0;
+        if (keyState is null) return 0;
+        uint modifiers = 0;
+        if ((keyState[shiftVirtualKey] & keyDownMask) != 0) modifiers |= ImeKeyTranslator.ShiftModifier;
+        if ((keyState[0x11] & keyDownMask) != 0) modifiers |= ImeKeyTranslator.ControlModifier;
+        if ((keyState[0x12] & keyDownMask) != 0) modifiers |= ImeKeyTranslator.AltModifier;
+        if (((keyState[0x5B] | keyState[0x5C]) & keyDownMask) != 0) modifiers |= ImeKeyTranslator.MetaModifier;
+        return modifiers;
     }
 
     private static string? ReadNullTerminated(char* value)

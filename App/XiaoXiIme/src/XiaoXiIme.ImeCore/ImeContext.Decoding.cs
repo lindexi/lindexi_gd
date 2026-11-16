@@ -65,6 +65,7 @@ public sealed partial class ImeContext
                 }
                 void Finish(int end, IReadOnlyList<ImePathEvidence> evidence, int missing)
                 {
+                    if (fullPinyin && end < input.Length && input[end] == '\'') end++;
                     var segment = new ImeConfirmedSegment(entry.Text, entry.CanonicalReading, start, end - start, 0, entry.Text.Length);
                     result.Add(new(entry.Text, entry.CanonicalReading, EntryFrequency(entry), (int)entry.SourceKind,
                         new(end == input.Length ? ImeInterpretationKind.Complete : ImeInterpretationKind.Partial,
@@ -74,6 +75,7 @@ public sealed partial class ImeContext
                 void MatchSyllable(int syllableIndex, int position, IReadOnlyList<ImePathEvidence> evidence, int missing)
                 {
                     syllableVisits++;
+                    if (fullPinyin && syllableIndex > 0 && position < input.Length && input[position] == '\'') position++;
                     if (syllableIndex == syllables.Length)
                     {
                         Finish(position, evidence, missing);

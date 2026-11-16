@@ -1070,7 +1070,7 @@ public class ImeExportsTests
     }
 
     [Fact]
-    public void Runtime_ShouldProcessVirtualKey_ReturnsTrueForUnknownKeyWhenComposing()
+    public void Runtime_ShouldProcessVirtualKey_ReturnsFalseForUnknownKeyWhenComposing()
     {
         ImeModuleRuntime.SetSnapshotForTesting(new ImeSessionSnapshot(
             new CompositionText("x", "小", 1),
@@ -1080,7 +1080,7 @@ public class ImeExportsTests
 
         try
         {
-            Assert.True(ImeModuleRuntime.ShouldProcessVirtualKey(ImeConstants.VkTab));
+            Assert.False(ImeModuleRuntime.ShouldProcessVirtualKey(ImeConstants.VkTab));
         }
         finally
         {
@@ -1560,7 +1560,7 @@ public class ImeExportsTests
     }
 
     [Fact]
-    public unsafe void Runtime_ShouldProcessVirtualKey_ReturnsTrueForUnknownKeyWhenInputContextIsComposing()
+    public unsafe void Runtime_ShouldProcessVirtualKey_ReturnsFalseForUnknownKeyWhenInputContextIsComposing()
     {
         var compositionBuffer = stackalloc byte[512];
         var inputContext = new InputContext { HCompStr = 2 };
@@ -1572,7 +1572,7 @@ public class ImeExportsTests
 
         try
         {
-            Assert.True(ImeModuleRuntime.ShouldProcessVirtualKey(ImeConstants.VkTab, 0, new HImc(1)));
+            Assert.False(ImeModuleRuntime.ShouldProcessVirtualKey(ImeConstants.VkTab, 0, new HImc(1)));
         }
         finally
         {

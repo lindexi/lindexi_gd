@@ -75,14 +75,14 @@ public class ProductionSchemeTests
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("ni")]
-    public void FullPinyinLeavesSemicolonUnhandled(string reading)
+    [InlineData("", false)]
+    [InlineData("ni", true)]
+    public void FullPinyinOwnsSemicolonOnlyDuringComposition(string reading, bool expected)
     {
         var context = new ImeContext(CanonicalDictionaryFixture.Create([new ImeCandidate("你", "ni", 1)]));
         context.SetComposition(reading);
 
-        Assert.False(context.ProcessKey(ImeKey.FromCharacter(';')).Handled);
+        Assert.Equal(expected, context.ProcessKey(ImeKey.FromCharacter(';')).Handled);
     }
 
     private static ImeInputOptions Options() => new() { CasePolicy = ImeShapeCasePolicy.UppercaseOnly, Placement = ImeShapePlacement.PerCharacter, LengthPolicy = ImeShapeLengthPolicy.OptionalOneOrTwo };

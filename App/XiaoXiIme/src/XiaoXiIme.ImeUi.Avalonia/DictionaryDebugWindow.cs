@@ -89,7 +89,12 @@ internal sealed class DictionaryDebugWindow : Window
             candidates.Hide();
         };
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
-        AddHandler(TextInputEvent, (_, args) => args.Handled = true, RoutingStrategies.Tunnel);
+        AddHandler(TextInputEvent, (_, args) =>
+        {
+            // Printable keys are committed by the serialized key path, never a second time as text.
+            if (!settingsActive && output.IsKeyboardFocusWithin)
+                args.Handled = true;
+        }, RoutingStrategies.Tunnel);
         Opened += OnOpened;
         if (openSettings) Opened += OnSettingsClick;
         Deactivated += (_, _) =>
@@ -173,12 +178,13 @@ internal sealed class DictionaryDebugWindow : Window
     {
         if (settingsActive || !output.IsKeyboardFocusWithin || session is null && processingValidation is null)
             return;
-        if ((args.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Alt | KeyModifiers.Meta)) != 0)
+        if (!DictionaryDebugSession.CanProcessKey(args.Key, args.KeyModifiers, args.KeySymbol))
             return;
 
         args.Handled = true;
         var key = args.Key;
         var modifiers = args.KeyModifiers;
+        var keySymbol = args.KeySymbol;
         var started = System.Diagnostics.Stopwatch.GetTimestamp();
         void Phase(string phase)
         {
@@ -200,7 +206,7 @@ internal sealed class DictionaryDebugWindow : Window
                 handled = await Task.Run(() =>
                 {
                     Phase("worker-start");
-                    var result = active.ProcessKey(key, modifiers);
+                    var result = active.ProcessKey(key, modifiers, keySymbol);
                     Phase("worker-end");
                     return result;
                 });
