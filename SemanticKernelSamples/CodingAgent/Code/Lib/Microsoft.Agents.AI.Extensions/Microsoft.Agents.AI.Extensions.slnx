@@ -1,8 +1,0 @@
-<Solution>
-  <Folder Name="/demo/">
-    <Project Path="demo/DeepSeekDemo/DeepSeekDemo.csproj" />
-  </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/Microsoft.Extensions.AI.DeepSeek/Microsoft.Extensions.AI.DeepSeek.csproj" />
-  </Folder>
-</Solution>
