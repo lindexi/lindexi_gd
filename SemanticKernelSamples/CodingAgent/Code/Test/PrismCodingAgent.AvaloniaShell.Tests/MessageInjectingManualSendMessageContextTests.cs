@@ -1,1 +1,0 @@
-namespace PrismCodingAgent.AvaloniaShell.Tests;
