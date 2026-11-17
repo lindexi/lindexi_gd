@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="InvalidAction" xml:space="preserve"><value>Feedback 仅接受计算点之间的正延迟 add-feedback 动作及有限权重。</value></data>
+  <data name="MigrationUnavailable" xml:space="preserve"><value>共享层不支持跨结构历史迁移。F2 仅允许完全相同模型的语义等价恢复；训练入口仅支持 F1 全零历史重置，不支持 F2/F3 训练迁移。</value></data>
+  <data name="InvalidPrefix" xml:space="preserve"><value>预测位置必须位于非空已见前缀末端或其内部；禁止使用当前位置及未来 token 预热。</value></data>
+  <data name="BindingsMismatch" xml:space="preserve"><value>共同前缀预热要求相同 tokenizer、词表和内部步编码。</value></data>
+  <data name="PrepareUsage" xml:space="preserve"><value>用法：prepare templatePath configPath seed Local|CrossLayer delay weight F1。权重使用不变区域格式。模板为完整 ForgeRunConfiguration；保留数据、优化器和预算，不进行训练。</value></data>
+  <data name="AlreadyExists" xml:space="preserve"><value>配置或源档案已经存在，拒绝覆盖。</value></data>
+  <data name="Cancelled" xml:space="preserve"><value>Feedback 已取消。</value></data>
+  <data name="Failed" xml:space="preserve"><value>Feedback 运行失败。</value></data>
+  <data name="ProtocolReport" xml:space="preserve"><value>{"Direction":"Feedback","StateRule":"F1-full-zero-reset","Training":"sample-reset; no cross-sample history; truncated gradients","Generation":"fresh session per command; persistent history within session","F2":"identical-model checkpoint restore only; cross-structure migration rejected","F3":"explicit common seen-prefix replay API only; not training migration"}</value></data>
+</root>

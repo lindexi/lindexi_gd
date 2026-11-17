@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Invalid" xml:space="preserve"><value>Adaptive 配置、状态或内容身份无效。</value></data>
+  <data name="Exists" xml:space="preserve"><value>目标已存在；请使用新运行标识或明确恢复。</value></data>
+  <data name="DataExhausted" xml:space="preserve"><value>训练样本耗尽；未自动循环或重置游标。</value></data>
+  <data name="Failed" xml:space="preserve"><value>Adaptive 运行失败；可从最近完整清单恢复。</value></data>
+  <data name="Usage" xml:space="preserve"><value>参数：prepare 公共模板配置 策略配置 输出配置 seed feedback；train 配置 更新数；resume 配置 清单 更新数；inspect/evaluate 配置 清单；generate 配置 清单 提示词 新token数 seed。evaluate 仅用于到达终点的待决窗口。</value></data>
+</root>

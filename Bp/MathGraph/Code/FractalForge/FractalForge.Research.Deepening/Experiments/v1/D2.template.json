@@ -1,0 +1,28 @@
+{
+  "Semantics": "fractalforge.deepening.run.v1",
+  "Branch": 2,
+  "CooldownUpdates": 2,
+  "Run": {
+    "Semantics": "fractalforge.console-run.v1",
+    "Direction": "Deepening",
+    "RunId": "d2-seed7-v1",
+    "OutputRoot": "REPLACE_WITH_ABSOLUTE_OUTPUT_ROOT",
+    "SourceArchive": "REPLACE_WITH_PREPARED_ARCHIVE_PATH",
+    "SourceSha256": "REPLACE_WITH_PREPARE_OUTPUT_SHA256",
+    "TokenizerPath": "REPLACE_WITH_ABSOLUTE_TOKENIZER_JSON",
+    "TokenizerConfigPath": "REPLACE_WITH_ABSOLUTE_TOKENIZER_CONFIG_JSON",
+    "TokenizerIdentity": "REPLACE_WITH_PREPARE_OUTPUT_TOKENIZER_IDENTITY",
+    "Training": { "Path": "REPLACE_WITH_TRAIN_JSONL", "Identity": "train-v1", "Sha256": "REPLACE_WITH_TRAIN_SHA256" },
+    "Acceptance": { "Path": "REPLACE_WITH_ACCEPTANCE_JSONL", "Identity": "accept-v1", "Sha256": "REPLACE_WITH_ACCEPTANCE_SHA256" },
+    "FinalTest": { "Path": "REPLACE_WITH_FINAL_JSONL", "Identity": "final-v1", "Sha256": "REPLACE_WITH_FINAL_SHA256" },
+    "DataLimits": { "MaxLineBytes": 4096, "MaxFileBytes": 1048576, "MaxSamples": 100, "MaxSampleTokens": 16, "MaxTotalTokens": 1600 },
+    "Action": { "Kind": "D2", "Target": "A", "Weight": 0 },
+    "RuleVersion": "deepening-fixed-endpoint-v1",
+    "MaxUpdates": 2,
+    "MaxTokens": 100,
+    "MaxPairTapeCells": 10000000,
+    "MinimumGain": 0,
+    "Optimizer": {},
+    "RandomState": 7
+  }
+}

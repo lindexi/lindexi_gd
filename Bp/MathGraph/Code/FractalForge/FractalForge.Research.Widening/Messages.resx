@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Invalid" xml:space="preserve"><value>扩宽实验配置、模型、数据身份或恢复状态不合法。</value></data>
+  <data name="Usage" xml:space="preserve"><value>prepare request.json directory；或 train experiment.json [updates]；resume experiment.json manifest [updates]；inspect/evaluate experiment.json manifest；generate experiment.json manifest prompt maxNewTokens seed；diagnose experiment.json tokens.json probes.json。</value></data>
+  <data name="W3Unavailable" xml:space="preserve"><value>W3 未提供：公共配对事务尚不支持自定义有限扰动候选及其恢复契约。</value></data>
+  <data name="Cancelled" xml:space="preserve"><value>已取消；请从最近完整清单恢复。</value></data>
+  <data name="Failed" xml:space="preserve"><value>扩宽实验失败。</value></data>
+</root>
