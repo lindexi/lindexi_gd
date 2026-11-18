@@ -1,153 +1,127 @@
-# XiaoXiIme（小希输入法）
+# XiaoXiIme
 
-XiaoXiIme 是一个基于 .NET 10 与 Native AOT 构建的 Windows 中文输入法项目。项目采用“原生输入法模块 + 进程外托管宿主 + Avalonia 候选与设置界面 + 自有离线词库”的分层设计，不依赖 RIME 或第三方输入法框架。
+XiaoXiIme 是一个基于 .NET 10 的小希输入法实验项目，用于探索 Windows 传统 IME 模块、输入法核心状态机、候选词窗口、词典服务、进程间通信以及安装发布流程等能力。
 
-> 本仓库当前实现了完整核心引擎、自有词库编译与加载链路、IPC 通信协议、Avalonia 候选窗/状态栏/体验调试窗口，以及传统的 Windows IMM32（`XiaoXiIme.ime`）主线链路。TSF（`XiaoXiIme.TsfModule`）尚处于基础框架与 ABI 验证建设阶段，未作为默认发布验收路径。
+当前项目重点是把输入法的核心逻辑、Windows IME 导出模块、宿主进程、IPC 协议和 UI 展示拆分成可测试、可维护的多个项目，便于逐步完善输入体验和系统集成能力。
 
-## 功能特性
+## 当前产品范围与体验入口
 
-- **输入方案**：支持全拼及六种双拼方案——小鹤双拼、搜狗双拼、微软双拼、智能 ABC、拼音加加、自然码双拼（已将大牛、小月双拼移出当前产品范围，仅在方案目录保留禁用兼容占位）。
-- **音形与模糊音**：`XiaoXiIme.ImeCore` 支持基于合法声韵与音形证据的路径解码、大小写形码策略、逐字/词后补码、10 项双向模糊音规则（如 `zh/z`、`sh/s`、`ch/c`、`ang/an`、`eng/en`、`in/ing`、`ian/iang`、`uan/uang`、`ai/an`、`un/ong`），以及可选自动上屏策略；并保持默认兼容模式（含 `xx -> 小希` 快捷触发）。
-- **自有离线词库链路**：支持音码（`*.phonetic.tsv`）、形码（`*.shape.tsv`）与符号（`*.symbols.tsv`）原生 TSV 源格式及可选 YAML 元数据头部，离线编译为二进制分片包（package）以保证按键查询路径零磁盘 I/O；支持用户词典学习、后台有界合并与原子保存。
-- **Windows 原生集成**：
-  - **IMM32（当前主线）**：`XiaoXiIme.ImeModule` 以 Native AOT 编译为跨架构（`win-x64` / `win-x86`）`XiaoXiIme.ime`，支持组合串读写、候选列表、翻页/选词、反查与多 HIMC 上下文隔离。
-  - **TSF（建设中）**：`XiaoXiIme.TsfModule` 提供 COM 类工厂、文本服务和 ABI 宿主测试基础。
-- **桌面界面与体验模式**：`XiaoXiIme.ImeUi.Avalonia` 基于 Avalonia 11 实现候选窗、浮动状态栏、托盘菜单、产品设置窗口，以及免系统安装的独立体验/词库调试窗口（无参或 `--experience` / `--dictionary-debug` 启动）。
+产品UI已实现候选窗、浮动状态栏、设置、关于、托盘和单实例恢复入口。零配置体验唯一入口为工作区根目录下 `dist/Experience/app/ui/XiaoXiIme.ImeUi.Avalonia.exe`；历史批次目录不是当前入口。
 
-## 仓库结构
+当前方案范围为全拼及六双拼：小鹤、搜狗、微软、智能ABC、拼音加加、自然码。**大牛双拼、小月双拼：用户决定不做**，不在当前产品/发布范围，不再列功能缺口、待补定义或待索取资料；不是已实现，catalog兼容占位及禁用表现保留。
+
+实现完成不代表完整产品验收通过。指定自然码ShS场景19/19与重复启动锁门禁5项通过及未验边界见[Experience验收](../Docs/experience-delivery-acceptance.md)；历史失败、不同合同未签收事实继续保留，G02状态以[主交接](../Docs/next-session-handoff.md)为准。本次仅文档同步，未重跑测试。
+
+## 项目内容
+
+本解决方案包含以下主要内容：
+
+- 输入法核心：维护输入上下文、组合文本、候选词、按键处理结果等核心状态。
+- 词典服务：提供原生 TSV、离线二进制 package、全拼及六双拼投影/索引、形码、符号及用户学习，支撑内存候选查询。
+- Windows IME 模块：提供传统 IME 入口导出、按键翻译、`ImeSetCompositionString` 整串替换、`ImeConversionList` 独立查询/`GCL_REVERSELENGTH` 反查长度、`ImeEscape` 名称查询、`ImeRegisterWord` 用户词注册、`ImeConfigure(IME_CONFIG_REGISTERWORD)` 配置注册、上下文读写和与宿主进程通讯的桥接逻辑。
+- 宿主进程：承载输入法运行时服务，通过 IPC 与 IME 模块交互。
+- IPC 协议：定义输入法模块与宿主进程之间的请求、响应和通知模型。
+- Avalonia UI：维护候选窗口、浮动状态栏、设置、关于、托盘及单实例恢复入口。
+- 命令行工具：输出发布、导出检查和卸载清单，并提供可由最终安装包调用的输入法安装命令。
+- 自动化测试：覆盖核心、词典、IPC、IME 模块以及端到端集成场景。
+
+## 项目结构
 
 ```text
 XiaoXiIme/
-├── XiaoXiIme.slnx                     # 解决方案文件（.NET 10）
-├── Directory.Build.props              # 全局构建配置（启用 UseArtifactsOutput）
-├── data/
-│   └── dictionaries/                  # 默认词库源文件与上游许可证（Git 默认忽略生成/本地数据）
-├── Docs/                              # 仓库内部设计、定制、验证与沙箱工作流文档
+├── Docs/                              # 文档占位项目，用于承载解决方案级文档
 ├── src/
-│   ├── XiaoXiIme.Foundation/          # 共享 DTO、枚举、会话 ID、设置与诊断契约
-│   ├── XiaoXiIme.Dictionary/          # 词库源解析、方案目录、二进制包编译/加载与用户词典
-│   ├── XiaoXiIme.ImeCore/             # 输入状态机、音形解码、候选排序与提交/取消逻辑
-│   ├── XiaoXiIme.ImeInterop/          # Win32 / IMM32 常量、结构体与 P/Invoke 声明
-│   ├── XiaoXiIme.ImeIpc/              # 基于 dotnetCampus.Ipc 的进程间通信契约与 AOT 序列化
-│   ├── XiaoXiIme.ImeHost/             # 进程外输入法宿主服务、会话管理与后台用户词学习
-│   ├── XiaoXiIme.ImeModule/           # Native AOT IMM32 DLL（发布重命名为 XiaoXiIme.ime）
-│   ├── XiaoXiIme.TsfModule/           # Native AOT TSF COM 模块（建设中）
-│   ├── XiaoXiIme.ImeUi.Avalonia/      # Avalonia 候选窗、状态栏、设置及体验调试 UI
-│   └── XiaoXiIme.Cli/                 # 安装、卸载、词库编译/检查与集成测试命令行工具
+│   ├── XiaoXiIme.Foundation/          # 输入法基础模型和值对象
+│   ├── XiaoXiIme.Dictionary/          # 词典接口与实现
+│   ├── XiaoXiIme.ImeCore/             # 输入法核心上下文与处理逻辑
+│   ├── XiaoXiIme.ImeInterop/          # Windows IME 互操作常量与导出契约
+│   ├── XiaoXiIme.ImeIpc/              # IME 模块与宿主进程的 IPC 消息与协议
+│   ├── XiaoXiIme.ImeModule/           # Native AOT 传统 IME 模块与入口导出
+│   ├── XiaoXiIme.TsfModule/           # TSF InProc 模块与 ABI 验证目标
+│   ├── XiaoXiIme.ImeHost/             # 输入法宿主进程
+│   ├── XiaoXiIme.ImeUi.Avalonia/      # 候选窗口 UI 状态与控制逻辑
+│   └── XiaoXiIme.Cli/                 # 发布、诊断、安装和系统测试工具
 └── tests/
-    ├── XiaoXiIme.Dictionary.Tests/    # 词库编译、排序、学习与性能基准测试
-    ├── XiaoXiIme.ImeCore.Tests/       # 核心状态机、双拼、音形扩展与候选测试
-    ├── XiaoXiIme.ImeIpc.Tests/        # IPC 路由与 Native AOT JSON 往返测试
-    ├── XiaoXiIme.ImeModule.Tests/     # 内存 IMM 上下文仿真与生命周期测试
-    ├── XiaoXiIme.TsfModule.Tests/     # TSF 模块单元测试
-    ├── XiaoXiIme.Cli.Tests/           # CLI 命令行与安装诊断单元测试
-    ├── XiaoXiIme.IntegrationTests/    # 端到端 IPC、生产词库按键与无头 UI 截图测试
-    ├── XiaoXiIme.IntegrationTestHost/ # 自包含集成测试验证宿主
-    ├── XiaoXiIme.TsfAbiHost/          # TSF ABI 与 COM 激活检查宿主
-    └── XiaoXiIme.SandboxRunner/       # Windows 沙箱命令执行与日志收集启动器
+    ├── XiaoXiIme.Cli.Tests/           # CLI、负载与安装逻辑测试
+    ├── XiaoXiIme.Dictionary.Tests/    # 词典测试
+    ├── XiaoXiIme.ImeCore.Tests/       # 输入法核心测试
+    ├── XiaoXiIme.ImeIpc.Tests/        # IPC 协议测试
+    ├── XiaoXiIme.ImeModule.Tests/     # 传统 IME 模块测试
+    ├── XiaoXiIme.TsfModule.Tests/     # TSF 模块测试
+    ├── XiaoXiIme.IntegrationTests/    # 托管集成测试
+    └── XiaoXiIme.IntegrationTestHost/ # 自包含真实安装与按键测试宿主
 ```
 
-## 架构概览
+## 构建与测试
 
-1. **进程内原生模块（`XiaoXiIme.ImeModule` / `XiaoXiIme.TsfModule`）**
-   加载到目标 Win32 应用进程中，接收 Windows IMM32/TSF 回调，将物理按键翻译为与平台无关的 `ImeKey`，通过命名管道 IPC 发往后端宿主，并将返回结果写回系统输入上下文（`COMPOSITIONSTRING`、`CANDIDATEINFO`、`ResultStr` 与 `TRANSMSG`）。当宿主不可达时，`ImeHostBridge` 会降级为进程内最小上下文以保证系统调用边界安全。
-2. **宿主与 UI（`XiaoXiIme.ImeHost` / `XiaoXiIme.ImeUi.Avalonia`）**
-   - **正式输入服务**：`XiaoXiIme.ImeHost` 管理按 `ImeSessionId`（与系统 `HIMC` 映射）隔离的 `ImeContext` 会话、加载已编译词库包、执行后台有界用户词学习及持久化设置；`XiaoXiIme.ImeUi.Avalonia` 连接宿主接收状态并展示候选窗、浮动状态栏、托盘与设置界面。
-   - **体验 / 调试模式**：直接运行 `XiaoXiIme.ImeUi.Avalonia`（无参或传入 `--experience` / `--dictionary-debug`）时，在单实例窗口内直接调用 `ImeCore` 与 `Dictionary` 进行交互试打与候选调试，无需安装系统输入法或启动独立宿主。
-
-## 环境要求
-
-- [.NET 10 SDK](https://dotnet.microsoft.com/)
-- Windows 10 / 11（构建与运行完整桌面 UI、Native AOT `.ime`/`.dll` 及真实输入法安装测试）
-- 执行 Native AOT（`PublishAot=true`）需安装支持 C++ 桌面开发的 Visual Studio 生成工具 / Windows SDK
-
-## 快速开始
-
-### 1. 构建解决方案
+在 `App/XiaoXiIme` 目录下执行：
 
 ```powershell
-dotnet build XiaoXiIme.slnx -c Release
+dotnet build XiaoXiIme.slnx
 ```
 
-说明：解决方案启用了 `UseArtifactsOutput=true`（见 `Directory.Build.props`），编译与发布产物默认输出在仓库根目录的 `artifacts/` 下。
+运行测试时应逐个执行测试项目并确认实际发现了非零测试数；不要只依赖 `dotnet test XiaoXiIme.slnx` 的退出码，因为 `.slnx` 曾出现退出码为 0 但没有测试摘要的“假绿”。完整命令见 `Docs/Windows-Sandbox-Test-Workflow.md`。
 
-### 2. 运行单元测试与集成测试
-
-可按项目逐个执行测试（推荐，避免跨框架/跨目标一次运行遗漏测试发现）：
+发布 IME 模块前，可使用命令行工具输出检查清单：
 
 ```powershell
-dotnet test tests/XiaoXiIme.Dictionary.Tests/XiaoXiIme.Dictionary.Tests.csproj
-dotnet test tests/XiaoXiIme.ImeCore.Tests/XiaoXiIme.ImeCore.Tests.csproj
-dotnet test tests/XiaoXiIme.ImeIpc.Tests/XiaoXiIme.ImeIpc.Tests.csproj
-dotnet test tests/XiaoXiIme.ImeModule.Tests/XiaoXiIme.ImeModule.Tests.csproj
-dotnet test tests/XiaoXiIme.TsfModule.Tests/XiaoXiIme.TsfModule.Tests.csproj
-dotnet test tests/XiaoXiIme.Cli.Tests/XiaoXiIme.Cli.Tests.csproj
-dotnet test tests/XiaoXiIme.IntegrationTests/XiaoXiIme.IntegrationTests.csproj
+dotnet run --project src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj -- publish-checklist
 ```
 
-> 若尚未在 `data/dictionaries/` 中准备完整词库源文件（见下文“词库数据准备”），依赖完整源文件的部分集成/编译测试可能需要先准备对应 TSV 文件。
-
-### 3. 运行体验 / 词库调试窗口（无需系统安装）
+发布 Native AOT IME 模块的参考命令：
 
 ```powershell
-dotnet run --project src/XiaoXiIme.ImeUi.Avalonia/XiaoXiIme.ImeUi.Avalonia.csproj -- --experience
+dotnet publish src/XiaoXiIme.ImeModule/XiaoXiIme.ImeModule.csproj -c Release -r win-x64 --self-contained true -p:PublishAot=true
 ```
 
-常用参数：
-- `--experience` 或 `--dictionary-debug`（无参启动默认等效体验模式）
-- `--settings`：启动时自动打开设置界面
-- `--debug-settings-path <绝对路径>`：指定体验模式设置文件路径
-- `--debug-package-path <绝对路径>`：在 `--dictionary-debug` 模式下指定已编译词库包目录
+最终安装包应携带 `payload-build` 生成的完整双架构负载，并使用管理员权限调用 `XiaoXiIme.Cli.exe install <payload-directory> --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS` 完成注册。CLI 不判断机器用途；涉及真实系统安装的集成测试必须仅部署到专用测试机、Windows 沙箱或可还原虚拟机，不能加入开发机默认测试集合。完整步骤见 `src/XiaoXiIme.Cli/README.md`。
 
-### 4. 词库数据准备与编译
+## 维护文档
 
-仓库内的 `data/` 目录默认通过 `data/.gitignore` 忽略本地数据文件，已跟踪的 `data/dictionaries/SOURCES.md` 与 `data/dictionaries/licenses/` 记录了默认词典的来源与许可证（包含来自 `rime-frost` 的 GPL-3.0 词表及 `rime-shuangpin-fuzhuma` 的 MIT 形码/符号表）。
+维护文档用于记录项目演进过程中的约定、决策和操作步骤。建议按以下方式持续补充：
 
-构建默认词库包需在 `data/dictionaries/`（或通过 `--dictionary-source` 指定的目录）具备以下四类 XiaoXiIme 原生 TSV：
-- `phonetic/sewzc-default.phonetic.tsv`
-- `phonetic/xiaoxiime-project-terms.phonetic.tsv`（亦可由 `XiaoXiImeProjectTerms.WriteTo` 从嵌入资源导出）
-- `shape/sewzc-moqi.shape.tsv`
-- `symbols/sewzc-default.symbols.tsv`
+- 架构说明：记录 IME 模块、宿主进程、IPC、核心状态机、UI 的职责边界。
+- IPC 协议：维护请求、响应、通知消息的路由、载荷和兼容性要求。
+- 发布流程：维护 Native AOT 发布、导出符号检查、文件命名和签名要求。
+- 安装与卸载：维护 Windows IME 注册、回滚和手工验证步骤。
+- 测试策略：记录单元测试、集成测试、手工冒烟测试的覆盖范围。
+- 已知问题：记录系统兼容性、Native AOT 警告、输入法注册限制和待确认行为。
 
-使用 CLI 编译与管理词库：
+当前已有文档：
 
-```powershell
-# 从原生 TSV 编译各支持方案的二进制词库包到指定输出目录
-dotnet run --project src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj -- dictionary-build-packages data/dictionaries artifacts/dict-host
+- `src/XiaoXiIme.ImeIpc/Docs/JsonIpcDirectRouted.md`：直接路由 JSON IPC 通讯方式说明。
+- `Docs/Ime-Customization.md`：输入法名称、任务栏“简体”、TSF 和文件属性的客制化说明。
+- `Docs/VM-Ime-Installation-Diagnostics.md`：纯净 VM 安装排障工作模式与历史验证记录。
+- `Docs/Windows-Sandbox-Test-Workflow.md`：将完整源码推送到 Windows 沙箱，并在沙箱内使用 .NET 10 SDK 构建、测试和运行项目的工作流。
 
-# 编译或增量更新单个方案的词库包（支持 fullPinyin / xiaoheDoublePinyin 等）
-dotnet run --project src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj -- dictionary-update data/dictionaries artifacts/dict-pkg --scheme fullPinyin
+## 项目开发进度
 
-# 校验词库包版本、计数与来源署名
-dotnet run --project src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj -- dictionary-inspect artifacts/dict-pkg --json
+当前项目处于“基础链路已建立、产品级验证尚未完成”阶段。完整状态、统一发布差距计数和当前证据库存见 [主交接第 4.8 节](../Docs/next-session-handoff.md#48-统一发布差距清单)。
 
-# 回滚到上一次保留的 .previous 词库包
-dotnet run --project src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj -- dictionary-rollback artifacts/dict-pkg
-```
+已完成或已有基础：
 
-## CLI 构建负载与系统安装说明
+- 解决方案和多项目结构已建立。
+- 基础模型、输入法核心、原生词库、IPC、传统 IME 模块、宿主进程和候选窗口 UI 已拆分。
+- 全拼/小鹤 package、正式词库转换、用户学习、Host 会话、HIMC 写回和安装诊断已有实现与局部自动化覆盖。
+- 历史文档记载管理员沙箱单 Win32 EDIT、单输入序列 `xx -> 小希` 的真实按键冒烟成功；当前未找到所引原始结果，不表示当前负载已复验。
+- CLI 已提供词库、发布、安装、卸载、诊断和系统测试入口。
 
-> **注意**：`install`、`uninstall` 与 `integration-run` 会向 `System32` / `SysWOW64` 部署原生 `.ime` 文件并修改 Windows 键盘布局注册表。**请仅在可还原虚拟机或 Windows 沙箱中以管理员权限执行**，CLI 会强制校验 `--confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS` 确认令牌。
+尚未完成：
 
-```powershell
-# 1. 构建完整集成与安装负载（含 x86/x64 原生模块、Host、UI、CLI、测试宿主与词库包）
-dotnet run --project src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj -- payload-build --output artifacts/integration-payload
+- 实际发布 package 的正式词库按键与候选交互仍待验收；已有正式词库全拼/小鹤 IPC 逐键输入、首候选、空格提交及前缀转精确测试代码，候选排序与选择、全拼/小鹤编译 package 的 ImeContext 参数化覆盖已完成。
+- 候选窗口分页/选中交互已完成；真实定位、屏幕边界和多 DPI 视觉测试后置。
+- 传统 IME 完整自动化、多应用、多会话及组合/取消/提交验证。
+- 用户词库学习、注册、删除、持久化和损坏恢复的完整链路测试。
+- Host、IPC、候选窗口生命周期，异常恢复与降级测试。
+- 正式词库性能、长时间连续输入稳定性测试。
+- 安装、升级、卸载、真实应用以及 x86/x64 环境矩阵验证。
 
-#    若仅需组装免安装的独立体验 UI 包：
-dotnet run --project src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj -- payload-build --experience --output artifacts/experience-payload
+已有单元测试、托管集成测试和单场景真实按键冒烟不得表述为上述产品级验收已完成。
 
-# 2. 在可还原 VM / 沙箱（管理员权限）中安装并启动 Host
-.\app\cli\XiaoXiIme.Cli.exe install . --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS
+## 贡献与维护建议
 
-# 3. 运行系统级集成冒烟（当前默认跳过尚未完备的 TSF 路径）
-.\app\cli\XiaoXiIme.Cli.exe integration-run . --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS --skip-tsf --report .\results\integration.json
-
-# 4. 卸载（默认保留用户词典；传入 --purge-user-data 可同时删除）
-.\app\cli\XiaoXiIme.Cli.exe uninstall --confirm I-UNDERSTAND-THIS-MODIFIES-WINDOWS
-```
-
-更多细节可参阅仓库内 `Docs/` 目录及各子项目的 `README.md`：
-- 定制显示名称与版本资源：[Docs/Ime-Customization.md](Docs/Ime-Customization.md)
-- Windows 沙箱构建与测试流程：[Docs/Windows-Sandbox-Test-Workflow.md](Docs/Windows-Sandbox-Test-Workflow.md)
-- IMM32 状态与自动化验证记录：[Docs/IMM32-Handoff.md](Docs/IMM32-Handoff.md)、[Docs/IMM32-Automation-Validation-Report.md](Docs/IMM32-Automation-Validation-Report.md)
-- 音形扩展需求与输入方案思考：[Docs/音形扩展-TDD阶段1需求与用例.md](Docs/音形扩展-TDD阶段1需求与用例.md)、[Docs/输入方案的思考.md](Docs/输入方案的思考.md)
+- 修改共享模型时，请同步检查 `Foundation`、`ImeIpc`、`ImeCore`、`ImeModule` 和相关测试项目。
+- 修改 IPC 消息时，请同步更新协议文档和集成测试。
+- 修改 Native AOT 相关代码时，请关注发布警告和导出符号验证。
+- 修改安装、卸载或注册流程时，真实安装集成测试必须单独部署到可还原虚拟机或专用测试机，不得由开发机默认测试集合执行。
+- 提交前建议至少执行一次 `dotnet build XiaoXiIme.slnx` 和相关测试项目。
