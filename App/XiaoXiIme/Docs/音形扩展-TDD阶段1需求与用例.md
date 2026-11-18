@@ -4,7 +4,7 @@
 
 ## 1. 交付、顺序与依据
 
-唯一需求/用例事实源为本文。主交接入口：`../../Docs/next-session-handoff.md`。主智能体负责监督并安排另一独立子智能体检查。
+唯一需求/用例事实源为本文。主智能体负责监督并安排另一独立子智能体检查。
 
 严格顺序：**思考用例（本阶段）→独立检查→公开 API 设计→实现测试→引擎实现**。检查意见先回写本文，再进入 API 阶段。下文的配置代号、证据记法和事件记法只是需求描述，不预定 C# 类型、方法、枚举或 Host 序列化字段。本阶段没有新增测试、业务代码、编译或测试执行。
 
@@ -14,10 +14,10 @@
 - `src/XiaoXiIme.ImeCore/ImeContext.cs` 的输入入口、xx、候选查询与 shape 分支；核心 README。
 - `tests/XiaoXiIme.ImeCore.Tests/ImeContextTests.cs` 的组合、前缀、选择、学习、xx、全拼/小鹤、整串替换用例；测试 README。
 - Dictionary 的 README、`PhoneticInputProjection.cs`、现有 Ranking、Contract、InMemory 和 ShapeSourceParser 测试；Dictionary 测试 README。
-- `../../Docs/dictionary-spec.md` 的自有词库、内存同步查询、不依赖 RIME 等边界；`../../Docs/next-session-handoff.md` 的现有产品边界。
-- 项目 TFM 为 net10.0、Nullable enable；本项目 `Directory.Build.props` 不指定新语言版本。未找到 XiaoXiIme 下独立 AGENTS/instructions 或 global.json；不套用另一仓库 SeWZC_IME 的局部规则。
+- 当时明确的词库边界：使用自有词库、内存同步查询，不依赖 RIME；本轮保持既有产品边界（见下文）。
+- 项目 TFM 为 net10.0、Nullable enable；本项目 `Directory.Build.props` 不指定新语言版本。当时在本仓库未找到独立的 AGENTS/instructions 或 `global.json`；相邻仓库的局部规则不适用。
 
-本轮为已有无 UI 引擎扩展，优先 core/Dictionary 内存单位测试。不得切换活跃 UI 输入方案、改安装/原生 ABI、修改 Host 持久合同、替换正式词库或扩大 UI 功能。原 dictionary-spec 将“完整整句、复杂模糊”排除：本轮只覆盖有限词段路径组合和显式声韵等价规则，不宣称完整整句/纠错系统；该范围增量以本轮授权为依据，不反向扩大旧规范。
+本轮为已有无 UI 引擎扩展，优先 core/Dictionary 内存单位测试。不得切换活跃 UI 输入方案、改安装/原生 ABI、修改 Host 持久合同、替换正式词库或扩大 UI 功能。原词库规范将“完整整句、复杂模糊”排除：本轮只覆盖有限词段路径组合和显式声韵等价规则，不宣称完整整句/纠错系统；该范围增量以本轮授权为依据，不反向扩大旧规范。
 
 ## 2. 最终需求边界
 
@@ -298,7 +298,7 @@ H01 的输入为六字母 niRhcN，无分隔键。H08 完整音形全拼 niRhaoN
 
 ## 6. 主监督交接
 
-- 交付路径：`XiaoXiIme/Docs/音形扩展-TDD阶段1需求与用例.md`。
+- 交付路径：`Docs/音形扩展-TDD阶段1需求与用例.md`。
 - 数量：**72个矩阵设计行**，A–H共8组，每组9行；参数展开数量未冻结（例如F06单行16输入，每输入完整候选16条；F04四输入各4候选）。未把参数行、断言数、候选数混称测试数量。
 - 夹具：InventedV1 F/X人工投影；Z四单字；TS16双字；真实全拼/小鹤投影另列H08/H09，禁止nihkr冒充小鹤。
 - 完成：只写需求/用例文档与主交接引用。**未设计公开API、未新增测试/引擎代码、未执行构建/测试**。
@@ -549,7 +549,7 @@ R06裁定依据：第2.4节和第8–11节的一次实际提交只发一次学�
 | 5 | tests/XiaoXiIme.ImeModule.Tests/XiaoXiIme.ImeModule.Tests.csproj | 148 | 0 | 0 | 148 |
 | 合计 | 五个全项目；不重复累计oracle等子集 | 822 | 0 | 0 | 822 |
 
-随后构建`XiaoXiIme/XiaoXiIme.slnx` Release：退出码0，0错误、19警告。76行完整日志全部回读；警告汇总重复展示不重复计数。CS8604×1来自CLI `WindowsImeInstaller.cs(358,54)`；CA1416×18为Windows专用调用（CLI×12，CLI.Tests×6）。项目分类为CLI 13、CLI.Tests 6；无CS8620、xUnit1026，本轮未抑制警告。既有CLI19警告真实保留，不扩修复范围。测试日志亦已全部读取，无待读日志。
+随后构建`XiaoXiIme.slnx` Release：退出码0，0错误、19警告。76行完整日志全部回读；警告汇总重复展示不重复计数。CS8604×1来自CLI `WindowsImeInstaller.cs(358,54)`；CA1416×18为Windows专用调用（CLI×12，CLI.Tests×6）。项目分类为CLI 13、CLI.Tests 6；无CS8620、xUnit1026，本轮未抑制警告。既有CLI19警告真实保留，不扩修复范围。测试日志亦已全部读取，无待读日志。
 
 逐项证据：Core前缀`tests/XiaoXiIme.ImeCore.Tests/`，Dictionary前缀`tests/XiaoXiIme.Dictionary.Tests/`；以下全部包含在上述全量green，不冒称另跑筛选。
 

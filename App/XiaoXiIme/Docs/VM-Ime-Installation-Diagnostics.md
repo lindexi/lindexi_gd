@@ -1,6 +1,6 @@
 # XiaoXiIme 纯净 VM 安装排障工作模式
 
-> 当前传统 IMM32 落地排查状态、已完成改动和下一轮操作见 [IMM32 排查交接](./IMM32-Handoff.md)。发布差距及证据库存以 [主交接第 4.8 节](../../Docs/next-session-handoff.md#48-统一发布差距清单) 为准：本文成功描述为历史记录，所引 `artifacts/sandbox-retest-results/retest.json` 当前未找到，不代表最新负载已复验。
+> 当前传统 IMM32 落地排查状态、已完成改动和下一轮操作见 [IMM32 排查交接](./IMM32-Handoff.md)。本文成功描述为历史记录；本仓库未收录早期冒烟的原始复测报告，不代表最新负载已复验。各轮结果及未覆盖项见[自动化增量验证报告](./IMM32-Automation-Validation-Report.md)。
 
 ## 目的
 

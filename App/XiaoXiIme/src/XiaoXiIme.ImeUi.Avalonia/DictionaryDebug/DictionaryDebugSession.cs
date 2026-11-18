@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia.Input;
 using XiaoXiIme.Dictionary;
 using XiaoXiIme.Foundation;
@@ -121,7 +122,28 @@ public sealed class DictionaryDebugSession
 
         var result = context.ProcessKey(input.Value);
         CommittedText += result.CommitText;
-        return result.Handled;
+        if (result.Handled)
+        {
+            return true;
+        }
+
+        // The read-only output cannot perform host editing for unhandled keys.
+        switch (input.Value.Kind)
+        {
+            case ImeKeyKind.Space:
+                CommittedText += ' ';
+                return true;
+            case ImeKeyKind.Backspace:
+                if (CommittedText.Length > 0)
+                {
+                    var lastElementStart = StringInfo.ParseCombiningCharacters(CommittedText)[^1];
+                    CommittedText = CommittedText[..lastElementStart];
+                }
+
+                return true;
+            default:
+                return false;
+        }
     }
 
     internal static bool CanProcessKey(Key key, KeyModifiers modifiers, string? keySymbol) =>

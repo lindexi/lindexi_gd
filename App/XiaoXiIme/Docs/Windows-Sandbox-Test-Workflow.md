@@ -1,6 +1,6 @@
 # Windows 沙箱中的源码构建与测试工作流
 
-> 当前传统 IMM32 真实安装与自动按键排查进度见 [IMM32 排查交接](./IMM32-Handoff.md)。本文“已验证”是历史工作流记录，不是本次功能复验；当前可找到的结果及发布差距见 [主交接第 4.8 节](../../Docs/next-session-handoff.md#48-统一发布差距清单)。`.coding-agent/sandbox-probe/pulled/verification.txt` 仅证明基础设施，不证明下文源码构建或输入法业务验证。
+> 当前传统 IMM32 真实安装与自动按键排查进度见 [IMM32 排查交接](./IMM32-Handoff.md)。本文“已验证”是历史工作流记录，不是本次功能复验；具体 IMM32 批次结果和未覆盖项见[自动化增量验证报告](./IMM32-Automation-Validation-Report.md)。单独的沙箱探针仅证明基础设施可用，不证明下文源码构建或输入法业务验证。
 
 本文记录如何将 XiaoXiIme 完整代码仓库推送到 Windows 沙箱，并利用沙箱内已安装的 .NET 10 SDK 执行 `dotnet run`、构建和测试。该工作流适合隔离验证 Windows 相关托管代码，并为后续 Native AOT、输入法安装和 TSF 系统级测试提供基础。
 
@@ -53,7 +53,7 @@ dotnet build / dotnet test / dotnet run
     ↓
 sandbox-output/
     ↓ 只拉回该目录
-工作区 artifacts/sandbox-results/
+操作者指定的本地结果目录
 ```
 
 ## 推荐的启动器行为
@@ -83,7 +83,7 @@ sandbox-output/
 └── logs/
 ```
 
-不要把结果写进 `artifacts/sandbox-results`。该路径既是本地拉回目录，也容易和推送到沙箱的仓库内容重叠；整仓拉回时会把源码嵌进结果目录，掩盖 `result.json`、TRX 和退出码。启动器应写入仓库根目录下的 `sandbox-output`，沙箱执行接口只拉回该目录。
+本地回收目录由操作者指定，不要让它与下一次推送的源码目录重叠。整仓拉回会把源码混入结果，掩盖 `result.json`、TRX 和退出码。启动器应写入沙箱内仓库根目录下的 `sandbox-output`，沙箱执行接口只拉回该目录。
 
 `result.json` 至少应记录：
 
@@ -297,7 +297,7 @@ sandbox-output/stderr.txt
 
 ## 后续优化建议
 
-`XiaoXiIme.SandboxRunner` 现已作为托管验证入口存在。默认逐个运行 Dictionary、CLI、ImeCore、ImeIpc、ImeModule 和 IntegrationTests，解析 TRX 计数，并将 JSON/stdout/stderr/TRX 写入仓库根目录下的 `sandbox-output`，避免一次构建整个解决方案带入 Native AOT 项目，也避免结果目录与本地 `artifacts/sandbox-results` 拉回路径重叠。扩展操作仍可按以下方向增加：
+`XiaoXiIme.SandboxRunner` 现已作为托管验证入口存在。默认逐个运行 Dictionary、CLI、ImeCore、ImeIpc、ImeModule 和 IntegrationTests，解析 TRX 计数，并将 JSON/stdout/stderr/TRX 写入仓库根目录下的 `sandbox-output`，避免一次构建整个解决方案带入 Native AOT 项目，也避免沙箱结果目录与本地回收目录混用。扩展操作仍可按以下方向增加：
 
 ```text
 XiaoXiIme.SandboxRunner.exe build
