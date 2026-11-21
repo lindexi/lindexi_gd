@@ -293,7 +293,11 @@ internal sealed class WindowsImeInstaller : IImeInstaller
             if (!IsExpectedXiaoXiImeFile(imeFile))
             {
                 return new ImeUninstallationResult
-                    (false, removed, $"Refusing to remove ambiguous keyboard layout {layoutId}.");
+                    (
+                    false, removed,
+                    $"Refusing to remove ambiguous keyboard layout {layoutId}: " +
+                    $"Layout Text='{layoutText ?? "<missing>"}', Ime File='{imeFile ?? "<missing>"}'."
+                );
             }
 
             InstallLayoutOrTip(CreateLayoutTip(layoutId), InstallLayoutOrTipUninstall);

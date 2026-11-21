@@ -14,30 +14,6 @@ internal sealed class ImeHostProcessManager : IDisposable
         return result;
     }
 
-    public static void StopExisting(string? serverName = null)
-    {
-        _ = serverName;
-        foreach (var process in Process.GetProcessesByName("XiaoXiIme.ImeHost"))
-        {
-            try
-            {
-                if (!process.HasExited)
-                {
-                    process.Kill(entireProcessTree: true);
-                    process.WaitForExit(5_000);
-                }
-            }
-            catch (Exception exception) when (exception is InvalidOperationException
-                                                  or System.ComponentModel.Win32Exception)
-            {
-            }
-            finally
-            {
-                process.Dispose();
-            }
-        }
-    }
-
     public ImeHostProcessStartResult Start(string executablePath, bool keepRunning = false, string? serverName = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(executablePath);
@@ -61,6 +37,10 @@ internal sealed class ImeHostProcessManager : IDisposable
             RedirectStandardError = true,
             CreateNoWindow = true,
         };
+        if (string.Equals(Path.GetFileName(fullPath), "XiaoXiIme.exe", StringComparison.OrdinalIgnoreCase))
+        {
+            startInfo.ArgumentList.Add("ui");
+        }
         startInfo.ArgumentList.Add(ipcOptions.ServerName);
 
         try
@@ -103,7 +83,7 @@ internal sealed class ImeHostProcessManager : IDisposable
         if (!ready.Succeeded)
         {
             Stop();
-            StopExisting(ipcOptions.ServerName);
+
             return new ImeHostProcessStartResult
             (
                 false,

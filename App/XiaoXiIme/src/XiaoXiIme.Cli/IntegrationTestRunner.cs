@@ -16,34 +16,31 @@ internal static class IntegrationTestRunner
     )
     {
         var log = new StructuredConsole(output, error);
-        if (!string.Equals(options.Confirm, SystemTestRunner.VmConfirmation, StringComparison.Ordinal))
+        var distribution = Distribution.Open(options.Payload);
+        var root = distribution.Root;
+        var runtimes = new[] { "win-x86", "win-x64" };
+        var diagnostics = new List<SystemTestCommand>();
+        if (!options.SkipTsf)
         {
-            log.Error
-            (
-                "safety",
-                $"Execution blocked. Pass --confirm {SystemTestRunner.VmConfirmation} only inside a disposable VM."
-            );
-            return 6;
+            foreach (var rid in runtimes)
+            {
+                diagnostics.Add(new SystemTestCommand($"tsf-abi-{rid}", distribution.TsfProbe(rid), ["abi", distribution.Tsf(rid)]));
+                diagnostics.Add(new SystemTestCommand($"tsf-com-activation-{rid}", distribution.TsfProbe(rid), ["com-activation", distribution.Tsf(rid)]));
+            }
         }
 
-        var manifestPath = ResolveManifestPath(options.Payload, AppContext.BaseDirectory, Environment.CurrentDirectory);
-        if (manifestPath is null)
+        if (File.Exists(distribution.TestHost))
         {
-            log.Error
-            (
-                "manifest",
-                "Payload manifest was not found. Pass a payload directory or manifest path, or run the CLI from inside a payload directory."
-            );
+            diagnostics.Add(new SystemTestCommand("integration-tests", distribution.TestHost, []));
+        }
+
+        var missing = distribution.MissingInstallFile()
+            ?? diagnostics.SelectMany(command => command.Arguments.Skip(1).Prepend(command.FileName))
+                .FirstOrDefault(path => !File.Exists(path));
+        if (missing is not null)
+        {
+            log.Error("distribution", $"MissingFile={missing}");
             return 4;
-        }
-
-        var root = Path.GetDirectoryName(manifestPath)!;
-        var manifest = IntegrationPayloadManifest.Load(manifestPath);
-        var verificationError = VerifyPayload(root, manifest);
-        if (verificationError is not null)
-        {
-            log.Error("manifest", verificationError);
-            return 8;
         }
 
         var reportPath = Path.GetFullPath
@@ -53,6 +50,11 @@ internal static class IntegrationTestRunner
         var installed = false;
         try
         {
+            if (!ProductUiShutdown.Stop(error))
+            {
+                return 16;
+            }
+
             var uninstall = installer.UninstallExisting("XiaoXi IME", "XiaoXiIme.ime");
             results.Add
             (
@@ -78,8 +80,7 @@ internal static class IntegrationTestRunner
                 return await CompleteAsync(12, reportPath, results, log, installer, installed, keepInstalled: false);
             }
 
-            if (!manifest.NativeComponents.TryGetValue("x64", out var x64Components)
-                || !manifest.NativeComponents.TryGetValue("x86", out var x86Components))
+            if (!File.Exists(distribution.Ime("win-x64")) || !File.Exists(distribution.Ime("win-x86")))
             {
                 results.Add
                 (
@@ -92,8 +93,8 @@ internal static class IntegrationTestRunner
                 return await CompleteAsync(13, reportPath, results, log, installer, installed, keepInstalled: false);
             }
 
-            var imePath = Resolve(root, x64Components.ImeFile);
-            var x86ImePath = Resolve(root, x86Components.ImeFile);
+            var imePath = distribution.Ime("win-x64");
+            var x86ImePath = distribution.Ime("win-x86");
             var preInstallDiagnostics = ImeInstallationDiagnostics.Collect(imePath);
             results.Add
             (
@@ -188,7 +189,7 @@ internal static class IntegrationTestRunner
             }
 
             using var hostProcess = new ImeHostProcessManager();
-            var hostStart = hostProcess.Start(Resolve(root, manifest.ImeHostExecutable));
+            var hostStart = hostProcess.Start(distribution.Launcher);
             results.Add
             (
                 new IntegrationStageResult
@@ -216,37 +217,7 @@ internal static class IntegrationTestRunner
                 return await CompleteAsync(16, reportPath, results, log, installer, installed, keepInstalled: false);
             }
 
-            var commands = new List<SystemTestCommand>();
-            if (!options.SkipTsf)
-            {
-                foreach (var (architecture, components) in manifest.NativeComponents.OrderBy
-                             (pair => pair.Key, StringComparer.Ordinal))
-                {
-                    commands.Add
-                    (
-                        new SystemTestCommand
-                        (
-                            $"tsf-abi-{architecture}", Resolve(root, components.TsfAbiHostExecutable),
-                            ["abi", Resolve(root, components.TsfModule)]
-                        )
-                    );
-                    commands.Add
-                    (
-                        new SystemTestCommand
-                        (
-                            $"tsf-com-activation-{architecture}", Resolve(root, components.TsfAbiHostExecutable),
-                            ["com-activation", Resolve(root, components.TsfModule)]
-                        )
-                    );
-                }
-            }
-
-            foreach (var executable in manifest.TestHostExecutables)
-            {
-                commands.Add(new SystemTestCommand("integration-tests", Resolve(root, executable), []));
-            }
-
-            foreach (var command in commands)
+            foreach (var command in diagnostics)
             {
                 var result = await RunCommandAsync(command);
                 results.Add(result);
@@ -262,7 +233,7 @@ internal static class IntegrationTestRunner
         }
         catch
         {
-            ImeHostProcessManager.StopExisting();
+            ProductUiShutdown.Stop(error);
             if (installed)
             {
                 installer.UninstallExisting("XiaoXi IME", "XiaoXiIme.ime");
@@ -270,71 +241,6 @@ internal static class IntegrationTestRunner
 
             throw;
         }
-    }
-
-    internal static string? ResolveManifestPath(string? payload, params string[] searchStartDirectories)
-    {
-        if (!string.IsNullOrWhiteSpace(payload))
-        {
-            var explicitPath = Directory.Exists(payload)
-                ? Path.Combine(Path.GetFullPath(payload), IntegrationPayloadManifest.FileName)
-                : Path.GetFullPath(payload);
-            return File.Exists(explicitPath) ? explicitPath : null;
-        }
-
-        foreach (var searchStartDirectory in searchStartDirectories.Distinct(StringComparer.OrdinalIgnoreCase))
-        {
-            var directory = new DirectoryInfo(Path.GetFullPath(searchStartDirectory));
-            while (directory is not null)
-            {
-                var candidate = Path.Combine(directory.FullName, IntegrationPayloadManifest.FileName);
-                if (File.Exists(candidate))
-                {
-                    return candidate;
-                }
-
-                directory = directory.Parent;
-            }
-        }
-
-        return null;
-    }
-
-    internal static string? VerifyPayload(string root, IntegrationPayloadManifest manifest)
-    {
-        if (manifest.SchemaVersion != 3)
-        {
-            return $"Unsupported payload schema version: {manifest.SchemaVersion}.";
-        }
-
-        if (!manifest.NativeComponents.ContainsKey("x86") || !manifest.NativeComponents.ContainsKey("x64"))
-        {
-            return "Payload must contain both x86 and x64 native components.";
-        }
-
-        foreach (var file in manifest.Files)
-        {
-            var path = Resolve(root, file.Path);
-            if (!File.Exists(path))
-            {
-                return $"Payload file is missing: {file.Path}.";
-            }
-
-            using var stream = File.OpenRead(path);
-            if (stream.Length != file.Length || !string.Equals
-                    (Convert.ToHexString(SHA256.HashData(stream)), file.Sha256, StringComparison.OrdinalIgnoreCase))
-            {
-                return $"Payload file verification failed: {file.Path}.";
-            }
-        }
-
-        return VerifyDictionaryPackages(root);
-    }
-
-    internal static string? VerifyDictionaryPackages(string root)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(root);
-        return VerifyHostDictionaryPackages(Path.Combine(root, "app", "host"));
     }
 
     internal static string? VerifyHostDictionaryPackages(string hostDirectory)
@@ -521,12 +427,16 @@ internal static class IntegrationTestRunner
         bool keepInstalled
     )
     {
-        var cleanupSucceeded = true;
-        ImeHostProcessManager.StopExisting();
+        using var shutdownErrors = new StringWriter();
+        var cleanupSucceeded = ProductUiShutdown.Stop(shutdownErrors);
+        if (!cleanupSucceeded)
+        {
+            log.Error("cleanup", shutdownErrors.ToString());
+        }
         if (installed && !keepInstalled)
         {
             var cleanup = installer.UninstallExisting("XiaoXi IME", "XiaoXiIme.ime");
-            cleanupSucceeded = cleanup.Succeeded;
+            cleanupSucceeded &= cleanup.Succeeded;
             results.Add
             (
                 new IntegrationStageResult

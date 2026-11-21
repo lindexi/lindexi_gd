@@ -2,14 +2,11 @@ using DotNetCampus.Cli.Compiler;
 
 namespace XiaoXiIme.Cli;
 
-[Command("integration-run", Description = "Run the destructive VM integration-test lifecycle from a payload manifest.")]
+[Command("integration-run", Description = "Uninstall, install, test, and clean up the input method from the distribution.")]
 internal sealed class IntegrationRunOptions
 {
-    [Value(0, Description = "Payload directory or payload manifest path.")]
+    [Value(0, Description = "Distribution directory.")]
     public string? Payload { get; init; }
-
-    [Option("confirm", Description = "Disposable-VM confirmation token.", ValueName = "token")]
-    public string? Confirm { get; init; }
 
     [Option("report", Description = "Path to the generated report.", ValueName = "file")]
     public string? Report { get; init; }
