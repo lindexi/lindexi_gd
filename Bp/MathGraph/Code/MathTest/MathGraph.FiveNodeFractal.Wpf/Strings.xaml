@@ -1,0 +1,25 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+  <sys:String x:Key="Title">五点有向图 · 递归替换研究</sys:String>
+  <sys:String x:Key="Prototype">连接原型（切换重置展开）</sys:String>
+  <sys:String x:Key="FullCross">FullCross · 双交叉 / 6边</sys:String>
+  <sys:String x:Key="SingleCross">SingleCross · 保留A→D / 5边</sys:String>
+  <sys:String x:Key="Parallel">Parallel · 平行 / 4边</sys:String>
+  <sys:String x:Key="ExampleC">重置并展开 C</sys:String>
+  <sys:String x:Key="ExampleA">重置并展开 A</sys:String>
+  <sys:String x:Key="CollapseAll">全部收起 / 基础图</sys:String>
+  <sys:String x:Key="Collapse">收起所选模块子树</sys:String>
+  <sys:String x:Key="Modules">已展开模块</sys:String>
+  <sys:String x:Key="Depth">批量递归层数（非负整数）</sys:String>
+  <sys:String x:Key="Generate">从基础图批量生成</sys:String>
+  <sys:String x:Key="Fit">适应视图</sys:String>
+  <sys:String x:Key="ZoomIn">放大 +</sys:String>
+  <sys:String x:Key="ZoomOut">缩小 −</sys:String>
+  <sys:String x:Key="Stats">真实节点 {0} + 外部虚点 3
+边 {1} · 展开 {2} · 深度 {3}
+整体边界：2入1出</sys:String>
+  <sys:String x:Key="Selected">{0}
+真实/保留端口：{1}入{2}出</sys:String>
+  <sys:String x:Key="Failure">操作拒绝，原图不变。请检查路径；批量生成默认最多1000次展开，手动展开无固定深度、节点或次数限制。</sys:String>
+  <sys:String x:Key="InvalidDepth">请输入非负整数层数；0表示恢复基础图。</sys:String>
+  <sys:String x:Key="Hint">左键叶节点展开；右键模块或其叶节点收起最深模块子树。滚轮以鼠标为锚缩放，空白拖动平移。展开和缩放无业务等级限制，仍受数值精度及机器资源约束。</sys:String>
+</ResourceDictionary>

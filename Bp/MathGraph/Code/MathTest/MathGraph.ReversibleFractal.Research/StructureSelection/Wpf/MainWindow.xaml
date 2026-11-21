@@ -1,0 +1,101 @@
+<Window x:Class="MathGraph.StructureSelection.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="正反五点结构选择实验" Width="1050" Height="700" MinWidth="790" MinHeight="520"
+        Background="#F2F5FA" Foreground="#182638" Language="zh-CN">
+    <Window.Resources>
+        <sys:String x:Key="Ready">运行实验后可按任务、种子和检查点查看结果。</sys:String>
+        <sys:String x:Key="Running">正在运行核心实验…</sys:String>
+        <sys:String x:Key="Completed">实验完成，共 {0} 个配对。</sys:String>
+        <sys:String x:Key="Failed">实验运行失败：{0}</sys:String>
+        <sys:String x:Key="TrialLabel">{0} · 种子 {1} · 检查点 {2}</sys:String>
+        <sys:String x:Key="StudyBudget">数据集样本数：训练 {0} / 验证 {1} / 测试 {2}；候选各更新 {3} 次，每批 {4} 例，学习率 {5:G}。</sys:String>
+        <sys:String x:Key="Decision">验证后保留：{0}。展开须得分严格大于零；相对改善门槛 {1:P0}，另扣每个新增参数 {2:G}。测试集不参与选择。</sys:String>
+        <sys:String x:Key="PairBudget">候选共享训练批次（指纹 {0}）；梯度选点额外访问 {1} 个训练样本、{2} 次输出端口。</sys:String>
+        <sys:String x:Key="Scale">两组条形共用从 0 到 {0:G6} 的标尺；MSE 越低越好。</sys:String>
+        <sys:String x:Key="continue">不展开</sys:String>
+        <sys:String x:Key="random">随机展开</sys:String>
+        <sys:String x:Key="signal">梯度展开</sys:String>
+        <sys:String x:Key="forward">正向</sys:String>
+        <sys:String x:Key="reverse">反向</sys:String>
+        <sys:String x:Key="NoPoint">未替换叶</sys:String>
+        <sys:String x:Key="Point">选点：{0}（{1}）</sys:String>
+        <sys:String x:Key="Topology">{0} 点 / {1} 边 / {2} 参数</sys:String>
+        <sys:String x:Key="CandidateBudget">训练样本访问：{0}&#10;训练端口访问：{1}</sys:String>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#CCD5E2" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Margin" Value="4" />
+            <Setter Property="Padding" Value="14" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Retained}" Value="True">
+                    <Setter Property="BorderBrush" Value="#18735B" />
+                    <Setter Property="Background" Value="#F0FAF6" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <DataTemplate x:Key="ErrorBar">
+            <StackPanel Margin="0,2,0,16">
+                <TextBlock Text="{Binding Value, StringFormat={}{0:G6}}" FontSize="18" FontWeight="SemiBold" />
+                <Grid Background="#E6ECF4" Height="12" Margin="0,5,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{Binding Filled}" />
+                        <ColumnDefinition Width="{Binding Remaining}" />
+                    </Grid.ColumnDefinitions>
+                    <Rectangle Fill="{Binding Color}" />
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+
+    <DockPanel Margin="20">
+        <StackPanel DockPanel.Dock="Top" Margin="4,0,4,12">
+            <TextBlock Text="正反五点结构选择实验" FontSize="27" FontWeight="Bold" />
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,6">
+                <Button x:Name="RunButton" Content="运行核心实验" Click="RunButton_Click" Padding="14,5" />
+                <Label Target="{Binding ElementName=TrialSelector}" Content="任务 / 种子 / 检查点" Margin="12,0,4,0" />
+                <ComboBox x:Name="TrialSelector" Width="230" IsEnabled="False" DisplayMemberPath="Title"
+                          SelectionChanged="TrialSelector_SelectionChanged" />
+            </StackPanel>
+            <TextBlock x:Name="Status" Text="{StaticResource Ready}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+        </StackPanel>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="Results" Visibility="Collapsed">
+                <TextBlock x:Name="Protocol" Margin="4,0,4,6" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Decision}" Margin="4,0,4,6" TextWrapping="Wrap" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding PairBudget}" Margin="4,0,4,6" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Scale}" Margin="4,0,4,10" TextWrapping="Wrap" />
+                <ItemsControl ItemsSource="{Binding Candidates}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="3" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}" FontSize="20" FontWeight="Bold" />
+                                    <TextBlock Text="验证集 MSE（用于保留决策）" Margin="0,16,0,0" />
+                                    <ContentControl Content="{Binding Validation}" ContentTemplate="{StaticResource ErrorBar}" />
+                                    <TextBlock Text="测试集 MSE（仅用于评估）" />
+                                    <ContentControl Content="{Binding Test}" ContentTemplate="{StaticResource ErrorBar}" />
+                                    <TextBlock Text="{Binding Score, StringFormat=保留分数：{0:G6}}" Margin="0,0,0,8" />
+                                    <TextBlock Text="{Binding Selection}" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding Topology}" />
+                                    <TextBlock Text="{Binding TrainingBudget}" Margin="0,8,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Margin="4,8,4,0" TextWrapping="Wrap"
+                           Text="预算按相同 SGD 更新次数和训练样本顺序对齐；端口访问是计算量代理，不等于 FLOPs 或耗时。" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

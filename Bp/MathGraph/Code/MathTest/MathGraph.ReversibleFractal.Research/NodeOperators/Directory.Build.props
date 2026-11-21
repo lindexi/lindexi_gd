@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <UseArtifactsOutput>false</UseArtifactsOutput>
+  </PropertyGroup>
+  <!-- This research subtree keeps its build outputs out of the shared artifacts directory. -->
+</Project>

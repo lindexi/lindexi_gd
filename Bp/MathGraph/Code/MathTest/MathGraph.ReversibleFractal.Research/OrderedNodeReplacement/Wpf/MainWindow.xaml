@@ -1,0 +1,43 @@
+<Window x:Class="OrderedNodeReplacement.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="有序端口节点替换" Width="950" Height="740" MinWidth="440" MinHeight="360"
+        FontSize="14" Background="#F1F5F9" Foreground="#172B43">
+    <Window.Resources>
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="Padding" Value="6" />
+            <Setter Property="Background" Value="White" />
+        </Style>
+    </Window.Resources>
+    <DockPanel Margin="20">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal">
+                <Label Target="{Binding ElementName=TemplateSelector}" Content="选择模板(_T)：" VerticalAlignment="Center" />
+                <ComboBox x:Name="TemplateSelector" MinWidth="160" Padding="6,4" SelectionChanged="OnTemplateChanged">
+                    <ComboBoxItem Content="三点链（1 入 1 出）" />
+                    <ComboBoxItem Content="五点分支（2 入 2 出）" />
+                </ComboBox>
+            </StackPanel>
+            <TextBlock Margin="0,8,0,0" TextWrapping="Wrap"
+                       Text="左侧为输入端口，右侧为输出端口，分别从 0 编号。蓝底标出替换目标及展开生成的节点；悬停在边上可查看两端端口。" />
+        </StackPanel>
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <GroupBox Header="展开前">
+                    <Canvas x:Name="BeforeDiagram" Width="820" Height="220" Background="White" />
+                </GroupBox>
+                <GroupBox Header="展开后">
+                    <Canvas x:Name="AfterDiagram" Width="820" Height="220" Background="White" />
+                </GroupBox>
+                <WrapPanel>
+                    <TextBlock Margin="0,0,24,4"><Run Text="节点数：" /><Run x:Name="NodeCounts" /></TextBlock>
+                    <TextBlock Margin="0,0,24,4"><Run Text="边数：" /><Run x:Name="EdgeCounts" /></TextBlock>
+                    <TextBlock Margin="0,0,24,4"><Run Text="适配点数：" /><Run x:Name="AdapterCount" /></TextBlock>
+                </WrapPanel>
+                <TextBlock x:Name="AdapterNote" Margin="0,0,0,4" Text="无适配点：原有边直接重接到模板端口。"
+                           TextWrapping="Wrap" Visibility="Collapsed" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Invalid" xml:space="preserve"><value>Deepening 配置、动作、预算或实验状态不合法。请核对版本、显式计算目标、来源身份及命令参数。</value></data>
+  <data name="Cancelled" xml:space="preserve"><value>Deepening 已取消；恢复时使用最后完整发布的检查点。</value></data>
+  <data name="Failed" xml:space="preserve"><value>Deepening 运行失败：</value></data>
+</root>

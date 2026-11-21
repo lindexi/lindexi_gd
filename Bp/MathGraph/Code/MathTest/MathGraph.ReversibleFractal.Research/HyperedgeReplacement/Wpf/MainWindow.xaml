@@ -1,0 +1,45 @@
+<Window x:Class="MathGraph.HyperedgeReplacement.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="超边替换" Width="1040" Height="480" MinWidth="760" MinHeight="420"
+        Background="#F1F5F9" Foreground="#0F172A" FontSize="14">
+    <DockPanel Margin="24">
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock Text="超边替换" FontSize="26" FontWeight="SemiBold" />
+            <TextBlock Margin="0,8,0,0" TextWrapping="Wrap"
+                       Text="规则 A ⇒ link(x, m) + link(m, y)。外部顶点列表默认为 [x, y]；m 在每次展开时新建。" />
+            <CheckBox x:Name="ReverseOrder" Margin="0,10,0,0"
+                      Content="交换规则的外部顶点顺序为 [y, x]（右部的边不变）" />
+            <StackPanel Margin="0,12,0,14" Orientation="Horizontal">
+                <Button x:Name="ExpandLeftButton" Padding="12,4" Click="ExpandLeft_Click" Content="展开左侧 A" />
+                <Button x:Name="ExpandRightButton" Margin="8,0,0,0" Padding="12,4" Click="ExpandRight_Click" Content="展开右侧 A" />
+                <Button Margin="8,0,0,0" Padding="12,4" Click="Reset_Click" Content="重置" />
+            </StackPanel>
+        </StackPanel>
+        <TextBlock DockPanel.Dock="Bottom" Margin="0,12,0,0" TextWrapping="Wrap"
+                   Text="圆形：顶点（紫色 j 为共享边界）；矩形：超边（A 为非终结，link 为终结）；数字：从 1 开始的附着端口。" />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Border Padding="12" Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="本步展开前" FontWeight="SemiBold" />
+                    <Viewbox>
+                        <Canvas x:Name="BeforeCanvas" Width="440" Height="144" />
+                    </Viewbox>
+                </DockPanel>
+            </Border>
+            <Border Grid.Column="2" Padding="12" Background="White" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="当前图" FontWeight="SemiBold" />
+                    <Viewbox>
+                        <Canvas x:Name="CurrentCanvas" Width="440" Height="144" />
+                    </Viewbox>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>

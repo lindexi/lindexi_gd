@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.6.4" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.6.4" />
+    <ProjectReference Include="../FractalForge.Research.Adaptive/FractalForge.Research.Adaptive.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../../../minimind_model/tokenizer.json" Link="TokenizerAssets/tokenizer.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../../../minimind_model/tokenizer_config.json" Link="TokenizerAssets/tokenizer_config.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

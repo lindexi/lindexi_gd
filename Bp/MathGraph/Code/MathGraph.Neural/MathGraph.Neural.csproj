@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../MathGraph/MathGraphs.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../minimind实验/MiniMind/MiniMind/Tokenizer/MiniMindTokenizer.cs" Link="MiniMind/MiniMindTokenizer.cs" />
+    <Compile Include="../../../minimind实验/MiniMind/MiniMind/Tokenizer/IMiniMindTokenizer.cs" Link="MiniMind/IMiniMindTokenizer.cs" />
+    <Compile Include="../../../minimind实验/MiniMind/MiniMind/Template/TokenizerTemplateConfig.cs" Link="MiniMind/TokenizerTemplateConfig.cs" />
+    <Compile Include="../../../minimind实验/MiniMind/MiniMind/Template/MiniMindChatTemplateRenderer.cs" Link="MiniMind/MiniMindChatTemplateRenderer.cs" />
+    <Compile Include="../../../minimind实验/MiniMind/MiniMind/Template/ChatModels.cs" Link="MiniMind/ChatModels.cs" />
+  </ItemGroup>
+</Project>

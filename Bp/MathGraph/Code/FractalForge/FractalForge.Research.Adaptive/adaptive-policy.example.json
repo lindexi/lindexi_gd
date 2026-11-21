@@ -1,0 +1,15 @@
+{
+  "Branch": "A3",
+  "OpportunityInterval": 10,
+  "WarmupUpdates": 10,
+  "CooldownUpdates": 20,
+  "MaxTrials": 2,
+  "GrowthProbability": 0.25,
+  "Exploration": 0.2,
+  "LearningRate": 0.1,
+  "PlateauScale": 0.01,
+  "Seed": 17,
+  "MaxComputeNodes": 64,
+  "MaxParameters": 1000000,
+  "MaxTapeCells": 100000000
+}

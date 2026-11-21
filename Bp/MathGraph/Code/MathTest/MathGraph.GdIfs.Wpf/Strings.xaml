@@ -1,0 +1,26 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+  <sys:String x:Key="WindowTitle">GD-IFS · 五点环研究台</sys:String>
+  <sys:String x:Key="Title">五点环 · 单分支自相似</sys:String>
+  <sys:String x:Key="Subtitle">GRAPH-DIRECTED / FINITE LEVEL STUDY</sys:String>
+  <sys:String x:Key="ControlsTitle">构造参数</sys:String>
+  <sys:String x:Key="SelectionLabel">唯一超点（各层采用相同编号）</sys:String>
+  <sys:String x:Key="NodeFormat">节点 {0}</sys:String>
+  <sys:String x:Key="DepthLabel">递归深度 · 0 — 8</sys:String>
+  <sys:String x:Key="RatioLabel">相似收缩比 · 0.12 — 0.36</sys:String>
+  <sys:String x:Key="Reset">复位视图</sys:String>
+  <sys:String x:Key="ZoomIn">放大 +</sys:String>
+  <sys:String x:Key="ZoomOut">缩小 −</sys:String>
+  <sys:String x:Key="StatsTitle">结构统计</sys:String>
+  <sys:String x:Key="StatsFormat">环数  {0}\n节点  {1}     边  {2}\n超点容器  {3}（不计入顶点）\n当前收缩比  {4:F2}</sys:String>
+  <sys:String x:Key="RulesTitle">模型与连接规则</sys:String>
+  <sys:String x:Key="Rules">原型为闭环 C5。每层仅所选节点包含下一张相似缩小的 C5，其余四点不递归。
+
+深度 d 对应 d+1 个环，节点与边均为 5(d+1)，规模线性增长。
+
+虚线圆为超点容器，不是额外顶点。父环边仍连接父环节点；内部图仅作层级包含，不自动重接外部边。
+
+这是单分支图引导自相似结构的有限层示意，不宣称非平凡分形维数，也不使用 log(5)/log(1/r)。</sys:String>
+  <sys:String x:Key="Hint">点击节点或虚线容器选择超点 · 滚轮以鼠标为中心缩放 · 拖动空白平移 · 深层重叠时可放大或用下拉选择</sys:String>
+  <sys:String x:Key="LevelFormat">L{0} · {1}</sys:String>
+  <sys:String x:Key="CanvasHelp">五点环交互画布；可使用旁侧下拉框选择超点，使用缩放和复位按钮调整视图。</sys:String>
+</ResourceDictionary>

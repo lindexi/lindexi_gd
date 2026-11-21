@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Usage" xml:space="preserve"><value>用法：train 配置.json | resume 配置.json 检查点.json | generate/chat 配置.json 检查点.json "提示词" | inspect 配置.json 检查点.json。路径相对配置文件目录解析。</value></data>
+  <data name="TokenizerMismatch" xml:space="preserve"><value>模型记录的 tokenizer 身份或词表大小与当前文件不一致。</value></data>
+  <data name="Training" xml:space="preserve"><value>开始 CPU 训练；历史模型保留在配置的 ArchiveRoot。Ctrl+C 请求停止，归档训练将在一致边界保存后退出。</value></data>
+  <data name="Cancelled" xml:space="preserve"><value>操作已取消。已成功发布的历史存档不会删除；请检查最近运行目录。</value></data>
+  <data name="FullDataset" xml:space="preserve"><value>完整文件训练：{0}；不限制读取前缀，单样本窗口 {2} token。正在读取和分词。</value></data>
+  <data name="PrefixDataset" xml:space="preserve"><value>前缀验证训练：{0}；仅读取前 {1} 行，单样本窗口 {2} token。</value></data>
+  <data name="DatasetReady" xml:space="preserve"><value>数据加载完成：共 {0} 条；训练 {1} 条，结构选择 {2} 条，测试 {3} 条；训练 {4} 轮。</value></data>
+  <data name="PreparationProgress" xml:space="preserve"><value>[{0}] 已处理 {1:F1} MiB（{2}），样本 {3:N0}，token {4:N0}，累计耗时 {5:F1}s，平均 {6:F1} 条/s。</value></data>
+  <data name="StageTokenizing" xml:space="preserve"><value>读取与分词</value></data>
+  <data name="StageBuildingDataset" xml:space="preserve"><value>构建数据集及身份哈希</value></data>
+  <data name="StageGrouping" xml:space="preserve"><value>按内容分组</value></data>
+  <data name="StageSortingGroups" xml:space="preserve"><value>排序内容组</value></data>
+  <data name="StageBuildingPartitions" xml:space="preserve"><value>构建训练/选择/测试子集</value></data>
+  <data name="StageCompleted" xml:space="preserve"><value>阶段完成</value></data>
+  <data name="PipelineProgress" xml:space="preserve"><value>[流水线 {0}] 已完成轮次 {1}，已训练 {2} 条，已预热 {3} 次，消费位置 {4:F1}/{5:F1} MiB，选择样本 {6}，最近存档：{7}</value></data>
+  <data name="AutoResume" xml:space="preserve"><value>自动恢复最新存档：{0}</value></data>
+  <data name="PipelineTimings" xml:space="preserve"><value>[累计耗时] 总计 {0:F1}s；训练 {1:F1}s；评价 {2:F1}s；序列化 {3:F1}s；写盘/刷盘 {4:F1}s；旧档清理 {5:F1}s；保存 {6} 次，最近模型 {7:F2} MiB。</value></data>
+  <data name="PipelineLoss" xml:space="preserve"><value>[训练损失] 最近样本 CE {0:F6}；区间 token 加权 CE {1:F6}；区间 {2} 条、{3} 个监督 token；端到端吞吐 {4:F1} token/s。</value></data>
+  <data name="PipelineSelectionLoss" xml:space="preserve"><value>[结构选择集] CE {0:F6}（非最终测试集）。</value></data>
+  <data name="KeepStructure" xml:space="preserve"><value>保持结构</value></data>
+  <data name="PipelineDecision" xml:space="preserve"><value>[结构决策] 动作 {0}；选中概率 {1:P2}；新增节点 {2}。</value></data>
+  <data name="PipelineFeedback" xml:space="preserve"><value>[结构反馈] 奖励 {0:F6}；优势 {1:F6}；基线 {2:F6}（负奖励不回滚结构）。</value></data>
+</root>

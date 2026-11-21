@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Invalid" xml:space="preserve"><value>运行配置、数据身份或恢复清单不匹配；拒绝继续。</value></data>
+  <data name="Usage" xml:space="preserve"><value>参数：train config [updates] | resume config manifest [updates] | inspect config manifest | evaluate config manifest | generate config manifest prompt maxNewTokens seed。</value></data>
+  <data name="Cancelled" xml:space="preserve"><value>运行已取消；请从最近显式提交的清单恢复。</value></data>
+  <data name="Failed" xml:space="preserve"><value>运行失败：</value></data>
+</root>
