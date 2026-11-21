@@ -50,7 +50,7 @@ public partial class MainWindow : Window
         OutputSummary.Text = string.Join(Environment.NewLine, trace.Outputs.Select((value, port) =>
             string.Format(CultureInfo.CurrentCulture, comparison, port, Format(before[port]), Format(value),
                 Format(BigInteger.Abs(value - before[port])))));
-        DrawGraph(trace);
+        DrawGraph(trace, isForward);
         Status.Text = string.Empty;
         Results.Visibility = Visibility.Visible;
     }
@@ -60,7 +60,21 @@ public partial class MainWindow : Window
 
     private static string Format(BigInteger value) => value.ToString(CultureInfo.InvariantCulture);
 
-    private void DrawGraph(Function.EvaluationTrace trace)
+    private string GetOperatorLabel(char vertex, bool isForward)
+    {
+        // These labels describe the built-in function-preserving Expand() construction.
+        string resource = (isForward, vertex) switch
+        {
+            (true, 'C') or (false, 'A') => "FirstOperator",
+            (true, 'D') or (false, 'B') => "SecondOperator",
+            (true, 'E') => "ForwardOperator",
+            (false, 'E') => "ReverseOperator",
+            _ => "CopyOperator"
+        };
+        return (string)FindResource(resource);
+    }
+
+    private void DrawGraph(Function.EvaluationTrace trace, bool isForward)
     {
         Graph.Children.Clear();
         var levels = new Dictionary<char, int>();
@@ -72,7 +86,14 @@ public partial class MainWindow : Window
 
         double valueWidth = trace.Children.SelectMany(child => child.Inputs.Concat(child.Outputs))
             .Max(value => MeasureLabel(new TextBlock { Text = $"0: {Format(value)}", FontSize = ValueFontSize }).Width);
-        double nodeWidth = Math.Max(116, 2 * valueWidth + 26);
+        var operatorLabels = trace.Children.ToDictionary(child => child.Vertex, child => new TextBlock
+        {
+            Text = GetOperatorLabel(child.Vertex, isForward),
+            FontSize = ValueFontSize,
+            HorizontalAlignment = HorizontalAlignment.Center
+        });
+        double operatorWidth = operatorLabels.Values.Max(label => MeasureLabel(label).Width);
+        double nodeWidth = Math.Max(operatorWidth + 24, 2 * valueWidth + 26);
         double columnStep = nodeWidth + Math.Max(140, 3 * valueWidth + 32);
         Graph.Width = columnStep * levels.Values.Max() + nodeWidth + 40;
         var wireLabels = new List<(TextBlock Label, Point Anchor)>();
@@ -80,11 +101,11 @@ public partial class MainWindow : Window
         foreach (var level in trace.Children.GroupBy(child => levels[child.Vertex]))
         {
             double x = 20 + columnStep * level.Key;
-            double y = level.Count() == 1 ? 54 : 12;
+            double y = level.Count() == 1 ? 62 : 12;
             foreach (var child in level)
             {
                 positions.Add(child.Vertex, new Point(x, y));
-                y += 84;
+                y += 100;
             }
         }
 
@@ -131,13 +152,21 @@ public partial class MainWindow : Window
             var position = positions[child.Vertex];
             Place(new Border
             {
-                Width = nodeWidth, Height = 58,
+                Width = nodeWidth, Height = 76,
                 Background = Brushes.WhiteSmoke, BorderBrush = Brushes.LightSlateGray,
                 BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(4),
-                Child = new TextBlock
+                Child = new StackPanel
                 {
-                    Text = child.Vertex.ToString(), FontWeight = FontWeights.SemiBold,
-                    HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 3, 0, 0)
+                    Margin = new Thickness(0, 3, 0, 0),
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = child.Vertex.ToString(), FontWeight = FontWeights.SemiBold,
+                            HorizontalAlignment = HorizontalAlignment.Center
+                        },
+                        operatorLabels[child.Vertex]
+                    }
                 }
             }, position);
             DrawPorts(position, nodeWidth, child.Inputs, output: false);
@@ -163,7 +192,7 @@ public partial class MainWindow : Window
     }
 
     private static Point PortPosition(Point node, double nodeWidth, int port, bool output) =>
-        new(node.X + (output ? nodeWidth : 0), node.Y + 26 + 17 * port);
+        new(node.X + (output ? nodeWidth : 0), node.Y + 44 + 17 * port);
 
     private static Size MeasureLabel(TextBlock label)
     {

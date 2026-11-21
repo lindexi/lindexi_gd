@@ -2,11 +2,16 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
-        Title="五点展开 · 端口检查" Width="920" Height="390" MinWidth="460" MinHeight="360">
+        Title="五点展开 · 端口检查" Width="920" Height="430" MinWidth="460" MinHeight="360">
     <Window.Resources>
         <sys:String x:Key="InvalidInput">请输入有效的有符号十进制整数。</sys:String>
         <sys:String x:Key="ForwardFormula">示例算子：f(x, y) = x² − y</sys:String>
         <sys:String x:Key="ReverseFormula">示例算子：g(t) = (t² + 1, t³ − t)</sys:String>
+        <sys:String x:Key="CopyOperator">复制：t → (t, t)</sys:String>
+        <sys:String x:Key="FirstOperator">取第 0 路：(u, v) → u</sys:String>
+        <sys:String x:Key="SecondOperator">取第 1 路：(u, v) → v</sys:String>
+        <sys:String x:Key="ForwardOperator">f(x, y) = x² − y</sys:String>
+        <sys:String x:Key="ReverseOperator">g(t) = (t² + 1, t³ − t)</sys:String>
         <sys:String x:Key="OutputComparison">输出 {0}：展开前 {1}，展开后 {2}，绝对误差 {3}</sys:String>
     </Window.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
@@ -33,8 +38,8 @@
                 <TextBlock x:Name="OutputSummary" Margin="0,12,0,0" />
                 <TextBlock Text="展开后的模板（左侧蓝点为输入，右侧绿点为输出）" FontWeight="SemiBold" Margin="0,12,0,4" />
                 <Border BorderBrush="LightGray" BorderThickness="1" Background="White">
-                    <Canvas x:Name="Graph" Height="175" HorizontalAlignment="Left"
-                            AutomationProperties.Name="五点模板、端口值和连线传值" />
+                    <Canvas x:Name="Graph" Height="200" HorizontalAlignment="Left"
+                            AutomationProperties.Name="五点模板、节点算子、端口值和连线传值" />
                 </Border>
             </StackPanel>
         </StackPanel>
