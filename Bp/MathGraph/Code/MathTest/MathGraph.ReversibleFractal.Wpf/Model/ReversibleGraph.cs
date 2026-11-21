@@ -1,3 +1,5 @@
+using MathGraphs;
+
 namespace MathGraph.ReversibleFractal.Wpf.Model;
 
 /// <summary>The orientation of a five-node FullCross module.</summary>
@@ -19,8 +21,12 @@ public sealed class ReversibleGraph
     /// <summary>Resource budget for batch generation only, not manual expansion.</summary>
     public const int DefaultExpansionBudget = 1000;
     private HashSet<string> expanded = new(StringComparer.Ordinal);
-    private List<Vertex> vertices = [];
-    private List<Edge> edges = [];
+    private MathGraph<Vertex, EdgePorts> topology = new();
+    private Dictionary<string, MathGraphElement<Vertex, EdgePorts>> elementsById = new(StringComparer.Ordinal);
+    private IReadOnlyList<Vertex> vertices = [];
+    private IReadOnlyList<Edge> edges = [];
+    private int nextEdgeIndex;
+    private readonly record struct EdgePorts(int SourceIndex, int TargetIndex, int ViewIndex);
     private Dictionary<string, Degree> signatures = [];
     private Dictionary<string, Boundary> boundaries = [];
     private static readonly string[] Names = ["A", "B", "C", "D", "E"];
@@ -30,13 +36,13 @@ public sealed class ReversibleGraph
     /// <summary>Creates the forward base graph with S0, S1 and T boundaries.</summary>
     public ReversibleGraph() => Rebuild();
     /// <summary>Actual leaves and the three external vertices; containers are excluded.</summary>
-    public IReadOnlyList<Vertex> Vertices => vertices.AsReadOnly();
+    public IReadOnlyList<Vertex> Vertices => vertices;
     /// <summary>Actual directed port edges.</summary>
-    public IReadOnlyList<Edge> Edges => edges.AsReadOnly();
+    public IReadOnlyList<Edge> Edges => edges;
     /// <summary>Stable expanded container paths.</summary>
     public IReadOnlyList<string> ExpandedPaths => expanded.Order(StringComparer.Ordinal).ToArray();
     /// <summary>Number of real leaves.</summary>
-    public int RealVertexCount => vertices.Count - 3;
+    public int RealVertexCount => topology.ElementList.Count - 3;
     /// <summary>Maximum replacement depth.</summary>
     public int Depth => expanded.Count == 0 ? 0 : expanded.Max(p => p.Count(c => c == '/'));
 
@@ -44,8 +50,8 @@ public sealed class ReversibleGraph
     public Degree GetDegree(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
-        if (!vertices.Any(v => v.Id == path)) throw new ArgumentException(null, nameof(path));
-        return new(edges.Count(e => e.Target.VertexId == path), edges.Count(e => e.Source.VertexId == path));
+        if (!elementsById.TryGetValue(path, out var element)) throw new ArgumentException(null, nameof(path));
+        return new(element.InEdgeList.Count, element.OutEdgeList.Count);
     }
     /// <summary>Reads the preserved signature of a leaf or container.</summary>
     public Degree GetSignature(string path)
@@ -65,7 +71,7 @@ public sealed class ReversibleGraph
     public void Expand(string path)
     {
         ArgumentNullException.ThrowIfNull(path);
-        if (!vertices.Any(v => v.Id == path && !v.IsBoundary)) throw new ArgumentException(null, nameof(path));
+        if (!elementsById.TryGetValue(path, out var element) || element.Value.IsBoundary) throw new ArgumentException(null, nameof(path));
         Commit(new HashSet<string>(expanded, StringComparer.Ordinal) { path });
     }
     /// <summary>Restores a module's original leaf and removes its expanded subtree.</summary>
@@ -105,23 +111,49 @@ public sealed class ReversibleGraph
     }
     private void Adopt(ReversibleGraph candidate)
     {
-        expanded = candidate.expanded; vertices = candidate.vertices; edges = candidate.edges;
+        expanded = candidate.expanded;
+        topology = candidate.topology;
+        elementsById = candidate.elementsById;
+        vertices = candidate.vertices; edges = candidate.edges;
         signatures = candidate.signatures; boundaries = candidate.boundaries;
     }
     private void Rebuild()
     {
-        vertices = []; edges = []; signatures = []; boundaries = [];
-        foreach (string id in new[] { "S0", "S1", "T" }) vertices.Add(new(id, true, 0));
+        topology = new();
+        elementsById = new(StringComparer.Ordinal);
+        nextEdgeIndex = 0;
+        signatures = []; boundaries = [];
+        foreach (string id in new[] { "S0", "S1", "T" }) AddVertex(new(id, true, 0));
         var root = BuildTemplate("root", new(2, 1));
-        edges.Add(new(new("S0", 0), root.Inputs[0]));
-        edges.Add(new(new("S1", 0), root.Inputs[1]));
-        edges.Add(new(root.Outputs[0], new("T", 0)));
+        AddEdge(new("S0", 0), root.Inputs[0]);
+        AddEdge(new("S1", 0), root.Inputs[1]);
+        AddEdge(root.Outputs[0], new("T", 0));
+
+        vertices = Array.AsReadOnly(topology.ElementList.Select(element => element.Value).ToArray());
+        // Preserve template insertion order for the view, independently of adjacency order.
+        var edgeView = new Edge[nextEdgeIndex];
+        foreach (var element in topology.ElementList)
+        {
+            foreach (var edge in element.OutEdgeList)
+            {
+                var ports = edge.EdgeInfo;
+                edgeView[ports.ViewIndex] = new(new(edge.From.Id, ports.SourceIndex), new(edge.To.Id, ports.TargetIndex));
+            }
+        }
+        edges = Array.AsReadOnly(edgeView);
     }
+    private void AddVertex(Vertex vertex) =>
+        elementsById.Add(vertex.Id, topology.CreateAndAddElement(vertex, vertex.Id));
+
+    private void AddEdge(Port source, Port target) =>
+        topology.AddEdge(elementsById[source.VertexId], elementsById[target.VertexId],
+            new EdgePorts(source.Index, target.Index, nextEdgeIndex++));
+
     private Boundary BuildLeaf(string path, Degree degree)
     {
         signatures[path] = degree;
         if (expanded.Contains(path)) return BuildTemplate(path, degree);
-        vertices.Add(new(path, false, path.Count(c => c == '/') - 1));
+        AddVertex(new(path, false, path.Count(c => c == '/') - 1));
         var boundary = new Boundary(Array.AsReadOnly(Enumerable.Range(0, degree.Incoming).Select(i => new Port(path, i)).ToArray()),
             Array.AsReadOnly(Enumerable.Range(0, degree.Outgoing).Select(i => new Port(path, i)).ToArray()));
         return boundaries[path] = boundary;
@@ -142,7 +174,7 @@ public sealed class ReversibleGraph
         var outgoing = Names.ToDictionary(n => n, _ => 0);
         // Fixed template order, never descendant ID sorting, defines external edge identity.
         foreach (var (from, to) in links)
-            edges.Add(new(children[from].Outputs[outgoing[from]++], children[to].Inputs[incoming[to]++]));
+            AddEdge(children[from].Outputs[outgoing[from]++], children[to].Inputs[incoming[to]++]);
         var boundary = new Boundary(Array.AsReadOnly(inputs.Select(n => children[n].Inputs[incoming[n]++]).ToArray()),
             Array.AsReadOnly(outputs.Select(n => children[n].Outputs[outgoing[n]++]).ToArray()));
         signatures[path] = degree;

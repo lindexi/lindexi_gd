@@ -23,11 +23,11 @@ public class ReversibleGraphTests
     }
 
     [TestMethod]
-    public void BaseEdgesAreExact() => CollectionAssert.AreEqual(new[]
+    public void BaseEdgesPreserveTemplateInsertionOrder() => CollectionAssert.AreEqual(new[]
     {
-        "S0:0>root/A:0", "S1:0>root/B:0", "root/A:0>root/C:0", "root/A:1>root/D:0",
-        "root/B:0>root/C:1", "root/B:1>root/D:1", "root/C:0>root/E:0", "root/D:0>root/E:1", "root/E:0>T:0"
-    }.Order(StringComparer.Ordinal).ToArray(), Connections(new()));
+        "root/A:0>root/C:0", "root/A:1>root/D:0", "root/B:0>root/C:1", "root/B:1>root/D:1",
+        "root/C:0>root/E:0", "root/D:0>root/E:1", "S0:0>root/A:0", "S1:0>root/B:0", "root/E:0>T:0"
+    }, new ReversibleGraph().Edges.Select(e => $"{e.Source.VertexId}:{e.Source.Index}>{e.Target.VertexId}:{e.Target.Index}").ToArray());
 
     [DataTestMethod]
     [DataRow("A", 1, 2)] [DataRow("B", 1, 2)] [DataRow("C", 2, 1)] [DataRow("D", 2, 1)] [DataRow("E", 2, 1)]
