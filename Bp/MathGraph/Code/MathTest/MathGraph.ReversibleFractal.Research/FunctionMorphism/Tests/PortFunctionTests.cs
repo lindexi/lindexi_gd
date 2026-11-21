@@ -32,6 +32,42 @@ public sealed class PortFunctionTests
         CollectionAssert.AreEqual(new[] { 72, 92 }, module.Evaluate(4));
     }
 
+    [DataTestMethod]
+    [DataRow(true, "A.0>C.0:2,A.1>D.0:2,B.0>C.1:-3,B.1>D.1:-3,C.0>E.0:2,D.0>E.1:-3")]
+    [DataRow(false, "E.0>C.0:9,E.1>D.0:-4,C.0>A.0:9,C.1>B.0:9,D.0>A.1:-4,D.1>B.1:-4")]
+    public void TraceReportsExecutedWiresAndTransferredValues(bool forward, string expected)
+    {
+        var original = forward ? PortFunction<int>.Merge((x, y) => x * x - y)
+            : PortFunction<int>.Split(t => (t * t, t - 1));
+        int[] input = forward ? [2, -3] : [-3];
+
+        var trace = original.Expand().EvaluateWithTrace(input);
+        var children = trace.Children.ToDictionary(child => child.Vertex);
+        var actual = trace.Wires.Select(wire =>
+        {
+            int value = children[wire.To].Inputs[wire.InputPort];
+            Assert.AreEqual(children[wire.From].Outputs[wire.OutputPort], wire.Value);
+            Assert.AreEqual(value, wire.Value);
+            return $"{wire.From}.{wire.OutputPort}>{wire.To}.{wire.InputPort}:{wire.Value}";
+        });
+
+        Assert.AreEqual(expected, string.Join(",", actual));
+    }
+
+    [DataTestMethod]
+    [DataRow(true, "7")]
+    [DataRow(false, "9,-4")]
+    public void TraceReportsBoundaryOutputsInPortOrder(bool forward, string expected)
+    {
+        var original = forward ? PortFunction<int>.Merge((x, y) => x * x - y)
+            : PortFunction<int>.Split(t => (t * t, t - 1));
+        int[] input = forward ? [2, -3] : [-3];
+
+        var trace = original.Expand().EvaluateWithTrace(input);
+
+        Assert.AreEqual(expected, string.Join(",", trace.Outputs));
+    }
+
     [TestMethod]
     public void ForwardExpansionReducesToTheOriginalOrderedFormalTerm()
     {

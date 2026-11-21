@@ -27,6 +27,16 @@
 
 由逆拓扑归纳可得：在实数精确运算、有限无环接线和独立参数块的前提下，结果是整个图的向量–雅可比积（等价于 `Jᵀs` 的列向量表示）。证明只使用局部导数，不要求节点激活一致。浮点实现不保证与实数结果逐位相同。
 
+## WPF 交互可视化
+
+独立项目 `Wpf/MathGraph.NodeOperators.Wpf.csproj` 面向 `net9.0-windows`，直接引用上述核心库，无需改动解决方案。使用 .NET 9 SDK 从本目录构建：
+
+- `dotnet build Wpf/MathGraph.NodeOperators.Wpf.csproj`
+
+在装有 .NET 9 桌面运行时的 Windows 上，可用 `dotnet run --project Wpf/MathGraph.NodeOperators.Wpf.csproj` 打开界面。选择基础、正向展开 `C`、反向展开 `A` 或混合展开 `A + C`；激活可选全 Identity、全 Tanh 或按叶混用（末段为 A、C、E 的叶使用 Tanh，其余使用 Identity）。这里的反向展开指子模板的接线方向，根始终为正向模板。
+
+编辑 `x[0]`、`x[1]` 或切换选项时自动重算。参数按核心的顺序固定生成：`p[i] = (((7i + 3) mod 17) − 8) / 10`。界面直接绘制 `FullCross.Create(...).Differentiate(x, p, [1])` 返回的输出、输入梯度和参数梯度；目标为 `L = y[0]`，`p[i]` 的索引对应核心的扁平参数布局。条形以零为中心，各组独立按最大绝对值缩放（全零组不画条），跨组比较请使用右侧数值。输入不可解析或结果非有限时隐藏图表并显示提示。
+
 ## 验证与复现
 
 从本目录运行：

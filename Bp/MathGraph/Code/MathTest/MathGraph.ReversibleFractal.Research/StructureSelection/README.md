@@ -1,6 +1,6 @@
 # 正反五点结构选择研究
 
-独立的 .NET 9 控制台核心和 MSTest 项目，不引用 WPF、其他研究分支或共享项目，不加入方案。局部 `Directory.Build.props` 隔离继承的构建输出设置。
+本目录包含独立的 .NET 9 控制台核心、MSTest 项目和 WPF 可视化项目。WPF 单向引用本目录的核心；核心和测试不依赖 WPF。各项目均不加入解决方案。局部 `Directory.Build.props` 隔离继承的构建输出设置。
 
 ## 复现
 
@@ -9,6 +9,12 @@
 - `dotnet test Tests/MathGraph.StructureSelection.Tests.csproj`
 - `dotnet run --project Core/MathGraph.StructureSelection.csproj -c Release`
 - `dotnet run --project Core/MathGraph.StructureSelection.csproj -c Release -- --json`：输出逐配对记录，含选点、方向、梯度信号、批次指纹、容量、成本、验证分和测试误差。
+
+## WPF 可视化
+
+项目：`Wpf/MathGraph.StructureSelection.Wpf.csproj`（`net9.0-windows`）。在 Windows 上从本目录执行 `dotnet build Wpf/MathGraph.StructureSelection.Wpf.csproj` 即可单独构建，不会打开窗口。如需手动查看，可用 `dotnet run --project Wpf/MathGraph.StructureSelection.Wpf.csproj` 启动（需要 .NET 9 Desktop Runtime）。
+
+点击「运行核心实验」会在后台调用同一个 `Experiment.Run()`；无需先运行控制台或准备结果文件。结束后按任务、种子和检查点选择配对。不展开、随机展开和梯度展开并排显示，两种数据集的 MSE 使用同一从零开始的标尺。窗口标出验证后保留的策略、保留分数、选点和方向；测试集仅用于评估。预算区域列出数据集大小、共享批次指纹、候选训练样本及端口访问数和梯度选点的额外成本。
 
 ## 拓扑和协议
 

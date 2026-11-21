@@ -99,16 +99,40 @@ public sealed class PortFunction<T>
     /// <summary>Evaluates the finite DAG with values in boundary input and output port order.</summary>
     public T[] Evaluate(params T[] input)
     {
+        ValidateInput(input);
+        return EvaluateCore(input);
+    }
+
+    /// <summary>Evaluates and records the immediate children and wires of the root module; a leaf has neither.</summary>
+    public EvaluationTrace EvaluateWithTrace(params T[] input)
+    {
+        ValidateInput(input);
+        var children = new List<ChildTrace>();
+        var wires = new List<WireTrace>();
+        var output = EvaluateCore(input, children, wires);
+        return new(Array.AsReadOnly(output), children.AsReadOnly(), wires.AsReadOnly());
+    }
+
+    /// <summary>Boundary outputs and the root module's observed execution.</summary>
+    public sealed record EvaluationTrace(IReadOnlyList<T> Outputs, IReadOnlyList<ChildTrace> Children,
+        IReadOnlyList<WireTrace> Wires);
+
+    /// <summary>The inputs and outputs of one immediate child, in port order.</summary>
+    public sealed record ChildTrace(char Vertex, IReadOnlyList<T> Inputs, IReadOnlyList<T> Outputs);
+
+    /// <summary>A value transferred from a child output port to a child input port.</summary>
+    public sealed record WireTrace(char From, int OutputPort, char To, int InputPort, T Value);
+
+    private void ValidateInput(T[] input)
+    {
         ArgumentNullException.ThrowIfNull(input);
         if (input.Length != (isMerge ? 2 : 1))
         {
             throw new ArgumentException(null, nameof(input));
         }
-
-        return EvaluateCore(input);
     }
 
-    private T[] EvaluateCore(T[] input)
+    private T[] EvaluateCore(T[] input, List<ChildTrace>? childTrace = null, List<WireTrace>? wireTrace = null)
     {
         if (operation is not null)
         {
@@ -141,11 +165,14 @@ public sealed class PortFunction<T>
         foreach (int vertex in isMerge ? ForwardOrder : ReverseOrder)
         {
             var output = outgoing[vertex] = children[vertex].EvaluateCore(incoming[vertex]);
+            childTrace?.Add(new((char)('A' + vertex), Array.AsReadOnly(incoming[vertex]), Array.AsReadOnly(output)));
             foreach (var wire in wires)
             {
                 if (wire.From == vertex)
                 {
-                    incoming[wire.To][wire.Input] = output[wire.Output];
+                    var value = output[wire.Output];
+                    incoming[wire.To][wire.Input] = value;
+                    wireTrace?.Add(new((char)('A' + wire.From), wire.Output, (char)('A' + wire.To), wire.Input, value));
                 }
             }
         }

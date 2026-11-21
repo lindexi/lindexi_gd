@@ -1,0 +1,32 @@
+<Window x:Class="MathGraph.PostExpansionLearning.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="保函数展开后的支路学习" Language="zh-CN"
+        Width="1060" Height="840" MinWidth="740" MinHeight="480">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20">
+            <TextBlock FontSize="24" FontWeight="SemiBold" Text="保函数展开后的支路学习" />
+            <WrapPanel Margin="0,12,0,8">
+                <Label Content="方向" Target="{Binding ElementName=DirectionSelector}" />
+                <ComboBox x:Name="DirectionSelector" Width="160" SelectedIndex="0" Margin="0,0,20,0">
+                    <ComboBoxItem Content="正向：2 → 1" />
+                    <ComboBoxItem Content="反向：1 → 2" />
+                </ComboBox>
+                <Label Content="纵轴指标" Target="{Binding ElementName=MetricSelector}" />
+                <ComboBox x:Name="MetricSelector" Width="160" SelectedIndex="0">
+                    <ComboBoxItem Content="半平方损失" />
+                    <ComboBoxItem Content="参数梯度" />
+                </ComboBox>
+            </WrapPanel>
+            <TextBlock x:Name="ExperimentText" Margin="0,0,0,4" TextWrapping="Wrap" />
+            <TextBlock Text="横轴：已完成的更新次数（0 为初始化，24 为末次更新后）。" TextWrapping="Wrap" />
+            <TextBlock x:Name="MetricText" Margin="0,4,0,4" TextWrapping="Wrap" />
+            <TextBlock x:Name="GradientLegend" Visibility="Collapsed" TextWrapping="Wrap">
+                <Run Foreground="#174EA6" Text="蓝色实线：门 g" />
+                <Run Foreground="#912626" Text="  红色虚线：正支路 p" />
+                <Run Foreground="#166534" Text="  绿色点线：负支路 n" />
+            </TextBlock>
+            <UniformGrid x:Name="Charts" Columns="2" Margin="-6,6,-6,0" />
+        </StackPanel>
+    </ScrollViewer>
+</Window>

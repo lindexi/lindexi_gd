@@ -16,6 +16,36 @@
     <Project Path="Code/MathTest/MathGraph.FiveNodeFractal.Wpf/MathGraph.FiveNodeFractal.Wpf.csproj" />
     <Project Path="Code/MathTest/MathGraph.FiveNodeFractal.Wpf.Tests/MathGraph.FiveNodeFractal.Wpf.Tests.csproj" />
   </Folder>
+  <Folder Name="/Code/MathTest/ReversibleFractal.Research/FunctionMorphism/">
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/FunctionMorphism/Core/MathGraph.FunctionMorphism.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/FunctionMorphism/Tests/MathGraph.FunctionMorphism.Tests.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/FunctionMorphism/Wpf/MathGraph.FunctionMorphism.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/Code/MathTest/ReversibleFractal.Research/HyperedgeReplacement/">
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/HyperedgeReplacement/HyperedgeReplacement.Core/HyperedgeReplacement.Core.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/HyperedgeReplacement/HyperedgeReplacement.Tests/HyperedgeReplacement.Tests.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/HyperedgeReplacement/Wpf/MathGraph.HyperedgeReplacement.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/Code/MathTest/ReversibleFractal.Research/NodeOperators/">
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/NodeOperators/NodeOperators/NodeOperators.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/NodeOperators/NodeOperators.Tests/NodeOperators.Tests.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/NodeOperators/Wpf/MathGraph.NodeOperators.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/Code/MathTest/ReversibleFractal.Research/OrderedNodeReplacement/">
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/OrderedNodeReplacement/OrderedNodeReplacement.Core/OrderedNodeReplacement.Core.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/OrderedNodeReplacement/OrderedNodeReplacement.Tests/OrderedNodeReplacement.Tests.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/OrderedNodeReplacement/Wpf/MathGraph.OrderedNodeReplacement.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/Code/MathTest/ReversibleFractal.Research/PostExpansionLearning/">
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/PostExpansionLearning/Core/MathGraph.PostExpansionLearning.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/PostExpansionLearning/Tests/MathGraph.PostExpansionLearning.Tests.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/PostExpansionLearning/Wpf/MathGraph.PostExpansionLearning.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/Code/MathTest/ReversibleFractal.Research/StructureSelection/">
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/StructureSelection/Core/MathGraph.StructureSelection.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/StructureSelection/Tests/MathGraph.StructureSelection.Tests.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Research/StructureSelection/Wpf/MathGraph.StructureSelection.Wpf.csproj" />
+  </Folder>
   <Folder Name="/Code/FractalForge/">
     <Project Path="Code/FractalForge/FractalForge.Core/FractalForge.Core.csproj" />
     <Project Path="Code/FractalForge/FractalForge.Training/FractalForge.Training.csproj" />

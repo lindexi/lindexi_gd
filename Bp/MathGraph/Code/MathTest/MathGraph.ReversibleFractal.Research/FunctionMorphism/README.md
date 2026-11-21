@@ -1,6 +1,12 @@
 # 正反五点替换：逐端口函数保持
 
-本目录独立于 WPF、其他研究项目及共享解决方案。`Core/MathGraph.FunctionMorphism.csproj` 和 `Tests/MathGraph.FunctionMorphism.Tests.csproj` 均为 `net9.0`；测试使用 Microsoft.NET.Test.Sdk 17.12.0、MSTest 3.6.4。核心无第三方依赖。目录内构建配置使构建产物留在各项目下。
+本目录独立于其他研究项目及共享解决方案。`Core/MathGraph.FunctionMorphism.csproj` 和 `Tests/MathGraph.FunctionMorphism.Tests.csproj` 均为 `net9.0`；测试使用 Microsoft.NET.Test.Sdk 17.12.0、MSTest 3.6.4。核心无第三方依赖。目录内构建配置使构建产物留在各项目下。
+
+## WPF 端口检查
+
+在 Windows 上使用 .NET 9 SDK，从本目录执行 `dotnet build Wpf/MathGraph.FunctionMorphism.Wpf.csproj`。项目目标为 `net9.0-windows`，直接引用 Core，无需加入解决方案；构建命令不会启动应用。
+
+窗口可切换正向（2→1）与反向（1→2），输入有符号十进制整数时自动重新求值。正向默认 `(2, -3)`，`f(x, y) = x² − y` 得 `7`；反向可用 `-3`，`g(t) = (t² + 1, t³ − t)` 得 `(10, -24)`。边界表按输出端口对比原算子与调用 `Expand()` 后的实际结果，误差为 `|展开后 − 展开前|`；示例用 `BigInteger` 精确计算。模板图和表格读取 Core 同一次求值中记录的子点端口及连线传值，WPF 只负责布局与显示。图中左侧蓝点为输入，右侧绿点为输出，箭头表示传值方向。界面展示一次根展开；Core 的跟踪记录只包含根模块的直接子点及连线。
 
 ## 有序接线与执行
 
