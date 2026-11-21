@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+  <sys:String x:Key="Title">正反五点 · 有限拓扑研究</sys:String>
+  <sys:String x:Key="ExampleC">正向示例 · 展开 C</sys:String>
+  <sys:String x:Key="ExampleA">反向示例 · 展开 A</sys:String>
+  <sys:String x:Key="CollapseAll">收起全部</sys:String>
+  <sys:String x:Key="Collapse">收起所选模块子树</sys:String>
+  <sys:String x:Key="Modules">已展开模块</sys:String>
+  <sys:String x:Key="Depth">批量层数（非负整数）</sys:String>
+  <sys:String x:Key="Generate">从基础图批量生成</sys:String>
+  <sys:String x:Key="Fit">适应视图</sys:String>
+  <sys:String x:Key="ZoomIn">放大 +</sys:String>
+  <sys:String x:Key="ZoomOut">缩小 −</sys:String>
+  <sys:String x:Key="Forward">正向 FullCross</sys:String>
+  <sys:String x:Key="Reverse">反向 FullCross</sys:String>
+  <sys:String x:Key="Stats">真实节点 {0} · 外部点 3
+边 {1} · 模块 {2} · 深度 {3}</sys:String>
+  <sys:String x:Key="Selected">{0}
+{1} · {2}入{3}出</sys:String>
+  <sys:String x:Key="Failure">操作拒绝，原图不变。批量默认预算1000次展开。</sys:String>
+  <sys:String x:Key="InvalidDepth">请输入非负整数层数，0恢复基础图。</sys:String>
+  <sys:String x:Key="Hint">左键叶展开，右键最深模块收起；空白拖动，滚轮鼠标锚缩放。</sys:String>
+</ResourceDictionary>

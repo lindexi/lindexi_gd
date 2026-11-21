@@ -7,6 +7,8 @@
     <Project Path="Code/MathGraph.Neural.Tests/MathGraph.Neural.Tests.csproj" />
   </Folder>
   <Folder Name="/Code/MathTest/">
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Wpf/MathGraph.ReversibleFractal.Wpf.csproj" />
+    <Project Path="Code/MathTest/MathGraph.ReversibleFractal.Wpf.Tests/MathGraph.ReversibleFractal.Wpf.Tests.csproj" />
     <Project Path="Code/MathTest/MathGraph.GdIfs.Wpf/MathGraph.GdIfs.Wpf.csproj" />
     <Project Path="Code/MathTest/MathGraph.GdIfs.Wpf.Tests/MathGraph.GdIfs.Wpf.Tests.csproj" />
     <Project Path="Code/MathTest/MathGraph.DiamondFractal.Wpf/MathGraph.DiamondFractal.Wpf.csproj" />
