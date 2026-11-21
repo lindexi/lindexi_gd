@@ -9,6 +9,8 @@ public static class XiaoXiImeIpcRoutes
     public const string UpdateInputTarget = "XiaoXiIme.UpdateInputTarget";
 
     public const string ProcessKey = "XiaoXiIme.ProcessKey";
+    public const string InputEvent = "XiaoXiIme.InputEvent";
+    public const string ApplyInputResult = "XiaoXiIme.ApplyInputResult";
 
     public const string GetSnapshot = "XiaoXiIme.GetSnapshot";
 

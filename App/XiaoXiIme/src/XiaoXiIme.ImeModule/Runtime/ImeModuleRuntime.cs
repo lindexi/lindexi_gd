@@ -159,7 +159,7 @@ public static class ImeModuleRuntime
         {
             if (!s_snapshots.TryGetValue(sessionId, out var cached))
             {
-                snapshot = key.Character == ';'
+                snapshot = key.Character == ';' && !ImeInputIdentity.UsesNativeContext
                     ? (s_bridge ?? GetBridge()).GetSnapshot(sessionId)
                     : ImeSessionSnapshot.Empty;
             }
@@ -167,6 +167,11 @@ public static class ImeModuleRuntime
             {
                 snapshot = cached;
             }
+        }
+
+        if (inputContext.Value != 0 && ImeInputIdentity.UsesNativeContext && AsyncImmInput.HasPending(inputContext))
+        {
+            snapshot = snapshot with { IsComposing = true };
         }
 
         return XiaoXiIme.ImeCore.ImeContext.ShouldProcessKey(key, snapshot);
@@ -187,6 +192,7 @@ public static class ImeModuleRuntime
             return;
         }
 
+        s_compositionContextReader.InitializeConversionMode(inputContext);
         var session = ImeInputIdentity.Resolve(inputContext);
         var anchor = ImeCandidateAnchorReader.Read(inputContext, session);
         if (anchor is { IsValid: true } && anchor.WindowHandle == (long)GetFocus())
@@ -217,6 +223,10 @@ public static class ImeModuleRuntime
             }
 
             var sessionId = ImeInputIdentity.Resolve(inputContext);
+            if (!active)
+            {
+                AsyncImmInput.Invalidate(sessionId, suspend: true);
+            }
             GetBridge().UpdateInputTarget
             (
                 new ImeInputTargetUpdate
@@ -368,6 +378,12 @@ public static class ImeModuleRuntime
             s_lastSessionId = sessionId.Effective;
             s_lastResult = result;
         }
+    }
+
+    internal static void RecordAsyncResult(ImeSessionId id, ImeProcessResult result)
+    {
+        SetSnapshot(id, result.Snapshot);
+        SetLastResult(id, result);
     }
 
     internal static string? LastBridgeError => s_bridge?.LastError;

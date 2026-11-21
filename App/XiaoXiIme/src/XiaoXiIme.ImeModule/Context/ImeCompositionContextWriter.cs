@@ -17,7 +17,66 @@ public sealed unsafe class ImeCompositionContextWriter
 
     internal IImmContextAccessor ContextAccessor => _contextAccessor;
 
-    public bool TryWrite(HImc inputContext, ImeToAsciiResult result)
+    public bool TryWrite(HImc inputContext, ImeToAsciiResult result) => TryWrite(inputContext, result, false);
+
+    internal bool TryWriteAndGenerate(HImc inputContext, ImeToAsciiResult result, bool wasComposing)
+    {
+        if (!TryWrite(inputContext, result, true))
+        {
+            ImeLifecycleDiagnostics.Record("AsyncInput", inputContext.Value, 0, "write-composition-failed");
+            return false;
+        }
+
+        var messages = ImeTransMsgBuilder.BuildMessages(result, wasComposing, includeLegacyFlags: false);
+        if (messages.Length == 0)
+        {
+            return true;
+        }
+
+        var context = (InputContext*)_contextAccessor.LockInputContext(inputContext);
+        if (context == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            var count = checked((int)context->MessageBufferCount);
+            var size = checked((uint)((count + messages.Length) * sizeof(TransMsg)));
+            var buffer = Imm32Methods.ImmReSizeIMCC(context->HMessageBuffer, size);
+            if (buffer == 0)
+            {
+                ImeLifecycleDiagnostics.Record("AsyncInput", inputContext.Value, count, "resize-message-buffer-failed");
+                return false;
+            }
+            context->HMessageBuffer = buffer;
+            var target = (TransMsg*)Imm32Methods.ImmLockIMCC(buffer);
+            if (target == null)
+            {
+                ImeLifecycleDiagnostics.Record("AsyncInput", inputContext.Value, count, "lock-message-buffer-failed");
+                return false;
+            }
+            try
+            {
+                messages.AsSpan().CopyTo(new Span<TransMsg>(target + count, messages.Length));
+                context->MessageBufferCount = (uint)(count + messages.Length);
+            }
+            finally
+            {
+                Imm32Methods.ImmUnlockIMCC(buffer);
+            }
+        }
+        finally
+        {
+            _contextAccessor.UnlockInputContext(inputContext);
+        }
+
+        var generated = _contextAccessor.GenerateMessage(inputContext);
+        ImeLifecycleDiagnostics.Record("AsyncInput", inputContext.Value, messages.Length, generated ? "generated" : "generate-failed");
+        return generated;
+    }
+
+    private bool TryWrite(HImc inputContext, ImeToAsciiResult result, bool deferMessages)
     {
         ArgumentNullException.ThrowIfNull(result);
 
@@ -37,6 +96,11 @@ public sealed unsafe class ImeCompositionContextWriter
             unsafe
             {
                 var context = (InputContext*)inputContextPointer;
+                if (deferMessages)
+                {
+                    return TryWriteCombinedString(context, result);
+                }
+
                 if (!string.IsNullOrEmpty(result.CommitText))
                 {
                     return TryWriteResultString(inputContext, context, result.CommitText)
@@ -147,6 +211,50 @@ public sealed unsafe class ImeCompositionContextWriter
         return WritePrivateData(privateData, snapshot);
     }
 
+    private bool TryWriteCombinedString(InputContext* context, ImeToAsciiResult result)
+    {
+        var composition = result.Snapshot.Composition;
+        var composing = result.Snapshot.IsComposing;
+        var required = GetRequiredSize(result.CommitText, composing ? composition.DisplayText : null,
+            composing ? composition.Reading : null);
+        var handle = EnsureCompositionString(context, required);
+        var buffer = handle == 0 ? null : (CompositionString*)_contextAccessor.LockCompositionString(handle);
+        if (buffer == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            if (composing)
+            {
+                WriteCompositionString(buffer, composition.DisplayText, composition.Reading, composition.CaretIndex);
+            }
+            else
+            {
+                ZeroCompositionString(buffer, required);
+                buffer->Size = (uint)sizeof(CompositionString);
+            }
+
+            if (result.CommitText is { Length: > 0 } text)
+            {
+                var bytes = Encoding.Unicode.GetBytes(text);
+                buffer->ResultStrOffset = buffer->Size;
+                buffer->ResultStrLength = (uint)text.Length;
+                buffer->ResultClauseOffset = buffer->ResultStrOffset + (uint)bytes.Length;
+                buffer->ResultClauseLength = sizeof(uint) * 2;
+                bytes.CopyTo(new Span<byte>((byte*)buffer + buffer->ResultStrOffset, bytes.Length));
+                WriteClause((uint*)((byte*)buffer + buffer->ResultClauseOffset), buffer->ResultStrLength);
+                buffer->Size = required;
+            }
+            return true;
+        }
+        finally
+        {
+            _contextAccessor.UnlockCompositionString(handle);
+        }
+    }
+
     private bool TryWriteResultString(HImc inputContext, InputContext* context, string text)
     {
         var requiredSize = GetRequiredSize(resultText: text, compositionText: null);
@@ -177,7 +285,7 @@ public sealed unsafe class ImeCompositionContextWriter
         return _contextAccessor.GenerateMessage(inputContext);
     }
 
-    private bool TryWriteCandidateInfo(HImc inputContext, InputContext* context, ImeSessionSnapshot snapshot)
+    private bool TryWriteCandidateInfo(HImc inputContext, InputContext* context, ImeSessionSnapshot snapshot, bool generate = true)
     {
         var requiredSize = GetRequiredCandidateInfoSize(snapshot.Candidates);
         var candidateHandle = EnsureCandidateInfo(context, requiredSize);
@@ -204,7 +312,7 @@ public sealed unsafe class ImeCompositionContextWriter
             _contextAccessor.UnlockCandidateInfo(candidateHandle);
         }
 
-        return _contextAccessor.GenerateMessage(inputContext);
+        return !generate || _contextAccessor.GenerateMessage(inputContext);
     }
 
     private bool TryWriteCompositionString
@@ -238,7 +346,7 @@ public sealed unsafe class ImeCompositionContextWriter
         return _contextAccessor.GenerateMessage(inputContext);
     }
 
-    private bool TryWriteGuideLine(HImc inputContext, InputContext* context, ImeSessionSnapshot snapshot)
+    private bool TryWriteGuideLine(HImc inputContext, InputContext* context, ImeSessionSnapshot snapshot, bool generate = true)
     {
         var requiredSize = GetRequiredGuideLineSize(snapshot);
         var guideLineHandle = EnsureGuideLine(context, requiredSize);
@@ -265,10 +373,10 @@ public sealed unsafe class ImeCompositionContextWriter
             _contextAccessor.UnlockGuideLine(guideLineHandle);
         }
 
-        return _contextAccessor.GenerateMessage(inputContext);
+        return !generate || _contextAccessor.GenerateMessage(inputContext);
     }
 
-    private bool TryWritePrivateData(HImc inputContext, InputContext* context, ImeSessionSnapshot snapshot)
+    private bool TryWritePrivateData(HImc inputContext, InputContext* context, ImeSessionSnapshot snapshot, bool generate = true)
     {
         var requiredSize = (uint)Unsafe.SizeOf<ImePrivateData>();
         var privateHandle = EnsurePrivateData(context, requiredSize);
@@ -298,7 +406,7 @@ public sealed unsafe class ImeCompositionContextWriter
             _contextAccessor.UnlockPrivateData(privateHandle);
         }
 
-        return _contextAccessor.GenerateMessage(inputContext);
+        return !generate || _contextAccessor.GenerateMessage(inputContext);
     }
 
     private bool TryClearCompositionString(HImc inputContext, InputContext* context)

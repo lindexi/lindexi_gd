@@ -29,32 +29,38 @@ internal static class Program
                 (args[1], args[2], sixSchemes: true).GetAwaiter().GetResult(),
             "product-ui-validation" when args.Length == 4 => ProductUiValidation.RunAsync
                 (args[1], args[2], args[3]).GetAwaiter().GetResult(),
-            "product-ui-batch" when args.Length == 1 => RunProductBatchAsync().GetAwaiter().GetResult(),
+            "product-ui-batch" when args.Length == 3 => RunProductBatchAsync
+                (ResolveSandboxPath(args[1]), ResolveSandboxPath(args[2])).GetAwaiter().GetResult(),
             "product-ui-compact" when args.Length == 1 => ProductUiValidation.RunAsync
             (
-                Path.Combine(AppContext.BaseDirectory, "XiaoXiIme.ImeUi.Avalonia.exe"), AppContext.BaseDirectory,
+                Path.Combine(AppContext.BaseDirectory, "XiaoXiIme.exe"), AppContext.BaseDirectory,
                 Path.Combine(AppContext.BaseDirectory, "evidence")
             ).GetAwaiter().GetResult(),
             "g02-recover-evidence" when args.Length == 1 => G02EvidenceRecovery.Run(),
-            "g02-native-validation" when args.Length == 1 => G02NativeValidation.RunAsync().GetAwaiter().GetResult(),
-            "imm32-validation" when args.Length == 1 => Imm32Validation.RunAsync().GetAwaiter().GetResult(),
+            "g02-native-validation" when args.Length == 3 => G02NativeValidation.RunAsync
+                (ResolveSandboxPath(args[1]), ResolveSandboxPath(args[2])).GetAwaiter().GetResult(),
+            "imm32-validation" when args.Length == 3 => Imm32Validation.RunAsync
+                (ResolveSandboxPath(args[1]), ResolveSandboxPath(args[2])).GetAwaiter().GetResult(),
             ProjectTermSmokeCommand when args.Length == 2 => ProjectTermSmoke.Run(args[1]),
             NativeImeVirtualKeyProbeCommand when args.Length == 2 => NativeImeVirtualKeyProbe.Run(args[1]),
             _ => WriteInvalidArguments(args[0]),
         };
     }
 
-    private static async Task<int> RunProductBatchAsync()
+    private static string ResolveSandboxPath(string path) => Path.GetFullPath(path, AppContext.BaseDirectory);
+
+    private static async Task<int> RunProductBatchAsync(string distribution, string output)
     {
-        var imm = await Imm32Validation.RunAsync();
-        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
-        var payload = Path.Combine(root, "sandbox-output", "payload");
-        var ui = await ProductUiValidation.RunAsync
+        var imm = await Imm32Validation.RunAsync(distribution, Path.Combine(output, "imm32"));
+        if (imm != 0)
+        {
+            return imm;
+        }
+
+        return await ProductUiValidation.RunAsync
         (
-            Path.Combine(payload, "app", "ui", "XiaoXiIme.ImeUi.Avalonia.exe"),
-            Path.Combine(payload, "app", "host"), Path.Combine(root, "final-evidence", "product-ui")
+            Path.Combine(distribution, "XiaoXiIme.exe"), distribution, Path.Combine(output, "product-ui")
         );
-        return imm == 0 && ui == 0 ? 0 : 1;
     }
 
     private static int WriteInvalidArguments(string command)
@@ -69,7 +75,9 @@ internal static class Program
         Console.Error.WriteLine("Usage:");
         Console.Error.WriteLine
             ("  XiaoXiIme.SandboxRunner product-ui-validation <ui-executable> <package-root> <output-directory>");
-        Console.Error.WriteLine("  XiaoXiIme.SandboxRunner imm32-validation");
+        Console.Error.WriteLine("  XiaoXiIme.SandboxRunner imm32-validation <distribution> <output-directory>");
+        Console.Error.WriteLine("  XiaoXiIme.SandboxRunner g02-native-validation <distribution> <output-directory>");
+        Console.Error.WriteLine("  XiaoXiIme.SandboxRunner product-ui-batch <distribution> <output-directory>");
         Console.Error.WriteLine("  XiaoXiIme.SandboxRunner project-term-smoke <output-directory>");
         Console.Error.WriteLine("  XiaoXiIme.SandboxRunner native-ime-vkey-probe <ime-path>");
     }

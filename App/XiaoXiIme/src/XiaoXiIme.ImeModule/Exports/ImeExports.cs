@@ -342,6 +342,7 @@ public static unsafe class ImeExports
             if (select == 0)
             {
                 ImeModuleRuntime.SetActiveContext(new HImc(inputContext), false);
+                AsyncImmInput.Invalidate(ImeInputIdentity.Resolve(new HImc(inputContext)));
                 ApplyControlKey(ImeConstants.VkEscape, inputContext);
                 ImeModuleRuntime.ResetSession(new HImc(inputContext));
             }
@@ -445,11 +446,24 @@ public static unsafe class ImeExports
             var key = ImeKeyTranslator.TranslateNative
                 (normalizedVirtualKey, scanCode, keyState, GetModifiers(keyState));
             stage = 2;
-            var wasComposing = ImeModuleRuntime.IsComposing(new HImc(inputContext));
+            var context = new HImc(inputContext);
+            if (context.Value != 0 && OperatingSystem.IsWindows() && ImeInputIdentity.UsesNativeContext)
+            {
+                var queued = key.Kind != ImeKeyKind.Other && AsyncImmInput.Enqueue(context, key);
+                ImeKeystrokeDiagnostics.RecordImeToAsciiEx(normalizedVirtualKey, queued, false, 0, 0, stage: stage);
+                return 0;
+            }
+
+            var wasComposing = ImeModuleRuntime.IsComposing(context);
             var processResult = key.Kind is ImeKeyKind.Other
                 ? new ImeProcessResult(ImeSessionSnapshot.Empty, CommitText: null, Handled: false)
                 : ImeModuleRuntime.ProcessTranslatedKey(key, new HImc(inputContext));
             var result = ImeToAsciiResult.FromProcessResult(processResult);
+            if (wasComposing && !result.Handled && key.Kind != ImeKeyKind.Other && ImeModuleRuntime.LastBridgeError is not null)
+            {
+                result = result with { Handled = true };
+            }
+
             if (normalizedVirtualKey == 0x20)
             {
                 ImeLifecycleDiagnostics.Record
@@ -525,6 +539,7 @@ public static unsafe class ImeExports
     {
         s_compositionContextWriter = writer ?? new ImeCompositionContextWriter(ImmContextAccessor.Instance);
         ImeInputIdentity.ContextAccessor = s_compositionContextWriter.ContextAccessor;
+        ImeModuleRuntime.SetCompositionContextReaderForTesting(writer is null ? null : new(writer.ContextAccessor));
     }
 
     private static int RefreshInputTarget(nint inputContext)
@@ -559,6 +574,18 @@ public static unsafe class ImeExports
         var result = ImeToAsciiResult.FromProcessResult(ImeModuleRuntime.ProcessTranslatedKey(key, himc));
         s_compositionContextWriter.TryWrite(himc, result);
         return result;
+    }
+
+    internal static void ApplyAsyncInputResult(HImc himc, ImeSessionId sessionId, ImeProcessResult input)
+    {
+        var wasComposing = ImeModuleRuntime.IsComposing(himc);
+        var result = ImeToAsciiResult.FromProcessResult(input);
+        ImeModuleRuntime.RecordAsyncResult(sessionId, input);
+        if (result.Handled && !s_compositionContextWriter.TryWriteAndGenerate(himc, result, wasComposing))
+        {
+            AsyncImmInput.Invalidate(sessionId);
+            System.Diagnostics.Trace.TraceError($"[AsyncImmInput][Write] SessionId={sessionId}; Error=IMM32 result could not be generated");
+        }
     }
 
     private static nint QueryEscapeSupport(void* data)

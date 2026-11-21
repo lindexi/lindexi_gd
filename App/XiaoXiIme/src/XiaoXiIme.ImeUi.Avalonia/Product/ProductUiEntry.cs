@@ -21,7 +21,7 @@ internal sealed class ProductUiEntry : IDisposable
 
     internal ProductUiEntry(string[] args, string? profileIdentity = null)
     {
-        var positional = args.Where(arg => arg is not "--settings" and not "--exit").ToArray();
+        var positional = args.Where(arg => arg is not "--settings" and not "--exit" and not "--serve").ToArray();
         var server = positional.Length > 0 ? positional[0] : XiaoXiImeIpcOptions.Default.ServerName;
         var identity = Convert.ToHexString
             (SHA256.HashData(Encoding.UTF8.GetBytes(Environment.UserName + "\0" + (profileIdentity ?? server))));

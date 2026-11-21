@@ -15,6 +15,35 @@ public sealed unsafe class ImeCompositionContextReader
 
     internal IImmContextAccessor ContextAccessor => _contextAccessor;
 
+    internal void InitializeConversionMode(HImc inputContext)
+    {
+        if (inputContext.Value == 0)
+        {
+            return;
+        }
+
+        var pointer = _contextAccessor.LockInputContext(inputContext);
+        if (pointer == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            const uint initConversion = 0x02;
+            var context = (InputContext*)pointer;
+            if ((context->FdwInit & initConversion) == 0)
+            {
+                context->FdwConversion = ImeConstants.ImeCmodeNative;
+                context->FdwInit |= initConversion;
+            }
+        }
+        finally
+        {
+            _contextAccessor.UnlockInputContext(inputContext);
+        }
+    }
+
     /// <summary>Checks the target IMM context rather than another session's conversion mode.</summary>
     public bool IsReceivingChinese(HImc inputContext)
     {

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using XiaoXiIme.ImeIpc;
+using XiaoXiIme.ImeHost;
 
 namespace XiaoXiIme.ImeUi.Avalonia;
 
@@ -99,9 +100,18 @@ public sealed partial class App : Application
             ProductValidationBounds.Start(desktop);
             var args = desktop.Args ?? [];
             var openSettings = args.Contains("--settings", StringComparer.Ordinal);
-            var positional = args.Where(arg => arg is not "--settings" and not "--exit").ToArray();
+            var serve = args.Contains("--serve", StringComparer.Ordinal);
+            var positional = args.Where(arg => arg is not "--settings" and not "--exit" and not "--serve").ToArray();
             var options = positional.Length > 0 ? new XiaoXiImeIpcOptions(positional[0]) : XiaoXiImeIpcOptions.Default;
-            var statusFilePath = positional.Length > 1 ? positional[1] : null;
+            var statusFilePath = positional.Length > 1 ? positional[1] : Environment.GetEnvironmentVariable("XIAOXIIME_UI_STATUS");
+            var validationSettingsPath = Environment.GetEnvironmentVariable("XIAOXIIME_VALIDATION_PRODUCT_SETTINGS");
+            var host = serve ? new ImeHostService
+            (
+                options, productSettingsPath: validationSettingsPath,
+                userDictionaryPath: validationSettingsPath is null ? null : validationSettingsPath + ".user"
+            ) : null;
+            host?.Start();
+            desktop.Exit += (_, _) => host?.Dispose();
             var product = new ProductUiController(options);
             desktop.Exit += (_, _) => product.Dispose();
             ProductEntry?.Attach
@@ -124,8 +134,9 @@ public sealed partial class App : Application
             }
 
             var window = new CandidateWindow();
-            var client = new XiaoXiImeIpcClient(options);
-            var presenter = new CandidateWindowPresenter(window, client, statusFilePath);
+            var presenter = host is null
+                ? new CandidateWindowPresenter(window, new XiaoXiImeIpcClient(options), statusFilePath)
+                : new CandidateWindowPresenter(window, host, statusFilePath);
 
             desktop.MainWindow = window;
             desktop.ShutdownMode = global::Avalonia.Controls.ShutdownMode.OnExplicitShutdown;

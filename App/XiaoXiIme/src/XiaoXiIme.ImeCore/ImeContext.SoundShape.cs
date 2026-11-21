@@ -115,6 +115,20 @@ public sealed partial class ImeContext
             (shapeCode.ToLowerInvariant(), maxCount);
     }
 
+    /// <summary>Identifies the current composition and its candidates for pointer selection.</summary>
+    public long CandidateRevision => _revision;
+
+    /// <summary>Selects a displayed candidate only if it still belongs to the displayed composition.</summary>
+    public ImeProcessResult SelectDisplayedCandidate(long revision, int index)
+    {
+        if (revision != _revision || index < _pageStart || index - _pageStart >= _pageSize || index >= _candidates.Count)
+        {
+            return new(Snapshot, null, false);
+        }
+
+        return CommitCandidate(index);
+    }
+
     /// <summary>Selects a current semantic identity and consumes only its confirmed prefix.</summary>
     public ImeProcessResult SelectCandidate(ImeSelectionId selectionId)
     {

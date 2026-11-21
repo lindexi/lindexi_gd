@@ -8,7 +8,8 @@ namespace XiaoXiIme.ImeUi.Avalonia;
 internal sealed class CandidateWindowPresenter : IDisposable
 {
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromMilliseconds(50);
-    private readonly XiaoXiImeIpcClient _client;
+    private readonly XiaoXiImeIpcClient? _client;
+    private readonly XiaoXiIme.ImeHost.ImeHostService? _host;
     private readonly CandidateWindowController _controller = new();
     private readonly CancellationTokenSource _shutdown = new();
     private readonly string? _statusFilePath;
@@ -22,16 +23,80 @@ internal sealed class CandidateWindowPresenter : IDisposable
         _statusFilePath = string.IsNullOrWhiteSpace(statusFilePath) ? null : Path.GetFullPath(statusFilePath);
     }
 
+    public CandidateWindowPresenter(CandidateWindow window, XiaoXiIme.ImeHost.ImeHostService host, string? statusFilePath)
+    {
+        _window = window;
+        _host = host;
+        _statusFilePath = string.IsNullOrWhiteSpace(statusFilePath) ? null : Path.GetFullPath(statusFilePath);
+    }
+
     public void Start()
     {
-        _refreshTask ??= RefreshAsync(_shutdown.Token);
+        if (_host is null)
+        {
+            _refreshTask ??= RefreshAsync(_shutdown.Token);
+            return;
+        }
+
+        _window.CandidatePressed += SelectCandidate;
+        _host.CandidateStateChanged += ScheduleRefresh;
+        ScheduleRefresh();
     }
 
     public void Dispose()
     {
+        if (_host is not null)
+        {
+            _window.CandidatePressed -= SelectCandidate;
+            _host.CandidateStateChanged -= ScheduleRefresh;
+        }
         _shutdown.Cancel();
-        _client.Dispose();
+        _client?.Dispose();
         _shutdown.Dispose();
+    }
+
+    private void SelectCandidate(CandidateWindowViewState state, int index)
+    {
+        var focus = GetFocusRequest();
+        if (state.Anchor is { } anchor && anchor.WindowHandle == focus.FocusWindowHandle && anchor.ProcessId == focus.FocusProcessId)
+        {
+            _host?.SelectDisplayedCandidate(state.SessionId, state.CandidateRevision, index);
+        }
+    }
+
+    private int _refreshScheduled;
+
+    private void ScheduleRefresh()
+    {
+        if (Interlocked.Exchange(ref _refreshScheduled, 1) != 0)
+        {
+            return;
+        }
+
+        Dispatcher.UIThread.Post(async () =>
+        {
+            Interlocked.Exchange(ref _refreshScheduled, 0);
+            if (_shutdown.IsCancellationRequested || _host is not { } host)
+            {
+                return;
+            }
+
+            var state = await host.GetUiStateAsync(GetFocusRequest());
+            ApplyState(_controller.Update(state));
+        });
+    }
+
+    private static ImeUiStateRequest GetFocusRequest()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return new ImeUiStateRequest();
+        }
+
+        var gui = new GuiThreadInfo { Size = (uint)System.Runtime.InteropServices.Marshal.SizeOf<GuiThreadInfo>() };
+        var focus = InputTargetMethods.GetGUIThreadInfo(0, ref gui) ? gui.Focus : 0;
+        InputTargetMethods.GetWindowThreadProcessId(focus, out var process);
+        return new ImeUiStateRequest(FocusWindowHandle: (long)focus, FocusProcessId: process);
     }
 
     private async Task RefreshAsync(CancellationToken cancellationToken)
@@ -40,17 +105,7 @@ internal sealed class CandidateWindowPresenter : IDisposable
         {
             try
             {
-                var request = new ImeUiStateRequest();
-                if (OperatingSystem.IsWindows())
-                {
-                    var gui = new GuiThreadInfo
-                        { Size = (uint)System.Runtime.InteropServices.Marshal.SizeOf<GuiThreadInfo>() };
-                    var focus = InputTargetMethods.GetGUIThreadInfo(0, ref gui) ? gui.Focus : 0;
-                    InputTargetMethods.GetWindowThreadProcessId(focus, out var process);
-                    request = new ImeUiStateRequest(FocusWindowHandle: (long)focus, FocusProcessId: process);
-                }
-
-                var uiState = await _client.GetUiStateAsync(request).ConfigureAwait(false);
+                var uiState = await _client!.GetUiStateAsync(GetFocusRequest()).ConfigureAwait(false);
                 var viewState = _controller.Update(uiState);
                 await Dispatcher.UIThread.InvokeAsync(() => ApplyState(viewState));
             }
@@ -92,12 +147,19 @@ internal sealed class CandidateWindowPresenter : IDisposable
             _window.Show();
         }
 
-        WriteStatus
-        (
-            state.Anchor is { IsValid: false } || (state.Anchor is null && state.AnchorX == 0 && state.AnchorY == 0)
-                ? "visible-fallback-no-valid-anchor"
-                : "visible", state
-        );
+        if (_statusFilePath is not null)
+        {
+            var visibility = state.Anchor is { IsValid: false } || (state.Anchor is null && state.AnchorX == 0 && state.AnchorY == 0)
+                ? "visible-fallback-no-valid-anchor" : "visible";
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_window.IsVisible && ReferenceEquals(_window.DataContext, state))
+                {
+                    _window.UpdateLayout();
+                    WriteStatus(visibility, state);
+                }
+            }, DispatcherPriority.Background);
+        }
     }
 
     private bool PositionWindow(CandidateWindowViewState state)
@@ -207,7 +269,7 @@ internal sealed class CandidateWindowPresenter : IDisposable
             File.WriteAllText
             (
                 temporary,
-                $"{visibility}|{state.CompositionText}|{state.Candidates.Count}|{state.Selection}|{DateTimeOffset.UtcNow:O}|session={state.SessionId}|source={state.Anchor?.Source}|failure={state.Anchor?.Failure}|position={_window.Position}|scaling={_window.RenderScaling}"
+                $"{visibility}|{state.CompositionText}|{state.Candidates.Count}|{state.Selection}|{DateTimeOffset.UtcNow:O}|session={state.SessionId}|source={state.Anchor?.Source}|failure={state.Anchor?.Failure}|position={_window.Position}|scaling={_window.RenderScaling}|firstCandidate={_window.GetFirstCandidateCenter()}"
             );
             File.Move(temporary, _statusFilePath, true);
         }

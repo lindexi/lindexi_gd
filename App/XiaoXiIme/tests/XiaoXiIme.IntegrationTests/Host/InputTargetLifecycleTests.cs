@@ -32,6 +32,31 @@ public class InputTargetLifecycleTests
     );
 
     [Fact]
+    public async Task NextGenerationDiscardsPreviousComposition()
+    {
+        using var host = CreateHost();
+        var session = new ImeSessionId("first");
+        await host.ProcessKeyAsync(new ImeProcessKeyRequest(ImeKey.FromCharacter('n'), session));
+
+        var resumed = await host.ProcessKeyAsync(new ImeProcessKeyRequest(ImeKey.FromCharacter('i'), session, Generation: 1));
+
+        Assert.Equal("i", resumed.Result.Snapshot.Composition.Reading);
+    }
+
+    [Fact]
+    public async Task PreviousGenerationCannotChangeResumedComposition()
+    {
+        using var host = CreateHost();
+        var session = new ImeSessionId("first");
+        await host.ProcessKeyAsync(new ImeProcessKeyRequest(ImeKey.FromCharacter('n'), session, Generation: 1));
+
+        await host.ProcessKeyAsync(new ImeProcessKeyRequest(ImeKey.FromCharacter('i'), session));
+        var snapshot = await host.GetSnapshotAsync(session);
+
+        Assert.Equal("n", snapshot.Composition.Reading);
+    }
+
+    [Fact]
     public async Task ActivationWithoutKeyPublishesAnchor()
     {
         using var host = CreateHost();

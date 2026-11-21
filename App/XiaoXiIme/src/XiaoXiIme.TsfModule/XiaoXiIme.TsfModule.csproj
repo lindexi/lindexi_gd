@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>5.1.2600</SupportedOSPlatformVersion>
+    <CETCompat>false</CETCompat>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
@@ -11,6 +13,11 @@
     <IsAotCompatible>true</IsAotCompatible>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="VC-LTL" Version="5.2.1" />
+    <PackageReference Include="YY-Thunks" Version="1.1.7" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\XiaoXiIme.Foundation\XiaoXiIme.Foundation.csproj" />

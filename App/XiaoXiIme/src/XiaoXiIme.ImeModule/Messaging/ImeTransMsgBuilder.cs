@@ -6,13 +6,24 @@ public static class ImeTransMsgBuilder
 {
     public static TransMsg[] BuildMessages(ImeToAsciiResult result) => BuildMessages(result, wasComposing: false);
 
-    internal static TransMsg[] BuildMessages(ImeToAsciiResult result, bool wasComposing)
+    internal static TransMsg[] BuildMessages
+        (ImeToAsciiResult result, bool wasComposing, bool includeLegacyFlags = true)
     {
         ArgumentNullException.ThrowIfNull(result);
 
         if (!result.Handled)
         {
             return [];
+        }
+
+        if (result.CommitText is { Length: > 0 } commit && result.Snapshot.IsComposing)
+        {
+            return [new TransMsg
+            {
+                Message = ImeConstants.WmImeComposition,
+                WParam = commit[0],
+                LParam = (nint)(ImeConstants.GcsResultStr | ImeConstants.GcsCompStr | ImeConstants.GcsCompReadStr | ImeConstants.GcsCursorPos),
+            }];
         }
 
         if (!string.IsNullOrEmpty(result.CommitText))
@@ -46,9 +57,9 @@ public static class ImeTransMsgBuilder
                     LParam = (nint)(ImeConstants.GcsCompStr
                                     | ImeConstants.GcsCompReadStr
                                     | ImeConstants.GcsCursorPos
-                                    | ImeConstants.GcsCandidateInfo
-                                    | ImeConstants.GcsGuideLine
-                                    | ImeConstants.GcsPrivate),
+                                    | (includeLegacyFlags
+                                        ? ImeConstants.GcsCandidateInfo | ImeConstants.GcsGuideLine | ImeConstants.GcsPrivate
+                                        : 0u)),
                 },
             ];
             return wasComposing ? messages[1..] : messages;

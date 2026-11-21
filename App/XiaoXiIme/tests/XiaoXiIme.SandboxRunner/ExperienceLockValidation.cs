@@ -31,7 +31,7 @@ internal static class ExperienceLockValidation
                     pid = process.Id, cwd = info.WorkingDirectory, arguments = info.ArgumentList.ToArray(),
                     files = new[]
                         {
-                            uiPath, Path.ChangeExtension(uiPath, ".dll"),
+                            uiPath, DebugFuzzyValidation.GetUiAssembly(uiPath),
                             typeof(ExperienceLockValidation).Assembly.Location
                         }.Select
                         (file => new

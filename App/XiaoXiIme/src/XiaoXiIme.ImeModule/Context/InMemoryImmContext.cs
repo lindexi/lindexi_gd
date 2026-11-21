@@ -56,6 +56,8 @@ internal sealed unsafe class InMemoryImmContext : IImmContextAccessor, IDisposab
 
         var context = (InputContext*)_inputContext;
         _handle = handle;
+        context->FOpen = 1;
+        context->FdwConversion = ImeConstants.ImeCmodeNative;
         context->HCompStr = handle + (CompositionHandle - DefaultHandle);
         context->HCandInfo = handle + (CandidateHandle - DefaultHandle);
         context->HGuideLine = handle + (GuideLineHandle - DefaultHandle);

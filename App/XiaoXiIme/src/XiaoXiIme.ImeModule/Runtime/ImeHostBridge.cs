@@ -1,6 +1,4 @@
-using XiaoXiIme.Dictionary;
 using XiaoXiIme.Foundation;
-using XiaoXiIme.ImeCore;
 using XiaoXiIme.ImeIpc;
 
 namespace XiaoXiIme.ImeModule;
@@ -8,22 +6,17 @@ namespace XiaoXiIme.ImeModule;
 public sealed class ImeHostBridge : IDisposable
 {
     private readonly IImeHostBridgeClient _client;
-    private readonly Dictionary<ImeSessionId, ImeContext> _fallbackContexts = [];
-    private readonly object _syncRoot = new();
-    private readonly Func<ImeContext> _createFallbackContext;
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<ImeSessionId, long> _generations = new();
     private string? _lastError;
 
     public ImeHostBridge(XiaoXiImeIpcOptions? options = null)
-        : this(new IpcImeHostBridgeClient(options), CreateFallbackContext())
+        : this(new IpcImeHostBridgeClient(options))
     {
     }
 
-    internal ImeHostBridge(IImeHostBridgeClient client, ImeContext? fallbackContext = null)
+    internal ImeHostBridge(IImeHostBridgeClient client)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
-        _createFallbackContext = fallbackContext is null
-            ? CreateFallbackContext
-            : CreateSingleFallbackFactory(fallbackContext);
     }
 
     public string? LastError => _lastError;
@@ -88,16 +81,18 @@ public sealed class ImeHostBridge : IDisposable
     public ImeProcessResult ProcessKey(ImeKey key, ImeSessionId sessionId, ImeCandidateAnchor? anchor)
     {
         sessionId = sessionId.Effective;
+        var request = new ImeProcessKeyRequest(key, sessionId, _generations.GetValueOrDefault(sessionId), Anchor: anchor);
         try
         {
-            var result = _client.ProcessKeyAsync(key, sessionId, anchor).ConfigureAwait(false).GetAwaiter().GetResult();
+            var result = _client.ProcessKeyAsync(request).ConfigureAwait(false).GetAwaiter().GetResult();
             _lastError = null;
             return result;
         }
         catch (ImeHostUnavailableException exception)
         {
             _lastError = exception.Message;
-            return GetFallbackContext(sessionId).ProcessKey(key);
+            _generations.AddOrUpdate(sessionId, 1, static (_, generation) => generation + 1);
+            return new ImeProcessResult(ImeSessionSnapshot.Empty, null, false);
         }
     }
 
@@ -114,7 +109,7 @@ public sealed class ImeHostBridge : IDisposable
         catch (ImeHostUnavailableException exception)
         {
             _lastError = exception.Message;
-            return GetFallbackContext(sessionId.Effective).Snapshot;
+            return ImeSessionSnapshot.Empty;
         }
     }
 
@@ -133,8 +128,8 @@ public sealed class ImeHostBridge : IDisposable
             _lastError = exception.Message;
             return ImeUiState.FromSnapshot
             (
-                GetFallbackContext(sessionId.Effective).Snapshot,
-                $"Host unavailable; using the minimal fallback dictionary: {exception.Message}",
+                ImeSessionSnapshot.Empty,
+                $"Host unavailable: {exception.Message}",
                 isHostUnavailable: true,
                 isUsingFallbackDictionary: false
             );
@@ -154,13 +149,11 @@ public sealed class ImeHostBridge : IDisposable
         {
             var response = _client.ResetSessionAsync(request).ConfigureAwait(false).GetAwaiter().GetResult();
             _lastError = null;
-            ResetFallback(request);
             return response;
         }
         catch (ImeHostUnavailableException exception)
         {
             _lastError = exception.Message;
-            ResetFallback(request);
             return new ImeResetSessionResponse
             (
                 request.ResetAll ? ImeSessionId.Unspecified : request.SessionId.Effective,
@@ -187,9 +180,7 @@ public sealed class ImeHostBridge : IDisposable
         catch (ImeHostUnavailableException exception)
         {
             _lastError = exception.Message;
-            var result = GetFallbackContext(request.EffectiveSessionId).SetComposition
-                (request.Composition ?? string.Empty);
-            return new ImeSetCompositionResponse(result, request.EffectiveSessionId);
+            return new ImeSetCompositionResponse(new ImeProcessResult(ImeSessionSnapshot.Empty, null, false), request.EffectiveSessionId);
         }
     }
 
@@ -217,13 +208,7 @@ public sealed class ImeHostBridge : IDisposable
         catch (ImeHostUnavailableException exception)
         {
             _lastError = exception.Message;
-            var context = GetFallbackContext(request.EffectiveSessionId);
-            var source = request.Source ?? string.Empty;
-            var candidates = (request.Kind == ImeConversionListKind.ReverseConversion
-                    ? context.QueryReverseConversionList(source, request.MaxCount)
-                    : context.QueryConversionList(source, request.MaxCount))
-                .ToArray();
-            return new ImeConversionListResponse(candidates, request.EffectiveSessionId);
+            return new ImeConversionListResponse([], request.EffectiveSessionId);
         }
     }
 
@@ -239,22 +224,7 @@ public sealed class ImeHostBridge : IDisposable
         catch (ImeHostUnavailableException exception)
         {
             _lastError = exception.Message;
-            var context = GetFallbackContext(request.EffectiveSessionId);
-            var succeeded = request.Action switch
-            {
-                ImeRegisterWordAction.Register => context.RegisterWord
-                    (request.Reading ?? string.Empty, request.Text ?? string.Empty),
-                ImeRegisterWordAction.Unregister => context.UnregisterWord
-                    (request.Reading ?? string.Empty, request.Text ?? string.Empty),
-                ImeRegisterWordAction.Enumerate => true,
-                _ => false,
-            };
-            var entries = request.Action == ImeRegisterWordAction.Enumerate
-                ? context.EnumerateRegisterWords(request.Reading, request.Text)
-                    .Select(entry => new ImeRegisterWordEntry(entry.Reading, entry.Text))
-                    .ToArray()
-                : [];
-            return new ImeRegisterWordResponse(succeeded, entries, request.EffectiveSessionId);
+            return new ImeRegisterWordResponse(false, [], request.EffectiveSessionId);
         }
     }
 
@@ -270,8 +240,8 @@ public sealed class ImeHostBridge : IDisposable
 
         Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId);
 
-        Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId, ImeCandidateAnchor? anchor) =>
-            ProcessKeyAsync(key, sessionId);
+        Task<ImeProcessResult> ProcessKeyAsync(ImeProcessKeyRequest request) =>
+            ProcessKeyAsync(request.Key, request.EffectiveSessionId);
 
         Task<ImeSessionSnapshot> GetSnapshotAsync(ImeSessionId sessionId);
 
@@ -294,54 +264,6 @@ public sealed class ImeHostBridge : IDisposable
         }
     }
 
-    private ImeContext GetFallbackContext(ImeSessionId sessionId)
-    {
-        lock (_syncRoot)
-        {
-            if (!_fallbackContexts.TryGetValue(sessionId, out var context))
-            {
-                context = _createFallbackContext();
-                _fallbackContexts.Add(sessionId, context);
-            }
-
-            return context;
-        }
-    }
-
-    private void ResetFallback(ImeResetSessionRequest request)
-    {
-        lock (_syncRoot)
-        {
-            if (request.ResetAll)
-            {
-                _fallbackContexts.Clear();
-                return;
-            }
-
-            _fallbackContexts.Remove(request.SessionId.Effective);
-        }
-    }
-
-    private static ImeContext CreateFallbackContext()
-    {
-        return new ImeContext(new UserDictionary(InMemoryImeDictionary.CreateMinimalFallback()));
-    }
-
-    private static Func<ImeContext> CreateSingleFallbackFactory(ImeContext fallbackContext)
-    {
-        var used = false;
-        return () =>
-        {
-            if (used)
-            {
-                return CreateFallbackContext();
-            }
-
-            used = true;
-            return fallbackContext;
-        };
-    }
-
     private sealed class IpcImeHostBridgeClient : IImeHostBridgeClient
     {
         private readonly XiaoXiImeIpcClient _client;
@@ -359,15 +281,9 @@ public sealed class ImeHostBridge : IDisposable
             return InvokeAsync(() => _client.ProcessKeyAsync(key, sessionId));
         }
 
-        public async Task<ImeProcessResult> ProcessKeyAsync
-            (ImeKey key, ImeSessionId sessionId, ImeCandidateAnchor? anchor)
+        public async Task<ImeProcessResult> ProcessKeyAsync(ImeProcessKeyRequest request)
         {
-            var response = await InvokeAsync
-            (() => _client.ProcessKeyRequestAsync
-                (
-                    new ImeProcessKeyRequest(key, sessionId, Anchor: anchor)
-                )
-            ).ConfigureAwait(false);
+            var response = await InvokeAsync(() => _client.ProcessKeyRequestAsync(request)).ConfigureAwait(false);
             return response.Result;
         }
 

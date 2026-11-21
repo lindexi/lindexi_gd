@@ -130,6 +130,22 @@ public sealed class XiaoXiImeIpcServer : IDisposable
         );
     }
 
+    /// <summary>Registers the input event route before starting the service.</summary>
+    public void RegisterInputEvents(Action<ImeInputEvent> receive) =>
+        _provider.AddRequestHandler<ImeInputEvent, ImeDeliveryReceipt>(XiaoXiImeIpcRoutes.InputEvent, input =>
+        {
+            receive(input);
+            return Task.FromResult(ImeDeliveryReceipt.Accepted);
+        });
+
+    /// <summary>Delivers the result to the module that owns the input context.</summary>
+    public async Task ApplyInputResultAsync(string replyPipe, ImeProcessKeyResponse result, CancellationToken cancellationToken)
+    {
+        var proxy = await _provider.GetAndConnectClientAsync(replyPipe).WaitAsync(cancellationToken).ConfigureAwait(false);
+        await proxy.GetResponseAsync<ImeDeliveryReceipt>(XiaoXiImeIpcRoutes.ApplyInputResult, result)
+            .WaitAsync(cancellationToken).ConfigureAwait(false);
+    }
+
     public void Start()
     {
         if (_started)

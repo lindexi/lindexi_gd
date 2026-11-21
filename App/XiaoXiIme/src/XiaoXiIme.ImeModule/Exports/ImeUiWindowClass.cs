@@ -6,6 +6,13 @@ namespace XiaoXiIme.ImeModule;
 
 internal static unsafe class ImeUiWindowClass
 {
+    internal const uint ApplyInputMessage = 0x8001;
+
+    internal static nint CreateDispatchWindow() => EnsureRegistered()
+        ? CreateWindowEx(0, ImeExportsContract.ImeUiClassName, null, 0, 0, 0, 0, 0, new nint(-3), 0, s_module, 0)
+        : 0;
+
+    private static nint s_module;
     private const uint ClassIme = 0x00010000;
     private const uint ClassVerticalRedraw = 0x00000001;
     private const uint ClassHorizontalRedraw = 0x00000002;
@@ -16,6 +23,19 @@ internal static unsafe class ImeUiWindowClass
     [UnmanagedCallersOnly(EntryPoint = "UIWindowProcedure", CallConvs = [typeof(CallConvStdcall)])]
     private static nint UIWindowProcedure(nint window, uint message, nuint wParam, nint lParam)
     {
+        if (message == ApplyInputMessage)
+        {
+            try
+            {
+                AsyncImmInput.ApplyPending(window);
+            }
+            catch (InvalidOperationException error)
+            {
+                System.Diagnostics.Trace.TraceError($"[AsyncImmInput][Apply] Window={window}; Error={error}");
+            }
+            return 0;
+        }
+
         // IMM also delivers activation through the IME UI window; an initial selection
         // need not call the ImeSetActiveContext export with active=1.
         if (message == 0x0281)
@@ -43,6 +63,7 @@ internal static unsafe class ImeUiWindowClass
             return false;
         }
 
+        s_module = module;
         fixed (char* className = ImeExportsContract.ImeUiClassName)
         {
             var windowClass = new WindowClassEx
@@ -85,6 +106,10 @@ internal static unsafe class ImeUiWindowClass
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
     private static extern nint GetWindowLongPtr(nint window, int index);
+
+    [DllImport("user32.dll", EntryPoint = "CreateWindowExW", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern nint CreateWindowEx(uint exStyle, string className, string? title, uint style, int x, int y,
+        int width, int height, nint parent, nint menu, nint instance, nint parameter);
 
     [DllImport("user32.dll", EntryPoint = "DefWindowProcW")]
     private static extern nint DefWindowProc(nint window, uint message, nuint wParam, nint lParam);

@@ -63,7 +63,8 @@ public static class CandidateWindowStateMapper
             uiState.EffectiveAbout.Notice,
             uiState.DiagnosticText ?? string.Empty,
             uiState.Anchor,
-            uiState.SessionId
+            uiState.SessionId,
+            uiState.CandidateRevision
         );
     }
 

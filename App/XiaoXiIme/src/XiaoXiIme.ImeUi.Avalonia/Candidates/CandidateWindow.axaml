@@ -50,7 +50,8 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="local:CandidateWindowCandidateViewModel">
-                        <Border Padding="10,5"
+                        <Border PointerPressed="OnCandidatePressed"
+                                Padding="10,5"
                                 CornerRadius="5"
                                 Background="{Binding Background}">
                             <StackPanel Orientation="Horizontal"

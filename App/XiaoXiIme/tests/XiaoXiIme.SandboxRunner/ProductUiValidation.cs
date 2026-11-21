@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using XiaoXiIme.Foundation;
-using XiaoXiIme.ImeHost;
 using XiaoXiIme.ImeIpc;
 
 namespace XiaoXiIme.SandboxRunner;
@@ -20,17 +19,19 @@ internal static class ProductUiValidation
         var results = new List<object>();
         var settingsPath = Path.Combine(Path.GetFullPath(outputDirectory), "product-settings.json");
         var options = new XiaoXiImeIpcOptions("ProductUiSandbox_" + Guid.NewGuid().ToString("N"));
-        var host = new ImeHostService
-        (
-            options, hostBaseDirectory: Path.GetFullPath(packageRoot), productSettingsPath: settingsPath,
-            userDictionaryPath: settingsPath + ".user"
-        );
-        host.Start();
         using var client = new XiaoXiImeIpcClient(options);
-        var info = new ProcessStartInfo(Path.GetFullPath(uiPath)) { UseShellExecute = false };
         var boundsPath = Path.Combine(Path.GetFullPath(outputDirectory), "control-bounds.json");
-        info.Environment["XIAOXIIME_VALIDATION_BOUNDS"] = boundsPath;
-        info.ArgumentList.Add(options.ServerName);
+        var info = CreateUiStartInfo();
+
+        ProcessStartInfo CreateUiStartInfo()
+        {
+            var startInfo = new ProcessStartInfo(Path.GetFullPath(uiPath)) { UseShellExecute = false };
+            startInfo.Environment["XIAOXIIME_VALIDATION_BOUNDS"] = boundsPath;
+            startInfo.Environment["XIAOXIIME_VALIDATION_PRODUCT_SETTINGS"] = settingsPath;
+            startInfo.ArgumentList.Add("ui");
+            startInfo.ArgumentList.Add(options.ServerName);
+            return startInfo;
+        }
         var publishHashes = new List<string>();
         foreach (var file in Directory.EnumerateFiles
                      (AppContext.BaseDirectory, "*", SearchOption.TopDirectoryOnly).Order(StringComparer.Ordinal))
@@ -46,7 +47,7 @@ internal static class ProductUiValidation
         var targetPath = Path.Combine
             (Path.GetFullPath(outputDirectory), "edit-target-" + Guid.NewGuid().ToString("N") + ".json");
         var targetInfo = new ProcessStartInfo
-            (Path.Combine(AppContext.BaseDirectory, "XiaoXiIme.IntegrationTestHost.exe")) { UseShellExecute = false };
+            (Path.Combine(packageRoot, "Tests", "XiaoXiIme.IntegrationTestHost.exe")) { UseShellExecute = false };
         targetInfo.ArgumentList.Add("--product-ui-target");
         targetInfo.ArgumentList.Add(targetPath);
         using var target = Process.Start(targetInfo) ?? throw new InvalidOperationException("EDIT host did not start.");
@@ -167,8 +168,7 @@ internal static class ProductUiValidation
                 await Task.Delay(1500);
                 results.Add
                     (new { check = "hidden-bar", passed = !ui.HasExited && IsWindow(bar) && !IsWindowVisible(bar) });
-                var recovery = new ProcessStartInfo(Path.GetFullPath(uiPath)) { UseShellExecute = false };
-                recovery.ArgumentList.Add(options.ServerName);
+                var recovery = CreateUiStartInfo();
                 using var entry = Process.Start
                     (recovery) ?? throw new InvalidOperationException("Recovery entry did not start.");
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -244,8 +244,7 @@ internal static class ProductUiValidation
         {
             if (!ui.HasExited)
             {
-                var exitInfo = new ProcessStartInfo(Path.GetFullPath(uiPath)) { UseShellExecute = false };
-                exitInfo.ArgumentList.Add(options.ServerName);
+                var exitInfo = CreateUiStartInfo();
                 exitInfo.ArgumentList.Add("--exit");
                 using var exit = Process.Start
                     (exitInfo) ?? throw new InvalidOperationException("Exit entry did not start.");
@@ -262,8 +261,7 @@ internal static class ProductUiValidation
                 );
             }
 
-            var reopenInfo = new ProcessStartInfo(Path.GetFullPath(uiPath)) { UseShellExecute = false };
-            reopenInfo.ArgumentList.Add(options.ServerName);
+            var reopenInfo = CreateUiStartInfo();
             using (var reopened = Process.Start
                        (reopenInfo) ?? throw new InvalidOperationException("Reopen did not start."))
             {
@@ -288,7 +286,6 @@ internal static class ProductUiValidation
             }
 
             results.Add(new { check = "native-target-normal-exit", passed = target.ExitCode == 0 });
-            host.Dispose();
             await File.WriteAllTextAsync
             (
                 Path.Combine(outputDirectory, "product-ui-report.json"), JsonSerializer.Serialize

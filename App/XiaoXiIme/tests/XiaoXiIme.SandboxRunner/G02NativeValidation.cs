@@ -9,12 +9,9 @@ namespace XiaoXiIme.SandboxRunner;
 
 internal static class G02NativeValidation
 {
-    internal static async Task<int> RunAsync()
+    internal static async Task<int> RunAsync(string distribution, string evidence)
     {
-        var root = Directory.Exists(Path.Combine(AppContext.BaseDirectory, "publish"))
-            ? AppContext.BaseDirectory
-            : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", ".."));
-        var evidence = Path.Combine(root, "evidence");
+        var root = distribution;
         Directory.CreateDirectory(evidence);
         var records = new List<object>();
         records.Add(new { kind = "batch", root, utc = DateTimeOffset.UtcNow });
@@ -30,7 +27,6 @@ internal static class G02NativeValidation
         }
 
         nint layout = 0;
-        Process? host = null;
         Process? ui = null;
         var installed = Path.Combine(Environment.SystemDirectory, "XiaoXiIme.ime");
         Environment.SetEnvironmentVariable("XIAOXIIME_VALIDATION_IME_FILE", Path.GetFileName(installed));
@@ -46,15 +42,9 @@ internal static class G02NativeValidation
             Environment.SetEnvironmentVariable("XIAOXIIME_VERIFY_ANCHOR", "1");
             Environment.SetEnvironmentVariable
                 ("XIAOXIIME_UI_STATUS", Path.Combine(evidence, "candidate-ui-status.txt"));
-            var publish = Path.Combine(root, "publish");
-            var source = Path.Combine(publish, "native", "win-x64", "XiaoXiIme.ime");
-            var packageSource = Path.Combine(AppContext.BaseDirectory, "packages");
-            foreach (var component in new[] { "host", "ui" })
-            {
-                CopyDirectory(packageSource, Path.Combine(publish, "app", component));
-            }
-
-            var nativeDll = Path.Combine(publish, "native", "win-x64", "XiaoXiIme.ImeModule.dll");
+            var publish = distribution;
+            var source = Path.Combine(publish, "native", "ime", "win-x64", "XiaoXiIme.ime");
+            var nativeDll = Path.Combine(publish, "native", "ime", "win-x64", "XiaoXiIme.ImeModule.dll");
             if (Hash(nativeDll) != Hash(source))
             {
                 throw new InvalidOperationException("Published native DLL and IME hashes differ.");
@@ -159,7 +149,7 @@ internal static class G02NativeValidation
                 throw new Win32Exception(Marshal.GetLastPInvokeError(), "ImmInstallIMEW returned zero.");
             }
 
-            host = Start(Path.Combine(publish, "app", "host", "XiaoXiIme.ImeHost.exe"), "host");
+            ui = Start(Path.Combine(publish, "XiaoXiIme.exe"), "ui", "ui");
             using (var readiness = new XiaoXiIme.ImeIpc.XiaoXiImeIpcClient
                    (
                        new
@@ -174,17 +164,11 @@ internal static class G02NativeValidation
                 await SaveAsync();
             }
 
-            ui = Start
-            (
-                Path.Combine(publish, "app", "ui", "XiaoXiIme.ImeUi.Avalonia.exe"), "ui",
-                "XiaoXiIme_ImeHost", Path.Combine(evidence, "candidate-ui-status.txt")
-            );
-            await Task.Delay(2000);
             result = 0;
             for (var iteration = 1; iteration <= 3; iteration++)
             {
                 using var target = Start
-                    (Path.Combine(publish, "app", "tests", "XiaoXiIme.IntegrationTestHost.exe"), $"target-{iteration}");
+                    (Path.Combine(publish, "Tests", "XiaoXiIme.IntegrationTestHost.exe"), $"target-{iteration}");
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(150));
                 try
                 {
@@ -212,20 +196,15 @@ internal static class G02NativeValidation
         }
         finally
         {
-            foreach (var process in new[] { ui, host })
+            if (ui is not null)
             {
-                if (process is null)
+                if (!ui.HasExited)
                 {
-                    continue;
+                    ui.Kill(true);
+                    await ui.WaitForExitAsync();
                 }
 
-                if (!process.HasExited)
-                {
-                    process.Kill(true);
-                    await process.WaitForExitAsync();
-                }
-
-                process.Dispose();
+                ui.Dispose();
             }
 
             if (layout != 0 && OperatingSystem.IsWindows())
@@ -308,7 +287,9 @@ internal static class G02NativeValidation
                 new
                 {
                     kind = "process", name, path, pid = process.Id, arguments, sha256 = Hash(path),
-                    dllSha256 = Hash(Path.ChangeExtension(path, ".dll"))
+                    dllSha256 = Hash(name == "ui"
+                        ? Path.Combine(distribution, "Lib", "ImeUI", "XiaoXiIme.ImeUi.Avalonia.dll")
+                        : Path.ChangeExtension(path, ".dll"))
                 }
             );
             return process;
@@ -316,20 +297,6 @@ internal static class G02NativeValidation
     }
 
     private static string Hash(string path) => Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)));
-
-    private static void CopyDirectory(string source, string target)
-    {
-        Directory.CreateDirectory(target);
-        foreach (var file in Directory.EnumerateFiles(source))
-        {
-            File.Copy(file, Path.Combine(target, Path.GetFileName(file)), true);
-        }
-
-        foreach (var directory in Directory.EnumerateDirectories(source))
-        {
-            CopyDirectory(directory, Path.Combine(target, Path.GetFileName(directory)));
-        }
-    }
 
     [DllImport("imm32.dll", EntryPoint = "ImmInstallIMEW", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern nint ImmInstallIME(string file, string name);

@@ -15,12 +15,18 @@ public sealed class ImeHostService : IDisposable
     private readonly string? _dictionaryLoadError;
     private readonly string? _dictionaryPackagePath;
     private readonly Dictionary<ImeSessionId, ImeContext> _imeContexts = [];
+    private readonly Dictionary<ImeSessionId, long> _keyGenerations = [];
     private readonly Dictionary<ImeSessionId, ImeCandidateAnchor> _anchors = [];
     private readonly Dictionary<string, long> _targetSequences = [];
     private readonly Dictionary<(string Owner, string Context), ImeSessionId> _targetIdentities = [];
     private readonly Dictionary<(uint Process, long Window), ImeSessionId> _activeTargets = [];
     private readonly HashSet<ImeSessionId> _retiredTargets = [];
     private readonly XiaoXiImeIpcServer _ipcServer;
+    private readonly System.Threading.Channels.Channel<Func<CancellationToken, Task>> _input =
+        System.Threading.Channels.Channel.CreateUnbounded<Func<CancellationToken, Task>>(new() { SingleReader = true });
+    private readonly Dictionary<ImeSessionId, (string Pipe, long Generation)> _replyPipes = []; 
+    private readonly CancellationTokenSource _inputShutdown = new();
+    private Task? _inputWorker;
     private readonly bool _isUsingFallbackDictionary;
     private readonly string? _isolatedUserDictionaryPath;
     private readonly string? _userDictionaryLoadError;
@@ -215,10 +221,18 @@ public sealed class ImeHostService : IDisposable
     private static ImeFuzzyRule[] GetRules
         (int mask) => Enum.GetValues<ImeFuzzyRule>().Where(r => (mask & (1 << (int)r)) != 0).ToArray();
 
+    /// <summary>Signals that candidate state should be read again by an in-process observer.</summary>
+    public event Action? CandidateStateChanged;
+
     public void Start()
     {
         try
         {
+            if (_inputWorker is null)
+            {
+                _ipcServer.RegisterInputEvents(input => _input.Writer.TryWrite(token => ProcessInputEventAsync(input, token)));
+                _inputWorker = Task.Run(() => DeliverInputAsync(_inputShutdown.Token));
+            }
             _ipcServer.Start();
             lock (_syncRoot)
             {
@@ -235,6 +249,90 @@ public sealed class ImeHostService : IDisposable
             }
 
             throw;
+        }
+    }
+
+    private async Task DeliverInputAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await foreach (var apply in _input.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+            {
+                await apply(cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Service shutdown ends the input stream.
+        }
+    }
+
+    private async Task ProcessInputEventAsync(ImeInputEvent input, CancellationToken token)
+    {
+        var request = input.Request;
+        lock (_syncRoot)
+        {
+            if (_retiredTargets.Contains(request.SessionId) || request.Generation < _keyGenerations.GetValueOrDefault(request.SessionId))
+            {
+                return;
+            }
+            _replyPipes[request.SessionId] = (input.ReplyPipe, request.Generation);
+        }
+
+        if (request.Key.Kind == ImeKeyKind.Space &&
+            Environment.GetEnvironmentVariable("XIAOXIIME_LIFECYCLE_LOG") is { Length: > 0 } diagnosticPath)
+        {
+            var delayRequest = diagnosticPath + ".delay-request";
+            if (File.Exists(delayRequest))
+            {
+                File.Move(delayRequest, diagnosticPath + ".delay-started", overwrite: true);
+                await Task.Delay(TimeSpan.FromMilliseconds(1500), token).ConfigureAwait(false);
+            }
+        }
+
+        var result = await ProcessKeyAsync(request).ConfigureAwait(false);
+        await SendResultAsync(input.ReplyPipe, result, token).ConfigureAwait(false);
+    }
+
+    /// <summary>Queues selection from the exact candidate page displayed by the product UI.</summary>
+    public void SelectDisplayedCandidate(ImeSessionId id, long revision, int index)
+    {
+        _input.Writer.TryWrite(token => SelectDisplayedCandidateAsync(id, revision, index, token));
+    }
+
+    private async Task SelectDisplayedCandidateAsync(ImeSessionId id, long revision, int index, CancellationToken token)
+    {
+        (string Pipe, long Generation) destination;
+        ImeProcessResult result;
+        lock (_syncRoot)
+        {
+            if (!_replyPipes.TryGetValue(id, out destination) ||
+                !_imeContexts.TryGetValue(id, out var context) || !_activeTargets.ContainsValue(id))
+            {
+                return;
+            }
+            result = context.SelectDisplayedCandidate(revision, index);
+            if (!result.Handled)
+            {
+                return;
+            }
+            CandidateStateChanged?.Invoke();
+        }
+        await SendResultAsync(destination.Pipe, new(result, id, destination.Generation), token).ConfigureAwait(false);
+    }
+
+    private async Task SendResultAsync(string pipe, ImeProcessKeyResponse result, CancellationToken token)
+    {
+        try
+        {
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
+            deadline.CancelAfter(XiaoXiImeIpcOptions.DefaultRequestTimeout);
+            await _ipcServer.ApplyInputResultAsync(pipe, result, deadline.Token).ConfigureAwait(false);
+        }
+        catch (Exception error) when (error is IOException or InvalidOperationException or OperationCanceledException)
+        {
+            await ResetSessionAsync(result.SessionId).ConfigureAwait(false);
+            System.Diagnostics.Trace.TraceError($"[ImeHost][SendResult] SessionId={result.SessionId}; Error={error}");
         }
     }
 
@@ -260,6 +358,8 @@ public sealed class ImeHostService : IDisposable
             if (_targetIdentities.TryGetValue(key, out var old) && old != request.SessionId)
             {
                 _retiredTargets.Add(old);
+                _keyGenerations.Remove(old);
+                _replyPipes.Remove(old);
                 _imeContexts.Remove(old);
                 _anchors.Remove(old);
                 foreach (var target in _activeTargets.Where(pair => pair.Value == old).Select
@@ -292,6 +392,7 @@ public sealed class ImeHostService : IDisposable
                 }
             }
 
+            CandidateStateChanged?.Invoke();
             return Task.FromResult(new ImeInputTargetUpdateResponse(true));
         }
     }
@@ -301,7 +402,8 @@ public sealed class ImeHostService : IDisposable
         lock (_syncRoot)
         {
             var sessionId = request.EffectiveSessionId;
-            if (_retiredTargets.Contains(sessionId))
+            var generation = _keyGenerations.GetValueOrDefault(sessionId);
+            if (_retiredTargets.Contains(sessionId) || request.Generation < generation)
             {
                 return Task.FromResult
                 (
@@ -311,6 +413,15 @@ public sealed class ImeHostService : IDisposable
                         sessionId, request.Generation, request.SequenceNumber
                     )
                 );
+            }
+
+            if (request.Generation > generation)
+            {
+                _keyGenerations[sessionId] = request.Generation;
+                if (request.ResumeGeneration == 0 || request.ResumeGeneration != generation)
+                {
+                    _imeContexts.Remove(sessionId);
+                }
             }
 
             if (!_imeContexts.TryGetValue(sessionId, out var imeContext))
@@ -361,6 +472,7 @@ public sealed class ImeHostService : IDisposable
                 _lastActiveSessionId = sessionId;
             }
 
+            CandidateStateChanged?.Invoke();
             return Task.FromResult
             (
                 new ImeProcessKeyResponse
@@ -441,6 +553,7 @@ public sealed class ImeHostService : IDisposable
                     ) with
                     {
                         SessionId = sessionId,
+                        CandidateRevision = GetOrCreateContext(sessionId).CandidateRevision,
                         Anchor = anchor,
                         AnchorX = anchor?.ScreenX ?? 0,
                         AnchorY = anchor?.ScreenY ?? 0,
@@ -463,13 +576,16 @@ public sealed class ImeHostService : IDisposable
             if (request.ResetAll)
             {
                 _imeContexts.Clear();
+                _replyPipes.Clear();
                 _anchors.Clear();
                 _activeTargets.Clear();
                 _lastActiveSessionId = ImeSessionId.Default;
+                CandidateStateChanged?.Invoke();
                 return Task.FromResult(new ImeResetSessionResponse(ImeSessionId.Unspecified, true));
             }
 
             var sessionId = ResolveSessionId(request.SessionId);
+            _replyPipes.Remove(sessionId);
             _anchors.Remove(sessionId);
             foreach (var target in _activeTargets.Where(pair => pair.Value == sessionId).Select
                          (pair => pair.Key).ToArray())
@@ -483,6 +599,7 @@ public sealed class ImeHostService : IDisposable
                 _lastActiveSessionId = ImeSessionId.Default;
             }
 
+            CandidateStateChanged?.Invoke();
             return Task.FromResult
                 (new ImeResetSessionResponse(sessionId, removed || !_imeContexts.ContainsKey(sessionId)));
         }
@@ -512,6 +629,7 @@ public sealed class ImeHostService : IDisposable
 
             var result = GetOrCreateContext(sessionId).SetComposition(request.Composition ?? string.Empty);
             _lastActiveSessionId = sessionId;
+            CandidateStateChanged?.Invoke();
             return Task.FromResult(new ImeSetCompositionResponse(result, sessionId));
         }
     }
@@ -637,6 +755,10 @@ public sealed class ImeHostService : IDisposable
             _started = false;
         }
 
+        _input.Writer.TryComplete();
+        _inputShutdown.Cancel();
+        _inputWorker?.GetAwaiter().GetResult();
+        _inputShutdown.Dispose();
         _userDictionarySaveCoordinator?.Dispose();
         _ipcServer.Dispose();
         _productSettings?.Dispose();

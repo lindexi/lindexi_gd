@@ -61,6 +61,25 @@ public sealed class XiaoXiImeIpcClient : IDisposable
                ?? throw new InvalidOperationException();
     }
 
+    /// <summary>Registers the receiving route before opening the module's IPC endpoint.</summary>
+    public XiaoXiImeIpcClient(string replyPipe, Action<ImeProcessKeyResponse> apply, XiaoXiImeIpcOptions? options = null)
+        : this(XiaoXiImeIpcProviderFactory.CreateServerProvider(new XiaoXiImeIpcOptions(replyPipe)), options)
+    {
+        _provider.AddRequestHandler<ImeProcessKeyResponse, ImeDeliveryReceipt>(XiaoXiImeIpcRoutes.ApplyInputResult, result =>
+        {
+            apply(result);
+            return Task.FromResult(ImeDeliveryReceipt.Accepted);
+        });
+    }
+
+    /// <summary>Sends input without waiting for the conversion result.</summary>
+    public async Task SendInputAsync(ImeInputEvent input)
+    {
+        var proxy = await GetClientProxyAsync().ConfigureAwait(false);
+        await WithTimeout(proxy.GetResponseAsync<ImeDeliveryReceipt>(XiaoXiImeIpcRoutes.InputEvent, input),
+            _options.EffectiveRequestTimeout).ConfigureAwait(false);
+    }
+
     public async Task ConnectAsync()
     {
         if (_clientProxy is not null)
@@ -143,12 +162,11 @@ public sealed class XiaoXiImeIpcClient : IDisposable
     public async Task<ImeProcessKeyResponse> ProcessKeyRequestAsync(ImeProcessKeyRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var response = await SendWithRetryAsync
-        (proxy => proxy.GetResponseAsync<ImeProcessKeyResponse>
-            (
-                XiaoXiImeIpcRoutes.ProcessKey,
-                request
-            )
+        var proxy = await GetClientProxyAsync().ConfigureAwait(false);
+        var response = await WithTimeout
+        (
+            proxy.GetResponseAsync<ImeProcessKeyResponse>(XiaoXiImeIpcRoutes.ProcessKey, request),
+            _options.EffectiveRequestTimeout
         ).ConfigureAwait(false);
 
         return response ?? throw new InvalidOperationException

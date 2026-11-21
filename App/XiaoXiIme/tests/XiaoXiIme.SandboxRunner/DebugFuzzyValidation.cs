@@ -8,6 +8,9 @@ namespace XiaoXiIme.SandboxRunner;
 
 internal static class DebugFuzzyValidation
 {
+    internal static string GetUiAssembly(string launcher) => Path.Combine
+        (Path.GetDirectoryName(Path.GetFullPath(launcher))!, "Lib", "ImeUI", "XiaoXiIme.ImeUi.Avalonia.dll");
+
     internal static async Task<int> RunAsync
     (
         string uiPath, string outputDirectory, bool minimal = false, bool sixSchemes = false, bool experience = false,
@@ -27,7 +30,7 @@ internal static class DebugFuzzyValidation
             )
             : Path.Combine(outputDirectory, "settings.json");
         var package = experience
-            ? Path.GetDirectoryName(uiPath)!
+            ? Path.Combine(Path.GetDirectoryName(Path.GetFullPath(uiPath))!, "Dictionaries")
             : Path.Combine(AppContext.BaseDirectory, "XiaoXiIme.DictionaryPackage");
         var results = new List<object>();
         var identities = new List<object>();
@@ -55,20 +58,6 @@ internal static class DebugFuzzyValidation
         };
         if (sixSchemes)
         {
-            foreach (var scheme in schemes.Skip(1))
-            {
-                LocalDictionaryPackageManager.Update
-                (
-                    new LocalDictionaryPackageUpdate
-                    {
-                        PhoneticSourcePaths = Directory.GetFiles(source, "*.phonetic.tsv", SearchOption.AllDirectories),
-                        ShapeSourcePaths = Directory.GetFiles(source, "*.shape.tsv", SearchOption.AllDirectories),
-                        SymbolSourcePaths = Directory.GetFiles(source, "*.symbols.tsv", SearchOption.AllDirectories),
-                        Parameters = new DictionaryPackageParameters { InputScheme = scheme }
-                    }, DictionaryPackageLocations.ResolvePackageDirectory(inputScheme: scheme)
-                );
-            }
-
             File.WriteAllText
             (
                 Path.Combine(outputDirectory, "packages.json"), JsonSerializer.Serialize
@@ -117,7 +106,7 @@ internal static class DebugFuzzyValidation
             )
         );
         foreach (var file in Directory.GetFiles(package, "*", SearchOption.AllDirectories)
-                     .Append(uiPath).Append(Path.ChangeExtension(uiPath, ".dll"))
+                     .Append(uiPath).Append(GetUiAssembly(uiPath))
                      .Append(Environment.ProcessPath!).Append(typeof(DebugFuzzyValidation).Assembly.Location))
         {
             using var stream = File.OpenRead(file);
@@ -166,7 +155,7 @@ internal static class DebugFuzzyValidation
             var actualPath = active.MainModule?.FileName ?? throw new InvalidOperationException();
             var actualFiles = new[]
             {
-                actualPath, Path.ChangeExtension(actualPath, ".dll"), Environment.ProcessPath!,
+                actualPath, GetUiAssembly(actualPath), Environment.ProcessPath!,
                 typeof(DebugFuzzyValidation).Assembly.Location
             };
             File.WriteAllText

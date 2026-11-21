@@ -8,7 +8,8 @@ public sealed record ImeProcessKeyRequest
     ImeSessionId SessionId = default,
     long Generation = 0,
     long SequenceNumber = 0,
-    ImeCandidateAnchor? Anchor = null
+    ImeCandidateAnchor? Anchor = null,
+    long ResumeGeneration = 0
 )
 {
     public ImeSessionId EffectiveSessionId => SessionId.Effective;

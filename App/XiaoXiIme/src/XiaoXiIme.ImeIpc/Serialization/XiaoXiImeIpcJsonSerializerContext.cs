@@ -26,6 +26,7 @@ namespace XiaoXiIme.ImeIpc;
 [JsonSerializable(typeof(ImeHostStatus))]
 [JsonSerializable(typeof(ImeInputTargetUpdate))]
 [JsonSerializable(typeof(ImeInputTargetUpdateResponse))]
+[JsonSerializable(typeof(ImeInputEvent))]
 [JsonSerializable(typeof(ImeProcessKeyRequest))]
 [JsonSerializable(typeof(ImeProcessKeyResponse))]
 [JsonSerializable(typeof(ImeSnapshotRequest))]
@@ -51,6 +52,7 @@ namespace XiaoXiIme.ImeIpc;
 [JsonSerializable(typeof(ImeProductSettingsRequest))]
 [JsonSerializable(typeof(ImeSaveProductSettingsRequest))]
 [JsonSerializable(typeof(ImeProductSettingsResponse))]
+[JsonSerializable(typeof(ImeDeliveryReceipt))]
 [JsonSerializable(typeof(object))]
 public sealed partial class XiaoXiImeIpcJsonSerializerContext : JsonSerializerContext
 {

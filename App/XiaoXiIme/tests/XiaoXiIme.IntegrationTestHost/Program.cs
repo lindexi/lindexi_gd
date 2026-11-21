@@ -162,6 +162,12 @@ static string ResolveHostBaseDirectory()
     var directory = new DirectoryInfo(AppContext.BaseDirectory);
     while (directory is not null)
     {
+        if (Directory.Exists(DictionaryPackageLocations.GetDistributionPackageDirectory
+                (directory.FullName, DictionaryPackageLocations.FullPinyinInputScheme)))
+        {
+            return directory.FullName;
+        }
+
         var payloadHost = Path.Combine(directory.FullName, "app", "host");
         if (Directory.Exists(Path.Combine(payloadHost, DictionaryPackageLocations.FullPinyinPackageDirectoryName)))
         {
@@ -792,6 +798,28 @@ internal static class Win32ImeEditScenario
                 $"DIAGNOSTICS real-ime-multi-himc-isolation: FirstEDIT=0x{firstEdit:X}, FirstHIMC=0x{firstContext:X}, FirstSession={firstSession}, {first}; SecondEDIT=0x{secondEdit:X}, SecondHIMC=0x{secondContext:X}, SecondSession={secondSession}, {second}"
             );
 
+            if (Environment.GetEnvironmentVariable("XIAOXIIME_LIFECYCLE_LOG") is { Length: > 0 } diagnosticPath)
+            {
+                Step(firstEdit, first, firstSession, 0x4E, "n");
+                Step(firstEdit, first, firstSession, 0x49, "ni");
+                var started = diagnosticPath + ".delay-started";
+                File.Delete(started);
+                File.WriteAllText(diagnosticPath + ".delay-request", string.Empty);
+                var elapsed = Stopwatch.StartNew();
+                SendKey(firstEdit, first, 0x20);
+                WaitFor(() => File.Exists(started), first, "slow engine entered");
+                Require(elapsed.Elapsed < TimeSpan.FromSeconds(1),
+                    $"Input pump waited for the delayed engine: {elapsed.Elapsed}.");
+                Require(first.ResultCount == 1, "The delayed result already committed before switching focus.");
+                Console.WriteLine($"PASS real-ime-slow-engine-nonblocking: elapsed={elapsed.Elapsed.TotalMilliseconds:F0}ms");
+                Focus(secondEdit, second);
+                WaitFor(() => elapsed.Elapsed >= TimeSpan.FromMilliseconds(2200), second, "late result observation");
+                Require(first.ResultCount == 1 && second.ResultCount == 1 &&
+                        GetWindowText(firstEdit) == "你" && GetWindowText(secondEdit) == "你",
+                    "Delayed commit leaked across focus change.");
+                Console.WriteLine("PASS real-ime-late-result-after-focus-switch");
+            }
+
             void VerifyCandidate(nint edit, EditCompositionObserver observer, ImeSessionId session, string stage)
             {
                 Focus(edit, observer);
@@ -936,6 +964,61 @@ internal static class Win32ImeEditScenario
         (
             $"DIAGNOSTICS real-ime-composition-lifecycle: HIMC=0x{observer.InputContext:X}, Session={session}, {observer}"
         );
+
+        SendBurst(0x4E, 0x49, 0x20);
+        WaitFor(() => observer.ResultCount == 2 && GetWindowText(edit) == "你你", observer, "rapid ni + Space");
+        Console.WriteLine("PASS real-ime-rapid-space-no-next-key");
+
+        SendBurst(0x4E, 0x49, 0x31);
+        WaitFor(() => observer.ResultCount == 3 && GetWindowText(edit) == "你你你", observer, "rapid ni + 1");
+        Console.WriteLine("PASS real-ime-rapid-digit-no-next-key");
+
+        SendBurst(0x4E, 0x49);
+        WaitFor(() => CandidateMatches(client, edit, observer, session, "mouse-selection"), observer, "candidate for mouse selection");
+        var statusPath = Environment.GetEnvironmentVariable("XIAOXIIME_UI_STATUS") ??
+            throw new InvalidOperationException("Candidate status path is required for real mouse validation.");
+        var point = default(Avalonia.PixelPoint);
+        WaitFor(() =>
+        {
+            using var stream = new FileStream(statusPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new StreamReader(stream);
+            const string prefix = "firstCandidate=";
+            var field = reader.ReadToEnd().Split('|').LastOrDefault(value => value.StartsWith(prefix, StringComparison.Ordinal));
+            if (field is null || field.Length == prefix.Length)
+            {
+                return false;
+            }
+            point = Avalonia.PixelPoint.Parse(field[prefix.Length..]);
+            return true;
+        }, observer, "rendered candidate row");
+        Require(SetCursorPos(point.X, point.Y), "Cannot position mouse over first candidate.");
+        Input[] click = [new() { Data = new() { Mouse = new() { Flags = 2 } } }, new() { Data = new() { Mouse = new() { Flags = 4 } } }];
+        Require(SendInput((uint)click.Length, click, Marshal.SizeOf<Input>()) == click.Length, "Cannot click the candidate window.");
+        WaitFor(() => observer.ResultCount == 4 && GetWindowText(edit) == "你你你你", observer, "mouse result without keyboard input");
+        ObserveStable(window, edit, layout, observer, "你你你你", 4);
+        Console.WriteLine("PASS real-ime-mouse-no-next-key");
+
+        SendBurst(0x4E, 0x49, 0x48, 0x41, 0x4F);
+        WaitFor(() => observer.Read(0x0001) == "nihao", observer, "composition nihao");
+        var snapshot = WaitWithPump(client.GetSnapshotAsync(session), observer);
+        var partialIndex = snapshot.Candidates.Take(snapshot.CandidateWindow.PageSize).ToList()
+            .FindIndex(candidate => candidate.Reading == "ni" && candidate.Text == "你");
+        Require(partialIndex >= 0 && partialIndex < 9,
+            $"Expected partial candidate on first page: {string.Join(", ", snapshot.Candidates.Select(c => $"{c.Text}/{c.Reading}"))}");
+        SendBurst((ushort)(0x31 + partialIndex));
+        WaitFor(() => observer.ResultCount == 5 && observer.Read(0x0001) == "hao" && GetWindowText(edit) == "你你你你你",
+            observer, "partial commit and remaining hao");
+        SendBurst(0x4D, 0x41, 0x20);
+        WaitFor(() => observer.ResultCount == 6 && GetWindowText(edit).StartsWith("你你你你你好", StringComparison.Ordinal),
+            observer, "continued input after partial commit");
+        Console.WriteLine($"PASS real-ime-partial-and-continued-input: {GetWindowText(edit)}");
+
+        void SendBurst(params ushort[] keys)
+        {
+            CheckTarget(window, edit, layout, observer);
+            var events = keys.SelectMany(key => new[] { Input.Keyboard(key, 0), Input.Keyboard(key, KeyEventKeyUp) }).ToArray();
+            Require(SendInput((uint)events.Length, events, Marshal.SizeOf<Input>()) == events.Length, "SendInput did not accept the entire key burst.");
+        }
 
         void Compose()
         {
@@ -1301,7 +1384,7 @@ internal static class Win32ImeEditScenario
                                     "Result outside composition or repeated result before END."
                                 );
                                 Results.Add(ReadString(context, 0x0800));
-                                _hasResult = true;
+                                _hasResult = (flags & 0x0008) == 0;
                             }
 
                             if ((flags & (0x0008 | 0x0001 | 0x0080)) != 0)
@@ -1586,6 +1669,10 @@ internal static class Win32ImeEditScenario
         Console.WriteLine($"STAGE real-ime-keystroke-commit: {stage}");
         Console.Out.Flush();
     }
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetCursorPos(int x, int y);
 
     private static void PumpMessages()
     {

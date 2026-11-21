@@ -41,7 +41,23 @@ public static class DictionaryPackageLocations
 
         var scheme = ResolveInputScheme(inputScheme);
         var root = Path.GetFullPath(baseDirectory ?? AppContext.BaseDirectory);
-        return Path.GetFullPath(Path.Combine(root, GetRelativePackageDirectory(scheme)));
+        if (Directory.Exists(Path.Combine(root, "Dictionaries")))
+        {
+            return GetDistributionPackageDirectory(root, scheme);
+        }
+
+        if (baseDirectory is null && string.Equals(Path.GetFileName(Environment.ProcessPath), "XiaoXiIme.exe", StringComparison.OrdinalIgnoreCase))
+        {
+            return GetDistributionPackageDirectory(Path.GetDirectoryName(Environment.ProcessPath)!, scheme);
+        }
+
+        return Path.Combine(root, GetRelativePackageDirectory(scheme));
+    }
+
+    /// <summary>Gets the dictionary package for a scheme in the unified distribution.</summary>
+    public static string GetDistributionPackageDirectory(string distributionRoot, string inputScheme)
+    {
+        return Path.Combine(distributionRoot, "Dictionaries", ResolveInputScheme(inputScheme));
     }
 
     /// <summary>

@@ -11,7 +11,7 @@ namespace XiaoXiIme.ImeModule.Tests;
 public class ImeHostBridgeTests
 {
     [Fact(Timeout = 2_000)]
-    public Task ProcessKey_WhenHostIsUnavailableThenUsesMinimalFallbackAndKeepsDiagnostic()
+    public Task ProcessKey_WhenHostIsUnavailableThenLeavesInputUnhandledAndKeepsDiagnostic()
     {
         using var bridge = new ImeHostBridge(new UnavailableBridgeClient());
 
@@ -20,18 +20,17 @@ public class ImeHostBridgeTests
         var uiState = bridge.GetUiState();
         var commit = bridge.ProcessKey(new ImeKey(ImeKeyKind.Space));
 
-        Assert.True(first.Handled);
-        Assert.True(second.Handled);
-        Assert.True(second.Snapshot.IsComposing);
-        Assert.Equal("ni", second.Snapshot.Composition.Reading);
+        Assert.False(first.Handled);
+        Assert.False(second.Handled);
+        Assert.False(second.Snapshot.IsComposing);
         Assert.NotNull(bridge.LastError);
         Assert.True(bridge.IsUsingFallback);
-        Assert.True(uiState.CandidateWindowVisible);
+        Assert.False(uiState.CandidateWindowVisible);
         Assert.Equal(ImeAboutState.SeWzc, uiState.EffectiveAbout);
         Assert.True(uiState.IsHostUnavailable);
         Assert.False(uiState.IsUsingFallbackDictionary);
         Assert.Contains("Host unavailable", uiState.DiagnosticText, StringComparison.Ordinal);
-        Assert.Equal("你", commit.CommitText);
+        Assert.Null(commit.CommitText);
         Assert.False(commit.Snapshot.IsComposing);
 
         return Task.CompletedTask;
@@ -54,7 +53,7 @@ public class ImeHostBridgeTests
     }
 
     [Fact(Timeout = 2_000)]
-    public Task QueryConversionList_WhenHostIsUnavailableThenUsesMinimalFallbackWithoutChangingComposition()
+    public Task QueryConversionList_WhenHostIsUnavailableThenReturnsNoCandidates()
     {
         using var bridge = new ImeHostBridge(new UnavailableBridgeClient());
 
@@ -63,19 +62,17 @@ public class ImeHostBridgeTests
         var reverseCandidates = bridge.QueryReverseConversionList("你");
         var snapshot = bridge.GetSnapshot();
 
-        Assert.True(composing.Handled);
-        Assert.Equal("你", candidates[0].Text);
-        Assert.Equal("ni", reverseCandidates[0].Reading);
-        Assert.Equal("你", reverseCandidates[0].Text);
-        Assert.Equal("n", snapshot.Composition.Reading);
-        Assert.True(snapshot.IsComposing);
+        Assert.False(composing.Handled);
+        Assert.Empty(candidates);
+        Assert.Empty(reverseCandidates);
+        Assert.False(snapshot.IsComposing);
         Assert.True(bridge.IsUsingFallback);
 
         return Task.CompletedTask;
     }
 
     [Fact(Timeout = 2_000)]
-    public Task RegisterWord_WhenHostIsUnavailableThenUsesMinimalFallbackWithoutChangingComposition()
+    public Task RegisterWord_WhenHostIsUnavailableThenReportsFailure()
     {
         using var bridge = new ImeHostBridge(new UnavailableBridgeClient());
 
@@ -86,27 +83,26 @@ public class ImeHostBridgeTests
             (new ImeRegisterWordRequest(ImeRegisterWordAction.Enumerate, "zidingyi", "自定义"));
         var snapshot = bridge.GetSnapshot();
 
-        Assert.True(composing.Handled);
-        Assert.True(registered.Succeeded);
-        Assert.True(enumerated.Succeeded);
-        Assert.Equal("zidingyi", enumerated.Entries[0].Reading);
-        Assert.Equal("自定义", enumerated.Entries[0].Text);
-        Assert.Equal("n", snapshot.Composition.Reading);
-        Assert.True(snapshot.IsComposing);
+        Assert.False(composing.Handled);
+        Assert.False(registered.Succeeded);
+        Assert.False(enumerated.Succeeded);
+        Assert.Empty(enumerated.Entries);
+        Assert.False(snapshot.IsComposing);
         Assert.True(bridge.IsUsingFallback);
 
         return Task.CompletedTask;
     }
 
     [Fact(Timeout = 2_000)]
-    public Task ProcessKey_WhenIpcTimesOutThenUsesMinimalFallback()
+    public Task ProcessKey_WhenIpcTimesOutThenReturnsNoComposition()
     {
         using var bridge = new ImeHostBridge(new TimeoutBridgeClient());
 
         var result = bridge.ProcessKey(ImeKey.FromCharacter('n'));
         var uiState = bridge.GetUiState();
 
-        Assert.True(result.Handled);
+        Assert.False(result.Handled);
+        Assert.False(result.Snapshot.IsComposing);
         Assert.True(bridge.IsUsingFallback);
         Assert.True(uiState.IsHostUnavailable);
         Assert.False(uiState.IsUsingFallbackDictionary);
@@ -114,6 +110,34 @@ public class ImeHostBridgeTests
         Assert.Contains("timed out", bridge.LastError, StringComparison.OrdinalIgnoreCase);
 
         return Task.CompletedTask;
+    }
+
+    [Fact]
+    public void WhenProcessedKeyResponseTimesOutThenNextKeyStartsCleanComposition()
+    {
+        using var host = CreateHost();
+        using var bridge = new ImeHostBridge(new TimeoutBridgeClient(host.Service));
+        var session = new ImeSessionId("first");
+        bridge.ProcessKey(ImeKey.FromCharacter('n'), session);
+
+        var result = bridge.ProcessKey(ImeKey.FromCharacter('i'), session);
+
+        Assert.Equal("i", result.Snapshot.Composition.Reading);
+    }
+
+    [Fact]
+    public void NextKeyUsesNewGenerationOnlyForTheTimedOutSession()
+    {
+        var client = new TimeoutBridgeClient();
+        using var bridge = new ImeHostBridge(client);
+        var session = new ImeSessionId("first");
+        var key = ImeKey.FromCharacter('n');
+        bridge.ProcessKey(key, session);
+
+        bridge.ProcessKey(key, new ImeSessionId("second"));
+        bridge.ProcessKey(key, session);
+
+        Assert.Equal(new long[] { 0, 0, 1 }, client.Generations);
     }
 
     [Fact]
@@ -1325,8 +1349,25 @@ public class ImeHostBridgeTests
         }
     }
 
-    private sealed class TimeoutBridgeClient : ImeHostBridge.IImeHostBridgeClient
+    private sealed class TimeoutBridgeClient(ImeHostService? host = null) : ImeHostBridge.IImeHostBridgeClient
     {
+        internal List<long> Generations { get; } = [];
+
+        public async Task<ImeProcessResult> ProcessKeyAsync(ImeProcessKeyRequest request)
+        {
+            Generations.Add(request.Generation);
+            if (host is not null)
+            {
+                var response = await host.ProcessKeyAsync(request);
+                if (Generations.Count > 1)
+                {
+                    return response.Result;
+                }
+            }
+
+            return await ProcessKeyAsync(request.Key, request.EffectiveSessionId);
+        }
+
         public Task<ImeProcessResult> ProcessKeyAsync(ImeKey key, ImeSessionId sessionId)
         {
             throw new ImeHostBridge.ImeHostUnavailableException("IME IPC operation timed out.");
