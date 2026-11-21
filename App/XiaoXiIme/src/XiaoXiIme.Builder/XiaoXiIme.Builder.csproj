@@ -8,13 +8,4 @@
   <ItemGroup>
     <ProjectReference Include="..\XiaoXiIme.Dictionary\XiaoXiIme.Dictionary.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="'$(StageBuilderValidation)' == 'true'">
-    <Content Include="..\..\src\**\*" Exclude="..\..\src\**\bin\**;..\..\src\**\obj\**;..\..\src\**\*.md"
-             Link="src\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="..\..\tests\**\*" Exclude="..\..\tests\**\bin\**;..\..\tests\**\obj\**;..\..\tests\**\*.md"
-             Link="tests\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="..\..\data\dictionaries\**\*.tsv"
-             Link="data\dictionaries\%(RecursiveDir)%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="..\..\Directory.Build.props;..\..\XiaoXiIme.slnx" Link="%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
-  </ItemGroup>
 </Project>
