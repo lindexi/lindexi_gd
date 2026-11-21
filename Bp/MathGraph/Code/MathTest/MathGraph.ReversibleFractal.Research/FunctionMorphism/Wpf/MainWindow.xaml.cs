@@ -10,7 +10,7 @@ namespace MathGraph.FunctionMorphism.Wpf;
 
 public partial class MainWindow : Window
 {
-    private const double NodeWidth = 86;
+    private const double ValueFontSize = 12;
     private readonly Function forward = Function.Merge((x, y) => x * x - y);
     private readonly Function reverse = Function.Split(t => (t * t + 1, t * t * t - t));
     private readonly Function expandedForward;
@@ -46,25 +46,10 @@ public partial class MainWindow : Window
         BigInteger[] inputs = isForward ? [first, second] : [first];
         var before = (isForward ? forward : reverse).Evaluate(inputs);
         var trace = (isForward ? expandedForward : expandedReverse).EvaluateWithTrace(inputs);
-        ComparisonGrid.ItemsSource = trace.Outputs.Select((value, port) => new
-        {
-            Port = port,
-            Before = Format(before[port]),
-            After = Format(value),
-            Error = Format(BigInteger.Abs(value - before[port]))
-        }).ToArray();
-        WireGrid.ItemsSource = trace.Wires.Select(wire => new
-        {
-            Source = $"{wire.From}.{wire.OutputPort}",
-            Target = $"{wire.To}.{wire.InputPort}",
-            Value = Format(wire.Value)
-        }).ToArray();
-        string inputDirection = (string)FindResource("InputDirection");
-        string outputDirection = (string)FindResource("OutputDirection");
-        PortGrid.ItemsSource = trace.Children.SelectMany(child =>
-            child.Inputs.Select((value, port) => new { child.Vertex, Direction = inputDirection, Port = port, Value = Format(value) })
-                .Concat(child.Outputs.Select((value, port) => new { child.Vertex, Direction = outputDirection, Port = port, Value = Format(value) })))
-            .ToArray();
+        string comparison = (string)FindResource("OutputComparison");
+        OutputSummary.Text = string.Join(Environment.NewLine, trace.Outputs.Select((value, port) =>
+            string.Format(CultureInfo.CurrentCulture, comparison, port, Format(before[port]), Format(value),
+                Format(BigInteger.Abs(value - before[port])))));
         DrawGraph(trace);
         Status.Text = string.Empty;
         Results.Visibility = Visibility.Visible;
@@ -85,10 +70,16 @@ public partial class MainWindow : Window
                 .Select(wire => levels[wire.From] + 1).DefaultIfEmpty(0).Max();
         }
 
+        double valueWidth = trace.Children.SelectMany(child => child.Inputs.Concat(child.Outputs))
+            .Max(value => MeasureLabel(new TextBlock { Text = $"0: {Format(value)}", FontSize = ValueFontSize }).Width);
+        double nodeWidth = Math.Max(116, 2 * valueWidth + 26);
+        double columnStep = nodeWidth + Math.Max(140, 3 * valueWidth + 32);
+        Graph.Width = columnStep * levels.Values.Max() + nodeWidth + 40;
+        var wireLabels = new List<(TextBlock Label, Point Anchor)>();
         var positions = new Dictionary<char, Point>();
         foreach (var level in trace.Children.GroupBy(child => levels[child.Vertex]))
         {
-            double x = 20 + 250 * level.Key;
+            double x = 20 + columnStep * level.Key;
             double y = level.Count() == 1 ? 54 : 12;
             foreach (var child in level)
             {
@@ -99,13 +90,15 @@ public partial class MainWindow : Window
 
         foreach (var wire in trace.Wires)
         {
-            var from = PortPosition(positions[wire.From], wire.OutputPort, output: true);
-            var to = PortPosition(positions[wire.To], wire.InputPort, output: false);
+            var from = PortPosition(positions[wire.From], nodeWidth, wire.OutputPort, output: true);
+            var to = PortPosition(positions[wire.To], nodeWidth, wire.InputPort, output: false);
+            string value = Format(wire.Value);
+            string description = $"{wire.From}.{wire.OutputPort} → {wire.To}.{wire.InputPort}: {value}";
             var line = new Line
             {
                 X1 = from.X, Y1 = from.Y, X2 = to.X, Y2 = to.Y,
                 Stroke = Brushes.SlateGray, StrokeThickness = 1.5,
-                ToolTip = $"{wire.From}.{wire.OutputPort} → {wire.To}.{wire.InputPort}: {Format(wire.Value)}"
+                ToolTip = description
             };
             Graph.Children.Add(line);
             Vector direction = to - from;
@@ -118,6 +111,19 @@ public partial class MainWindow : Window
                 IsHitTestVisible = false,
                 Points = new PointCollection { tip, tip - 8 * direction + 4 * side, tip - 8 * direction - 4 * side }
             });
+            // Keep labels on crossing wires away from their common midpoint.
+            double fraction = to.Y < from.Y ? 0.68 : 0.32;
+            wireLabels.Add((new TextBlock
+            {
+                Text = value, FontSize = ValueFontSize, Foreground = Brushes.DarkSlateGray,
+                Background = Brushes.White, Padding = new Thickness(3, 0, 3, 0), ToolTip = description
+            }, from + fraction * (to - from)));
+        }
+
+        foreach (var (label, anchor) in wireLabels)
+        {
+            var size = MeasureLabel(label);
+            Place(label, new Point(anchor.X - size.Width / 2, anchor.Y - size.Height / 2));
         }
 
         foreach (var child in trace.Children)
@@ -125,7 +131,7 @@ public partial class MainWindow : Window
             var position = positions[child.Vertex];
             Place(new Border
             {
-                Width = NodeWidth, Height = 56,
+                Width = nodeWidth, Height = 58,
                 Background = Brushes.WhiteSmoke, BorderBrush = Brushes.LightSlateGray,
                 BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(4),
                 Child = new TextBlock
@@ -134,28 +140,36 @@ public partial class MainWindow : Window
                     HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 3, 0, 0)
                 }
             }, position);
-            DrawPorts(position, child.Inputs, output: false);
-            DrawPorts(position, child.Outputs, output: true);
+            DrawPorts(position, nodeWidth, child.Inputs, output: false);
+            DrawPorts(position, nodeWidth, child.Outputs, output: true);
         }
     }
 
-    private void DrawPorts(Point node, IReadOnlyList<BigInteger> values, bool output)
+    private void DrawPorts(Point node, double nodeWidth, IReadOnlyList<BigInteger> values, bool output)
     {
         for (int port = 0; port < values.Count; port++)
         {
-            var point = PortPosition(node, port, output);
+            var point = PortPosition(node, nodeWidth, port, output);
+            var color = output ? Brushes.SeaGreen : Brushes.SteelBlue;
             Place(new Ellipse
             {
-                Width = 8, Height = 8, Fill = output ? Brushes.SeaGreen : Brushes.SteelBlue,
+                Width = 8, Height = 8, Fill = color,
                 ToolTip = Format(values[port])
             }, new Point(point.X - 4, point.Y - 4));
-            Place(new TextBlock { Text = port.ToString(CultureInfo.InvariantCulture), FontSize = 11 },
-                new Point(point.X + (output ? -14 : 7), point.Y - 8));
+            var label = new TextBlock { Text = $"{port}: {Format(values[port])}", FontSize = ValueFontSize, Foreground = color };
+            var size = MeasureLabel(label);
+            Place(label, new Point(point.X + (output ? -size.Width - 7 : 7), point.Y - size.Height / 2));
         }
     }
 
-    private static Point PortPosition(Point node, int port, bool output) =>
-        new(node.X + (output ? NodeWidth : 0), node.Y + 26 + 17 * port);
+    private static Point PortPosition(Point node, double nodeWidth, int port, bool output) =>
+        new(node.X + (output ? nodeWidth : 0), node.Y + 26 + 17 * port);
+
+    private static Size MeasureLabel(TextBlock label)
+    {
+        label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        return label.DesiredSize;
+    }
 
     private void Place(UIElement element, Point point)
     {

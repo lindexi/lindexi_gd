@@ -2,20 +2,12 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
-        Title="五点展开 · 端口检查" Width="920" Height="800" MinWidth="460" MinHeight="360">
+        Title="五点展开 · 端口检查" Width="920" Height="390" MinWidth="460" MinHeight="360">
     <Window.Resources>
         <sys:String x:Key="InvalidInput">请输入有效的有符号十进制整数。</sys:String>
         <sys:String x:Key="ForwardFormula">示例算子：f(x, y) = x² − y</sys:String>
         <sys:String x:Key="ReverseFormula">示例算子：g(t) = (t² + 1, t³ − t)</sys:String>
-        <sys:String x:Key="InputDirection">输入</sys:String>
-        <sys:String x:Key="OutputDirection">输出</sys:String>
-        <Style TargetType="DataGrid">
-            <Setter Property="AutoGenerateColumns" Value="False" />
-            <Setter Property="IsReadOnly" Value="True" />
-            <Setter Property="CanUserAddRows" Value="False" />
-            <Setter Property="CanUserSortColumns" Value="False" />
-            <Setter Property="HeadersVisibility" Value="Column" />
-        </Style>
+        <sys:String x:Key="OutputComparison">输出 {0}：展开前 {1}，展开后 {2}，绝对误差 {3}</sys:String>
     </Window.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <StackPanel Margin="20" MinWidth="660">
@@ -38,37 +30,12 @@
             <TextBlock x:Name="Formula" Margin="0,8,0,0" />
             <TextBlock x:Name="Status" Foreground="Firebrick" Margin="0,2,0,0" AutomationProperties.LiveSetting="Polite" />
             <StackPanel x:Name="Results">
-                <TextBlock Text="边界输出对比" FontWeight="SemiBold" Margin="0,12,0,4" />
-                <DataGrid x:Name="ComparisonGrid">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="输出端口" Binding="{Binding Port}" />
-                        <DataGridTextColumn Header="展开前" Binding="{Binding Before}" />
-                        <DataGridTextColumn Header="展开后" Binding="{Binding After}" />
-                        <DataGridTextColumn Header="绝对误差" Binding="{Binding Error}" />
-                    </DataGrid.Columns>
-                </DataGrid>
+                <TextBlock x:Name="OutputSummary" Margin="0,12,0,0" />
                 <TextBlock Text="展开后的模板（左侧蓝点为输入，右侧绿点为输出）" FontWeight="SemiBold" Margin="0,12,0,4" />
                 <Border BorderBrush="LightGray" BorderThickness="1" Background="White">
-                    <Canvas x:Name="Graph" Width="640" Height="165" HorizontalAlignment="Left"
-                            AutomationProperties.Name="五点模板连线，详细端口见下表" />
+                    <Canvas x:Name="Graph" Height="175" HorizontalAlignment="Left"
+                            AutomationProperties.Name="五点模板、端口值和连线传值" />
                 </Border>
-                <TextBlock Text="实际连线与传值" FontWeight="SemiBold" Margin="0,12,0,4" />
-                <DataGrid x:Name="WireGrid">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="源输出端口" Binding="{Binding Source}" />
-                        <DataGridTextColumn Header="目标输入端口" Binding="{Binding Target}" />
-                        <DataGridTextColumn Header="传值" Binding="{Binding Value}" />
-                    </DataGrid.Columns>
-                </DataGrid>
-                <TextBlock Text="各子点端口（按求值顺序）" FontWeight="SemiBold" Margin="0,12,0,4" />
-                <DataGrid x:Name="PortGrid">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="子点" Binding="{Binding Vertex}" />
-                        <DataGridTextColumn Header="端口方向" Binding="{Binding Direction}" />
-                        <DataGridTextColumn Header="端口编号" Binding="{Binding Port}" />
-                        <DataGridTextColumn Header="值" Binding="{Binding Value}" />
-                    </DataGrid.Columns>
-                </DataGrid>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>
