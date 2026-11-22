@@ -6,5 +6,8 @@ public sealed record ImeInputEvent(string ReplyPipe, ImeProcessKeyRequest Reques
 /// <summary>Confirms delivery without reporting a conversion result.</summary>
 public sealed record ImeDeliveryReceipt
 {
+    public bool IsAccepted { get; init; } = true;
+
     internal static readonly ImeDeliveryReceipt Accepted = new();
+    internal static readonly ImeDeliveryReceipt Rejected = new() { IsAccepted = false };
 }

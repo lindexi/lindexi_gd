@@ -40,7 +40,7 @@ public class CandidateWindowControllerTests
     }
 
     [Fact(Timeout = 2_000)]
-    public Task Update_HiddenUiState_HidesCandidateWindowButKeepsCompositionAndGuideline()
+    public Task Update_NoCandidates_ShowsRawInputWithoutCandidateItems()
     {
         var controller = new CandidateWindowController();
         var uiState = new ImeUiState
@@ -56,7 +56,7 @@ public class CandidateWindowControllerTests
 
         var state = controller.Update(uiState);
 
-        Assert.False(state.IsVisible);
+        Assert.True(state.IsVisible);
         Assert.Empty(state.Candidates);
         Assert.Equal("zz", state.CompositionText);
         Assert.Equal("无候选：zz", state.GuidelineText);

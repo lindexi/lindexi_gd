@@ -50,6 +50,23 @@ public class AsyncInputDeliveryTests
         Assert.Equal("ni", result.Result.Snapshot.Composition.Reading);
     }
 
+    [Fact]
+    public async Task InputWorkerContinuesAfterOneSessionFails()
+    {
+        using var session = new Session();
+        void FailOnce()
+        {
+            session.Host.CandidateStateChanged -= FailOnce;
+            throw new InvalidOperationException("Injected candidate publication failure.");
+        }
+        session.Host.CandidateStateChanged += FailOnce;
+        await session.SendAsync(ImeKey.FromCharacter('o'));
+
+        var result = await session.SendAsync(ImeKey.FromCharacter('n'));
+
+        Assert.Equal("n", result.Result.Snapshot.Composition.Reading);
+    }
+
     private sealed class Session : IDisposable
     {
         private readonly Channel<ImeProcessKeyResponse> _results = Channel.CreateUnbounded<ImeProcessKeyResponse>();

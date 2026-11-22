@@ -131,12 +131,9 @@ public sealed class XiaoXiImeIpcServer : IDisposable
     }
 
     /// <summary>Registers the input event route before starting the service.</summary>
-    public void RegisterInputEvents(Action<ImeInputEvent> receive) =>
+    public void RegisterInputEvents(Func<ImeInputEvent, bool> receive) =>
         _provider.AddRequestHandler<ImeInputEvent, ImeDeliveryReceipt>(XiaoXiImeIpcRoutes.InputEvent, input =>
-        {
-            receive(input);
-            return Task.FromResult(ImeDeliveryReceipt.Accepted);
-        });
+            Task.FromResult(receive(input) ? ImeDeliveryReceipt.Accepted : ImeDeliveryReceipt.Rejected));
 
     /// <summary>Delivers the result to the module that owns the input context.</summary>
     public async Task ApplyInputResultAsync(string replyPipe, ImeProcessKeyResponse result, CancellationToken cancellationToken)

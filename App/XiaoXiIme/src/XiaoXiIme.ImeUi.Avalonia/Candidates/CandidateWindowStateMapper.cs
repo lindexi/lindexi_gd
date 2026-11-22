@@ -12,9 +12,14 @@ public static class CandidateWindowStateMapper
 
         if (!uiState.CandidateWindowVisible || uiState.Candidates.Count == 0)
         {
+            var showReading = !uiState.IsHostUnavailable && uiState.Candidates.Count == 0 &&
+                              !string.IsNullOrEmpty(uiState.Composition.Reading);
             return CandidateWindowViewState.Hidden with
             {
-                CompositionText = uiState.Composition.DisplayText,
+                IsVisible = showReading,
+                CompositionText = showReading ? uiState.Composition.Reading : uiState.Composition.DisplayText,
+                Anchor = uiState.Anchor,
+                SessionId = uiState.SessionId,
                 GuidelineText = uiState.Guideline.Text,
                 AnchorX = uiState.AnchorX,
                 AnchorY = uiState.AnchorY,

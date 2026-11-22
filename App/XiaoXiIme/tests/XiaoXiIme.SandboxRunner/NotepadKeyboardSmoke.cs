@@ -8,6 +8,7 @@ internal static class NotepadKeyboardSmoke
 {
     internal static async Task<int> RunAsync(string output)
     {
+        Directory.CreateDirectory(output);
         var evidence = Path.Combine(output, "notepad.txt");
         var document = Path.Combine(output, $"note-{Guid.NewGuid():N}.txt");
         var reopenedDocument = Path.ChangeExtension(document, ".reopened.txt");
@@ -142,7 +143,34 @@ internal static class NotepadKeyboardSmoke
             await Task.Delay(650);
             var text = File.ReadAllText(path);
             Record($"{stage}: Text='{text}'; final HKL=0x{ActiveLayout(window):X}");
-            return candidateShown && text.Any(character => character is >= '\u4e00' and <= '\u9fff');
+            RequireForeground(window);
+            Send((0x11, false), (0x41, false), (0x41, true), (0x11, true), (0x08, false), (0x08, true));
+            const string unmatchedReading = "oxazzzzz";
+            foreach (var character in unmatchedReading)
+            {
+                RequireForeground(window);
+                var key = (ushort)char.ToUpperInvariant(character);
+                Send((key, false), (key, true));
+            }
+            await Task.Delay(650);
+            var focus = FocusInfo(window).Focus;
+            GetWindowThreadProcessId(focus, out var focusProcess);
+            using var client = new XiaoXiIme.ImeIpc.XiaoXiImeIpcClient();
+            var state = await client.GetUiStateAsync(new XiaoXiIme.ImeIpc.ImeUiStateRequest
+                (FocusWindowHandle: (long)focus, FocusProcessId: focusProcess));
+            var rawWindow = FindWindow(null, "XiaoXiIme Candidate Window");
+            var rawVisible = rawWindow != 0 && IsWindowVisible(rawWindow);
+            Record($"{stage}: RawReading='{state.Composition.Reading}'; Candidates={state.Candidates.Count}; RawWindowVisible={rawVisible}");
+            var rawOnly = state.Composition.Reading == unmatchedReading && state.Candidates.Count == 0 && rawVisible;
+            RequireForeground(window);
+            Send((0x1B, false), (0x1B, true), (0x4E, false), (0x4E, true), (0x49, false), (0x49, true), (0x20, false), (0x20, true));
+            await Task.Delay(700);
+            RequireForeground(window);
+            Send((0x11, false), (0x53, false), (0x53, true), (0x11, true));
+            await Task.Delay(650);
+            var recovered = File.ReadAllText(path);
+            Record($"{stage}: After {unmatchedReading}, Escape, ni+Space: '{recovered}'");
+            return candidateShown && text.Any(character => character is >= '\u4e00' and <= '\u9fff') && rawOnly && recovered == "你";
         }
 
         void Record(string text) => File.AppendAllText(evidence, text + Environment.NewLine);

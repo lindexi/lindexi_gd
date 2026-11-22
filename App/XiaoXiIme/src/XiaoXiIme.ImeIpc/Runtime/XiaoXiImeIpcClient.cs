@@ -75,8 +75,12 @@ public sealed class XiaoXiImeIpcClient : IDisposable
     /// <summary>Sends input without waiting for the conversion result.</summary>
     public async Task SendInputAsync(ImeInputEvent input)
     {
-        await SendOnceAsync(proxy => proxy.GetResponseAsync<ImeDeliveryReceipt>(XiaoXiImeIpcRoutes.InputEvent, input))
+        var receipt = await SendOnceAsync(proxy => proxy.GetResponseAsync<ImeDeliveryReceipt>(XiaoXiImeIpcRoutes.InputEvent, input))
             .ConfigureAwait(false);
+        if (receipt is not { IsAccepted: true })
+        {
+            throw new IOException("The IME service did not accept the input event.");
+        }
     }
 
     public async Task ConnectAsync()
@@ -396,7 +400,15 @@ public sealed class XiaoXiImeIpcClient : IDisposable
         {
             proxy = await connection.ConfigureAwait(false);
         }
-        return await WithTimeout(sendAsync(proxy), timeout).ConfigureAwait(false);
+        try
+        {
+            return await WithTimeout(sendAsync(proxy), timeout).ConfigureAwait(false);
+        }
+        catch (dotnetCampus.Ipc.Exceptions.IpcPeerConnectionBrokenException)
+        {
+            Interlocked.CompareExchange(ref _clientProxy, null, proxy);
+            throw;
+        }
     }
 
     private static async Task<T> WithTimeout<T>(Task<T> task, TimeSpan timeout)

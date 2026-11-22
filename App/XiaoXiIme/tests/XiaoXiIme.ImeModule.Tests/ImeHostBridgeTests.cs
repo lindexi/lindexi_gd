@@ -45,6 +45,14 @@ public class ImeHostBridgeTests
     }
 
     [Fact]
+    public void IsHostUnavailable_WhenPeerDisconnectsThenReturnsTrue()
+    {
+        var exception = new dotnetCampus.Ipc.Exceptions.IpcPeerConnectionBrokenException();
+
+        Assert.True(ImeHostBridge.IsHostUnavailable(exception));
+    }
+
+    [Fact]
     public void IsHostUnavailable_WhenIpcTransportIsUnsupportedThenReturnsTrue()
     {
         var result = ImeHostBridge.IsHostUnavailable(new NotSupportedException());

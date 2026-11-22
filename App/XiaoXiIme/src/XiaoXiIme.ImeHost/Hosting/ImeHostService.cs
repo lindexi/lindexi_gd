@@ -23,7 +23,8 @@ public sealed class ImeHostService : IDisposable
     private readonly HashSet<ImeSessionId> _retiredTargets = [];
     private readonly XiaoXiImeIpcServer _ipcServer;
     private readonly System.Threading.Channels.Channel<Func<CancellationToken, Task>> _input =
-        System.Threading.Channels.Channel.CreateUnbounded<Func<CancellationToken, Task>>(new() { SingleReader = true });
+        System.Threading.Channels.Channel.CreateBounded<Func<CancellationToken, Task>>
+            (new System.Threading.Channels.BoundedChannelOptions(128) { SingleReader = true });
     private readonly Dictionary<ImeSessionId, (string Pipe, long Generation)> _replyPipes = []; 
     private readonly CancellationTokenSource _inputShutdown = new();
     private Task? _inputWorker;
@@ -260,7 +261,18 @@ public sealed class ImeHostService : IDisposable
         {
             await foreach (var apply in _input.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
             {
-                await apply(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    await apply(cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+                catch (Exception exception)
+                {
+                    System.Diagnostics.Trace.TraceError("[ImeHost][InputWorker] {0}", exception);
+                }
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -292,7 +304,18 @@ public sealed class ImeHostService : IDisposable
             }
         }
 
-        var result = await ProcessKeyAsync(request).ConfigureAwait(false);
+        ImeProcessKeyResponse result;
+        try
+        {
+            result = await ProcessKeyAsync(request).ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Trace.TraceError("[ImeHost][ProcessInput] SessionId={0}; Sequence={1}; Error={2}",
+                request.SessionId, request.SequenceNumber, exception);
+            ClearFailedComposition(request.SessionId, request.Generation);
+            result = new(new(ImeSessionSnapshot.Empty, null, true), request.SessionId, request.Generation, request.SequenceNumber);
+        }
         await SendResultAsync(input.ReplyPipe, result, token).ConfigureAwait(false);
     }
 
@@ -331,10 +354,26 @@ public sealed class ImeHostService : IDisposable
             deadline.CancelAfter(XiaoXiImeIpcOptions.DefaultRequestTimeout);
             await _ipcServer.ApplyInputResultAsync(pipe, result, deadline.Token).ConfigureAwait(false);
         }
-        catch (Exception error) when (error is IOException or InvalidOperationException or OperationCanceledException)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            await ResetSessionAsync(result.SessionId).ConfigureAwait(false);
-            System.Diagnostics.Trace.TraceError($"[ImeHost][SendResult] SessionId={result.SessionId}; Error={error}");
+            throw;
+        }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or OperationCanceledException
+            or dotnetCampus.Ipc.Exceptions.IpcPeerConnectionBrokenException)
+        {
+            ClearFailedComposition(result.SessionId, result.Generation);
+            System.Diagnostics.Trace.TraceError($"[ImeHost][SendResult] SessionId={result.SessionId}; Error={exception}");
+        }
+    }
+
+    private void ClearFailedComposition(ImeSessionId sessionId, long generation)
+    {
+        lock (_syncRoot)
+        {
+            if (_keyGenerations.GetValueOrDefault(sessionId) == generation && _imeContexts.Remove(sessionId))
+            {
+                CandidateStateChanged?.Invoke();
+            }
         }
     }
 
@@ -756,6 +795,7 @@ public sealed class ImeHostService : IDisposable
             _started = false;
         }
 
+        _input.Writer.TryComplete();
         _input.Writer.TryComplete();
         _inputShutdown.Cancel();
         _inputWorker?.GetAwaiter().GetResult();

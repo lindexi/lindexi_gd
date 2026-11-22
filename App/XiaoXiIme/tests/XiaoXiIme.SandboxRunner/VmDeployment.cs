@@ -93,9 +93,17 @@ internal static class VmDeployment
         void RunCommand(string executable, string command)
         {
             Record($"Running {command}: {executable}");
-            var info = new ProcessStartInfo(executable) { WorkingDirectory = target, UseShellExecute = false };
+            var info = new ProcessStartInfo(executable)
+            {
+                WorkingDirectory = target,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
             info.ArgumentList.Add(command);
             using var process = Process.Start(info) ?? throw new InvalidOperationException($"Could not start {command}.");
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
             if (!process.WaitForExit(90_000))
             {
                 throw new InvalidOperationException($"{command} did not exit within 90 seconds.");

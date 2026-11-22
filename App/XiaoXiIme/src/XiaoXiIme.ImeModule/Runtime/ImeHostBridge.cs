@@ -26,6 +26,7 @@ public sealed class ImeHostBridge : IDisposable
     internal static bool IsHostUnavailable(Exception exception)
     {
         if (exception is TimeoutException
+            or dotnetCampus.Ipc.Exceptions.IpcPeerConnectionBrokenException
             or IOException
             or System.ComponentModel.Win32Exception
             or NotSupportedException)
@@ -39,6 +40,7 @@ public sealed class ImeHostBridge : IDisposable
         }
 
         if (invalidOperation.InnerException is TimeoutException
+            or dotnetCampus.Ipc.Exceptions.IpcPeerConnectionBrokenException
             or IOException
             or System.ComponentModel.Win32Exception
             or NotSupportedException)
