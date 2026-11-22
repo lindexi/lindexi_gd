@@ -267,10 +267,14 @@ public sealed class ImeHostBridge : IDisposable
     private sealed class IpcImeHostBridgeClient : IImeHostBridgeClient
     {
         private readonly XiaoXiImeIpcClient _client;
+        private readonly TimeSpan _budget;
 
         public IpcImeHostBridgeClient(XiaoXiImeIpcOptions? options)
         {
-            _client = new XiaoXiImeIpcClient(options);
+            var settings = options ?? XiaoXiImeIpcOptions.Default;
+            _budget = settings.EffectiveRequestTimeout > TimeSpan.Zero
+                ? settings.EffectiveRequestTimeout : XiaoXiImeIpcOptions.DefaultRequestTimeout;
+            _client = new XiaoXiImeIpcClient(settings with { RetryCount = 0, OperationTimeout = _budget });
         }
 
         public Task<ImeInputTargetUpdateResponse> UpdateInputTargetAsync(ImeInputTargetUpdate request) =>
@@ -322,14 +326,34 @@ public sealed class ImeHostBridge : IDisposable
             _client.Dispose();
         }
 
-        private static async Task<T> InvokeAsync<T>(Func<Task<T>> operation)
+        private async Task<T> InvokeAsync<T>(Func<Task<T>> operation)
         {
+            var circuit = ImeIpcCircuit.Shared;
+            if (!circuit.TryEnter(out var generation))
+            {
+                throw new ImeHostUnavailableException("IME IPC is temporarily suspended.");
+            }
+
             try
             {
-                return await operation().ConfigureAwait(false);
+                var response = await operation().WaitAsync(_budget).ConfigureAwait(false);
+                circuit.Complete(generation, timedOut: false);
+                if (!circuit.TryEnter(out var current) || current != generation)
+                {
+                    throw new ImeHostUnavailableException("IME IPC result belongs to an expired generation.");
+                }
+                return response;
             }
             catch (Exception exception) when (ImeHostBridge.IsHostUnavailable(exception))
             {
+                if (exception is TimeoutException || exception.InnerException is TimeoutException)
+                {
+                    AsyncImmInput.RecordTimeout(generation);
+                }
+                else
+                {
+                    circuit.Complete(generation, timedOut: false);
+                }
                 throw new ImeHostUnavailableException(exception.Message, exception);
             }
         }

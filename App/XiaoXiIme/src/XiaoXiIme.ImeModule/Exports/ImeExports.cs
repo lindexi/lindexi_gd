@@ -53,8 +53,9 @@ public static unsafe class ImeExports
 
             return 1;
         }
-        catch
+        catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeInquire), exception);
             return 0;
         }
     }
@@ -85,8 +86,9 @@ public static unsafe class ImeExports
                 ? 1
                 : 0;
         }
-        catch
+        catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeConfigure), exception);
             return 0;
         }
     }
@@ -134,8 +136,9 @@ public static unsafe class ImeExports
                 ? requiredSize
                 : 0;
         }
-        catch
+        catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeConversionList), exception);
             return 0;
         }
     }
@@ -150,8 +153,9 @@ public static unsafe class ImeExports
             ImeModuleRuntime.ResetAllSessions();
             return 1;
         }
-        catch
+        catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeDestroy), exception);
             return 0;
         }
     }
@@ -173,8 +177,9 @@ public static unsafe class ImeExports
                 _ => 0,
             };
         }
-        catch
+        catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeEscape), exception);
             return 0;
         }
     }
@@ -189,14 +194,14 @@ public static unsafe class ImeExports
     {
         var normalizedVirtualKey = (ushort)virtualKey;
         const uint keyTransitionState = 0x80000000;
-        if ((unchecked((uint)keyData) & keyTransitionState) != 0)
-        {
-            ImeKeystrokeDiagnostics.RecordImeProcessKey(normalizedVirtualKey, false);
-            return false;
-        }
-
         try
         {
+            if ((unchecked((uint)keyData) & keyTransitionState) != 0)
+            {
+                ImeKeystrokeDiagnostics.RecordImeProcessKey(normalizedVirtualKey, false);
+                return false;
+            }
+
             var key = ImeKeyTranslator.TranslateNative
             (
                 normalizedVirtualKey,
@@ -213,6 +218,7 @@ public static unsafe class ImeExports
         }
         catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeProcessKey), exception);
             ImeKeystrokeDiagnostics.RecordImeProcessKey
                 (normalizedVirtualKey, false, unchecked((uint)exception.HResult));
             return false;
@@ -265,8 +271,9 @@ public static unsafe class ImeExports
             );
             return 1;
         }
-        catch
+        catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeGetRegisterWordStyle), exception);
             return 0;
         }
     }
@@ -324,8 +331,9 @@ public static unsafe class ImeExports
 
             return count;
         }
-        catch
+        catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeEnumRegisterWord), exception);
             return 0;
         }
     }
@@ -428,8 +436,9 @@ public static unsafe class ImeExports
             s_compositionContextWriter.TryWrite(himc, result);
             return 1;
         }
-        catch
+        catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeSetCompositionString), exception);
             return 0;
         }
     }
@@ -445,14 +454,14 @@ public static unsafe class ImeExports
         (uint virtualKey, uint scanCode, byte* keyState, nint transKey, uint state, nint inputContext)
     {
         var normalizedVirtualKey = (ushort)virtualKey;
-        if (normalizedVirtualKey == 0x20)
-        {
-            ImeLifecycleDiagnostics.Record("ImeToAsciiEx.Space", inputContext, 0, "entry");
-        }
-
         uint stage = 1;
         try
         {
+            if (normalizedVirtualKey == 0x20)
+            {
+                ImeLifecycleDiagnostics.Record("ImeToAsciiEx.Space", inputContext, 0, "entry");
+            }
+
             var key = ImeKeyTranslator.TranslateNative
                 (normalizedVirtualKey, scanCode, keyState, GetModifiers(keyState));
             stage = 2;
@@ -493,7 +502,7 @@ public static unsafe class ImeExports
                 ImeLifecycleDiagnostics.Record
                 (
                     "ImeToAsciiEx.Space", inputContext, compositionWriteSucceeded ? 1 : 0,
-                    $"return handled={result.Handled} commit={result.CommitText} capacity={capacity} messages={messages.Length} written={written} return={returnValue} bridgeError={ImeModuleRuntime.LastBridgeError}"
+                    $"return handled={result.Handled} commitLength={result.CommitText?.Length ?? 0} capacity={capacity} messages={messages.Length} written={written} return={returnValue}"
                 );
             }
 
@@ -503,6 +512,7 @@ public static unsafe class ImeExports
         }
         catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeToAsciiEx), exception);
             ImeKeystrokeDiagnostics.RecordImeToAsciiEx
                 (normalizedVirtualKey, false, false, 0, 0, unchecked((uint)exception.HResult), stage);
             return 0;
@@ -517,9 +527,9 @@ public static unsafe class ImeExports
 
     internal static int NotifyImeManaged(nint inputContext, uint action, uint index, uint value)
     {
-        ImeKeystrokeDiagnostics.RecordNotifyIme();
         try
         {
+            ImeKeystrokeDiagnostics.RecordNotifyIme();
             return action switch
             {
                 ImeConstants.NiSelectCandidateStr => ApplyTranslatedKey
@@ -534,8 +544,9 @@ public static unsafe class ImeExports
                 _ => 0,
             };
         }
-        catch
+        catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(NotifyIme), exception);
             return 0;
         }
     }
@@ -594,7 +605,7 @@ public static unsafe class ImeExports
         if (result.Handled && !s_compositionContextWriter.TryWriteAndGenerate(himc, result, wasComposing))
         {
             AsyncImmInput.Invalidate(sessionId);
-            System.Diagnostics.Trace.TraceError($"[AsyncImmInput][Write] SessionId={sessionId}; Error=IMM32 result could not be generated");
+            ImeLifecycleDiagnostics.RecordFailure("AsyncImmInput.Write");
         }
     }
 
@@ -640,8 +651,9 @@ public static unsafe class ImeExports
 
             return ImeModuleRuntime.RegisterWord(new ImeRegisterWordRequest(action, readingText, valueText)).Succeeded;
         }
-        catch
+        catch (Exception exception)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(MutateRegisterWord), exception);
             return false;
         }
     }

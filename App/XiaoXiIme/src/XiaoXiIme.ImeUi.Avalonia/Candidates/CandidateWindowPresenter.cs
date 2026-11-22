@@ -136,10 +136,9 @@ internal sealed class CandidateWindowPresenter : IDisposable
         }
 
         _window.DataContext = state;
-        if (!PositionWindow(state))
+        if (!PositionWindow(state, out var usedFallback))
         {
             HideWindow();
-            WriteStatus("anchor-validation-failed", state);
             return;
         }
 
@@ -150,8 +149,7 @@ internal sealed class CandidateWindowPresenter : IDisposable
 
         if (_statusFilePath is not null)
         {
-            var visibility = state.Anchor is { IsValid: false } || (state.Anchor is null && state.AnchorX == 0 && state.AnchorY == 0)
-                ? "visible-fallback-no-valid-anchor" : "visible";
+            var visibility = usedFallback ? "visible-fallback-no-valid-anchor" : "visible";
             Dispatcher.UIThread.Post(() =>
             {
                 if (_window.IsVisible && ReferenceEquals(_window.DataContext, state))
@@ -163,12 +161,13 @@ internal sealed class CandidateWindowPresenter : IDisposable
         }
     }
 
-    private bool PositionWindow(CandidateWindowViewState state)
+    private bool PositionWindow(CandidateWindowViewState state, out bool usedFallback)
     {
+        usedFallback = false;
         var point = new PixelPoint(state.AnchorX, state.AnchorY);
         var top = point.Y;
         PixelRect? exclusion = null;
-        if (state.Anchor is { IsValid: true } anchor)
+        if (state.Anchor is { } anchor)
         {
             if (anchor.SessionId != state.SessionId || !OperatingSystem.IsWindows())
             {
@@ -177,51 +176,59 @@ internal sealed class CandidateWindowPresenter : IDisposable
 
             var window = (nint)anchor.WindowHandle;
             var thread = InputTargetMethods.GetWindowThreadProcessId(window, out var process);
-            if (!InputTargetMethods.IsWindow(window) || process != anchor.ProcessId || thread != anchor.ThreadId
-                || (anchor.WindowIdentityProperty is { } property
-                    && (anchor.WindowIdentity == 0 || (long)InputTargetMethods.GetWindowProperty(window, property) !=
-                        anchor.WindowIdentity))
-                || !InputTargetMethods.TryGetPhysicalPoint(window, anchor.ClientX, anchor.ClientY, out var current))
+            if (!InputTargetMethods.IsWindow(window) || process != anchor.ProcessId || thread != anchor.ThreadId)
             {
+                WriteStatus($"anchor-target-mismatch process={process} thread={thread}", state);
                 return false;
             }
-
-            var gui = new GuiThreadInfo { Size = (uint)System.Runtime.InteropServices.Marshal.SizeOf<GuiThreadInfo>() };
-            if (!InputTargetMethods.GetGUIThreadInfo(0, ref gui) || gui.Focus != window
-                                                                 || InputTargetMethods.GetWindowThreadProcessId
-                                                                     (gui.Active, out var foregroundProcess) != thread
-                                                                 || foregroundProcess != process)
+            if (anchor.WindowIdentityProperty is { } property)
             {
-                return false;
-            }
-
-            point = new PixelPoint(current.X, current.Y);
-            if (anchor.ClientExclusion is { } area)
-            {
-                if (area.Left > area.Right || area.Top > area.Bottom
-                                           || !InputTargetMethods.TryGetPhysicalPoint
-                                               (window, area.Left, area.Top, out var start)
-                                           || !InputTargetMethods.TryGetPhysicalPoint
-                                               (window, area.Right, area.Bottom, out var end)
-                                           || end.X < start.X || end.Y < start.Y)
+                var actual = (long)InputTargetMethods.GetWindowProperty(window, property);
+                if (anchor.WindowIdentity == 0 || actual != anchor.WindowIdentity)
                 {
+                    WriteStatus($"anchor-window-identity-mismatch actual={actual}", state);
                     return false;
                 }
-
-                exclusion = new PixelRect(start.X, start.Y, end.X - start.X, end.Y - start.Y);
+            }
+            var gui = new GuiThreadInfo { Size = (uint)System.Runtime.InteropServices.Marshal.SizeOf<GuiThreadInfo>() };
+            // Attached input queues can report an active top-level window owned by a different thread.
+            if (!InputTargetMethods.GetGUIThreadInfo(0, ref gui) || gui.Focus != window || gui.Active == 0 ||
+                GetAncestor(gui.Active, 2) != GetAncestor(window, 2))
+            {
+                WriteStatus($"anchor-focus-mismatch focus=0x{gui.Focus:X} active=0x{gui.Active:X}", state);
+                return false;
             }
 
-            if (anchor.ClientExcludeTop is { } clientTop
-                && InputTargetMethods.TryGetPhysicalPoint(window, anchor.ClientX, clientTop, out var upper))
+            if (anchor.IsValid && InputTargetMethods.TryGetPhysicalPoint(window, anchor.ClientX, anchor.ClientY, out var current))
             {
-                top = upper.Y;
+                point = new PixelPoint(current.X, current.Y);
+                top = anchor.ClientExcludeTop is { } clientTop &&
+                      InputTargetMethods.TryGetPhysicalPoint(window, anchor.ClientX, clientTop, out var upper)
+                    ? upper.Y : current.Y + anchor.ExcludeTop - anchor.ScreenY;
+
+                if (anchor.ClientExclusion is { } area && area.Left <= area.Right && area.Top <= area.Bottom &&
+                    InputTargetMethods.TryGetPhysicalPoint(window, area.Left, area.Top, out var start) &&
+                    InputTargetMethods.TryGetPhysicalPoint(window, area.Right, area.Bottom, out var end) &&
+                    end.X > start.X && end.Y > start.Y)
+                {
+                    exclusion = new PixelRect(start.X, start.Y, end.X - start.X, end.Y - start.Y);
+                }
             }
             else
             {
-                top = current.Y + anchor.ExcludeTop - anchor.ScreenY;
+                usedFallback = true;
+                if (InputTargetMethods.TryGetPhysicalPoint(window, 8, 24, out var origin))
+                {
+                    point = new PixelPoint(origin.X, origin.Y);
+                }
+                else if (!anchor.IsValid)
+                {
+                    point = _window.Screens.Primary?.WorkingArea.Position ?? default;
+                }
+                top = point.Y;
             }
         }
-        else if (state.Anchor is not null || (state.AnchorX == 0 && state.AnchorY == 0))
+        else if (state.AnchorX == 0 && state.AnchorY == 0)
         {
             WriteStatus("hidden-no-valid-anchor", state);
             return false;
@@ -241,6 +248,9 @@ internal sealed class CandidateWindowPresenter : IDisposable
         );
         return true;
     }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll", ExactSpelling = true)]
+    private static extern nint GetAncestor(nint window, uint flags);
 
     private void HideWindow()
     {

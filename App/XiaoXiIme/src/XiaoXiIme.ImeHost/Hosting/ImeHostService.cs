@@ -54,7 +54,7 @@ public sealed class ImeHostService : IDisposable
     )
         : this
         (
-            new ProductSettingsStore(productSettingsPath), options, dictionaryPackagePath, userDictionaryPath,
+            new ProductSettingsStore(productSettingsPath, allowReadOnly: true), options, dictionaryPackagePath, userDictionaryPath,
             inputScheme, hostBaseDirectory
         )
     {
@@ -117,7 +117,9 @@ public sealed class ImeHostService : IDisposable
         _userDictionarySaveCoordinator = new UserDictionaryLearningCoordinator
         (
             userDictionary,
-            (entries, token) => UserDictionaryStore.SaveAsync(runtimeDictionary.UserDictionaryPath, entries, token)
+            runtimeDictionary.UserDictionaryLoad is { Error: not null, IsolatedCorruptFilePath: null }
+                ? static (_, _) => Task.CompletedTask
+                : (entries, token) => UserDictionaryStore.SaveAsync(runtimeDictionary.UserDictionaryPath, entries, token)
         );
         var initialContext = new ImeContext
         (
@@ -523,8 +525,7 @@ public sealed class ImeHostService : IDisposable
             if (request.SessionId.IsUnspecified && request.FocusWindowHandle is { } focusWindow)
             {
                 var matches = _anchors.Where
-                (pair => pair.Value.IsValid
-                         && pair.Value.WindowHandle == focusWindow
+                (pair => pair.Value.WindowHandle == focusWindow
                          && pair.Value.ProcessId == request.FocusProcessId
                 ).Select(pair => pair.Key).ToArray();
                 if (request.FocusProcessId is { } pid && _activeTargets.TryGetValue((pid, focusWindow), out var active))

@@ -20,10 +20,20 @@ internal static class ProductUiShutdown
                 return true;
             }
 
-            using (var client = new NamedPipeClientStream(".", pipeName, PipeDirection.Out, PipeOptions.CurrentUserOnly))
+            try
             {
+                using var client = new NamedPipeClientStream(".", pipeName, PipeDirection.Out, PipeOptions.CurrentUserOnly);
                 client.Connect(3000);
                 client.WriteByte(2);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or TimeoutException)
+            {
+                if (WaitForExit(mutex, 0))
+                {
+                    return true;
+                }
+
+                throw;
             }
 
             if (WaitForExit(mutex, 5000))

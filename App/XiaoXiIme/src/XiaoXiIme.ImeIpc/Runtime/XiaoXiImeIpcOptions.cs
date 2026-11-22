@@ -18,6 +18,9 @@ public sealed record XiaoXiImeIpcOptions
 
     public static XiaoXiImeIpcOptions Default { get; } = new(DefaultServerName);
 
+    /// <summary>Optional total budget for connecting and receiving a response.</summary>
+    public TimeSpan? OperationTimeout { get; init; }
+
     public TimeSpan EffectiveConnectTimeout => ConnectTimeout ?? DefaultConnectTimeout;
 
     public TimeSpan EffectiveRequestTimeout => RequestTimeout ?? DefaultRequestTimeout;

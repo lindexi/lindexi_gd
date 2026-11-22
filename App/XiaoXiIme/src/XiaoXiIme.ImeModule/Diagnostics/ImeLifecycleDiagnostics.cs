@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using System.Security;
 using XiaoXiIme.Foundation;
 using XiaoXiIme.ImeInterop;
 
@@ -10,7 +9,9 @@ internal static unsafe class ImeLifecycleDiagnostics
     private static readonly Lock SyncRoot = new();
 
     // The failure reporter itself must never throw back into the native caller.
-    internal static void RecordBoundaryFailure(string source, Exception error)
+    internal static void RecordBoundaryFailure(string source, Exception exception) => RecordFailure(source, exception);
+
+    internal static void RecordFailure(string source, Exception? exception = null, int errorCode = 0)
     {
         try
         {
@@ -33,12 +34,12 @@ internal static unsafe class ImeLifecycleDiagnostics
 
                 using var writer = new StreamWriter(stream);
                 writer.WriteLine($"{DateTimeOffset.UtcNow:O} PID={Environment.ProcessId} {source} " +
-                                 $"{error.GetType().FullName} HRESULT=0x{error.HResult:X8}\n{error.StackTrace}");
+                                 $"{exception?.GetType().FullName} Code=0x{(exception?.HResult ?? errorCode):X8}\n{exception?.StackTrace}");
             }
         }
-        catch (Exception loggingError)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine(loggingError.GetType().Name);
+            // Do not report logger failures through another potentially throwing sink.
         }
     }
 
@@ -89,33 +90,9 @@ internal static unsafe class ImeLifecycleDiagnostics
             }
         }
         // Optional diagnostics must not turn an expected environment or file failure into an export failure.
-        catch (IOException error)
+        catch (Exception)
         {
-            System.Diagnostics.Debug.WriteLine(error);
-        }
-        catch (UnauthorizedAccessException error)
-        {
-            System.Diagnostics.Debug.WriteLine(error);
-        }
-        catch (ArgumentException error)
-        {
-            System.Diagnostics.Debug.WriteLine(error);
-        }
-        catch (NotSupportedException error)
-        {
-            System.Diagnostics.Debug.WriteLine(error);
-        }
-        catch (SecurityException error)
-        {
-            System.Diagnostics.Debug.WriteLine(error);
-        }
-        catch (DllNotFoundException error)
-        {
-            System.Diagnostics.Debug.WriteLine(error);
-        }
-        catch (EntryPointNotFoundException error)
-        {
-            System.Diagnostics.Debug.WriteLine(error);
+            // Diagnostics must not change the result of an IMM32 operation.
         }
     }
 

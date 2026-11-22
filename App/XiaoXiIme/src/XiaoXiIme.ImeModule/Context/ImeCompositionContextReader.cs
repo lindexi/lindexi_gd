@@ -34,6 +34,8 @@ public sealed unsafe class ImeCompositionContextReader
             var context = (InputContext*)pointer;
             if ((context->FdwInit & initConversion) == 0)
             {
+                // Default to Chinese on first initialization; preserve later open/close choices.
+                context->FOpen = 1;
                 context->FdwConversion = ImeConstants.ImeCmodeNative;
                 context->FdwInit |= initConversion;
             }

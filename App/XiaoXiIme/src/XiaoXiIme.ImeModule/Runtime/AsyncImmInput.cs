@@ -12,7 +12,8 @@ internal static class AsyncImmInput
     private static readonly ConcurrentDictionary<ImeSessionId, Session> Sessions = new();
     private static readonly ConcurrentDictionary<ImeSessionId, long> SuspendedGenerations = new();
     private static readonly string ReplyPipe = $"XiaoXiIme_Input_{Environment.ProcessId}_{Guid.NewGuid():N}";
-    private static readonly Lazy<XiaoXiImeIpcClient> Client = new(() => new XiaoXiImeIpcClient(ReplyPipe, Receive));
+    private static readonly Lazy<XiaoXiImeIpcClient> Client = new(() => new XiaoXiImeIpcClient(ReplyPipe, Receive,
+        XiaoXiImeIpcOptions.Default with { OperationTimeout = XiaoXiImeIpcOptions.DefaultRequestTimeout }));
     private static readonly Channel<ImeInputEvent> Input = Channel.CreateUnbounded<ImeInputEvent>(new() { SingleReader = true });
     private static readonly Task Sender = Task.Run(SendAsync);
     [ThreadStatic] private static nint t_dispatchWindow;
@@ -39,6 +40,10 @@ internal static class AsyncImmInput
 
     internal static bool Enqueue(HImc context, ImeKey key)
     {
+        if (!ImeIpcCircuit.Shared.TryEnter(out var circuitGeneration))
+        {
+            return false;
+        }
         var id = ImeInputIdentity.Resolve(context);
         var anchor = ImeCandidateAnchorReader.Read(context, id);
         if (anchor is null || anchor.WindowHandle == 0 || anchor.WindowHandle != (long)GetFocus())
@@ -51,20 +56,42 @@ internal static class AsyncImmInput
             t_dispatchWindow = ImeUiWindowClass.CreateDispatchWindow();
             if (t_dispatchWindow == 0)
             {
-                System.Diagnostics.Trace.TraceError($"[AsyncImmInput][CreateWindow] SessionId={id}; Win32Error={Marshal.GetLastPInvokeError()}");
+                ImeLifecycleDiagnostics.RecordFailure("AsyncImmInput.CreateWindow", errorCode: Marshal.GetLastPInvokeError());
                 return false;
             }
         }
 
         var dispatchWindow = t_dispatchWindow;
-        var session = Sessions.GetOrAdd(id, _ => new Session(context, (nint)anchor.WindowHandle, dispatchWindow));
+        var session = Sessions.GetOrAdd(id, _ => new Session(context, (nint)anchor.WindowHandle, dispatchWindow, circuitGeneration));
+        if (session.CircuitGeneration != circuitGeneration || session.Failed)
+        {
+            return false;
+        }
         SuspendedGenerations.TryRemove(id, out var resumeGeneration);
         var request = new ImeProcessKeyRequest
             (key, id, session.Generation, Interlocked.Increment(ref session.Sent), anchor, resumeGeneration);
-        return Input.Writer.TryWrite(new ImeInputEvent(ReplyPipe, request));
+        if (Input.Writer.TryWrite(new ImeInputEvent(ReplyPipe, request)))
+        {
+            return true;
+        }
+        Invalidate(id);
+        return false;
     }
 
     private static async Task SendAsync()
+    {
+        try
+        {
+            await SendCoreAsync().ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            Input.Writer.TryComplete();
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(SendAsync), exception);
+        }
+    }
+
+    private static async Task SendCoreAsync()
     {
         await foreach (var input in Input.Reader.ReadAllAsync().ConfigureAwait(false))
         {
@@ -76,35 +103,115 @@ internal static class AsyncImmInput
 
             try
             {
-                await Client.Value.SendInputAsync(input).ConfigureAwait(false);
-                _ = CheckDeadlineAsync(session, request);
+                if (!ImeIpcCircuit.Shared.TryEnter(out var generation) || generation != session.CircuitGeneration || session.Failed)
+                {
+                    FailInput(request);
+                    continue;
+                }
+                var started = System.Diagnostics.Stopwatch.GetTimestamp();
+                await Client.Value.SendInputAsync(input).WaitAsync(XiaoXiImeIpcOptions.DefaultRequestTimeout).ConfigureAwait(false);
+                var remaining = XiaoXiImeIpcOptions.DefaultRequestTimeout - System.Diagnostics.Stopwatch.GetElapsedTime(started);
+                _ = CheckDeadlineAsync(session, request, remaining);
             }
-            catch (Exception error) when (ImeHostBridge.IsHostUnavailable(error))
+            catch (Exception exception) when (ImeHostBridge.IsHostUnavailable(exception))
             {
-                System.Diagnostics.Trace.TraceError($"[AsyncImmInput][Send] SessionId={request.SessionId}; Error={error}");
-                Receive(new ImeProcessKeyResponse(new(ImeSessionSnapshot.Empty, null, true), request.SessionId, request.Generation, request.SequenceNumber), failed: true);
+                ImeLifecycleDiagnostics.RecordFailure(nameof(SendCoreAsync), exception);
+                if (FailInput(request) && (exception is TimeoutException || exception.InnerException is TimeoutException))
+                {
+                    RecordTimeout(session.CircuitGeneration);
+                }
+                else if (exception is not TimeoutException && exception.InnerException is not TimeoutException)
+                {
+                    ImeIpcCircuit.Shared.Complete(session.CircuitGeneration, timedOut: false);
+                }
+            }
+            catch (Exception exception)
+            {
+                ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(SendAsync), exception);
+                FailInput(request);
             }
         }
     }
 
-    private static async Task CheckDeadlineAsync(Session session, ImeProcessKeyRequest request)
+    private static async Task CheckDeadlineAsync(Session session, ImeProcessKeyRequest request, TimeSpan remaining)
     {
-        await Task.Delay(XiaoXiImeIpcOptions.DefaultRequestTimeout).ConfigureAwait(false);
-        if (Volatile.Read(ref session.Received) < request.SequenceNumber &&
-            Sessions.TryGetValue(request.SessionId, out var current) && ReferenceEquals(session, current))
+        try
         {
-            System.Diagnostics.Trace.TraceWarning($"[AsyncImmInput][Deadline] SessionId={request.SessionId}; SequenceNumber={request.SequenceNumber}");
-            Receive(new(new(ImeSessionSnapshot.Empty, null, true), request.SessionId, request.Generation, request.SequenceNumber), failed: true);
+            if (remaining > TimeSpan.Zero)
+            {
+                await Task.Delay(remaining).ConfigureAwait(false);
+            }
+            if (Volatile.Read(ref session.Received) < request.SequenceNumber &&
+                Sessions.TryGetValue(request.SessionId, out var current) && ReferenceEquals(session, current))
+            {
+                if (FailInput(request))
+                {
+                    RecordTimeout(session.CircuitGeneration);
+                }
+            }
+        }
+        catch (Exception exception)
+        {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(CheckDeadlineAsync), exception);
+            FailInput(request);
         }
     }
 
     private static void Receive(ImeProcessKeyResponse result) => Receive(result, failed: false);
 
-    private static void Receive(ImeProcessKeyResponse result, bool failed)
+    internal static void RecordTimeout(long generation)
+    {
+        if (!ImeIpcCircuit.Shared.Complete(generation, timedOut: true))
+        {
+            return;
+        }
+
+        ImeLifecycleDiagnostics.RecordFailure("IPC suspended for one minute after five consecutive timeouts");
+        SuspendedGenerations.Clear();
+        foreach (var (id, session) in Sessions)
+        {
+            if (session.CircuitGeneration == generation)
+            {
+                Receive(new(new(ImeSessionSnapshot.Empty, null, true), id, session.Generation), failed: true);
+            }
+        }
+    }
+
+    private static bool FailInput(ImeProcessKeyRequest request)
+    {
+        try
+        {
+            return Receive(new(new(ImeSessionSnapshot.Empty, null, true), request.SessionId, request.Generation, request.SequenceNumber), failed: true);
+        }
+        catch (Exception exception)
+        {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(FailInput), exception);
+            return false;
+        }
+    }
+
+    private static bool Receive(ImeProcessKeyResponse result, bool failed)
+    {
+        try
+        {
+            return ReceiveCore(result, failed);
+        }
+        catch (Exception exception)
+        {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(Receive), exception);
+            return false;
+        }
+    }
+
+    private static bool ReceiveCore(ImeProcessKeyResponse result, bool failed)
     {
         if (!Sessions.TryGetValue(result.SessionId, out var session) || result.Generation != session.Generation)
         {
-            return;
+            return false;
+        }
+        if (!failed && (!ImeIpcCircuit.Shared.TryEnter(out var generation) || generation != session.CircuitGeneration))
+        {
+            return false;
         }
 
         lock (session)
@@ -112,10 +219,18 @@ internal static class AsyncImmInput
             var sequence = result.ProcessedThroughSequence;
             if (session.Failed || (sequence > 0 && sequence <= session.Received))
             {
-                return;
+                return false;
             }
 
             session.Failed = failed;
+            if (failed)
+            {
+                session.Results.Clear();
+            }
+            else if (sequence > 0)
+            {
+                ImeIpcCircuit.Shared.Complete(session.CircuitGeneration, timedOut: false);
+            }
             if (sequence > 0 && !failed)
             {
                 Volatile.Write(ref session.Received, sequence);
@@ -125,8 +240,9 @@ internal static class AsyncImmInput
         if (!PostMessage(session.DispatchWindow, ImeUiWindowClass.ApplyInputMessage, 0, 0))
         {
             Invalidate(result.SessionId);
-            System.Diagnostics.Trace.TraceError($"[AsyncImmInput][PostResult] SessionId={result.SessionId}; Win32Error={Marshal.GetLastPInvokeError()}");
+            ImeLifecycleDiagnostics.RecordFailure("AsyncImmInput.PostResult", errorCode: Marshal.GetLastPInvokeError());
         }
+        return true;
     }
 
     internal static void ApplyPending(nint window)
@@ -146,6 +262,10 @@ internal static class AsyncImmInput
                     break;
                 }
 
+                if (!item.Failed && (!ImeIpcCircuit.Shared.TryEnter(out var generation) || generation != session.CircuitGeneration))
+                {
+                    continue;
+                }
                 var result = item.Result;
                 if (result.ProcessedThroughSequence > 0 && result.ProcessedThroughSequence <= session.Applied)
                 {
@@ -200,7 +320,7 @@ internal static class AsyncImmInput
         }
     }
 
-    private sealed class Session(HImc context, nint targetWindow, nint dispatchWindow)
+    private sealed class Session(HImc context, nint targetWindow, nint dispatchWindow, long circuitGeneration)
     {
         internal HImc Context { get; } = context;
         internal nint TargetWindow { get; } = targetWindow;
@@ -209,7 +329,8 @@ internal static class AsyncImmInput
         internal long Sent;
         internal long Applied;
         internal long Received;
-        internal bool Failed;
+        internal long CircuitGeneration { get; } = circuitGeneration;
+        internal volatile bool Failed;
         internal ConcurrentQueue<(ImeProcessKeyResponse Result, bool Failed)> Results { get; } = new();
     }
 

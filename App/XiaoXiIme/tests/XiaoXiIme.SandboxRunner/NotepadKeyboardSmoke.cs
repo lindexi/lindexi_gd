@@ -46,6 +46,19 @@ internal static class NotepadKeyboardSmoke
             await WaitAsync(() => !IsWindow(first), "initial Notepad close");
             var reopened = await OpenAsync(reopenedDocument);
             var second = await CheckAsync(reopened, reopenedDocument, "Reopened (no layout request)");
+            var imeWindow = ImmGetDefaultIMEWnd(FocusInfo(reopened).Focus);
+            const uint wmImeControl = 0x0283;
+            const nuint getOpenStatus = 0x0005;
+            const nuint setOpenStatus = 0x0006;
+            if (!second && imeWindow != 0 &&
+                SendMessageTimeout(imeWindow, wmImeControl, getOpenStatus, 0, 2, 300, out var isOpen) != 0 && isOpen == 0 &&
+                SendMessageTimeout(imeWindow, wmImeControl, setOpenStatus, 1, 2, 300, out _) != 0)
+            {
+                RequireForeground(reopened);
+                Send((0x11, false), (0x41, false), (0x41, true), (0x11, true), (0x08, false), (0x08, true));
+                await Task.Delay(200);
+                await CheckAsync(reopened, reopenedDocument, "Reopened (explicit open, no layout request)");
+            }
             PostMessage(reopened, 0x0010, 0, 0);
             return initial && second ? 0 : 1;
         }
@@ -82,7 +95,28 @@ internal static class NotepadKeyboardSmoke
         async Task<bool> CheckAsync(nint window, string path, string stage)
         {
             var gui = FocusInfo(window);
-            Record($"{stage}: Window=0x{window:X}; Focus=0x{gui.Focus:X}; HKL=0x{ActiveLayout(window):X}");
+            var editorThread = GetWindowThreadProcessId(gui.Focus, out var editorProcess);
+            Record($"{stage}: Window=0x{window:X}; Focus=0x{gui.Focus:X}; TopHKL=0x{ActiveLayout(window):X}; EditorHKL=0x{GetKeyboardLayout(editorThread):X}; EditorThread={editorThread}; EditorPID={editorProcess}");
+            var imeWindow = ImmGetDefaultIMEWnd(gui.Focus);
+            if (imeWindow != 0 && SendMessageTimeout(imeWindow, 0x0283, 0x0005, 0, 2, 300, out var openStatus) != 0)
+            {
+                Record($"{stage}: DefaultImeWindow=0x{imeWindow:X}; OpenStatus={openStatus}");
+            }
+            else
+            {
+                Record($"{stage}: DefaultImeWindow=0x{imeWindow:X}; OpenStatus=<unknown>");
+            }
+            using var editor = Process.GetProcessById((int)editorProcess);
+            try
+            {
+                var ime = editor.Modules.Cast<ProcessModule>().FirstOrDefault(module =>
+                    string.Equals(module.ModuleName, "XiaoXiIme.ime", StringComparison.OrdinalIgnoreCase));
+                Record($"{stage}: LoadedIme={ime?.FileName ?? "<none>"}");
+            }
+            catch (System.ComponentModel.Win32Exception exception)
+            {
+                Record($"{stage}: Could not inspect loaded modules; Win32Error={exception.NativeErrorCode}");
+            }
             RequireForeground(window);
             Send((0x4B, false), (0x4B, true), (0x41, false), (0x41, true), (0x49, false), (0x49, true));
             var candidateShown = false;
@@ -168,6 +202,11 @@ internal static class NotepadKeyboardSmoke
         [FieldOffset(4)] internal uint Flags;
         [FieldOffset(24)] private nint _alignment;
     }
+
+    [DllImport("imm32.dll")]
+    private static extern nint ImmGetDefaultIMEWnd(nint window);
+    [DllImport("user32.dll", EntryPoint = "SendMessageTimeoutW", ExactSpelling = true)]
+    private static extern nint SendMessageTimeout(nint window, uint message, nuint wParam, nint lParam, uint flags, uint timeout, out nuint result);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern uint SendInput(uint count, Input[] input, int size);

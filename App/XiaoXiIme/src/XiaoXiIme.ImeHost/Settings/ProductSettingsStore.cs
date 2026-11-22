@@ -8,7 +8,7 @@ namespace XiaoXiIme.ImeHost;
 /// <summary>Owns durable product preferences for Host and isolated dictionary debug mode.</summary>
 public sealed class ProductSettingsStore : IDisposable
 {
-    private readonly FileStream _writerLock;
+    private readonly FileStream? _writerLock;
     private bool _disposed;
     private readonly string _path;
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -24,7 +24,11 @@ public sealed class ProductSettingsStore : IDisposable
     private readonly bool _readOnly;
 
     /// <summary>Opens preferences with an exclusive writer lock.</summary>
-    public ProductSettingsStore(string? path)
+    public ProductSettingsStore(string? path) : this(path, allowReadOnly: false)
+    {
+    }
+
+    internal ProductSettingsStore(string? path, bool allowReadOnly)
     {
         _path = Path.GetFullPath
         (
@@ -37,13 +41,21 @@ public sealed class ProductSettingsStore : IDisposable
         var identity = OperatingSystem.IsWindows() ? _path.ToUpperInvariant() : _path;
         var lockName = Convert.ToHexString
             (System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(identity)));
-        var lockDirectory = Path.Combine(Path.GetTempPath(), "XiaoXiIme-settings-writers");
-        Directory.CreateDirectory(lockDirectory);
-        // Keep the lock file: deleting it could let another writer lock a different inode.
-        _writerLock = new FileStream
-        (
-            Path.Combine(lockDirectory, lockName + ".lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None
-        );
+        try
+        {
+            var lockDirectory = Path.Combine(Path.GetTempPath(), "XiaoXiIme-settings-writers");
+            Directory.CreateDirectory(lockDirectory);
+            // Keep the lock file: deleting it could let another writer lock a different inode.
+            _writerLock = new FileStream
+            (
+                Path.Combine(lockDirectory, lockName + ".lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None
+            );
+        }
+        catch (Exception exception) when (allowReadOnly && exception is (IOException or UnauthorizedAccessException))
+        {
+            _readOnly = true;
+            _loadError = ImeProductSettingsError.StorageUnavailable;
+        }
         try
         {
             if (!File.Exists(_path))
@@ -70,6 +82,11 @@ public sealed class ProductSettingsStore : IDisposable
         }
         catch (JsonException)
         {
+            if (_writerLock is null)
+            {
+                return;
+            }
+
             _loadError = ImeProductSettingsError.InvalidSettings;
             try
             {
@@ -259,7 +276,7 @@ public sealed class ProductSettingsStore : IDisposable
             }
 
             _disposed = true;
-            _writerLock.Dispose();
+            _writerLock?.Dispose();
         }
         finally
         {

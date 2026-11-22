@@ -34,6 +34,26 @@ public class ImeLifecycleDiagnosticsTests
         }
     }
 
+    [Fact]
+    public unsafe void ImeSetActiveContext_WhenLogPathIsADirectoryThenSucceeds()
+    {
+        var directory = Directory.CreateTempSubdirectory("XiaoXiIme-log-");
+        const string variable = "XIAOXIIME_LIFECYCLE_LOG";
+        var previous = Environment.GetEnvironmentVariable(variable);
+        try
+        {
+            Environment.SetEnvironmentVariable(variable, directory.FullName);
+            delegate* unmanaged[Stdcall]<nint, int, int> export = &ImeExports.ImeSetActiveContext;
+
+            Assert.Equal(1, export(0, 1));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(variable, previous);
+            directory.Delete();
+        }
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("C:\\invalid|ime-log.txt")]

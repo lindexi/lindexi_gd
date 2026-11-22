@@ -57,6 +57,18 @@ public class InputTargetLifecycleTests
     }
 
     [Fact]
+    public async Task HostStillProcessesKeysWhenSettingsWriterIsBusy()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "XiaoXiIme-target-tests", Guid.NewGuid().ToString("N"), "settings.json");
+        using var writer = new ProductSettingsStore(path);
+        using var host = new ImeHostService(productSettingsPath: path);
+
+        var input = await host.ProcessKeyAsync(new ImeProcessKeyRequest(ImeKey.FromCharacter('n'), new("first")));
+
+        Assert.True(input.Result.Handled);
+    }
+
+    [Fact]
     public async Task ActivationWithoutKeyPublishesAnchor()
     {
         using var host = CreateHost();
@@ -71,6 +83,32 @@ public class InputTargetLifecycleTests
                 )
             )).Anchor?.ScreenX
         );
+    }
+
+    [Fact]
+    public async Task FocusedKeyAnchorWithoutCoordinatesStillResolvesItsSession()
+    {
+        using var host = CreateHost();
+        var target = Update("first", 1);
+        await host.ProcessKeyAsync(new ImeProcessKeyRequest(ImeKey.FromCharacter('n'), target.SessionId,
+            Anchor: target.Anchor! with { IsValid = false }));
+
+        var state = await host.GetUiStateAsync(new ImeUiStateRequest(FocusWindowHandle: 123, FocusProcessId: 456));
+
+        Assert.Equal(target.SessionId, state.SessionId);
+    }
+
+    [Fact]
+    public async Task AnchorWithoutCoordinatesDoesNotResolveForAnotherWindow()
+    {
+        using var host = CreateHost();
+        var target = Update("first", 1);
+        await host.ProcessKeyAsync(new ImeProcessKeyRequest(ImeKey.FromCharacter('n'), target.SessionId,
+            Anchor: target.Anchor! with { IsValid = false }));
+
+        var state = await host.GetUiStateAsync(new ImeUiStateRequest(FocusWindowHandle: 124, FocusProcessId: 456));
+
+        Assert.Null(state.Anchor);
     }
 
     [Fact]

@@ -75,9 +75,8 @@ public sealed class XiaoXiImeIpcClient : IDisposable
     /// <summary>Sends input without waiting for the conversion result.</summary>
     public async Task SendInputAsync(ImeInputEvent input)
     {
-        var proxy = await GetClientProxyAsync().ConfigureAwait(false);
-        await WithTimeout(proxy.GetResponseAsync<ImeDeliveryReceipt>(XiaoXiImeIpcRoutes.InputEvent, input),
-            _options.EffectiveRequestTimeout).ConfigureAwait(false);
+        await SendOnceAsync(proxy => proxy.GetResponseAsync<ImeDeliveryReceipt>(XiaoXiImeIpcRoutes.InputEvent, input))
+            .ConfigureAwait(false);
     }
 
     public async Task ConnectAsync()
@@ -357,8 +356,7 @@ public sealed class XiaoXiImeIpcClient : IDisposable
         {
             try
             {
-                var proxy = await GetClientProxyAsync().ConfigureAwait(false);
-                return await WithTimeout(sendAsync(proxy), _options.EffectiveRequestTimeout).ConfigureAwait(false);
+                return await SendOnceAsync(sendAsync).ConfigureAwait(false);
             }
             catch (Exception exception) when (attempt < _options.EffectiveRetryCount)
             {
@@ -372,8 +370,33 @@ public sealed class XiaoXiImeIpcClient : IDisposable
             throw lastException;
         }
 
-        var finalProxy = await GetClientProxyAsync().ConfigureAwait(false);
-        return await WithTimeout(sendAsync(finalProxy), _options.EffectiveRequestTimeout).ConfigureAwait(false);
+        return await SendOnceAsync(sendAsync).ConfigureAwait(false);
+    }
+
+    private async Task<T> SendOnceAsync<T>(Func<JsonIpcDirectRoutedClientProxy, Task<T>> sendAsync)
+    {
+        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+        var connection = GetClientProxyAsync();
+        var timeout = _options.EffectiveRequestTimeout;
+        JsonIpcDirectRoutedClientProxy proxy;
+        if (_options.OperationTimeout is { } budget)
+        {
+            proxy = await connection.WaitAsync(budget).ConfigureAwait(false);
+            var remaining = budget - System.Diagnostics.Stopwatch.GetElapsedTime(started);
+            if (remaining <= TimeSpan.Zero)
+            {
+                throw new TimeoutException("IME IPC operation timed out before sending the request.");
+            }
+            if (timeout <= TimeSpan.Zero || remaining < timeout)
+            {
+                timeout = remaining;
+            }
+        }
+        else
+        {
+            proxy = await connection.ConfigureAwait(false);
+        }
+        return await WithTimeout(sendAsync(proxy), timeout).ConfigureAwait(false);
     }
 
     private static async Task<T> WithTimeout<T>(Task<T> task, TimeSpan timeout)

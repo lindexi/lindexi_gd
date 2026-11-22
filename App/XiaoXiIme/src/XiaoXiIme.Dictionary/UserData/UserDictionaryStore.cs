@@ -22,20 +22,14 @@ public static class UserDictionaryStore
         }
 
         var fullPath = Path.GetFullPath(path);
-        if (!File.Exists(fullPath))
-        {
-            return new UserDictionaryLoadResult([], null, null);
-        }
-
         try
         {
-            var fileInfo = new FileInfo(fullPath);
-            if (fileInfo.Length <= 0 || fileInfo.Length > MaxFileLength)
+            using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (stream.Length <= 0 || stream.Length > MaxFileLength)
             {
                 throw new InvalidDataException(DictionaryResources.InvalidUserDictionary);
             }
 
-            using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var document = JsonSerializer.Deserialize
                 (stream, UserDictionaryJsonSerializerContext.Default.UserDictionaryDocument);
             if (document is null || document.FormatVersion != FormatVersion || document.Entries is null ||
@@ -56,11 +50,18 @@ public static class UserDictionaryStore
 
             return new UserDictionaryLoadResult(document.Entries, null, null);
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException
-                                              or InvalidDataException)
+        catch (Exception exception) when (exception is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return new UserDictionaryLoadResult([], null, null);
+        }
+        catch (Exception exception) when (exception is JsonException or InvalidDataException)
         {
             var isolatedPath = IsolateCorruptFile(fullPath);
             return new UserDictionaryLoadResult([], exception.Message, isolatedPath);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return new UserDictionaryLoadResult([], exception.Message, null);
         }
     }
 

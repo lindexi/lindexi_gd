@@ -148,7 +148,8 @@ public static class ImeModuleRuntime
     /// <summary>Checks ownership of already layout-resolved input using the shared core contract.</summary>
     public static bool ShouldProcessTranslatedKey(ImeKey key, HImc inputContext)
     {
-        if (key.Kind == ImeKeyKind.Other || !s_compositionContextReader.IsReceivingChinese(inputContext))
+        if (!ImeIpcCircuit.Shared.TryEnter(out _) || key.Kind == ImeKeyKind.Other ||
+            !s_compositionContextReader.IsReceivingChinese(inputContext))
         {
             return false;
         }
@@ -205,15 +206,23 @@ public static class ImeModuleRuntime
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern nint GetFocus();
 
-    internal static void SetActiveContext(HImc inputContext, bool active)
+    internal static void SetActiveContext(HImc inputContext, bool active) =>
+        UpdateActiveContext(inputContext, active, refreshOnly: false);
+
+    private static void UpdateActiveContext(HImc inputContext, bool active, bool refreshOnly)
     {
         if (!OperatingSystem.IsWindows() || inputContext.Value == 0 || !ImeInputIdentity.UsesNativeContext)
         {
             return;
         }
 
+        ImeInputTargetUpdate update;
         lock (SyncRoot)
         {
+            if (refreshOnly && !s_activeContexts.Contains(inputContext))
+            {
+                return;
+            }
             if (active)
             {
                 s_compositionContextReader.InitializeConversionMode(inputContext);
@@ -229,28 +238,18 @@ public static class ImeModuleRuntime
             {
                 AsyncImmInput.Invalidate(sessionId, suspend: true);
             }
-            GetBridge().UpdateInputTarget
+            update = new ImeInputTargetUpdate
             (
-                new ImeInputTargetUpdate
-                (
-                    ImeInputIdentity.OwnerId,
-                    ImeInputIdentity.NextSequence(), sessionId, $"{unchecked((ulong)inputContext.Value):x}", active,
-                    ImeCandidateAnchorReader.Read(inputContext, sessionId)
-                )
+                ImeInputIdentity.OwnerId,
+                ImeInputIdentity.NextSequence(), sessionId, $"{unchecked((ulong)inputContext.Value):x}", active,
+                ImeCandidateAnchorReader.Read(inputContext, sessionId)
             );
         }
+        GetBridge().UpdateInputTarget(update);
     }
 
-    internal static void RefreshInputTarget(HImc inputContext)
-    {
-        lock (SyncRoot)
-        {
-            if (s_activeContexts.Contains(inputContext))
-            {
-                SetActiveContext(inputContext, true);
-            }
-        }
-    }
+    internal static void RefreshInputTarget(HImc inputContext) =>
+        UpdateActiveContext(inputContext, active: true, refreshOnly: true);
 
     internal static void SetBridgeForTesting(ImeHostBridge? bridge)
     {
