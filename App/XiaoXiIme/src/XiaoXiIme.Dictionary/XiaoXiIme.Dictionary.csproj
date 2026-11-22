@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Sources\xiaoxiime-project-terms.phonetic.tsv">
+    <EmbeddedResource Include="..\..\data\dictionaries\phonetic\xiaoxiime-project-terms.phonetic.tsv">
       <LogicalName>XiaoXiIme.Dictionary.xiaoxiime-project-terms.phonetic.tsv</LogicalName>
     </EmbeddedResource>
   </ItemGroup>

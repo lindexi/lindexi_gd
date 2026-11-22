@@ -125,9 +125,9 @@ public class DictionaryCandidateRankingTests
         (
             [
                 new DictionaryCandidate
-                    ("小希", "xx", 100, DictionaryCandidateSourceKind.System, DictionaryCandidateMatchKind.Exact),
+                    ("你好", "nh", 100, DictionaryCandidateSourceKind.System, DictionaryCandidateMatchKind.Exact),
                 new DictionaryCandidate
-                    ("小希", "xiao xi", 100, DictionaryCandidateSourceKind.System, DictionaryCandidateMatchKind.Exact),
+                    ("你好", "ni hao", 100, DictionaryCandidateSourceKind.System, DictionaryCandidateMatchKind.Exact),
             ],
             maxCount: 9
         );
@@ -137,13 +137,13 @@ public class DictionaryCandidateRankingTests
             ranked,
             candidate =>
             {
-                Assert.Equal("小希", candidate.Text);
-                Assert.Equal("xiao xi", candidate.Reading);
+                Assert.Equal("你好", candidate.Text);
+                Assert.Equal("ni hao", candidate.Reading);
             },
             candidate =>
             {
-                Assert.Equal("小希", candidate.Text);
-                Assert.Equal("xx", candidate.Reading);
+                Assert.Equal("你好", candidate.Text);
+                Assert.Equal("nh", candidate.Reading);
             }
         );
     }

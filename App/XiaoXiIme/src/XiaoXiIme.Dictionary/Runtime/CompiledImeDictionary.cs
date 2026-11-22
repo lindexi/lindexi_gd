@@ -71,21 +71,8 @@ public sealed class CompiledImeDictionary : IImeDictionary, IShapeDictionary, IS
         var projection = ImeProjectionDefinition.ForScheme(InputScheme);
         var syllables = projection.Entries.Select(p => p.Initial + p.Final).ToHashSet(StringComparer.Ordinal);
         var entries = new List<ImePhoneticEntry>();
-        var aliases = new List<ImeLookupAlias>();
         foreach (var candidate in _candidates)
         {
-            // This first-party abbreviation is registered alongside its canonical reading in the term source.
-            if (candidate.Text == "小希" && candidate.Reading == "xx")
-            {
-                if (!_candidates.Any(c => c.Text == "小希" && c.Reading == "xiao xi"))
-                {
-                    entries.Add(new("小希", "xiao xi", candidate.Score));
-                }
-
-                aliases.Add(new("小希", "xiao xi", "xx"));
-                continue;
-            }
-
             var reading = PhoneticInputProjection.CanonicalizeReading(candidate.Reading);
             if (!ImeLexiconValidator.IsReading(reading) || reading.Split(' ').Any(s => !syllables.Contains(s)))
             {
@@ -98,7 +85,6 @@ public sealed class CompiledImeDictionary : IImeDictionary, IShapeDictionary, IS
         return _lexicon = new InMemoryImeDictionary
         (
             new ImeLexicon(entries, _shapeEntries, projection, 0)
-                { LookupAliases = aliases }
         ).GetLexicon();
     }
 

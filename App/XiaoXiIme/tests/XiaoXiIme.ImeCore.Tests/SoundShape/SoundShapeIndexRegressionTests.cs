@@ -10,12 +10,12 @@ public class SoundShapeIndexRegressionTests
         var lexicon = InventedSoundShapeFixture.Lexicon("A") with
         {
             Entries = [new("你好", "ni hao", 120), new("我", "wo", 70)],
-            LookupAliases = [new("你好", "ni hao", "xx")],
+            LookupAliases = [new("你好", "ni hao", "hw")],
         };
         var context = new ImeContext(new InMemoryImeDictionary(lexicon), InventedSoundShapeFixture.Options(), null);
         Assert.Contains
         (
-            context.QueryInterpretations("xxwo").Candidates, c => c.Candidate.Text == "你好我" &&
+            context.QueryInterpretations("hwwo").Candidates, c => c.Candidate.Text == "你好我" &&
                                                                   c.Interpretations.Any
                                                                   (p => p.Kind == ImeInterpretationKind.Complete &&
                                                                         p.Segments.Select

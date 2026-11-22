@@ -226,7 +226,9 @@ internal static class Win32ImeEditScenario
     private const uint InputKeyboard = 1;
     private const uint KeyEventKeyUp = 0x0002;
     private const uint IaceDefault = 0x00000010;
-    private const ushort VirtualKeyX = 0x58;
+    private const ushort VirtualKeyN = 0x4E;
+    private const ushort VirtualKeyI = 0x49;
+    private const ushort VirtualKeySpace = 0x20;
     private const string ResetDiagnosticsExport = "XiaoXiImeResetKeystrokeDiagnostics";
     private const string GetDiagnosticsExport = "XiaoXiImeGetKeystrokeDiagnostics";
     private static readonly InputMessageTrace s_inputMessageTrace = new();
@@ -432,7 +434,7 @@ internal static class Win32ImeEditScenario
             (
                 0,
                 "STATIC",
-                "正在通过 SendInput 注入 xx 并验证输入法上屏",
+                "正在通过 SendInput 注入 ni 和空格并验证输入法上屏",
                 WsChild | WsVisible,
                 20,
                 20,
@@ -575,11 +577,11 @@ internal static class Win32ImeEditScenario
             }
 
             WriteStage("before-SendInput");
-            InjectXxKeystrokes();
+            InjectCandidateSelectionKeystrokes();
             WriteStage("after-SendInput");
             Console.WriteLine
             (
-                $"ACTION real-ime-keystroke-commit: injected xx through SendInput. SetForegroundWindow={foregroundSet}, Foreground=0x{foregroundBeforeInput:X}, Focus=0x{focusBeforeInput:X}."
+                $"ACTION real-ime-keystroke-commit: injected ni + Space through SendInput. SetForegroundWindow={foregroundSet}, Foreground=0x{foregroundBeforeInput:X}, Focus=0x{focusBeforeInput:X}."
             );
 
             var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(10);
@@ -589,17 +591,17 @@ internal static class Win32ImeEditScenario
                 PumpMessages();
                 CheckTarget(window, edit, keyboardLayout, observer);
                 text = GetWindowText(edit);
-                if (text == "小希")
+                if (text == "你")
                 {
                     var snapshot = diagnostics.GetSnapshot();
-                    if (snapshot.ImeProcessKeyCallCount < 2 || snapshot.ImeToAsciiExCallCount < 2)
+                    if (snapshot.ImeProcessKeyCallCount < 3 || snapshot.ImeToAsciiExCallCount < 3)
                     {
                         throw new InvalidOperationException
                             ($"The text committed, but the IME call trace was incomplete. {snapshot}");
                     }
 
                     Console.WriteLine($"DIAGNOSTICS real-ime-keystroke-commit native-calls: {snapshot}");
-                    ObserveStable(window, edit, keyboardLayout, observer, "小希", expectedResults: 1);
+                    ObserveStable(window, edit, keyboardLayout, observer, "你", expectedResults: 1);
                     return;
                 }
 
@@ -608,7 +610,7 @@ internal static class Win32ImeEditScenario
 
             throw new InvalidOperationException
             (
-                $"Timed out after injecting 'xx' through SendInput. Expected the EDIT control text to be '小希', but it was '{text}'. {GetImeState(edit, keyboardLayout)} {s_inputMessageTrace} {diagnostics.GetSnapshot()}"
+                $"Timed out after injecting 'ni + Space' through SendInput. Expected the EDIT control text to be '你', but it was '{text}'. {GetImeState(edit, keyboardLayout)} {s_inputMessageTrace} {diagnostics.GetSnapshot()}"
             );
         }
 
@@ -1699,14 +1701,17 @@ internal static class Win32ImeEditScenario
         }
     }
 
-    private static void InjectXxKeystrokes()
+    private static void InjectCandidateSelectionKeystrokes()
     {
+        // 'ni' has the same keys in full pinyin and Natural Double Pinyin.
         Input[] inputs =
         [
-            Input.Keyboard(VirtualKeyX, 0),
-            Input.Keyboard(VirtualKeyX, KeyEventKeyUp),
-            Input.Keyboard(VirtualKeyX, 0),
-            Input.Keyboard(VirtualKeyX, KeyEventKeyUp),
+            Input.Keyboard(VirtualKeyN, 0),
+            Input.Keyboard(VirtualKeyN, KeyEventKeyUp),
+            Input.Keyboard(VirtualKeyI, 0),
+            Input.Keyboard(VirtualKeyI, KeyEventKeyUp),
+            Input.Keyboard(VirtualKeySpace, 0),
+            Input.Keyboard(VirtualKeySpace, KeyEventKeyUp),
         ];
         var sent = SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<Input>());
         if (sent != inputs.Length)

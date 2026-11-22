@@ -512,7 +512,7 @@ public class ImeExportsTests
         (_ =>
             {
                 conversionCalled = true;
-                return [new ImeCandidate("XiaoXiIme", "xx")];
+                return [new ImeCandidate("IME", "ai mu yi")];
             }
         );
         ImeModuleRuntime.SetReverseConversionListHandlerForTesting
@@ -569,7 +569,7 @@ public class ImeExportsTests
         (_ =>
             {
                 conversionCalled = true;
-                return [new ImeCandidate("XiaoXiIme", "xx")];
+                return [new ImeCandidate("IME", "ai mu yi")];
             }
         );
         ImeModuleRuntime.SetReverseConversionListHandlerForTesting

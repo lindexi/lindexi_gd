@@ -48,8 +48,6 @@ public class ProductionSchemeLifecycleTests(ProductionDictionaryFixture fixture)
         Assert.Equal("你好", (await restarted.ProcessKeyAsync(new ImeKey(ImeKeyKind.Space))).CommitText);
         var dictionary = Load(scheme);
         Assert.Contains(dictionary.Query(new ImeDictionaryQuery(input)), candidate => candidate.Text == "你好");
-        Assert.Contains(new ImeLookupAlias("小希", "xiao xi", "xx"), dictionary.GetLexicon().LookupAliases);
-        Assert.Contains(dictionary.Query(new ImeDictionaryQuery("xx")), candidate => candidate.Text == "小希");
     }
 
     [Theory]

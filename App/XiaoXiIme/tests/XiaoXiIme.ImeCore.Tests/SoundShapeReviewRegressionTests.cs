@@ -112,18 +112,17 @@ public class SoundShapeReviewRegressionTests
     }
 
     [Fact]
-    public void R05_XxShortcutSetsEatConfirmationToken()
+    public void R05_ManualSelectionDoesNotEatConfirmationSpace()
     {
-        var lexicon = new ImeLexicon([new("小希", "xiao xi", 40)], [], ImeProjectionDefinition.FullPinyin, 1)
-            { LookupAliases = [new("小希", "xiao xi", "xx")] };
+        var lexicon = new ImeLexicon([new("你", "ni", 40)], [], ImeProjectionDefinition.FullPinyin, 1);
         var context = new ImeContext
-        (
-            new InMemoryImeDictionary(lexicon),
-            InventedSoundShapeFixture.Options(eat: true) with { EnableLegacyXx = true }, null
-        );
-        context.ProcessKey(ImeKey.FromCharacter('x'));
-        context.ProcessKey(ImeKey.FromCharacter('x'));
-        Assert.True(context.ProcessKey(new ImeKey(ImeKeyKind.Space)).Handled);
+            (new InMemoryImeDictionary(lexicon), InventedSoundShapeFixture.Options(eat: true), null);
+        SoundShapeFuzzyTests.Type(context, "ni");
+        context.ProcessKey(ImeKey.SelectCandidate(0));
+
+        var space = context.ProcessKey(new ImeKey(ImeKeyKind.Space));
+
+        Assert.False(space.Handled);
     }
 
     [Fact]

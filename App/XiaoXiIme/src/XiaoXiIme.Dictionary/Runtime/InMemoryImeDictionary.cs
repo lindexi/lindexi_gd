@@ -110,9 +110,6 @@ public sealed class InMemoryImeDictionary : IImeDictionary, IShapeDictionary
                 new("输入法", "shu ru fa", 100),
             ], [], ImeProjectionDefinition.FullPinyin, 1
         )
-        {
-            LookupAliases = [new("小希", "xiao xi", "xx")]
-        }
     );
 
     public IReadOnlyList<ImeCandidate> Query(string reading, int maxCount = 9)

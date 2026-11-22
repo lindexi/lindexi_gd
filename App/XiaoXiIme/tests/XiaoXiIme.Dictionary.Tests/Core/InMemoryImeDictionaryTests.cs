@@ -5,6 +5,22 @@ namespace XiaoXiIme.Dictionary.Tests;
 public class InMemoryImeDictionaryTests
 {
     [Fact]
+    public void CreateMinimalFallback_WhenQueriedByCanonicalReadingThenReturnsProjectTerm()
+    {
+        var dictionary = InMemoryImeDictionary.CreateMinimalFallback();
+
+        Assert.Equal("小希", Assert.Single(dictionary.Query("xiaoxi")).Text);
+    }
+
+    [Fact]
+    public void CreateMinimalFallback_WhenLexiconIsReadThenHasNoLookupAliases()
+    {
+        var dictionary = InMemoryImeDictionary.CreateMinimalFallback();
+
+        Assert.Empty(dictionary.GetLexicon().LookupAliases);
+    }
+
+    [Fact]
     public void Query_ReturnsCandidatesByScore()
     {
         var dictionary = new InMemoryImeDictionary
@@ -81,26 +97,26 @@ public class InMemoryImeDictionaryTests
         var dictionary = new InMemoryImeDictionary
         (
             [
-                new ImeCandidate("小希", "xx", 100),
-                new ImeCandidate("小希", "xiao xi", 100),
+                new ImeCandidate("你好", "nh", 100),
+                new ImeCandidate("你好", "ni hao", 100),
                 new ImeCandidate("你", "ni", 100),
             ]
         );
 
-        var candidates = dictionary.QueryByText("小希");
+        var candidates = dictionary.QueryByText("你好");
 
         Assert.Collection
         (
             candidates,
             candidate =>
             {
-                Assert.Equal("小希", candidate.Text);
-                Assert.Equal("xiao xi", candidate.Reading);
+                Assert.Equal("你好", candidate.Text);
+                Assert.Equal("ni hao", candidate.Reading);
             },
             candidate =>
             {
-                Assert.Equal("小希", candidate.Text);
-                Assert.Equal("xx", candidate.Reading);
+                Assert.Equal("你好", candidate.Text);
+                Assert.Equal("nh", candidate.Reading);
             }
         );
         Assert.Empty(dictionary.QueryByText(""));

@@ -86,7 +86,7 @@ public class SoundShapeLexiconContractTests
     [Fact]
     public void OldMemoryConstructor_CannotInventCanonicalReadingFromAbbreviation()
     {
-        var dictionary = new InMemoryImeDictionary([new ImeCandidate("小希", "xx", 100)]);
+        var dictionary = new InMemoryImeDictionary([new ImeCandidate("你好", "nh", 100)]);
 
         Assert.Throws<NotSupportedException>(() => dictionary.GetLexicon());
     }

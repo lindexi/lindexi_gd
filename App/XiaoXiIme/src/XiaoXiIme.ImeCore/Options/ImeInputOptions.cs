@@ -9,7 +9,6 @@ public sealed record ImeInputOptions
     public ImeCandidateSortPolicy SortPolicy { get; init; } = ImeCandidateSortPolicy.PhoneticFirst;
     public ImeAutoCommitPolicy AutoCommit { get; init; }
     public bool EatConfirmationSpace { get; init; }
-    public bool EnableLegacyXx { get; init; }
     public bool EnableStandaloneShape { get; init; }
     public IReadOnlyList<ImeFuzzyRule> FuzzyRules { get; init; } = [];
 }

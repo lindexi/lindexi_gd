@@ -88,7 +88,6 @@ public class UnifiedCoreContractTests
                 CasePolicy = ImeShapeCasePolicy.UppercaseOnly,
                 Placement = ImeShapePlacement.Both,
                 LengthPolicy = ImeShapeLengthPolicy.OptionalOneOrTwo,
-                EnableLegacyXx = true,
                 EnableStandaloneShape = true
             }, explicitLearning.Add
         );

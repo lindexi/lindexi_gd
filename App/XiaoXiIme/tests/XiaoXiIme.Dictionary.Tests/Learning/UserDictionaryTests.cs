@@ -146,27 +146,27 @@ public class UserDictionaryTests
             new InMemoryImeDictionary
             (
                 [
-                    new ImeCandidate("小希", "xx", 100),
-                    new ImeCandidate("小希", "xiao xi", 100),
+                    new ImeCandidate("你好", "nh", 100),
+                    new ImeCandidate("你好", "ni hao", 100),
                 ]
             )
         );
-        dictionary.Learn(new ImeDictionaryLearning(new ImeCandidate("小希", "xx"), "xx"));
+        dictionary.Learn(new ImeDictionaryLearning(new ImeCandidate("你好", "nh"), "nh"));
 
-        var result = dictionary.QueryByText("小希");
+        var result = dictionary.QueryByText("你好");
 
         Assert.Collection
         (
             result,
             candidate =>
             {
-                Assert.Equal("小希", candidate.Text);
-                Assert.Equal("xx", candidate.Reading);
+                Assert.Equal("你好", candidate.Text);
+                Assert.Equal("nh", candidate.Reading);
             },
             candidate =>
             {
-                Assert.Equal("小希", candidate.Text);
-                Assert.Equal("xiao xi", candidate.Reading);
+                Assert.Equal("你好", candidate.Text);
+                Assert.Equal("ni hao", candidate.Reading);
             }
         );
     }

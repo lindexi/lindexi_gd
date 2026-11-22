@@ -13,7 +13,7 @@ public class FullPackageReadingTests(ProductionDictionaryFixture fixture)
     [InlineData("abcDoublePinyin")]
     [InlineData("jiajiaDoublePinyin")]
     [InlineData("naturalCodeDoublePinyin")]
-    public void CompleteProductionPackagePreservesCanonicalEntriesAndRegisteredAlias(string scheme)
+    public void CompleteProductionPackagePreservesCanonicalEntries(string scheme)
     {
         var dictionary = DictionaryPackageLoader.Load
         (
@@ -30,7 +30,7 @@ public class FullPackageReadingTests(ProductionDictionaryFixture fixture)
                     using var reader = File.OpenText(path);
                     return PhoneticDictionarySourceParser.Parse(reader, path);
                 }
-            ).Where(e => e.Reading != "xx").Select(e => (e.Text, e.Reading)).Distinct().OrderBy
+            ).Select(e => (e.Text, e.Reading)).Distinct().OrderBy
                 (e => e.Text, StringComparer.Ordinal)
             .ThenBy(e => e.Reading, StringComparer.Ordinal).ToArray();
         Assert.Equal
@@ -41,7 +41,7 @@ public class FullPackageReadingTests(ProductionDictionaryFixture fixture)
     }
 
     [Fact]
-    public void ProductionRawReadingsContainOnlyTheRegisteredProjectAbbreviation()
+    public void ProductionRawReadingsContainOnlyCanonicalSyllables()
     {
         var root = Path.Combine(AppContext.BaseDirectory, "DictionarySources", "phonetic");
         var syllables = ImeProjectionDefinition.XiaoheDoublePinyin.Entries
@@ -50,15 +50,6 @@ public class FullPackageReadingTests(ProductionDictionaryFixture fixture)
             .Select(line => line.Split('\t')).Where(columns => columns.Length == 3)
             .Where(columns => columns[1].Split(' ').Any(s => !syllables.Contains(s)))
             .Select(columns => string.Join('|', columns)).ToArray();
-        Assert.Equal(new[] { "小希|xx|10000000" }, nonphonetic);
-    }
-
-    [Fact]
-    public void LegacyProjectAbbreviationHasExplicitCanonicalAssociation()
-    {
-        var path = Path.Combine(Path.GetTempPath(), "XiaoXiIme.Alias", Guid.NewGuid().ToString("N"));
-        DictionaryPackageCompiler.Compile(XiaoXiImeProjectTerms.Parse(), path);
-        var dictionary = DictionaryPackageLoader.Load(path);
-        Assert.Contains(new ImeLookupAlias("小希", "xiao xi", "xx"), dictionary.GetLexicon().LookupAliases);
+        Assert.Empty(nonphonetic);
     }
 }

@@ -223,9 +223,8 @@ public class LocalDictionaryCommandsTests
             (Path.Combine(targetDirectory, SeWzcDictionarySourceConverter.ProjectTermsOutputRelativePath));
         Assert.Contains("你好\tni hao\t100", phoneticSource);
         Assert.Contains("均订\tjun ding\t50", phoneticSource);
-        Assert.DoesNotContain("小希\txx\t10000000", phoneticSource);
+        Assert.DoesNotContain("小希\txiao xi\t", phoneticSource);
         Assert.Contains("小希\txiao xi\t10000000", projectTermsSource);
-        Assert.Contains("小希\txx\t10000000", projectTermsSource);
         Assert.Contains("小希输入法\txiao xi shu ru fa\t10000000", projectTermsSource);
         Assert.Contains("XiaoXiIme\txiao xi ai mu yi\t10000000", projectTermsSource);
         Assert.Contains("输入法核心\tshu ru fa he xin\t10000000", projectTermsSource);
@@ -315,8 +314,8 @@ public class LocalDictionaryCommandsTests
             (Path.Combine(hostOutputDirectory, DefaultDictionaryPackageBuilder.FullPinyinPackageDirectoryName));
         var xiaohe = DictionaryPackageLoader.Load
             (Path.Combine(hostOutputDirectory, DefaultDictionaryPackageBuilder.XiaoheDoublePinyinPackageRelativePath));
-        Assert.Equal("小希", Assert.Single(fullPinyin.Query(new ImeDictionaryQuery("xx"))).Text);
-        Assert.Equal("小希", Assert.Single(xiaohe.Query(new ImeDictionaryQuery("xx"))).Text);
+        Assert.Equal("小希", Assert.Single(fullPinyin.Query(new ImeDictionaryQuery("xiaoxi"))).Text);
+        Assert.Equal("小希", Assert.Single(xiaohe.Query(new ImeDictionaryQuery("xnxi"))).Text);
         Assert.Equal("均订", Assert.Single(xiaohe.Query(new ImeDictionaryQuery("jydk"))).Text);
         Assert.Equal("IME", Assert.Single(fullPinyin.Query(new ImeDictionaryQuery("aimuyi"))).Text);
         Assert.Equal("XiaoXiIme", Assert.Single(fullPinyin.Query(new ImeDictionaryQuery("xiaoxiaimuyi"))).Text);

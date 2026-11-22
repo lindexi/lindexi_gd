@@ -92,12 +92,6 @@ internal static class PhoneticInputProjection
             var layout = PhoneticSchemeCatalog.All.SingleOrDefault(item => item.SchemeId == inputScheme)?.Layout;
             if (layout?.ZeroInitialCodes is not null)
             {
-                if (reading == "xx")
-                {
-                    lookupKey = "xx";
-                    return true;
-                }
-
                 var codes = new List<string>();
                 foreach (var syllable in reading.Split
                              (' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))

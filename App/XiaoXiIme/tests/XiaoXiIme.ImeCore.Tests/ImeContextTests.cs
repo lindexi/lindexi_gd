@@ -146,42 +146,23 @@ public class ImeContextTests
     }
 
     [Fact]
-    public void ProcessKey_SecondXAutomaticallyCommitsXiaoXi()
-    {
-        var context = new ImeContext(InMemoryImeDictionary.CreateDefault());
-
-        var composingResult = context.ProcessKey(ImeKey.FromCharacter('x'));
-        var commitResult = context.ProcessKey(ImeKey.FromCharacter('x'));
-
-        Assert.True(composingResult.Handled);
-        Assert.Null(composingResult.CommitText);
-        Assert.True(composingResult.Snapshot.IsComposing);
-        Assert.Equal("x", composingResult.Snapshot.Composition.Reading);
-        Assert.True(commitResult.Handled);
-        Assert.Equal("小希", commitResult.CommitText);
-        Assert.False(commitResult.Snapshot.IsComposing);
-        Assert.Empty(commitResult.Snapshot.Candidates);
-    }
-
-    [Fact]
-    public void ProcessKey_WhenCompiledPackageContainsAbbreviationThenSecondXCommitsXiaoXi()
+    public void ProcessKey_WhenCompiledPackageContainsCandidateThenSpaceCommitsIt()
     {
         var packagePath = Path.Combine(Path.GetTempPath(), "XiaoXiIme.ImeCore.Tests", Guid.NewGuid().ToString("N"));
         DictionaryPackageCompiler.Compile
         (
-            [new PhoneticDictionaryEntry("小希", "xx", 100)],
+            [new PhoneticDictionaryEntry("你", "ni", 100)],
             packagePath,
-            new DictionaryPackageParameters { InputScheme = "xiaoheDoublePinyin" }
+            new DictionaryPackageParameters { InputScheme = DictionaryPackageLocations.XiaoheDoublePinyinInputScheme }
         );
         var context = new ImeContext(DictionaryPackageLoader.Load(packagePath));
+        context.ProcessKey(ImeKey.FromCharacter('n'));
+        var composition = context.ProcessKey(ImeKey.FromCharacter('i'));
 
-        var composingResult = context.ProcessKey(ImeKey.FromCharacter('x'));
-        var commitResult = context.ProcessKey(ImeKey.FromCharacter('x'));
+        var commit = context.ProcessKey(new ImeKey(ImeKeyKind.Space));
 
-        Assert.True(composingResult.Handled);
-        Assert.Null(composingResult.CommitText);
-        Assert.Equal("小希", commitResult.CommitText);
-        Assert.False(commitResult.Snapshot.IsComposing);
+        Assert.Null(composition.CommitText);
+        Assert.Equal(("你", false), (commit.CommitText, commit.Snapshot.IsComposing));
     }
 
     [Fact]
@@ -224,24 +205,24 @@ public class ImeContextTests
     }
 
     [Fact]
-    public void SetComposition_WhenCanonicalProjectTermIsReplacedThenDoesNotAutoCommitAbbreviation()
+    public void SetComposition_WhenCanonicalProjectTermIsReplacedThenDoesNotAutoCommit()
     {
         var packagePath = Path.Combine(Path.GetTempPath(), "XiaoXiIme.ImeCore.Tests", Guid.NewGuid().ToString("N"));
         DictionaryPackageCompiler.Compile(XiaoXiImeProjectTerms.Parse(), packagePath);
         var context = new ImeContext(DictionaryPackageLoader.Load(packagePath));
 
         var result = context.SetComposition("xiaoxiaimuyi");
-        var abbreviation = context.SetComposition("xx");
+        var replacement = context.SetComposition("xiaoxi");
         var cleared = context.SetComposition(string.Empty);
 
         Assert.True(result.Handled);
         Assert.Null(result.CommitText);
         Assert.Equal("xiaoxiaimuyi", result.Snapshot.Composition.Reading);
         Assert.Equal("XiaoXiIme", result.Snapshot.Candidates[0].Text);
-        Assert.True(abbreviation.Handled);
-        Assert.Null(abbreviation.CommitText);
-        Assert.Equal("xx", abbreviation.Snapshot.Composition.Reading);
-        Assert.Equal("小希", abbreviation.Snapshot.Candidates[0].Text);
+        Assert.True(replacement.Handled);
+        Assert.Null(replacement.CommitText);
+        Assert.Equal("xiaoxi", replacement.Snapshot.Composition.Reading);
+        Assert.Contains(replacement.Snapshot.Candidates, candidate => candidate.Text == "小希");
         Assert.True(cleared.Handled);
         Assert.False(cleared.Snapshot.IsComposing);
         Assert.Empty(cleared.Snapshot.Candidates);

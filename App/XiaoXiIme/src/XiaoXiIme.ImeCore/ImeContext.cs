@@ -17,7 +17,6 @@ public sealed partial class ImeContext
     private int _pageSize;
     private const int CandidatePageSize = 9;
     private const int MaxCandidateCount = 100;
-    private const string AutoCommitReading = "xx";
 
     public ImeContext(IImeDictionary dictionary, Action<ImeDictionaryLearning>? learn = null)
     {
@@ -31,7 +30,6 @@ public sealed partial class ImeContext
             CasePolicy = ImeShapeCasePolicy.UppercaseOnly,
             Placement = ImeShapePlacement.Both,
             LengthPolicy = ImeShapeLengthPolicy.OptionalOneOrTwo,
-            EnableLegacyXx = true,
             EnableStandaloneShape = true
         };
         ValidateProjection(lexicon, _options.FuzzyRules);
@@ -138,7 +136,7 @@ public sealed partial class ImeContext
 
     /// <summary>
     /// Replaces the current composition with the supplied input and refreshes candidates.
-    /// An empty string cancels composition. Unlike typed keys, this does not auto-commit abbreviations.
+    /// An empty string cancels composition. Replacement does not trigger automatic commit.
     /// </summary>
     public ImeProcessResult SetComposition(string composition)
     {
@@ -294,14 +292,6 @@ public sealed partial class ImeContext
         _caretIndex++;
         _selection = 0;
         RefreshCandidates();
-
-        if (_options.EnableLegacyXx && string.Equals(_reading, AutoCommitReading, StringComparison.Ordinal)
-                                    && _candidates.Count > 0)
-        {
-            var result = CommitCandidate(0);
-            _eatConfirmationSpace = result.CommitText is not null && _options.EatConfirmationSpace;
-            return result;
-        }
 
         if (appended && TryAutomaticCommit() is { } automatic)
         {

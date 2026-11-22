@@ -10,7 +10,6 @@ public class XiaoXiImeProjectTermsTests
         var entries = XiaoXiImeProjectTerms.Parse();
 
         Assert.Contains(entries, entry => entry.Text == "小希" && entry.Reading == "xiao xi");
-        Assert.Contains(entries, entry => entry.Text == "小希" && entry.Reading == "xx");
         Assert.Contains(entries, entry => entry.Text == "小希输入法" && entry.Reading == "xiao xi shu ru fa");
         Assert.Contains(entries, entry => entry.Text == "XiaoXiIme" && entry.Reading == "xiao xi ai mu yi");
         Assert.Contains(entries, entry => entry.Text == "输入法核心" && entry.Reading == "shu ru fa he xin");
@@ -41,7 +40,8 @@ public class XiaoXiImeProjectTermsTests
         Assert.Equal("XiaoXiIme", Assert.Single(fullPinyin.Query(new ImeDictionaryQuery("xiaoxiaimuyi"))).Text);
         Assert.Equal("XiaoXiIme", Assert.Single(xiaohe.Query(new ImeDictionaryQuery("xnxiaimuyi"))).Text);
         Assert.Empty(xiaohe.Query(new ImeDictionaryQuery("xiaoxiaimuyi")));
-        Assert.Equal("小希", Assert.Single(xiaohe.Query(new ImeDictionaryQuery("xx"))).Text);
+        Assert.Equal("小希", Assert.Single(fullPinyin.Query(new ImeDictionaryQuery("xiaoxi"))).Text);
+        Assert.Equal("小希", Assert.Single(xiaohe.Query(new ImeDictionaryQuery("xnxi"))).Text);
         Assert.Equal("IME", Assert.Single(xiaohe.Query(new ImeDictionaryQuery("aimuyi"))).Text);
     }
 

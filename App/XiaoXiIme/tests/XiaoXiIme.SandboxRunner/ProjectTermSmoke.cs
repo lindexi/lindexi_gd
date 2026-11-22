@@ -46,7 +46,7 @@ internal static class ProjectTermSmoke
             AssertText(fullPinyin, "xiaoxiaimuyi", "XiaoXiIme", queries);
             AssertText(xiaohe, "xnxiaimuyi", "XiaoXiIme", queries);
             AssertEmpty(xiaohe, "xiaoxiaimuyi", queries);
-            AssertText(xiaohe, "xx", "小希", queries);
+            AssertText(xiaohe, "xnxi", "小希", queries);
             AssertText(xiaohe, "aimuyi", "IME", queries);
             AssertComposition(fullPinyin, "xiaoxiaimuyi", "XiaoXiIme", queries);
             AssertCommit(fullPinyin, "xiaoxiaimuyi", "XiaoXiIme", queries);

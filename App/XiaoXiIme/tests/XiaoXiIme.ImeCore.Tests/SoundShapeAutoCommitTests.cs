@@ -169,34 +169,33 @@ public class SoundShapeAutoCommitTests
     }
 
     [Theory]
-    [InlineData(false, null, "xx")]
-    [InlineData(true, "小希", "")]
-    public void H09_NewModeXxTriggerIsExplicit(bool enabled, string? expected, string remaining)
+    [InlineData(ImeAutoCommitPolicy.Off)]
+    [InlineData(ImeAutoCommitPolicy.Four)]
+    public void H09_LookupAliasDoesNotTriggerAutomaticCommit(ImeAutoCommitPolicy policy)
     {
-        var lexicon = new ImeLexicon([new("小希", "xiao xi", 100)], [], ImeProjectionDefinition.FullPinyin, 1)
-            { LookupAliases = [new("小希", "xiao xi", "xx")] };
+        var lexicon = InventedSoundShapeFixture.Lexicon("N") with { LookupAliases = [new("你", "ni", "zr")] };
         var context = new ImeContext
         (
             new InMemoryImeDictionary(lexicon),
-            InventedSoundShapeFixture.Options() with { EnableLegacyXx = enabled }, null
+            InventedSoundShapeFixture.Options(length: ImeShapeLengthPolicy.RequiredTwo, auto: policy), null
         );
-        context.ProcessKey(ImeKey.FromCharacter('x'));
+        context.ProcessKey(ImeKey.FromCharacter('z'));
 
-        var result = context.ProcessKey(ImeKey.FromCharacter('x'));
+        var result = context.ProcessKey(ImeKey.FromCharacter('r'));
 
-        Assert.Equal((expected, remaining), (result.CommitText, result.Snapshot.Composition.Reading));
+        Assert.Equal(((string?)null, "zr"), (result.CommitText, result.Snapshot.Composition.Reading));
     }
 
     [Fact]
-    public void H09_DisabledXxCanStillBeManuallySelectedWithCanonicalLearning()
+    public void H09_ManualSelectionReportsCanonicalLearning()
     {
         var learning = new List<ImeDictionaryLearning>();
-        var lexicon = new ImeLexicon([new("小希", "xiao xi", 100)], [], ImeProjectionDefinition.FullPinyin, 1)
-            { LookupAliases = [new("小希", "xiao xi", "xx")] };
+        var lexicon = new ImeLexicon([new("小希", "xiao xi", 100)], [], ImeProjectionDefinition.FullPinyin, 1);
         var context = new ImeContext
             (new InMemoryImeDictionary(lexicon), InventedSoundShapeFixture.Options(), learning.Add);
-        SoundShapeFuzzyTests.Type(context, "xx");
-        context.SelectCandidate(context.QueryInterpretations("xx").Candidates.Single().SelectionId!.Value);
+        SoundShapeFuzzyTests.Type(context, "xiaoxi");
+        var candidate = context.QueryInterpretations("xiaoxi").Candidates.Single(c => c.Candidate.Text == "小希");
+        context.SelectCandidate(candidate.SelectionId!.Value);
 
         Assert.Equal((1, "xiao xi"), (learning.Count, learning.Single().Segments.Single().CanonicalReading));
     }

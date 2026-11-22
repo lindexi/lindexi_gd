@@ -96,7 +96,7 @@ public class ImeHostIpcIntegrationTests
     }
 
     [Fact(Timeout = 5_000)]
-    public async Task IpcClient_WhenSetCompositionReplacesReadingThenDoesNotAutoCommitAbbreviation()
+    public async Task IpcClient_WhenSetCompositionReplacesReadingThenDoesNotCommitAndCanClear()
     {
         var options = new XiaoXiImeIpcOptions($"XiaoXiIme_Test_{Guid.NewGuid():N}");
         var hostRoot = CreateHostLayout();
@@ -107,7 +107,7 @@ public class ImeHostIpcIntegrationTests
         await client.ConnectAsync();
 
         var result = await client.SetCompositionAsync("xiaoxiaimuyi");
-        var abbreviation = await client.SetCompositionAsync("xx");
+        var replacement = await client.SetCompositionAsync("aimuyi");
         var cleared = await client.SetCompositionAsync(string.Empty);
         var snapshot = await client.GetSnapshotAsync();
 
@@ -115,10 +115,10 @@ public class ImeHostIpcIntegrationTests
         Assert.Null(result.CommitText);
         Assert.Equal("xiaoxiaimuyi", result.Snapshot.Composition.Reading);
         Assert.Equal("XiaoXiIme", result.Snapshot.Candidates[0].Text);
-        Assert.True(abbreviation.Handled);
-        Assert.Null(abbreviation.CommitText);
-        Assert.Equal("xx", abbreviation.Snapshot.Composition.Reading);
-        Assert.Equal("小希", abbreviation.Snapshot.Candidates[0].Text);
+        Assert.True(replacement.Handled);
+        Assert.Null(replacement.CommitText);
+        Assert.Equal("aimuyi", replacement.Snapshot.Composition.Reading);
+        Assert.Contains(replacement.Snapshot.Candidates, candidate => candidate.Text == "IME");
         Assert.True(cleared.Handled);
         Assert.False(cleared.Snapshot.IsComposing);
         Assert.False(snapshot.IsComposing);

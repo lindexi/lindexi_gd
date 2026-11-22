@@ -296,7 +296,7 @@ internal static class ProductUiValidation
                         cleanup = "single-instance-exit-request-no-kill",
                         pending = new[]
                         {
-                            "xx-single-multi-HIMC", "bar-drag-menu", "active-native-composition-save",
+                            "bar-drag-menu", "active-native-composition-save",
                             "scheme-save-restart", "DPI-not-expanded"
                         }
                     }, new JsonSerializerOptions { WriteIndented = true }
