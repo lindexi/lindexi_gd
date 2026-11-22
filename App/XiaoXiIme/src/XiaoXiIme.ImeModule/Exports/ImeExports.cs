@@ -21,10 +21,18 @@ public static unsafe class ImeExports
     [UnmanagedCallersOnly(EntryPoint = "ImeInquire", CallConvs = [typeof(CallConvStdcall)])]
     public static int ImeInquire(ImeInquireInfo* inquireInfo, char* className, uint systemInfoFlags)
     {
-        ImeKeystrokeDiagnostics.RecordImeInquire();
-        return ImeUiWindowClass.EnsureRegistered()
-            ? ImeInquireManaged(inquireInfo, className, systemInfoFlags)
-            : 0;
+        try
+        {
+            ImeKeystrokeDiagnostics.RecordImeInquire();
+            return ImeUiWindowClass.EnsureRegistered()
+                ? ImeInquireManaged(inquireInfo, className, systemInfoFlags)
+                : 0;
+        }
+        catch (Exception error)
+        {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeInquire), error);
+            return 0;
+        }
     }
 
     internal static int ImeInquireManaged(ImeInquireInfo* inquireInfo, char* className, uint systemInfoFlags)
@@ -330,10 +338,10 @@ public static unsafe class ImeExports
 
     internal static int ImeSelectManaged(nint inputContext, int select)
     {
-        ImeKeystrokeDiagnostics.RecordImeSelect();
-        ImeLifecycleDiagnostics.Record("ImeSelect", inputContext, select, "before");
         try
         {
+            ImeKeystrokeDiagnostics.RecordImeSelect();
+            ImeLifecycleDiagnostics.Record("ImeSelect", inputContext, select, "before");
             if (select != 0)
             {
                 ImeModuleRuntime.ActivateSelectedContext(new HImc(inputContext));
@@ -349,8 +357,9 @@ public static unsafe class ImeExports
 
             return 1;
         }
-        catch
+        catch (Exception error)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeSelect), error);
             return 0;
         }
     }
@@ -363,18 +372,19 @@ public static unsafe class ImeExports
 
     internal static int ImeSetActiveContextManaged(nint inputContext, int active)
     {
-        ImeKeystrokeDiagnostics.RecordImeSetActiveContext();
-        ImeLifecycleDiagnostics.Record("ImeSetActiveContext", inputContext, active, "before");
         try
         {
+            ImeKeystrokeDiagnostics.RecordImeSetActiveContext();
+            ImeLifecycleDiagnostics.Record("ImeSetActiveContext", inputContext, active, "before");
             ImeModuleRuntime.SetActiveContext(new HImc(inputContext), active != 0);
             // Activation changes focus ownership, not the lifetime of this HIMC's composition.
             // Explicit cancellation, deselection and destruction perform their own cleanup.
             ImeLifecycleDiagnostics.Record("ImeSetActiveContext", inputContext, active, "after");
             return 1;
         }
-        catch
+        catch (Exception error)
         {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ImeSetActiveContext), error);
             return 0;
         }
     }

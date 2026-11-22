@@ -88,6 +88,15 @@ public sealed class IntegrationTestRunnerTests
         Assert.False(result.Succeeded);
     }
 
+    [Fact]
+    public void ImeHostProcessManager_WhenReadinessIsCanceledThenReportsCancellation()
+    {
+        var result = ImeHostProcessManager.WaitUntilReady(XiaoXiImeIpcOptions.Default,
+            cancellationToken: new CancellationToken(canceled: true));
+
+        Assert.Contains("startup was canceled", result.Message);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

@@ -72,6 +72,11 @@ internal static class Program
                 {
                     var parameters = new HostParameters { Size = (nuint) sizeof(HostParameters), HostPath = host, DotnetRoot = runtime };
                     nint context = 0;
+                    var traceStartup = Environment.GetEnvironmentVariable("XIAOXIIME_STARTUP_TRACE") == "1";
+                    if (traceStartup)
+                    {
+                        Console.Error.WriteLine($"[Launcher][Startup] Initializing {hostPath}");
+                    }
                     var status = initialize(argv.Length, arguments, &parameters, &context);
                     if (status < 0 || context == 0)
                     {
@@ -81,6 +86,10 @@ internal static class Program
 
                     try
                     {
+                        if (traceStartup)
+                        {
+                            Console.Error.WriteLine($"[Launcher][Startup] Entering {assemblyPath}");
+                        }
                         var result = run(context);
                         if (result < 0)
                         {

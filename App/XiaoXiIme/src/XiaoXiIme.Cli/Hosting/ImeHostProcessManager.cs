@@ -5,16 +5,17 @@ namespace XiaoXiIme.Cli;
 
 internal sealed class ImeHostProcessManager : IDisposable
 {
+    private static readonly TimeSpan StartupTimeout = TimeSpan.FromSeconds(30);
     private Process? _process;
 
-    public static ImeHostProcessStartResult StartDetached(string executablePath, string? serverName = null)
+    public static ImeHostProcessStartResult StartDetached(string executablePath, string? serverName = null, Action<string>? startupLog = null)
     {
         using var manager = new ImeHostProcessManager();
-        var result = manager.Start(executablePath, keepRunning: true, serverName: serverName);
+        var result = manager.Start(executablePath, keepRunning: true, serverName: serverName, startupLog: startupLog);
         return result;
     }
 
-    public ImeHostProcessStartResult Start(string executablePath, bool keepRunning = false, string? serverName = null)
+    public ImeHostProcessStartResult Start(string executablePath, bool keepRunning = false, string? serverName = null, Action<string>? startupLog = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(executablePath);
 
@@ -42,6 +43,7 @@ internal sealed class ImeHostProcessManager : IDisposable
             startInfo.ArgumentList.Add("ui");
         }
         startInfo.ArgumentList.Add(ipcOptions.ServerName);
+        startInfo.Environment["XIAOXIIME_STARTUP_TRACE"] = "1";
 
         try
         {
@@ -63,35 +65,38 @@ internal sealed class ImeHostProcessManager : IDisposable
             return new ImeHostProcessStartResult(false, $"Unable to start the IME host: {fullPath}", fullPath);
         }
 
-        _process.BeginOutputReadLine();
-        _process.BeginErrorReadLine();
-        if (_process.HasExited)
+        var process = _process;
+        var processId = process.Id;
+        startupLog?.Invoke($"[Install][WaitForUi] PID={processId}; Server={ipcOptions.ServerName}; Timeout={StartupTimeout.TotalSeconds}s");
+        var stdout = new StartupOutput(startupLog, "stdout");
+        var stderr = new StartupOutput(startupLog, "stderr");
+        process.OutputDataReceived += (_, line) => stdout.Append(line.Data);
+        process.ErrorDataReceived += (_, line) => stderr.Append(line.Data);
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        using var exited = new CancellationTokenSource();
+        void OnExit(object? sender, EventArgs args) => exited.Cancel();
+        process.Exited += OnExit;
+        process.EnableRaisingEvents = true;
+        var ready = WaitUntilReady(ipcOptions, StartupTimeout, exited.Token);
+        process.Exited -= OnExit;
+        if (!ready.Succeeded || process.HasExited)
         {
-            var exitCode = _process.ExitCode;
-            _process.Dispose();
-            _process = null;
-            return new ImeHostProcessStartResult
-            (
-                false,
-                $"IME host exited immediately with code {exitCode}: {fullPath}",
-                fullPath
-            );
-        }
-
-        var processId = _process.Id;
-        var ready = WaitUntilReady(ipcOptions);
-        if (!ready.Succeeded)
-        {
+            int? childExitCode = process.HasExited ? process.ExitCode : null;
             Stop();
+            if (childExitCode is { } exitCode)
+            {
+                ready = ready with { Message = $"IME host exited during startup with code {exitCode}: {fullPath}" };
+            }
 
-            return new ImeHostProcessStartResult
-            (
-                false,
-                ready.Message,
-                fullPath,
-                processId
-            );
+            stdout.StopCollecting();
+            stderr.StopCollecting();
+            return new ImeHostProcessStartResult(false, ready.Message, fullPath, processId,
+                ChildExitCode: childExitCode, StandardOutput: stdout.Text, StandardError: stderr.Text);
         }
+
+        stdout.StopCollecting();
+        stderr.StopCollecting();
 
         if (keepRunning)
         {
@@ -105,11 +110,14 @@ internal sealed class ImeHostProcessManager : IDisposable
             $"IME host started and is ready: {fullPath}",
             fullPath,
             processId,
-            ready.HostStatus
+            ready.HostStatus,
+            StandardOutput: stdout.Text,
+            StandardError: stderr.Text
         );
     }
 
-    internal static ImeHostProcessStartResult WaitUntilReady(XiaoXiImeIpcOptions options, TimeSpan? timeout = null)
+    internal static ImeHostProcessStartResult WaitUntilReady
+        (XiaoXiImeIpcOptions options, TimeSpan? timeout = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(options);
 
@@ -117,7 +125,7 @@ internal sealed class ImeHostProcessManager : IDisposable
         try
         {
             // IPC connection initialization must not capture a blocked caller synchronization context.
-            var status = Task.Run(() => client.WaitUntilReadyAsync(timeout)).GetAwaiter().GetResult();
+            var status = Task.Run(() => client.WaitUntilReadyAsync(timeout, cancellationToken)).GetAwaiter().GetResult();
             var fallbackNote = status.IsUsingFallbackDictionary
                 ? " Host is using the minimal fallback dictionary."
                 : string.Empty;
@@ -128,6 +136,10 @@ internal sealed class ImeHostProcessManager : IDisposable
                 string.Empty,
                 HostStatus: status
             );
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return new ImeHostProcessStartResult(false, "IME host startup was canceled.", string.Empty);
         }
         catch (Exception exception) when (exception is TimeoutException
                                               or IOException
@@ -155,8 +167,8 @@ internal sealed class ImeHostProcessManager : IDisposable
             if (!_process.HasExited)
             {
                 _process.Kill(entireProcessTree: true);
-                _process.WaitForExit(5_000);
             }
+            _process.WaitForExit(5_000);
         }
         catch (Exception exception) when
             (exception is InvalidOperationException or System.ComponentModel.Win32Exception)
@@ -172,5 +184,35 @@ internal sealed class ImeHostProcessManager : IDisposable
     public void Dispose()
     {
         Stop();
+    }
+
+    private sealed class StartupOutput(Action<string>? log, string channel)
+    {
+        private const int Limit = 16_384;
+        private readonly System.Text.StringBuilder _text = new();
+        private bool _collect = true;
+
+        internal string Text
+        {
+            get { lock (_text) { return _text.ToString(); } }
+        }
+
+        internal void Append(string? line)
+        {
+            lock (_text)
+            {
+                if (_collect && line is not null && _text.Length < Limit)
+                {
+                    var captured = line[..Math.Min(line.Length, Limit - _text.Length)];
+                    _text.AppendLine(captured);
+                    log?.Invoke($"[ImeUI][{channel}] {captured}");
+                }
+            }
+        }
+
+        internal void StopCollecting()
+        {
+            lock (_text) { _collect = false; }
+        }
     }
 }

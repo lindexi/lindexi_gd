@@ -154,7 +154,16 @@ internal static class AsyncImmInput
 
                 ImeLifecycleDiagnostics.Record("AsyncInput", session.Context.Value, result.Result.Handled ? 1 : 0,
                     $"apply sequence={result.ProcessedThroughSequence} commit={result.Result.CommitText?.Length ?? 0} failed={item.Failed}");
-                ImeExports.ApplyAsyncInputResult(session.Context, id, result.Result);
+                try
+                {
+                    ImeExports.ApplyAsyncInputResult(session.Context, id, result.Result);
+                }
+                catch (Exception error)
+                {
+                    Invalidate(id);
+                    ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(ApplyPending), error);
+                    break;
+                }
                 if (result.ProcessedThroughSequence > 0)
                 {
                     session.Applied = result.ProcessedThroughSequence;

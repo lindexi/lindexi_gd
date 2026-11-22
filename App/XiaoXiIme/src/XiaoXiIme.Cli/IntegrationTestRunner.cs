@@ -198,12 +198,13 @@ internal static class IntegrationTestRunner
                     hostStart.Succeeded,
                     hostStart.Succeeded ? 0 : 1,
                     hostStart.Message,
-                    "",
-                    "",
+                    hostStart.StandardOutput,
+                    hostStart.StandardError,
                     new
                     {
                         hostStart.ExecutablePath,
                         hostStart.ProcessId,
+                        hostStart.ChildExitCode,
                         hostStart.HostStatus?.IsRunning,
                         hostStart.HostStatus?.IsUsingFallbackDictionary,
                         hostStart.HostStatus?.DictionaryInputScheme,

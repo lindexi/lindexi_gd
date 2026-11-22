@@ -131,6 +131,7 @@ internal sealed class CandidateWindowPresenter : IDisposable
         if (!state.IsVisible)
         {
             HideWindow();
+            WriteStatus("no-visible-candidates", state);
             return;
         }
 
@@ -269,7 +270,7 @@ internal sealed class CandidateWindowPresenter : IDisposable
             File.WriteAllText
             (
                 temporary,
-                $"{visibility}|{state.CompositionText}|{state.Candidates.Count}|{state.Selection}|{DateTimeOffset.UtcNow:O}|session={state.SessionId}|source={state.Anchor?.Source}|failure={state.Anchor?.Failure}|position={_window.Position}|scaling={_window.RenderScaling}|firstCandidate={_window.GetFirstCandidateCenter()}"
+                $"{visibility}|{state.CompositionText}|{state.Candidates.Count}|{state.Selection}|{DateTimeOffset.UtcNow:O}|session={state.SessionId}|source={state.Anchor?.Source}|failure={state.Anchor?.Failure}|anchor={state.Anchor}|position={_window.Position}|scaling={_window.RenderScaling}|firstCandidate={_window.GetFirstCandidateCenter()}"
             );
             File.Move(temporary, _statusFilePath, true);
         }

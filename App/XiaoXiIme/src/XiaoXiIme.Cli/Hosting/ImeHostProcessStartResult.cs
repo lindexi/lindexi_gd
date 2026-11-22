@@ -8,5 +8,8 @@ internal sealed record ImeHostProcessStartResult
     string Message,
     string ExecutablePath,
     int? ProcessId = null,
-    ImeHostStatus? HostStatus = null
+    ImeHostStatus? HostStatus = null,
+    int? ChildExitCode = null,
+    string StandardOutput = "",
+    string StandardError = ""
 );

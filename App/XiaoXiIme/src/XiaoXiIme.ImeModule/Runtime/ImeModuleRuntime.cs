@@ -195,7 +195,8 @@ public static class ImeModuleRuntime
         s_compositionContextReader.InitializeConversionMode(inputContext);
         var session = ImeInputIdentity.Resolve(inputContext);
         var anchor = ImeCandidateAnchorReader.Read(inputContext, session);
-        if (anchor is { IsValid: true } && anchor.WindowHandle == (long)GetFocus())
+        // A focused HIMC can be active before the application supplies a caret or composition position.
+        if (anchor is { WindowHandle: not 0 } && anchor.WindowHandle == (long)GetFocus())
         {
             SetActiveContext(inputContext, true);
         }
@@ -215,6 +216,7 @@ public static class ImeModuleRuntime
         {
             if (active)
             {
+                s_compositionContextReader.InitializeConversionMode(inputContext);
                 s_activeContexts.Add(inputContext);
             }
             else

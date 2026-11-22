@@ -19,6 +19,10 @@ internal static class Program
                 identity = "experience\0" + DictionaryDebugSettings.ResolvePath(path).ToUpperInvariant();
             }
 
+            if (!experience)
+            {
+                TraceStartup("Acquiring UI instance");
+            }
             try
             {
                 entry = new ProductUiEntry(args, identity);
@@ -41,6 +45,10 @@ internal static class Program
                 return;
             }
 
+            if (!experience)
+            {
+                TraceStartup(entry is null ? $"UI instance unavailable: {App.StartupError}" : "Initializing Avalonia");
+            }
             App.ProductEntry = entry;
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
@@ -48,6 +56,14 @@ internal static class Program
         {
             App.ProductEntry = null;
             entry?.Dispose();
+        }
+    }
+
+    internal static void TraceStartup(string message)
+    {
+        if (Environment.GetEnvironmentVariable("XIAOXIIME_STARTUP_TRACE") == "1")
+        {
+            Console.Error.WriteLine($"[ImeUI][Startup] {message}");
         }
     }
 

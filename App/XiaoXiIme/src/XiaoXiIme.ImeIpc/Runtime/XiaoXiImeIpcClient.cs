@@ -107,6 +107,7 @@ public sealed class XiaoXiImeIpcClient : IDisposable
             var startedAt = DateTime.UtcNow;
             try
             {
+                await ConnectAsync().ConfigureAwait(false);
                 var status = await GetHostStatusAsync().ConfigureAwait(false);
                 if (status.IsRunning)
                 {
@@ -120,7 +121,8 @@ public sealed class XiaoXiImeIpcClient : IDisposable
                                                   or System.ComponentModel.Win32Exception
                                                   or InvalidOperationException)
             {
-                lastException = exception;
+                var stage = _clientProxy is null ? "connect to the server" : "receive GetHostStatus response";
+                lastException = new InvalidOperationException($"Could not {stage} ('{_options.ServerName}'): {exception.Message}", exception);
                 _clientProxy = null;
             }
 

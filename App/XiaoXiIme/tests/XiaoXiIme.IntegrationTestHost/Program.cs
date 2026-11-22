@@ -33,7 +33,10 @@ var scenarios = new (string Name, Func<Task> Run)[]
     ("real-ime-multi-himc-isolation", RunRealImeMultiHimcIsolationAsync),
 };
 
-foreach (var scenario in scenarios)
+var selectedScenarios = args is ["--keyboard-smoke"]
+    ? scenarios.Where(scenario => scenario.Name == "real-ime-keystroke-commit")
+    : scenarios;
+foreach (var scenario in selectedScenarios)
 {
     try
     {

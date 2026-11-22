@@ -9,6 +9,39 @@ internal static unsafe class ImeLifecycleDiagnostics
 {
     private static readonly Lock SyncRoot = new();
 
+    // The failure reporter itself must never throw back into the native caller.
+    internal static void RecordBoundaryFailure(string source, Exception error)
+    {
+        try
+        {
+            var localData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (!Path.IsPathFullyQualified(localData))
+            {
+                return;
+            }
+
+            var directory = Path.Combine(localData, "XiaoXiIme", "Logs");
+            Directory.CreateDirectory(directory);
+            lock (SyncRoot)
+            {
+                using var stream = new FileStream(Path.Combine(directory, "ime-boundary.log"), FileMode.Append,
+                    FileAccess.Write, FileShare.Read);
+                if (stream.Length >= 256 * 1024)
+                {
+                    return;
+                }
+
+                using var writer = new StreamWriter(stream);
+                writer.WriteLine($"{DateTimeOffset.UtcNow:O} PID={Environment.ProcessId} {source} " +
+                                 $"{error.GetType().FullName} HRESULT=0x{error.HResult:X8}\n{error.StackTrace}");
+            }
+        }
+        catch (Exception loggingError)
+        {
+            System.Diagnostics.Debug.WriteLine(loggingError.GetType().Name);
+        }
+    }
+
     internal static void Record(string source, nint himc, int parameter, string phase)
     {
         try

@@ -39,6 +39,10 @@ internal static class Program
             "g02-recover-evidence" when args.Length == 1 => G02EvidenceRecovery.Run(),
             "g02-native-validation" when args.Length == 3 => G02NativeValidation.RunAsync
                 (ResolveSandboxPath(args[1]), ResolveSandboxPath(args[2])).GetAwaiter().GetResult(),
+            "install-notepad-smoke" when args.Length == 3 => Imm32Validation.RunInstallSmokeAsync
+                (ResolveSandboxPath(args[1]), ResolveSandboxPath(args[2]), notepad: true).GetAwaiter().GetResult(),
+            "install-keyboard-smoke" when args.Length == 3 => Imm32Validation.RunInstallSmokeAsync
+                (ResolveSandboxPath(args[1]), ResolveSandboxPath(args[2])).GetAwaiter().GetResult(),
             "imm32-validation" when args.Length == 3 => Imm32Validation.RunAsync
                 (ResolveSandboxPath(args[1]), ResolveSandboxPath(args[2])).GetAwaiter().GetResult(),
             ProjectTermSmokeCommand when args.Length == 2 => ProjectTermSmoke.Run(args[1]),

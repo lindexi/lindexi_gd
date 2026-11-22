@@ -7,7 +7,7 @@ namespace XiaoXiIme.Cli;
 
 internal static class ProductUiShutdown
 {
-    internal static bool Stop(TextWriter error)
+    internal static bool Stop(TextWriter error, Action<string>? log = null)
     {
         var serverName = XiaoXiImeIpcOptions.DefaultServerName;
         var identity = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Environment.UserName + "\0" + serverName)));
@@ -31,13 +31,19 @@ internal static class ProductUiShutdown
                 return true;
             }
 
-            error.WriteLine($"[ProductUi][Stop] ServerName={serverName}; Error=The input service did not exit.");
+            ReportError($"[ProductUi][Stop] ServerName={serverName}; Error=The input service did not exit.");
             return false;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or TimeoutException)
         {
-            error.WriteLine($"[ProductUi][Stop] ServerName={serverName}; Error={exception}");
+            ReportError($"[ProductUi][Stop] ServerName={serverName}; Error={exception}");
             return false;
+        }
+
+        void ReportError(string message)
+        {
+            log?.Invoke(message);
+            error.WriteLine(message);
         }
     }
 

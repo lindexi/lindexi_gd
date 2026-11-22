@@ -7,6 +7,114 @@ namespace XiaoXiIme.SandboxRunner;
 
 internal static class Imm32Validation
 {
+    internal static async Task<int> RunInstallSmokeAsync(string distribution, string output, bool notepad = false)
+    {
+        Directory.CreateDirectory(output);
+        var launcher = Path.Combine(distribution, "XiaoXiIme.exe");
+        var testHost = Path.Combine(distribution, "Tests", "XiaoXiIme.IntegrationTestHost.exe");
+        if (!OperatingSystem.IsWindows())
+        {
+            return 2;
+        }
+
+        using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+        var principal = new System.Security.Principal.WindowsPrincipal(identity);
+        var elevated = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+        await File.WriteAllLinesAsync(Path.Combine(output, "sandbox-preflight.txt"),
+        [
+            $"Machine={Environment.MachineName}",
+            $"Windows={Environment.OSVersion.Version}",
+            $"User={identity.Name}",
+            $"SessionId={Process.GetCurrentProcess().SessionId}",
+            $"Elevated={elevated}",
+        ]);
+        if (!elevated)
+        {
+            Console.Error.WriteLine("The sandbox runner must execute in an elevated interactive Windows session to test IME installation.");
+            return 2;
+        }
+
+        try
+        {
+            await File.WriteAllLinesAsync(Path.Combine(output, "legacy-g02-layouts.txt"), RemoveLegacyG02Layouts());
+        }
+        catch (Exception error) when (error is System.Security.SecurityException or UnauthorizedAccessException)
+        {
+            await File.WriteAllTextAsync(Path.Combine(output, "registry-preflight-error.txt"), error.ToString());
+            Console.Error.WriteLine(error.Message);
+            return 2;
+        }
+
+        if (await RunStageAsync("uninstall-old", launcher, "uninstall") != 0)
+        {
+            return 1;
+        }
+        var result = 1;
+        try
+        {
+            var installed = await RunStageAsync("install", launcher, "install");
+            result = installed != 0 ? installed : notepad
+                ? await NotepadKeyboardSmoke.RunAsync(output)
+                : await RunStageAsync("keyboard", testHost, "--keyboard-smoke");
+        }
+        finally
+        {
+            var cleanup = await RunStageAsync("uninstall", launcher, "uninstall");
+            if (result == 0)
+            {
+                result = cleanup;
+            }
+        }
+        return result;
+
+        async Task<int> RunStageAsync(string stage, string executable, string argument)
+        {
+            var info = new ProcessStartInfo(executable)
+            {
+                WorkingDirectory = distribution,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            info.ArgumentList.Add(argument);
+            info.Environment["XIAOXIIME_LIFECYCLE_LOG"] = Path.Combine(output, "ime-lifecycle.log");
+            if (notepad)
+            {
+                info.Environment["XIAOXIIME_UI_STATUS"] = Path.Combine(output, "notepad-candidate-status.txt");
+            }
+            using var process = Process.Start(info) ?? throw new InvalidOperationException($"Could not start {stage}.");
+            var stdout = new StringWriter();
+            var stderr = new StringWriter();
+            process.OutputDataReceived += (_, line) => { if (line.Data is not null) stdout.WriteLine(line.Data); };
+            process.ErrorDataReceived += (_, line) => { if (line.Data is not null) stderr.WriteLine(line.Data); };
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            var exited = await Task.Run(() => process.WaitForExit(45_000));
+            if (!exited)
+            {
+                process.Kill(entireProcessTree: true);
+                process.WaitForExit(5_000);
+            }
+            // Detached UI can outlive the CLI's inherited stream handles.
+            await Task.Delay(200);
+            await File.WriteAllTextAsync(Path.Combine(output, stage + ".stdout.txt"), stdout.ToString());
+            await File.WriteAllTextAsync(Path.Combine(output, stage + ".stderr.txt"), stderr.ToString());
+            var exitCode = exited ? process.ExitCode : 124;
+            await File.WriteAllTextAsync(Path.Combine(output, stage + ".exit.txt"), exitCode.ToString());
+            const string logPrefix = "[InstallLog] ";
+            if (executable == launcher)
+            {
+                var logPath = stdout.ToString().Split('\n').FirstOrDefault(line => line.StartsWith(logPrefix, StringComparison.Ordinal));
+                if (logPath is null || !File.Exists(logPath[logPrefix.Length..].Trim()))
+                {
+                    throw new IOException($"{stage}: ProgramData installation log was not written.");
+                }
+                File.Copy(logPath[logPrefix.Length..].Trim(), Path.Combine(output, stage + ".programdata.log"), overwrite: true);
+            }
+            return exitCode;
+        }
+    }
+
     internal static async Task<int> RunAsync(string distribution, string output)
     {
         Directory.CreateDirectory(output);

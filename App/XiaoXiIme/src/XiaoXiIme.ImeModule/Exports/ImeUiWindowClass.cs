@@ -23,31 +23,31 @@ internal static unsafe class ImeUiWindowClass
     [UnmanagedCallersOnly(EntryPoint = "UIWindowProcedure", CallConvs = [typeof(CallConvStdcall)])]
     private static nint UIWindowProcedure(nint window, uint message, nuint wParam, nint lParam)
     {
-        if (message == ApplyInputMessage)
+        try
         {
-            try
+            if (message == ApplyInputMessage)
             {
                 AsyncImmInput.ApplyPending(window);
+                return 0;
             }
-            catch (InvalidOperationException error)
+
+            // IMM may deliver activation through the UI window instead of the activation export.
+            if (message == 0x0281)
             {
-                System.Diagnostics.Trace.TraceError($"[AsyncImmInput][Apply] Window={window}; Error={error}");
+                var context = nint.Size == 4 ? GetWindowLong(window, 0) : GetWindowLongPtr(window, 0);
+                if (context != 0)
+                {
+                    ImeExports.ImeSetActiveContextManaged(context, wParam != 0 ? 1 : 0);
+                }
             }
+
+            return DefWindowProc(window, message, wParam, lParam);
+        }
+        catch (Exception error)
+        {
+            ImeLifecycleDiagnostics.RecordBoundaryFailure(nameof(UIWindowProcedure), error);
             return 0;
         }
-
-        // IMM also delivers activation through the IME UI window; an initial selection
-        // need not call the ImeSetActiveContext export with active=1.
-        if (message == 0x0281)
-        {
-            var context = GetWindowLongPtr(window, 0);
-            if (context != 0)
-            {
-                ImeExports.ImeSetActiveContextManaged(context, wParam != 0 ? 1 : 0);
-            }
-        }
-
-        return DefWindowProc(window, message, wParam, lParam);
     }
 
     internal static bool EnsureRegistered()
@@ -104,7 +104,10 @@ internal static unsafe class ImeUiWindowClass
     [DllImport("user32.dll", EntryPoint = "RegisterClassExW", SetLastError = true)]
     private static extern ushort RegisterClassEx(WindowClassEx* windowClass);
 
-    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongW", ExactSpelling = true)]
+    private static extern int GetWindowLong(nint window, int index);
+
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW", ExactSpelling = true)]
     private static extern nint GetWindowLongPtr(nint window, int index);
 
     [DllImport("user32.dll", EntryPoint = "CreateWindowExW", CharSet = CharSet.Unicode, SetLastError = true)]

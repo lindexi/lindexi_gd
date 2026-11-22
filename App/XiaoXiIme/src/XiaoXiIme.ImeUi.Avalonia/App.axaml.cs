@@ -105,12 +105,21 @@ public sealed partial class App : Application
             var options = positional.Length > 0 ? new XiaoXiImeIpcOptions(positional[0]) : XiaoXiImeIpcOptions.Default;
             var statusFilePath = positional.Length > 1 ? positional[1] : Environment.GetEnvironmentVariable("XIAOXIIME_UI_STATUS");
             var validationSettingsPath = Environment.GetEnvironmentVariable("XIAOXIIME_VALIDATION_PRODUCT_SETTINGS");
+            if (serve)
+            {
+                Program.TraceStartup($"Loading engine and dictionaries; server={options.ServerName}");
+            }
             var host = serve ? new ImeHostService
             (
                 options, productSettingsPath: validationSettingsPath,
                 userDictionaryPath: validationSettingsPath is null ? null : validationSettingsPath + ".user"
             ) : null;
-            host?.Start();
+            if (host is not null)
+            {
+                Program.TraceStartup("Starting IPC listener");
+                host.Start();
+                Program.TraceStartup("IPC listener started");
+            }
             desktop.Exit += (_, _) => host?.Dispose();
             var product = new ProductUiController(options);
             desktop.Exit += (_, _) => product.Dispose();
