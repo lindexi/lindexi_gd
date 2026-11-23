@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:demo="using:ToolTemplateDictionaryDemo"
+             x:Class="ToolTemplateDictionaryDemo.AvaloniaProbe">
+    <UserControl.DataTemplates>
+        <demo:AvaloniaSelector>
+            <demo:AvaloniaSelector.ToolItemTemplates>
+                <DataTemplate x:Key="ReadFileLines" x:DataType="demo:ToolItem">
+                    <TextBlock Text="{Binding OutputText}" />
+                </DataTemplate>
+            </demo:AvaloniaSelector.ToolItemTemplates>
+        </demo:AvaloniaSelector>
+    </UserControl.DataTemplates>
+</UserControl>
