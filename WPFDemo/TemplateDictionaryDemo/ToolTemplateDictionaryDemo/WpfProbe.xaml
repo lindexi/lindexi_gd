@@ -1,0 +1,14 @@
+<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:demo="clr-namespace:ToolTemplateDictionaryDemo"
+             x:Class="ToolTemplateDictionaryDemo.WpfProbe">
+    <UserControl.Resources>
+        <demo:WpfSelector x:Key="MessageParts">
+            <demo:WpfSelector.ToolItemTemplates>
+                <DataTemplate x:Key="ReadFileLines">
+                    <TextBlock Text="{Binding OutputText}" />
+                </DataTemplate>
+            </demo:WpfSelector.ToolItemTemplates>
+        </demo:WpfSelector>
+    </UserControl.Resources>
+</UserControl>
