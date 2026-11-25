@@ -13,7 +13,7 @@ public static class SourceDiagnostics
     public static string Describe(Uri source, string? nativeSource = null)
     {
         ArgumentNullException.ThrowIfNull(source);
-        if (!source.IsAbsoluteUri) throw new ArgumentException(SR.Get("AbsoluteUriRequired"), nameof(source));
+        if (!source.IsAbsoluteUri) throw new ArgumentException(SR.Current.AbsoluteUriRequired, nameof(source));
         string id = Convert.ToHexString(HMACSHA256.HashData(s_salt, Encoding.UTF8.GetBytes(source.AbsoluteUri)))[..16];
         string details =
             $"sourceId={id} sourceType={(source.IsFile ? "file" : "network")} original=[{Features(source.OriginalString)}] uri=[{Features(source.AbsoluteUri)}]";

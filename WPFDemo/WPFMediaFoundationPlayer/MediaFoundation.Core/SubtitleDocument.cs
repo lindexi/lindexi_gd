@@ -20,7 +20,7 @@ public sealed class SubtitleDocument
         {
             var cue = snapshot[i];
             if (cue is null || cue.Start < TimeSpan.Zero || cue.End <= cue.Start || string.IsNullOrWhiteSpace(cue.Text))
-                throw new ArgumentException(string.Format(System.Globalization.CultureInfo.CurrentCulture, SR.Get("SubtitleInvalidCue"), i), nameof(cues));
+                throw new ArgumentException(SR.Current.SubtitleInvalidCue.ToString(i), nameof(cues));
         }
         _cues = snapshot.OrderBy(cue => cue.Start).ToArray();
         Cues = Array.AsReadOnly(_cues);

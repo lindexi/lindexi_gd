@@ -1,10 +1,7 @@
-using System.Globalization;
-using System.Resources;
+using DotNetCampus.Localizations;
 
 namespace MediaFoundation.Controls;
 
-internal static class Text
-{
-    private static readonly ResourceManager s_manager = new("MediaFoundation.Controls.Strings", typeof(Text).Assembly);
-    internal static string Get(string key) => s_manager.GetString(key, CultureInfo.CurrentUICulture) ?? key;
-}
+/// <summary>播放器控件的强类型本地化资源。</summary>
+[LocalizedConfiguration(Default = "zh-Hans", Current = "zh-Hans", EnsureKeysIdentical = true, DependencyMode = DependencyMode.NestedSource, NotificationMode = NotificationMode.CurrentCulturePropertyChanged)]
+public static partial class Text;

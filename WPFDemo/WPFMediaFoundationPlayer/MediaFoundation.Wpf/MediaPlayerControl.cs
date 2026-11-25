@@ -30,15 +30,10 @@ public class MediaPlayerControl : Control, IDisposable
     /// <summary>创建播放器和默认命令绑定；必须在 WPF UI 线程使用。</summary>
     public MediaPlayerControl()
     {
-        Resources.MergedDictionaries.Add
-        (
-            new ResourceDictionary
-            {
-                Source = new Uri("/MediaFoundation.Controls;component/Themes/Strings.xaml", UriKind.Relative)
-            }
-        );
         Player = new MediaPlayer();
         Player.PropertyChanged += OnPlayerChanged;
+        PropertyChangedEventManager.AddHandler
+            ((INotifyPropertyChanged)Text.Current, OnTextChanged, string.Empty);
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
         AllowDrop = true;
@@ -280,7 +275,7 @@ public class MediaPlayerControl : Control, IDisposable
     private void OpenFile()
     {
         var dialog = new OpenFileDialog
-            { Filter = Text.Get("FileFilter"), CheckFileExists = true, Multiselect = false };
+            { Filter = Text.Current.FileFilter, CheckFileExists = true, Multiselect = false };
         if (dialog.ShowDialog(Window.GetWindow(this)) == true)
         {
             var source = new Uri(dialog.FileName);
@@ -296,15 +291,24 @@ public class MediaPlayerControl : Control, IDisposable
         CommandManager.InvalidateRequerySuggested();
     }
 
+    private void OnTextChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (_disposed) return;
+        if (Dispatcher.CheckAccess()) UpdatePresentation();
+        else Dispatcher.Invoke(() =>
+        {
+            if (!_disposed) UpdatePresentation();
+        });
+    }
+
     private void UpdatePresentation()
     {
         SetValue(s_timeTextPropertyKey, $"{Format(Player.Position)} / {Format(Player.Duration)}");
         SetValue
         (
             s_statusTextPropertyKey,
-            Player.LastError?.Message ?? (Player.State == PlaybackState.Opening ? Text.Get
-                    ("Loading") :
-                Player.Source == null ? Text.Get("NoMedia") : "")
+            Player.LastError?.Message ?? (Player.State == PlaybackState.Opening ? Text.Current.Loading :
+                Player.Source == null ? Text.Current.NoMedia : "")
         );
         if (_progress != null && !_seeking)
         {
@@ -530,6 +534,8 @@ public class MediaPlayerControl : Control, IDisposable
         if (_owner != null) _owner.Closed -= OnOwnerClosed;
         _owner = null;
         DetachProgress();
+        PropertyChangedEventManager.RemoveHandler
+            ((INotifyPropertyChanged)Text.Current, OnTextChanged, string.Empty);
         Player.PropertyChanged -= OnPlayerChanged;
         Player.Dispose();
         CommandManager.InvalidateRequerySuggested();

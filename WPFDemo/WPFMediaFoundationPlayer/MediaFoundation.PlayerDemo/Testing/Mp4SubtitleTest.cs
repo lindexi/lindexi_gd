@@ -91,12 +91,18 @@ internal static class Mp4SubtitleTest
     }
     private static async Task Broken(byte[] data, string name, Action<bool, string> check, CancellationToken token)
     {
+        string originalLanguage = SR.Current.IetfLanguageTag;
         bool rejected = false;
-        try { await Load(data, token); }
+        try
+        {
+            SR.SetCurrent("en");
+            await Load(data, token);
+        }
         catch (IOException error)
         {
             rejected = (error.InnerException is FormatException or IOException) && error.InnerException.Message.Contains("offset", StringComparison.Ordinal);
         }
+        finally { SR.SetCurrent(originalLanguage); }
         check(rejected, name);
     }
     private static byte[] File(Spec[] specs, bool fragmented = false, bool extended = false)

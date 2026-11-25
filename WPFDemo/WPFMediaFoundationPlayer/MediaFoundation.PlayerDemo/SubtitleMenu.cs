@@ -32,14 +32,14 @@ internal sealed class SubtitleMenu : IDisposable
     {
         _control = control;
         _observedSource = control.Player.Source;
-        var root = new MenuItem { Header = Text("SubtitleMenu") };
-        _load = new MenuItem { Header = Text("SubtitleLoad") };
-        _clear = new MenuItem { Header = Text("SubtitleClear") };
-        _earlier = new MenuItem { Header = Text("SubtitleEarlier") };
-        _later = new MenuItem { Header = Text("SubtitleLater") };
-        _reset = new MenuItem { Header = Text("SubtitleReset") };
-        _embedded = new MenuItem { Header = Text("SubtitleEmbedded") };
-        _readEmbedded = new MenuItem { Header = Text("SubtitleReadEmbedded") };
+        var root = new MenuItem { Header = Lang.Current.SubtitleMenu };
+        _load = new MenuItem { Header = Lang.Current.SubtitleLoad };
+        _clear = new MenuItem { Header = Lang.Current.SubtitleClear };
+        _earlier = new MenuItem { Header = Lang.Current.SubtitleEarlier };
+        _later = new MenuItem { Header = Lang.Current.SubtitleLater };
+        _reset = new MenuItem { Header = Lang.Current.SubtitleReset };
+        _embedded = new MenuItem { Header = Lang.Current.SubtitleEmbedded };
+        _readEmbedded = new MenuItem { Header = Lang.Current.SubtitleReadEmbedded };
         _readEmbedded.Click += OnReadEmbeddedAsync;
         _embedded.Items.Add(_readEmbedded);
         _load.Click += OnLoadAsync;
@@ -61,8 +61,6 @@ internal sealed class SubtitleMenu : IDisposable
         control.Player.SubtitleFailed += OnSubtitleFailed;
     }
 
-    private static string Text(string key) => (string)Application.Current.FindResource(key);
-
     private void OnChanged(object? sender, PropertyChangedEventArgs e)
     {
         // Open, Close and backend replacement publish a cleared subtitle, including same-URI opens.
@@ -81,10 +79,10 @@ internal sealed class SubtitleMenu : IDisposable
     {
         bool active = _control.Player.Subtitle != null;
         _readEmbedded.IsEnabled = !_readingEmbedded && _control.Player.Source is { IsFile: true };
-        _readEmbedded.Header = Text(_readingEmbedded ? "SubtitleReadingEmbedded" : "SubtitleReadEmbedded");
+        _readEmbedded.Header = _readingEmbedded ? Lang.Current.SubtitleReadingEmbedded : Lang.Current.SubtitleReadEmbedded;
         _load.IsEnabled = !_loading && _control.Player.HasVideo && _control.Player.IsReady;
         _clear.IsEnabled = _earlier.IsEnabled = _later.IsEnabled = _reset.IsEnabled = active;
-        _reset.Header = string.Format(Text("SubtitleDelay"), _control.Player.SubtitleDelay.TotalSeconds);
+        _reset.Header = Lang.Current.SubtitleDelay.ToString(_control.Player.SubtitleDelay.TotalSeconds.ToString("+0.0;-0.0;0.0", System.Globalization.CultureInfo.CurrentCulture));
     }
 
     private async void OnReadEmbeddedAsync(object sender, RoutedEventArgs e)
@@ -101,13 +99,13 @@ internal sealed class SubtitleMenu : IDisposable
             _embedded.Items.Add(_readEmbedded);
             _embedded.Items.Add(new Separator());
             if (tracks.Count == 0)
-                _embedded.Items.Add(new MenuItem { Header = Text("SubtitleNoEmbedded"), IsEnabled = false });
+                _embedded.Items.Add(new MenuItem { Header = Lang.Current.SubtitleNoEmbedded, IsEnabled = false });
             foreach (var track in tracks)
             {
-                string label = string.Format(Text("SubtitleTrack"), track.Id, track.Name ?? track.Language ?? track.Codec);
+                string label = Lang.Current.SubtitleTrack.ToString(track.Id, track.Name ?? track.Language ?? track.Codec);
                 var item = new MenuItem
                 {
-                    Header = track.Document == null ? string.Format(Text("SubtitleUnsupportedTrack"), label, track.UnsupportedReason) : label,
+                    Header = track.Document == null ? Lang.Current.SubtitleUnsupportedTrack.ToString(label, track.UnsupportedReason ?? string.Empty) : label,
                     IsEnabled = track.Document != null,
                     ToolTip = track.Codec
                 };
@@ -135,7 +133,7 @@ internal sealed class SubtitleMenu : IDisposable
     private async void OnLoadAsync(object sender, RoutedEventArgs e)
     {
         if (_loading || _disposed) return;
-        var dialog = new OpenFileDialog { Filter = Text("SubtitleFilter"), Title = Text("SubtitleLoad") };
+        var dialog = new OpenFileDialog { Filter = Lang.Current.SubtitleFilter, Title = Lang.Current.SubtitleLoad };
         var owner = Window.GetWindow(_control);
         if (dialog.ShowDialog(owner) != true) return;
         _loading = true;
@@ -164,7 +162,7 @@ internal sealed class SubtitleMenu : IDisposable
         PlaybackDiagnostics.Write(error, _control.Player.Source);
         var owner = Window.GetWindow(_control);
         if (owner != null)
-            MessageBox.Show(owner, string.Format(Text("SubtitleFailure"), error.Message), Text("SubtitleMenu"), MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(owner, Lang.Current.SubtitleFailure.ToString(error.Message), Lang.Current.SubtitleMenu, MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     public void Dispose()

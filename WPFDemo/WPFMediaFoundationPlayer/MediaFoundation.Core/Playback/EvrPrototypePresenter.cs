@@ -130,7 +130,7 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
     internal static void Check(HRESULT hr, string stage)
     {
         if (hr.Failed) Trace.WriteLine($"EVR prototype stage={stage} HRESULT=0x{hr.Value:X8}", "MediaFoundation.Core");
-        if (hr.Failed) throw new COMException(string.Format(SR.Get("NativeStageFailure"), stage, hr.Value), hr.Value);
+        if (hr.Failed) throw new COMException(SR.Current.NativeStageFailure.ToString(stage, hr.Value.ToString("X8", System.Globalization.CultureInfo.InvariantCulture)), hr.Value);
     }
 
     private HRESULT Guard(Action action)
@@ -479,7 +479,7 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
                 {
                     case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_STEP:
                         if ((_running && _rate != 0) || (uint)parameter == 0)
-                            throw new COMException(SR.Get("InvalidStepState"), HRESULT.MF_E_INVALIDREQUEST.Value);
+                            throw new COMException(SR.Current.InvalidStepState, HRESULT.MF_E_INVALIDREQUEST.Value);
                         _steps = (uint)parameter;
                         Tick();
                         break;
@@ -567,7 +567,7 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
             if (hr == HRESULT.MF_E_ATTRIBUTENOTFOUND) continue;
             Check(hr, "source.aperture");
             if (bytes != sizeof(MFVideoArea) || area.Area.cx <= 0 || area.Area.cy <= 0)
-                throw new InvalidOperationException(SR.Get("InvalidVideoAperture"));
+                throw new InvalidOperationException(SR.Current.InvalidVideoAperture);
             width = area.Area.cx;
             height = area.Area.cy;
             break;
@@ -837,7 +837,7 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
         HRESULT hr;
         while ((hr = _fence->GetData(null, 0, PInvoke.D3DGETDATA_FLUSH)).Value == 1)
         {
-            if (Environment.TickCount64 >= deadline) throw new InvalidOperationException(SR.Get("GpuFenceTimeout"));
+            if (Environment.TickCount64 >= deadline) throw new InvalidOperationException(SR.Current.GpuFenceTimeout);
             Thread.Yield();
         }
 
@@ -897,7 +897,7 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
                 Check(_device->GetDeviceCaps(&caps), "scaling.GetDeviceCaps");
                 const uint LinearMinMag = 0x200 | 0x2000000;
                 if (((uint)caps.StretchRectFilterCaps & LinearMinMag) != LinearMinMag)
-                    throw new COMException(SR.Get("LinearFilteringUnsupported"), unchecked((int)0x8876086A));
+                    throw new COMException(SR.Current.LinearFilteringUnsupported, unchecked((int)0x8876086A));
             }
 
             Check

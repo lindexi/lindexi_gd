@@ -23,7 +23,7 @@ internal static class MFPlayPrototype
         var source = Uri.TryCreate(path, UriKind.Absolute, out var uri) ? uri : new Uri(Path.GetFullPath(path));
         PlaybackDiagnostics.RegisterSource(source);
         var window = new Window
-            { Title = Text("PrototypeTitle"), Width = 960, Height = 640, Background = Brushes.Black };
+            { Title = Lang.Current.PrototypeTitle, Width = 960, Height = 640, Background = Brushes.Black };
         if (owner != null) window.Owner = owner;
         Trace.WriteLine
             ($"PROTOTYPE stage=window-created testing={testing} log={PlaybackDiagnostics.LogPath}", "MFPlay.Prototype");
@@ -98,9 +98,9 @@ internal static class MFPlayPrototype
             session.Open(source);
         }
 
-        void AddButton(string key, Action action)
+        void AddButton(string text, Action action)
         {
-            var button = new Button { Content = Text(key), Padding = new Thickness(12), Margin = new Thickness(3) };
+            var button = new Button { Content = text, Padding = new Thickness(12), Margin = new Thickness(3) };
             button.Click += (_, _) =>
             {
                 try
@@ -118,19 +118,19 @@ internal static class MFPlayPrototype
             panel.Children.Add(button);
         }
 
-        AddButton("PrototypePlay", () => session!.Play());
-        AddButton("PrototypePause", () => session!.Pause());
-        AddButton("PrototypeSeek", () => session!.Seek(TimeSpan.FromSeconds(2)));
+        AddButton(Lang.Current.PrototypePlay, () => session!.Play());
+        AddButton(Lang.Current.PrototypePause, () => session!.Pause());
+        AddButton(Lang.Current.PrototypeSeek, () => session!.Seek(TimeSpan.FromSeconds(2)));
         AddButton
         (
-            "PrototypeClose", () =>
+            Lang.Current.PrototypeClose, () =>
             {
                 Detach();
                 session?.Dispose();
                 session = null;
             }
         );
-        AddButton("PrototypeReopen", Open);
+        AddButton(Lang.Current.PrototypeReopen, Open);
         var ended = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         window.Closed += (_, _) =>
         {
@@ -186,8 +186,8 @@ internal static class MFPlayPrototype
                         image.Unlock();
                     }
 
-                    status.Text = string.Format
-                        (Text("PrototypeStatusText"), session.State, session.Position, session.PrototypeFrames);
+                    status.Text = Lang.Current.PrototypeStatusText.ToString
+                        (session.State, session.Position, session.PrototypeFrames);
                 }
                 catch (Exception error) when (error is ExternalException or InvalidOperationException
                                                   or ArgumentException)
@@ -299,5 +299,4 @@ internal static class MFPlayPrototype
         }
     }
 
-    private static string Text(string key) => (string)Application.Current.FindResource(key);
 }

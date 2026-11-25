@@ -22,7 +22,7 @@ public static class EmbeddedSubtitleReader
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException or FormatException or NotSupportedException or OverflowException or System.Text.DecoderFallbackException)
             {
-                throw new IOException(string.Format(System.Globalization.CultureInfo.CurrentCulture, SR.Get("EmbeddedReadFailed"), path, error.Message), error);
+                throw new IOException(SR.Current.EmbeddedReadFailed.ToString(path, error.Message), error);
             }
         }, cancellationToken).ConfigureAwait(false);
     }

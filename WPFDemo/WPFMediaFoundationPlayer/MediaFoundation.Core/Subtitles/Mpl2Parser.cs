@@ -1,12 +1,10 @@
 using System.Globalization;
-using System.Resources;
 
 namespace MediaFoundation.Core;
 
 internal static class Mpl2Parser
 {
     private const long TicksPerDecisecond = TimeSpan.TicksPerSecond / 10;
-    private static readonly ResourceManager Resources = new("MediaFoundation.Core.Subtitles.Mpl2Strings", typeof(Mpl2Parser).Assembly);
 
     internal static SubtitleDocument Parse(string text)
     {
@@ -52,8 +50,13 @@ internal static class Mpl2Parser
         return TimeSpan.FromTicks(value * TicksPerDecisecond);
     }
 
-    private static FormatException Error(int line, string reason) =>
-        new(string.Format(CultureInfo.CurrentCulture,
-            Resources.GetString("Parse", CultureInfo.CurrentUICulture) ?? throw new MissingManifestResourceException(),
-            line, Resources.GetString(reason, CultureInfo.CurrentUICulture) ?? throw new MissingManifestResourceException()));
+    private static FormatException Error(int line, string reason) => new(SR.Current.Mpl2Parse.ToString(line, reason switch
+    {
+        "Timing" => SR.Current.Mpl2Timing,
+        "Range" => SR.Current.Mpl2Range,
+        "Italic" => SR.Current.Mpl2Italic,
+        "Text" => SR.Current.SubtitleText,
+        "Empty" => SR.Current.SubtitleEmpty,
+        _ => throw new ArgumentOutOfRangeException(nameof(reason))
+    }));
 }

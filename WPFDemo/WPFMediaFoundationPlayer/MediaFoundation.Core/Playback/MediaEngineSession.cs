@@ -34,10 +34,10 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
     {
         if (d3d11Device == 0) throw new ArgumentNullException(nameof(d3d11Device));
         if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
-            throw new InvalidOperationException(SR.Get("StaRequired"));
-        _context = SynchronizationContext.Current ?? throw new InvalidOperationException(SR.Get("ContextRequired"));
+            throw new InvalidOperationException(SR.Current.StaRequired);
+        _context = SynchronizationContext.Current ?? throw new InvalidOperationException(SR.Current.ContextRequired);
         if (_context.GetType() == typeof(SynchronizationContext))
-            throw new InvalidOperationException(SR.Get("ContextRequired"));
+            throw new InvalidOperationException(SR.Current.ContextRequired);
         _device = d3d11Device;
         try
         {
@@ -163,7 +163,7 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
     {
         Verify();
         ArgumentNullException.ThrowIfNull(source);
-        if (!source.IsAbsoluteUri) throw new ArgumentException(SR.Get("AbsoluteUriRequired"), nameof(source));
+        if (!source.IsAbsoluteUri) throw new ArgumentException(SR.Current.AbsoluteUriRequired, nameof(source));
         System.Diagnostics.Trace.WriteLine
             ($"MediaEngine Open {SourceDiagnostics.Describe(source, source.AbsoluteUri)}", "MediaFoundation.Core");
         ReleaseEngine();
@@ -441,7 +441,7 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
             System.Diagnostics.Trace.WriteLine
                 ($"MediaEngine stage={stage} HRESULT=0x{result.Value:X8}", "MediaFoundation.Core");
         if (result.Value < 0)
-            throw new COMException(string.Format(SR.Get("NativeStageFailure"), stage, result.Value), result.Value);
+            throw new COMException(SR.Current.NativeStageFailure.ToString(stage, result.Value.ToString("X8", System.Globalization.CultureInfo.InvariantCulture)), result.Value);
     }
 
     private void OnEvent(uint kind, nuint mediaError, uint error)
@@ -465,7 +465,7 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
                     "MediaFoundation.Core"
                 );
                 var failure = new COMException
-                    (string.Format(SR.Get("NativeStageFailure"), "IMFMediaEngineNotify.ERROR", code), code);
+                    (SR.Current.NativeStageFailure.ToString("IMFMediaEngineNotify.ERROR", code.ToString("X8", System.Globalization.CultureInfo.InvariantCulture)), code);
                 System.Diagnostics.Trace.WriteLine
                     ($"MediaEngine failure HRESULT=0x{code:X8} {failure}", "MediaFoundation.Core");
                 ReleaseEngine();
@@ -558,12 +558,12 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
     {
         Verify();
         if (_engine == null || State is PlaybackState.Opening or PlaybackState.Failed or PlaybackState.Closed)
-            throw new InvalidOperationException(SR.Get("NotReady"));
+            throw new InvalidOperationException(SR.Current.NotReady);
     }
 
     private void Verify()
     {
-        if (_threadId != Environment.CurrentManagedThreadId) throw new InvalidOperationException(SR.Get("WrongThread"));
+        if (_threadId != Environment.CurrentManagedThreadId) throw new InvalidOperationException(SR.Current.WrongThread);
         ObjectDisposedException.ThrowIf(_disposed, this);
     }
 

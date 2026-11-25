@@ -61,10 +61,7 @@ internal static class SelfTest
             "PASS rendering defaults D3DImage/Player/Control/metadata/numeric contract/explicit HWND/explicit D3DImage"
         );
         Console.WriteLine("PASS scaling defaults/numeric contract/explicit B/explicit A");
-        var resources = new System.Resources.ResourceManager
-            ("MediaFoundation.Controls.Strings", typeof(MediaPlayerControl).Assembly);
-        var filter = resources.GetString
-            ("FileFilter") ?? throw new InvalidOperationException("Missing FileFilter resource");
+        string filter = Lang.Current.FileFilter;
         var parts = filter.Split('|');
         if (parts.Length != 8 || parts.Any(string.IsNullOrWhiteSpace) || parts[7] != "*.*")
             throw new InvalidOperationException("Invalid media/video/audio/all-files filter format");

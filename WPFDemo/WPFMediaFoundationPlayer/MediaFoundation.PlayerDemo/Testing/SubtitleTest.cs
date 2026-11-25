@@ -12,6 +12,7 @@ internal static class SubtitleTest
 {
     internal static async Task RunAsync(CancellationToken token)
     {
+        string originalLanguage = SR.Current.IetfLanguageTag;
         var results = new List<string>();
         void Check(bool success, string name)
         {
@@ -20,6 +21,8 @@ internal static class SubtitleTest
         }
         try
         {
+            LocalizationTest.Run(Check);
+            SR.SetCurrent("en");
             await MatroskaSubtitleTest.RunAsync(Check, token);
             await Mp4SubtitleTest.RunAsync(Check, token);
             LrcFormatTest.Run(Check);
@@ -93,6 +96,7 @@ internal static class SubtitleTest
         }
         finally
         {
+            SR.SetCurrent(originalLanguage);
             await File.WriteAllLinesAsync(Path.Combine(AppContext.BaseDirectory, "subtitle-test.log"), results, CancellationToken.None);
         }
     }
@@ -106,7 +110,7 @@ internal static class SubtitleTest
     private static void ExpectFormat(string text, SubtitleFormat format, Action<bool, string> check, string name)
     {
         try { SubtitleReader.Parse(text, format); check(false, name); }
-        catch (FormatException error) { check(error.Message.Contains("行", StringComparison.Ordinal), name); }
+        catch (FormatException error) { check(error.Message.Contains("line", StringComparison.Ordinal), name); }
     }
 
     private static async Task RunWindowAsync(VideoRenderingMode mode, Action<bool, string> check, CancellationToken token)

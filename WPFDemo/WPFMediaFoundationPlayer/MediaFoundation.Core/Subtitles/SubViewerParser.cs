@@ -1,11 +1,9 @@
 using System.Globalization;
-using System.Resources;
 
 namespace MediaFoundation.Core;
 
 internal static class SubViewerParser
 {
-    private static readonly ResourceManager Resources = new("MediaFoundation.Core.Subtitles.SubViewerStrings", typeof(SubViewerParser).Assembly);
 
     internal static SubtitleDocument Parse(string text)
     {
@@ -119,9 +117,19 @@ internal static class SubViewerParser
         return true;
     }
 
-    private static string GetString(string key) => Resources.GetString(key, CultureInfo.CurrentUICulture) ??
-        throw new MissingManifestResourceException(key);
-
-    private static FormatException Error(int line, string reason) =>
-        new(string.Format(CultureInfo.CurrentCulture, GetString("Parse"), line, GetString(reason)));
+    private static FormatException Error(int line, string reason) => new(SR.Current.SubViewerParse.ToString(line, reason switch
+    {
+        "Empty" => SR.Current.SubtitleEmpty,
+        "Header" => SR.Current.SubViewerHeader,
+        "Metadata" => SR.Current.SubViewerMetadata,
+        "Version" => SR.Current.SubViewerVersion,
+        "Setting" => SR.Current.SubViewerSetting,
+        "Style" => SR.Current.SubViewerStyle,
+        "InformationEnd" => SR.Current.SubViewerInformationEnd,
+        "SubtitleHeader" => SR.Current.SubViewerSubtitleHeader,
+        "Timing" => SR.Current.SubViewerTiming,
+        "Separator" => SR.Current.SubViewerSeparator,
+        "Text" => SR.Current.SubtitleText,
+        _ => throw new ArgumentOutOfRangeException(nameof(reason))
+    }));
 }

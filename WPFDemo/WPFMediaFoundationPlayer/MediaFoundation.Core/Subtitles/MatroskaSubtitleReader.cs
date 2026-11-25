@@ -1,13 +1,11 @@
 using System.Buffers.Binary;
 using System.Globalization;
-using System.Resources;
 using System.Text;
 
 namespace MediaFoundation.Core;
 
 internal static class MatroskaSubtitleReader
 {
-    private static readonly ResourceManager Resources = new("MediaFoundation.Core.Subtitles.MatroskaStrings", typeof(MatroskaSubtitleReader).Assembly);
     private static readonly UTF8Encoding Utf8 = new(false, true);
 
     internal static List<EmbeddedSubtitleTrack> Read(Stream stream, CancellationToken token)
@@ -17,7 +15,27 @@ internal static class MatroskaSubtitleReader
         return new Reader(stream, token).Read();
     }
 
-    private static string Message(string key) => Resources.GetString(key, CultureInfo.CurrentUICulture) ?? throw new MissingManifestResourceException(key);
+    private static string Message(string reason) => reason switch
+    {
+        "Stream" => SR.Current.MatroskaStream,
+        "Structure" => SR.Current.MatroskaStructure,
+        "Truncated" => SR.Current.MatroskaTruncated,
+        "UnknownLength" => SR.Current.MatroskaUnknownLength,
+        "Segments" => SR.Current.MatroskaSegments,
+        "TextSize" => SR.Current.MatroskaTextSize,
+        "Utf8" => SR.Current.MatroskaUtf8,
+        "Timing" => SR.Current.MatroskaTiming,
+        "TrackTiming" => SR.Current.MatroskaTrackTiming,
+        "Delay" => SR.Current.MatroskaDelay,
+        "Encoding" => SR.Current.MatroskaEncoding,
+        "Private" => SR.Current.MatroskaPrivate,
+        "Codec" => SR.Current.MatroskaCodec,
+        "Lacing" => SR.Current.MatroskaLacing,
+        "BlockFeatures" => SR.Current.MatroskaBlockFeatures,
+        "MissingEnd" => SR.Current.MatroskaMissingEnd,
+        "Resolution" => SR.Current.MatroskaResolution,
+        _ => throw new ArgumentOutOfRangeException(nameof(reason))
+    };
 
     private readonly record struct Element(ulong Id, long Offset, long Start, long End, bool Unknown);
     private sealed class Track
@@ -42,7 +60,7 @@ internal static class MatroskaSubtitleReader
         private long _segmentStart;
         private long _segmentEnd;
 
-        private FormatException Error(long offset, string key = "Structure") => new(string.Format(CultureInfo.CurrentCulture, Message("Error"), offset, Message(key)));
+        private FormatException Error(long offset, string key = "Structure") => new(SR.Current.MatroskaError.ToString(offset, Message(key)));
         private void Fail(Track track, string key)
         {
             track.Reason ??= Message(key);
@@ -136,7 +154,7 @@ internal static class MatroskaSubtitleReader
             catch (OverflowException) { throw Error(stream.Position, "Timing"); }
             catch (IOException error)
             {
-                throw new IOException(string.Format(CultureInfo.CurrentCulture, Message("Error"), stream.Position, error.Message), error);
+                throw new IOException(SR.Current.MatroskaError.ToString(stream.Position, error.Message), error);
             }
         }
         private List<EmbeddedSubtitleTrack> ReadCore()

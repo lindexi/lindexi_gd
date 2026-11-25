@@ -82,8 +82,15 @@ internal static class MatroskaSubtitleTest
     }
     private static async Task Reject(byte[] bytes, string name, Action<bool, string> check, CancellationToken token)
     {
-        try { await Load(bytes, token); check(false, name); }
+        string originalLanguage = SR.Current.IetfLanguageTag;
+        try
+        {
+            SR.SetCurrent("en");
+            await Load(bytes, token);
+            check(false, name);
+        }
         catch (IOException error) { check(error.InnerException is FormatException && error.Message.Contains("offset", StringComparison.OrdinalIgnoreCase), name); }
+        finally { SR.SetCurrent(originalLanguage); }
     }
     private static async Task<IReadOnlyList<EmbeddedSubtitleTrack>> Load(byte[] bytes, CancellationToken token)
     {

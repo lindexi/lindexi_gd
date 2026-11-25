@@ -1,13 +1,11 @@
 using System.Buffers.Binary;
 using System.Globalization;
-using System.Resources;
 using System.Text;
 
 namespace MediaFoundation.Core;
 
 internal static class Mp4SubtitleReader
 {
-    private static readonly ResourceManager Resources = new("MediaFoundation.Core.Subtitles.Mp4SubtitleStrings", typeof(Mp4SubtitleReader).Assembly);
     private static readonly Encoding Utf8 = new UTF8Encoding(false, true);
     private static readonly Encoding Utf16Be = new UnicodeEncoding(true, false, true);
     private static readonly Encoding Utf16Le = new UnicodeEncoding(false, false, true);
@@ -21,7 +19,25 @@ internal static class Mp4SubtitleReader
         return new Reader(stream, token).Read();
     }
 
-    private static string Message(string key) => Resources.GetString(key, CultureInfo.CurrentUICulture) ?? throw new MissingManifestResourceException(key);
+    private static string Message(string reason) => reason switch
+    {
+        "Stream" => SR.Current.Mp4Stream,
+        "Structure" => SR.Current.Mp4Structure,
+        "Truncated" => SR.Current.Mp4Truncated,
+        "Limit" => SR.Current.Mp4Limit,
+        "Fragmented" => SR.Current.Mp4Fragmented,
+        "Descriptions" => SR.Current.Mp4Descriptions,
+        "Encrypted" => SR.Current.Mp4Encrypted,
+        "Codec" => SR.Current.Mp4Codec,
+        "Composition" => SR.Current.Mp4Composition,
+        "DataReference" => SR.Current.Mp4DataReference,
+        "Style" => SR.Current.Mp4Style,
+        "Edit" => SR.Current.Mp4Edit,
+        "Sample" => SR.Current.Mp4Sample,
+        "Time" => SR.Current.Mp4Time,
+        "Text" => SR.Current.Mp4Text,
+        _ => throw new ArgumentOutOfRangeException(nameof(reason))
+    };
     private readonly record struct Box(string Type, long Offset, long Start, long End);
     private readonly record struct Run(uint Count, uint Delta);
     private readonly record struct ChunkRun(uint First, uint Count, uint Description);
@@ -33,7 +49,7 @@ internal static class Mp4SubtitleReader
         private uint _movieScale;
         private bool _fragmented;
 
-        private FormatException Error(Box box, string key = "Structure") => new(string.Format(CultureInfo.CurrentCulture, Message("Error"), box.Type, box.Offset, Message(key)));
+        private FormatException Error(Box box, string key = "Structure") => new(SR.Current.Mp4Error.ToString(box.Type, box.Offset, Message(key)));
         private void Need(Box box, long count)
         {
             token.ThrowIfCancellationRequested();

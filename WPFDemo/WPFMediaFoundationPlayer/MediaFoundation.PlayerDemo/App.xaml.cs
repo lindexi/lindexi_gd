@@ -23,11 +23,10 @@ public partial class App : Application
             new Action
             (() => MessageBox.Show
                 (
-                    string.Format
+                    Lang.Current.DemoLogFailureText.ToString
                     (
-                        (string)FindResource("DemoLogFailureText"), PlaybackDiagnostics.LogPath,
-                        PlaybackDiagnostics.Failure
-                    ), (string)FindResource("DemoTitle"), MessageBoxButton.OK, MessageBoxImage.Warning
+                        PlaybackDiagnostics.LogPath, PlaybackDiagnostics.Failure ?? string.Empty
+                    ), Lang.Current.DemoTitle, MessageBoxButton.OK, MessageBoxImage.Warning
                 )
             )
         );
@@ -87,7 +86,7 @@ public partial class App : Application
             try
             {
                 if (string.IsNullOrWhiteSpace
-                        (path)) throw new ArgumentException((string)FindResource("PrototypeMediaRequired"));
+                        (path)) throw new ArgumentException(Lang.Current.PrototypeMediaRequired);
                 await MFPlayPrototype.RunAsync
                     (Path.GetFullPath(path, AppContext.BaseDirectory), e.Args.Contains("--self-test"));
                 Shutdown();
@@ -163,7 +162,7 @@ public partial class App : Application
 
         if (testing && string.IsNullOrWhiteSpace(path))
         {
-            Console.Error.WriteLine((string)FindResource("SelfTestMediaRequiredText"));
+            Console.Error.WriteLine(Lang.Current.SelfTestMediaRequiredText);
             Shutdown(2);
             return;
         }
@@ -187,7 +186,7 @@ public partial class App : Application
             subtitleMenu = new SubtitleMenu(control);
             window = new Window
             {
-                Title = (string)FindResource("DemoTitle"), Width = 1100, Height = 720, MinWidth = 640, MinHeight = 360,
+                Title = Lang.Current.DemoTitle, Width = 1100, Height = 720, MinWidth = 640, MinHeight = 360,
                 Content = layout
             };
             window.Closed += (_, _) =>

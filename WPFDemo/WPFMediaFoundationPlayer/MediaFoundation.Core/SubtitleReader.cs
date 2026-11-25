@@ -33,7 +33,7 @@ public static class SubtitleReader
             ".lrc" => SubtitleFormat.Lrc,
             ".sub" => (SubtitleFormat?)null,
             ".mpl" => SubtitleFormat.Mpl2,
-            _ => throw new NotSupportedException(SR.Get("SubtitleExtension"))
+            _ => throw new NotSupportedException(SR.Current.SubtitleExtension)
         };
         string text = await File.ReadAllTextAsync(path, new UTF8Encoding(false, true), cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
@@ -50,7 +50,7 @@ public static class SubtitleReader
     {
         ArgumentNullException.ThrowIfNull(text);
         if (frameRate.HasValue && format != SubtitleFormat.MicroDvd)
-            throw new ArgumentException(SR.Get("SubtitleFrameRateFormat"), nameof(frameRate));
+            throw new ArgumentException(SR.Current.SubtitleFrameRateFormat, nameof(frameRate));
         return format switch
         {
             SubtitleFormat.SubRip => SubRipParser.Parse(text),

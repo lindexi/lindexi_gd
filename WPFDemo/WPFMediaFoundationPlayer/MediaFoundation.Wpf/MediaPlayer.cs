@@ -75,7 +75,7 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
             Verify();
             if (!Enum.IsDefined(value)) throw new ArgumentOutOfRangeException(nameof(value));
             if (value == _scalingMode) return;
-            if (_modeLocked) throw new InvalidOperationException(Text.Get("RenderingModeLocked"));
+            if (_modeLocked) throw new InvalidOperationException(Text.Current.RenderingModeLocked);
             _scalingMode = value;
             Notify();
         }
@@ -97,7 +97,7 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
     {
         _dispatcher = Dispatcher.CurrentDispatcher;
         if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
-            throw new InvalidOperationException(Text.Get("StaRequired"));
+            throw new InvalidOperationException(Text.Current.StaRequired);
         _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(200), DispatcherPriority.Background, OnTick, _dispatcher);
         _timer.Stop();
         _subtitles = new SubtitlePresenter(this, _view);
@@ -115,7 +115,7 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
             Verify();
             if (!Enum.IsDefined(value)) throw new ArgumentOutOfRangeException(nameof(value));
             if (value == _renderingMode) return;
-            if (_modeLocked) throw new InvalidOperationException(Text.Get("RenderingModeLocked"));
+            if (_modeLocked) throw new InvalidOperationException(Text.Current.RenderingModeLocked);
             DestroyHost();
             _renderingMode = value;
             if (value == VideoRenderingMode.Hwnd) CreateHost();
@@ -228,7 +228,7 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
     {
         Verify();
         ArgumentNullException.ThrowIfNull(source);
-        if (!source.IsAbsoluteUri) throw new ArgumentException(Text.Get("AbsoluteUriRequired"), nameof(source));
+        if (!source.IsAbsoluteUri) throw new ArgumentException(Text.Current.AbsoluteUriRequired, nameof(source));
         System.Diagnostics.Trace.WriteLine
             ($"Open {SourceDiagnostics.Describe(source)} mode={_renderingMode}", "MediaFoundation.Controls");
         _modeLocked = true;
@@ -334,7 +334,7 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
 
     private void StartSession(nint hwnd)
     {
-        var source = Source ?? throw new InvalidOperationException(Text.Get("NoMedia"));
+        var source = Source ?? throw new InvalidOperationException(Text.Current.NoMedia);
         var previous = SynchronizationContext.Current;
         SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(_dispatcher));
         try

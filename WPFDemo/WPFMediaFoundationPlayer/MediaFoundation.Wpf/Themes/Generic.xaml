@@ -16,7 +16,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" /><RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="EmptyHint" Text="{DynamicResource PlayerEmptyText}"
+                        <TextBlock x:Name="EmptyHint" Text="{Binding PlayerEmptyText, Source={x:Static local:Text.Current}, Mode=OneWay}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                    Foreground="{DynamicResource PlayerForegroundBrush}" Opacity="0.6" FontSize="16"
                                    Visibility="Collapsed" />
@@ -35,8 +35,8 @@
                                     <Slider x:Name="PART_Progress" Minimum="0"
                                             IsEnabled="{Binding Player.CanSeek, RelativeSource={RelativeSource TemplatedParent}}"
                                             Style="{DynamicResource PlayerSliderStyle}"
-                                            ToolTip="{DynamicResource PlayerSeekText}"
-                                            AutomationProperties.Name="{DynamicResource PlayerSeekText}" />
+                                            ToolTip="{Binding PlayerSeekText, Source={x:Static local:Text.Current}, Mode=OneWay}"
+                                            AutomationProperties.Name="{Binding PlayerSeekText, Source={x:Static local:Text.Current}, Mode=OneWay}" />
                                     <TextBlock x:Name="Time" Grid.Column="1" Text="{TemplateBinding TimeText}"
                                                VerticalAlignment="Center" Width="164" TextAlignment="Right"
                                                FontFamily="Consolas" Typography.NumeralAlignment="Tabular"
@@ -51,8 +51,8 @@
                                         <Button x:Name="Open"
                                                 Command="{x:Static local:MediaPlayerControl.OpenFileCommand}"
                                                 Style="{DynamicResource PlayerButtonStyle}"
-                                                ToolTip="{DynamicResource PlayerOpenText}"
-                                                AutomationProperties.Name="{DynamicResource PlayerOpenText}">
+                                                ToolTip="{Binding PlayerOpenText, Source={x:Static local:Text.Current}, Mode=OneWay}"
+                                                AutomationProperties.Name="{Binding PlayerOpenText, Source={x:Static local:Text.Current}, Mode=OneWay}">
                                             <Path Style="{StaticResource PlayerIconStyle}"
                                                   Data="M1,4 L8,4 10,7 21,7 21,10 5,10 2,20 0,20 0,4 Z M6,11 L24,11 21,20 3,20 Z" />
                                         </Button>
@@ -61,8 +61,8 @@
                                                 Background="{DynamicResource PlayerAccentBrush}"
                                                 Foreground="{DynamicResource PlayerBackgroundBrush}"
                                                 Style="{DynamicResource PlayerButtonStyle}"
-                                                ToolTip="{DynamicResource PlayerPlayText}"
-                                                AutomationProperties.Name="{DynamicResource PlayerPlayText}">
+                                                ToolTip="{Binding PlayerPlayText, Source={x:Static local:Text.Current}, Mode=OneWay}"
+                                                AutomationProperties.Name="{Binding PlayerPlayText, Source={x:Static local:Text.Current}, Mode=OneWay}">
                                             <Path x:Name="PlayIcon">
                                                 <Path.Style>
                                                     <Style TargetType="Path" BasedOn="{StaticResource PlayerIconStyle}">
@@ -73,16 +73,16 @@
                                         </Button>
                                         <Button x:Name="Stop" Command="{x:Static local:MediaPlayerControl.StopCommand}"
                                                 Style="{DynamicResource PlayerButtonStyle}"
-                                                ToolTip="{DynamicResource PlayerStopText}"
-                                                AutomationProperties.Name="{DynamicResource PlayerStopText}">
+                                                ToolTip="{Binding PlayerStopText, Source={x:Static local:Text.Current}, Mode=OneWay}"
+                                                AutomationProperties.Name="{Binding PlayerStopText, Source={x:Static local:Text.Current}, Mode=OneWay}">
                                             <Path Style="{StaticResource PlayerIconStyle}" Data="M2,2 H22 V22 H2 Z" />
                                         </Button>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                                         <Button x:Name="Mute" Command="{x:Static local:MediaPlayerControl.MuteCommand}"
                                                 Style="{DynamicResource PlayerButtonStyle}"
-                                                ToolTip="{DynamicResource PlayerMuteText}"
-                                                AutomationProperties.Name="{DynamicResource PlayerMuteText}">
+                                                ToolTip="{Binding PlayerMuteText, Source={x:Static local:Text.Current}, Mode=OneWay}"
+                                                AutomationProperties.Name="{Binding PlayerMuteText, Source={x:Static local:Text.Current}, Mode=OneWay}">
                                             <Path x:Name="MuteIcon">
                                                 <Path.Style>
                                                     <Style TargetType="Path" BasedOn="{StaticResource PlayerIconStyle}">
@@ -95,13 +95,13 @@
                                         <Slider x:Name="Volume" Width="80" Minimum="0" Maximum="1"
                                                 Value="{Binding Player.Volume, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                                                 Style="{DynamicResource PlayerSliderStyle}"
-                                                ToolTip="{DynamicResource PlayerVolumeText}"
-                                                AutomationProperties.Name="{DynamicResource PlayerVolumeText}" />
+                                                ToolTip="{Binding PlayerVolumeText, Source={x:Static local:Text.Current}, Mode=OneWay}"
+                                                AutomationProperties.Name="{Binding PlayerVolumeText, Source={x:Static local:Text.Current}, Mode=OneWay}" />
                                         <ComboBox x:Name="Rate" SelectedValuePath="Content"
                                                   SelectedValue="{Binding Player.PlaybackRate, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                                                   Style="{DynamicResource PlayerComboBoxStyle}"
-                                                  ToolTip="{DynamicResource PlayerRateText}"
-                                                  AutomationProperties.Name="{DynamicResource PlayerRateText}">
+                                                  ToolTip="{Binding PlayerRateText, Source={x:Static local:Text.Current}, Mode=OneWay}"
+                                                  AutomationProperties.Name="{Binding PlayerRateText, Source={x:Static local:Text.Current}, Mode=OneWay}">
                                             <ComboBoxItem>
                                                 <sys:Double>0.5</sys:Double>
                                             </ComboBoxItem>
@@ -119,16 +119,16 @@
                                                           VerticalAlignment="Center" />
                                         <Button x:Name="Loop" Command="{x:Static local:MediaPlayerControl.LoopCommand}"
                                                 Style="{DynamicResource PlayerButtonStyle}"
-                                                ToolTip="{DynamicResource PlayerLoopText}"
-                                                AutomationProperties.Name="{DynamicResource PlayerLoopText}">
+                                                ToolTip="{Binding PlayerLoopText, Source={x:Static local:Text.Current}, Mode=OneWay}"
+                                                AutomationProperties.Name="{Binding PlayerLoopText, Source={x:Static local:Text.Current}, Mode=OneWay}">
                                             <Path Style="{StaticResource PlayerIconStyle}"
                                                   Data="M4,5 H17 V1 L23,7 17,13 V9 H5 V14 H1 V8 Q1,5 4,5 Z M20,19 H7 V23 L1,17 7,11 V15 H19 V10 H23 V16 Q23,19 20,19 Z" />
                                         </Button>
                                         <Button x:Name="Fullscreen"
                                                 Command="{x:Static local:MediaPlayerControl.FullscreenCommand}"
                                                 Style="{DynamicResource PlayerButtonStyle}"
-                                                ToolTip="{DynamicResource PlayerFullscreenText}"
-                                                AutomationProperties.Name="{DynamicResource PlayerFullscreenText}">
+                                                ToolTip="{Binding PlayerFullscreenText, Source={x:Static local:Text.Current}, Mode=OneWay}"
+                                                AutomationProperties.Name="{Binding PlayerFullscreenText, Source={x:Static local:Text.Current}, Mode=OneWay}">
                                             <Path x:Name="FullscreenIcon">
                                                 <Path.Style>
                                                     <Style TargetType="Path" BasedOn="{StaticResource PlayerIconStyle}">
@@ -156,18 +156,18 @@
                         <DataTrigger Binding="{Binding Player.CanPause, RelativeSource={RelativeSource Self}}"
                                      Value="True">
                             <Setter TargetName="PlayIcon" Property="Data" Value="M3,1 H9 V23 H3 Z M15,1 H21 V23 H15 Z" />
-                            <Setter TargetName="Play" Property="ToolTip" Value="{DynamicResource PlayerPauseText}" />
+                            <Setter TargetName="Play" Property="ToolTip" Value="{Binding PlayerPauseText, Source={x:Static local:Text.Current}, Mode=OneWay}" />
                             <Setter TargetName="Play" Property="AutomationProperties.Name"
-                                    Value="{DynamicResource PlayerPauseText}" />
+                                    Value="{Binding PlayerPauseText, Source={x:Static local:Text.Current}, Mode=OneWay}" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Player.IsMuted, RelativeSource={RelativeSource Self}}"
                                      Value="True">
                             <Setter TargetName="MuteIcon" Property="Data"
                                     Value="M0,8 H5 L12,2 V22 L5,16 H0 Z M16,6 L20,10 24,6 26,8 22,12 26,16 24,18 20,14 16,18 14,16 18,12 14,8 Z" />
                             <Setter TargetName="Mute" Property="Foreground" Value="{DynamicResource PlayerAccentBrush}" />
-                            <Setter TargetName="Mute" Property="ToolTip" Value="{DynamicResource PlayerUnmuteText}" />
+                            <Setter TargetName="Mute" Property="ToolTip" Value="{Binding PlayerUnmuteText, Source={x:Static local:Text.Current}, Mode=OneWay}" />
                             <Setter TargetName="Mute" Property="AutomationProperties.Name"
-                                    Value="{DynamicResource PlayerUnmuteText}" />
+                                    Value="{Binding PlayerUnmuteText, Source={x:Static local:Text.Current}, Mode=OneWay}" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Player.IsLooping, RelativeSource={RelativeSource Self}}"
                                      Value="True">
@@ -181,9 +181,9 @@
                             <Setter TargetName="Fullscreen" Property="Foreground"
                                     Value="{DynamicResource PlayerAccentBrush}" />
                             <Setter TargetName="Fullscreen" Property="ToolTip"
-                                    Value="{DynamicResource PlayerExitFullscreenText}" />
+                                    Value="{Binding PlayerExitFullscreenText, Source={x:Static local:Text.Current}, Mode=OneWay}" />
                             <Setter TargetName="Fullscreen" Property="AutomationProperties.Name"
-                                    Value="{DynamicResource PlayerExitFullscreenText}" />
+                                    Value="{Binding PlayerExitFullscreenText, Source={x:Static local:Text.Current}, Mode=OneWay}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

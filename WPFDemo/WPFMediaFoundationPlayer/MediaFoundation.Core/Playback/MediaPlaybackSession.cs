@@ -196,12 +196,12 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     public MediaPlaybackSession(nint videoWindowHandle)
     {
         if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
-            throw new InvalidOperationException(SR.Get("StaRequired"));
-        _context = SynchronizationContext.Current ?? throw new InvalidOperationException(SR.Get("ContextRequired"));
+            throw new InvalidOperationException(SR.Current.StaRequired);
+        _context = SynchronizationContext.Current ?? throw new InvalidOperationException(SR.Current.ContextRequired);
         if (_context.GetType() == typeof(SynchronizationContext))
-            throw new InvalidOperationException(SR.Get("ContextRequired"));
+            throw new InvalidOperationException(SR.Current.ContextRequired);
         _window = new HWND(videoWindowHandle);
-        if (!PInvoke.IsWindow(_window)) throw new ArgumentException(SR.Get("InvalidWindow"), nameof(videoWindowHandle));
+        if (!PInvoke.IsWindow(_window)) throw new ArgumentException(SR.Current.InvalidWindow, nameof(videoWindowHandle));
         PInvoke.CoInitializeEx(null, COINIT.COINIT_APARTMENTTHREADED).ThrowOnFailure();
         _comInitialized = true;
     }
@@ -316,7 +316,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
                 float actual = 0;
                 _player->GetVolume(&actual);
                 Trace.WriteLine($"MFPlay native volume requested={value} actual={actual}", "MediaFoundation.Core");
-                if (Math.Abs(actual - value) > 0.001) throw new COMException(SR.Get("NativeFailure"));
+                if (Math.Abs(actual - value) > 0.001) throw new COMException(SR.Current.NativeFailure);
             }
 
             _volume = value;
@@ -340,7 +340,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
                 BOOL actual = default;
                 _player->GetMute(&actual);
                 Trace.WriteLine($"MFPlay native mute requested={value} actual={(bool)actual}", "MediaFoundation.Core");
-                if ((bool)actual != value) throw new COMException(SR.Get("NativeFailure"));
+                if ((bool)actual != value) throw new COMException(SR.Current.NativeFailure);
             }
 
             _muted = value;
@@ -388,7 +388,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     {
         Verify();
         ArgumentNullException.ThrowIfNull(source);
-        if (!source.IsAbsoluteUri) throw new ArgumentException(SR.Get("AbsoluteUriRequired"), nameof(source));
+        if (!source.IsAbsoluteUri) throw new ArgumentException(SR.Current.AbsoluteUriRequired, nameof(source));
         Trace.WriteLine
             ($"MFPlay Open {SourceDiagnostics.Describe(source, source.AbsoluteUri)}", "MediaFoundation.Core");
         ReleasePlayer();
@@ -532,14 +532,14 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
 
     private void Verify()
     {
-        if (Environment.CurrentManagedThreadId != _threadId) throw new InvalidOperationException(SR.Get("WrongThread"));
+        if (Environment.CurrentManagedThreadId != _threadId) throw new InvalidOperationException(SR.Current.WrongThread);
         ObjectDisposedException.ThrowIf(_disposed, this);
     }
 
     private void VerifyReady()
     {
         Verify();
-        if (!IsReady) throw new InvalidOperationException(SR.Get("NotReady"));
+        if (!IsReady) throw new InvalidOperationException(SR.Current.NotReady);
     }
 
     private void ApplyRate(double value)
@@ -557,7 +557,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         }
         catch (COMException error)
         {
-            throw new NotSupportedException(SR.Get("UnsupportedRate"), error);
+            throw new NotSupportedException(SR.Current.UnsupportedRate, error);
         }
     }
 
@@ -590,9 +590,9 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         if (notification.Result.Failed)
         {
             Exception error = Marshal.GetExceptionForHR
-                (notification.Result.Value) ?? new COMException(SR.Get("NativeFailure"), notification.Result.Value);
+                (notification.Result.Value) ?? new COMException(SR.Current.NativeFailure, notification.Result.Value);
             if (notification.Type == MFP_EVENT_TYPE.MFP_EVENT_TYPE_RATE_SET)
-                error = new NotSupportedException(SR.Get("UnsupportedRate"), error);
+                error = new NotSupportedException(SR.Current.UnsupportedRate, error);
             ReportFailure(error);
             return;
         }
@@ -616,7 +616,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         switch (notification.Type)
         {
             case MFP_EVENT_TYPE.MFP_EVENT_TYPE_MEDIAITEM_CREATED:
-                if (notification.Item == 0) throw new COMException(SR.Get("NativeFailure"));
+                if (notification.Item == 0) throw new COMException(SR.Current.NativeFailure);
                 if (_prototype) InstallPrototypeSink((IMFPMediaItem*)notification.Item);
                 _player->SetMediaItem((IMFPMediaItem*)notification.Item);
                 break;
@@ -678,7 +678,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
 
                 break;
             case MFP_EVENT_TYPE.MFP_EVENT_TYPE_ERROR:
-                ReportFailure(new COMException(SR.Get("NativeFailure"), notification.Result.Value));
+                ReportFailure(new COMException(SR.Current.NativeFailure, notification.Result.Value));
                 break;
         }
     }
@@ -814,7 +814,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     /// <summary>在创建线程释放原生管线及 COM 引用；已排队的回调被丢弃。可重复调用。</summary>
     public void Dispose()
     {
-        if (Environment.CurrentManagedThreadId != _threadId) throw new InvalidOperationException(SR.Get("WrongThread"));
+        if (Environment.CurrentManagedThreadId != _threadId) throw new InvalidOperationException(SR.Current.WrongThread);
         if (_disposed) return;
         _disposed = true;
         try

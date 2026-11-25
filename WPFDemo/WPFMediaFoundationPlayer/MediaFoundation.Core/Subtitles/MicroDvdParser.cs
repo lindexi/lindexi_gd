@@ -1,11 +1,9 @@
 using System.Globalization;
-using System.Resources;
 
 namespace MediaFoundation.Core;
 
 internal static class MicroDvdParser
 {
-    private static readonly ResourceManager Resources = new("MediaFoundation.Core.Subtitles.MicroDvdStrings", typeof(MicroDvdParser).Assembly);
 
     internal static SubtitleDocument Parse(string text, double? frameRate)
     {
@@ -66,7 +64,16 @@ internal static class MicroDvdParser
         return TimeSpan.FromTicks(checked((long)ticks));
     }
 
-    private static FormatException Error(int line, string reason) =>
-        new(string.Format(CultureInfo.CurrentCulture, Resources.GetString("Parse", CultureInfo.CurrentUICulture)!,
-            line, Resources.GetString(reason, CultureInfo.CurrentUICulture)));
+    private static FormatException Error(int line, string reason) => new(SR.Current.MicroDvdParse.ToString(line, reason switch
+    {
+        "Frames" => SR.Current.MicroDvdFrames.ToString("{start}{end}"),
+        "FrameRate" => SR.Current.MicroDvdFrameRate,
+        "Conflict" => SR.Current.MicroDvdConflict,
+        "MissingFrameRate" => SR.Current.MicroDvdMissingFrameRate.ToString("{0}{0}", "{1}{1}"),
+        "Style" => SR.Current.MicroDvdStyle,
+        "Text" => SR.Current.SubtitleText,
+        "Range" => SR.Current.MicroDvdRange,
+        "Empty" => SR.Current.SubtitleEmpty,
+        _ => throw new ArgumentOutOfRangeException(nameof(reason))
+    }));
 }

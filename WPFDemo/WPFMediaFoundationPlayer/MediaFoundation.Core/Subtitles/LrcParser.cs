@@ -1,12 +1,10 @@
 using System.Globalization;
-using System.Resources;
 using System.Text.RegularExpressions;
 
 namespace MediaFoundation.Core;
 
 internal static class LrcParser
 {
-    private static readonly ResourceManager Resources = new("MediaFoundation.Core.Subtitles.LrcStrings", typeof(LrcParser).Assembly);
     private static readonly Regex WordTiming = new(@"<[0-9]+:[^<>]*>", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
 
     internal static SubtitleDocument Parse(string text)
@@ -100,7 +98,13 @@ internal static class LrcParser
         return true;
     }
 
-    private static FormatException Error(int line, string reason) => new(string.Format(CultureInfo.CurrentCulture,
-        Resources.GetString("Parse", CultureInfo.CurrentUICulture) ?? throw new MissingManifestResourceException(), line,
-        Resources.GetString(reason, CultureInfo.CurrentUICulture) ?? throw new MissingManifestResourceException()));
+    private static FormatException Error(int line, string reason) => new(SR.Current.LrcParse.ToString(line, reason switch
+    {
+        "Timing" => SR.Current.LrcTiming,
+        "Offset" => SR.Current.LrcOffset,
+        "Enhanced" => SR.Current.LrcEnhanced,
+        "Range" => SR.Current.LrcRange,
+        "Empty" => SR.Current.LrcEmpty,
+        _ => throw new ArgumentOutOfRangeException(nameof(reason))
+    }));
 }

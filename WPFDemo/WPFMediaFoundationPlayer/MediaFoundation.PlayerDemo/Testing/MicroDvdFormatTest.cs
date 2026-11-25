@@ -64,12 +64,12 @@ internal static class MicroDvdFormatTest
 
     private static void Reject(string text, double? frameRate, int line, string reason, Action<bool, string> check, string name)
     {
-        CultureInfo previous = CultureInfo.CurrentUICulture;
+        string originalLanguage = SR.Current.IetfLanguageTag;
         bool rejected = false;
         try
         {
             // Keep exact diagnostic assertions independent of the machine's UI language.
-            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+            SR.SetCurrent("en");
             Parse(text, frameRate);
         }
         catch (FormatException exception)
@@ -78,7 +78,7 @@ internal static class MicroDvdFormatTest
         }
         finally
         {
-            CultureInfo.CurrentUICulture = previous;
+            SR.SetCurrent(originalLanguage);
         }
         check(rejected, name);
     }

@@ -32,9 +32,9 @@ internal sealed class RenderingModeMenu : IDisposable
             )
         };
         icon.SetResourceReference(FrameworkElement.StyleProperty, "PlayerIconStyle");
-        _more = new Button { Content = icon, ToolTip = Text("DemoMoreText") };
+        _more = new Button { Content = icon, ToolTip = Lang.Current.DemoMoreText };
         _more.SetResourceReference(FrameworkElement.StyleProperty, "PlayerButtonStyle");
-        System.Windows.Automation.AutomationProperties.SetName(_more, Text("DemoMoreText"));
+        System.Windows.Automation.AutomationProperties.SetName(_more, Lang.Current.DemoMoreText);
         var header = new FrameworkElementFactory(typeof(TextBlock));
         header.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding());
         header.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);
@@ -65,7 +65,7 @@ internal sealed class RenderingModeMenu : IDisposable
         {
             var item = new MenuItem
             {
-                Header = Text(mode == VideoRenderingMode.Hwnd ? "DemoHwndText" : "DemoD3DImageText"),
+                Header = mode == VideoRenderingMode.Hwnd ? Lang.Current.DemoHwndText : Lang.Current.DemoD3DImageText,
                 IsCheckable = true, Tag = mode
             };
             item.Click += OnSelectionAsync;
@@ -78,8 +78,7 @@ internal sealed class RenderingModeMenu : IDisposable
         {
             var item = new MenuItem
             {
-                Header = Text
-                    (scaling == VideoScalingMode.MixerOutput ? "DemoScalingMixerText" : "DemoScalingSurfaceText"),
+                Header = scaling == VideoScalingMode.MixerOutput ? Lang.Current.DemoScalingMixerText : Lang.Current.DemoScalingSurfaceText,
                 IsCheckable = true
             };
             _menu.Opened += (_, _) =>
@@ -92,10 +91,10 @@ internal sealed class RenderingModeMenu : IDisposable
         }
 
         _menu.Items.Add(new Separator());
-        var prototype = new MenuItem { Header = Text("DemoMFPlayPrototypeText") };
+        var prototype = new MenuItem { Header = Lang.Current.DemoMFPlayPrototypeText };
         prototype.Click += async (_, _) => await OpenPrototypeAsync();
         _menu.Items.Add(prototype);
-        var openLogs = new MenuItem { Header = Text("DemoOpenLogsText") };
+        var openLogs = new MenuItem { Header = Lang.Current.DemoOpenLogsText };
         openLogs.Click += (_, _) => DiagnosticAction
         (() => Process.Start
             (
@@ -103,23 +102,22 @@ internal sealed class RenderingModeMenu : IDisposable
                     { UseShellExecute = true }
             )
         );
-        var copy = new MenuItem { Header = Text("DemoCopyDiagnosticsText") };
+        var copy = new MenuItem { Header = Lang.Current.DemoCopyDiagnosticsText };
         copy.Click += (_, _) => DiagnosticAction
         (() => Clipboard.SetText
             (
-                Text
-                    ("DemoLocalLogPrivacyText") + Environment.NewLine + PlaybackDiagnostics.Summary +
+                Lang.Current.DemoLocalLogPrivacyText + Environment.NewLine + PlaybackDiagnostics.Summary +
                 Environment.NewLine +
                 _status.Text
             )
         );
-        var probe = new MenuItem { Header = Text("DemoMediaProbeText") };
+        var probe = new MenuItem { Header = Lang.Current.DemoMediaProbeText };
         probe.Click += async (_, _) => await ProbeAsync();
         _menu.Items.Add(probe);
         _menu.Items.Add(openLogs);
         _menu.Items.Add(copy);
-        _menu.Items.Add(new MenuItem { Header = Text("DemoLocalLogPrivacyText"), IsEnabled = false });
-        _menu.Items.Add(new MenuItem { Header = Text("DemoSwitchNoticeText"), IsEnabled = false });
+        _menu.Items.Add(new MenuItem { Header = Lang.Current.DemoLocalLogPrivacyText, IsEnabled = false });
+        _menu.Items.Add(new MenuItem { Header = Lang.Current.DemoSwitchNoticeText, IsEnabled = false });
         _more.Click += OnMore;
         control.Player.PropertyChanged += OnPlayerChanged;
         control.Player.Failed += OnPlaybackFailedAsync;
@@ -128,7 +126,6 @@ internal sealed class RenderingModeMenu : IDisposable
 
     internal bool IsSwitching { get; private set; }
     internal string ErrorText => _status.Text;
-    private static string Text(string key) => (string)Application.Current.FindResource(key);
 
     private void OnMore(object sender, RoutedEventArgs e)
     {
@@ -152,11 +149,9 @@ internal sealed class RenderingModeMenu : IDisposable
             var owner = Window.GetWindow(_control);
             if (source == null)
             {
-                var resources = new System.Resources.ResourceManager
-                    ("MediaFoundation.Controls.Strings", typeof(MediaPlayerControl).Assembly);
                 var dialog = new Microsoft.Win32.OpenFileDialog
                 {
-                    Filter = resources.GetString("FileFilter") ?? throw new InvalidOperationException(),
+                    Filter = Lang.Current.FileFilter,
                     CheckFileExists = true
                 };
                 if (dialog.ShowDialog(owner) != true) return;
@@ -171,9 +166,9 @@ internal sealed class RenderingModeMenu : IDisposable
                                           or UnauthorizedAccessException or ArgumentException)
         {
             PlaybackDiagnostics.Write(error, _control.Source);
-            _status.Text = string.Format
+            _status.Text = Lang.Current.DemoDiagnosticActionFailedText.ToString
             (
-                Text("DemoDiagnosticActionFailedText"), PlaybackDiagnostics.Sanitize(error.Message),
+                PlaybackDiagnostics.Sanitize(error.Message),
                 PlaybackDiagnostics.LogPath
             );
         }
@@ -189,9 +184,9 @@ internal sealed class RenderingModeMenu : IDisposable
                                           or UnauthorizedAccessException)
         {
             PlaybackDiagnostics.Write(error, _control.Player.Source);
-            _status.Text = string.Format
+            _status.Text = Lang.Current.DemoDiagnosticActionFailedText.ToString
             (
-                Text("DemoDiagnosticActionFailedText"), PlaybackDiagnostics.Sanitize(error.Message),
+                PlaybackDiagnostics.Sanitize(error.Message),
                 PlaybackDiagnostics.LogPath
             );
         }
@@ -202,9 +197,9 @@ internal sealed class RenderingModeMenu : IDisposable
         string path = PlaybackDiagnostics.Write(e.Error, _control.Player.Source ?? _control.Source);
         var native = e.Error;
         while (native.InnerException != null) native = native.InnerException;
-        _status.Text = string.Format
+        _status.Text = Lang.Current.DemoPlaybackFailedText.ToString
         (
-            Text("DemoPlaybackFailedText"), $"{PlaybackDiagnostics.Sanitize(e.Error.Message)} (0x{native.HResult:X8})",
+            $"{PlaybackDiagnostics.Sanitize(e.Error.Message)} (0x{native.HResult:X8})",
             path
         );
         _status.ToolTip = _status.Text;
@@ -223,9 +218,9 @@ internal sealed class RenderingModeMenu : IDisposable
             Trace.WriteLine
                 ($"MediaProbe {SourceDiagnostics.Describe(source)}{Environment.NewLine}{report}", "Demo.Diagnostics");
             if (_disposed || source != (_control.Player.Source ?? _control.Source)) return;
-            _status.Text = string.Format(Text("DemoMediaProbeResultText"), report, PlaybackDiagnostics.LogPath);
+            _status.Text = Lang.Current.DemoMediaProbeResultText.ToString(report, PlaybackDiagnostics.LogPath);
             if (_control.Player.State == PlaybackState.Failed)
-                _status.Text = Text("DemoProbePlaybackStillFailedText") + Environment.NewLine + _status.Text;
+                _status.Text = Lang.Current.DemoProbePlaybackStillFailedText + Environment.NewLine + _status.Text;
             _status.ToolTip = _status.Text;
         }
         catch (OperationCanceledException) when (_lifetime.IsCancellationRequested)
@@ -236,9 +231,9 @@ internal sealed class RenderingModeMenu : IDisposable
         {
             PlaybackDiagnostics.Write(error, source);
             if (!_disposed)
-                _status.Text = string.Format
+                _status.Text = Lang.Current.DemoDiagnosticActionFailedText.ToString
                 (
-                    Text("DemoDiagnosticActionFailedText"), PlaybackDiagnostics.Sanitize(error.Message),
+                    PlaybackDiagnostics.Sanitize(error.Message),
                     PlaybackDiagnostics.LogPath
                 );
         }
@@ -293,7 +288,7 @@ internal sealed class RenderingModeMenu : IDisposable
         bool autoPlay = _control.AutoPlay;
         IsSwitching = true;
         _control.IsEnabled = false;
-        _status.Text = Text("DemoSwitchingText");
+        _status.Text = Lang.Current.DemoSwitchingText;
         Refresh();
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.Token);
         deadline.CancelAfter(TimeSpan.FromSeconds(25));
@@ -351,9 +346,8 @@ internal sealed class RenderingModeMenu : IDisposable
                 string logPath = PlaybackDiagnostics.Write(error, saved.Source);
                 var native = error;
                 while (native.InnerException != null) native = native.InnerException;
-                _status.Text = string.Format
+                _status.Text = Lang.Current.DemoSwitchFailedText.ToString
                 (
-                    Text("DemoSwitchFailedText"),
                     $"{PlaybackDiagnostics.Sanitize(error.Message)} (0x{native.HResult:X8})", logPath
                 );
                 _status.ToolTip = _status.Text;

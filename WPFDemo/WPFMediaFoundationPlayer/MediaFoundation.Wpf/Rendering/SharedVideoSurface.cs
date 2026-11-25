@@ -234,7 +234,7 @@ internal sealed unsafe class SharedVideoSurface : IDisposable
             System.Diagnostics.Trace.WriteLine
                 ($"stage={stage} HRESULT=0x{result.Value:X8}", "MediaFoundation.Controls");
         if (result.Value < 0)
-            throw new COMException(string.Format(Text.Get("NativeStageFailure"), stage, result.Value), result.Value);
+            throw new COMException(Text.Current.NativeStageFailure.ToString(stage, result.Value.ToString("X8", System.Globalization.CultureInfo.InvariantCulture)), result.Value);
     }
 
     internal void Flush()
@@ -246,7 +246,7 @@ internal sealed unsafe class SharedVideoSurface : IDisposable
         while ((result = _context->GetData((ID3D11Asynchronous*)_query11, null, 0, 0)).Value == 1)
         {
             Check(_device->GetDeviceRemovedReason(), "ID3D11Device.GetDeviceRemovedReason");
-            if (deadline.Elapsed > TimeSpan.FromSeconds(2)) throw new InvalidOperationException(Text.Get("NotReady"));
+            if (deadline.Elapsed > TimeSpan.FromSeconds(2)) throw new InvalidOperationException(Text.Current.NotReady);
             Thread.Yield();
         }
 
@@ -254,7 +254,7 @@ internal sealed unsafe class SharedVideoSurface : IDisposable
         Check(_query9->Issue(1), "IDirect3DQuery9.Issue(END)");
         while ((result = _query9->GetData(null, 0, 1)).Value == 1)
         {
-            if (deadline.Elapsed > TimeSpan.FromSeconds(2)) throw new InvalidOperationException(Text.Get("NotReady"));
+            if (deadline.Elapsed > TimeSpan.FromSeconds(2)) throw new InvalidOperationException(Text.Current.NotReady);
             Thread.Yield();
         }
 

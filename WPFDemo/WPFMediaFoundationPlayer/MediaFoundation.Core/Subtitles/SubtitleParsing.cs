@@ -10,7 +10,15 @@ internal static class SubtitleParsing
     internal static string[] Lines(string text) => text.TrimStart('\uFEFF').ReplaceLineEndings("\n").Split('\n');
     internal static string PlainText(IEnumerable<string> lines) => System.Net.WebUtility.HtmlDecode(Markup.Replace(string.Join('\n', lines), ""));
     internal static FormatException Error(SubtitleFormat format, int line, string reason) =>
-        new(string.Format(CultureInfo.CurrentCulture, SR.Get("SubtitleParse"), format, line, SR.Get(reason)));
+        new(SR.Current.SubtitleParse.ToString(format, line, reason switch
+        {
+            "SubtitleHeader" => SR.Current.SubtitleHeader,
+            "SubtitleLayout" => SR.Current.SubtitleLayout,
+            "SubtitleTiming" => SR.Current.SubtitleTiming,
+            "SubtitleText" => SR.Current.SubtitleText,
+            "SubtitleEmpty" => SR.Current.SubtitleEmpty,
+            _ => throw new ArgumentOutOfRangeException(nameof(reason))
+        }));
 
     internal static bool TryTime(string text, char separator, bool allowMinutesOnly, out TimeSpan time)
     {
