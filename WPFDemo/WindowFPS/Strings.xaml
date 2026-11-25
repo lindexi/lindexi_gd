@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <sys:String x:Key="AppTitle">窗口帧率计</sys:String>
+    <sys:String x:Key="MetricLabel">捕获 FPS</sys:String>
+    <sys:String x:Key="NoReading">—</sys:String>
+    <sys:String x:Key="ChooseWindowHint">选择一个窗口以开始监测</sys:String>
+    <sys:String x:Key="ChooseWindow">选择窗口</sys:String>
+    <sys:String x:Key="ChangeWindow">更换窗口</sys:String>
+    <sys:String x:Key="Capturing">正在捕获</sys:String>
+    <sys:String x:Key="NoFrames">暂无新帧</sys:String>
+    <sys:String x:Key="CaptureStopped">捕获已停止</sys:String>
+    <sys:String x:Key="CaptureUnavailable">当前设备不支持窗口捕获。</sys:String>
+    <sys:String x:Key="CaptureFailed">无法捕获所选窗口，请重试或选择其他窗口。</sys:String>
+    <sys:String x:Key="UnnamedWindow">未命名窗口</sys:String>
+</ResourceDictionary>

@@ -1,0 +1,96 @@
+<Window x:Class="WindowFPS.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{StaticResource AppTitle}" Width="384" Height="330"
+        MinWidth="384" MinHeight="330" WindowStartupLocation="CenterScreen"
+        Background="#EEF2FA" Foreground="#131923" FontFamily="Segoe UI, Microsoft YaHei UI" FontSize="16"
+        UseLayoutRounding="True" xml:lang="zh-CN">
+    <Window.Icon>
+        <DrawingImage>
+            <DrawingImage.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#1769C2" Geometry="M 4,0 H 20 Q 24,0 24,4 V 20 Q 24,24 20,24 H 4 Q 0,24 0,20 V 4 Q 0,0 4,0 Z" />
+                    <GeometryDrawing Geometry="M 3,12 H 6 L 9,6 L 12,18 L 15,7 L 18,12 H 21">
+                        <GeometryDrawing.Pen><Pen Brush="White" Thickness="1.6" /></GeometryDrawing.Pen>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingImage.Drawing>
+        </DrawingImage>
+    </Window.Icon>
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#005FB8" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Padding" Value="18,0" />
+            <Setter Property="MinWidth" Value="128" />
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Surface" Background="{TemplateBinding Background}" CornerRadius="7"
+                                BorderThickness="2" BorderBrush="{TemplateBinding BorderBrush}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Surface" Property="Background" Value="#0755A3" /></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Surface" Property="Background" Value="#064686" /></Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Surface" Property="BorderBrush" Value="White" /></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Surface" Property="Background" Value="#626D7B" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="26,14,20,20" MaxWidth="480">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="42" />
+        </Grid.RowDefinitions>
+        <Grid VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="174" />
+                <ColumnDefinition Width="1" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left" Height="88" Margin="0,0,12,0">
+                <TextBlock x:Name="Reading" Text="{StaticResource NoReading}" FontSize="68" FontWeight="SemiBold"
+                           FontFamily="Segoe UI Variable Display, Segoe UI" Typography.NumeralAlignment="Tabular"
+                           AutomationProperties.Name="{StaticResource MetricLabel}" />
+            </Viewbox>
+            <Border Grid.Column="1" Height="32" Background="#ABB5C3" />
+            <TextBlock Grid.Column="2" Margin="18,0,0,0" FontSize="18" Foreground="#424B56"
+                       VerticalAlignment="Center" Text="{StaticResource MetricLabel}" />
+        </Grid>
+        <Grid Grid.Row="1" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="42" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid x:Name="EmptyIcon" Width="42" Height="42" IsHitTestVisible="False">
+                <Rectangle RadiusX="7" RadiusY="7" Stroke="#788594" StrokeThickness="1.5" StrokeDashArray="4 2" />
+                <Path Width="22" Height="19" Stretch="Uniform" Stroke="#667485" StrokeThickness="1.5"
+                      Data="M 1,5 H 21 M 2,1 H 20 Q 21,1 21,3 V 15 Q 21,17 19,17 H 3 Q 1,17 1,15 V 3 Q 1,1 2,1 Z" />
+            </Grid>
+            <Border x:Name="TargetIcon" Height="42" CornerRadius="7" Background="#3559C9" Visibility="Collapsed" IsHitTestVisible="False">
+                <Path Width="22" Height="19" Stretch="Uniform" Stroke="White" StrokeThickness="1.5"
+                      Data="M 1,5 H 21 M 2,1 H 20 Q 21,1 21,3 V 15 Q 21,17 19,17 H 3 Q 1,17 1,15 V 3 Q 1,1 2,1 Z" />
+            </Border>
+            <TextBlock Grid.Column="1" x:Name="TargetTitle" Margin="16,0,0,0" FontSize="17" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" Text="{StaticResource ChooseWindowHint}" />
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel x:Name="Status" Orientation="Horizontal" VerticalAlignment="Center" Visibility="Collapsed">
+                <Ellipse x:Name="StatusDot" Width="11" Height="11" Margin="0,0,11,0" />
+                <TextBlock x:Name="StatusText" Foreground="#303944" />
+            </StackPanel>
+            <Button Grid.Column="1" x:Name="PickButton" Content="{StaticResource ChooseWindow}" Click="OnPickWindow" />
+        </Grid>
+    </Grid>
+</Window>
