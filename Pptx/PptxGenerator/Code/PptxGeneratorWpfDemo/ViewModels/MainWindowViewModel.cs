@@ -52,7 +52,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _editableSlideXml = string.Empty;
     private ModelDisplayItem _selectedModelItem;
     private bool _isStreamingMode = true;
-    private string _mcpServiceUrl = "http://127.0.0.1:64773/mcp";
+    private string _mcpServiceUrl = "http://127.0.0.1:52195/mcp";
 
     public MainWindowViewModel(
         SlideChatManager slideChatManager,

@@ -18,6 +18,7 @@
   <ItemGroup>
     <PackageReference Include="DotNetCampus.LatestCSharpFeatures" Version="13.0.1" />
     <PackageReference Include="DotNetCampus.ModelContextProtocol" Version="0.1.0-alpha.40" />
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.18.0" />
   </ItemGroup>
 
   <ItemGroup>

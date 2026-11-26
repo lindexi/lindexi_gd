@@ -261,7 +261,7 @@ internal sealed class StreamingSlideGenerator
             try
             {
                 await foreach (AgentResponseUpdate update in agent.RunWithHistoryCompletionAsync(
-                    inputMessages, session, cancellationToken: loopToken))
+                    inputMessages, session, manualContext.Logger, loopToken))
                 {
                     manualContext.AppendResponseUpdate(update);
 

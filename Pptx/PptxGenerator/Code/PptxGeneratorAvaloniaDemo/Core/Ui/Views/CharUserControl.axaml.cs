@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
@@ -37,7 +37,7 @@ public partial class CharUserControl : UserControl
         ViewModel.StatusText = "正在总结对话...";
         try
         {
-            await ViewModel.SlideChatManager.Pipeline.ChatManager.ReduceSessionAsync();
+            await ViewModel.SlideChatManager.Pipeline.ChatManager.ReduceSessionAsync(chatReducer: null, requestText: null);
             ViewModel.StatusText = "总结完成";
         }
         catch (Exception)

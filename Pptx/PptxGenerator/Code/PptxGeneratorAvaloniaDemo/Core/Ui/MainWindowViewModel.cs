@@ -1,4 +1,4 @@
-﻿using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
+using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
 using PptxGenerator.Evaluation;
 using PptxGenerator.Models;
@@ -40,7 +40,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private bool _isFirstMessage = true;
     private bool _attachPreview;
     private string _editableSlideXml = string.Empty;
-    private string _mcpServiceUrl = "http://127.0.0.1:64773/mcp";
+    private string _mcpServiceUrl = "http://127.0.0.1:52195/mcp";
     private string _inputText = "请发挥你的想象力，制作一个精美的页面介绍 SlideML —— 一种用 XML 描述幻灯片排版的标记语言，支持 Page、Panel、Rect、TextElement、Image 等标签在 1280×720 画布上自由布局。";
     private string _statusText = "等待开始";
     private string _iterationStatusText = string.Empty;
@@ -223,7 +223,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     /// <summary>
     /// 聊天气泡消息列表。
     /// </summary>
-    public ObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager.Pipeline.ChatManager.ChatMessages;
+    public ReadOnlyObservableCollection<CopilotChatMessage> ChatMessages => SlideChatManager.Pipeline.ChatManager.ChatMessages;
 
     public bool IsBusy
     {

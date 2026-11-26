@@ -29,7 +29,7 @@ internal sealed class SlideStreamingRestartService
         await _pipeline.ResetStreamingRestartStateAsync(cancellationToken);
         await ReplayStateBeforeTargetAsync(plan, cancellationToken);
         await RestoreAgentHistoryBeforeTargetAsync(session, plan, cancellationToken);
-        TruncateSessionFromTarget(session, plan.TargetIndex, cancellationToken);
+        await TruncateSessionFromTargetAsync(session, targetMessage, cancellationToken);
 
         _chatManager.SelectedSession = session;
         await SendTargetMessageAsync(plan.TargetUserText, plan.IsTargetFirstMessage, cancellationToken);
@@ -96,22 +96,37 @@ internal sealed class SlideStreamingRestartService
             cancellationToken: cancellationToken);
     }
 
-    private static void TruncateSessionFromTarget(
+    private static Task TruncateSessionFromTargetAsync(
         CopilotChatSession session,
-        int targetIndex,
+        CopilotChatMessage targetMessage,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        var dispatcher = session.MainThreadDispatcher;
+        return dispatcher is not null && !dispatcher.CheckAccess()
+            ? dispatcher.InvokeAsync(Truncate)
+            : Truncate();
 
-        while (session.ChatMessages.Count > targetIndex)
+        Task Truncate()
         {
-            session.ChatMessages.RemoveAt(session.ChatMessages.Count - 1);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            int targetIndex = session.Entries.IndexOf(targetMessage);
+            if (targetIndex < 0)
+            {
+                throw new InvalidOperationException("在当前会话中找不到要重新开始的用户消息。");
+            }
+
+            while (session.Entries.Count > targetIndex)
+            {
+                session.Entries.RemoveAt(session.Entries.Count - 1);
+            }
+
+            return Task.CompletedTask;
         }
     }
 }
 
 internal sealed record SlideStreamingRestartPlan(
-    int TargetIndex,
     string TargetUserText,
     bool IsTargetFirstMessage,
     IReadOnlyList<RestartReplayTurn> PreviousTurns)
@@ -133,7 +148,6 @@ internal sealed record SlideStreamingRestartPlan(
         }
 
         return new SlideStreamingRestartPlan(
-            targetIndex,
             targetMessage.Content,
             targetIndex == 0,
             CreatePreviousTurns(session.ChatMessages, targetIndex));

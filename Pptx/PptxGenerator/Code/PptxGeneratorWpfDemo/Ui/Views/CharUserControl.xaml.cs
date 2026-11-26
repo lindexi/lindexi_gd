@@ -1,4 +1,4 @@
-﻿using PptxGenerator;
+using PptxGenerator;
 
 using System;
 using System.Collections.Specialized;
@@ -34,13 +34,13 @@ public partial class CharUserControl : UserControl
         // 取消旧的订阅
         if (e.OldValue is MainWindowViewModel oldVm)
         {
-            oldVm.CopilotChatManager.ChatMessages.CollectionChanged -= OnChatMessagesCollectionChanged;
+            ((INotifyCollectionChanged)oldVm.CopilotChatManager.ChatMessages).CollectionChanged -= OnChatMessagesCollectionChanged;
         }
 
         // 订阅新的
         if (e.NewValue is MainWindowViewModel newVm)
         {
-            newVm.CopilotChatManager.ChatMessages.CollectionChanged += OnChatMessagesCollectionChanged;
+            ((INotifyCollectionChanged)newVm.CopilotChatManager.ChatMessages).CollectionChanged += OnChatMessagesCollectionChanged;
         }
     }
 
@@ -144,7 +144,7 @@ public partial class CharUserControl : UserControl
         ViewModel.StatusText = "正在总结对话...";
         try
         {
-            await ViewModel.SlideChatManager.Pipeline.ChatManager.ReduceSessionAsync();
+            await ViewModel.SlideChatManager.Pipeline.ChatManager.ReduceSessionAsync(chatReducer: null, requestText: null);
             ViewModel.StatusText = "总结完成";
         }
         catch (Exception)
