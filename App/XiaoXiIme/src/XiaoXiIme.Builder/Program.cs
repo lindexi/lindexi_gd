@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using XiaoXiIme.Builder;
 using XiaoXiIme.Dictionary;
 
 return await BuildAsync(AppContext.BaseDirectory);
@@ -23,6 +24,16 @@ static async Task<int> BuildAsync(string executableDirectory)
             return 1;
         }
 
+        operation = "SelectSdk";
+        path = root.FullName;
+        var sdk = DotNetSdk.Resolve(root);
+        sdk.LogSelection();
+        if (sdk.IsLocal)
+        {
+            path = sdk.Command;
+            await sdk.ValidateLocalAsync();
+        }
+
         var output = Path.Combine(root.FullName, "artifacts", "distribution");
         var staging = output + ".building";
         operation = "PrepareOutput";
@@ -35,14 +46,14 @@ static async Task<int> BuildAsync(string executableDirectory)
 
         operation = "RestoreRuntime";
         path = Path.Combine(staging, "dotnet");
-        await RestoreRuntimeAsync(Path.GetDirectoryName(staging)!, path);
+        await RestoreRuntimeAsync(sdk, Path.GetDirectoryName(staging)!, path);
 
         operation = "Publish";
         foreach (var (project, rid, destination, frameworkDependent) in PublishTargets())
         {
             path = Path.Combine(root.FullName, project);
             var destinationPath = Path.Combine(staging, destination);
-            if (await PublishAsync(path, rid, destinationPath, frameworkDependent) is var exitCode && exitCode != 0)
+            if (await PublishAsync(sdk, path, rid, destinationPath, frameworkDependent) is var exitCode && exitCode != 0)
             {
                 Console.Error.WriteLine($"[Builder][{operation}] Project={path}; RuntimeIdentifier={rid}; Output={destinationPath}; ExitCode={exitCode}");
                 return exitCode;
@@ -100,9 +111,14 @@ static IEnumerable<(string Project, string Rid, string Destination, bool Framewo
     }
 }
 
-static async Task<int> PublishAsync(string project, string rid, string destination, bool frameworkDependent)
+static async Task<int> PublishAsync(DotNetSdk sdk, string project, string rid, string destination, bool frameworkDependent)
 {
-    var info = new ProcessStartInfo("dotnet") { UseShellExecute = false };
+    var info = sdk.CreateStartInfo();
+    if (sdk.IsLocal)
+    {
+        // Keep NativeAOT intermediates separate from ordinary system SDK builds.
+        info.Environment["ArtifactsPath"] = Path.Combine(info.WorkingDirectory, "artifacts", "local-sdk");
+    }
     foreach (var arg in new[] { "publish", project, "-c", "Release", "-r", rid, "-o", destination, "--self-contained", frameworkDependent ? "false" : "true" })
     {
         info.ArgumentList.Add(arg);
@@ -117,7 +133,7 @@ static async Task<int> PublishAsync(string project, string rid, string destinati
     return process.ExitCode;
 }
 
-static async Task RestoreRuntimeAsync(string artifacts, string destination)
+static async Task RestoreRuntimeAsync(DotNetSdk sdk, string artifacts, string destination)
 {
     const string packageId = "Microsoft.NETCore.App.Runtime.win-x64";
     const string source = "https://api.nuget.org/v3/index.json";
@@ -163,7 +179,7 @@ static async Task RestoreRuntimeAsync(string artifacts, string destination)
               </packageSources>
             </configuration>
             """);
-        var info = new ProcessStartInfo("dotnet") { UseShellExecute = false };
+        var info = sdk.CreateStartInfo();
         foreach (var arg in new[] { "restore", project, "--configfile", config,
             "--packages", Path.Combine(restoreDirectory, "packages"), "--no-http-cache",
             "-p:ImportDirectoryBuildProps=false", "-p:ImportDirectoryBuildTargets=false",
