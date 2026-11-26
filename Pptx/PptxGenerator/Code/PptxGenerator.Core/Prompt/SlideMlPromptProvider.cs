@@ -1,4 +1,4 @@
-﻿using PptxGenerator.Models;
+using PptxGenerator.Models;
 
 namespace PptxGenerator.Prompt;
 
@@ -347,7 +347,7 @@ Fill、Stroke、LinearGradient、Stop：
 1. 尽量使用浅色主题，视觉清爽。
 2. 标题、副标题、正文层级明显，优先使用字号等级（标题 L2、正文 L3、辅助 L4）。
 3. 页面内容要适合画布 {canvasSize}。
-4. 若需图片可用占位资源 ID，如 image_001。
+4. 需要图片时优先使用实际资源 ID。有可用的资源注册工具和源文件时，先调用工具，再将返回的资源 ID 填入 Source；没有实际资源时可使用占位 ID，如 image_001。
 5. 先输出 Page 骨架，再逐步填充和细化。
 6. 每个元素必须带 Id 且全局唯一；同类元素优先用带 StyleId 的悬空模板 + StyleFrom 减少重复。
 7. 合理使用 Panel 的 Layout 属性减少手动坐标计算。
@@ -373,7 +373,7 @@ Fill、Stroke、LinearGradient、Stop：
 1. 尽量使用浅色主题，视觉清爽
 2. 标题、副标题、正文层级明显
 3. 页面内容要适合 {canvasSize}
-4. 如果需要图片，可以使用占位资源 ID，如 image_001
+4. 需要图片时优先使用实际资源 ID。有可用的资源注册工具和源文件时，先调用工具，再将返回的资源 ID 填入 Source；没有实际资源时可使用占位 ID，如 image_001
 5. 生成 XML 后必须调用 render_slide 工具验证排版效果
 6. 只输出 XML，不要用 markdown 代码块包裹
 7. 合理使用 Panel 的 Layout 属性（Horizontal/Vertical）减少手动坐标计算

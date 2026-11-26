@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PptxGenerator.Models;
 using PptxGenerator.Models.SlideDocuments;
 using PptxGenerator.Rendering;
+using System.IO;
 using System.Windows;
 
 namespace PptxGenerator.Wpf.Tests.Rendering;

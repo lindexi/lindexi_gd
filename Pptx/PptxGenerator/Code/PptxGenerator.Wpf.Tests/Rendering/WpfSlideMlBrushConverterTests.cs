@@ -43,7 +43,7 @@ public sealed class WpfSlideMlBrushConverterTests
     [TestMethod(DisplayName = "创建纯色画刷时应保留颜色通道")]
     public void CreateWpfBrush_WhenSolidColorThenReturnsSolidColorBrush()
     {
-        var brush = WpfSlideMlBrushConverter.CreateWpfBrush(new SlideMlSolidColorBrush("#80336699"));
+        var brush = WpfSlideMlBrushConverter.CreateWpfBrush(new SlideMlSolidColorBrush { Color = "#80336699" });
 
         Assert.IsInstanceOfType<SolidColorBrush>(brush);
         var solidColorBrush = (SolidColorBrush)brush;

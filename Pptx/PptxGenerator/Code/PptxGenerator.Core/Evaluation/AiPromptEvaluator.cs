@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using AgentLib;
 using AgentLib.Model;
@@ -13,9 +13,14 @@ public sealed class AiPromptEvaluator : IPromptEvaluator
 {
     private readonly CopilotChatManager _copilotChatManager;
 
-    public AiPromptEvaluator(CopilotChatManager copilotChatManager)
+    private readonly PptxGenerator.Pipeline.SlideResponsesClient? _responsesClient;
+
+    /// <summary>创建使用指定模型协议的提示词评估器。</summary>
+    public AiPromptEvaluator(CopilotChatManager copilotChatManager, bool useResponsesApi = false)
     {
         _copilotChatManager = copilotChatManager ?? throw new ArgumentNullException(nameof(copilotChatManager));
+        if (useResponsesApi)
+            _responsesClient = new(copilotChatManager);
     }
 
     /// <inheritdoc />
@@ -43,10 +48,18 @@ public sealed class AiPromptEvaluator : IPromptEvaluator
                 CancellationToken = cancellationToken,
             };
 
-            var result = _copilotChatManager.SendMessage(request);
-            await result.RunTask.ConfigureAwait(false);
-
-            var responseText = result.AssistantChatMessage.Content;
+            string responseText;
+            if (_responsesClient is not null)
+            {
+                responseText = await _responsesClient.SendAsync(contents, request.SystemPrompt, [], cancellationToken,
+                    withHistory: false, isPresetInfo: true).ConfigureAwait(false);
+            }
+            else
+            {
+                var result = _copilotChatManager.SendMessage(request);
+                await result.RunTask.ConfigureAwait(false);
+                responseText = result.AssistantChatMessage.Content;
+            }
             if (string.IsNullOrWhiteSpace(responseText))
             {
                 return PromptEvaluationResult.Failed("评估者未返回有效响应。");

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Text;
 using AgentLib;
 using Microsoft.Extensions.AI;
@@ -32,6 +32,11 @@ public sealed class SlideMlRenderTool
     /// 获取渲染管道实例，供流式生成等场景复用。
     /// </summary>
     public ISlideMlRenderPipeline RenderPipeline => _renderPipeline;
+
+    /// <summary>获取生成所用的内置工具及当前发现的附加工具。</summary>
+    public IReadOnlyList<AIFunction> CreateGenerationTools(bool streaming) =>
+        [streaming ? CreateSlideStateTool() : CreateTool(), CreatePreviewTool(),
+            .. ((_renderPipeline as ISlideMlToolProvider)?.SlideMlTools ?? [])];
 
     /// <summary>
     /// 获取主线程调度器实例，供流式生成等场景复用。

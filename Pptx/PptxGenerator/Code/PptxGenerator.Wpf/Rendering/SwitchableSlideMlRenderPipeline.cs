@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetCampus.ModelContextProtocol.Clients;
 using DotNetCampus.ModelContextProtocol.Protocol.Messages;
+using Microsoft.Extensions.AI;
 using PptxGenerator.Models;
 
 namespace PptxGenerator.Rendering;
@@ -11,11 +14,11 @@ namespace PptxGenerator.Rendering;
 /// <summary>
 /// 可切换的 SlideML 渲染管道，优先使用 MCP 远程渲染，未连接时回退到本地渲染。
 /// </summary>
-public sealed class SwitchableSlideMlRenderPipeline : ISlideMlRenderPipeline
+public sealed class SwitchableSlideMlRenderPipeline : ISlideMlRenderPipeline, ISlideMlToolProvider
 {
-    private readonly ISlideMlRenderPipeline _defaultPipeline;
+    private readonly PipelineState _localState;
     private readonly SemaphoreSlim _switchLock = new(1, 1);
-    private ISlideMlRenderPipeline _activePipeline;
+    private PipelineState _activeState;
 
     /// <summary>
     /// 初始化 <see cref="SwitchableSlideMlRenderPipeline"/> 的新实例。
@@ -24,16 +27,17 @@ public sealed class SwitchableSlideMlRenderPipeline : ISlideMlRenderPipeline
     public SwitchableSlideMlRenderPipeline(ISlideMlRenderPipeline defaultPipeline)
     {
         ArgumentNullException.ThrowIfNull(defaultPipeline);
-        _defaultPipeline = defaultPipeline;
-        _activePipeline = defaultPipeline;
+        _localState = new PipelineState(defaultPipeline, []);
+        _activeState = _localState;
     }
 
     /// <summary>
     /// 获取当前是否已启用 MCP 渲染管道。
     /// </summary>
-    public bool IsMcpEnabled => !ReferenceEquals(
-        Volatile.Read(ref _activePipeline),
-        _defaultPipeline);
+    public bool IsMcpEnabled => Volatile.Read(ref _activeState).Pipeline is McpSlideMlRenderPipeline;
+
+    /// <inheritdoc />
+    public IReadOnlyList<AIFunction> SlideMlTools => Volatile.Read(ref _activeState).Tools;
 
     /// <summary>
     /// 尝试连接 MCP 服务并切换到 MCP 渲染管道；失败时回退到本地渲染。
@@ -48,7 +52,7 @@ public sealed class SwitchableSlideMlRenderPipeline : ISlideMlRenderPipeline
         {
             if (string.IsNullOrWhiteSpace(mcpServiceUrl))
             {
-                Volatile.Write(ref _activePipeline, _defaultPipeline);
+                Volatile.Write(ref _activeState, _localState);
                 return false;
             }
 
@@ -61,40 +65,43 @@ public sealed class SwitchableSlideMlRenderPipeline : ISlideMlRenderPipeline
             }
             catch
             {
-                Volatile.Write(ref _activePipeline, _defaultPipeline);
+                Volatile.Write(ref _activeState, _localState);
                 return false;
             }
 
-            ListToolsResult toolsResult;
+            var tools = new List<Tool>();
             try
             {
-                toolsResult = await mcpClient.ListToolsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+                string? cursor = null;
+                do
+                {
+                    var page = await mcpClient.ListToolsAsync(cursor, cancellationToken).ConfigureAwait(false);
+                    tools.AddRange(page.Tools);
+                    cursor = page.NextCursor;
+                } while (!string.IsNullOrEmpty(cursor));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                Volatile.Write(ref _activePipeline, _defaultPipeline);
+                Volatile.Write(ref _activeState, _localState);
                 throw;
             }
             catch
             {
-                Volatile.Write(ref _activePipeline, _defaultPipeline);
+                Volatile.Write(ref _activeState, _localState);
                 return false;
             }
 
-            var renderTool = toolsResult.Tools.FirstOrDefault(t =>
+            var renderTool = tools.FirstOrDefault(t =>
                 t.Name.Contains("Render", StringComparison.OrdinalIgnoreCase)
                 && t.Name.Contains("SlideML", StringComparison.OrdinalIgnoreCase));
 
-            if (renderTool is null)
-            {
-                Volatile.Write(ref _activePipeline, _defaultPipeline);
-                return false;
-            }
-
-            Volatile.Write(
-                ref _activePipeline,
-                new McpSlideMlRenderPipeline(mcpClient, renderTool.Name));
-            return true;
+            var additionalTools = CreateSlideMlTools(tools,
+                (name, arguments, token) => mcpClient.CallToolAsync(name, arguments, token));
+            var pipeline = renderTool is null
+                ? _localState.Pipeline
+                : new McpSlideMlRenderPipeline(mcpClient, renderTool.Name);
+            Volatile.Write(ref _activeState, new PipelineState(pipeline, additionalTools));
+            return renderTool is not null;
         }
         finally
         {
@@ -105,7 +112,45 @@ public sealed class SwitchableSlideMlRenderPipeline : ISlideMlRenderPipeline
     /// <inheritdoc />
     public async Task<SlideMlRenderResult> RenderAsync(string slideXml, CancellationToken cancellationToken = default)
     {
-        var pipeline = Volatile.Read(ref _activePipeline);
+        var pipeline = Volatile.Read(ref _activeState).Pipeline;
         return await pipeline.RenderAsync(slideXml, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal static IReadOnlyList<AIFunction> CreateSlideMlTools(IEnumerable<Tool> tools,
+        Func<string, JsonElement, CancellationToken, Task<CallToolResult>> callToolAsync)
+    {
+        var discoveredTools = tools.ToArray();
+        var resourceTool = discoveredTools.FirstOrDefault(candidate =>
+            string.Equals(candidate.Name, "Register_SlideML_Resource", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(candidate.Name, "RegisterSlideMLResource", StringComparison.OrdinalIgnoreCase));
+        var markdownTool = discoveredTools.FirstOrDefault(candidate =>
+            string.Equals(candidate.Name, "export_courseware_markdown", StringComparison.OrdinalIgnoreCase));
+
+        var functions = new List<AIFunction>(2);
+        if (resourceTool is not null)
+            functions.Add(new McpFunction(resourceTool, callToolAsync));
+        if (markdownTool is not null)
+            functions.Add(new McpFunction(markdownTool, callToolAsync));
+        return functions.AsReadOnly();
+    }
+
+    private sealed record PipelineState(ISlideMlRenderPipeline Pipeline, IReadOnlyList<AIFunction> Tools);
+
+    private sealed class McpFunction(Tool tool, Func<string, JsonElement, CancellationToken, Task<CallToolResult>> callToolAsync) : AIFunction
+    {
+        public override string Name => tool.Name;
+        public override string Description => tool.Description ?? string.Empty;
+        public override JsonElement JsonSchema => tool.InputSchema;
+        public override JsonElement? ReturnJsonSchema => tool.OutputSchema;
+
+        protected override async ValueTask<object?> InvokeCoreAsync(AIFunctionArguments arguments, CancellationToken cancellationToken)
+        {
+            var result = await callToolAsync(Name, JsonSerializer.SerializeToElement(arguments), cancellationToken)
+                .ConfigureAwait(false);
+            if (result.IsError != true && result.StructuredContent is { } content)
+                return content;
+
+            return new { result.IsError, result.StructuredContent, result.Content };
+        }
     }
 }

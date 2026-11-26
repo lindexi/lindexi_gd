@@ -1,4 +1,4 @@
-﻿using PptxGenerator.Evaluation;
+using PptxGenerator.Evaluation;
 
 namespace PptxGenerator.Pipeline;
 
@@ -7,6 +7,9 @@ namespace PptxGenerator.Pipeline;
 /// </summary>
 public sealed class PipelineConfiguration
 {
+    /// <summary>使用原生 Responses API 生成幻灯片。</summary>
+    public bool UseResponsesApi { get; init; }
+
     /// <summary>
     /// SlideML 评估器。为 <see langword="null"/> 时禁用 SlideML 评估。
     /// </summary>

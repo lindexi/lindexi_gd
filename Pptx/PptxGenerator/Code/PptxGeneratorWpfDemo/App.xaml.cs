@@ -1,5 +1,4 @@
-﻿using AgentLib;
-using AgentLib.Core;
+using AgentLib;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 
 using PptxGenerator;
@@ -22,9 +21,14 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        var slideChatManager = await CreateSlideChatManagerAsync();
-        if (slideChatManager is null)
+        SlideChatManager slideChatManager;
+        try
         {
+            slideChatManager = await CreateSlideChatManagerAsync();
+        }
+        catch (Exception exception)
+        {
+            MessageBox.Show(exception.Message, "无法启动幻灯片演示", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
             return;
         }
@@ -40,12 +44,15 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// 从 Agent 配置文件创建 <see cref="SlideChatManager"/>，供 GUI 和 CLI 路径共用。
+    /// 从 Agent 配置文件创建使用 Responses API 的幻灯片生成器。
     /// </summary>
-    /// <returns>创建成功的 <see cref="SlideChatManager"/>；如果失败则返回 null。</returns>
-    private static async Task<SlideChatManager?> CreateSlideChatManagerAsync()
+    private static async Task<SlideChatManager> CreateSlideChatManagerAsync()
     {
-        var agentConfigurationFile = @"C:\lindexi\Work\Key\AgentConfiguration.json";
+        var agentConfigurationFile = Environment.GetEnvironmentVariable("PPTX_GENERATOR_AGENT_CONFIG");
+        if (string.IsNullOrWhiteSpace(agentConfigurationFile))
+            agentConfigurationFile = Path.Combine(AppContext.BaseDirectory, "AgentConfiguration.json");
+
+        var configuration = await AgentApiManagerConfiguration.FromJsonFileAsync(new FileInfo(agentConfigurationFile));
 
         var dispatcher = WpfDispatcher.Instance;
         var copilotChatManager = new CopilotChatManager
@@ -53,33 +60,27 @@ public partial class App : Application
             MainThreadDispatcher = dispatcher,
         };
         var agentApiEndpointManager = copilotChatManager.AgentApiEndpointManager;
-        await agentApiEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile));
-
-        ILanguageModel? languageModel = agentApiEndpointManager.GetModel("deepseek-v4-flash");
-        if (languageModel is null)
-        {
-            Console.Error.WriteLine("未找到指定的语言模型。");
-            return null;
-        }
-
-        agentApiEndpointManager.PrimaryModel = languageModel;
+        agentApiEndpointManager.LoadConfiguration(configuration);
+        if (agentApiEndpointManager.PrimaryModel is not IResponsesClientProvider)
+            throw new InvalidOperationException("请在 AgentConfiguration.json 中将 PrimaryModel 配置为支持 Responses API 的模型。");
 
         var defaultPipeline = new SlideMlRenderPipeline(new SlideMlLayoutEngine(), new WpfSlideMlRenderEngine(), dispatcher);
         var renderPipeline = new SwitchableSlideMlRenderPipeline(defaultPipeline);
         var slideMlRenderTool = new SlideMlRenderTool(renderPipeline, dispatcher);
 
         var evaluatorChatManager = new CopilotChatManager();
-        var evaluatorEndpointManager = evaluatorChatManager.AgentApiEndpointManager;
-        await evaluatorEndpointManager.LoadConfigurationFromJsonFileAsync(new FileInfo(agentConfigurationFile));
+        evaluatorChatManager.AgentApiEndpointManager.LoadConfiguration(configuration);
 
-        ILanguageModel? evaluatorModel = evaluatorEndpointManager.GetModel("deepseek-v4-flash")
-            ?? languageModel;
-        evaluatorEndpointManager.PrimaryModel = evaluatorModel;
+        var slideEvaluator = new AiSlideEvaluator(evaluatorChatManager, useResponsesApi: true);
+        var promptEvaluator = new AiPromptEvaluator(evaluatorChatManager, useResponsesApi: true);
+        var promptOptimizer = new AiPromptOptimizer(evaluatorChatManager, useResponsesApi: true);
 
-        var slideEvaluator = new AiSlideEvaluator(evaluatorChatManager);
-        var promptEvaluator = new AiPromptEvaluator(evaluatorChatManager);
-        var promptOptimizer = new AiPromptOptimizer(evaluatorChatManager);
-
-        return new SlideChatManager(copilotChatManager, slideMlRenderTool, slideEvaluator: slideEvaluator, promptEvaluator: promptEvaluator, promptOptimizer: promptOptimizer);
+        return new SlideChatManager(copilotChatManager, slideMlRenderTool, new PipelineConfiguration
+        {
+            UseResponsesApi = true,
+            SlideEvaluator = slideEvaluator,
+            PromptEvaluator = promptEvaluator,
+            PromptOptimizer = promptOptimizer,
+        });
     }
 }

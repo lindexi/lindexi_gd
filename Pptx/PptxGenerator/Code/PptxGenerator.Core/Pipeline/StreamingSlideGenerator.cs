@@ -30,6 +30,7 @@ internal sealed class StreamingSlideGenerator
     private readonly CopilotChatManager _copilotChatManager;
     private readonly ISlideMlPromptProvider _promptProvider;
     private readonly SlideMlRenderTool _renderTool;
+    private readonly SlideResponsesClient? _responsesClient;
 
     /// <summary>
     /// 初始化 <see cref="StreamingSlideGenerator"/> 的新实例。
@@ -37,14 +38,17 @@ internal sealed class StreamingSlideGenerator
     /// <param name="copilotChatManager">聊天管理器。</param>
     /// <param name="promptProvider">提示词提供者。</param>
     /// <param name="renderTool">渲染工具。</param>
+    /// <param name="responsesClient">启用原生 Responses 的客户端。</param>
     public StreamingSlideGenerator(
         CopilotChatManager copilotChatManager,
         ISlideMlPromptProvider promptProvider,
-        SlideMlRenderTool renderTool)
+        SlideMlRenderTool renderTool,
+        SlideResponsesClient? responsesClient = null)
     {
         _copilotChatManager = copilotChatManager ?? throw new ArgumentNullException(nameof(copilotChatManager));
         _promptProvider = promptProvider ?? throw new ArgumentNullException(nameof(promptProvider));
         _renderTool = renderTool ?? throw new ArgumentNullException(nameof(renderTool));
+        _responsesClient = responsesClient;
     }
 
     /// <summary>
@@ -201,93 +205,92 @@ internal sealed class StreamingSlideGenerator
 
         try
         {
-            var manualContext = await _copilotChatManager
-                .CreateManualSendMessageContextAsync(externalCancellationToken);
-
-            // 填充用户消息
-            manualContext.UserChatMessage.AppendText(userMessage);
-
-            var systemPrompt = includeSystemPrompt
-                ? _promptProvider.BuildStreamingSystemPrompt()
-                : null;
-
-            ChatOptions chatOptions = CreateStreamingChatOptions();
-            ChatClientAgent agent;
-            if (chatClientOverride is null)
+            if (_responsesClient is not null)
             {
-                agent = await manualContext.GetChatClientAgentAsync(options => options.ChatOptions = chatOptions,
-                    externalCancellationToken);
+                var contents = new List<AIContent> { new TextContent(userMessage) };
+                await AppendAttachedImageContentsAsync(contents, attachedImageContents, attachedImageFiles,
+                    externalCancellationToken, requiredAttachedImageFiles);
+                if (attachPreview && await _renderTool.CreatePreviewDataContentAsync(externalCancellationToken) is { } preview)
+                    contents.Add(preview);
+
+                try
+                {
+                    await _responsesClient.SendAsync(contents,
+                        includeSystemPrompt ? _promptProvider.BuildStreamingSystemPrompt() : null,
+                        _renderTool.CreateGenerationTools(streaming: true), externalCancellationToken,
+                        onTextDelta: ProcessTextDeltaAsync, streamCancellationToken: errorCancellationTokenSource.Token);
+                }
+                catch (OperationCanceledException) when (errorCancellationTokenSource.IsCancellationRequested && !externalCancellationToken.IsCancellationRequested)
+                {
+                    // 保留已合并的片段，继续生成错误反馈。
+                }
             }
             else
             {
-                agent = chatClientOverride.AsAIAgent(new ChatClientAgentOptions
-                {
-                    ChatOptions = chatOptions,
-                    ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()),
-                    RequirePerServiceCallChatHistoryPersistence = true,
-                });
+                await RunLegacyChatAsync();
             }
 
-            AgentSession session = await manualContext.GetAgentSessionAsync(externalCancellationToken);
-
-            ChatMessage userChatMessage = manualContext.UserChatMessage.ToChatMessage();
-            await AppendAttachedImageContentsAsync(
-                userChatMessage,
-                attachedImageContents,
-                attachedImageFiles,
-                externalCancellationToken,
-                requiredAttachedImageFiles);
-
-            // 附带当前预览图供 LLM 参考（仅在用户勾选且存在预览图时）
-            if (attachPreview)
+            async Task ProcessTextDeltaAsync(string text)
             {
-                var previewDataContent = await _renderTool.CreatePreviewDataContentAsync(externalCancellationToken);
-                if (previewDataContent is not null)
+                if (string.IsNullOrEmpty(text))
+                    return;
+
+                await streamingPipeline.ProcessIncrementalTextAsync(text, context, errorCancellationTokenSource.Token);
+                await ApplyPendingRenderResultsAsync(pendingRenderResults);
+                if (context.Errors.Count > 0)
+                    errorCancellationTokenSource.Cancel();
+            }
+
+            async Task RunLegacyChatAsync()
+            {
+                var manualContext = await _copilotChatManager
+                    .CreateManualSendMessageContextAsync(externalCancellationToken);
+                manualContext.UserChatMessage.AppendText(userMessage);
+
+                var systemPrompt = includeSystemPrompt ? _promptProvider.BuildStreamingSystemPrompt() : null;
+                ChatOptions chatOptions = CreateStreamingChatOptions();
+                ChatClientAgent agent = chatClientOverride is null
+                    ? await manualContext.GetChatClientAgentAsync(options => options.ChatOptions = chatOptions, externalCancellationToken)
+                    : chatClientOverride.AsAIAgent(new ChatClientAgentOptions
+                    {
+                        ChatOptions = chatOptions,
+                        ChatHistoryProvider = new InMemoryChatHistoryProvider(new InMemoryChatHistoryProviderOptions()),
+                        RequirePerServiceCallChatHistoryPersistence = true,
+                    });
+
+                AgentSession session = await manualContext.GetAgentSessionAsync(externalCancellationToken);
+                ChatMessage userChatMessage = manualContext.UserChatMessage.ToChatMessage();
+                await AppendAttachedImageContentsAsync(userChatMessage, attachedImageContents, attachedImageFiles,
+                    externalCancellationToken, requiredAttachedImageFiles);
+                if (attachPreview && await _renderTool.CreatePreviewDataContentAsync(externalCancellationToken) is { } preview)
+                    userChatMessage.Contents.Add(preview);
+
+                var inputMessages = systemPrompt is not null
+                    ? new[] { new ChatMessage(ChatRole.System, systemPrompt), userChatMessage }
+                    : new[] { userChatMessage };
+
+                await manualContext.AppendMessagesToSessionAsync();
+                using var chattingScope = manualContext.StartChatting();
+                var loopToken = errorCancellationTokenSource.Token;
+
+                try
                 {
-                    userChatMessage.Contents.Add(previewDataContent);
+                    await foreach (var update in agent.RunWithHistoryCompletionAsync(inputMessages, session, manualContext.Logger, loopToken))
+                    {
+                        manualContext.AppendResponseUpdate(update);
+                        await ProcessTextDeltaAsync(update.Text);
+                        externalCancellationToken.ThrowIfCancellationRequested();
+                        if (loopToken.IsCancellationRequested)
+                            break;
+                    }
+                }
+                catch (OperationCanceledException) when (errorCancellationTokenSource.IsCancellationRequested && !externalCancellationToken.IsCancellationRequested)
+                {
+                    // 由异常检测触发的取消，非外部取消，继续走错误反馈流程。
                 }
             }
 
-            var inputMessages = systemPrompt is not null
-                ? new[] { new ChatMessage(ChatRole.System, systemPrompt), userChatMessage }
-                : new[] { userChatMessage };
-
-            await manualContext.AppendMessagesToSessionAsync();
-
-            using IDisposable chattingScope = manualContext.StartChatting();
-
-            var loopToken = errorCancellationTokenSource.Token;
-
-            try
-            {
-                await foreach (AgentResponseUpdate update in agent.RunWithHistoryCompletionAsync(
-                    inputMessages, session, manualContext.Logger, loopToken))
-                {
-                    manualContext.AppendResponseUpdate(update);
-
-                    if (string.IsNullOrEmpty(update.Text))
-                    {
-                        continue;
-                    }
-
-                    // 将增量文本喂给流式管道
-                    await streamingPipeline.ProcessIncrementalTextAsync(
-                        update.Text, context, loopToken);
-                    await ApplyPendingRenderResultsAsync(pendingRenderResults);
-
-                    // 检查合并阶段是否产生了 XML 解析错误
-                    if (context.Errors.Count > 0)
-                    {
-                        errorCancellationTokenSource.Cancel();
-                        break;
-                    }
-                }
-            }
-            catch (OperationCanceledException) when (errorCancellationTokenSource.IsCancellationRequested && !externalCancellationToken.IsCancellationRequested)
-            {
-                // 由异常检测触发的取消，非外部取消，继续走错误反馈流程
-            }
-
+            externalCancellationToken.ThrowIfCancellationRequested();
             var allErrors = CollectErrors(context, renderErrors);
 
             if (allErrors.Count == 0)
@@ -405,11 +408,7 @@ internal sealed class StreamingSlideGenerator
         return new ChatOptions
         {
             // 流式模式使用查询工具而非渲染工具，渲染由管道自动完成
-            Tools =
-            [
-                _renderTool.CreateSlideStateTool(),
-                _renderTool.CreatePreviewTool()
-            ],
+            Tools = [.. _renderTool.CreateGenerationTools(streaming: true)],
         };
     }
 
@@ -421,6 +420,17 @@ internal sealed class StreamingSlideGenerator
         IReadOnlyCollection<string>? requiredAttachedImageFiles = null)
     {
         ArgumentNullException.ThrowIfNull(userChatMessage);
+        await AppendAttachedImageContentsAsync(userChatMessage.Contents, attachedImageContents, attachedImageFiles,
+            cancellationToken, requiredAttachedImageFiles);
+    }
+
+    private static async Task AppendAttachedImageContentsAsync(
+        IList<AIContent> contents,
+        IReadOnlyList<DataContent>? attachedImageContents,
+        IReadOnlyList<string>? attachedImageFiles,
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<string>? requiredAttachedImageFiles)
+    {
         cancellationToken.ThrowIfCancellationRequested();
 
         if (attachedImageContents is { Count: > 0 })
@@ -429,7 +439,7 @@ internal sealed class StreamingSlideGenerator
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 ArgumentNullException.ThrowIfNull(imageContent);
-                userChatMessage.Contents.Add(imageContent);
+                contents.Add(imageContent);
             }
         }
 
@@ -463,7 +473,7 @@ internal sealed class StreamingSlideGenerator
             var imageContent = await DataContent.LoadFromAsync(
                 imageFile,
                 cancellationToken: cancellationToken);
-            userChatMessage.Contents.Add(imageContent);
+            contents.Add(imageContent);
             loadedFiles?.Add(imageFile);
         }
 

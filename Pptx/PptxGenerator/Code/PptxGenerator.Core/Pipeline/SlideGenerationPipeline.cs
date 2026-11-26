@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using AgentLib;
 using AgentLib.Core.AgentApiManagers.Contexts;
 using AgentLib.Model;
@@ -59,7 +59,16 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
               promptEvaluator: configuration.PromptEvaluator,
               promptOptimizer: configuration.PromptOptimizer)
     {
+        if (configuration.UseResponsesApi)
+            ResponsesClient = new SlideResponsesClient(copilotChatManager);
     }
+
+    internal SlideResponsesClient? ResponsesClient { get; }
+
+    /// <summary>压缩当前会话的历史，保持所用协议不变。</summary>
+    public Task ReduceSessionAsync(CancellationToken cancellationToken = default) =>
+        ResponsesClient?.CompactAsync(cancellationToken)
+        ?? _copilotChatManager.ReduceSessionAsync(chatReducer: null, requestText: null, cancellationToken: cancellationToken);
 
     public SlideMlRenderTool SlideMlRenderTool { get; }
 
@@ -164,7 +173,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
 
         if (useStreaming)
         {
-            _ = await SendStreamingMessageCoreAsync(
+            var result = await SendStreamingMessageCoreAsync(
                 userMessage,
                 isFirstMessage,
                 createNewSession,
@@ -174,10 +183,12 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
                 requiredAttachedImageFiles: requiredAttachedImageFiles,
                 chatClientOverride: chatClientOverride,
                 cancellationToken: cancellationToken);
+            if (ResponsesClient is not null && !result.IsSuccess)
+                throw new InvalidOperationException(result.ErrorMessage ?? "Responses 未生成有效的 SlideML。");
             return;
         }
 
-        var tools = new[] { SlideMlRenderTool.CreateTool(), SlideMlRenderTool.CreatePreviewTool() };
+        var tools = SlideMlRenderTool.CreateGenerationTools(streaming: false);
 
         var processedText = isFirstMessage
             ? _promptProvider.BuildInitialUserPrompt(userMessage)
@@ -247,8 +258,16 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             AppendDefaultTools = false,
         };
 
-        var requestResult = _copilotChatManager.SendMessage(request);
-        await requestResult.RunTask;
+        if (ResponsesClient is not null)
+        {
+            if (createNewSession)
+                _copilotChatManager.CreateNewSession();
+            await ResponsesClient.SendAsync(contents, systemPrompt, tools, cancellationToken);
+        }
+        else
+        {
+            await _copilotChatManager.SendMessage(request).RunTask;
+        }
 
         bool doNotRender = string.IsNullOrEmpty(CurrentSlideXml);
         if (doNotRender)
@@ -258,7 +277,10 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
                 Contents = [new TextContent("请调用 render_slide 工具进行渲染，根据渲染结果优化界面")],
                 SystemPrompt = "**重要：生成 SlideML 后必须调用 render_slide 工具，不可跳过此步骤**",
             };
-            await _copilotChatManager.SendMessage(toolRequest).RunTask;
+            if (ResponsesClient is not null)
+                await ResponsesClient.SendAsync(toolRequest.Contents, toolRequest.SystemPrompt, tools, cancellationToken, isPresetInfo: true);
+            else
+                await _copilotChatManager.SendMessage(toolRequest).RunTask;
         }
 
         if (!skipAutoEvaluation && _slideEvaluator is not null && !string.IsNullOrWhiteSpace(CurrentSlideXml))
@@ -340,7 +362,7 @@ public sealed class SlideGenerationPipeline : INotifyPropertyChanged
             _promptProvider, SlideMlRenderTool.RenderPipeline);
 
         var generator = new StreamingSlideGenerator(
-            _copilotChatManager, _promptProvider, SlideMlRenderTool);
+            _copilotChatManager, _promptProvider, SlideMlRenderTool, ResponsesClient);
 
         return await generator.GenerateAsync(
             userMessage,

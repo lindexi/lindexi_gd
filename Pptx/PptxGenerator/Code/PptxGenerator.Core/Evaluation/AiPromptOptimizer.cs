@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using AgentLib;
 using AgentLib.Model;
 using Microsoft.Extensions.AI;
@@ -104,9 +104,14 @@ public sealed class AiPromptOptimizer : IPromptOptimizer
     /// 初始化 <see cref="AiPromptOptimizer"/> 的新实例。
     /// </summary>
     /// <param name="copilotChatManager">聊天管理器，用于发送独立请求。</param>
-    public AiPromptOptimizer(CopilotChatManager copilotChatManager)
+    private readonly PptxGenerator.Pipeline.SlideResponsesClient? _responsesClient;
+
+    /// <summary>创建使用指定模型协议的提示词优化器。</summary>
+    public AiPromptOptimizer(CopilotChatManager copilotChatManager, bool useResponsesApi = false)
     {
         _copilotChatManager = copilotChatManager ?? throw new ArgumentNullException(nameof(copilotChatManager));
+        if (useResponsesApi)
+            _responsesClient = new(copilotChatManager);
     }
 
     private string PromptOptimizationSystemPrompt => $$"""
@@ -221,10 +226,18 @@ public sealed class AiPromptOptimizer : IPromptOptimizer
                     AppendDefaultTools = false,
                 };
 
-                var result = _copilotChatManager.SendMessage(request);
-                result.UserChatMessage.IsPresetInfo = true;
-                result.AssistantChatMessage.IsPresetInfo = true;
-                await result.RunTask.ConfigureAwait(false);
+                if (_responsesClient is not null)
+                {
+                    await _responsesClient.SendAsync(contents, request.SystemPrompt, [submitTool], cancellationToken,
+                        withHistory: false, isPresetInfo: true).ConfigureAwait(false);
+                }
+                else
+                {
+                    var result = _copilotChatManager.SendMessage(request);
+                    result.UserChatMessage.IsPresetInfo = true;
+                    result.AssistantChatMessage.IsPresetInfo = true;
+                    await result.RunTask.ConfigureAwait(false);
+                }
 
                 if (optimizedSystem is not null && optimizedTemplate is not null)
                 {

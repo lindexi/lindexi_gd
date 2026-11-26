@@ -141,16 +141,7 @@ public partial class CharUserControl : UserControl
 
     private async void ReduceButton_OnClick(object sender, RoutedEventArgs e)
     {
-        ViewModel.StatusText = "正在总结对话...";
-        try
-        {
-            await ViewModel.SlideChatManager.Pipeline.ChatManager.ReduceSessionAsync(chatReducer: null, requestText: null);
-            ViewModel.StatusText = "总结完成";
-        }
-        catch (Exception)
-        {
-            ViewModel.StatusText = "总结失败";
-        }
+        await ViewModel.ReduceSessionAsync();
     }
 
 

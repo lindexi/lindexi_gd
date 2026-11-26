@@ -1,4 +1,4 @@
-﻿using AgentLib;
+using AgentLib;
 using AgentLib.Core;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
@@ -65,7 +65,9 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         Pipeline.PropertyChanged += (_, e) => OnPropertyChanged(e.PropertyName!);
     }
 
-    public IReadOnlyList<ILanguageModel> AvailableModels => _endpointManager.GetSupportedModels();
+    public IReadOnlyList<ILanguageModel> AvailableModels => Pipeline.ResponsesClient is null
+        ? _endpointManager.GetSupportedModels()
+        : _endpointManager.GetSupportedModels().Where(model => model is IResponsesClientProvider).ToArray();
 
     public ILanguageModel CurrentModel
     {
@@ -83,7 +85,7 @@ public sealed class SlideChatManager : INotifyPropertyChanged
         ArgumentNullException.ThrowIfNull(modelName);
 
         var model = _endpointManager.GetModel(modelName, provider);
-        if (model is null)
+        if (model is null || (Pipeline.ResponsesClient is not null && model is not IResponsesClientProvider))
         {
             return false;
         }

@@ -1,4 +1,4 @@
-﻿using AgentLib;
+using AgentLib;
 using AgentLib.Core.AgentApiManagers.LanguageModelProviders;
 using AgentLib.Model;
 using Microsoft.Extensions.AI;
@@ -357,9 +357,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         {
             finalStatus = "操作已取消。";
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            finalStatus = "执行失败";
+            finalStatus = $"生成页面失败：{exception.Message}";
         }
 
         StatusText = finalStatus;
@@ -392,9 +392,9 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         {
             finalStatus = "重新生成已取消。";
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            finalStatus = "重新生成失败";
+            finalStatus = $"重新生成失败：{exception.Message}";
         }
 
         if (completed)
@@ -412,6 +412,29 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             && message.Role == ChatRole.User
             && !IsBusy
             && IsStreamingMode;
+    }
+
+    internal async Task ReduceSessionAsync()
+    {
+        VerifyAccess();
+        if (IsBusy)
+            return;
+
+        IsBusy = true;
+        StatusText = "正在总结对话...";
+        try
+        {
+            await SlideChatManager.Pipeline.ReduceSessionAsync();
+            StatusText = "总结完成";
+        }
+        catch (Exception exception)
+        {
+            StatusText = $"总结失败：{exception.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     private async Task RunEvaluateAsync()

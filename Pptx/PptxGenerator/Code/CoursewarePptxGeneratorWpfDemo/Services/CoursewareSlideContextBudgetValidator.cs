@@ -62,7 +62,7 @@ public static class CoursewareSlideContextBudgetValidator
             promptProvider.BuildStreamingUserPrompt(pagePrompt),
             cancellationToken);
         var toolSchemaTokenCount = EstimateToolSchema(
-            [renderTool.CreateSlideStateTool(), renderTool.CreatePreviewTool()],
+            renderTool.CreateGenerationTools(streaming: true),
             cancellationToken);
         var safetyMarginTokenCount = checked((int) Math.Ceiling(contextWindowSize * SafetyMarginRatio));
         var requiredTokenCount = (long) systemPromptTokenCount

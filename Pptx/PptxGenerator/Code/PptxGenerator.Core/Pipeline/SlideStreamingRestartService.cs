@@ -28,7 +28,10 @@ internal sealed class SlideStreamingRestartService
 
         await _pipeline.ResetStreamingRestartStateAsync(cancellationToken);
         await ReplayStateBeforeTargetAsync(plan, cancellationToken);
-        await RestoreAgentHistoryBeforeTargetAsync(session, plan, cancellationToken);
+        if (_pipeline.ResponsesClient is { } responses)
+            responses.RestoreBefore(session, targetMessage);
+        else
+            await RestoreAgentHistoryBeforeTargetAsync(session, plan, cancellationToken);
         await TruncateSessionFromTargetAsync(session, targetMessage, cancellationToken);
 
         _chatManager.SelectedSession = session;
