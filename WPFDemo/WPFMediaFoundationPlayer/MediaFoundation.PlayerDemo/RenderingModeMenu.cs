@@ -20,6 +20,7 @@ internal sealed class RenderingModeMenu : IDisposable
     private Snapshot? _recovery;
     private bool _disposed;
     private bool _probing;
+    private bool _autoProbing;
 
     internal RenderingModeMenu(MediaPlayerControl control, DockPanel layout)
     {
@@ -194,7 +195,9 @@ internal sealed class RenderingModeMenu : IDisposable
 
     private async void OnPlaybackFailedAsync(object? sender, PlaybackFailedEventArgs e)
     {
-        string path = PlaybackDiagnostics.Write(e.Error, _control.Player.Source ?? _control.Source);
+        var source = _control.Player.Source ?? _control.Source;
+        var failedMode = _control.RenderingMode;
+        string path = PlaybackDiagnostics.Write(e.Error, source);
         var native = e.Error;
         while (native.InnerException != null) native = native.InnerException;
         _status.Text = Lang.Current.DemoPlaybackFailedText.ToString
@@ -203,7 +206,26 @@ internal sealed class RenderingModeMenu : IDisposable
             path
         );
         _status.ToolTip = _status.Text;
-        await ProbeAsync();
+        if (_disposed || source == null) return;
+        if (_autoProbing)
+        {
+            Trace.WriteLine($"AutoProbe skipped: already running failedMode={failedMode} {SourceDiagnostics.Describe(source)}",
+                "Demo.Diagnostics");
+            return;
+        }
+
+        _autoProbing = true;
+        try
+        {
+            var token = _lifetime.Token;
+            // Let the failed player finish releasing its renderer before opening a diagnostic session.
+            await Task.Yield();
+            await PlaybackFailureProbe.RunAsync(source, failedMode, token);
+        }
+        finally
+        {
+            _autoProbing = false;
+        }
     }
 
     private async Task ProbeAsync()

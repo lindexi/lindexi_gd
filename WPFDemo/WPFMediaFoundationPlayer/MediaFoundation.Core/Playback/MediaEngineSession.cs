@@ -466,6 +466,7 @@ public sealed unsafe class MediaEngineSession : IPlaybackSession
                 );
                 var failure = new COMException
                     (SR.Current.NativeStageFailure.ToString("IMFMediaEngineNotify.ERROR", code.ToString("X8", System.Globalization.CultureInfo.InvariantCulture)), code);
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.SetCurrentStackTrace(failure);
                 System.Diagnostics.Trace.WriteLine
                     ($"MediaEngine failure HRESULT=0x{code:X8} {failure}", "MediaFoundation.Core");
                 ReleaseEngine();

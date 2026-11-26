@@ -390,7 +390,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         ArgumentNullException.ThrowIfNull(source);
         if (!source.IsAbsoluteUri) throw new ArgumentException(SR.Current.AbsoluteUriRequired, nameof(source));
         Trace.WriteLine
-            ($"MFPlay Open {SourceDiagnostics.Describe(source, source.AbsoluteUri)}", "MediaFoundation.Core");
+            ($"MFPlay Open {SourceDiagnostics.Describe(source, source.IsFile ? null : source.AbsoluteUri)}", "MediaFoundation.Core");
         ReleasePlayer();
         this._source = source;
         _position = _duration = TimeSpan.Zero;
@@ -400,18 +400,22 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         _pendingSeek = null;
         _callback = new NativeCallback(this, _context);
         var nativeCallback = _callback.Create();
+        string stage = "MFPCreateMediaPlayer";
         try
         {
             IMFPMediaPlayer* created = null;
             PInvoke.MFPCreateMediaPlayer(default(PCWSTR), false, 0, nativeCallback, _window, &created).ThrowOnFailure();
             _player = created;
+            stage = "IMFPMediaPlayer.SetVolume";
             _player->SetVolume((float)_volume);
+            stage = "IMFPMediaPlayer.SetMute";
             _player->SetMute(_muted);
             if (source.IsFile)
             {
                 IMFByteStream* stream = null;
                 try
                 {
+                    stage = "MFCreateFile";
                     string path = source.LocalPath;
                     fixed (char* text =
                                path)
@@ -420,6 +424,8 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
                             MF_FILE_ACCESSMODE.MF_ACCESSMODE_READ, MF_FILE_OPENMODE.MF_OPENMODE_FAIL_IF_NOT_EXIST,
                             MF_FILE_FLAGS.MF_FILEFLAGS_NONE, new PCWSTR(text), &stream
                         ).ThrowOnFailure();
+                    stage = "IMFPMediaPlayer.CreateMediaItemFromObject";
+                    Trace.WriteLine($"MFPlay request stage={stage} source=IMFByteStream async=true", "MediaFoundation.Core");
                     _player->CreateMediaItemFromObject((IUnknown*)stream, false, 0, null);
                 }
                 finally
@@ -429,14 +435,15 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
             }
             else
             {
+                stage = "IMFPMediaPlayer.CreateMediaItemFromURL";
+                Trace.WriteLine($"MFPlay request stage={stage} source=url async=true", "MediaFoundation.Core");
                 string url = source.AbsoluteUri;
                 fixed (char* text = url) _player->CreateMediaItemFromURL(new PCWSTR(text), false, 0, null);
             }
         }
         catch (COMException error)
         {
-            ReleasePlayer();
-            ReportFailure(error);
+            ReportFailure(error, stage);
             return;
         }
         finally
@@ -586,14 +593,19 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         Verify();
         if (!ReferenceEquals(_callback, sender)) return;
         Trace.WriteLine
-            ($"MFPlay event={notification.Type} hr={notification.Result} state={_state}", "MediaFoundation.Core");
+        (
+            $"MFPlay event={notification.Type} hr={notification.Result} state={_state} nativeState={notification.NativeState} callbackThread={notification.CallbackThreadId} hasMediaItem={notification.Item != 0}",
+            "MediaFoundation.Core"
+        );
         if (notification.Result.Failed)
         {
             Exception error = Marshal.GetExceptionForHR
-                (notification.Result.Value) ?? new COMException(SR.Current.NativeFailure, notification.Result.Value);
+                (notification.Result.Value, new IntPtr(-1)) ?? new COMException(SR.Current.NativeFailure, notification.Result.Value);
+            // The asynchronous callback supplies an HRESULT, not an exception with a stack.
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.SetCurrentStackTrace(error);
             if (notification.Type == MFP_EVENT_TYPE.MFP_EVENT_TYPE_RATE_SET)
                 error = new NotSupportedException(SR.Current.UnsupportedRate, error);
-            ReportFailure(error);
+            ReportFailure(error, $"callback:{notification.Type}");
             return;
         }
 
@@ -603,11 +615,11 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         }
         catch (COMException error)
         {
-            ReportFailure(error);
+            ReportFailure(error, $"processing:{notification.Type}");
         }
         catch (NotSupportedException error)
         {
-            ReportFailure(error);
+            ReportFailure(error, $"processing:{notification.Type}");
         }
     }
 
@@ -678,8 +690,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
 
                 break;
             case MFP_EVENT_TYPE.MFP_EVENT_TYPE_ERROR:
-                ReportFailure(new COMException(SR.Current.NativeFailure, notification.Result.Value));
-                break;
+                throw new COMException(SR.Current.NativeFailure, notification.Result.Value);
         }
     }
 
@@ -762,9 +773,10 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         };
     }
 
-    private void ReportFailure(Exception error)
+    private void ReportFailure(Exception error, string stage)
     {
-        Trace.TraceError("MFPlay failure: {0}", error);
+        Trace.TraceError("MFPlay failure: stage={0} state={1} prototype={2} HRESULT=0x{3:X8} {4}",
+            stage, _state, _prototype, error.HResult, error);
         ReleasePlayer();
         var current = _callback;
         SetState(PlaybackState.Failed);

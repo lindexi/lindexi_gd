@@ -9,30 +9,32 @@ namespace MediaFoundation.PlayerDemo;
 
 internal static class MediaProbe
 {
-    internal static Task<string> RunAsync(Uri source, CancellationToken token) => Task.Run
-        (() => Run(source, token), token);
+    internal static Task<string> RunAsync(Uri source, CancellationToken token, bool useFileUrl = false) => Task.Run
+        (() => Run(source, token, useFileUrl), token);
 
-    private static unsafe string Run(Uri source, CancellationToken token)
+    private static unsafe string Run(Uri source, CancellationToken token, bool useFileUrl)
     {
         var report = new StringBuilder();
         bool com = false, mf = false;
         bool complete = false;
+        string stage = "CoInitializeEx";
         try
         {
             PInvoke.CoInitializeEx(null, COINIT.COINIT_MULTITHREADED).ThrowOnFailure();
             com = true;
+            stage = "MFStartup";
             PInvoke.MFStartup(PInvoke.MF_VERSION, 0).ThrowOnFailure();
             mf = true;
             try
             {
-                complete = ReadNative(source, report, token);
+                complete = ReadNative(source, report, token, useFileUrl);
             }
             catch (COMException error)
             {
-                report.AppendLine($"MF metadata HRESULT=0x{error.HResult:X8}");
+                ReportNativeFailure(report, "cleanup", error);
             }
 
-            if (!complete && source.IsFile && Path.GetExtension(source.LocalPath).Equals
+            if (!complete && !useFileUrl && source.IsFile && Path.GetExtension(source.LocalPath).Equals
                     (".mkv", StringComparison.OrdinalIgnoreCase))
             {
                 string tracks = MatroskaTracks.Read(source.LocalPath, token);
@@ -44,7 +46,7 @@ internal static class MediaProbe
         catch (Exception error) when (error is COMException or IOException or UnauthorizedAccessException
                                           or InvalidDataException)
         {
-            report.AppendLine($"MF metadata HRESULT=0x{error.HResult:X8} {error.GetType().Name}");
+            ReportNativeFailure(report, mf ? "container fallback" : stage, error);
         }
         finally
         {
@@ -52,7 +54,7 @@ internal static class MediaProbe
             if (com) PInvoke.CoUninitialize();
         }
 
-        if (!complete && source.IsFile && Path.GetExtension(source.LocalPath).Equals
+        if (!complete && !useFileUrl && source.IsFile && Path.GetExtension(source.LocalPath).Equals
                 (".mkv", StringComparison.OrdinalIgnoreCase))
         {
             try
@@ -69,19 +71,21 @@ internal static class MediaProbe
         return report.ToString();
     }
 
-    private static unsafe bool ReadNative(Uri source, StringBuilder report, CancellationToken token)
+    private static unsafe bool ReadNative(Uri source, StringBuilder report, CancellationToken token, bool useFileUrl)
     {
         IMFByteStream* bytes = null;
         IMFSourceResolver* resolver = null;
         Windows.Win32.System.Com.IUnknown* resolved = null;
         IMFMediaSource* media = null;
         IMFPresentationDescriptor* presentation = null;
+        string stage = "MFCreateSourceResolver";
         try
         {
             PInvoke.MFCreateSourceResolver(&resolver).ThrowOnFailure();
             MF_OBJECT_TYPE kind;
-            if (source.IsFile)
+            if (source.IsFile && !useFileUrl)
             {
+                stage = "MFCreateFile";
                 fixed (char* path = source.LocalPath)
                     PInvoke.MFCreateFile
                     (
@@ -94,21 +98,27 @@ internal static class MediaProbe
                     "MF resolver=CreateObjectFromByteStream contentTypeHint=unset urlExtension=" + Path.GetExtension
                         (source.LocalPath)
                 );
+                stage = "IMFSourceResolver.CreateObjectFromByteStream";
                 fixed (char* url = hint)
                     resolver->CreateObjectFromByteStream(bytes, url, 1, null, &kind, &resolved);
             }
             else
             {
+                stage = "IMFSourceResolver.CreateObjectFromURL";
+                report.AppendLine($"MF resolver=CreateObjectFromURL sourceType={(source.IsFile ? "file" : "network")}");
                 fixed (char* url = source.AbsoluteUri)
                     resolver->CreateObjectFromURL(url, 1, null, &kind, &resolved);
             }
 
             Guid iid = typeof(IMFMediaSource).GUID;
             void* pointer = null;
+            stage = "IUnknown.QueryInterface(IMFMediaSource)";
             resolved->QueryInterface(&iid, &pointer).ThrowOnFailure();
             media = (IMFMediaSource*)pointer;
+            stage = "IMFMediaSource.CreatePresentationDescriptor";
             media->CreatePresentationDescriptor(&presentation);
             uint count;
+            stage = "IMFPresentationDescriptor.GetStreamDescriptorCount";
             presentation->GetStreamDescriptorCount(&count);
             if (count > 256) throw new InvalidDataException();
             report.AppendLine($"MF streams={count}");
@@ -119,6 +129,7 @@ internal static class MediaProbe
                 IMFStreamDescriptor* stream = null;
                 IMFMediaTypeHandler* handler = null;
                 IMFMediaType* type = null;
+                stage = $"track={i}";
                 try
                 {
                     Windows.Win32.Foundation.BOOL selected;
@@ -165,7 +176,7 @@ internal static class MediaProbe
                 catch (COMException error)
                 {
                     complete = false;
-                    report.AppendLine($"MF track={i} HRESULT=0x{error.HResult:X8}");
+                    ReportNativeFailure(report, stage, error);
                 }
                 finally
                 {
@@ -176,6 +187,11 @@ internal static class MediaProbe
             }
 
             return complete;
+        }
+        catch (Exception error) when (error is COMException or IOException or UnauthorizedAccessException)
+        {
+            ReportNativeFailure(report, stage, error);
+            return false;
         }
         finally
         {
@@ -191,6 +207,16 @@ internal static class MediaProbe
             // The resolved media source owns stream shutdown; a second Close can fail and mask the probe result.
             if (bytes != null) bytes->Release();
         }
+    }
+
+    private static void ReportNativeFailure(StringBuilder report, string stage, Exception error)
+    {
+        string summary = $"MF metadata HRESULT=0x{error.HResult:X8} stage={stage} type={error.GetType().Name}";
+        report.AppendLine(summary);
+        System.Diagnostics.Trace.WriteLine
+        (
+            $"{summary}{Environment.NewLine}{PlaybackDiagnostics.Sanitize(error.ToString())}", "Demo.Diagnostics"
+        );
     }
 
     private static unsafe void EnumerateContainerCodecs(string tracks, StringBuilder report, CancellationToken token)

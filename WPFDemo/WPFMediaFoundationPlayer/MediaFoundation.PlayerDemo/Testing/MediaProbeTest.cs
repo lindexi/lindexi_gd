@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.IO;
+using MediaFoundation.Controls;
 using System.Text;
 
 namespace MediaFoundation.PlayerDemo;
@@ -100,11 +102,48 @@ internal static class MediaProbeTest
             !native.Contains("subtype=", StringComparison.Ordinal) ||
             !native.Contains("MFT candidate=", StringComparison.Ordinal))
             throw new InvalidOperationException("Native probe incomplete: " + native);
+        string failure = await ProbeMissingFileAsync();
+        string automatic = await ProbeAlternatePathsAsync(new Uri(Path.GetFullPath(path)), "opened");
+        string missingPath = Path.Combine(Path.GetTempPath(), $"media-probe-missing-{Guid.NewGuid():N}.mp4");
+        string automaticFailure = await ProbeAlternatePathsAsync(new Uri(missingPath), "failed");
         await File.WriteAllTextAsync
         (
             Path.Combine(AppContext.BaseDirectory, "media-probe-result.log"),
             "PASS: EBML video/audio, AVC private metadata, Cluster skip, truncation, unknown boundary, cancellation; native MF and MFT enumeration\n" +
-            tracks + native
+            tracks + native + failure + automatic + automaticFailure
         );
+    }
+
+    private static async Task<string> ProbeAlternatePathsAsync(Uri source, string expectedOutcome)
+    {
+        using var output = new StringWriter();
+        using var listener = new TextWriterTraceListener(output);
+        Trace.Listeners.Add(listener);
+        try
+        {
+            await PlaybackFailureProbe.RunAsync(source, VideoRenderingMode.D3DImage, CancellationToken.None);
+            string log = output.ToString();
+            foreach (string expected in new[]
+                     {
+                         $"alternateMode=Hwnd outcome={expectedOutcome}", "resolver=byte-stream result",
+                         "resolver=file-url result", "MF resolver=CreateObjectFromURL sourceType=file"
+                     })
+                if (!log.Contains(expected, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Missing automatic probe result: " + expected + Environment.NewLine + log);
+            return log;
+        }
+        finally
+        {
+            Trace.Listeners.Remove(listener);
+        }
+    }
+
+    private static async Task<string> ProbeMissingFileAsync()
+    {
+        string missingPath = Path.Combine(Path.GetTempPath(), $"media-probe-missing-{Guid.NewGuid():N}.mp4");
+        string report = await MediaProbe.RunAsync(new Uri(missingPath), CancellationToken.None);
+        if (!report.Contains("stage=MFCreateFile", StringComparison.Ordinal))
+            throw new InvalidOperationException("Missing probe failure stage: " + report);
+        return report;
     }
 }

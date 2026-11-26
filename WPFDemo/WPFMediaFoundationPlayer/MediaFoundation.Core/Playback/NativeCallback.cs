@@ -22,7 +22,8 @@ internal sealed unsafe class NativeCallback
         this._context = context;
     }
 
-    internal readonly record struct Notification(MFP_EVENT_TYPE Type, HRESULT Result, nint Item);
+    internal readonly record struct Notification
+        (MFP_EVENT_TYPE Type, HRESULT Result, nint Item, MFP_MEDIAPLAYER_STATE NativeState, int CallbackThreadId);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Instance
@@ -114,7 +115,7 @@ internal sealed unsafe class NativeCallback
                 ? ((MFP_MEDIAITEM_CREATED_EVENT*)header)->pMediaItem
                 : null;
             if (item != null) item->AddRef();
-            _pending.Enqueue(new(header->eEventType, header->hrEvent, (nint)item));
+            _pending.Enqueue(new(header->eEventType, header->hrEvent, (nint)item, header->eState, Environment.CurrentManagedThreadId));
             if (_scheduled) return;
             _scheduled = true;
             try
