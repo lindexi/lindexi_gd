@@ -111,6 +111,30 @@ public class NaturalCodeProductionTests
         Assert.Throws<DictionaryPackageException>(() => DictionaryPackageLoader.Load(path));
     }
 
+    [Theory]
+    [InlineData("dd", false)]
+    [InlineData("dj", true)]
+    [InlineData("jd", true)]
+    [InlineData("vd", true)]
+    [InlineData("er", true)]
+    [InlineData("aa", true)]
+    [InlineData("lt", true)]
+    [InlineData("lo", true)]
+    public void NaturalCodeSyllableLegalityIsIndependentOfLexicon(string code, bool expected)
+    {
+        Assert.Equal(expected, ImeProjectionDefinition.IsNaturalCodeSyllable(code));
+    }
+
+    [Theory]
+    [InlineData('d', true)]
+    [InlineData('v', true)]
+    [InlineData('e', false)]
+    [InlineData('\'', false)]
+    public void NaturalCodeInitialKeysComeFromLayout(char key, bool expected)
+    {
+        Assert.Equal(expected, ImeProjectionDefinition.IsNaturalCodeInitial(key));
+    }
+
     [Fact]
     public void NaturalCodeHasStablePersistedIdentity()
     {

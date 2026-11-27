@@ -120,10 +120,10 @@ public class ImeExportsTests
 
         Assert.Equal((uint)Marshal.SizeOf<ImePrivateData>(), info.PrivateDataSize);
         Assert.True((info.Property & ImeConstants.ImePropKbdCharFirst) != 0);
-        Assert.True((info.Property & ImeConstants.ImePropSpecialUi) != 0);
+        Assert.Equal(0u, info.Property & ImeConstants.ImePropSpecialUi);
         Assert.True((info.Property & ImeConstants.ImePropUnicode) != 0);
         Assert.True((info.Property & ImeConstants.ImePropCandidateListStartsAtOne) != 0);
-        Assert.Equal(0u, info.Property & ImeConstants.ImePropAtCaret);
+        Assert.NotEqual(0u, info.Property & ImeConstants.ImePropAtCaret);
         Assert.Equal(0u, info.Property & ImeConstants.ImePropCompleteOnUnselect);
         Assert.True((info.ConversionCaps & ImeConstants.ImeCmodeNative) != 0);
         Assert.Equal(0u, info.ConversionCaps & ImeConstants.ImeCmodeNoConversion);
@@ -1294,6 +1294,40 @@ public class ImeExportsTests
         var messages = ImeTransMsgBuilder.BuildMessages(result, wasComposing: true);
 
         Assert.Equal(new[] { ImeConstants.WmImeEndComposition }, messages.Select(message => message.Message));
+    }
+
+    [Fact]
+    public void BuildMessages_AsyncCancel_ClearsInlinePreeditAndDoesNotRepeatEnd()
+    {
+        var cancel = new ImeToAsciiResult(true, null, ImeSessionSnapshot.Empty);
+        var first = ImeTransMsgBuilder.BuildMessages(cancel, wasComposing: true, includeLegacyFlags: false);
+        var second = ImeTransMsgBuilder.BuildMessages(cancel, wasComposing: false, includeLegacyFlags: false);
+
+        Assert.Equal(new[] { (ImeConstants.WmImeComposition, nint.Zero), (ImeConstants.WmImeEndComposition, nint.Zero) },
+            first.Concat(second).Select(message => (message.Message, message.LParam)));
+    }
+
+    [Fact]
+    public void BuildMessages_AsyncPartialCommit_ReportsResultAndPreeditWithoutEnding()
+    {
+        var snapshot = new ImeSessionSnapshot(new CompositionText("a", "a", 1), [], ImeCandidateWindowState.Empty, IsComposing: true);
+        var result = new ImeToAsciiResult(true, "\u5927", snapshot);
+        var message = Assert.Single(ImeTransMsgBuilder.BuildMessages(result, wasComposing: true, includeLegacyFlags: false));
+
+        Assert.Equal((ImeConstants.WmImeComposition, (nint)(ImeConstants.GcsResultStr | ImeConstants.GcsCompStr | ImeConstants.GcsCompReadStr | ImeConstants.GcsCursorPos)),
+            (message.Message, message.LParam));
+    }
+
+    [Fact]
+    public void BuildMessages_AsyncRepeatedIdenticalCommit_ReportsEachResultOnce()
+    {
+        var result = new ImeToAsciiResult(true, "\u5927", ImeSessionSnapshot.Empty);
+        var first = ImeTransMsgBuilder.BuildMessages(result, wasComposing: true, includeLegacyFlags: false);
+        var second = ImeTransMsgBuilder.BuildMessages(result, wasComposing: true, includeLegacyFlags: false);
+
+        Assert.Equal(new[] { ImeConstants.WmImeComposition, ImeConstants.WmImeEndComposition,
+            ImeConstants.WmImeComposition, ImeConstants.WmImeEndComposition },
+            first.Concat(second).Select(message => message.Message));
     }
 
     [Fact]

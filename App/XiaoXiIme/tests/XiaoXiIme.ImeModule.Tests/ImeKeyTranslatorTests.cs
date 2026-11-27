@@ -77,6 +77,34 @@ public class ImeKeyTranslatorTests
         Assert.True(ImeKeyTranslator.ShouldProcess(virtualKey));
     }
 
+    [Theory]
+    [InlineData(0xBD, '-')]
+    [InlineData(0xBB, '=')]
+    public void WhenPageCharacterHasNoModifiersThenTranslationPreservesTheCharacter
+        (ushort virtualKey, char character)
+    {
+        Assert.Equal(ImeKey.FromCharacter(character), ImeKeyTranslator.Translate(virtualKey));
+    }
+
+    [Theory]
+    [InlineData(0xBD, ImeKeyTranslator.ShiftModifier, '_')]
+    [InlineData(0xBB, ImeKeyTranslator.ShiftModifier, '+')]
+    [InlineData(0xBD, ImeKeyTranslator.ShiftModifier, '-')]
+    [InlineData(0xBB, ImeKeyTranslator.ShiftModifier, '=')]
+    [InlineData(0xBD, ImeKeyTranslator.ControlModifier, '-')]
+    [InlineData(0xBB, ImeKeyTranslator.AltModifier, '=')]
+    [InlineData(0xBD, ImeKeyTranslator.MetaModifier, '-')]
+    public void WhenPageKeyHasModifiersThenTranslationLeavesItToTheHost
+        (ushort virtualKey, uint modifiers, char layoutCharacter)
+    {
+        Assert.Equal
+        (
+            (ImeKeyKind.Other, ImeKeyKind.Other),
+            (ImeKeyTranslator.Translate(virtualKey, modifiers).Kind,
+                ImeKeyTranslator.Translate(virtualKey, modifiers, layoutCharacter).Kind)
+        );
+    }
+
     [Fact]
     public void ShouldProcess_UnknownKey_ReturnsFalse()
     {

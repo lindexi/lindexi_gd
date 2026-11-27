@@ -10,6 +10,8 @@ public class CharacterInputContractTests
     [InlineData('2')]
     [InlineData('!')]
     [InlineData(',')]
+    [InlineData('-')]
+    [InlineData('=')]
     [InlineData(';')]
     [InlineData('\'')]
     public void WhenIdleOrdinaryCharacterThenHostOwnsIt(char character)

@@ -107,6 +107,79 @@ public class ProductionSchemeTests
         Assert.Equal(expected, context.ProcessKey(ImeKey.FromCharacter(';')).Handled);
     }
 
+    [Theory]
+    [InlineData("dd")]
+    [InlineData("d'd")]
+    public void NaturalCodeFindsPhraseByTwoInitials(string input)
+    {
+        var projection = ImeProjectionDefinition.ForScheme("naturalCodeDoublePinyin");
+        var context = new ImeContext
+            (new InMemoryImeDictionary(new ImeLexicon([new("\u5730\u70B9", "di dian", 1)], [], projection, 1)));
+
+        Assert.Equal("\u5730\u70B9", Assert.Single(context.QueryConversionList(input)).Text);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void NaturalCodeDoesNotSplitLegalSyllableWhenLexiconChanges(bool includeSyllable)
+    {
+        ImePhoneticEntry[] entries = includeSyllable
+            ? [new("\u5355", "dan", 1), new("\u5730\u57FA", "di ji", 10000)]
+            : [new("\u5730\u57FA", "di ji", 10000)];
+        var context = CreateSchemeContext("naturalCodeDoublePinyin", entries);
+
+        Assert.Equal(includeSyllable ? new[] { "\u5355" } : [],
+            context.QueryConversionList("dj").Select(candidate => candidate.Text).ToArray());
+        Assert.Equal("\u5730\u57FA", Assert.Single(context.QueryInterpretations("d'j").Candidates, IsComplete).Candidate.Text);
+    }
+
+    [Theory]
+    [InlineData("dd", "", 2)]
+    [InlineData("d'd", "", 3)]
+    [InlineData("ddni", "ni", 2)]
+    [InlineData("d'd'ni", "ni", 4)]
+    public void NaturalCodeSelectionConsumesOnlyOriginalInputRange(string input, string remaining, int consumed)
+    {
+        var context = CreateSchemeContext("naturalCodeDoublePinyin", new("\u5730\u70B9", "di dian", 1),
+            new("\u4F60", "ni", 1));
+        foreach (var character in input)
+        {
+            Assert.True(context.ProcessKey(ImeKey.FromCharacter(character)).Handled);
+        }
+
+        Assert.Equal(input, context.Snapshot.Composition.Reading);
+        Assert.Contains(context.Snapshot.Candidates, candidate => candidate.Text == "\u5730\u70B9");
+        var candidate = Assert.Single(context.DetailedSnapshot.Page.Candidates, c => c.Candidate.Text == "\u5730\u70B9");
+        Assert.Equal(new ImeInputRange(0, consumed), candidate.Interpretations[0].ConsumedRange);
+        Assert.Equal(new[] { new ImeInputRange(0, 1), new ImeInputRange(input[1] == '\'' ? 2 : 1, 1) },
+            candidate.Interpretations[0].Evidence.Select(e => e.Range));
+
+        var result = context.SelectCandidate(Assert.IsType<ImeSelectionId>(candidate.SelectionId));
+
+        Assert.Equal((true, "\u5730\u70B9", remaining, remaining.Length),
+            (result.Handled, result.CommitText, result.Snapshot.Composition.Reading, result.Snapshot.Composition.CaretIndex));
+    }
+
+    [Theory]
+    [InlineData("xiaoheDoublePinyin", "didm")]
+    [InlineData("sogouDoublePinyin", "didm")]
+    [InlineData("microsoftDoublePinyin", "didm")]
+    [InlineData("abcDoublePinyin", "didw")]
+    [InlineData("jiajiaDoublePinyin", "didj")]
+    public void OtherDoublePinyinSchemesDoNotEnableNaturalCodeFallback(string scheme, string completeInput)
+    {
+        var context = CreateSchemeContext(scheme, new ImePhoneticEntry("\u5730\u70B9", "di dian", 1));
+
+        Assert.Empty(context.QueryConversionList("dd"));
+        Assert.Empty(context.QueryConversionList("d'd"));
+        Assert.False(context.Snapshot.AcceptsApostrophe);
+        Assert.Equal("\u5730\u70B9", Assert.Single(context.QueryConversionList(completeInput)).Text);
+    }
+
+    private static ImeContext CreateSchemeContext(string scheme, params ImePhoneticEntry[] entries) =>
+        new(new InMemoryImeDictionary(new ImeLexicon(entries, [], ImeProjectionDefinition.ForScheme(scheme), 1)));
+
     private static ImeInputOptions Options() => new()
     {
         CasePolicy = ImeShapeCasePolicy.UppercaseOnly, Placement = ImeShapePlacement.PerCharacter,

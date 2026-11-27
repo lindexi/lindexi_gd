@@ -463,6 +463,55 @@ public class ImeContextTests
         Assert.Equal(9, pageUpResult.Snapshot.CandidateWindow.PageSize);
     }
 
+    [Theory]
+    [InlineData('=', 0, 9, 9, 3)]
+    [InlineData('-', 9, 0, 0, 9)]
+    [InlineData('-', 0, 0, 0, 9)]
+    [InlineData('=', 9, 11, 9, 3)]
+    [InlineData('=', 11, 11, 9, 3)]
+    public void WhenCandidatesExistThenPageCharactersMoveSelectionWithoutCommitting
+        (char character, int initialSelection, int expectedSelection, int expectedPageStart, int expectedPageSize)
+    {
+        var context = CreatePagedContext();
+        context.SetComposition("a");
+        for (var index = 0; index < initialSelection; index++)
+        {
+            context.ProcessKey(ImeKey.NextCandidate());
+        }
+
+        var key = ImeKey.FromCharacter(character);
+        var owns = ImeContext.ShouldProcessKey(key, context.Snapshot);
+        var result = context.ProcessKey(key);
+        var window = result.Snapshot.CandidateWindow;
+
+        Assert.Equal
+        (
+            (true, true, (string?)null, "a", expectedSelection, expectedPageStart, expectedPageSize),
+            (owns, result.Handled, result.CommitText, result.Snapshot.Composition.Reading,
+                window.Selection, window.PageStart, window.PageSize)
+        );
+    }
+
+    [Theory]
+    [InlineData('-')]
+    [InlineData('=')]
+    public void WhenCompositionHasNoCandidatesThenPageCharacterPassesThrough(char character)
+    {
+        var context = CreateContext();
+        context.SetComposition("x");
+        Assert.Empty(context.Snapshot.Candidates);
+
+        var key = ImeKey.FromCharacter(character);
+        var owns = ImeContext.ShouldProcessKey(key, context.Snapshot);
+        var result = context.ProcessKey(key);
+
+        Assert.Equal
+        (
+            (false, false, (string?)null, "x"),
+            (owns, result.Handled, result.CommitText, result.Snapshot.Composition.Reading)
+        );
+    }
+
     [Fact]
     public void ProcessKey_NavigationWithoutCandidatesReturnsUnhandled()
     {

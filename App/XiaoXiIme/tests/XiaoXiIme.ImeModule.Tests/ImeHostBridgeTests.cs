@@ -366,6 +366,53 @@ public class ImeHostBridgeTests
     }
 
     [Fact(Timeout = 5_000)]
+    public async Task ImeSelect_WhenOneHimcIsDeselectedThenPreservesOtherHimcCompositionAsync()
+    {
+        using var host = CreateHost();
+        using var target = new InMemoryImmContext();
+        using var other = new InMemoryImmContext();
+        var otherSessionId = ImeSessionId.FromHimc(other.Handle);
+        ImeModuleRuntime.SetBridgeForTesting(new ImeHostBridge(host.Options));
+        ImeExports.SetCompositionContextWriterForTesting(new CompositeImmContextAccessor(target, other).CreateWriter());
+
+        try
+        {
+            host.Start();
+            unsafe
+            {
+                var buffer = stackalloc byte[sizeof(TransMsgList) + sizeof(TransMsg)];
+                foreach (var (himc, input) in new[] { (target, "xiaoxiaimuyi"), (other, "aimuyi") })
+                {
+                    foreach (var character in input)
+                    {
+                        var virtualKey = (uint)('A' + (character - 'a'));
+                        Assert.True(ImeExports.ImeProcessKeyManaged(himc.Handle, virtualKey, 0, null));
+                        ImeExports.ImeToAsciiExManaged(virtualKey, 0, null, (nint)buffer, 0, himc.Handle);
+                    }
+                }
+            }
+
+            Assert.Equal("xiaoxiaimuyi", target.ReadCompositionText());
+            Assert.Equal("aimuyi", other.ReadCompositionText());
+            Assert.Equal("IME", other.ReadFirstCandidateText());
+
+            Assert.Equal(1, ImeExports.ImeSelectManaged(target.Handle, 0));
+
+            Assert.Empty(target.ReadCompositionText());
+            Assert.Equal("aimuyi", other.ReadCompositionText());
+            Assert.Equal("IME", other.ReadFirstCandidateText());
+            Assert.True(ImeModuleRuntime.GetSnapshotForTesting(otherSessionId).IsComposing);
+            var otherHostSnapshot = await host.Service.GetSnapshotAsync(otherSessionId);
+            Assert.Equal("aimuyi", otherHostSnapshot.Composition.Reading);
+        }
+        finally
+        {
+            ImeExports.SetCompositionContextWriterForTesting(null);
+            ImeModuleRuntime.SetBridgeForTesting(null);
+        }
+    }
+
+    [Fact(Timeout = 5_000)]
     public unsafe Task NotifyIme_WhenCancelThenClearsFullPinyinProjectTermComposition()
     {
         using var host = CreateHost();
