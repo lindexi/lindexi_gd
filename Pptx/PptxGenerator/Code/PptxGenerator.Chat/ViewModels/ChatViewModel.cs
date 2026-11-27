@@ -25,6 +25,7 @@ internal sealed class ChatViewModel : Notify
     private string _mcpAddress = "http://127.0.0.1:7916/mcp";
     private string _workNotice = string.Empty;
     private string _composerNotice = string.Empty;
+    private string? _failedStartupMcpAddress;
     private ChatModel? _model;
 
     internal ChatViewModel(ChatModels models, Dispatcher dispatcher, ChatSessionStore? sessions = null)
@@ -38,6 +39,18 @@ internal sealed class ChatViewModel : Notify
         _send = new Command(async () => await SendAsync(), () => CanSend);
         _stop = new Command(Stop, () => IsBusy && _turn?.IsCancellationRequested == false);
     }
+
+    internal async Task CheckStartupMcpAsync()
+    {
+        var configuredAddress = McpAddress;
+        if (ChatModels.TryHttpUri(configuredAddress, out var address) && !await McpTools.ProbeAsync(address))
+        {
+            _failedStartupMcpAddress = configuredAddress;
+            Raise(nameof(WelcomeMcpNotice));
+        }
+    }
+
+    public string WelcomeMcpNotice => _failedStartupMcpAddress == McpAddress ? UiText.Get("WelcomeMcpFailed") : string.Empty;
 
     public IReadOnlyList<ChatModel> Models { get; }
     public ObservableCollection<ChatMessage> Messages { get; } = new();
@@ -106,7 +119,12 @@ internal sealed class ChatViewModel : Notify
     public string McpAddress
     {
         get => _mcpAddress;
-        set { if (Set(ref _mcpAddress, value)) Raise(nameof(McpNotice)); }
+        set
+        {
+            if (!Set(ref _mcpAddress, value)) return;
+            Raise(nameof(McpNotice));
+            Raise(nameof(WelcomeMcpNotice));
+        }
     }
 
     internal async Task AddImagesAsync(IEnumerable<string> paths)
@@ -171,7 +189,7 @@ internal sealed class ChatViewModel : Notify
         {
             var session = await _sessions.LoadAsync(summary.Id);
             var messages = session.Messages.Select(ChatMessage.Restore).ToArray();
-            ResetSession(summary.Id, session.Messages);
+            ResetSession(summary.Id, session.Messages, session.TargetBinding);
             foreach (var message in messages) Messages.Add(message);
             IsHistoryOpen = false;
         });
@@ -186,9 +204,9 @@ internal sealed class ChatViewModel : Notify
         IsHistoryOpen = false;
     }
 
-    private void ResetSession(Guid id, SessionMessage[] messages)
+    private void ResetSession(Guid id, SessionMessage[] messages, McpTargetBinding? binding = null)
     {
-        _conversation.Restore(messages);
+        _conversation.Restore(messages, binding);
         _sessionId = id;
         Messages.Clear();
         Draft = string.Empty;
@@ -218,7 +236,7 @@ internal sealed class ChatViewModel : Notify
             ? string.Join(" ", words) : UiText.Get("PriorImage");
         var info = new System.Globalization.StringInfo(title);
         if (info.LengthInTextElements > 64) title = info.SubstringByTextElements(0, 64) + "…";
-        var session = new ChatSession(new SessionSummary(_sessionId, title, DateTimeOffset.UtcNow), messages);
+        var session = new ChatSession(new SessionSummary(_sessionId, title, DateTimeOffset.UtcNow), messages, _conversation.TargetBinding);
         try { await _sessions.SaveAsync(session); }
         catch (Exception exception) when (ChatSessionStore.IsStorageError(exception))
         {

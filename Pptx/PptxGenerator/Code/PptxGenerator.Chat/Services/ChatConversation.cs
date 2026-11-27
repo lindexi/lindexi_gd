@@ -14,8 +14,12 @@ internal sealed class ChatConversation
     private readonly List<ResponseItem> _history = new();
     private WorkspaceToolProvider? _workspace;
 
-    internal void Restore(IEnumerable<SessionMessage> messages)
+    private readonly McpTargetRouting _routing = new();
+    internal McpTargetBinding? TargetBinding => _routing.Binding;
+
+    internal void Restore(IEnumerable<SessionMessage> messages, McpTargetBinding? binding)
     {
+        _routing.Restore(binding);
         _history.Clear();
         _workspace = null;
         foreach (var message in messages)
@@ -34,7 +38,7 @@ internal sealed class ChatConversation
         var inputs = new List<ResponseItem>(_history);
         var text = new SortedDictionary<int, System.Text.StringBuilder>();
         int offset = 0;
-        var mcp = new McpTools();
+        var mcp = new McpTools(_routing);
         try
         {
             if (turn.Images.Count == 0)
@@ -73,6 +77,10 @@ internal sealed class ChatConversation
                 }
             }
 
+            var instructions = UiText.Get("Instructions");
+            if (tools.ContainsKey(McpTargetRouting.ListTool) && tools.ContainsKey(McpTargetRouting.BindTool))
+                instructions += $"\n课件操作使用本会话已绑定的操作区。首次操作或需要切换课件时，先调用 {McpTargetRouting.ListTool} 列出所有打开的课件，等待结果；再用返回的目标 ID 调用 {McpTargetRouting.BindTool}，绑定成功后才调用其他课件工具。已绑定且不切换目标时可直接操作。";
+
             while (true)
             {
                 token.ThrowIfCancellationRequested();
@@ -80,7 +88,7 @@ internal sealed class ChatConversation
                 {
                     StreamingEnabled = true,
                     StoredOutputEnabled = false,
-                    Instructions = UiText.Get("Instructions"),
+                    Instructions = instructions,
                 };
                 if (turn.Model.Definition.Capabilities?.Reasoning == true)
                     request.IncludedProperties.Add(IncludedResponseProperty.ReasoningEncryptedContent);

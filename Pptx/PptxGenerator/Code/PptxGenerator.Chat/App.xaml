@@ -17,8 +17,10 @@
         <s:String x:Key="ModelLabel">模型</s:String>
         <s:String x:Key="WorkLabel">工作路径</s:String>
         <s:String x:Key="McpLabel">MCP 地址</s:String>
-        <s:String x:Key="WelcomeTitle">今天想聊什么？</s:String>
-        <s:String x:Key="WelcomeHint">可以直接提问，也可以请助手查看或编辑课件。</s:String>
+        <s:String x:Key="WelcomeTitle">欢迎使用课件聊天助手</s:String>
+        <s:String x:Key="WelcomeHint">你可以直接提问、添加图片，或请助手列出已打开的课件、查看页面和截图、新建或修改页面，以及导出课件 Markdown。</s:String>
+        <s:String x:Key="WelcomeMcpFailed">连接 mcp 失败，请先启动云课件</s:String>
+        <s:String x:Key="ToolCoursewareInfo">获取课件信息</s:String>
         <s:String x:Key="DraftHint">输入消息，或添加图片…</s:String>
         <s:String x:Key="Send">发送</s:String>
         <s:String x:Key="Stop">停止</s:String>

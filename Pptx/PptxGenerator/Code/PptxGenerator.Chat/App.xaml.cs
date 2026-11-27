@@ -14,8 +14,10 @@ public partial class App : Application
         ChatDiagnostics.StartFileLog(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "PptxGenerator.Chat", "Logs"));
         var models = await ChatModels.LoadAsync();
-        MainWindow = new MainWindow { DataContext = new ChatViewModel(models, Dispatcher) };
+        var viewModel = new ChatViewModel(models, Dispatcher);
+        MainWindow = new MainWindow { DataContext = viewModel };
         MainWindow.Show();
+        await viewModel.CheckStartupMcpAsync();
     }
 
     protected override void OnExit(ExitEventArgs e)

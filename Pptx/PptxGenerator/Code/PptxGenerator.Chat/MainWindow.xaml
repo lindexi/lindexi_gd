@@ -183,7 +183,10 @@
             </Style></StackPanel.Style>
             <TextBlock Text="&#xE8F2;" FontFamily="Segoe MDL2 Assets" FontSize="27" HorizontalAlignment="Center" />
             <TextBlock Text="{StaticResource WelcomeTitle}" FontSize="25" FontWeight="SemiBold" Margin="0,12,0,5" HorizontalAlignment="Center" />
-            <TextBlock Text="{StaticResource WelcomeHint}" Foreground="{StaticResource Muted}" />
+            <TextBlock Text="{StaticResource WelcomeHint}" Foreground="{StaticResource Muted}" TextWrapping="Wrap"
+                       TextAlignment="Center" MaxWidth="480" Margin="24,0" />
+            <TextBlock Text="{Binding WelcomeMcpNotice}" Style="{StaticResource Notice}" HorizontalAlignment="Center"
+                       AutomationProperties.LiveSetting="Polite" />
         </StackPanel>
 
         <StackPanel Grid.Row="2" Margin="28,6,28,16">

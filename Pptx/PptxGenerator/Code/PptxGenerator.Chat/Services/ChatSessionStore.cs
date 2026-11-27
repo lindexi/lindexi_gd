@@ -10,7 +10,7 @@ internal sealed record SessionSummary(Guid Id, string Title, DateTimeOffset Upda
 {
     public DateTime LocalUpdatedAt => UpdatedAt.LocalDateTime;
 }
-internal sealed record ChatSession(SessionSummary Summary, SessionMessage[] Messages);
+internal sealed record ChatSession(SessionSummary Summary, SessionMessage[] Messages, McpTargetBinding? TargetBinding = null);
 
 internal sealed class ChatSessionStore
 {

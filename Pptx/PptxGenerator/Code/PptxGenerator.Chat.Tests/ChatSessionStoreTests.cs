@@ -42,6 +42,19 @@ public sealed class ChatSessionStoreTests
         CollectionAssert.AreEqual(new[] { first.Id, second.Id }, sessions.Select(session => session.Id).ToArray());
     }
 
+    [TestMethod]
+    public async Task SavedSessionRestoresMcpTargetBindingAsync()
+    {
+        var store = CreateStore();
+        var summary = new SessionSummary(Guid.NewGuid(), "Lesson", DateTimeOffset.UtcNow);
+        var binding = new McpTargetBinding("http://localhost:7916/mcp", "123");
+        await store.SaveAsync(new ChatSession(summary, [new SessionMessage(true, "Lesson", "", "", [], [], [])], binding));
+
+        var restored = await store.LoadAsync(summary.Id);
+
+        Assert.AreEqual(binding, restored.TargetBinding);
+    }
+
     private static ChatSessionStore CreateStore() =>
         new(Directory.CreateTempSubdirectory("PptxGenerator.Chat.Sessions-").FullName);
 }
