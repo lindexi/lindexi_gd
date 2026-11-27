@@ -76,27 +76,10 @@
         <s:String x:Key="ToolScreenshot">获取页面截图</s:String>
         <s:String x:Key="ToolResource">注册课件资源</s:String>
         <s:String x:Key="ToolExport">导出课件 Markdown</s:String>
-        <s:String x:Key="Instructions" xml:space="preserve"><![CDATA[你是课件聊天助手。直接回答普通问题，仅在用户任务需要时使用工具。查看页面优先使用页面信息；需要视觉判断时请求截图工具直接返回图片。以下规范仅用于编写或解释 SlideML。
-
-## SlideML 完整页面
-- 使用合法 XML，以 <Page> 为唯一根元素，可设置 Background。Page 和 Panel 可包含 Panel、Rect、TextElement、Image。给每个可视元素分配文档内唯一的 Id。标签和属性区分大小写；使用 XML 转义处理正文中的 &、< 和引号。XML 传给工具时不加 Markdown 代码围栏。
-- 原点在左上角，X 向右、Y 向下；坐标相对于直接父容器，尺寸用不带单位的像素数值。以当前课件画布为准；未知时可用 1280 × 720 作为草稿基准。颜色使用 #RRGGBB 或 #AARRGGBB。同一容器中后写的元素显示在上层。
-- 可视元素常用 X、Y、Width、Height、Margin、Opacity。Opacity 为 0 到 1；HorizontalAlignment 可用 Left、Center、Right，VerticalAlignment 可用 Top、Center、Bottom，对应轴未指定坐标时使用对齐。
-- Panel：Background、Padding、Layout、Gap。Layout 可用 Absolute、Horizontal、Vertical；后两者沿排列轴布局，用 Gap 和 Margin 控制间距，不自动折行。
-- Rect：Fill、Stroke、StrokeThickness、CornerRadius、StrokeDashArray。Margin 和 CornerRadius 可使用逗号分隔的 1 至 4 个数值。渐变使用 Fill 或 Stroke 子元素包裹 LinearGradient（X1、Y1、X2、Y2），其中 Stop 的属性为 Offset（0 到 1）、Color。Panel 也可使用 Fill 子元素。
-- TextElement：用 Text 属性写正文，支持 FontName、FontSize、Foreground、IsBold、IsItalic、TextAlignment。设置 Width 后可自动换行；富文本可用 Span 子元素及其 Text 属性。
-- Image：Source 使用实际课件资源 ID，不写猜测的 ID、文件路径或 URL。需要新增资源时使用注册工具返回的 ID。Stretch 可用 None、Fill、Uniform、UniformToFill。
-- 交给课件工具的是完整页面，不是 XAML、HTML、流式片段或局部补丁。不要写入 RenderSize、RenderLocation、ActualLineCount 等渲染回填属性，也不要编造标签或属性。
-
-最小示例：
-<?xml version="1.0" encoding="UTF-8"?>
-<Page Background="#FFFFFF">
-  <TextElement Id="title" X="72" Y="80" Width="1100" Text="探索新知" FontSize="48" IsBold="True" Foreground="#222222" />
-</Page>
-
-## 写入课件
-- 用户要求实际新建或修改页面时，若 RenderSlideML 可用，将完整 XML 作为 slideXml 传入。新建传 slideId=null；修改使用已确认的目标页面 ID。修改会替换整页内容，应在完整 XML 中保留用户未要求更改的部分，不能把未知的目标 ID 换成 null 来新建。
-- 工具不可用时仍可提供 SlideML 草稿，并明确未写入。以工具实际结果为准，说明失败或警告，不把返回错误的调用描述成成功。]]></s:String>
+        <s:String x:Key="Instructions">你是课件聊天助手。直接回答普通问题，按任务需要使用工具。按工具实际结果汇报，不声称完成未执行的操作。</s:String>
+        <s:String x:Key="ToolReadSkill">读取课件技能</s:String>
+        <s:String x:Key="SkillReadFailed">无法读取课件技能文档，请使用 SKILL.md 或入口中列出的 references/ 相对路径。</s:String>
+        <s:String x:Key="SkillLoadFailed">本轮无法加载课件技能，仍可继续聊天。</s:String>
 
         <BooleanToVisibilityConverter x:Key="Visible" />
         <SolidColorBrush x:Key="Ink" Color="#222222" />

@@ -78,6 +78,21 @@ internal sealed class ChatConversation
             }
 
             var instructions = UiText.Get("Instructions");
+            if (turn.Model.SupportsTools)
+            {
+                var skill = new CoursewareSkill(Path.Combine(AppContext.BaseDirectory, "Assets", "Skills", "courseware-slideml"));
+                try
+                {
+                    var catalog = await skill.RegisterAsync(tools, UiText.Get("ToolReadSkill"), UiText.Get("SkillReadFailed"), token)
+                        .ConfigureAwait(false);
+                    instructions += "\n" + catalog;
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+                {
+                    ChatDiagnostics.Failure("LoadCoursewareSkill", exception, "Skill", "courseware-slideml");
+                    addNotice(UiText.Get("SkillLoadFailed"));
+                }
+            }
             if (tools.ContainsKey(McpTargetRouting.ListTool) && tools.ContainsKey(McpTargetRouting.BindTool))
                 instructions += $"\n课件操作使用本会话已绑定的操作区。首次操作或需要切换课件时，先调用 {McpTargetRouting.ListTool} 列出所有打开的课件，等待结果；再用返回的目标 ID 调用 {McpTargetRouting.BindTool}，绑定成功后才调用其他课件工具。已绑定且不切换目标时可直接操作。";
 
