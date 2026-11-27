@@ -14,5 +14,6 @@
     <PackageReference Include="DotNetCampus.ModelContextProtocol" Version="0.1.0-alpha.40" />
     <InternalsVisibleTo Include="PptxGenerator.Chat.Tests" />
     <Resource Include="Assets/Chat.ico" />
+    <None Update="Assets/Skills/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
