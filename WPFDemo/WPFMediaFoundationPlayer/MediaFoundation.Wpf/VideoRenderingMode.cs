@@ -1,10 +1,11 @@
 namespace MediaFoundation.Controls;
 
-/// <summary>视频呈现方式；仅可在 Open 前或 Close 后更改。</summary>
+/// <summary>视频呈现方式；播放器默认 D3DImage，仅可在 Open 前或 Close 后更改。枚举数值保留 Hwnd=0、D3DImage=1。</summary>
 public enum VideoRenderingMode
 {
     /// <summary>MFPlay 子 HWND；通常开销较低，但存在 HWND 空域问题，不能参与常规 WPF 合成。</summary>
     Hwnd,
+
     /// <summary>MFPlay 自定义 EVR 的 D3D9 展示表面经 D3DImage 参与 WPF 合成，无子 HWND 空域；增加互操作和合成开销，实际性能取决于设备及媒体。</summary>
     D3DImage
 }

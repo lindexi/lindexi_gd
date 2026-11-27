@@ -13,11 +13,11 @@
 
 位置均相对于本目录：
 
-- MediaFoundation.Core/EvrPrototypePresenter.cs:340-365：Negotiate 选择 mixer 提供的 RGB32 类型，Width/Height 取 MF_MT_FRAME_SIZE。不按窗口尺寸重新设定输出，也没有强制从输入视频尺寸生成输出类型。因此准确说是“mixer 协商输出分辨率”，常见源尺寸但不能保证任意媒体必等于编码原分辨率。本次样本为 640x360。
+- MediaFoundation.Core/Playback/EVRPrototypePresenter.cs:340-365：Negotiate 选择 mixer 提供的 RGB32 类型，Width/Height 取 MF_MT_FRAME_SIZE。不按窗口尺寸重新设定输出，也没有强制从输入视频尺寸生成输出类型。因此准确说是“mixer 协商输出分辨率”，常见源尺寸但不能保证任意媒体必等于编码原分辨率。本次样本为 640x360。
 - 同文件 :368-385：display、latest staging 和 sample pool 都为 Width×Height 的 X8R8G8B8 render target。
 - 同文件 :568-569、:489-491：sample→latest→display 均为全表面、同尺寸 StretchRect，D3DTEXF_NONE，并等待 GPU 完成；不是面向窗口尺寸的缩放。
 - 同文件 :188-195：GetNativeVideoSize 的 native 与 aspect 都回报 Width×Height；:214-225 拒绝非全帧 source crop，destination 仅存储；:234-237 aspect mode 只接受并存储 1。没有显式读取/应用 geometric/minimum display aperture、像素宽高比或 DAR。mixer 自身可能处理部分媒体属性，但此 presenter 未保证非方形像素、有效裁剪区域或变形素材的显示比例正确。
-- MediaFoundation.Wpf/MfPlayD3DImagePresenter.cs:54：Image.Source=D3DImage，Stretch=Uniform；:90-99 SetBackBuffer 指向原 display，AddDirtyRect 使用输出像素尺寸。未按窗口/DPI 重建表面，未设置自定义 bitmap scaling mode。Generic.xaml:9 将 VideoView 拉伸到视频布局区域。
+- MediaFoundation.Wpf/Rendering/MFPlayD3DImagePresenter.cs:54：Image.Source=D3DImage，Stretch=Uniform；:90-99 SetBackBuffer 指向原 display，AddDirtyRect 使用输出像素尺寸。未按窗口/DPI 重建表面，未设置自定义 bitmap scaling mode。Generic.xaml:9 将 VideoView 拉伸到视频布局区域。
 - 最终等比适配发生在 WPF Image 布局/合成层：可用 DIP 区域结合设备 DPI 得到屏幕像素尺寸，Uniform 保持的是表面宽高比，不是额外校正后的 DAR。放大不增加源细节，缩小会重采样；高 DPI/非整数缩放可能变软，不承诺逐像素或特定高质量滤镜。
 - 性能：窗口缩小不会减少解码、mixer 输出及两次全分辨率复制成本；表面/带宽随协商像素数增长。GPU 同步、8ms UI timer、D3DImage 合成及软件 WPF 回退也有成本。本次未做性能基准，不证明硬件合成路径性能。
 

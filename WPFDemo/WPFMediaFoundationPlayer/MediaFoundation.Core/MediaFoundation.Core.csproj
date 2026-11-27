@@ -4,14 +4,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Platforms>AnyCPU;x86;x64</Platforms>
-    <PlatformTarget Condition="'$(RuntimeIdentifier)' == 'win-x86'">x86</PlatformTarget>
-    <PlatformTarget Condition="'$(PlatformTarget)' == ''">x64</PlatformTarget>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>obj/Generated</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="DotNetCampus.SourceLocalizations" Version="0.1.1-alpha.9" PrivateAssets="all" ExcludeAssets="runtime" />
+    <EmbeddedResource Remove="**/*.resx" />
     <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183" PrivateAssets="all" />
   </ItemGroup>
 </Project>

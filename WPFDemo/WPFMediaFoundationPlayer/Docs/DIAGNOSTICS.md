@@ -12,6 +12,16 @@
 
 高频帧调用成功不记录，MediaEngine TIMEUPDATE 不记录；呈现和播放器进度最多每 5 秒一次，即使无首帧也保留进度状态。驱动版本查询不支持时记录查询 HRESULT，不猜测版本。
 
+## MFPlay 自定义 EVR：有声无画面，切换 HWND 后正常
+
+**现场表现**：部分机器上，D3DImage 模式有声音、进度正常，但始终没有画面；同一媒体切到 MFPlay/HWND 后正常。已知一例为 x86 播放器、Windows 10 Build 19043、Intel HD Graphics 5500。该配置是现场记录，不是显卡或驱动缺陷的结论。此问题也不同于 `MEDIAITEM_CREATED` 阶段的 `0x800700EA`：这里媒体项创建和设置均已成功，视频轨已选中。
+
+**关键证据**：首帧超时快照显示 `frontBufferAvailable=True`、`lockAttempts=464`、`lockFailures=0`，时钟读取成功且播放位置已超过 5 秒；同时 `inputPending=True`、`inputNotifications=1`、`outputAttempts=2`、`outputSamples=0`、`ready=0 free=0`、`stagingFrames=0`。因上游没有帧，`backBufferBinds=0` 和 `dirtyRects=0` 不能归因于 WPF 绑定失败。启动阶段的 `0xC00D6D72`（`MF_E_TRANSFORM_NEED_MORE_INPUT`）本身可以是正常结果，真正可疑的是输入已挂起但输出样本池为空，mixer 无法继续取帧。
+
+**修复**：`MediaFoundation.Core/Playback/EVRPrototypePresenter.cs` 中，EVR 服务重绑会释放旧输出类型及样本池。旧版调度器在没有输出类型时直接返回；若重绑后先收到输入、没有再次收到 `MFVP_MESSAGE_INVALIDATEMEDIATYPE`，就可能一直没有首帧。新版在 mixer 可用、有输入待处理且没有输出类型时主动重新协商并重建样本池；若 mixer 暂无可用类型，按 250 ms 间隔重试，而不是每次调度都重新协商。输出类型提交期间避免重入。此修改不切换 HWND、不更换解码器，也不改变显卡选择。瘦身发布移除内嵌 MP4 和 x64 探针与画面恢复机制无关。
+
+**复核**：故障机反馈新版可以播放，但尚未收到恢复后的完整日志，不能断言现场一定走了重绑恢复分支。可查看同一会话中的 `EVR services release/init`（按 `epoch` 对照）、`EVR output recovery deferred/complete`、`EVR prototype actualFrames=1` 和 `first-frame copied`。`recovery complete` 后出现首帧记录，才直接证明恢复路径重建了样本池并提交了画面。若仍无画面，让用户保持 D3DImage 播放并回传自动生成的 `*.diagnostics-*.txt`；优先对照 `hasMixer`、`hasOutputType`、`free`、`ready`、`stagingFrames` 和 `copiedFrames`，不必手动切模式或发送原视频。
+
 ## 自测和本次验证边界
 
 `MediaFoundation.PlayerDemo.exe --diagnostics-test` 使用与普通启动相同的初始化路径，验证启动、完整异常类型/内层 HRESULT、日志完整路径及媒体脱敏；成功生成 `diagnostics-result.log`。现有 `--self-test self-test.mp4 --d3dimage` 可继续用于真实播放与 D3D 故障记录。

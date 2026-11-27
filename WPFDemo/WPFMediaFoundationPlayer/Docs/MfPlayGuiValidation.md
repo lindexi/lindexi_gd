@@ -25,7 +25,7 @@
 
 又用最终 `mfplay-gui-fix` 发布程序执行 `--mfplay-d3dimage --self-test self-test.mp4`，证据为 `results/mfplay-gui-fix-protocol-verified/mfplay-d3dimage.log`：上述五个 stage 再次全部 PASS，帧计数依次为 30 / 31 / 43 / 58 / 10，seek position=00:00:02.4214226，最终 RESULT PASS，callback live=0 / sink shutdown HRESULT=0。
 
-准确覆盖范围（按 MfPlayPrototype.RunAsync 的断言）：
+准确覆盖范围（按 MFPlayPrototype.RunAsync 的断言）：
 
 - first-30-frames 仅要求媒体已打开且原型计数 >=30，不是 WPF 已显示 30 帧的断言。
 - pause 等待 Paused，再间隔 500ms Refresh 验证时钟漂移 <=100ms；漂移检查没有独立 PASS 行，但 RESULT PASS 证明未抛错。
@@ -58,7 +58,7 @@
 
 ### GUI 入口验证边界
 
-当前 GUI 入口实际调用 `RenderingModeMenu.OpenPrototypeAsync` → `MfPlayPrototype.RunAsync(..., false, owner)`；没有名为 `MfPlayPrototype.Open` 的可直接调用入口。既有自测只覆盖 RenderingMode 切换及命令行原型，没有自动打开 GUI 原型并断言 Window.Owner / 主窗口关闭联动的测试。代码可见 owner 赋值，但本轮未将静态检查写成运行 PASS，也未扩展新测试架构。菜单点击、无源文件对话框、owned Window 归属/关闭仍未实测。
+当前 GUI 入口实际调用 `RenderingModeMenu.OpenPrototypeAsync` → `MFPlayPrototype.RunAsync(..., false, owner)`；没有名为 `MFPlayPrototype.Open` 的可直接调用入口。既有自测只覆盖 RenderingMode 切换及命令行原型，没有自动打开 GUI 原型并断言 Window.Owner / 主窗口关闭联动的测试。代码可见 owner 赋值，但本轮未将静态检查写成运行 PASS，也未扩展新测试架构。菜单点击、无源文件对话框、owned Window 归属/关闭仍未实测。
 
 ---
 

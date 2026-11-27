@@ -10,7 +10,7 @@
 - 后续 MediaProbe：MF track=0 为 HEVC 1920×1080，track=1 为 6 声道 48000 Hz、subtype=`eb27cec4-163e-4ca3-8b74-8e25f91b517e`。两轨各有一个注册候选；音频候选是 `Dolby TrueHD IEC-61937 converter MFT`，不等于实际选中的解码器；视频轨/metadata 查询另报 `0xC00D36E6`。
 - EBML 容器声明：视频 HEVC profileIdc=2、10-bit、1920×1080；音频 A_TRUEHD、6 声道、48000 Hz、24-bit；另有两条 PGS 字幕。容器元数据和注册候选不能确定失败属于哪条轨道，也不能证明 profile/位深/D3D11 解码兼容性。此日志不足以断言缺少某个具体解码器或所有 MKV 不受支持。
 
-源码轨道核对：`MediaPlayerControl.OpenFile` 使用 Wpf `Strings.resx` 的 `FileFilter`；正式 HWND 使用 MFPlay，正式 D3DImage 仍使用 Media Engine。`App` 中独立 `--mfplay-d3dimage <媒体文件路径>` 分支才调用 `MfPlayPrototype`（MFPlay + EVR）；原型没有文件选择对话框，“重新打开”仍使用同一命令行路径。本次没有将原型接入正式模式，也未新增 UI 入口。
+源码轨道核对：`MediaPlayerControl.OpenFile` 使用 Wpf `Strings.resx` 的 `FileFilter`；正式 HWND 使用 MFPlay，正式 D3DImage 仍使用 Media Engine。`App` 中独立 `--mfplay-d3dimage <媒体文件路径>` 分支才调用 `MFPlayPrototype`（MFPlay + EVR）；原型没有文件选择对话框，“重新打开”仍使用同一命令行路径。本次没有将原型接入正式模式，也未新增 UI 入口。
 
 本次仅扩展文件筛选为媒体/视频/音频/所有文件四类（保留 `*.*`），加入 MKV、WebM、传输流及常见音频扩展；筛选只决定文件可见性，不承诺系统解码能力。Demo 菜单资源明确标注 Media Engine 实验及原型独立入口；不添加依赖或更改后端。
 
