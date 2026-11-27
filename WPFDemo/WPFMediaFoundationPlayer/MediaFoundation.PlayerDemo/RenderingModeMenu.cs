@@ -122,6 +122,7 @@ internal sealed class RenderingModeMenu : IDisposable
         _more.Click += OnMore;
         control.Player.PropertyChanged += OnPlayerChanged;
         control.Player.Failed += OnPlaybackFailedAsync;
+        control.Player.VideoFirstFrameTimedOut += OnVideoFirstFrameTimedOutAsync;
         Refresh();
     }
 
@@ -220,7 +221,44 @@ internal sealed class RenderingModeMenu : IDisposable
             var token = _lifetime.Token;
             // Let the failed player finish releasing its renderer before opening a diagnostic session.
             await Task.Yield();
-            await PlaybackFailureProbe.RunAsync(source, failedMode, token);
+            if (source.IsFile)
+            {
+                string? report = await PlaybackDiagnosticMatrix.RunAsync(source, failedMode.ToString(), e.Error, token);
+                if (report != null && !_disposed && _control.Player.State == PlaybackState.Failed &&
+                    source == (_control.Player.Source ?? _control.Source))
+                {
+                    _status.Text = Lang.Current.DemoPlaybackFailedText.ToString
+                    (
+                        $"{PlaybackDiagnostics.Sanitize(e.Error.Message)} (0x{native.HResult:X8})", report
+                    );
+                    _status.ToolTip = _status.Text;
+                }
+            }
+            else
+                await PlaybackFailureProbe.RunAsync(source, failedMode, token);
+        }
+        finally
+        {
+            _autoProbing = false;
+        }
+    }
+
+    private async void OnVideoFirstFrameTimedOutAsync(object? sender, string evidence)
+    {
+        var source = _control.Player.Source ?? _control.Source;
+        if (_disposed || _autoProbing || source?.IsFile != true) return;
+        _autoProbing = true;
+        try
+        {
+            var token = _lifetime.Token;
+            await Task.Yield();
+            string? report = await PlaybackDiagnosticMatrix.RunAsync(source, _control.RenderingMode.ToString(), null, token, evidence);
+            if (report != null && !_disposed && _control.RenderingMode == VideoRenderingMode.D3DImage &&
+                _control.Player.State != PlaybackState.Failed && source == (_control.Player.Source ?? _control.Source))
+            {
+                _status.Text = Lang.Current.DemoVideoFirstFrameTimeoutText.ToString(report);
+                _status.ToolTip = _status.Text;
+            }
         }
         finally
         {
@@ -416,6 +454,7 @@ internal sealed class RenderingModeMenu : IDisposable
         foreach (var item in _items.Values) item.Click -= OnSelectionAsync;
         _control.Player.PropertyChanged -= OnPlayerChanged;
         _control.Player.Failed -= OnPlaybackFailedAsync;
+        _control.Player.VideoFirstFrameTimedOut -= OnVideoFirstFrameTimedOutAsync;
     }
 
     private sealed record Snapshot(Uri? Source, TimeSpan Position, PlaybackState State);

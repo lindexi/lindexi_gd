@@ -20,6 +20,8 @@
     <Content Include="../../Video/视频.mp4" Link="self-test.mp4" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="../../Video/视频.mp4" LogicalName="Diagnostics.Baseline.mp4" />
+    <EmbeddedResource Include="$(DiagnosticPeerPath)" LogicalName="Diagnostics.Peer.exe" Condition="'$(DiagnosticPeerPath)' != ''" />
     <PackageReference Include="DotNetCampus.SourceLocalizations" Version="0.1.1-alpha.9" PrivateAssets="all" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183" PrivateAssets="all" />
     <ProjectReference Include="../MediaFoundation.Wpf/MediaFoundation.Wpf.csproj" />

@@ -35,6 +35,12 @@ public partial class App : Application
     /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
+        if (Environment.GetCommandLineArgs().Skip(1).FirstOrDefault() == "--diagnostic-worker")
+        {
+            base.OnExit(e);
+            return;
+        }
+
         PlaybackDiagnostics.StorageFailed -= OnStorageFailed;
         PlaybackDiagnostics.Stop();
         if (Environment.GetCommandLineArgs().Any
@@ -47,6 +53,12 @@ public partial class App : Application
     /// <inheritdoc />
     protected override async void OnStartup(StartupEventArgs e)
     {
+        if (e.Args is ["--diagnostic-worker", var report, var test, var file])
+        {
+            Shutdown(await PlaybackDiagnosticMatrix.RunWorkerAsync(report, test, file));
+            return;
+        }
+
         PlaybackDiagnostics.StorageFailed += OnStorageFailed;
         PlaybackDiagnostics.Start();
         DispatcherUnhandledException += (_, args) => PlaybackDiagnostics.Write(args.Exception, null);
@@ -55,6 +67,15 @@ public partial class App : Application
             if (args.ExceptionObject is Exception error) PlaybackDiagnostics.Write(error, null);
         };
         base.OnStartup(e);
+        if (e.Args is ["--diagnostic-matrix-test", var media])
+        {
+            string? result = await PlaybackDiagnosticMatrix.RunAsync
+                (new Uri(Path.GetFullPath(media, AppContext.BaseDirectory)), "Test", new InvalidOperationException("Diagnostic matrix self-test"), CancellationToken.None);
+            if (result != null) File.Copy(result, Path.Combine(AppContext.BaseDirectory, "diagnostic-matrix-result.txt"), true);
+            Shutdown(result == null ? 1 : 0);
+            return;
+        }
+
         Console.OutputEncoding = System.Text.Encoding.UTF8;
         bool testing = e.Args.Contains("--self-test") || e.Args.Contains("--source-path-test") || e.Args.Contains
             ("--scaling-test");

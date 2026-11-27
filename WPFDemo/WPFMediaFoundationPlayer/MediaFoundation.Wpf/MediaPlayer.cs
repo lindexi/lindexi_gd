@@ -476,6 +476,9 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
         }
     }
 
+    /// <summary>视频播放时钟已推进，但 D3DImage 尚未提交首帧；仅用于诊断，不改变播放状态。</summary>
+    public event EventHandler<string>? VideoFirstFrameTimedOut;
+
     private long _lastDiagnosticTick;
 
     private void OnTick(object? sender, EventArgs e)
@@ -484,6 +487,11 @@ public sealed class MediaPlayer : INotifyPropertyChanged, IDisposable
         {
             _session?.Refresh();
             Snapshot();
+            if (_presenter?.CheckFirstFrame(State, HasVideo, Position) is { } evidence)
+            {
+                System.Diagnostics.Trace.WriteLine($"D3DImage first-frame timeout {evidence}", "MediaFoundation.Controls");
+                VideoFirstFrameTimedOut?.Invoke(this, evidence);
+            }
             if (_session != null && Environment.TickCount64 - _lastDiagnosticTick >= 5000)
             {
                 _lastDiagnosticTick = Environment.TickCount64;

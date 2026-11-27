@@ -93,6 +93,13 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
         return _prototypePresenter?.Present(present) ?? false;
     }
 
+    /// <summary>返回 EVR 首帧诊断快照，包括输入、输出、时钟及表面复制状态。</summary>
+    public string DescribeVideoPipeline()
+    {
+        Verify();
+        return _prototypePresenter?.DescribeFirstFrame() ?? "EVR presenter=unavailable";
+    }
+
     /// <summary>自定义 presenter 实际复制到展示 surface 的帧数，不是 UI tick 数。</summary>
     public long PrototypeFrames
     {
@@ -384,7 +391,18 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
     }
 
     /// <summary>异步打开绝对文件或网络 URI；替换旧媒体并释放旧管线。通过 MediaOpened 或 Failed 完成通知。</summary>
-    public void Open(Uri source)
+    public void Open(Uri source) => Open(source, false);
+
+    /// <summary>诊断入口：用未转义的本地路径调用 MFPlay，而不经应用的文件字节流。</summary>
+    public void OpenLocalPathForDiagnostics(Uri source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        if (!source.IsAbsoluteUri || !source.IsFile)
+            throw new ArgumentException(SR.Current.AbsoluteUriRequired, nameof(source));
+        Open(source, true);
+    }
+
+    private void Open(Uri source, bool useLocalPath)
     {
         Verify();
         ArgumentNullException.ThrowIfNull(source);
@@ -410,7 +428,7 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
             _player->SetVolume((float)_volume);
             stage = "IMFPMediaPlayer.SetMute";
             _player->SetMute(_muted);
-            if (source.IsFile)
+            if (source.IsFile && !useLocalPath)
             {
                 IMFByteStream* stream = null;
                 try
@@ -436,8 +454,8 @@ public sealed unsafe class MediaPlaybackSession : IPlaybackSession
             else
             {
                 stage = "IMFPMediaPlayer.CreateMediaItemFromURL";
-                Trace.WriteLine($"MFPlay request stage={stage} source=url async=true", "MediaFoundation.Core");
-                string url = source.AbsoluteUri;
+                Trace.WriteLine($"MFPlay request stage={stage} source={(useLocalPath ? "local-path" : "url")} async=true", "MediaFoundation.Core");
+                string url = useLocalPath ? source.LocalPath : source.AbsoluteUri;
                 fixed (char* text = url) _player->CreateMediaItemFromURL(new PCWSTR(text), false, 0, null);
             }
         }

@@ -38,8 +38,9 @@ internal static class PlaybackFailureProbe
         void Log(string message) => Trace.WriteLine($"{prefix} {message}", "Demo.Diagnostics");
     }
 
-    private static async Task ProbeAlternateModeAsync
-        (Uri source, VideoRenderingMode mode, Action<string> log, CancellationToken token)
+    internal static async Task<bool> ProbeAlternateModeAsync
+        (Uri source, VideoRenderingMode mode, Action<string> log, CancellationToken token, bool useLocalPath = false,
+            bool verifyFrame = false, VideoScalingMode scalingMode = VideoScalingMode.MixerOutput)
     {
         token.ThrowIfCancellationRequested();
         string stage = $"alternateMode={mode}";
@@ -51,13 +52,43 @@ internal static class PlaybackFailureProbe
                 { WindowStyle = unchecked((int)0x80000000), Width = 1, Height = 1 });
             using var session = mode == VideoRenderingMode.Hwnd
                 ? new MediaPlaybackSession(window.Handle)
-                : MediaPlaybackSession.CreateD3DImagePrototype(window.Handle);
+                : MediaPlaybackSession.CreateD3DImageSession(scalingMode);
+            if (mode == VideoRenderingMode.D3DImage) log($"{stage} scaling={scalingMode}");
             var opened = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             session.MediaOpened += (_, _) => opened.TrySetResult();
             session.Failed += (_, e) => opened.TrySetException(e.Error);
-            session.Open(source);
+            if (useLocalPath) session.OpenLocalPathForDiagnostics(source);
+            else session.Open(source);
             await opened.Task.WaitAsync(TimeSpan.FromSeconds(6), token);
-            log($"{stage} outcome=opened (does not verify decoded frames)");
+            log($"{stage} outcome=opened input={(useLocalPath ? "local-path" : "byte-stream")}");
+            if (verifyFrame)
+            {
+                if (!session.HasVideo)
+                {
+                    log("renderFrame outcome=skipped reason=no-video");
+                    return true;
+                }
+
+                session.RequestVideoTarget(640, 360);
+                session.IsMuted = true;
+                session.Failed += (_, e) => LogFailure(log, "renderFrame", e.Error);
+                session.Play();
+                var elapsed = Stopwatch.StartNew();
+                while (elapsed.Elapsed < TimeSpan.FromSeconds(3) && session.State != PlaybackState.Failed)
+                {
+                    if (session.CopyLatestFrame(static (_, _, _, _) => { }))
+                    {
+                        log("renderFrame outcome=pass evidence=EVR-to-D3D9-surface-copy wpfPresentation=not-tested");
+                        return true;
+                    }
+                    await Task.Delay(25, token);
+                }
+
+                log($"renderFrame outcome=failed reason=no-frame-copied {session.DescribeVideoPipeline()}");
+                return false;
+            }
+
+            return true;
         }
         catch (TimeoutException)
         {
@@ -67,6 +98,7 @@ internal static class PlaybackFailureProbe
         {
             LogFailure(log, stage, error);
         }
+        return false;
     }
 
     private static async Task ProbeResolverAsync(Uri source, bool useFileUrl, Action<string> log, CancellationToken token)

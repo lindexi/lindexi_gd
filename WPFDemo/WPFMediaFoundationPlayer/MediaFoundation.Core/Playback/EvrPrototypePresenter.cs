@@ -68,6 +68,9 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
     private uint _steps;
     private long _inputNotifications;
     private long _outputAttempts;
+    private long _outputSamples;
+    private HRESULT _lastOutputResult;
+    private string _adapter = "ordinal=0";
     private long _nextDiagnostic;
     private Exception? _failure;
     internal int Width { get; private set; }
@@ -83,6 +86,12 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
             IDirect3D9Ex* a = null;
             Check(PInvoke.Direct3DCreate9Ex(PInvoke.D3D_SDK_VERSION, &a), "Direct3DCreate9Ex");
             _api = a;
+            D3DADAPTER_IDENTIFIER9 adapter = default;
+            var adapterResult = _api->GetAdapterIdentifier(0, 0, &adapter);
+            if (adapterResult.Succeeded)
+                _adapter = $"ordinal=0 vendor=0x{adapter.VendorId:X4} device=0x{adapter.DeviceId:X4} driverVersion=0x{adapter.DriverVersion:X16}";
+            else _adapter += $" identifierHRESULT=0x{adapterResult.Value:X8}";
+            Trace.WriteLine($"EVR D3D9 adapter {_adapter}", "MediaFoundation.Core");
             var window = PInvoke.GetDesktopWindow();
             var pp = new D3DPRESENT_PARAMETERS
             {
@@ -918,6 +927,18 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
         }
     }
 
+    internal string DescribeFirstFrame()
+    {
+        lock (_gate)
+        {
+            long clock = 0, system = 0, nextSample = 0;
+            var clockResult = _clock == null ? HRESULT.MF_E_INVALIDREQUEST : _clock->GetCorrelatedTime(0, &clock, &system);
+            HRESULT sampleResult = _ready.Count == 0 ? HRESULT.MF_E_INVALIDREQUEST :
+                ((IMFSample*)_samples[_ready.Peek()])->GetSampleTime(&nextSample);
+            return $"EVR adapter=[{_adapter}] scaling={ScalingMode} running={_running} preroll={_preroll} inputPending={_input} inputNotifications={_inputNotifications} outputAttempts={_outputAttempts} outputSamples={_outputSamples} lastOutputHRESULT=0x{_lastOutputResult.Value:X8} ready={_ready.Count} free={_free.Count} stagingFrames={Frames} copiedFrames={_displayedFrames} clock100ns={clock} clockHRESULT=0x{clockResult.Value:X8} nextSample100ns={nextSample} sampleTimeHRESULT=0x{sampleResult.Value:X8}";
+        }
+    }
+
     private bool Tick()
     {
         lock (_gate)
@@ -963,6 +984,8 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
                 }
 
                 _outputAttempts++;
+                _lastOutputResult = hr;
+                if (hr.Succeeded) _outputSamples++;
                 if (_outputAttempts <= 5)
                     Trace.WriteLine
                     (

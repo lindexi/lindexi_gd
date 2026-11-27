@@ -9,11 +9,15 @@ namespace MediaFoundation.PlayerDemo;
 
 internal static class MediaProbe
 {
-    internal static Task<string> RunAsync(Uri source, CancellationToken token, bool useFileUrl = false) => Task.Run
-        (() => Run(source, token, useFileUrl), token);
+    internal static Task<string> RunAsync(Uri source, CancellationToken token, bool useFileUrl = false) =>
+        RunAsync(source, token, useFileUrl ? "file-url" : "byte-stream");
 
-    private static unsafe string Run(Uri source, CancellationToken token, bool useFileUrl)
+    internal static Task<string> RunAsync(Uri source, CancellationToken token, string input) => Task.Run
+        (() => Run(source, token, input), token);
+
+    private static unsafe string Run(Uri source, CancellationToken token, string input)
     {
+        bool useFileUrl = input != "byte-stream";
         var report = new StringBuilder();
         bool com = false, mf = false;
         bool complete = false;
@@ -27,7 +31,7 @@ internal static class MediaProbe
             mf = true;
             try
             {
-                complete = ReadNative(source, report, token, useFileUrl);
+                complete = ReadNative(source, report, token, input);
             }
             catch (COMException error)
             {
@@ -71,7 +75,7 @@ internal static class MediaProbe
         return report.ToString();
     }
 
-    private static unsafe bool ReadNative(Uri source, StringBuilder report, CancellationToken token, bool useFileUrl)
+    private static unsafe bool ReadNative(Uri source, StringBuilder report, CancellationToken token, string input)
     {
         IMFByteStream* bytes = null;
         IMFSourceResolver* resolver = null;
@@ -83,22 +87,68 @@ internal static class MediaProbe
         {
             PInvoke.MFCreateSourceResolver(&resolver).ThrowOnFailure();
             MF_OBJECT_TYPE kind;
-            if (source.IsFile && !useFileUrl)
+            string[] parts = input.Split(':', 2);
+            string? decode = parts.Length == 2 ? parts[0] : null;
+            input = parts[^1];
+            if (source.IsFile && (input is "byte-stream" or "byte-stream-mime" or "memory-stream"))
             {
-                stage = "MFCreateFile";
-                fixed (char* path = source.LocalPath)
-                    PInvoke.MFCreateFile
+                if (input == "memory-stream")
+                {
+                    stage = "SHCreateMemStream/MFCreateMFByteStreamOnStream";
+                    using var file = File.OpenRead(source.LocalPath);
+                    if (file.Length > 16 * 1024 * 1024)
+                    {
+                        report.AppendLine("outcome=skipped reason=memory-stream-size-limit");
+                        return false;
+                    }
+                    byte[] data = new byte[checked((int)file.Length)];
+                    file.ReadExactly(data);
+                    fixed (byte* buffer = data)
+                    {
+                        var stream = PInvoke.SHCreateMemStream(buffer, (uint)data.Length);
+                        if (stream == null) throw new OutOfMemoryException();
+                        try { PInvoke.MFCreateMFByteStreamOnStream(stream, &bytes).ThrowOnFailure(); }
+                        finally { stream->Release(); }
+                    }
+                }
+                else
+                {
+                    stage = "MFCreateFile";
+                    fixed (char* path = source.LocalPath)
+                        PInvoke.MFCreateFile
                     (
                         MF_FILE_ACCESSMODE.MF_ACCESSMODE_READ, MF_FILE_OPENMODE.MF_OPENMODE_FAIL_IF_NOT_EXIST,
                         MF_FILE_FLAGS.MF_FILEFLAGS_NONE, new Windows.Win32.Foundation.PCWSTR(path), &bytes
                     ).ThrowOnFailure();
+                }
+                bytes->GetCapabilities(out uint capabilities);
+                bytes->GetLength(out ulong length);
+                bytes->GetCurrentPosition(out ulong position);
+                report.AppendLine($"MF stream capabilities=0x{capabilities:X} length={length} position={position}");
+                bool useMp4Mime = input == "byte-stream-mime";
+                if (useMp4Mime)
+                {
+                    stage = "IMFByteStream.QueryInterface(IMFAttributes)/SetString(MF_BYTESTREAM_CONTENT_TYPE)";
+                    Guid attributesId = typeof(IMFAttributes).GUID;
+                    IMFAttributes* attributes = null;
+                    ((Windows.Win32.System.Com.IUnknown*)bytes)->QueryInterface(&attributesId, (void**)&attributes).ThrowOnFailure();
+                    try
+                    {
+                        attributes->SetString(PInvoke.MF_BYTESTREAM_CONTENT_TYPE, "video/mp4");
+                    }
+                    finally
+                    {
+                        attributes->Release();
+                    }
+                }
                 string hint = "media" + Path.GetExtension(source.LocalPath);
                 report.AppendLine
                 (
-                    "MF resolver=CreateObjectFromByteStream contentTypeHint=unset urlExtension=" + Path.GetExtension
+                    $"MF resolver=CreateObjectFromByteStream contentTypeHint={(useMp4Mime ? "video/mp4" : "unset")} urlExtension=" + Path.GetExtension
                         (source.LocalPath)
                 );
                 stage = "IMFSourceResolver.CreateObjectFromByteStream";
+                System.Diagnostics.Trace.WriteLine($"MF metadata begin stage={stage}", "Demo.Diagnostics");
                 fixed (char* url = hint)
                     resolver->CreateObjectFromByteStream(bytes, url, 1, null, &kind, &resolved);
             }
@@ -106,7 +156,9 @@ internal static class MediaProbe
             {
                 stage = "IMFSourceResolver.CreateObjectFromURL";
                 report.AppendLine($"MF resolver=CreateObjectFromURL sourceType={(source.IsFile ? "file" : "network")}");
-                fixed (char* url = source.AbsoluteUri)
+                string address = input == "local-path" ? source.LocalPath : source.AbsoluteUri;
+                System.Diagnostics.Trace.WriteLine($"MF metadata begin stage={stage} input={input}", "Demo.Diagnostics");
+                fixed (char* url = address)
                     resolver->CreateObjectFromURL(url, 1, null, &kind, &resolved);
             }
 
@@ -115,6 +167,7 @@ internal static class MediaProbe
             stage = "IUnknown.QueryInterface(IMFMediaSource)";
             resolved->QueryInterface(&iid, &pointer).ThrowOnFailure();
             media = (IMFMediaSource*)pointer;
+            if (decode != null) return ReadFirstVideoFrame(media, report, decode == "decode-hardware-allowed");
             stage = "IMFMediaSource.CreatePresentationDescriptor";
             media->CreatePresentationDescriptor(&presentation);
             uint count;
@@ -206,6 +259,58 @@ internal static class MediaProbe
             if (resolver != null) resolver->Release();
             // The resolved media source owns stream shutdown; a second Close can fail and mask the probe result.
             if (bytes != null) bytes->Release();
+        }
+    }
+
+    private static unsafe bool ReadFirstVideoFrame(IMFMediaSource* media, StringBuilder report, bool allowHardware)
+    {
+        IMFAttributes* options = null;
+        IMFSourceReader* reader = null;
+        IMFMediaType* output = null;
+        string stage = "MFCreateAttributes";
+        try
+        {
+            PInvoke.MFCreateAttributes(&options, 2).ThrowOnFailure();
+            stage = "IMFAttributes.SetUINT32";
+            options->SetUINT32(PInvoke.MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, allowHardware ? 1u : 0u);
+            options->SetUINT32(PInvoke.MF_SOURCE_READER_DISABLE_DXVA, allowHardware ? 0u : 1u);
+            stage = "MFCreateSourceReaderFromMediaSource";
+            PInvoke.MFCreateSourceReaderFromMediaSource(media, options, &reader).ThrowOnFailure();
+            stage = "MFCreateMediaType";
+            PInvoke.MFCreateMediaType(&output).ThrowOnFailure();
+            output->SetGUID(PInvoke.MF_MT_MAJOR_TYPE, PInvoke.MFMediaType_Video);
+            output->SetGUID(PInvoke.MF_MT_SUBTYPE, PInvoke.MFVideoFormat_NV12);
+            uint video = unchecked((uint)MF_SOURCE_READER_CONSTANTS.MF_SOURCE_READER_FIRST_VIDEO_STREAM);
+            stage = "IMFSourceReader.SetCurrentMediaType(NV12)";
+            reader->SetCurrentMediaType(video, null, output);
+            stage = "IMFSourceReader.ReadSample";
+            for (int i = 0; i < 64; i++)
+            {
+                IMFSample* sample = null;
+                uint flags = 0;
+                long timestamp = 0;
+                reader->ReadSample(video, 0, null, &flags, &timestamp, &sample);
+                if (sample != null)
+                {
+                    sample->Release();
+                    report.AppendLine($"decodedFrame=true timestamp100ns={timestamp} flags=0x{flags:X} hardwareAllowed={allowHardware} actualDecoder=unknown");
+                    return true;
+                }
+                if ((flags & (uint)MF_SOURCE_READER_FLAG.MF_SOURCE_READERF_ENDOFSTREAM) != 0) break;
+            }
+            report.AppendLine("decodedFrame=false reason=no-sample");
+            return false;
+        }
+        catch (COMException error)
+        {
+            ReportNativeFailure(report, stage, error);
+            return false;
+        }
+        finally
+        {
+            if (output != null) output->Release();
+            if (reader != null) reader->Release();
+            if (options != null) options->Release();
         }
     }
 

@@ -63,6 +63,13 @@ internal sealed class MFPlayD3DImagePresenter : IDisposable
     private bool _disposed;
     private bool _force = true;
     private bool _firstFrame;
+    private long _lockAttempts;
+    private long _lockFailures;
+    private long _backBufferBinds;
+    private long _dirtyRects;
+    private long? _firstFrameWatchStart;
+    private TimeSpan _firstFrameWatchPosition;
+    private bool _firstFrameTimeoutReported;
     private long _nextDiagnostic;
 
     internal MFPlayD3DImagePresenter(MediaPlaybackSession session, Action<Exception> reportError)
@@ -85,6 +92,32 @@ internal sealed class MFPlayD3DImagePresenter : IDisposable
     }
 
     internal Canvas View { get; }
+
+    internal string? CheckFirstFrame(PlaybackState state, bool hasVideo, TimeSpan position)
+    {
+        if (_firstFrame || _firstFrameTimeoutReported) return null;
+        if (state != PlaybackState.Playing || !hasVideo || !View.IsVisible ||
+            Window.GetWindow(View)?.WindowState == WindowState.Minimized || position < _firstFrameWatchPosition)
+        {
+            _firstFrameWatchStart = null;
+            _firstFrameWatchPosition = position;
+            return null;
+        }
+
+        long now = Environment.TickCount64;
+        if (_firstFrameWatchStart == null)
+        {
+            _firstFrameWatchStart = now;
+            _firstFrameWatchPosition = position;
+            return null;
+        }
+
+        if (now - _firstFrameWatchStart.Value < 5000 || position - _firstFrameWatchPosition < TimeSpan.FromSeconds(2))
+            return null;
+
+        _firstFrameTimeoutReported = true;
+        return $"position={position} waitedMs={now - _firstFrameWatchStart.Value} frontBufferAvailable={_image.IsFrontBufferAvailable} lockAttempts={_lockAttempts} lockFailures={_lockFailures} backBufferBinds={_backBufferBinds} dirtyRects={_dirtyRects} imagePixels={_image.PixelWidth}x{_image.PixelHeight} view={View.ActualWidth:F0}x{View.ActualHeight:F0} {_session.DescribeVideoPipeline()}";
+    }
 
     private void UpdateViewport()
     {
@@ -150,12 +183,14 @@ internal sealed class MFPlayD3DImagePresenter : IDisposable
                 _image.Diagnose();
             }
 
+            _lockAttempts++;
             bool writable = _image.TryLock(new Duration(TimeSpan.FromMilliseconds(2)));
             try
             {
                 // WPF increments its lock count even when TryLock returns false.
                 if (!writable)
                 {
+                    _lockFailures++;
                     if (Environment.TickCount64 >= _nextDiagnostic)
                     {
                         _nextDiagnostic = Environment.TickCount64 + 5000;
@@ -179,6 +214,7 @@ internal sealed class MFPlayD3DImagePresenter : IDisposable
                                 try
                                 {
                                     _image.SetBackBuffer(D3DResourceType.IDirect3DSurface9, surface, true);
+                                    _backBufferBinds++;
                                 }
                                 catch
                                 {
@@ -190,7 +226,11 @@ internal sealed class MFPlayD3DImagePresenter : IDisposable
                                 _attached = surface;
                             }
 
-                            if (!before) _image.AddDirtyRect(new Int32Rect(0, 0, width, height));
+                            if (!before)
+                            {
+                                _image.AddDirtyRect(new Int32Rect(0, 0, width, height));
+                                _dirtyRects++;
+                            }
                         }, _force
                     ))
                 {
