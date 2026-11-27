@@ -3,6 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets/Chat.ico</ApplicationIcon>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
@@ -12,5 +13,6 @@
     <ProjectReference Include="../../../CodingAgent/Code/Lib/AgentLib/AgentLib/AgentLib.csproj" />
     <PackageReference Include="DotNetCampus.ModelContextProtocol" Version="0.1.0-alpha.40" />
     <InternalsVisibleTo Include="PptxGenerator.Chat.Tests" />
+    <Resource Include="Assets/Chat.ico" />
   </ItemGroup>
 </Project>

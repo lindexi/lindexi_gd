@@ -25,6 +25,8 @@ internal sealed class ChatMessage : Notify
 {
     private string _text = string.Empty;
     private string _status = string.Empty;
+    private ChatUsage _usage;
+    private string _usageSummary = string.Empty;
 
     internal ChatMessage(string role, bool isUser, string text, IReadOnlyList<ChatImage> images)
     {
@@ -38,9 +40,42 @@ internal sealed class ChatMessage : Notify
     public bool IsUser { get; }
     public string Text { get => _text; internal set => Set(ref _text, value); }
     public string Status { get => _status; internal set => Set(ref _status, value); }
+    public string UsageSummary { get => _usageSummary; private set => Set(ref _usageSummary, value); }
     public IReadOnlyList<ChatImage> Images { get; }
     public ObservableCollection<string> Notices { get; } = new();
     public ObservableCollection<ChatPart> Parts { get; } = new();
+
+    internal SessionMessage Snapshot() => new(IsUser, Text, Status, UsageSummary, Images.ToArray(), Notices.ToArray(),
+        Parts.Select(part => part is ChatTextPart text ? new SessionPart(part.Index, text.Text, null) :
+            new SessionPart(part.Index, null, ((ChatToolPart)part).Activity)).ToArray());
+
+    internal static ChatMessage Restore(SessionMessage saved)
+    {
+        var message = new ChatMessage(UiText.Get(saved.IsUser ? "UserRole" : "AssistantRole"), saved.IsUser,
+            string.Empty, saved.Images ?? Array.Empty<ChatImage>())
+        {
+            Status = saved.Status ?? string.Empty,
+            UsageSummary = saved.UsageSummary ?? string.Empty,
+        };
+        foreach (var part in saved.Parts ?? Array.Empty<SessionPart>())
+        {
+            if (part?.Text is { } text) message.AppendText(part.Index, text);
+            else if (part?.Tool is { } tool) message.UpdateTool(part.Index, tool);
+        }
+        if (message.Text.Length == 0 && saved.Text is { Length: > 0 } fallback) message.AppendText(0, fallback);
+        foreach (var notice in saved.Notices ?? Array.Empty<string>()) message.Notices.Add(notice);
+        return message;
+    }
+
+    internal void AddUsage(OpenAI.Responses.ResponseTokenUsage usage)
+    {
+        _usage = _usage.Add(usage);
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        var summary = string.Format(culture, UiText.Get("UsageSummary"), _usage.Total, _usage.Input, _usage.Output);
+        if (_usage.Reasoning is { } reasoning) summary += UiText.Format("UsageReasoning", reasoning.ToString("N0", culture));
+        if (_usage.Cached is { } cached) summary += UiText.Format("UsageCached", cached.ToString("N0", culture));
+        UsageSummary = summary;
+    }
 
     internal void AppendText(int index, string delta)
     {

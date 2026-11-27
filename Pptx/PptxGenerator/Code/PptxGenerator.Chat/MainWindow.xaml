@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:PptxGenerator.Chat.ViewModels"
         xmlns:local="clr-namespace:PptxGenerator.Chat"
-        Title="{StaticResource AppTitle}" Width="860" Height="760" MinWidth="480" MinHeight="560"
+        Title="{StaticResource AppTitle}" Icon="Assets/Chat.ico" Width="860" Height="760" MinWidth="480" MinHeight="560"
         Background="#F3F3F3" Foreground="{StaticResource Ink}" FontFamily="Segoe UI, Microsoft YaHei UI" FontSize="14"
         SourceInitialized="ApplyMica" Loaded="FocusDraft" Closing="StopOnClose">
     <Window.Resources>
@@ -89,12 +89,18 @@
         </DataTemplate>
     </Window.Resources>
     <Grid MaxWidth="940">
+    <Grid Visibility="{Binding IsChatOpen, Converter={StaticResource Visible}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel Margin="28,8,28,0">
+        <DockPanel Margin="28,8,28,0">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top" IsEnabled="{Binding IsIdle}" Margin="8,0,0,0">
+                <Button Content="{StaticResource HistoryTitle}" Click="ShowHistory" Margin="0,0,6,0" />
+                <Button Content="{StaticResource NewSession}" Click="NewSession" />
+            </StackPanel>
+            <StackPanel>
             <Expander Header="{StaticResource ConfigTitle}">
                 <Border Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}"
                         CornerRadius="9" BorderThickness="1" Padding="12,8" Margin="0,5,0,0">
@@ -121,7 +127,8 @@
             </Expander>
             <TextBlock Text="{Binding ModelNotice}" Style="{StaticResource Notice}" />
             <Separator Margin="0,5,0,0" Background="{StaticResource Stroke}" />
-        </StackPanel>
+            </StackPanel>
+        </DockPanel>
 
         <ScrollViewer x:Name="Transcript" Grid.Row="1" VerticalScrollBarVisibility="Auto" ScrollChanged="FollowTranscript">
             <ItemsControl ItemsSource="{Binding Messages}" Margin="28,12,28,16" MaxWidth="760">
@@ -149,6 +156,8 @@
                                     </DataTemplate></ItemsControl.ItemTemplate>
                                 </ItemsControl>
                                 <TextBlock Text="{Binding Status}" Style="{StaticResource Notice}" />
+                                <TextBlock Text="{Binding UsageSummary}" Style="{StaticResource Notice}"
+                                           HorizontalAlignment="Right" FontSize="11" Margin="0,6,0,0" />
                             </StackPanel>
                         </Border>
                         <DataTemplate.Triggers>
@@ -220,5 +229,64 @@
             </Border>
             <TextBlock Text="{Binding ComposerNotice}" Style="{StaticResource Notice}" AutomationProperties.LiveSetting="Polite" />
         </StackPanel>
+    </Grid>
+    <Grid Margin="28,14,28,18" Visibility="{Binding IsHistoryOpen, Converter={StaticResource Visible}}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <Button Content="{StaticResource HistoryBack}" Click="CloseHistory" HorizontalAlignment="Left" />
+            <TextBlock Text="{StaticResource HistoryTitle}" FontSize="23" FontWeight="SemiBold" Margin="0,10,0,8" />
+            <TextBlock Text="{StaticResource HistorySearch}" Foreground="{StaticResource Muted}" Margin="0,0,0,4" />
+            <TextBox x:Name="HistorySearchBox" Style="{StaticResource Field}"
+                     AutomationProperties.Name="{StaticResource HistorySearch}"
+                     Text="{Binding HistorySearch, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Text="{StaticResource HistoryLoading}" Margin="0,8,0,0" Foreground="{StaticResource Muted}"
+                       Visibility="{Binding IsHistoryLoading, Converter={StaticResource Visible}}" />
+            <TextBlock Text="{Binding HistoryNotice}" Style="{StaticResource Notice}" AutomationProperties.LiveSetting="Polite" />
+        </StackPanel>
+        <Grid Grid.Row="1" Margin="0,8,0,0">
+            <TextBlock Text="{StaticResource HistoryEmpty}" Panel.ZIndex="1" IsHitTestVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="{StaticResource Muted}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding History.Count}" Value="0" />
+                                    <Condition Binding="{Binding IsHistoryLoading}" Value="False" />
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Visibility" Value="Visible" />
+                            </MultiDataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <ListBox ItemsSource="{Binding History}" Background="Transparent" BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True"
+                     VirtualizingPanel.VirtualizationMode="Recycling">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Focusable" Value="False" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Button Click="OpenSession" CommandParameter="{Binding}" Margin="0,2"
+                                HorizontalContentAlignment="Stretch" ToolTip="{Binding Title}">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Foreground="{StaticResource Muted}" Margin="12,0,0,0"
+                                           Text="{Binding LocalUpdatedAt, StringFormat={}{0:g}}" />
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            </DockPanel>
+                        </Button>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+    </Grid>
     </Grid>
 </Window>

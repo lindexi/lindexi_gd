@@ -14,8 +14,21 @@ internal sealed class ChatConversation
     private readonly List<ResponseItem> _history = new();
     private WorkspaceToolProvider? _workspace;
 
+    internal void Restore(IEnumerable<SessionMessage> messages)
+    {
+        _history.Clear();
+        _workspace = null;
+        foreach (var message in messages)
+        {
+            if (message.IsUser)
+                _history.Add(ResponseItem.CreateUserMessageItem(string.IsNullOrEmpty(message.Text) ? UiText.Get("PriorImage") : message.Text));
+            else if (!string.IsNullOrEmpty(message.Text))
+                _history.Add(ResponseItem.CreateAssistantMessageItem(message.Text));
+        }
+    }
+
     internal async Task RunAsync(ChatTurn turn, Action<int, string> appendText, Action<int, ToolActivity> updateTool,
-        Action<string> addNotice, Action<string> workPathNotice, CancellationToken token)
+        Action<string> addNotice, Action<string> workPathNotice, Action<ResponseTokenUsage> reportUsage, CancellationToken token)
     {
         var user = ResponseItem.CreateUserMessageItem(turn.Text.Length > 0 ? turn.Text : UiText.Get("PriorImage"));
         var inputs = new List<ResponseItem>(_history);
@@ -93,15 +106,23 @@ internal sealed class ChatConversation
                             break;
                         case StreamingResponseCompletedUpdate completed:
                             response = completed.Response;
+                            ReportUsage(response);
                             break;
                         case StreamingResponseFailedUpdate failed:
+                            ReportUsage(failed.Response);
                             throw new InvalidOperationException($"Responses stream failed. Code={failed.Response.Error?.Code}.");
-                        case StreamingResponseIncompleteUpdate:
+                        case StreamingResponseIncompleteUpdate incomplete:
+                            ReportUsage(incomplete.Response);
                             addNotice(UiText.Get("ReplyIncomplete"));
                             return;
                         case StreamingResponseErrorUpdate:
                             throw new InvalidOperationException("Responses stream reported a protocol error.");
                     }
+                }
+
+                void ReportUsage(ResponseResult terminal)
+                {
+                    if (terminal.Usage is { } usage) reportUsage(usage);
                 }
 
                 token.ThrowIfCancellationRequested();

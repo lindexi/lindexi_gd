@@ -10,6 +10,13 @@ internal sealed class ChatViewModel : Notify
 {
     private readonly ChatConversation _conversation = new();
     private readonly Dispatcher _dispatcher;
+    private readonly ChatSessionStore _sessions;
+    private Guid _sessionId = Guid.NewGuid();
+    private IReadOnlyList<SessionSummary> _history = Array.Empty<SessionSummary>();
+    private bool _historyOpen;
+    private bool _historyLoading;
+    private string _historySearch = string.Empty;
+    private string _historyNotice = string.Empty;
     private readonly Command _send;
     private readonly Command _stop;
     private CancellationTokenSource? _turn;
@@ -20,9 +27,10 @@ internal sealed class ChatViewModel : Notify
     private string _composerNotice = string.Empty;
     private ChatModel? _model;
 
-    internal ChatViewModel(ChatModels models, Dispatcher dispatcher)
+    internal ChatViewModel(ChatModels models, Dispatcher dispatcher, ChatSessionStore? sessions = null)
     {
         _dispatcher = dispatcher;
+        _sessions = sessions ?? new ChatSessionStore(ChatSessionStore.DefaultDirectory);
         Models = models.Options;
         _model = models.Primary;
         ModelNotice = models.NoticeKey is not { } key ? string.Empty :
@@ -39,7 +47,27 @@ internal sealed class ChatViewModel : Notify
     public bool IsBusy => _turn is not null;
     public bool IsIdle => !IsBusy;
     public bool CanAttach => Model?.SupportsImages == true;
-    public bool CanSend => IsIdle && Model is not null && (Images.Count == 0 || CanAttach) &&
+    public bool IsChatOpen => !IsHistoryOpen;
+    public bool IsHistoryOpen
+    {
+        get => _historyOpen;
+        private set
+        {
+            if (!Set(ref _historyOpen, value)) return;
+            Raise(nameof(IsChatOpen));
+            RefreshSend();
+        }
+    }
+    public bool IsHistoryLoading { get => _historyLoading; private set => Set(ref _historyLoading, value); }
+    public string HistoryNotice { get => _historyNotice; private set => Set(ref _historyNotice, value); }
+    public string HistorySearch
+    {
+        get => _historySearch;
+        set { if (Set(ref _historySearch, value)) Raise(nameof(History)); }
+    }
+    public IReadOnlyList<SessionSummary> History => _history.Where(session =>
+        session.Title.Contains(HistorySearch.Trim(), StringComparison.CurrentCultureIgnoreCase)).ToArray();
+    public bool CanSend => IsIdle && IsChatOpen && Model is not null && (Images.Count == 0 || CanAttach) &&
         (!string.IsNullOrWhiteSpace(Draft) || Images.Count != 0);
     public string ModelNotice { get; private set; }
     public string WorkNotice { get => _workNotice; private set => Set(ref _workNotice, value); }
@@ -123,6 +151,82 @@ internal sealed class ChatViewModel : Notify
         _stop.Refresh();
     }
 
+    internal async Task ShowHistoryAsync()
+    {
+        if (IsBusy || IsHistoryLoading) return;
+        IsHistoryOpen = true;
+        await RunHistoryOperationAsync("ListHistory", ChatSessionStore.DefaultDirectory, async () =>
+        {
+            var (sessions, unreadable) = await _sessions.ListAsync();
+            _history = sessions;
+            Raise(nameof(History));
+            if (unreadable > 0) HistoryNotice = UiText.Format("HistorySkipped", unreadable.ToString());
+        });
+    }
+
+    internal async Task OpenSessionAsync(SessionSummary summary)
+    {
+        if (IsBusy || IsHistoryLoading) return;
+        await RunHistoryOperationAsync("OpenSession", summary.Id.ToString("N"), async () =>
+        {
+            var session = await _sessions.LoadAsync(summary.Id);
+            var messages = session.Messages.Select(ChatMessage.Restore).ToArray();
+            ResetSession(summary.Id, session.Messages);
+            foreach (var message in messages) Messages.Add(message);
+            IsHistoryOpen = false;
+        });
+    }
+
+    internal void CloseHistory() { if (!IsHistoryLoading) IsHistoryOpen = false; }
+
+    internal void NewSession()
+    {
+        if (IsBusy || IsHistoryLoading) return;
+        ResetSession(Guid.NewGuid(), Array.Empty<SessionMessage>());
+        IsHistoryOpen = false;
+    }
+
+    private void ResetSession(Guid id, SessionMessage[] messages)
+    {
+        _conversation.Restore(messages);
+        _sessionId = id;
+        Messages.Clear();
+        Draft = string.Empty;
+        Images.Clear();
+        ComposerNotice = string.Empty;
+        RefreshSend();
+    }
+
+    private async Task RunHistoryOperationAsync(string operation, string target, Func<Task> action)
+    {
+        IsHistoryLoading = true;
+        HistoryNotice = string.Empty;
+        try { await action(); }
+        catch (Exception exception) when (ChatSessionStore.IsStorageError(exception))
+        {
+            ChatDiagnostics.Failure(operation, exception, "Target", target);
+            HistoryNotice = UiText.Get("HistoryReadFailed");
+        }
+        finally { IsHistoryLoading = false; }
+    }
+
+    private async Task SaveSessionAsync()
+    {
+        var messages = Messages.Select(message => message.Snapshot()).ToArray();
+        var first = messages[0].Text;
+        string title = first.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries) is { Length: > 0 } words
+            ? string.Join(" ", words) : UiText.Get("PriorImage");
+        var info = new System.Globalization.StringInfo(title);
+        if (info.LengthInTextElements > 64) title = info.SubstringByTextElements(0, 64) + "…";
+        var session = new ChatSession(new SessionSummary(_sessionId, title, DateTimeOffset.UtcNow), messages);
+        try { await _sessions.SaveAsync(session); }
+        catch (Exception exception) when (ChatSessionStore.IsStorageError(exception))
+        {
+            ChatDiagnostics.Failure("SaveSession", exception, "SessionId", _sessionId.ToString("N"));
+            ComposerNotice = UiText.Get("HistorySaveFailed");
+        }
+    }
+
     private async Task SendAsync()
     {
         if (!CanSend || Model is not { } model) return;
@@ -155,7 +259,8 @@ internal sealed class ChatViewModel : Notify
                 assistant.Status = string.Empty;
                 assistant.UpdateTool(index, tool);
             }), notice => OnUi(() => assistant.Notices.Add(notice)),
-                notice => OnUi(() => WorkNotice = notice), cancellation.Token);
+                notice => OnUi(() => WorkNotice = notice),
+                usage => OnUi(() => assistant.AddUsage(usage)), cancellation.Token);
             assistant.Status = cancellation.IsCancellationRequested ? UiText.Get("ReplyStopped") :
                 assistant.Parts.Count == 0 && assistant.Notices.Count == 0 ? UiText.Get("ReplyEmpty") : string.Empty;
         }
@@ -176,6 +281,7 @@ internal sealed class ChatViewModel : Notify
             foreach (var part in assistant.Parts.OfType<ChatToolPart>())
                 if (part.Activity is { } activity && activity.State == pending)
                     part.Activity = activity with { State = skipped };
+            await SaveSessionAsync();
             _turn = null;
             RefreshTurn();
         }

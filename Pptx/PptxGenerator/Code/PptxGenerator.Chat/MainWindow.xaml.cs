@@ -23,7 +23,50 @@ public partial class MainWindow : Window
     public MainWindow() => InitializeComponent();
 
     private void FocusDraft(object sender, RoutedEventArgs e) => DraftBox.Focus();
-    private void StopOnClose(object? sender, CancelEventArgs e) => ViewModel.Stop();
+    private void StopOnClose(object? sender, CancelEventArgs e)
+    {
+        if (!ViewModel.IsBusy) return;
+        e.Cancel = true;
+        ViewModel.PropertyChanged -= CloseAfterSave;
+        ViewModel.PropertyChanged += CloseAfterSave;
+        ViewModel.Stop();
+    }
+
+    private void CloseAfterSave(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(ChatViewModel.IsBusy) || ViewModel.IsBusy) return;
+        ViewModel.PropertyChanged -= CloseAfterSave;
+        Dispatcher.BeginInvoke(new Action(Close));
+    }
+
+    private async void ShowHistory(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.ShowHistoryAsync();
+        if (ViewModel.IsHistoryOpen) HistorySearchBox.Focus();
+    }
+
+    private async void OpenSession(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { CommandParameter: SessionSummary summary }) return;
+        await ViewModel.OpenSessionAsync(summary);
+        if (ViewModel.IsChatOpen)
+        {
+            Transcript.ScrollToEnd();
+            DraftBox.Focus();
+        }
+    }
+
+    private void CloseHistory(object sender, RoutedEventArgs e)
+    {
+        ViewModel.CloseHistory();
+        if (ViewModel.IsChatOpen) DraftBox.Focus();
+    }
+
+    private void NewSession(object sender, RoutedEventArgs e)
+    {
+        ViewModel.NewSession();
+        DraftBox.Focus();
+    }
 
     private void DraftKeyDown(object sender, KeyEventArgs e)
     {

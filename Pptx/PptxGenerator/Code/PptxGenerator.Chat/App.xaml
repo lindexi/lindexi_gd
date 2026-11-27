@@ -4,6 +4,15 @@
              xmlns:s="clr-namespace:System;assembly=mscorlib">
     <Application.Resources>
         <s:String x:Key="AppTitle">课件聊天</s:String>
+        <s:String x:Key="HistoryTitle">历史会话</s:String>
+        <s:String x:Key="NewSession">新建会话</s:String>
+        <s:String x:Key="HistoryBack">返回聊天</s:String>
+        <s:String x:Key="HistorySearch">搜索会话标题</s:String>
+        <s:String x:Key="HistoryEmpty">没有匹配的会话。</s:String>
+        <s:String x:Key="HistoryLoading">正在读取会话…</s:String>
+        <s:String x:Key="HistorySkipped">有 {0} 个会话无法读取，已跳过。</s:String>
+        <s:String x:Key="HistoryReadFailed">无法读取会话，请检查本地会话目录后重试。</s:String>
+        <s:String x:Key="HistorySaveFailed">未能保存本轮会话，请检查本地会话目录。</s:String>
         <s:String x:Key="ConfigTitle">会话配置</s:String>
         <s:String x:Key="ModelLabel">模型</s:String>
         <s:String x:Key="WorkLabel">工作路径</s:String>
@@ -41,6 +50,9 @@
         <s:String x:Key="ReplyEmpty">模型未返回正文。</s:String>
         <s:String x:Key="ReplyUnauthorized">模型服务拒绝了请求，请检查模型配置中的凭据及权限。</s:String>
         <s:String x:Key="ReplyFailed">未能完成回复。请检查模型连接后重试。</s:String>
+        <s:String x:Key="UsageSummary">本轮 {0:N0} Token · 输入 {1:N0} · 输出 {2:N0}</s:String>
+        <s:String x:Key="UsageReasoning"> · 推理 {0}</s:String>
+        <s:String x:Key="UsageCached"> · 缓存命中 {0}</s:String>
         <s:String x:Key="PriorImage">[用户添加了图片]</s:String>
         <s:String x:Key="ToolPending">等待执行</s:String>
         <s:String x:Key="ToolRunning">执行中</s:String>
@@ -95,13 +107,14 @@
             <Setter Property="BorderBrush" Value="{StaticResource Stroke}" />
             <Setter Property="Padding" Value="12,5" />
             <Setter Property="MinHeight" Value="32" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="Shell" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="7"
                                 Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" RecognizesAccessKey="True" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Shell" Property="Opacity" Value="0.8" /></Trigger>
