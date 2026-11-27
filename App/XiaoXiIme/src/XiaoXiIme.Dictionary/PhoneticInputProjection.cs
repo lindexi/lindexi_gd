@@ -2,9 +2,9 @@
 
 namespace XiaoXiIme.Dictionary;
 
-internal static class PhoneticInputProjection
+internal static partial class PhoneticInputProjection
 {
-    private static readonly PhoneticLayout Xiaohe = PhoneticSchemeCatalog.All.Single
+    internal static readonly PhoneticLayout Xiaohe = PhoneticSchemeCatalog.All.Single
         (scheme => scheme.SchemeId == "xiaoheDoublePinyin").Layout!;
 
     private static readonly IReadOnlyDictionary<string, char> Initials = Xiaohe.Initials;

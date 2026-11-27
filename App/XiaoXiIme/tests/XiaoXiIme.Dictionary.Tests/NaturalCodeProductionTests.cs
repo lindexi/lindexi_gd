@@ -122,7 +122,7 @@ public class NaturalCodeProductionTests
     [InlineData("lo", true)]
     public void NaturalCodeSyllableLegalityIsIndependentOfLexicon(string code, bool expected)
     {
-        Assert.Equal(expected, ImeProjectionDefinition.IsNaturalCodeSyllable(code));
+        Assert.Equal(expected, ImeProjectionDefinition.ForScheme("naturalCodeDoublePinyin").IsCompleteSyllableCode(code));
     }
 
     [Theory]
@@ -132,7 +132,7 @@ public class NaturalCodeProductionTests
     [InlineData('\'', false)]
     public void NaturalCodeInitialKeysComeFromLayout(char key, bool expected)
     {
-        Assert.Equal(expected, ImeProjectionDefinition.IsNaturalCodeInitial(key));
+        Assert.Equal(expected, ImeProjectionDefinition.ForScheme("naturalCodeDoublePinyin").IsInitialKey(key));
     }
 
     [Fact]

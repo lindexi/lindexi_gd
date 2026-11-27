@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace XiaoXiIme.Dictionary;
 
 /// <summary>Defines component input aliases without assuming a unique reverse projection.</summary>
@@ -32,6 +34,27 @@ public sealed class ImeProjectionDefinition
         IsFixedTwoKey = Entries.Count > 0 && Entries.All(entry => entry.Input.Length == 2);
     }
 
+    private readonly FrozenSet<char>? _initialKeys;
+    private readonly FrozenSet<string>? _completeSyllableCodes;
+
+    private ImeProjectionDefinition(string name, IReadOnlyList<ImeProjectionEntry> entries, PhoneticLayout layout)
+        : this(name, entries)
+    {
+        _initialKeys = layout.Initials.Values.ToFrozenSet();
+        _completeSyllableCodes = Entries.Where(entry => entry.Initial.Length == 0 ||
+                PhoneticInputProjection.IsLegalSyllable(entry.Initial + entry.Final))
+            .Select(entry => entry.Input).ToFrozenSet(StringComparer.Ordinal);
+    }
+
+    /// <summary>Gets whether the layout provides initial keys for shorthand input.</summary>
+    public bool SupportsInitialShorthand => _initialKeys is not null;
+
+    /// <summary>Checks whether a normalized key represents an initial in this layout.</summary>
+    public bool IsInitialKey(char key) => _initialKeys?.Contains(key) == true;
+
+    /// <summary>Checks whether a normalized code denotes a legal complete syllable, regardless of dictionary entries.</summary>
+    public bool IsCompleteSyllableCode(string code) => _completeSyllableCodes?.Contains(code) == true;
+
     public string Name { get; }
     public IReadOnlyList<ImeProjectionEntry> Entries { get; }
     public bool IsFixedTwoKey { get; }
@@ -63,18 +86,14 @@ public sealed class ImeProjectionDefinition
             }
         }
 
-        return new(scheme, entries);
+        return new(scheme, entries, layout);
     }
-
-    /// <summary>Checks whether a normalized two-key code is a legal Natural Code syllable, regardless of dictionary entries.</summary>
-    public static bool IsNaturalCodeSyllable(string code) => NaturalCodePhoneticLayout.SyllableCodes.Contains(code);
-
-    /// <summary>Checks whether a normalized key can represent a Natural Code initial.</summary>
-    public static bool IsNaturalCodeInitial(char key) => NaturalCodePhoneticLayout.InitialKeys.Contains(key);
 
     private static ImeProjectionDefinition Create(bool doublePinyin)
     {
         var entries = PhoneticInputProjection.GetComponentEntries(doublePinyin);
-        return new(doublePinyin ? "xiaohe-double-pinyin" : "full-pinyin", entries);
+        return doublePinyin
+            ? new("xiaohe-double-pinyin", entries, PhoneticInputProjection.Xiaohe)
+            : new("full-pinyin", entries);
     }
 }

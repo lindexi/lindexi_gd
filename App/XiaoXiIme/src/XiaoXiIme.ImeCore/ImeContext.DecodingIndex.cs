@@ -55,7 +55,7 @@ public sealed partial class ImeContext
         internal readonly Dictionary<string, string[]> Shapes;
         internal readonly Dictionary<ImePhoneticEntry, ImeLookupAlias[]> Aliases;
         internal readonly Dictionary<string, int[]> Starts;
-        internal readonly Dictionary<string, List<int>>? NaturalCodeInitialStarts;
+        internal readonly Dictionary<string, List<int>>? InitialStarts;
         internal readonly double LogFrequencyMass;
 
         internal DecodingIndex(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules, DecodingIndex? previous)
@@ -73,7 +73,7 @@ public sealed partial class ImeContext
                 Projections = previous.Projections;
                 Shapes = previous.Shapes;
                 Starts = previous.Starts;
-                NaturalCodeInitialStarts = previous.NaturalCodeInitialStarts;
+                InitialStarts = previous.InitialStarts;
                 Syllables = previous.Syllables;
                 Aliases = previous.Aliases;
                 return;
@@ -92,7 +92,7 @@ public sealed partial class ImeContext
                 Projections = previous.Projections;
                 Shapes = previous.Shapes;
                 Starts = previous.Starts;
-                NaturalCodeInitialStarts = previous.NaturalCodeInitialStarts;
+                InitialStarts = previous.InitialStarts;
                 Syllables = new(lexicon.Entries.Count);
                 Aliases = new(lexicon.Entries.Count);
                 for (var i = 0; i < lexicon.Entries.Count; i++)
@@ -128,9 +128,10 @@ public sealed partial class ImeContext
                 s => ComponentAliases(s, rules).SelectMany(a => byComponent[a]).ToHashSet()
                     .OrderBy(p => projectionOrder[p]).ToArray(), StringComparer.Ordinal
             );
-            if (lexicon.Projection.Name == NaturalCodeScheme)
+            var layoutProjection = lexicon.Projection;
+            if (layoutProjection.SupportsInitialShorthand)
             {
-                NaturalCodeInitialStarts = new(StringComparer.Ordinal);
+                InitialStarts = new(StringComparer.Ordinal);
             }
 
             Shapes = lexicon.ShapeEntries.GroupBy(s => s.Text, StringComparer.Ordinal).ToDictionary
@@ -146,10 +147,10 @@ public sealed partial class ImeContext
                 var entry = lexicon.Entries[i];
                 var projections = Projections[Syllables[entry][0]];
                 AddStarts(starts, projections.Select(p => p.Input).Concat(Aliases[entry].Select(a => a.Input)), i);
-                if (NaturalCodeInitialStarts is not null)
+                if (InitialStarts is not null)
                 {
-                    AddStarts(NaturalCodeInitialStarts,
-                        projections.Where(p => p.Initial.Length > 0).Select(p => p.Input[..1]), i);
+                    AddStarts(InitialStarts, projections.Where(p => p.Initial.Length > 0 &&
+                        layoutProjection.IsInitialKey(p.Input[0])).Select(p => p.Input[..1]), i);
                 }
             }
 
