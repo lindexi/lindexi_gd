@@ -19,12 +19,12 @@ public static class ImeKeyTranslator
             return new(ImeKeyKind.Other);
         }
 
+        var shift = (modifiers & ShiftModifier) != 0;
         if (character is { } value && !char.IsControl(value) && !char.IsWhiteSpace(value))
         {
-            return ImeKey.FromCharacter(value);
+            return TranslateCharacter(value, shift);
         }
 
-        var shift = (modifiers & ShiftModifier) != 0;
         return virtualKey switch
         {
             ImeConstants.VkBack => new(ImeKeyKind.Backspace),
@@ -44,9 +44,9 @@ public static class ImeKeyTranslator
             >= ImeConstants.VkA and <= ImeConstants.VkZ => ImeKey.FromCharacter
                 ((char)((shift ? 'A' : 'a') + virtualKey - ImeConstants.VkA)),
             0xBA => ImeKey.FromCharacter(shift ? ':' : ';'),
-            0xBB => ImeKey.FromCharacter(shift ? '+' : '='),
+            0xBB => TranslateCharacter(shift ? '+' : '=', shift),
             0xBC => ImeKey.FromCharacter(shift ? '<' : ','),
-            0xBD => ImeKey.FromCharacter(shift ? '_' : '-'),
+            0xBD => TranslateCharacter(shift ? '_' : '-', shift),
             0xBE => ImeKey.FromCharacter(shift ? '>' : '.'),
             0xBF => ImeKey.FromCharacter(shift ? '?' : '/'),
             0xC0 => ImeKey.FromCharacter(shift ? '~' : '`'),
@@ -55,8 +55,8 @@ public static class ImeKeyTranslator
             0xDD => ImeKey.FromCharacter(shift ? '}' : ']'),
             0xDE => ImeKey.FromCharacter(shift ? '"' : '\''),
             0x6A => ImeKey.FromCharacter('*'),
-            0x6B => ImeKey.FromCharacter('+'),
-            0x6D => ImeKey.FromCharacter('-'),
+            0x6B => TranslateCharacter('+', shift),
+            0x6D => TranslateCharacter('-', shift),
             0x6E => ImeKey.FromCharacter('.'),
             0x6F => ImeKey.FromCharacter('/'),
             _ => new(ImeKeyKind.Other)
@@ -94,6 +94,11 @@ public static class ImeKeyTranslator
         var key = Translate(virtualKey, modifiers);
         return key.Kind is not ImeKeyKind.Other && key.Character != ';';
     }
+
+    private static ImeKey TranslateCharacter(char character, bool shift) =>
+        shift && character is ('-' or '=' or '_' or '+')
+            ? new(ImeKeyKind.Other)
+            : ImeKey.FromCharacter(character);
 
     [DllImport("user32.dll")]
     private static extern nint GetKeyboardLayout(uint threadId);

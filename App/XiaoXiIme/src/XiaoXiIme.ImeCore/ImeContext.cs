@@ -93,6 +93,11 @@ public sealed partial class ImeContext
         }
 
         var character = key.Character;
+        if (IsCandidatePageCharacter(character))
+        {
+            return snapshot.IsComposing && snapshot.Candidates.Count > 0;
+        }
+
         if (char.IsControl(character) || char.IsWhiteSpace(character))
         {
             return false;
@@ -253,8 +258,15 @@ public sealed partial class ImeContext
 
     private bool IsSymbolComposition => _reading.Length > 0 && _reading[0] == '/';
 
+    private static bool IsCandidatePageCharacter(char character) => character is '-' or '=';
+
     private ImeProcessResult ProcessCharacter(char character)
     {
+        if (IsCandidatePageCharacter(character))
+        {
+            return MoveSelection(character == '-' ? -CandidatePageSize : CandidatePageSize);
+        }
+
         if (character is >= '0' and <= '9')
         {
             var index = character == '0' ? 9 : character - '1';
