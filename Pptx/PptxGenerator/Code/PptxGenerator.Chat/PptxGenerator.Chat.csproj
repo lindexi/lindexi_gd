@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <NoWarn>$(NoWarn);OPENAI001;SCME0001</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../CodingAgent/Code/Lib/AgentLib/AgentLib/AgentLib.csproj" />
+    <PackageReference Include="DotNetCampus.ModelContextProtocol" Version="0.1.0-alpha.40" />
+    <InternalsVisibleTo Include="PptxGenerator.Chat.Tests" />
+  </ItemGroup>
+</Project>

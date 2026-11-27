@@ -1,0 +1,124 @@
+<Application x:Class="PptxGenerator.Chat.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="clr-namespace:System;assembly=mscorlib">
+    <Application.Resources>
+        <s:String x:Key="AppTitle">课件聊天</s:String>
+        <s:String x:Key="ConfigTitle">会话配置</s:String>
+        <s:String x:Key="ModelLabel">模型</s:String>
+        <s:String x:Key="WorkLabel">工作路径</s:String>
+        <s:String x:Key="McpLabel">MCP 地址</s:String>
+        <s:String x:Key="WelcomeTitle">今天想聊什么？</s:String>
+        <s:String x:Key="WelcomeHint">可以直接提问，也可以请助手查看或编辑课件。</s:String>
+        <s:String x:Key="DraftHint">输入消息，或添加图片…</s:String>
+        <s:String x:Key="Send">发送</s:String>
+        <s:String x:Key="Stop">停止</s:String>
+        <s:String x:Key="Attach">添加图片</s:String>
+        <s:String x:Key="Remove">移除图片</s:String>
+        <s:String x:Key="Copy">复制</s:String>
+        <s:String x:Key="Copied">已复制正文。</s:String>
+        <s:String x:Key="CopyFailed">剪贴板暂不可用，请稍后再试。</s:String>
+        <s:String x:Key="KeyboardHint">Ctrl + Enter 发送</s:String>
+        <s:String x:Key="ImageFilter">图片|*.png;*.jpg;*.jpeg;*.webp;*.gif</s:String>
+        <s:String x:Key="ImagePickerFailed">无法打开图片选择窗口，请重试。</s:String>
+        <s:String x:Key="ImageFormat">请选择 PNG、JPEG、WebP 或 GIF 图片。</s:String>
+        <s:String x:Key="ImageFailed">无法读取「{0}」，请检查文件后重试。</s:String>
+        <s:String x:Key="NoModels">配置中没有可用的 Responses 模型。</s:String>
+        <s:String x:Key="SelectModel">主模型不可用或无法唯一匹配，请选择模型。</s:String>
+        <s:String x:Key="ConfigMissing">未找到模型配置文件：{0}</s:String>
+        <s:String x:Key="ConfigDenied">没有权限读取模型配置文件：{0}</s:String>
+        <s:String x:Key="ConfigInvalid">模型配置格式无效，请检查：{0}</s:String>
+        <s:String x:Key="ConfigIo">无法读取模型配置文件，请检查文件是否可用：{0}</s:String>
+        <s:String x:Key="WorkPathInvalid">工作路径不可用。本轮不使用本地文件工具，请检查目录后重试。</s:String>
+        <s:String x:Key="McpInvalid">请输入有效的 HTTP 或 HTTPS 地址；留空可禁用 MCP。</s:String>
+        <s:String x:Key="McpUnavailable">未能连接课件工具，请检查 MCP 服务和地址。仍可继续聊天。</s:String>
+        <s:String x:Key="McpOutcomeUnknown">未收到课件工具的结果。请先查看课件，确认操作是否已生效。</s:String>
+        <s:String x:Key="UserRole">你</s:String>
+        <s:String x:Key="AssistantRole">助手</s:String>
+        <s:String x:Key="ReplyWaiting">正在等待回复…</s:String>
+        <s:String x:Key="ReplyStopped">已停止。已经完成的操作不会撤销。</s:String>
+        <s:String x:Key="ReplyIncomplete">模型未能完整回复，已保留收到的内容。</s:String>
+        <s:String x:Key="ReplyEmpty">模型未返回正文。</s:String>
+        <s:String x:Key="ReplyUnauthorized">模型服务拒绝了请求，请检查模型配置中的凭据及权限。</s:String>
+        <s:String x:Key="ReplyFailed">未能完成回复。请检查模型连接后重试。</s:String>
+        <s:String x:Key="PriorImage">[用户添加了图片]</s:String>
+        <s:String x:Key="ToolPending">等待执行</s:String>
+        <s:String x:Key="ToolRunning">执行中</s:String>
+        <s:String x:Key="ToolReturned">已返回</s:String>
+        <s:String x:Key="ToolError">调用失败</s:String>
+        <s:String x:Key="ToolUnknown">结果待确认</s:String>
+        <s:String x:Key="ToolStopped">已停止</s:String>
+        <s:String x:Key="ToolSkipped">未执行</s:String>
+        <s:String x:Key="ToolArguments">调用参数</s:String>
+        <s:String x:Key="ToolResult">返回结果</s:String>
+        <s:String x:Key="OpenToolImage">在系统图片查看器中打开</s:String>
+        <s:String x:Key="OpenToolImageFailed">无法打开图片。请检查临时目录和 Windows 默认图片应用后重试。</s:String>
+        <s:String x:Key="ToolImageUnavailable">已收到图片，但无法预览。</s:String>
+        <s:String x:Key="ToolUnavailable">工具未能完成请求。</s:String>
+        <s:String x:Key="ToolRead">读取文本文件</s:String>
+        <s:String x:Key="ToolWrite">写入文本文件</s:String>
+        <s:String x:Key="ToolRender">更新 SlideML</s:String>
+        <s:String x:Key="ToolSlide">查看页面信息</s:String>
+        <s:String x:Key="ToolScreenshot">获取页面截图</s:String>
+        <s:String x:Key="ToolResource">注册课件资源</s:String>
+        <s:String x:Key="ToolExport">导出课件 Markdown</s:String>
+        <s:String x:Key="Instructions" xml:space="preserve"><![CDATA[你是课件聊天助手。直接回答普通问题，仅在用户任务需要时使用工具。查看页面优先使用页面信息；需要视觉判断时请求截图工具直接返回图片。以下规范仅用于编写或解释 SlideML。
+
+## SlideML 完整页面
+- 使用合法 XML，以 <Page> 为唯一根元素，可设置 Background。Page 和 Panel 可包含 Panel、Rect、TextElement、Image。给每个可视元素分配文档内唯一的 Id。标签和属性区分大小写；使用 XML 转义处理正文中的 &、< 和引号。XML 传给工具时不加 Markdown 代码围栏。
+- 原点在左上角，X 向右、Y 向下；坐标相对于直接父容器，尺寸用不带单位的像素数值。以当前课件画布为准；未知时可用 1280 × 720 作为草稿基准。颜色使用 #RRGGBB 或 #AARRGGBB。同一容器中后写的元素显示在上层。
+- 可视元素常用 X、Y、Width、Height、Margin、Opacity。Opacity 为 0 到 1；HorizontalAlignment 可用 Left、Center、Right，VerticalAlignment 可用 Top、Center、Bottom，对应轴未指定坐标时使用对齐。
+- Panel：Background、Padding、Layout、Gap。Layout 可用 Absolute、Horizontal、Vertical；后两者沿排列轴布局，用 Gap 和 Margin 控制间距，不自动折行。
+- Rect：Fill、Stroke、StrokeThickness、CornerRadius、StrokeDashArray。Margin 和 CornerRadius 可使用逗号分隔的 1 至 4 个数值。渐变使用 Fill 或 Stroke 子元素包裹 LinearGradient（X1、Y1、X2、Y2），其中 Stop 的属性为 Offset（0 到 1）、Color。Panel 也可使用 Fill 子元素。
+- TextElement：用 Text 属性写正文，支持 FontName、FontSize、Foreground、IsBold、IsItalic、TextAlignment。设置 Width 后可自动换行；富文本可用 Span 子元素及其 Text 属性。
+- Image：Source 使用实际课件资源 ID，不写猜测的 ID、文件路径或 URL。需要新增资源时使用注册工具返回的 ID。Stretch 可用 None、Fill、Uniform、UniformToFill。
+- 交给课件工具的是完整页面，不是 XAML、HTML、流式片段或局部补丁。不要写入 RenderSize、RenderLocation、ActualLineCount 等渲染回填属性，也不要编造标签或属性。
+
+最小示例：
+<?xml version="1.0" encoding="UTF-8"?>
+<Page Background="#FFFFFF">
+  <TextElement Id="title" X="72" Y="80" Width="1100" Text="探索新知" FontSize="48" IsBold="True" Foreground="#222222" />
+</Page>
+
+## 写入课件
+- 用户要求实际新建或修改页面时，若 RenderSlideML 可用，将完整 XML 作为 slideXml 传入。新建传 slideId=null；修改使用已确认的目标页面 ID。修改会替换整页内容，应在完整 XML 中保留用户未要求更改的部分，不能把未知的目标 ID 换成 null 来新建。
+- 工具不可用时仍可提供 SlideML 草稿，并明确未写入。以工具实际结果为准，说明失败或警告，不把返回错误的调用描述成成功。]]></s:String>
+
+        <BooleanToVisibilityConverter x:Key="Visible" />
+        <SolidColorBrush x:Key="Ink" Color="#222222" />
+        <SolidColorBrush x:Key="Muted" Color="#626262" />
+        <SolidColorBrush x:Key="Stroke" Color="#DADADA" />
+        <SolidColorBrush x:Key="Surface" Color="#F9FFFFFF" />
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#F4F4F4" />
+            <Setter Property="Foreground" Value="{StaticResource Ink}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Stroke}" />
+            <Setter Property="Padding" Value="12,5" />
+            <Setter Property="MinHeight" Value="32" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Shell" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="7"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Shell" Property="Opacity" Value="0.8" /></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Shell" Property="Opacity" Value="0.65" /></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Shell" Property="Opacity" Value="0.42" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="Notice" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Muted}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,5,0,0" />
+            <Style.Triggers>
+                <Trigger Property="Text" Value=""><Setter Property="Visibility" Value="Collapsed" /></Trigger>
+            </Style.Triggers>
+        </Style>
+    </Application.Resources>
+</Application>

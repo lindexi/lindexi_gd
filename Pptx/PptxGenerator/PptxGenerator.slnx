@@ -24,7 +24,11 @@
     <Project Path="Code/CoursewarePptxGenerator.Core/CoursewarePptxGenerator.Core.csproj" />
     <Project Path="Code/CoursewarePptxGeneratorWpfDemo/CoursewarePptxGeneratorWpfDemo.csproj" />
   </Folder>
+  <Folder Name="/06-Chat/">
+    <Project Path="Code/PptxGenerator.Chat/PptxGenerator.Chat.csproj" />
+  </Folder>
   <Folder Name="/06-Test/">
     <Project Path="Code/PptxGenerator.Tests/PptxGenerator.Tests.csproj" />
+    <Project Path="Code/PptxGenerator.Chat.Tests/PptxGenerator.Chat.Tests.csproj" />
   </Folder>
 </Solution>

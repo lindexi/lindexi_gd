@@ -1,0 +1,224 @@
+<Window x:Class="PptxGenerator.Chat.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:PptxGenerator.Chat.ViewModels"
+        xmlns:local="clr-namespace:PptxGenerator.Chat"
+        Title="{StaticResource AppTitle}" Width="860" Height="760" MinWidth="480" MinHeight="560"
+        Background="#F3F3F3" Foreground="{StaticResource Ink}" FontFamily="Segoe UI, Microsoft YaHei UI" FontSize="14"
+        SourceInitialized="ApplyMica" Loaded="FocusDraft" Closing="StopOnClose">
+    <Window.Resources>
+        <local:ToolImagePreviewConverter x:Key="ToolImagePreview" />
+        <Style x:Key="Field" TargetType="TextBox">
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="MinHeight" Value="30" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="BorderBrush" Value="{StaticResource Stroke}" />
+        </Style>
+        <Style x:Key="Primary" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#292929" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="MinWidth" Value="76" />
+        </Style>
+        <ItemsPanelTemplate x:Key="Wrap"><WrapPanel /></ItemsPanelTemplate>
+        <Style x:Key="ToolDetail" TargetType="TextBox">
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="MaxHeight" Value="185" />
+            <Setter Property="FontFamily" Value="Consolas, Microsoft YaHei UI" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="0,3,0,5" />
+        </Style>
+        <DataTemplate DataType="{x:Type vm:ChatTextPart}">
+            <TextBlock Text="{Binding Text}" TextWrapping="Wrap" LineHeight="23" />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ChatToolPart}">
+            <StackPanel Margin="0,3,0,3">
+            <Expander Foreground="{StaticResource Muted}">
+                <Expander.Header>
+                    <StackPanel Orientation="Horizontal" ToolTip="{Binding Activity.Name}">
+                        <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Margin="0,2,7,0" />
+                        <TextBlock Text="{Binding Activity.Label}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding Activity.State}" Margin="9,0,0,0" FontSize="12" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Expander.Header>
+                <Border Margin="23,4,0,3" Padding="10,7" CornerRadius="7" Background="#F3F3F3">
+                    <StackPanel>
+                        <TextBlock Text="{StaticResource ToolArguments}" FontWeight="SemiBold" />
+                        <TextBox Text="{Binding Activity.Arguments, Mode=OneWay}" Style="{StaticResource ToolDetail}" />
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Activity.Result}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="{StaticResource ToolResult}" FontWeight="SemiBold" />
+                            <TextBox Text="{Binding Activity.Result, Mode=OneWay}" Style="{StaticResource ToolDetail}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Expander>
+            <ItemsControl ItemsSource="{Binding Activity.Images}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="23,5,0,5">
+                            <Button x:Name="PreviewButton" Click="OpenToolImage" CommandParameter="{Binding Source, ElementName=Preview}"
+                                    ToolTip="{StaticResource OpenToolImage}" AutomationProperties.Name="{StaticResource OpenToolImage}"
+                                    HorizontalAlignment="Left" Cursor="Hand" Padding="2" Background="Transparent">
+                                <Image x:Name="Preview" Source="{Binding Converter={StaticResource ToolImagePreview}}"
+                                       Stretch="Uniform" StretchDirection="DownOnly" MaxHeight="300" MaxWidth="620" />
+                            </Button>
+                            <TextBlock x:Name="Unavailable" Text="{StaticResource ToolImageUnavailable}" Visibility="Collapsed" />
+                        </StackPanel>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding Source, ElementName=Preview}" Value="{x:Null}">
+                                <Setter TargetName="PreviewButton" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="Unavailable" Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+    <Grid MaxWidth="940">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Margin="28,8,28,0">
+            <Expander Header="{StaticResource ConfigTitle}">
+                <Border Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}"
+                        CornerRadius="9" BorderThickness="1" Padding="12,8" Margin="0,5,0,0">
+                    <Grid IsEnabled="{Binding IsIdle}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="105" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        <TextBlock Text="{StaticResource ModelLabel}" Margin="0,8" />
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding Models}" DisplayMemberPath="Label" SelectedItem="{Binding Model}"
+                                  AutomationProperties.Name="{StaticResource ModelLabel}" MinHeight="30" Margin="0,3" />
+                        <TextBlock Grid.Row="1" Text="{StaticResource WorkLabel}" Margin="0,8" />
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,3">
+                            <TextBox Style="{StaticResource Field}" Text="{Binding WorkPath, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="{StaticResource WorkLabel}" />
+                            <TextBlock Style="{StaticResource Notice}" Text="{Binding WorkNotice}" />
+                        </StackPanel>
+                        <TextBlock Grid.Row="2" Text="{StaticResource McpLabel}" Margin="0,8" />
+                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,3">
+                            <TextBox Style="{StaticResource Field}" Text="{Binding McpAddress, UpdateSourceTrigger=PropertyChanged}"
+                                     AutomationProperties.Name="{StaticResource McpLabel}" />
+                            <TextBlock Style="{StaticResource Notice}" Text="{Binding McpNotice}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Expander>
+            <TextBlock Text="{Binding ModelNotice}" Style="{StaticResource Notice}" />
+            <Separator Margin="0,5,0,0" Background="{StaticResource Stroke}" />
+        </StackPanel>
+
+        <ScrollViewer x:Name="Transcript" Grid.Row="1" VerticalScrollBarVisibility="Auto" ScrollChanged="FollowTranscript">
+            <ItemsControl ItemsSource="{Binding Messages}" Margin="28,12,28,16" MaxWidth="760">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border x:Name="Bubble" CornerRadius="12" Padding="14,10" Margin="0,0,32,12" Background="{StaticResource Surface}">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,3">
+                                    <Button x:Name="CopyButton" DockPanel.Dock="Right" Content="{StaticResource Copy}" Click="CopyMessage"
+                                            CommandParameter="{Binding Text}" MinHeight="24" Padding="8,2" FontSize="12" />
+                                    <TextBlock Text="{Binding Role}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <ItemsControl ItemsSource="{Binding Images}" ItemsPanel="{StaticResource Wrap}">
+                                    <ItemsControl.ItemTemplate><DataTemplate>
+                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource Muted}" Margin="0,2,10,2" />
+                                    </DataTemplate></ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <ItemsControl ItemsSource="{Binding Parts}" />
+                                <ItemsControl ItemsSource="{Binding Notices}">
+                                    <ItemsControl.ItemTemplate><DataTemplate>
+                                        <DockPanel Margin="0,5,0,0" TextElement.Foreground="{StaticResource Muted}">
+                                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" Margin="0,2,8,0" />
+                                            <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                        </DockPanel>
+                                    </DataTemplate></ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Text="{Binding Status}" Style="{StaticResource Notice}" />
+                            </StackPanel>
+                        </Border>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsUser}" Value="True">
+                                <Setter TargetName="Bubble" Property="Background" Value="#E9E9E9" />
+                                <Setter TargetName="Bubble" Property="Margin" Value="56,0,0,12" />
+                                <Setter TargetName="Bubble" Property="HorizontalAlignment" Value="Right" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Text}" Value="">
+                                <Setter TargetName="CopyButton" Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+            <StackPanel.Style><Style TargetType="StackPanel">
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers><DataTrigger Binding="{Binding Messages.Count}" Value="0">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger></Style.Triggers>
+            </Style></StackPanel.Style>
+            <TextBlock Text="&#xE8F2;" FontFamily="Segoe MDL2 Assets" FontSize="27" HorizontalAlignment="Center" />
+            <TextBlock Text="{StaticResource WelcomeTitle}" FontSize="25" FontWeight="SemiBold" Margin="0,12,0,5" HorizontalAlignment="Center" />
+            <TextBlock Text="{StaticResource WelcomeHint}" Foreground="{StaticResource Muted}" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Margin="28,6,28,16">
+            <Border Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="12" Padding="12,9">
+                <StackPanel>
+                    <ItemsControl ItemsSource="{Binding Images}" ItemsPanel="{StaticResource Wrap}">
+                        <ItemsControl.ItemTemplate><DataTemplate>
+                            <Button Click="RemoveImage" CommandParameter="{Binding}" ToolTip="{StaticResource Remove}" Margin="0,0,6,5">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}" MaxWidth="180" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text=" ×" Margin="5,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate></ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Grid>
+                        <TextBox x:Name="DraftBox" Text="{Binding Draft, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True"
+                                 TextWrapping="Wrap" MinHeight="68" MaxHeight="160" Padding="3,4" BorderThickness="0"
+                                 Background="Transparent" VerticalScrollBarVisibility="Auto" PreviewKeyDown="DraftKeyDown"
+                                 AutomationProperties.Name="{StaticResource DraftHint}" />
+                        <TextBlock Text="{StaticResource DraftHint}" Foreground="{StaticResource Muted}" Margin="4,5,0,0" IsHitTestVisible="False">
+                            <TextBlock.Style><Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers><DataTrigger Binding="{Binding Draft}" Value=""><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
+                            </Style></TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                    <DockPanel>
+                        <Grid DockPanel.Dock="Right">
+                            <Button Content="{StaticResource Send}" Style="{StaticResource Primary}" Command="{Binding SendCommand}"
+                                    Visibility="{Binding IsIdle, Converter={StaticResource Visible}}" />
+                            <Button Content="{StaticResource Stop}" Style="{StaticResource Primary}" Command="{Binding StopCommand}"
+                                    Visibility="{Binding IsBusy, Converter={StaticResource Visible}}" />
+                        </Grid>
+                        <Button DockPanel.Dock="Left" Click="AttachImages" IsEnabled="{Binding CanAttach}" HorizontalAlignment="Left"
+                                ToolTip="{StaticResource Attach}" AutomationProperties.Name="{StaticResource Attach}">
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xEB9F;" />
+                        </Button>
+                        <TextBlock Text="{StaticResource KeyboardHint}" Foreground="{StaticResource Muted}" FontSize="12"
+                                   VerticalAlignment="Center" HorizontalAlignment="Right" Margin="8,0,12,0" />
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+            <TextBlock Text="{Binding ComposerNotice}" Style="{StaticResource Notice}" AutomationProperties.LiveSetting="Polite" />
+        </StackPanel>
+    </Grid>
+</Window>
