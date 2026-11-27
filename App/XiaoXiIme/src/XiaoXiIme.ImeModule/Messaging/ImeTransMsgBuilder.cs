@@ -70,12 +70,13 @@ public static class ImeTransMsgBuilder
             return [];
         }
 
-        return
-        [
-            new TransMsg
-            {
-                Message = ImeConstants.WmImeEndComposition,
-            },
-        ];
+        // Inline clients need the empty composition update to remove preedit; END alone does not clear it.
+        return includeLegacyFlags
+            ? [new TransMsg { Message = ImeConstants.WmImeEndComposition }]
+            :
+            [
+                new TransMsg { Message = ImeConstants.WmImeComposition },
+                new TransMsg { Message = ImeConstants.WmImeEndComposition },
+            ];
     }
 }
