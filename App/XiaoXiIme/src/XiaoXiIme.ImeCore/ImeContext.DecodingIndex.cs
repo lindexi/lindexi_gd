@@ -48,15 +48,15 @@ public sealed partial class ImeContext
 
     private sealed class DecodingIndex
     {
-        internal readonly ImeLexicon Lexicon;
-        internal readonly IReadOnlyList<ImeFuzzyRule> Rules;
-        internal readonly Dictionary<ImePhoneticEntry, string[]> Syllables;
-        internal readonly Dictionary<string, ImeProjectionEntry[]> Projections;
-        internal readonly Dictionary<string, string[]> Shapes;
-        internal readonly Dictionary<ImePhoneticEntry, ImeLookupAlias[]> Aliases;
-        internal readonly Dictionary<string, int[]> Starts;
-        internal readonly Dictionary<string, List<int>>? InitialStarts;
-        internal readonly double LogFrequencyMass;
+        internal ImeLexicon Lexicon { get; }
+        internal IReadOnlyList<ImeFuzzyRule> Rules { get; }
+        internal Dictionary<ImePhoneticEntry, string[]> Syllables { get; }
+        internal Dictionary<string, ImeProjectionEntry[]> Projections { get; }
+        internal Dictionary<string, string[]> Shapes { get; }
+        internal Dictionary<ImePhoneticEntry, ImeLookupAlias[]> Aliases { get; }
+        internal Dictionary<string, int[]> Starts { get; }
+        internal Dictionary<string, List<int>>? InitialStarts { get; }
+        internal double LogFrequencyMass { get; }
 
         internal DecodingIndex(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules, DecodingIndex? previous)
         {
