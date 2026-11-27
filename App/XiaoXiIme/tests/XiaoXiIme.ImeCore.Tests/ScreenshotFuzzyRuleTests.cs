@@ -29,8 +29,10 @@ public class ScreenshotFuzzyRuleTests
 
     [Theory]
     [MemberData(nameof(ComponentCases))]
-    public void UpdatingEachScreenshotRuleImmediatelyEnablesAndDisablesComponentAlias(
-        string ruleName, bool doublePinyin, string reading, string alias)
+    public void UpdatingEachScreenshotRuleImmediatelyEnablesAndDisablesComponentAlias
+    (
+        string ruleName, bool doublePinyin, string reading, string alias
+    )
     {
         var rule = Enum.Parse<ImeFuzzyRule>(ruleName);
         var context = Create(doublePinyin, reading);
@@ -42,7 +44,10 @@ public class ScreenshotFuzzyRuleTests
 
         context.UpdateFuzzyRules([]);
         Assert.False(HasFuzzy());
-        bool HasFuzzy() => context.QueryInterpretations(alias).Candidates.Any(c => c.Interpretations.Any(p => p.Evidence.Any(e => e.Kind == ImeEvidenceKind.Fuzzy)));
+
+        bool HasFuzzy() => context.QueryInterpretations(alias).Candidates.Any
+            (c => c.Interpretations.Any(p => p.Evidence.Any(e => e.Kind == ImeEvidenceKind.Fuzzy)));
+
         Assert.Equal(alias, context.Snapshot.Composition.Reading);
     }
 
@@ -51,8 +56,10 @@ public class ScreenshotFuzzyRuleTests
     [InlineData(false, "bai", "AiAn", "AngAn")]
     [InlineData(true, "bd", "AngAn", "AiAn")]
     [InlineData(true, "bd", "AiAn", "AngAn")]
-    public void OverlappingFinalRulesReachOrderIndependentTransitiveClosure(
-        bool doublePinyin, string input, string first, string second)
+    public void OverlappingFinalRulesReachOrderIndependentTransitiveClosure
+    (
+        bool doublePinyin, string input, string first, string second
+    )
     {
         var context = Create(doublePinyin, "bang");
         context.UpdateFuzzyRules([Enum.Parse<ImeFuzzyRule>(first), Enum.Parse<ImeFuzzyRule>(second)]);
@@ -75,14 +82,20 @@ public class ScreenshotFuzzyRuleTests
 
     private static ImeContext Create(bool doublePinyin, string reading)
     {
-        var lexicon = new ImeLexicon([new("字", reading, 1)], [],
-            doublePinyin ? ImeProjectionDefinition.XiaoheDoublePinyin : ImeProjectionDefinition.FullPinyin, 1);
-        return new(new InMemoryImeDictionary(lexicon), new ImeInputOptions
-        {
-            CasePolicy = ImeShapeCasePolicy.UppercaseOnly,
-            Placement = ImeShapePlacement.PerCharacter,
-            LengthPolicy = ImeShapeLengthPolicy.OptionalOneOrTwo,
-        }, null);
+        var lexicon = new ImeLexicon
+        (
+            [new("字", reading, 1)], [],
+            doublePinyin ? ImeProjectionDefinition.XiaoheDoublePinyin : ImeProjectionDefinition.FullPinyin, 1
+        );
+        return new
+        (
+            new InMemoryImeDictionary(lexicon), new ImeInputOptions
+            {
+                CasePolicy = ImeShapeCasePolicy.UppercaseOnly,
+                Placement = ImeShapePlacement.PerCharacter,
+                LengthPolicy = ImeShapeLengthPolicy.OptionalOneOrTwo,
+            }, null
+        );
     }
 
     private static bool HasComplete(ImeContext context, string input) => context.QueryInterpretations(input).Candidates

@@ -4,18 +4,6 @@ using Microsoft.Win32;
 
 namespace XiaoXiIme.Cli;
 
-internal sealed record ImeInstallationVariantResult(
-    string Id,
-    string ProbePath,
-    bool Copied,
-    bool InstallSucceeded,
-    string? KeyboardLayout,
-    int Win32ErrorCode,
-    string? Win32ErrorMessage,
-    bool UninstallSucceeded,
-    bool CleanupSucceeded,
-    IReadOnlyList<string> Notes);
-
 internal static class WindowsImeInstallationVariantProbe
 {
     internal const string ShortImeFileName = "XIAOXI.IME";
@@ -25,13 +13,23 @@ internal static class WindowsImeInstallationVariantProbe
         var sourceDirectory = Path.GetDirectoryName(sourceImePath)!;
         return
         [
-            RunVariant("payload-short-name", sourceImePath, Path.Combine(sourceDirectory, ShortImeFileName), displayName),
-            RunVariant("system32-original-name", sourceImePath, Path.Combine(Environment.SystemDirectory, Path.GetFileName(sourceImePath)), displayName),
-            RunVariant("system32-short-name", sourceImePath, Path.Combine(Environment.SystemDirectory, ShortImeFileName), displayName),
+            RunVariant
+                ("payload-short-name", sourceImePath, Path.Combine(sourceDirectory, ShortImeFileName), displayName),
+            RunVariant
+            (
+                "system32-original-name", sourceImePath,
+                Path.Combine(Environment.SystemDirectory, Path.GetFileName(sourceImePath)), displayName
+            ),
+            RunVariant
+            (
+                "system32-short-name", sourceImePath, Path.Combine(Environment.SystemDirectory, ShortImeFileName),
+                displayName
+            ),
         ];
     }
 
-    internal static IReadOnlyList<(string Id, string Path)> CreateVariantPaths(string sourceImePath, string systemDirectory)
+    internal static IReadOnlyList<(string Id, string Path)> CreateVariantPaths
+        (string sourceImePath, string systemDirectory)
     {
         var sourceDirectory = Path.GetDirectoryName(sourceImePath)!;
         return
@@ -42,7 +40,8 @@ internal static class WindowsImeInstallationVariantProbe
         ];
     }
 
-    private static ImeInstallationVariantResult RunVariant(string id, string sourceImePath, string probePath, string displayName)
+    private static ImeInstallationVariantResult RunVariant
+        (string id, string sourceImePath, string probePath, string displayName)
     {
         var notes = new List<string>();
         var copied = false;
@@ -55,8 +54,10 @@ internal static class WindowsImeInstallationVariantProbe
 
         if (File.Exists(probePath))
         {
-            notes.Add("Probe skipped because the target path already exists; no existing file was overwritten or deleted.");
-            return new ImeInstallationVariantResult(id, probePath, false, false, null, 80, "The target file already exists.", false, false, notes);
+            notes.Add
+                ("Probe skipped because the target path already exists; no existing file was overwritten or deleted.");
+            return new ImeInstallationVariantResult
+                (id, probePath, false, false, null, 80, "The target file already exists.", false, false, notes);
         }
 
         try
@@ -70,14 +71,17 @@ internal static class WindowsImeInstallationVariantProbe
             if (keyboardLayout == 0)
             {
                 errorCode = Marshal.GetLastPInvokeError();
-                errorMessage = errorCode == 0 ? "Windows did not provide an error code." : new Win32Exception(errorCode).Message;
+                errorMessage = errorCode == 0
+                    ? "Windows did not provide an error code."
+                    : new Win32Exception(errorCode).Message;
                 notes.Add("ImmInstallIME returned zero.");
             }
             else
             {
                 installSucceeded = true;
-                keyboardLayoutText = $"0x{unchecked((ulong) keyboardLayout):X}";
-                uninstallSucceeded = TryRemoveProbeLayout(keyboardLayout, layoutText, Path.GetFileName(probePath), notes);
+                keyboardLayoutText = $"0x{unchecked((ulong)keyboardLayout):X}";
+                uninstallSucceeded = TryRemoveProbeLayout
+                    (keyboardLayout, layoutText, Path.GetFileName(probePath), notes);
                 if (!uninstallSucceeded)
                 {
                     notes.Add("The probe layout could not be safely removed from the keyboard layouts registry.");
@@ -102,7 +106,12 @@ internal static class WindowsImeInstallationVariantProbe
                 {
                     File.Delete(probePath);
                     cleanupSucceeded = !File.Exists(probePath);
-                    notes.Add(cleanupSucceeded ? "The private probe copy was deleted." : "The private probe copy still exists after deletion.");
+                    notes.Add
+                    (
+                        cleanupSucceeded
+                            ? "The private probe copy was deleted."
+                            : "The private probe copy still exists after deletion."
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -115,7 +124,8 @@ internal static class WindowsImeInstallationVariantProbe
             }
         }
 
-        return new ImeInstallationVariantResult(
+        return new ImeInstallationVariantResult
+        (
             id,
             probePath,
             copied,
@@ -125,15 +135,17 @@ internal static class WindowsImeInstallationVariantProbe
             errorMessage,
             uninstallSucceeded,
             cleanupSucceeded,
-            notes);
+            notes
+        );
     }
 
     [DllImport("imm32.dll", EntryPoint = "ImmInstallIMEW", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern nint ImmInstallIME(string imeFileName, string layoutText);
 
-    private static bool TryRemoveProbeLayout(nint keyboardLayout, string expectedLayoutText, string expectedImeFile, List<string> notes)
+    private static bool TryRemoveProbeLayout
+        (nint keyboardLayout, string expectedLayoutText, string expectedImeFile, List<string> notes)
     {
-        var layoutId = unchecked((uint) keyboardLayout.ToInt64()).ToString("X8");
+        var layoutId = unchecked((uint)keyboardLayout.ToInt64()).ToString("X8");
         const string layoutsPath = @"SYSTEM\CurrentControlSet\Control\Keyboard Layouts";
         using var layouts = Registry.LocalMachine.OpenSubKey(layoutsPath, writable: true);
         using var layout = layouts?.OpenSubKey(layoutId);
@@ -142,7 +154,10 @@ internal static class WindowsImeInstallationVariantProbe
         if (!string.Equals(actualLayoutText, expectedLayoutText, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(actualImeFile, expectedImeFile, StringComparison.OrdinalIgnoreCase))
         {
-            notes.Add($"Refused to remove layout {layoutId}: expected '{expectedLayoutText}'/'{expectedImeFile}', found '{actualLayoutText}'/'{actualImeFile}'.");
+            notes.Add
+            (
+                $"Refused to remove layout {layoutId}: expected '{expectedLayoutText}'/'{expectedImeFile}', found '{actualLayoutText}'/'{actualImeFile}'."
+            );
             return false;
         }
 

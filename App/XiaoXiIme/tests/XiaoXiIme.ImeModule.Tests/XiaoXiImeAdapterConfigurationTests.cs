@@ -31,7 +31,9 @@ public sealed class XiaoXiImeAdapterConfigurationTests
     [Fact]
     public void DefaultAdapterShouldRejectUnknownValue()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-            XiaoXiImeAdapterConfiguration.DefaultAdapter = (ImeAdapterKind) int.MaxValue);
+        Assert.Throws<ArgumentOutOfRangeException>
+        (() =>
+            XiaoXiImeAdapterConfiguration.DefaultAdapter = (ImeAdapterKind)int.MaxValue
+        );
     }
 }

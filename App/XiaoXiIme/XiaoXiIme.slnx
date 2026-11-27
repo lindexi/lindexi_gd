@@ -1,5 +1,11 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/XiaoXiIme.Builder/XiaoXiIme.Builder.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/XiaoXiIme/XiaoXiIme.csproj">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/XiaoXiIme.Cli/XiaoXiIme.Cli.csproj">
       <Build Solution="Debug|*" Project="false" />
     </Project>

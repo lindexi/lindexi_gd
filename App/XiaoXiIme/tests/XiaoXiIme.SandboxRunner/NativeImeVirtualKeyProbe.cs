@@ -26,9 +26,14 @@ internal static unsafe class NativeImeVirtualKeyProbe
                 ? Path.GetFullPath(imePath)
                 : Path.GetFullPath(imePath, AppContext.BaseDirectory);
             var module = NativeLibrary.Load(resolvedImePath);
-            var reset = (delegate* unmanaged[Stdcall]<void>)NativeLibrary.GetExport(module, "XiaoXiImeResetKeystrokeDiagnostics");
-            var getSnapshot = (delegate* unmanaged[Stdcall]<ImeKeystrokeDiagnosticSnapshot*, uint, int>)NativeLibrary.GetExport(module, "XiaoXiImeGetKeystrokeDiagnostics");
-            var imeToAsciiEx = (delegate* unmanaged[Stdcall]<uint, uint, byte*, nint, uint, nint, uint>)NativeLibrary.GetExport(module, "ImeToAsciiEx");
+            var reset = (delegate* unmanaged[Stdcall]<void>)NativeLibrary.GetExport
+                (module, "XiaoXiImeResetKeystrokeDiagnostics");
+            var getSnapshot =
+                (delegate* unmanaged[Stdcall]<ImeKeystrokeDiagnosticSnapshot*, uint, int>)NativeLibrary.GetExport
+                    (module, "XiaoXiImeGetKeystrokeDiagnostics");
+            var imeToAsciiEx =
+                (delegate* unmanaged[Stdcall]<uint, uint, byte*, nint, uint, nint, uint>)NativeLibrary.GetExport
+                    (module, "ImeToAsciiEx");
 
             reset();
             _ = imeToAsciiEx(VirtualKeyWithCharacter, 0, null, 0, 0, 0);
@@ -41,10 +46,16 @@ internal static unsafe class NativeImeVirtualKeyProbe
 
             if (snapshot.LastToAsciiVirtualKey != 0x58)
             {
-                throw new InvalidOperationException($"Expected normalized virtual key 0x58, but the native export recorded 0x{snapshot.LastToAsciiVirtualKey:X}.");
+                throw new InvalidOperationException
+                (
+                    $"Expected normalized virtual key 0x58, but the native export recorded 0x{snapshot.LastToAsciiVirtualKey:X}."
+                );
             }
 
-            Console.WriteLine($"PASS native-ime-vkey-probe: RawVirtualKey=0x{VirtualKeyWithCharacter:X8}, NormalizedVirtualKey=0x{snapshot.LastToAsciiVirtualKey:X}, Calls={snapshot.ImeToAsciiExCallCount}.");
+            Console.WriteLine
+            (
+                $"PASS native-ime-vkey-probe: RawVirtualKey=0x{VirtualKeyWithCharacter:X8}, NormalizedVirtualKey=0x{snapshot.LastToAsciiVirtualKey:X}, Calls={snapshot.ImeToAsciiExCallCount}."
+            );
             return 0;
         }
         catch (Exception exception)

@@ -5,7 +5,9 @@ namespace XiaoXiIme.ImeUi.Avalonia;
 
 internal static class DebugResources
 {
-    private static readonly ResourceManager Resources = new("XiaoXiIme.ImeUi.Avalonia.DebugResources", typeof(DebugResources).Assembly);
+    private static readonly ResourceManager Resources = new
+        ("XiaoXiIme.ImeUi.Avalonia.DebugResources", typeof(DebugResources).Assembly);
+
     internal static string PreviousPage => Resources.GetString(nameof(PreviousPage), CultureInfo.CurrentUICulture)!;
     internal static string NextPage => Resources.GetString(nameof(NextPage), CultureInfo.CurrentUICulture)!;
     internal static string OutputLabel => Resources.GetString(nameof(OutputLabel), CultureInfo.CurrentUICulture)!;
@@ -15,5 +17,7 @@ internal static class DebugResources
     internal static string PackageHint => Resources.GetString(nameof(PackageHint), CultureInfo.CurrentUICulture)!;
     internal static string WindowTitle => Resources.GetString(nameof(WindowTitle), CultureInfo.CurrentUICulture)!;
     internal static string LoadingTitle => Resources.GetString(nameof(LoadingTitle), CultureInfo.CurrentUICulture)!;
-    internal static string LoadFailedTitle => Resources.GetString(nameof(LoadFailedTitle), CultureInfo.CurrentUICulture)!;
+
+    internal static string LoadFailedTitle => Resources.GetString
+        (nameof(LoadFailedTitle), CultureInfo.CurrentUICulture)!;
 }

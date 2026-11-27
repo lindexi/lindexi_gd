@@ -6,9 +6,12 @@ namespace XiaoXiIme.Dictionary;
 public sealed class PhoneticLayout
 {
     /// <summary>Copies mappings, preserving explicitly supplied symbol keys and undefined zero-initial policy.</summary>
-    public PhoneticLayout(IReadOnlyDictionary<string, char> initials, IReadOnlyDictionary<string, char> finals,
+    public PhoneticLayout
+    (
+        IReadOnlyDictionary<string, char> initials, IReadOnlyDictionary<string, char> finals,
         IReadOnlyDictionary<string, string>? zeroInitialCodes = null,
-        IReadOnlyDictionary<string, char>? observedFinals = null)
+        IReadOnlyDictionary<string, char>? observedFinals = null
+    )
     {
         ArgumentNullException.ThrowIfNull(initials);
         ArgumentNullException.ThrowIfNull(finals);
@@ -38,11 +41,20 @@ public sealed class PhoneticLayout
         code = string.Empty;
         if (initial.Length == 0)
         {
-            if (ZeroInitialCodes is null || !ZeroInitialCodes.TryGetValue(final, out var zeroCode)) return false;
+            if (ZeroInitialCodes is null || !ZeroInitialCodes.TryGetValue(final, out var zeroCode))
+            {
+                return false;
+            }
+
             code = zeroCode;
             return true;
         }
-        if (!Initials.TryGetValue(initial, out var initialKey) || !Finals.TryGetValue(final, out var finalKey)) return false;
+
+        if (!Initials.TryGetValue(initial, out var initialKey) || !Finals.TryGetValue(final, out var finalKey))
+        {
+            return false;
+        }
+
         code = string.Concat(initialKey, finalKey);
         return true;
     }

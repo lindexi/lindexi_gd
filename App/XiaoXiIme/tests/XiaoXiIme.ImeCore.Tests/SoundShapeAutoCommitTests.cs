@@ -53,8 +53,11 @@ public class SoundShapeAutoCommitTests
         var fixture = Four("N");
         fixture.Type("niRX");
 
-        Assert.Equal((1, "niRX", "ni"), (fixture.Learning.Count, fixture.Learning.Single().OriginalInput,
-            fixture.Learning.Single().Segments.Single().CanonicalReading));
+        Assert.Equal
+        (
+            (1, "niRX", "ni"), (fixture.Learning.Count, fixture.Learning.Single().OriginalInput,
+                fixture.Learning.Single().Segments.Single().CanonicalReading)
+        );
     }
 
     [Theory]
@@ -62,7 +65,8 @@ public class SoundShapeAutoCommitTests
     [InlineData(ImeAutoCommitPolicy.Off, null)]
     public void H04_UniqueMaySacrificeLongerPrefix(ImeAutoCommitPolicy policy, string? expected)
     {
-        var fixture = new InventedSoundShapeFixture("AV", InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly, auto: policy), "Full");
+        var fixture = new InventedSoundShapeFixture
+            ("AV", InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly, auto: policy), "Full");
 
         var result = fixture.Type("nihao");
 
@@ -124,9 +128,17 @@ public class SoundShapeAutoCommitTests
     [InlineData(ImeAutoCommitPolicy.Off, true, "niR")]
     public void H07_ManualOrEatDisabledCommitDoesNotSwallowSpace(ImeAutoCommitPolicy policy, bool eat, string input)
     {
-        var length = policy == ImeAutoCommitPolicy.Four ? ImeShapeLengthPolicy.RequiredTwo : ImeShapeLengthPolicy.OptionalOneOrTwo;
-        var fixture = new InventedSoundShapeFixture("N", InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly,
-            length: length, auto: policy, eat: eat));
+        var length = policy == ImeAutoCommitPolicy.Four
+            ? ImeShapeLengthPolicy.RequiredTwo
+            : ImeShapeLengthPolicy.OptionalOneOrTwo;
+        var fixture = new InventedSoundShapeFixture
+        (
+            "N", InventedSoundShapeFixture.Options
+            (
+                ImeShapeCasePolicy.UppercaseOnly,
+                length: length, auto: policy, eat: eat
+            )
+        );
         fixture.Type(input);
         fixture.Context.ProcessKey(new ImeKey(ImeKeyKind.Space));
 
@@ -140,44 +152,61 @@ public class SoundShapeAutoCommitTests
     [InlineData("Xiaohe", "niRhcN", "你好", 6)]
     public void H08_RealProjectionIsSeparateFromInventedFX(string projection, string input, string expected, int end)
     {
-        var fixture = new InventedSoundShapeFixture("ABC", InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly), projection);
+        var fixture = new InventedSoundShapeFixture
+            ("ABC", InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly), projection);
         fixture.Type(input);
 
-        Assert.Equal(expected.Split('|').Select(text => (text, "ni hao", end)), fixture.Context.QueryInterpretations(input).Candidates
-            .Where(candidate => candidate.Interpretations.Any(path => path.Kind == ImeInterpretationKind.Complete))
-            .Select(candidate => (candidate.Candidate.Text, candidate.Candidate.Reading, candidate.Interpretations.First().CoverageEnd)));
+        Assert.Equal
+        (
+            expected.Split('|').Select(text => (text, "ni hao", end)), fixture.Context.QueryInterpretations
+                    (input).Candidates
+                .Where(candidate => candidate.Interpretations.Any(path => path.Kind == ImeInterpretationKind.Complete))
+                .Select
+                (candidate => (candidate.Candidate.Text, candidate.Candidate.Reading,
+                    candidate.Interpretations.First().CoverageEnd)
+                )
+        );
     }
 
     [Theory]
-    [InlineData(false, null, "xx")]
-    [InlineData(true, "小希", "")]
-    public void H09_NewModeXxTriggerIsExplicit(bool enabled, string? expected, string remaining)
+    [InlineData(ImeAutoCommitPolicy.Off)]
+    [InlineData(ImeAutoCommitPolicy.Four)]
+    public void H09_LookupAliasDoesNotTriggerAutomaticCommit(ImeAutoCommitPolicy policy)
     {
-        var lexicon = new ImeLexicon([new("小希", "xiao xi", 100)], [], ImeProjectionDefinition.FullPinyin, 1)
-        { LookupAliases = [new("小希", "xiao xi", "xx")] };
-        var context = new ImeContext(new InMemoryImeDictionary(lexicon),
-            InventedSoundShapeFixture.Options() with { EnableLegacyXx = enabled }, null);
-        context.ProcessKey(ImeKey.FromCharacter('x'));
+        var lexicon = InventedSoundShapeFixture.Lexicon("N") with { LookupAliases = [new("你", "ni", "zr")] };
+        var context = new ImeContext
+        (
+            new InMemoryImeDictionary(lexicon),
+            InventedSoundShapeFixture.Options(length: ImeShapeLengthPolicy.RequiredTwo, auto: policy), null
+        );
+        context.ProcessKey(ImeKey.FromCharacter('z'));
 
-        var result = context.ProcessKey(ImeKey.FromCharacter('x'));
+        var result = context.ProcessKey(ImeKey.FromCharacter('r'));
 
-        Assert.Equal((expected, remaining), (result.CommitText, result.Snapshot.Composition.Reading));
+        Assert.Equal(((string?)null, "zr"), (result.CommitText, result.Snapshot.Composition.Reading));
     }
 
     [Fact]
-    public void H09_DisabledXxCanStillBeManuallySelectedWithCanonicalLearning()
+    public void H09_ManualSelectionReportsCanonicalLearning()
     {
         var learning = new List<ImeDictionaryLearning>();
-        var lexicon = new ImeLexicon([new("小希", "xiao xi", 100)], [], ImeProjectionDefinition.FullPinyin, 1)
-        { LookupAliases = [new("小希", "xiao xi", "xx")] };
-        var context = new ImeContext(new InMemoryImeDictionary(lexicon), InventedSoundShapeFixture.Options(), learning.Add);
-        SoundShapeFuzzyTests.Type(context, "xx");
-        context.SelectCandidate(context.QueryInterpretations("xx").Candidates.Single().SelectionId!.Value);
+        var lexicon = new ImeLexicon([new("小希", "xiao xi", 100)], [], ImeProjectionDefinition.FullPinyin, 1);
+        var context = new ImeContext
+            (new InMemoryImeDictionary(lexicon), InventedSoundShapeFixture.Options(), learning.Add);
+        SoundShapeFuzzyTests.Type(context, "xiaoxi");
+        var candidate = context.QueryInterpretations("xiaoxi").Candidates.Single(c => c.Candidate.Text == "小希");
+        context.SelectCandidate(candidate.SelectionId!.Value);
 
         Assert.Equal((1, "xiao xi"), (learning.Count, learning.Single().Segments.Single().CanonicalReading));
     }
 
     private static InventedSoundShapeFixture Four(string set, ImeAutoCommitPolicy policy = ImeAutoCommitPolicy.Four) =>
-        new(set, InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly,
-            length: ImeShapeLengthPolicy.RequiredTwo, auto: policy, eat: true));
+        new
+        (
+            set, InventedSoundShapeFixture.Options
+            (
+                ImeShapeCasePolicy.UppercaseOnly,
+                length: ImeShapeLengthPolicy.RequiredTwo, auto: policy, eat: true
+            )
+        );
 }

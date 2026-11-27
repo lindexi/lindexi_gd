@@ -20,13 +20,24 @@ public class NaturalCodeHostTests
     public async Task WhenIndependentSpecialCodeIsTypedThenHostCommitsControlledEntry(string reading, string input)
     {
         var root = Path.Combine(Path.GetTempPath(), "XiaoXiIme-natural-host", Guid.NewGuid().ToString("N"));
-        var package = DictionaryPackageLocations.ResolvePackageDirectory(inputScheme: "naturalCodeDoublePinyin", baseDirectory: root);
-        DictionaryPackageCompiler.Compile([new PhoneticDictionaryEntry("fixture", reading, 1)], package,
-            new DictionaryPackageParameters { InputScheme = "naturalCodeDoublePinyin" });
-        using var host = new ImeHostService(inputScheme: "naturalCodeDoublePinyin", hostBaseDirectory: root,
-            productSettingsPath: Path.Combine(root, "settings.json"), userDictionaryPath: Path.Combine(root, "user.json"));
+        var package = DictionaryPackageLocations.ResolvePackageDirectory
+            (inputScheme: "naturalCodeDoublePinyin", baseDirectory: root);
+        DictionaryPackageCompiler.Compile
+        (
+            [new PhoneticDictionaryEntry("fixture", reading, 1)], package,
+            new DictionaryPackageParameters { InputScheme = "naturalCodeDoublePinyin" }
+        );
+        using var host = new ImeHostService
+        (
+            inputScheme: "naturalCodeDoublePinyin", hostBaseDirectory: root,
+            productSettingsPath: Path.Combine(root, "settings.json"),
+            userDictionaryPath: Path.Combine(root, "user.json")
+        );
         foreach (var character in input)
+        {
             await host.ProcessKeyAsync(ImeKey.FromCharacter(character));
+        }
+
         Assert.Equal("fixture", (await host.ProcessKeyAsync(new ImeKey(ImeKeyKind.Space))).CommitText);
     }
 }

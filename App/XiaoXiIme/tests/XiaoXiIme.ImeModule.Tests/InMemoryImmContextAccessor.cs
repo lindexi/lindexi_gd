@@ -19,7 +19,8 @@ internal sealed class InMemoryImmContextAccessor : IImmContextAccessor
     {
     }
 
-    public InMemoryImmContextAccessor(
+    public InMemoryImmContextAccessor
+    (
         nint inputContext,
         nint compositionString,
         nint compositionHandle,
@@ -28,7 +29,8 @@ internal sealed class InMemoryImmContextAccessor : IImmContextAccessor
         nint guideLine,
         nint guideLineHandle,
         nint privateData,
-        nint privateHandle)
+        nint privateHandle
+    )
     {
         _inputContext = inputContext;
         _compositionString = compositionString;

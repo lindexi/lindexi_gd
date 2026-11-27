@@ -5,9 +5,11 @@ namespace XiaoXiIme.Dictionary;
 
 internal static class DictionaryResources
 {
-    private static readonly ResourceManager ResourceManager = new(
+    private static readonly ResourceManager ResourceManager = new
+    (
         "XiaoXiIme.Dictionary.DictionaryResources",
-        typeof(DictionaryResources).Assembly);
+        typeof(DictionaryResources).Assembly
+    );
 
     internal static string InvalidSourceHeader => GetString(nameof(InvalidSourceHeader));
     internal static string UnsupportedSourceSort => GetString(nameof(UnsupportedSourceSort));

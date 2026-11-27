@@ -34,7 +34,11 @@ public class NaturalCodeProductionTests
     public void EachKeyHasTheIndependentBaselineFinals(string key, string finals)
     {
         var layout = PhoneticSchemeCatalog.All.Single(s => s.SchemeId == "naturalCodeDoublePinyin").Layout!;
-        Assert.Equal(finals.Split(' '), layout.Finals.Where(p => p.Value == key[0]).Select(p => p.Key).Order(StringComparer.Ordinal));
+        Assert.Equal
+        (
+            finals.Split(' '),
+            layout.Finals.Where(p => p.Value == key[0]).Select(p => p.Key).Order(StringComparer.Ordinal)
+        );
     }
 
     [Theory]
@@ -52,18 +56,30 @@ public class NaturalCodeProductionTests
     public void SpecialSpellingSurvivesCompileLoad(string reading, string code)
     {
         var path = Path.Combine(Path.GetTempPath(), "XiaoXiIme-natural", Guid.NewGuid().ToString("N"));
-        DictionaryPackageCompiler.Compile([new PhoneticDictionaryEntry("fixture", reading, 1)], path,
-            new DictionaryPackageParameters { InputScheme = "naturalCodeDoublePinyin" });
-        Assert.Equal("fixture", Assert.Single(DictionaryPackageLoader.Load(path).Query(new ImeDictionaryQuery(code))).Text);
+        DictionaryPackageCompiler.Compile
+        (
+            [new PhoneticDictionaryEntry("fixture", reading, 1)], path,
+            new DictionaryPackageParameters { InputScheme = "naturalCodeDoublePinyin" }
+        );
+        Assert.Equal
+            ("fixture", Assert.Single(DictionaryPackageLoader.Load(path).Query(new ImeDictionaryQuery(code))).Text);
     }
 
     [Fact]
     public void CollidingSyllablesBothSurviveCompileLoad()
     {
         var path = Path.Combine(Path.GetTempPath(), "XiaoXiIme-natural", Guid.NewGuid().ToString("N"));
-        DictionaryPackageCompiler.Compile([new PhoneticDictionaryEntry("咯", "lo", 2), new PhoneticDictionaryEntry("罗", "luo", 1)], path,
-            new DictionaryPackageParameters { InputScheme = "naturalCodeDoublePinyin" });
-        Assert.Equal(new[] { "咯", "罗" }, DictionaryPackageLoader.Load(path).Query(new ImeDictionaryQuery("lo")).Select(c => c.Text).Order(StringComparer.Ordinal));
+        DictionaryPackageCompiler.Compile
+        (
+            [new PhoneticDictionaryEntry("咯", "lo", 2), new PhoneticDictionaryEntry("罗", "luo", 1)], path,
+            new DictionaryPackageParameters { InputScheme = "naturalCodeDoublePinyin" }
+        );
+        Assert.Equal
+        (
+            new[] { "咯", "罗" },
+            DictionaryPackageLoader.Load(path).Query(new ImeDictionaryQuery("lo")).Select(c => c.Text).Order
+                (StringComparer.Ordinal)
+        );
     }
 
     [Theory]
@@ -74,22 +90,58 @@ public class NaturalCodeProductionTests
     public void WhenRequiredPackageIdentityIsRemovedOrChangedThenLoadRejectsIt(string field, string? value)
     {
         var path = Path.Combine(Path.GetTempPath(), "XiaoXiIme-natural", Guid.NewGuid().ToString("N"));
-        DictionaryPackageCompiler.Compile([new PhoneticDictionaryEntry("fixture", "er", 1)], path,
-            new DictionaryPackageParameters { InputScheme = "naturalCodeDoublePinyin" });
+        DictionaryPackageCompiler.Compile
+        (
+            [new PhoneticDictionaryEntry("fixture", "er", 1)], path,
+            new DictionaryPackageParameters { InputScheme = "naturalCodeDoublePinyin" }
+        );
         var manifestPath = Path.Combine(path, "manifest.json");
         var manifest = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(manifestPath))!;
         var parameters = manifest["parameters"]!.AsObject();
         if (value is null)
+        {
             parameters.Remove(field);
+        }
         else
+        {
             parameters[field] = value;
+        }
+
         File.WriteAllText(manifestPath, manifest.ToJsonString());
         Assert.Throws<DictionaryPackageException>(() => DictionaryPackageLoader.Load(path));
+    }
+
+    [Theory]
+    [InlineData("dd", false)]
+    [InlineData("dj", true)]
+    [InlineData("jd", true)]
+    [InlineData("vd", true)]
+    [InlineData("er", true)]
+    [InlineData("aa", true)]
+    [InlineData("lt", true)]
+    [InlineData("lo", true)]
+    public void NaturalCodeSyllableLegalityIsIndependentOfLexicon(string code, bool expected)
+    {
+        Assert.Equal(expected, ImeProjectionDefinition.ForScheme("naturalCodeDoublePinyin").IsCompleteSyllableCode(code));
+    }
+
+    [Theory]
+    [InlineData('d', true)]
+    [InlineData('v', true)]
+    [InlineData('e', false)]
+    [InlineData('\'', false)]
+    public void NaturalCodeInitialKeysComeFromLayout(char key, bool expected)
+    {
+        Assert.Equal(expected, ImeProjectionDefinition.ForScheme("naturalCodeDoublePinyin").IsInitialKey(key));
     }
 
     [Fact]
     public void NaturalCodeHasStablePersistedIdentity()
     {
-        Assert.Equal((ImeProductInputScheme)6, PhoneticSchemeCatalog.All.Single(s => s.SchemeId == "naturalCodeDoublePinyin").ProductScheme);
+        Assert.Equal
+        (
+            (ImeProductInputScheme)6,
+            PhoneticSchemeCatalog.All.Single(s => s.SchemeId == "naturalCodeDoublePinyin").ProductScheme
+        );
     }
 }

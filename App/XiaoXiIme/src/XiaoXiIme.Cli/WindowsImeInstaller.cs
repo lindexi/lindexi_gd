@@ -8,23 +8,17 @@ using Microsoft.Win32;
 
 namespace XiaoXiIme.Cli;
 
-internal interface IImeInstaller
-{
-    ImeInstallationResult Install(string imeFilePath, string displayName);
-
-    ImeInstallationResult InstallPair(string x64ImeFilePath, string x86ImeFilePath, string displayName);
-
-    ImeUninstallationResult UninstallExisting(string displayName, string imeFileName);
-}
-
 [SupportedOSPlatform("windows")]
 internal sealed class WindowsImeInstaller : IImeInstaller
 {
     private const uint InstallLayoutOrTipUninstall = 0x00000001;
     private const uint MoveFileDelayUntilReboot = 0x00000004;
-    private static readonly Regex RetiredImeFileNamePattern = new(
+
+    private static readonly Regex RetiredImeFileNamePattern = new
+    (
         @"\AXiaoXiIme\.retired-\d{8}T\d{6}Z-[0-9a-f]{32}\.ime\z",
-        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase
+    );
 
     public ImeInstallationResult Install(string imeFilePath, string displayName)
     {
@@ -32,6 +26,7 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         {
             return ImeInstallationResult.Failure("IME installation requires Windows.");
         }
+
         if (!IsAdministrator())
         {
             return ImeInstallationResult.Failure("IME installation requires an elevated administrator process.");
@@ -50,10 +45,12 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         {
             if (!FilesMatch(sourcePath, installedPath))
             {
-                return ImeInstallationResult.Failure(
+                return ImeInstallationResult.Failure
+                (
                     $"Refusing to overwrite an existing different file: {installedPath}",
                     installedPath: installedPath,
-                    failureKind: ImeInstallationFailureKind.ExistingFileConflict);
+                    failureKind: ImeInstallationFailureKind.ExistingFileConflict
+                );
             }
         }
         else
@@ -65,19 +62,27 @@ internal sealed class WindowsImeInstaller : IImeInstaller
                 if (!FilesMatch(sourcePath, installedPath))
                 {
                     File.Delete(installedPath);
-                    return ImeInstallationResult.Failure($"The System32 IME copy did not match the source file: {installedPath}", installedPath: installedPath, copiedToSystemDirectory: true, rollbackSucceeded: true);
+                    return ImeInstallationResult.Failure
+                    (
+                        $"The System32 IME copy did not match the source file: {installedPath}",
+                        installedPath: installedPath, copiedToSystemDirectory: true, rollbackSucceeded: true
+                    );
                 }
             }
             catch (Exception ex)
             {
-                return ImeInstallationResult.Failure($"Unable to copy the IME to '{installedPath}': {ex.GetType().Name}: {ex.Message}", ex.HResult & 0xFFFF, installedPath, copied);
+                return ImeInstallationResult.Failure
+                (
+                    $"Unable to copy the IME to '{installedPath}': {ex.GetType().Name}: {ex.Message}",
+                    ex.HResult & 0xFFFF, installedPath, copied
+                );
             }
         }
 
         var keyboardLayout = ImmInstallIME(installedPath, displayName);
         if (keyboardLayout != 0)
         {
-            var layoutId = unchecked((uint) keyboardLayout).ToString("X8");
+            var layoutId = unchecked((uint)keyboardLayout).ToString("X8");
             var layoutTip = CreateLayoutTip(layoutId);
             if (!InstallLayoutOrTip(layoutTip, 0))
             {
@@ -85,22 +90,26 @@ internal sealed class WindowsImeInstaller : IImeInstaller
                 var registrationError = registrationErrorCode == 0
                     ? "Windows did not provide an error code."
                     : new Win32Exception(registrationErrorCode).Message;
-                return ImeInstallationResult.Failure(
+                return ImeInstallationResult.Failure
+                (
                     $"XiaoXi IME was registered as layout {layoutId}, but adding '{layoutTip}' to the current user's input methods failed with Win32 error {registrationErrorCode}: {registrationError}",
                     registrationErrorCode,
                     installedPath,
-                    copied);
+                    copied
+                );
             }
 
-            return new ImeInstallationResult(
+            return new ImeInstallationResult
+            (
                 true,
-                $"XiaoXi IME installed from '{installedPath}'. HKL/layout id: 0x{unchecked((ulong) keyboardLayout):X}. Added '{layoutTip}' to the current user's input methods.",
+                $"XiaoXi IME installed from '{installedPath}'. HKL/layout id: 0x{unchecked((ulong)keyboardLayout):X}. Added '{layoutTip}' to the current user's input methods.",
                 0,
                 sourcePath,
                 installedPath,
                 copied,
                 false,
-                null);
+                null
+            );
         }
 
         var errorCode = Marshal.GetLastPInvokeError();
@@ -122,7 +131,9 @@ internal sealed class WindowsImeInstaller : IImeInstaller
                 rollbackError = $"{ex.GetType().Name}: {ex.Message}";
             }
         }
-        return new ImeInstallationResult(
+
+        return new ImeInstallationResult
+        (
             false,
             $"ImmInstallIME failed for System32 copy '{installedPath}' with Win32 error {errorCode}: {errorMessage}",
             errorCode,
@@ -131,7 +142,8 @@ internal sealed class WindowsImeInstaller : IImeInstaller
             copied,
             rollbackSucceeded,
             rollbackError,
-            ImeInstallationFailureKind.ImmInstallImeFailure);
+            ImeInstallationFailureKind.ImmInstallImeFailure
+        );
     }
 
     public ImeInstallationResult InstallPair(string x64ImeFilePath, string x86ImeFilePath, string displayName)
@@ -140,6 +152,7 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         {
             return ImeInstallationResult.Failure("IME installation requires Windows.");
         }
+
         if (!IsAdministrator())
         {
             return ImeInstallationResult.Failure("IME installation requires an elevated administrator process.");
@@ -166,10 +179,12 @@ internal sealed class WindowsImeInstaller : IImeInstaller
             {
                 if (!FilesMatch(x86SourcePath, x86InstalledPath))
                 {
-                    return ImeInstallationResult.Failure(
+                    return ImeInstallationResult.Failure
+                    (
                         $"Refusing to overwrite an existing different x86 IME file: {x86InstalledPath}",
                         installedPath: x86InstalledPath,
-                        failureKind: ImeInstallationFailureKind.ExistingFileConflict);
+                        failureKind: ImeInstallationFailureKind.ExistingFileConflict
+                    );
                 }
             }
             else
@@ -179,7 +194,8 @@ internal sealed class WindowsImeInstaller : IImeInstaller
                 if (!FilesMatch(x86SourcePath, x86InstalledPath))
                 {
                     File.Delete(x86InstalledPath);
-                    return ImeInstallationResult.Failure($"The SysWOW64 IME copy did not match the source file: {x86InstalledPath}");
+                    return ImeInstallationResult.Failure
+                        ($"The SysWOW64 IME copy did not match the source file: {x86InstalledPath}");
                 }
             }
 
@@ -193,6 +209,7 @@ internal sealed class WindowsImeInstaller : IImeInstaller
             {
                 File.Delete(x86InstalledPath);
             }
+
             return result;
         }
         catch (Exception ex)
@@ -205,22 +222,26 @@ internal sealed class WindowsImeInstaller : IImeInstaller
                 }
                 catch (Exception cleanupException)
                 {
-                    return ImeInstallationResult.Failure(
+                    return ImeInstallationResult.Failure
+                    (
                         $"Unable to install the x86 IME companion: {ex.GetType().Name}: {ex.Message} Rollback failed: {cleanupException.GetType().Name}: {cleanupException.Message}",
                         cleanupException.HResult & 0xFFFF,
                         x86InstalledPath,
                         copiedToSystemDirectory: true,
                         rollbackSucceeded: false,
-                        rollbackError: cleanupException.Message);
+                        rollbackError: cleanupException.Message
+                    );
                 }
             }
 
-            return ImeInstallationResult.Failure(
+            return ImeInstallationResult.Failure
+            (
                 $"Unable to install the x86 IME companion at '{x86InstalledPath}': {ex.GetType().Name}: {ex.Message}",
                 ex.HResult & 0xFFFF,
                 x86InstalledPath,
                 x86Copied,
-                rollbackSucceeded: x86Copied ? true : null);
+                rollbackSucceeded: x86Copied ? true : null
+            );
         }
     }
 
@@ -232,6 +253,7 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         {
             return false;
         }
+
         using var firstStream = File.OpenRead(firstPath);
         using var secondStream = File.OpenRead(secondPath);
         return SHA256.HashData(firstStream).AsSpan().SequenceEqual(SHA256.HashData(secondStream));
@@ -243,6 +265,7 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         {
             return new ImeUninstallationResult(false, [], "IME uninstall requires Windows.");
         }
+
         if (!IsAdministrator())
         {
             return new ImeUninstallationResult(false, [], "IME uninstall requires an elevated administrator process.");
@@ -269,14 +292,20 @@ internal sealed class WindowsImeInstaller : IImeInstaller
 
             if (!IsExpectedXiaoXiImeFile(imeFile))
             {
-                return new ImeUninstallationResult(false, removed, $"Refusing to remove ambiguous keyboard layout {layoutId}.");
+                return new ImeUninstallationResult
+                    (
+                    false, removed,
+                    $"Refusing to remove ambiguous keyboard layout {layoutId}: " +
+                    $"Layout Text='{layoutText ?? "<missing>"}', Ime File='{imeFile ?? "<missing>"}'."
+                );
             }
 
             InstallLayoutOrTip(CreateLayoutTip(layoutId), InstallLayoutOrTipUninstall);
             if (uint.TryParse(layoutId, System.Globalization.NumberStyles.HexNumber, null, out var layoutValue))
             {
-                UnloadKeyboardLayout((nint) layoutValue);
+                UnloadKeyboardLayout((nint)layoutValue);
             }
+
             layouts.DeleteSubKeyTree(layoutId, throwOnMissingSubKey: false);
             removed.Add(layoutId);
             if (imeFile is not null)
@@ -288,7 +317,8 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         RemovePreloadReferences(Registry.CurrentUser, removed);
         using var users = Registry.Users;
         RemovePreloadReferences(users, removed, @".DEFAULT\Keyboard Layout\Preload");
-        var system32Cleanup = CleanupUnreferencedSystemImeFiles(layouts, removedImeFiles, imeFileName, Environment.SystemDirectory, "System32");
+        var system32Cleanup = CleanupUnreferencedSystemImeFiles
+            (layouts, removedImeFiles, imeFileName, Environment.SystemDirectory, "System32");
         var systemX86Directory = Environment.GetFolderPath(Environment.SpecialFolder.SystemX86);
         var sysWow64Cleanup = string.IsNullOrWhiteSpace(systemX86Directory)
             ? new ImeFileCleanupResult(true, [], false, [], [])
@@ -296,13 +326,15 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         var layoutMessage = removed.Count == 0
             ? "No existing XiaoXi IME keyboard layout was found."
             : $"Removed XiaoXi IME keyboard layouts: {string.Join(", ", removed)}.";
-        return new ImeUninstallationResult(
+        return new ImeUninstallationResult
+        (
             system32Cleanup.Succeeded && sysWow64Cleanup.Succeeded,
             removed,
             string.Join(" ", new[] { layoutMessage }.Concat(system32Cleanup.Messages).Concat(sysWow64Cleanup.Messages)),
             system32Cleanup.RebootRequired || sysWow64Cleanup.RebootRequired,
             system32Cleanup.PendingDeletePaths.Concat(sysWow64Cleanup.PendingDeletePaths).ToArray(),
-            system32Cleanup.RetiredFilePaths.Concat(sysWow64Cleanup.RetiredFilePaths).ToArray());
+            system32Cleanup.RetiredFilePaths.Concat(sysWow64Cleanup.RetiredFilePaths).ToArray()
+        );
     }
 
     internal static bool IsXiaoXiIme(string? layoutText, string? imeFile) =>
@@ -312,7 +344,8 @@ internal sealed class WindowsImeInstaller : IImeInstaller
 
     internal static bool IsExpectedXiaoXiImeFile(string? imeFile) =>
         string.Equals(imeFile, "XiaoXiIme.ime", StringComparison.OrdinalIgnoreCase)
-        || string.Equals(imeFile, WindowsImeInstallationVariantProbe.ShortImeFileName, StringComparison.OrdinalIgnoreCase);
+        || string.Equals
+            (imeFile, WindowsImeInstallationVariantProbe.ShortImeFileName, StringComparison.OrdinalIgnoreCase);
 
     internal static bool IsRetiredXiaoXiImeFile(string? fileName) =>
         fileName is not null && RetiredImeFileNamePattern.IsMatch(fileName);
@@ -320,27 +353,34 @@ internal sealed class WindowsImeInstaller : IImeInstaller
     internal static string CreateRetiredImeFileName(DateTimeOffset timestamp, Guid id) =>
         $"XiaoXiIme.retired-{timestamp.UtcDateTime:yyyyMMdd'T'HHmmss'Z'}-{id:N}.ime";
 
-    private static ImeFileCleanupResult CleanupUnreferencedSystemImeFiles(
+    private static ImeFileCleanupResult CleanupUnreferencedSystemImeFiles
+    (
         RegistryKey layouts,
         IReadOnlyCollection<string> removedImeFiles,
         string primaryImeFileName,
         string systemDirectory,
-        string systemDirectoryName)
+        string systemDirectoryName
+    )
     {
         var candidates = removedImeFiles
             .Append(primaryImeFileName)
             .Append(WindowsImeInstallationVariantProbe.ShortImeFileName)
-            .Concat(Directory.EnumerateFiles(systemDirectory, "XiaoXiIme.retired-*.ime")
-                .Select(Path.GetFileName)
-                .Where(IsRetiredXiaoXiImeFile)!)
+            .Concat
+            (
+                Directory.EnumerateFiles(systemDirectory, "XiaoXiIme.retired-*.ime")
+                    .Select(Path.GetFileName)
+                    .Where(IsRetiredXiaoXiImeFile)!
+            )
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
         var referencedFiles = layouts.GetSubKeyNames()
-            .Select(layoutId =>
-            {
-                using var layout = layouts.OpenSubKey(layoutId);
-                return layout?.GetValue("Ime File") as string;
-            })
+            .Select
+            (layoutId =>
+                {
+                    using var layout = layouts.OpenSubKey(layoutId);
+                    return layout?.GetValue("Ime File") as string;
+                }
+            )
             .Where(value => value is not null)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var messages = new List<string>();
@@ -351,7 +391,10 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         {
             if (referencedFiles.Contains(candidate))
             {
-                messages.Add($"Retained {systemDirectoryName}\\{candidate} because another keyboard layout still references it.");
+                messages.Add
+                (
+                    $"Retained {systemDirectoryName}\\{candidate} because another keyboard layout still references it."
+                );
                 continue;
             }
 
@@ -360,6 +403,7 @@ internal sealed class WindowsImeInstaller : IImeInstaller
             {
                 continue;
             }
+
             try
             {
                 File.Delete(path);
@@ -375,28 +419,41 @@ internal sealed class WindowsImeInstaller : IImeInstaller
             }
             catch (Exception ex)
             {
-                var retiredPath = Path.Combine(
+                var retiredPath = Path.Combine
+                (
                     systemDirectory,
-                    CreateRetiredImeFileName(DateTimeOffset.UtcNow, Guid.NewGuid()));
+                    CreateRetiredImeFileName(DateTimeOffset.UtcNow, Guid.NewGuid())
+                );
                 if (TryMoveToRetiredPath(path, retiredPath, out var moveError))
                 {
                     retiredFilePaths.Add(retiredPath);
-                    messages.Add($"Unable to remove unreferenced System32 IME file '{path}' immediately: {ex.GetType().Name}: {ex.Message} Moved it to isolated path '{retiredPath}' so the canonical IME path can be reused in this sandbox run.");
+                    messages.Add
+                    (
+                        $"Unable to remove unreferenced System32 IME file '{path}' immediately: {ex.GetType().Name}: {ex.Message} Moved it to isolated path '{retiredPath}' so the canonical IME path can be reused in this sandbox run."
+                    );
                 }
                 else if (TryScheduleDeleteOnReboot(path, out var scheduleError))
                 {
                     succeeded = false;
                     pendingDeletePaths.Add(path);
-                    messages.Add($"Unable to remove unreferenced System32 IME file '{path}' immediately: {ex.GetType().Name}: {ex.Message} Moving it to '{retiredPath}' failed with Win32 error {moveError}: {new Win32Exception(moveError).Message} Scheduled the original file for deletion at the next Windows restart.");
+                    messages.Add
+                    (
+                        $"Unable to remove unreferenced System32 IME file '{path}' immediately: {ex.GetType().Name}: {ex.Message} Moving it to '{retiredPath}' failed with Win32 error {moveError}: {new Win32Exception(moveError).Message} Scheduled the original file for deletion at the next Windows restart."
+                    );
                 }
                 else
                 {
                     succeeded = false;
-                    messages.Add($"Unable to remove unreferenced System32 IME file '{path}': {ex.GetType().Name}: {ex.Message} Moving it to '{retiredPath}' failed with Win32 error {moveError}: {new Win32Exception(moveError).Message} Scheduling deletion at restart also failed with Win32 error {scheduleError}: {new Win32Exception(scheduleError).Message}");
+                    messages.Add
+                    (
+                        $"Unable to remove unreferenced System32 IME file '{path}': {ex.GetType().Name}: {ex.Message} Moving it to '{retiredPath}' failed with Win32 error {moveError}: {new Win32Exception(moveError).Message} Scheduling deletion at restart also failed with Win32 error {scheduleError}: {new Win32Exception(scheduleError).Message}"
+                    );
                 }
             }
         }
-        return new ImeFileCleanupResult(succeeded, messages, pendingDeletePaths.Count > 0, pendingDeletePaths, retiredFilePaths);
+
+        return new ImeFileCleanupResult
+            (succeeded, messages, pendingDeletePaths.Count > 0, pendingDeletePaths, retiredFilePaths);
     }
 
     internal static bool TryMoveToRetiredPath(string sourcePath, string retiredPath, out int errorCode)
@@ -423,17 +480,20 @@ internal sealed class WindowsImeInstaller : IImeInstaller
         return false;
     }
 
-    private static void RemovePreloadReferences(RegistryKey root, IReadOnlyCollection<string> removedLayoutIds, string path = @"Keyboard Layout\Preload")
+    private static void RemovePreloadReferences
+        (RegistryKey root, IReadOnlyCollection<string> removedLayoutIds, string path = @"Keyboard Layout\Preload")
     {
         if (removedLayoutIds.Count == 0)
         {
             return;
         }
+
         using var preload = root.OpenSubKey(path, writable: true);
         if (preload is null)
         {
             return;
         }
+
         foreach (var valueName in preload.GetValueNames())
         {
             var value = preload.GetValue(valueName)?.ToString();
@@ -447,9 +507,11 @@ internal sealed class WindowsImeInstaller : IImeInstaller
     internal static string CreateLayoutTip(string layoutId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(layoutId);
-        if (layoutId.Length != 8 || !uint.TryParse(layoutId, System.Globalization.NumberStyles.HexNumber, null, out var layoutValue))
+        if (layoutId.Length != 8 || !uint.TryParse
+                (layoutId, System.Globalization.NumberStyles.HexNumber, null, out var layoutValue))
         {
-            throw new ArgumentException("The keyboard layout id must contain exactly eight hexadecimal characters.", nameof(layoutId));
+            throw new ArgumentException
+                ("The keyboard layout id must contain exactly eight hexadecimal characters.", nameof(layoutId));
         }
 
         return $"{layoutValue & 0xFFFF:X4}:{layoutValue:X8}";
@@ -475,48 +537,3 @@ internal sealed class WindowsImeInstaller : IImeInstaller
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool MoveFileEx(string existingFileName, string? newFileName, uint flags);
 }
-
-internal enum ImeInstallationFailureKind
-{
-    None,
-    ExistingFileConflict,
-    ImmInstallImeFailure,
-    Other,
-}
-
-internal readonly record struct ImeInstallationResult(
-    bool Succeeded,
-    string Message,
-    int? Win32ErrorCode,
-    string? SourcePath,
-    string? InstalledPath,
-    bool CopiedToSystemDirectory,
-    bool? RollbackSucceeded,
-    string? RollbackError,
-    ImeInstallationFailureKind FailureKind = ImeInstallationFailureKind.None)
-{
-    public static ImeInstallationResult Failure(
-        string message,
-        int? win32ErrorCode = null,
-        string? installedPath = null,
-        bool copiedToSystemDirectory = false,
-        bool? rollbackSucceeded = null,
-        string? rollbackError = null,
-        ImeInstallationFailureKind failureKind = ImeInstallationFailureKind.Other) =>
-        new(false, message, win32ErrorCode, null, installedPath, copiedToSystemDirectory, rollbackSucceeded, rollbackError, failureKind);
-}
-
-internal readonly record struct ImeUninstallationResult(
-    bool Succeeded,
-    IReadOnlyList<string> RemovedLayoutIds,
-    string Message,
-    bool RebootRequired = false,
-    IReadOnlyList<string>? PendingDeletePaths = null,
-    IReadOnlyList<string>? RetiredFilePaths = null);
-
-internal readonly record struct ImeFileCleanupResult(
-    bool Succeeded,
-    IReadOnlyList<string> Messages,
-    bool RebootRequired,
-    IReadOnlyList<string> PendingDeletePaths,
-    IReadOnlyList<string> RetiredFilePaths);

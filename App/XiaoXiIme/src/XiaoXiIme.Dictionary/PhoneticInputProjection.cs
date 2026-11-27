@@ -1,9 +1,12 @@
 // 小鹤双拼键位映射参考 SeWZC_IME/src/Ime.Data/PhoneticProjection.cs，按 XiaoXiIme package 合同独立实现。
+
 namespace XiaoXiIme.Dictionary;
 
-internal static class PhoneticInputProjection
+internal static partial class PhoneticInputProjection
 {
-    private static readonly PhoneticLayout Xiaohe = PhoneticSchemeCatalog.All.Single(scheme => scheme.SchemeId == "xiaoheDoublePinyin").Layout!;
+    internal static readonly PhoneticLayout Xiaohe = PhoneticSchemeCatalog.All.Single
+        (scheme => scheme.SchemeId == "xiaoheDoublePinyin").Layout!;
+
     private static readonly IReadOnlyDictionary<string, char> Initials = Xiaohe.Initials;
 
     private static readonly IReadOnlyDictionary<string, char> Finals = Xiaohe.Finals;
@@ -19,7 +22,6 @@ internal static class PhoneticInputProjection
     };
 
 
-
     internal static IReadOnlyList<ImeProjectionEntry> GetComponentEntries(bool doublePinyin)
     {
         var entries = new List<ImeProjectionEntry>();
@@ -27,9 +29,16 @@ internal static class PhoneticInputProjection
         foreach (var final in Finals.Keys.Concat(SimpleFinals).Append("er").Distinct())
         {
             var syllable = initial + final;
-            if (!doublePinyin) entries.Add(new(initial, final, syllable));
-            else if (TryEncodeXiaoheSyllable(syllable, out var code)) entries.Add(new(initial, final, code));
+            if (!doublePinyin)
+            {
+                entries.Add(new(initial, final, syllable));
+            }
+            else if (TryEncodeXiaoheSyllable(syllable, out var code))
+            {
+                entries.Add(new(initial, final, code));
+            }
         }
+
         return entries;
     }
 
@@ -77,38 +86,50 @@ internal static class PhoneticInputProjection
             return lookupKey.Length > 0;
         }
 
-        if (!string.Equals(inputScheme, DictionaryPackageFormat.XiaoheDoublePinyinInputScheme, StringComparison.Ordinal))
+        if (!string.Equals
+                (inputScheme, DictionaryPackageFormat.XiaoheDoublePinyinInputScheme, StringComparison.Ordinal))
         {
             var layout = PhoneticSchemeCatalog.All.SingleOrDefault(item => item.SchemeId == inputScheme)?.Layout;
             if (layout?.ZeroInitialCodes is not null)
             {
-                if (reading == "xx")
-                {
-                    lookupKey = "xx";
-                    return true;
-                }
                 var codes = new List<string>();
-                foreach (var syllable in reading.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                foreach (var syllable in reading.Split
+                             (' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 {
-                    var normalized = syllable.ToLowerInvariant().Replace("u:", "v", StringComparison.Ordinal).Replace('ü', 'v');
+                    var normalized = syllable.ToLowerInvariant().Replace("u:", "v", StringComparison.Ordinal).Replace
+                        ('ü', 'v');
                     var (initial, final) = SplitInitialFinal(normalized);
-                    if (initial is "n" or "l" && final == "ue") final = "ve";
+                    if (initial is "n" or "l" && final == "ue")
+                    {
+                        final = "ve";
+                    }
+
                     if (initial is "j" or "q" or "x" or "y")
+                    {
                         final = final.Replace('v', 'u');
-                    if (final == "ve" && !layout.Finals.ContainsKey("ve")) final = "ue";
+                    }
+
+                    if (final == "ve" && !layout.Finals.ContainsKey("ve"))
+                    {
+                        final = "ue";
+                    }
+
                     if (!layout.TryProjectComponents(initial, final, out var code))
                     {
                         lookupKey = string.Empty;
                         return false;
                     }
+
                     codes.Add(code);
                 }
+
                 lookupKey = string.Concat(codes);
                 return lookupKey.Length > 0;
             }
         }
 
-        if (!string.Equals(inputScheme, DictionaryPackageFormat.XiaoheDoublePinyinInputScheme, StringComparison.Ordinal))
+        if (!string.Equals
+                (inputScheme, DictionaryPackageFormat.XiaoheDoublePinyinInputScheme, StringComparison.Ordinal))
         {
             lookupKey = string.Empty;
             return false;

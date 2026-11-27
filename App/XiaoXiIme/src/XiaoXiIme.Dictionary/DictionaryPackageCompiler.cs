@@ -9,14 +9,22 @@ namespace XiaoXiIme.Dictionary;
 public static class DictionaryPackageCompiler
 {
     /// <summary>Compiles complete canonical lexicon data into a runtime package.</summary>
-    public static DictionaryPackageManifest CompileLexicon(ImeLexicon lexicon, string outputDirectory,
-        IReadOnlyList<DictionaryPackageSource>? sources = null)
+    public static DictionaryPackageManifest CompileLexicon
+    (
+        ImeLexicon lexicon, string outputDirectory,
+        IReadOnlyList<DictionaryPackageSource>? sources = null
+    )
     {
         ArgumentNullException.ThrowIfNull(lexicon);
         var normalized = new InMemoryImeDictionary(lexicon).GetLexicon();
-        var manifest = Compile(normalized.Entries.Select(e =>
-            new PhoneticDictionaryEntry(e.Text, e.CanonicalReading, e.BaseFrequency)), outputDirectory,
-            sources: sources, shapeEntries: normalized.ShapeEntries);
+        var manifest = Compile
+        (
+            normalized.Entries.Select
+            (e =>
+                new PhoneticDictionaryEntry(e.Text, e.CanonicalReading, e.BaseFrequency)
+            ), outputDirectory,
+            sources: sources, shapeEntries: normalized.ShapeEntries
+        );
         var path = Path.Combine(outputDirectory, "lexicon.json");
         File.WriteAllText(path, JsonSerializer.Serialize(normalized, JsonOptions), new UTF8Encoding(false));
         manifest = manifest with
@@ -24,8 +32,11 @@ public static class DictionaryPackageCompiler
             FormatVersion = 2,
             Shards = manifest.Shards.Append(CreateShard("lexicon", path)).ToArray(),
         };
-        File.WriteAllText(Path.Combine(outputDirectory, DictionaryPackageFormat.ManifestFileName),
-            JsonSerializer.Serialize(manifest, JsonOptions), new UTF8Encoding(false));
+        File.WriteAllText
+        (
+            Path.Combine(outputDirectory, DictionaryPackageFormat.ManifestFileName),
+            JsonSerializer.Serialize(manifest, JsonOptions), new UTF8Encoding(false)
+        );
         return manifest;
     }
 
@@ -37,13 +48,15 @@ public static class DictionaryPackageCompiler
     /// <summary>
     /// Compiles entries into a package directory and returns the written manifest.
     /// </summary>
-    public static DictionaryPackageManifest Compile(
+    public static DictionaryPackageManifest Compile
+    (
         IEnumerable<PhoneticDictionaryEntry> entries,
         string outputDirectory,
         DictionaryPackageParameters? parameters = null,
         IReadOnlyList<DictionaryPackageSource>? sources = null,
         IEnumerable<ShapeDictionaryEntry>? shapeEntries = null,
-        IEnumerable<SymbolDictionaryEntry>? symbolEntries = null)
+        IEnumerable<SymbolDictionaryEntry>? symbolEntries = null
+    )
     {
         ArgumentNullException.ThrowIfNull(entries);
         if (string.IsNullOrWhiteSpace(outputDirectory))
@@ -54,7 +67,10 @@ public static class DictionaryPackageCompiler
         parameters ??= new DictionaryPackageParameters();
         ValidateParameters(parameters);
         var definition = PhoneticSchemeCatalog.All.Single(item => item.SchemeId == parameters.InputScheme);
-        parameters = parameters with { ProjectionVersion = definition.ProjectionVersion, RulesSha256 = definition.ContentSha256 };
+        parameters = parameters with
+        {
+            ProjectionVersion = definition.ProjectionVersion, RulesSha256 = definition.ContentSha256
+        };
         var normalizedEntries = NormalizeEntries(entries);
         var lookupKeys = BuildLookupKeys(normalizedEntries, parameters.InputScheme);
         var exactIndex = BuildExactIndex(lookupKeys);
@@ -103,10 +119,12 @@ public static class DictionaryPackageCompiler
         };
 
         var manifestJson = JsonSerializer.Serialize(manifest, JsonOptions);
-        File.WriteAllText(
+        File.WriteAllText
+        (
             Path.Combine(outputDirectory, DictionaryPackageFormat.ManifestFileName),
             manifestJson,
-            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)
+        );
         return manifest;
     }
 
@@ -116,7 +134,8 @@ public static class DictionaryPackageCompiler
         foreach (var entry in entries)
         {
             ArgumentNullException.ThrowIfNull(entry);
-            if (string.IsNullOrWhiteSpace(entry.Text) || string.IsNullOrWhiteSpace(entry.Reading) || entry.Frequency < 0)
+            if (string.IsNullOrWhiteSpace(entry.Text) || string.IsNullOrWhiteSpace
+                    (entry.Reading) || entry.Frequency < 0)
             {
                 throw new ArgumentException(DictionaryResources.InvalidCompilerEntry, nameof(entries));
             }
@@ -149,22 +168,28 @@ public static class DictionaryPackageCompiler
             .ToArray();
     }
 
-    private static string[] BuildLookupKeys(
+    private static string[] BuildLookupKeys
+    (
         IReadOnlyList<PhoneticDictionaryEntry> entries,
-        string inputScheme)
+        string inputScheme
+    )
     {
         var lookupKeys = new string[entries.Count];
         for (var id = 0; id < entries.Count; id++)
         {
             if (!PhoneticInputProjection.TryProjectReading(entries[id].Reading, inputScheme, out lookupKeys[id]))
             {
-                throw new ArgumentException(
-                    string.Format(
+                throw new ArgumentException
+                (
+                    string.Format
+                    (
                         System.Globalization.CultureInfo.CurrentCulture,
                         DictionaryResources.UnsupportedInputSchemeReading,
                         entries[id].Reading,
-                        inputScheme),
-                    nameof(entries));
+                        inputScheme
+                    ),
+                    nameof(entries)
+                );
             }
         }
 
@@ -173,17 +198,22 @@ public static class DictionaryPackageCompiler
 
     private static SortedDictionary<string, int[]> BuildExactIndex(IReadOnlyList<string> lookupKeys)
     {
-        return new SortedDictionary<string, int[]>(
+        return new SortedDictionary<string, int[]>
+        (
             lookupKeys.Select((lookupKey, id) => (lookupKey, id))
                 .GroupBy(item => item.lookupKey, StringComparer.Ordinal)
-                .ToDictionary(group => group.Key, group => group.Select(item => item.id).ToArray(), StringComparer.Ordinal),
-            StringComparer.Ordinal);
+                .ToDictionary
+                    (group => group.Key, group => group.Select(item => item.id).ToArray(), StringComparer.Ordinal),
+            StringComparer.Ordinal
+        );
     }
 
-    private static SortedDictionary<string, int[]> BuildPrefixIndex(
+    private static SortedDictionary<string, int[]> BuildPrefixIndex
+    (
         IReadOnlyList<PhoneticDictionaryEntry> entries,
         IReadOnlyList<string> lookupKeys,
-        int maxCandidatesPerKey)
+        int maxCandidatesPerKey
+    )
     {
         var prefixes = new Dictionary<string, List<int>>(StringComparer.Ordinal);
         for (var id = 0; id < entries.Count; id++)
@@ -203,8 +233,10 @@ public static class DictionaryPackageCompiler
             }
         }
 
-        return new SortedDictionary<string, int[]>(
-            prefixes.ToDictionary(
+        return new SortedDictionary<string, int[]>
+        (
+            prefixes.ToDictionary
+            (
                 item => item.Key,
                 item => item.Value
                     .OrderByDescending(id => entries[id].Frequency)
@@ -213,8 +245,10 @@ public static class DictionaryPackageCompiler
                     .ThenBy(id => entries[id].Text, StringComparer.Ordinal)
                     .Take(maxCandidatesPerKey)
                     .ToArray(),
-                StringComparer.Ordinal),
-            StringComparer.Ordinal);
+                StringComparer.Ordinal
+            ),
+            StringComparer.Ordinal
+        );
     }
 
     private static IReadOnlyList<ShapeDictionaryEntry> NormalizeShapeEntries(IEnumerable<ShapeDictionaryEntry> entries)
@@ -242,7 +276,8 @@ public static class DictionaryPackageCompiler
             .ToArray();
     }
 
-    private static IReadOnlyList<SymbolDictionaryEntry> NormalizeSymbolEntries(IEnumerable<SymbolDictionaryEntry> entries)
+    private static IReadOnlyList<SymbolDictionaryEntry> NormalizeSymbolEntries
+        (IEnumerable<SymbolDictionaryEntry> entries)
     {
         var normalized = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         foreach (var entry in entries)
@@ -349,7 +384,10 @@ public static class DictionaryPackageCompiler
 
     private static void ValidateParameters(DictionaryPackageParameters parameters)
     {
-        if (!PhoneticSchemeCatalog.All.Any(item => item.SchemeId == parameters.InputScheme && item.Layout?.ZeroInitialCodes is not null || item.SchemeId == parameters.InputScheme && item.SchemeId == "fullPinyin")
+        if (!PhoneticSchemeCatalog.All.Any
+            (item => item.SchemeId == parameters.InputScheme && item.Layout?.ZeroInitialCodes is not null ||
+                     item.SchemeId == parameters.InputScheme && item.SchemeId == "fullPinyin"
+            )
             || parameters.MaxPrefixCandidatesPerKey <= 0
             || parameters.MaxPrefixCandidatesPerKey > DictionaryPackageFormat.MaxCandidatesPerKey)
         {

@@ -1,0 +1,26 @@
+namespace XiaoXiIme.ImeInterop;
+
+public static class ImeExportsContract
+{
+    public const string ModuleFileExtension = ".ime";
+    public const int ImeUiClassBufferLength = 16;
+    public const string ImeUiClassName = "XiaoXiImeUIWnd";
+    public const string ImeDisplayName = "XiaoXi IME";
+    public const string UserWordStyleDescription = "User";
+
+    public static ImeInquireInfo CreateDefaultInquireInfo()
+    {
+        return new ImeInquireInfo
+        {
+            PrivateDataSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf<ImePrivateData>(),
+            // Clients can render the composition string themselves; the candidate popup is separate.
+            Property = ImeConstants.ImePropKbdCharFirst | ImeConstants.ImePropAtCaret |
+                       ImeConstants.ImePropCandidateListStartsAtOne | ImeConstants.ImePropUnicode,
+            ConversionCaps = ImeConstants.ImeCmodeNative | ImeConstants.ImeCmodeFullShape,
+            SentenceCaps = 0,
+            UiCaps = 0,
+            SetCompositionStringCaps = ImeConstants.SCSCapsCompStr,
+            SelectCaps = 0,
+        };
+    }
+}

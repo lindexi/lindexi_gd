@@ -11,6 +11,7 @@ internal static class ImeBinaryValidator
 {
     private const uint VftDrv = 0x00000003;
     private const uint Vft2DrvInputMethod = 0x0000000B;
+
     private static readonly string[] RequiredExports =
     [
         "ImeInquire",
@@ -36,13 +37,16 @@ internal static class ImeBinaryValidator
         {
             return $"IME file was not found: {imeFilePath}";
         }
+
         if (!TryReadVersionInfo(imeFilePath, out var versionInfo))
         {
             return "IME file does not contain readable VERSIONINFO.";
         }
+
         if (versionInfo.FileType != VftDrv || versionInfo.FileSubtype != Vft2DrvInputMethod)
         {
-            return $"IME VERSIONINFO must use VFT_DRV/VFT2_DRV_INPUTMETHOD, but found file type 0x{versionInfo.FileType:X8} and subtype 0x{versionInfo.FileSubtype:X8}.";
+            return
+                $"IME VERSIONINFO must use VFT_DRV/VFT2_DRV_INPUTMETHOD, but found file type 0x{versionInfo.FileType:X8} and subtype 0x{versionInfo.FileSubtype:X8}.";
         }
 
         try
@@ -66,7 +70,7 @@ internal static class ImeBinaryValidator
         using var peReader = new PEReader(stream);
         var headers = peReader.PEHeaders;
         var exportDirectory = headers.PEHeader?.ExportTableDirectory
-            ?? throw new BadImageFormatException("The file does not contain a PE header.");
+                              ?? throw new BadImageFormatException("The file does not contain a PE header.");
         if (exportDirectory.RelativeVirtualAddress == 0)
         {
             return [];
@@ -86,8 +90,10 @@ internal static class ImeBinaryValidator
             {
                 throw new BadImageFormatException("The PE export name is not null-terminated.");
             }
+
             exports.Add(Encoding.ASCII.GetString(image, nameOffset, terminator - nameOffset));
         }
+
         return exports;
     }
 
@@ -101,6 +107,7 @@ internal static class ImeBinaryValidator
                 return checked(rva - section.VirtualAddress + section.PointerToRawData);
             }
         }
+
         throw new BadImageFormatException($"PE RVA 0x{rva:X8} is outside all sections.");
     }
 
@@ -110,6 +117,7 @@ internal static class ImeBinaryValidator
         {
             throw new BadImageFormatException("The PE export table is outside the file.");
         }
+
         return BinaryPrimitives.ReadUInt32LittleEndian(image.AsSpan(offset, sizeof(uint)));
     }
 

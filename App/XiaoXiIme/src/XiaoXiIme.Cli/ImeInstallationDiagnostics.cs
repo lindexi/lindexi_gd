@@ -7,72 +7,6 @@ using Microsoft.Win32;
 
 namespace XiaoXiIme.Cli;
 
-internal sealed record ImeDiagnosticReport(
-    ImeEnvironmentDiagnostic Environment,
-    ImeFileDiagnostic SourceFile,
-    ImePeDiagnostic? PeImage,
-    IReadOnlyList<ImeImportDiagnostic> Imports,
-    ImeNativeProbeDiagnostic NativeProbe,
-    ImeInstallationStateDiagnostic InstallationState,
-    IReadOnlyList<string> Findings);
-
-internal sealed record ImeEnvironmentDiagnostic(
-    string OperatingSystem,
-    string OsArchitecture,
-    string ProcessArchitecture,
-    bool Is64BitOperatingSystem,
-    bool Is64BitProcess,
-    string ProcessPath,
-    string CurrentDirectory,
-    string WindowsDirectory,
-    string SystemDirectory,
-    string SystemX86Directory);
-
-internal sealed record ImeFileDiagnostic(
-    string FullPath,
-    bool Exists,
-    long? Length,
-    string? Sha256,
-    string? Attributes,
-    bool CanOpenForRead,
-    string? ReadError,
-    bool HasMarkOfTheWeb,
-    string? FileVersion,
-    string? ProductVersion);
-
-internal sealed record ImePeDiagnostic(
-    string Machine,
-    string Magic,
-    string Subsystem,
-    bool IsDll,
-    bool HasImportTable,
-    int ImportCount,
-    string? ParseError);
-
-internal sealed record ImeImportDiagnostic(
-    string Module,
-    string Kind,
-    bool Resolved,
-    string? ResolvedPath,
-    int ErrorCode,
-    string? ErrorMessage);
-
-internal sealed record ImeNativeProbeDiagnostic(
-    bool ImageMappingSucceeded,
-    int ImageMappingErrorCode,
-    string? ImageMappingErrorMessage);
-
-internal sealed record ImeInstallationStateDiagnostic(
-    string ExpectedSystemImePath,
-    bool ExpectedSystemImeExists,
-    long? ExpectedSystemImeLength,
-    bool SystemDirectoryWriteProbeSucceeded,
-    int SystemDirectoryWriteProbeErrorCode,
-    string? SystemDirectoryWriteProbeErrorMessage,
-    IReadOnlyList<ImeKeyboardLayoutDiagnostic> MatchingKeyboardLayouts);
-
-internal sealed record ImeKeyboardLayoutDiagnostic(string LayoutId, string? LayoutText, string? ImeFile, string? LayoutFile);
-
 internal static class ImeInstallationDiagnostics
 {
     private const uint LoadLibraryAsDatafile = 0x00000002;
@@ -108,36 +42,59 @@ internal static class ImeInstallationDiagnostics
         {
             findings.Add("The source IME exists but cannot be opened for read access.");
         }
+
         if (sourceFile.HasMarkOfTheWeb)
         {
-            findings.Add("The source IME has a Zone.Identifier stream (Mark of the Web), which may affect Windows security policy.");
+            findings.Add
+            (
+                "The source IME has a Zone.Identifier stream (Mark of the Web), which may affect Windows security policy."
+            );
         }
+
         if (peImage?.ParseError is not null)
         {
             findings.Add($"The PE image could not be fully parsed: {peImage.ParseError}");
         }
+
         if (peImage is not null && !MachineMatchesProcess(peImage.Machine, environment.ProcessArchitecture))
         {
-            findings.Add($"The IME PE machine '{peImage.Machine}' does not match the CLI process architecture '{environment.ProcessArchitecture}'.");
+            findings.Add
+            (
+                $"The IME PE machine '{peImage.Machine}' does not match the CLI process architecture '{environment.ProcessArchitecture}'."
+            );
         }
+
         foreach (var import in imports.Where(import => import.Kind == "native" && !import.Resolved))
         {
-            findings.Add($"Imported native module '{import.Module}' could not be resolved from the Windows system directory (error {import.ErrorCode}: {import.ErrorMessage}).");
+            findings.Add
+            (
+                $"Imported native module '{import.Module}' could not be resolved from the Windows system directory (error {import.ErrorCode}: {import.ErrorMessage})."
+            );
         }
+
         if (sourceFile.Exists && !nativeProbe.ImageMappingSucceeded)
         {
-            findings.Add($"Windows could not map the IME as an image without resolving imports (error {nativeProbe.ImageMappingErrorCode}: {nativeProbe.ImageMappingErrorMessage}).");
+            findings.Add
+            (
+                $"Windows could not map the IME as an image without resolving imports (error {nativeProbe.ImageMappingErrorCode}: {nativeProbe.ImageMappingErrorMessage})."
+            );
         }
+
         if (!installationState.SystemDirectoryWriteProbeSucceeded)
         {
-            findings.Add($"The elevated CLI could not create and delete a temporary probe file in the Windows system directory (error {installationState.SystemDirectoryWriteProbeErrorCode}: {installationState.SystemDirectoryWriteProbeErrorMessage}).");
+            findings.Add
+            (
+                $"The elevated CLI could not create and delete a temporary probe file in the Windows system directory (error {installationState.SystemDirectoryWriteProbeErrorCode}: {installationState.SystemDirectoryWriteProbeErrorMessage})."
+            );
         }
+
         if (installationState.ExpectedSystemImeExists)
         {
             findings.Add($"A same-named IME file already exists at '{installationState.ExpectedSystemImePath}'.");
         }
 
-        return new ImeDiagnosticReport(environment, sourceFile, peImage, imports, nativeProbe, installationState, findings);
+        return new ImeDiagnosticReport
+            (environment, sourceFile, peImage, imports, nativeProbe, installationState, findings);
     }
 
     internal static (ImePeDiagnostic Diagnostic, IReadOnlyList<string> Imports) ReadPe(string path)
@@ -148,16 +105,19 @@ internal static class ImeInstallationDiagnostics
             using var stream = new MemoryStream(image, writable: false);
             using var reader = new PEReader(stream);
             var headers = reader.PEHeaders;
-            var peHeader = headers.PEHeader ?? throw new BadImageFormatException("The file does not contain a PE optional header.");
+            var peHeader = headers.PEHeader ?? throw new BadImageFormatException
+                ("The file does not contain a PE optional header.");
             var imports = ReadImportNames(image, headers, peHeader.ImportTableDirectory.RelativeVirtualAddress);
-            return (new ImePeDiagnostic(
+            return (new ImePeDiagnostic
+            (
                 headers.CoffHeader.Machine.ToString(),
                 peHeader.Magic.ToString(),
                 peHeader.Subsystem.ToString(),
                 (headers.CoffHeader.Characteristics & Characteristics.Dll) != 0,
                 peHeader.ImportTableDirectory.RelativeVirtualAddress != 0,
                 imports.Count,
-                null), imports);
+                null
+            ), imports);
         }
         catch (Exception ex)
         {
@@ -168,7 +128,8 @@ internal static class ImeInstallationDiagnostics
     private static ImeEnvironmentDiagnostic CollectEnvironment()
     {
         var windowsDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        return new ImeEnvironmentDiagnostic(
+        return new ImeEnvironmentDiagnostic
+        (
             RuntimeInformation.OSDescription,
             RuntimeInformation.OSArchitecture.ToString(),
             RuntimeInformation.ProcessArchitecture.ToString(),
@@ -178,14 +139,16 @@ internal static class ImeInstallationDiagnostics
             Environment.CurrentDirectory,
             windowsDirectory,
             Environment.SystemDirectory,
-            Environment.GetFolderPath(Environment.SpecialFolder.SystemX86));
+            Environment.GetFolderPath(Environment.SpecialFolder.SystemX86)
+        );
     }
 
     private static ImeFileDiagnostic CollectFile(string fullPath)
     {
         if (!File.Exists(fullPath))
         {
-            return new ImeFileDiagnostic(fullPath, false, null, null, null, false, "File does not exist.", false, null, null);
+            return new ImeFileDiagnostic
+                (fullPath, false, null, null, null, false, "File does not exist.", false, null, null);
         }
 
         var file = new FileInfo(fullPath);
@@ -212,7 +175,8 @@ internal static class ImeInstallationDiagnostics
         {
         }
 
-        return new ImeFileDiagnostic(
+        return new ImeFileDiagnostic
+        (
             fullPath,
             true,
             file.Length,
@@ -222,7 +186,8 @@ internal static class ImeInstallationDiagnostics
             readError,
             File.Exists(fullPath + ":Zone.Identifier"),
             version?.FileVersion,
-            version?.ProductVersion);
+            version?.ProductVersion
+        );
     }
 
     private static IReadOnlyList<string> ReadImportNames(byte[] image, PEHeaders headers, int importRva)
@@ -245,13 +210,16 @@ internal static class ImeInstallationDiagnostics
             {
                 break;
             }
+
             if (nameRva == 0)
             {
                 throw new BadImageFormatException("An import descriptor does not contain a module name RVA.");
             }
+
             imports.Add(ReadNullTerminatedAscii(image, RvaToOffset(headers, checked((int)nameRva))));
             descriptorOffset = checked(descriptorOffset + 20);
         }
+
         return imports.Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
@@ -297,10 +265,12 @@ internal static class ImeInstallationDiagnostics
             FreeLibrary(handle);
         }
 
-        return new ImeNativeProbeDiagnostic(
+        return new ImeNativeProbeDiagnostic
+        (
             handle != 0,
             mappingError,
-            handle != 0 ? null : GetErrorMessage(mappingError));
+            handle != 0 ? null : GetErrorMessage(mappingError)
+        );
     }
 
     private static ImeInstallationStateDiagnostic CollectInstallationState(string imeFileName)
@@ -321,20 +291,26 @@ internal static class ImeInstallationDiagnostics
                     if (string.Equals(imeFile, imeFileName, StringComparison.OrdinalIgnoreCase)
                         || string.Equals(layoutText, "XiaoXi IME", StringComparison.OrdinalIgnoreCase))
                     {
-                        matches.Add(new ImeKeyboardLayoutDiagnostic(layoutId, layoutText, imeFile, layout?.GetValue("Layout File") as string));
+                        matches.Add
+                        (
+                            new ImeKeyboardLayoutDiagnostic
+                                (layoutId, layoutText, imeFile, layout?.GetValue("Layout File") as string)
+                        );
                     }
                 }
             }
         }
 
-        return new ImeInstallationStateDiagnostic(
+        return new ImeInstallationStateDiagnostic
+        (
             expectedPath,
             File.Exists(expectedPath),
             File.Exists(expectedPath) ? new FileInfo(expectedPath).Length : null,
             writeProbeSucceeded,
             writeProbeErrorCode,
             writeProbeErrorMessage,
-            matches);
+            matches
+        );
     }
 
     private static (bool Succeeded, int ErrorCode, string? ErrorMessage) ProbeSystemDirectoryWrite()
@@ -364,9 +340,12 @@ internal static class ImeInstallationDiagnostics
     }
 
     private static bool MachineMatchesProcess(string machine, string processArchitecture) =>
-        (machine.Equals("Amd64", StringComparison.OrdinalIgnoreCase) && processArchitecture.Equals("X64", StringComparison.OrdinalIgnoreCase))
-        || (machine.Equals("I386", StringComparison.OrdinalIgnoreCase) && processArchitecture.Equals("X86", StringComparison.OrdinalIgnoreCase))
-        || (machine.Equals("Arm64", StringComparison.OrdinalIgnoreCase) && processArchitecture.Equals("Arm64", StringComparison.OrdinalIgnoreCase));
+        (machine.Equals("Amd64", StringComparison.OrdinalIgnoreCase) && processArchitecture.Equals
+            ("X64", StringComparison.OrdinalIgnoreCase))
+        || (machine.Equals("I386", StringComparison.OrdinalIgnoreCase) && processArchitecture.Equals
+            ("X86", StringComparison.OrdinalIgnoreCase))
+        || (machine.Equals("Arm64", StringComparison.OrdinalIgnoreCase) && processArchitecture.Equals
+            ("Arm64", StringComparison.OrdinalIgnoreCase));
 
     private static int RvaToOffset(PEHeaders headers, int rva)
     {
@@ -378,6 +357,7 @@ internal static class ImeInstallationDiagnostics
                 return checked(rva - section.VirtualAddress + section.PointerToRawData);
             }
         }
+
         throw new BadImageFormatException($"PE RVA 0x{rva:X8} is outside all sections.");
     }
 
@@ -387,6 +367,7 @@ internal static class ImeInstallationDiagnostics
         {
             throw new BadImageFormatException("The PE import table is outside the file.");
         }
+
         return BinaryPrimitives.ReadUInt32LittleEndian(image.AsSpan(offset, sizeof(uint)));
     }
 
@@ -397,10 +378,12 @@ internal static class ImeInstallationDiagnostics
         {
             throw new BadImageFormatException("A PE import module name is not null-terminated.");
         }
+
         return System.Text.Encoding.ASCII.GetString(image, offset, terminator - offset);
     }
 
-    private static string? GetErrorMessage(int errorCode) => errorCode == 0 ? null : new Win32Exception(errorCode).Message;
+    private static string? GetErrorMessage
+        (int errorCode) => errorCode == 0 ? null : new Win32Exception(errorCode).Message;
 
     [DllImport("kernel32.dll", EntryPoint = "LoadLibraryExW", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern nint LoadLibraryEx(string fileName, nint file, uint flags);

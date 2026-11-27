@@ -25,9 +25,9 @@ public unsafe class TsfClassFactoryTests
         Assert.NotEqual(0, instance);
         Assert.Equal(initialObjects + 1, TsfComServer.ObjectCount);
 
-        var vtable = *(void***) instance;
-        var queryInterface = (delegate* unmanaged[Stdcall]<nint, Guid*, nint*, int>) vtable[0];
-        var release = (delegate* unmanaged[Stdcall]<nint, uint>) vtable[2];
+        var vtable = *(void***)instance;
+        var queryInterface = (delegate* unmanaged[Stdcall]<nint, Guid*, nint*, int>)vtable[0];
+        var release = (delegate* unmanaged[Stdcall]<nint, uint>)vtable[2];
         var unknownId = TsfClassFactory.IUnknownId;
         nint unknown = 0;
 
@@ -43,9 +43,9 @@ public unsafe class TsfClassFactoryTests
     {
         nint instance = 0;
         Assert.Equal(TsfHResults.S_OK, TsfClassFactory.TryCreate(TsfClassFactory.IClassFactoryId, &instance));
-        var vtable = *(void***) instance;
-        var createInstance = (delegate* unmanaged[Stdcall]<nint, nint, Guid*, nint*, int>) vtable[3];
-        var release = (delegate* unmanaged[Stdcall]<nint, uint>) vtable[2];
+        var vtable = *(void***)instance;
+        var createInstance = (delegate* unmanaged[Stdcall]<nint, nint, Guid*, nint*, int>)vtable[3];
+        var release = (delegate* unmanaged[Stdcall]<nint, uint>)vtable[2];
         var interfaceId = TsfClassFactory.IUnknownId;
         nint result = 42;
 
@@ -63,9 +63,9 @@ public unsafe class TsfClassFactoryTests
     {
         nint instance = 0;
         Assert.Equal(TsfHResults.S_OK, TsfClassFactory.TryCreate(TsfClassFactory.IClassFactoryId, &instance));
-        var vtable = *(void***) instance;
-        var lockServer = (delegate* unmanaged[Stdcall]<nint, int, int>) vtable[4];
-        var release = (delegate* unmanaged[Stdcall]<nint, uint>) vtable[2];
+        var vtable = *(void***)instance;
+        var lockServer = (delegate* unmanaged[Stdcall]<nint, int, int>)vtable[4];
+        var release = (delegate* unmanaged[Stdcall]<nint, uint>)vtable[2];
         var initialLocks = TsfComServer.LockCount;
 
         Assert.Equal(TsfHResults.S_OK, lockServer(instance, 1));

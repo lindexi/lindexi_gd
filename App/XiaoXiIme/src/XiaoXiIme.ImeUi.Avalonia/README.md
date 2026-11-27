@@ -1,10 +1,12 @@
 # XiaoXiIme.ImeUi.Avalonia
 
+本文描述重构前的 UI 入口、独立 Host 链路和历史验收。下文 EXE 路径与启动参数只适用于对应旧产物。
+
 小希输入法外部 UI 项目。已实现候选窗、独立浮动状态栏、设置、关于、托盘和同用户同管道单实例恢复入口，通过 Host IPC 接收真实状态并保存产品设置；不提供主题编辑器。
 
 ## 当前体验与范围
 
-唯一体验入口为 `dist/Experience/app/ui/XiaoXiIme.ImeUi.Avalonia.exe`（相对工作区根目录），双击无参启动，无需产品环境变量或编辑JSON；下文ExperienceSentenceVerified等仅历史入口。
+旧 Experience 包的入口为 `dist/Experience/app/ui/XiaoXiIme.ImeUi.Avalonia.exe`，双击无参启动。
 
 重复启动writer锁崩溃旧“进行中”已由Builder b56dbd81f0474827a7623f8b43cb7bb2 及锁门禁 fe722c4126b44fa18369e39848fb21f3 的5项通过覆盖：首次输入、二次exit0且首进程存活可见、首次正常退出、重开无锁崩溃且可输入、重开正常退出。本次已回读 `dist/Experience/evidence/lock/report.json`；未独立断言foreground激活，不扩大签收。
 

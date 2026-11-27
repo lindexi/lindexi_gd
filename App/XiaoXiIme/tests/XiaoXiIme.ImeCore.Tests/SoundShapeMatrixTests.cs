@@ -8,27 +8,40 @@ public class SoundShapeMatrixTests
     [Fact]
     public void E01_LowFrequencyShapeSurvivesLimitOne()
     {
-        var fixture = new InventedSoundShapeFixture("N3", InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly));
+        var fixture = new InventedSoundShapeFixture
+            ("N3", InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly));
         fixture.Type("niR");
 
         var page = fixture.Context.QueryInterpretations("niR", limit: 1);
 
-        Assert.Equal(new[] { ("你", "ni", 40, 3, "") }, page.Candidates.Select(candidate =>
-            (candidate.Candidate.Text, candidate.Candidate.Reading, candidate.Rank.Frequency,
-             candidate.Interpretations.First().CoverageEnd, candidate.Interpretations.First().RemainingInput)));
+        Assert.Equal
+        (
+            new[] { ("你", "ni", 40, 3, "") }, page.Candidates.Select
+            (candidate =>
+                (candidate.Candidate.Text, candidate.Candidate.Reading, candidate.Rank.Frequency,
+                    candidate.Interpretations.First().CoverageEnd, candidate.Interpretations.First().RemainingInput)
+            )
+        );
     }
 
     [Fact]
     public void E01_ShapeEvidenceUsesOriginalInputRange()
     {
-        var fixture = new InventedSoundShapeFixture("N3", InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly));
+        var fixture = new InventedSoundShapeFixture
+            ("N3", InventedSoundShapeFixture.Options(ImeShapeCasePolicy.UppercaseOnly));
         fixture.Type("niR");
 
-        var evidence = fixture.Find("你", 3, ImeInterpretationKind.Complete).Interpretations.SelectMany(path => path.Evidence)
+        var evidence = fixture.Find("你", 3, ImeInterpretationKind.Complete).Interpretations.SelectMany
+                (path => path.Evidence)
             .Where(item => item.Kind == ImeEvidenceKind.PerCharacterShape);
 
-        Assert.Equal(new[] { (2, 1, "R", (string?)"rx"), (2, 1, "R", (string?)"re") }.OrderBy(item => item.Item4),
-            evidence.Select(item => (item.Range.Start, item.Range.Length, item.Input, item.ShapeAlias)).Distinct().OrderBy(item => item.ShapeAlias));
+        Assert.Equal
+        (
+            new[] { (2, 1, "R", (string?)"rx"), (2, 1, "R", (string?)"re") }.OrderBy(item => item.Item4),
+            evidence.Select
+                (item => (item.Range.Start, item.Range.Length, item.Input, item.ShapeAlias)).Distinct().OrderBy
+                (item => item.ShapeAlias)
+        );
     }
 
     [Theory]
@@ -73,15 +86,21 @@ public class SoundShapeMatrixTests
     [InlineData("D05", "AB", "nihcr", "泥好|你好", "B")]
     [InlineData("D06", "XBOUND", "nihkr", "你好", "C", "UG", "O12", "X")]
     [InlineData("D09", "PATH", "nirhcc", "你让草")]
-    public void Matrix_CompleteSetHasFrozenOrder(string id, string set, string input, string expected,
-        string placement = "C", string casing = "UG", string length = "O12", string projection = "F")
+    public void Matrix_CompleteSetHasFrozenOrder
+    (
+        string id, string set, string input, string expected,
+        string placement = "C", string casing = "UG", string length = "O12", string projection = "F"
+    )
     {
         var options = InventedSoundShapeFixture.Options(Case(casing), Placement(placement), Length(length));
         var fixture = new InventedSoundShapeFixture(set, options, projection);
         fixture.Type(input);
 
-        Assert.True(expected.Split('|', StringSplitOptions.RemoveEmptyEntries).SequenceEqual(fixture.Complete()),
-            $"{id}: unexpected complete candidate order for {input}");
+        Assert.True
+        (
+            expected.Split('|', StringSplitOptions.RemoveEmptyEntries).SequenceEqual(fixture.Complete()),
+            $"{id}: unexpected complete candidate order for {input}"
+        );
     }
 
     [Theory]
@@ -89,16 +108,24 @@ public class SoundShapeMatrixTests
     [InlineData("C05", "AB", "nirxhc", "你好", "C", "M2")]
     [InlineData("C07", "N3", "nir", "你", "C", "M2")]
     [InlineData("C08", "AB", "nihcr", "你好", "W", "O2")]
-    public void Matrix_HalfShapeCannotAuthorizeConsumption(string id, string set, string input, string text, string placement, string length)
+    public void Matrix_HalfShapeCannotAuthorizeConsumption
+        (string id, string set, string input, string text, string placement, string length)
     {
-        var fixture = new InventedSoundShapeFixture(set, InventedSoundShapeFixture.Options(placement: Placement(placement), length: Length(length)));
+        var fixture = new InventedSoundShapeFixture
+            (set, InventedSoundShapeFixture.Options(placement: Placement(placement), length: Length(length)));
         fixture.Type(input);
         var candidate = fixture.Find(text, input.Length, ImeInterpretationKind.IncompleteShape);
 
-        Assert.True(new[] { ((ImeSelectionId?)null, (ImeInputRange?)null, "") }.SequenceEqual(candidate.Interpretations
-            .Where(path => path.Kind == ImeInterpretationKind.IncompleteShape)
-            .Select(path => (candidate.SelectionId, path.ConsumedRange, path.RemainingInput)).Distinct()),
-            $"{id}: incomplete shape must not authorize consumption");
+        Assert.True
+        (
+            new[] { ((ImeSelectionId?)null, (ImeInputRange?)null, "") }.SequenceEqual
+            (
+                candidate.Interpretations
+                    .Where(path => path.Kind == ImeInterpretationKind.IncompleteShape)
+                    .Select(path => (candidate.SelectionId, path.ConsumedRange, path.RemainingInput)).Distinct()
+            ),
+            $"{id}: incomplete shape must not authorize consumption"
+        );
     }
 
     [Theory]
@@ -109,8 +136,11 @@ public class SoundShapeMatrixTests
     public void C09_InvalidConfigurationIsRejected(string placement, string length, bool four, string projection)
     {
         var dictionary = new InMemoryImeDictionary(InventedSoundShapeFixture.Lexicon("N", projection));
-        var options = InventedSoundShapeFixture.Options(placement: Placement(placement), length: Length(length),
-            auto: four ? ImeAutoCommitPolicy.Four : ImeAutoCommitPolicy.Off);
+        var options = InventedSoundShapeFixture.Options
+        (
+            placement: Placement(placement), length: Length(length),
+            auto: four ? ImeAutoCommitPolicy.Four : ImeAutoCommitPolicy.Off
+        );
 
         Assert.Throws<ArgumentException>(() => new ImeContext(dictionary, options, null));
     }
@@ -122,7 +152,8 @@ public class SoundShapeMatrixTests
     [InlineData(ImeShapeCasePolicy.UppercaseOnly, ImeShapePlacement.AfterWord, ImeShapeLengthPolicy.OptionalOne)]
     [InlineData(ImeShapeCasePolicy.UppercaseOrGuess, ImeShapePlacement.Both, ImeShapeLengthPolicy.OptionalTwo)]
     [InlineData(ImeShapeCasePolicy.LowercaseOnly, ImeShapePlacement.Both, ImeShapeLengthPolicy.OptionalOneOrTwo)]
-    public void Configuration_PreservesExplicitDimensions(ImeShapeCasePolicy casing, ImeShapePlacement placement, ImeShapeLengthPolicy length)
+    public void Configuration_PreservesExplicitDimensions
+        (ImeShapeCasePolicy casing, ImeShapePlacement placement, ImeShapeLengthPolicy length)
     {
         var options = InventedSoundShapeFixture.Options(casing, placement, length);
         var context = new ImeContext(new InMemoryImeDictionary(InventedSoundShapeFixture.Lexicon("N")), options, null);
@@ -137,7 +168,8 @@ public class SoundShapeMatrixTests
     [InlineData(ImeCandidateSortPolicy.Automatic, 1, "你好哪|你好")]
     public void E04_E07_ConflictUsesFrozenSort(ImeCandidateSortPolicy sort, int frequency, string expected)
     {
-        var fixture = new InventedSoundShapeFixture("CONFLICT", InventedSoundShapeFixture.Options(sort: sort), aFrequency: frequency);
+        var fixture = new InventedSoundShapeFixture
+            ("CONFLICT", InventedSoundShapeFixture.Options(sort: sort), aFrequency: frequency);
         fixture.Type("nihcnz");
 
         Assert.Equal(expected.Split('|'), fixture.Complete());
@@ -160,23 +192,33 @@ public class SoundShapeMatrixTests
     [InlineData("D05", "AB", "nihcr")]
     public void Matrix_MergedCandidateRetainsBothAttachments(string id, string set, string input)
     {
-        var fixture = new InventedSoundShapeFixture(set, InventedSoundShapeFixture.Options(placement: ImeShapePlacement.Both));
+        var fixture = new InventedSoundShapeFixture
+            (set, InventedSoundShapeFixture.Options(placement: ImeShapePlacement.Both));
         fixture.Type(input);
         var candidate = fixture.Find("你好", 5, ImeInterpretationKind.Complete);
 
-        Assert.True(new[] { ImeEvidenceKind.PerCharacterShape, ImeEvidenceKind.AfterWordShape }.Order().SequenceEqual(
-            candidate.Interpretations.SelectMany(path => path.Evidence).Where(item => item.ShapeAlias != null).Select(item => item.Kind).Distinct().Order()),
-            $"{id}: both attachments must survive");
+        Assert.True
+        (
+            new[] { ImeEvidenceKind.PerCharacterShape, ImeEvidenceKind.AfterWordShape }.Order().SequenceEqual
+            (
+                candidate.Interpretations.SelectMany(path => path.Evidence).Where
+                    (item => item.ShapeAlias != null).Select(item => item.Kind).Distinct().Order()
+            ),
+            $"{id}: both attachments must survive"
+        );
     }
 
     private static ImeShapeCasePolicy Case(string value) => value switch
     {
-        "U" => ImeShapeCasePolicy.UppercaseOnly, "L" => ImeShapeCasePolicy.LowercaseOnly, _ => ImeShapeCasePolicy.UppercaseOrGuess,
+        "U" => ImeShapeCasePolicy.UppercaseOnly, "L" => ImeShapeCasePolicy.LowercaseOnly,
+        _ => ImeShapeCasePolicy.UppercaseOrGuess,
     };
+
     private static ImeShapePlacement Placement(string value) => value switch
     {
         "W" => ImeShapePlacement.AfterWord, "B" => ImeShapePlacement.Both, _ => ImeShapePlacement.PerCharacter,
     };
+
     private static ImeShapeLengthPolicy Length(string value) => value switch
     {
         "O1" => ImeShapeLengthPolicy.OptionalOne, "O2" => ImeShapeLengthPolicy.OptionalTwo,
