@@ -69,6 +69,10 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
     private long _inputNotifications;
     private long _outputAttempts;
     private long _outputSamples;
+    private int _serviceEpoch;
+    private long _nextOutputRecovery;
+    private HRESULT? _lastRecoveryResult;
+    private bool _committingOutput;
     private HRESULT _lastOutputResult;
     private string _adapter = "ordinal=0";
     private long _nextDiagnostic;
@@ -177,7 +181,11 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
         return Guard
         (() =>
             {
+                _serviceEpoch++;
+                Trace.WriteLine($"EVR services init epoch={_serviceEpoch} hadOutput={_mediaType != null} free={_free.Count} ready={_ready.Count}", "MediaFoundation.Core");
                 ReleaseServices();
+                _nextOutputRecovery = 0;
+                _lastRecoveryResult = null;
                 _mixer = (IMFTransform*)Lookup
                     ((IMFTopologyServiceLookup*)address, PInvoke.MR_VIDEO_MIXER_SERVICE, IMFTransform.IID_Guid);
                 _events = (IMediaEventSink*)Lookup
@@ -235,7 +243,11 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
         return result;
     }
 
-    public HRESULT ReleaseServicePointers() => Guard(ReleaseServices);
+    public HRESULT ReleaseServicePointers() => Guard(() =>
+    {
+        Trace.WriteLine($"EVR services release epoch={_serviceEpoch} hadOutput={_mediaType != null} free={_free.Count} ready={_ready.Count}", "MediaFoundation.Core");
+        ReleaseServices();
+    });
 
     private void ReleaseServices()
     {
@@ -494,7 +506,11 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
                         break;
                     case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_CANCELSTEP: CompleteStep(true, 0); break;
                     case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_FLUSH: Flush(); break;
-                    case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_INVALIDATEMEDIATYPE: Negotiate(); break;
+                    case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_INVALIDATEMEDIATYPE:
+                        if (_mixer == null || _committingOutput)
+                            Trace.WriteLine($"EVR format invalidation deferred epoch={_serviceEpoch} hasMixer={_mixer != null} committing={_committingOutput}", "MediaFoundation.Core");
+                        else Negotiate();
+                        break;
                     case MFVP_MESSAGE_TYPE.MFVP_MESSAGE_PROCESSINPUTNOTIFY:
                         _inputNotifications++;
                         _input = true;
@@ -515,12 +531,19 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
         );
     }
 
-    private void Negotiate()
+    private bool Negotiate(bool recovering = false)
     {
         for (uint i = 0;; i++)
         {
             IMFMediaType* candidate = null;
             var hr = _mixer->GetOutputAvailableType(0, i, &candidate);
+            if (recovering && (hr == HRESULT.MF_E_TRANSFORM_TYPE_NOT_SET || (i == 0 && hr == HRESULT.MF_E_NO_MORE_TYPES)))
+            {
+                if (_lastRecoveryResult != hr)
+                    Trace.WriteLine($"EVR output recovery deferred epoch={_serviceEpoch} HRESULT=0x{hr.Value:X8}", "MediaFoundation.Core");
+                _lastRecoveryResult = hr;
+                return false;
+            }
             if (hr == HRESULT.MF_E_NO_MORE_TYPES) Check(hr, "mixer no compatible RGB32 output");
             Check(hr, $"mixer.GetOutputAvailableType[{i}]");
             try
@@ -538,7 +561,9 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
                 Width = nativeWidth;
                 Height = nativeHeight;
                 _displayAspectRatio = aspect;
-                return;
+                if (recovering)
+                    Trace.WriteLine($"EVR output recovery complete epoch={_serviceEpoch} free={_free.Count}", "MediaFoundation.Core");
+                return true;
             }
             finally
             {
@@ -592,6 +617,7 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
         var pool = new nint[_samples.Length];
         int width = ScalingMode == VideoScalingMode.MixerOutput && _targetWidth > 0 ? _targetWidth : nativeWidth;
         int height = ScalingMode == VideoScalingMode.MixerOutput && _targetHeight > 0 ? _targetHeight : nativeHeight;
+        _committingOutput = true;
         try
         {
             Check(PInvoke.MFCreateMediaType(&candidate), "resize.CreateMediaType");
@@ -685,6 +711,7 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
             foreach (nint sample in pool)
                 if (sample != 0)
                     ((IMFSample*)sample)->Release();
+            _committingOutput = false;
         }
     }
 
@@ -935,7 +962,7 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
             var clockResult = _clock == null ? HRESULT.MF_E_INVALIDREQUEST : _clock->GetCorrelatedTime(0, &clock, &system);
             HRESULT sampleResult = _ready.Count == 0 ? HRESULT.MF_E_INVALIDREQUEST :
                 ((IMFSample*)_samples[_ready.Peek()])->GetSampleTime(&nextSample);
-            return $"EVR adapter=[{_adapter}] scaling={ScalingMode} running={_running} preroll={_preroll} inputPending={_input} inputNotifications={_inputNotifications} outputAttempts={_outputAttempts} outputSamples={_outputSamples} lastOutputHRESULT=0x{_lastOutputResult.Value:X8} ready={_ready.Count} free={_free.Count} stagingFrames={Frames} copiedFrames={_displayedFrames} clock100ns={clock} clockHRESULT=0x{clockResult.Value:X8} nextSample100ns={nextSample} sampleTimeHRESULT=0x{sampleResult.Value:X8}";
+            return $"EVR adapter=[{_adapter}] scaling={ScalingMode} serviceEpoch={_serviceEpoch} hasMixer={_mixer != null} hasOutputType={_mediaType != null} running={_running} preroll={_preroll} inputPending={_input} inputNotifications={_inputNotifications} outputAttempts={_outputAttempts} outputSamples={_outputSamples} lastOutputHRESULT=0x{_lastOutputResult.Value:X8} ready={_ready.Count} free={_free.Count} stagingFrames={Frames} copiedFrames={_displayedFrames} clock100ns={clock} clockHRESULT=0x{clockResult.Value:X8} nextSample100ns={nextSample} sampleTimeHRESULT=0x{sampleResult.Value:X8}";
         }
     }
 
@@ -944,7 +971,15 @@ internal sealed unsafe class EVRPrototypePresenter : IMFVideoPresenter.Interface
         lock (_gate)
         {
             if (_failure != null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(_failure).Throw();
-            if (_closed || _mediaType == null) return false;
+            if (_closed || _mixer == null || _committingOutput) return false;
+            if (_mediaType == null)
+            {
+                // A topology service rebind can leave input pending before a new format invalidation arrives.
+                long now = Environment.TickCount64;
+                if (!_input || now < _nextOutputRecovery) return false;
+                _nextOutputRecovery = now + 250;
+                if (!Negotiate(recovering: true)) return false;
+            }
             if (Environment.TickCount64 >= _nextDiagnostic)
             {
                 _nextDiagnostic = Environment.TickCount64 + 5000;

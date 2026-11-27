@@ -35,7 +35,6 @@ internal static class PlaybackDiagnosticMatrix
                 return report;
             }
 
-            string? sample = await ExtractAsync("Diagnostics.Baseline.mp4", Path.Combine(root, "baseline.mp4"), token);
             string extension = Path.GetExtension(source.LocalPath);
             string copy = Path.Combine(root, "original" + extension);
             Write(report, "case=original test=environment");
@@ -43,13 +42,7 @@ internal static class PlaybackDiagnosticMatrix
             Write(report, "case=original test=file-evidence");
             await RunCaseAsync(exe, report, "file-evidence", source.LocalPath, token);
             await RunMatrixAsync(exe, "original", source.LocalPath);
-            if (sample != null)
-            {
-                Write(report, "case=baseline test=file-evidence");
-                await RunCaseAsync(exe, report, "file-evidence", sample, token);
-                await RunMatrixAsync(exe, "baseline", sample);
-            }
-            else Write(report, "case=baseline outcome=skipped reason=resource-missing");
+            Write(report, "case=baseline-mp4 outcome=skipped reason=no-mp4-bundled");
             string wav = Path.Combine(root, "baseline.wav");
             WriteWaveBaseline(wav);
             Write(report, "case=baseline-wav test=local-path");
@@ -74,7 +67,6 @@ internal static class PlaybackDiagnosticMatrix
                 Write(report, "case=peer test=environment");
                 await RunCaseAsync(peer, report, "environment", source.LocalPath, token);
                 await RunMatrixAsync(peer, "peer-original", source.LocalPath);
-                if (sample != null) await RunMatrixAsync(peer, "peer-baseline", sample);
             }
             else Write(report, $"case=peer outcome=skipped reason={(Environment.Is64BitOperatingSystem ? "peer-not-bundled" : "32-bit-os")}");
 
