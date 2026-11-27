@@ -66,6 +66,12 @@ public sealed class ImeProjectionDefinition
         return new(scheme, entries);
     }
 
+    /// <summary>Checks whether a normalized two-key code is a legal Natural Code syllable, regardless of dictionary entries.</summary>
+    public static bool IsNaturalCodeSyllable(string code) => NaturalCodePhoneticLayout.SyllableCodes.Contains(code);
+
+    /// <summary>Checks whether a normalized key can represent a Natural Code initial.</summary>
+    public static bool IsNaturalCodeInitial(char key) => NaturalCodePhoneticLayout.InitialKeys.Contains(key);
+
     private static ImeProjectionDefinition Create(bool doublePinyin)
     {
         var entries = PhoneticInputProjection.GetComponentEntries(doublePinyin);

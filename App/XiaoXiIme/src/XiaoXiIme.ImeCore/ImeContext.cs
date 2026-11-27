@@ -622,8 +622,8 @@ public sealed partial class ImeContext
     }
 
     private bool IsPhoneticCharacter(char character) => IsAsciiLetter(character) ||
-                                                        character == '\'' && _dictionary.GetLexicon().Projection.Name ==
-                                                        ImeProjectionDefinition.FullPinyin.Name ||
+                                                        character == '\'' && SupportsSyllableSeparator
+                                                            (_dictionary.GetLexicon().Projection) ||
                                                         character == ';' && _dictionary.Projection?.Entries.Any
                                                             (entry => entry.Input.Contains(';')) == true;
 

@@ -5,6 +5,11 @@ namespace XiaoXiIme.ImeCore;
 
 public sealed partial class ImeContext
 {
+    private const string NaturalCodeScheme = "naturalCodeDoublePinyin";
+
+    private static bool SupportsSyllableSeparator(ImeProjectionDefinition projection) =>
+        projection.Name == ImeProjectionDefinition.FullPinyin.Name || projection.Name == NaturalCodeScheme;
+
     private sealed record DecodedPath
     (
         string Text,
@@ -42,6 +47,19 @@ public sealed partial class ImeContext
         var fullPinyin = lexicon.Projection.Name == ImeProjectionDefinition.FullPinyin.Name;
         _decodingIndex = GetDecodingIndex(lexicon, rules, _decodingIndex);
         var indexData = _decodingIndex;
+        var separated = SupportsSyllableSeparator(lexicon.Projection);
+        var naturalCode = lexicon.Projection.Name == NaturalCodeScheme;
+        var completeNaturalCode = naturalCode ? new bool[input.Length] : [];
+        if (naturalCode)
+        {
+            for (var position = 0; position + 1 < input.Length; position++)
+            {
+                var code = input.Substring(position, 2).ToLowerInvariant();
+                completeNaturalCode[position] = ImeProjectionDefinition.IsNaturalCodeSyllable(code) &&
+                                                Matches(position, code, false);
+            }
+        }
+
         var edges = new Dictionary<int, List<DecodedPath>>();
         long entryVisits = 0, syllableVisits = 0;
 
@@ -61,6 +79,15 @@ public sealed partial class ImeContext
                 if (Matches(start, pair.Key[..Math.Min(available, pair.Key.Length)], false))
                 {
                     indices.UnionWith(pair.Value);
+                }
+            }
+
+            if (indexData.NaturalCodeInitialStarts is { } initialStarts && !completeNaturalCode[start])
+            {
+                var key = char.ToLowerInvariant(input[start]).ToString();
+                if (initialStarts.TryGetValue(key, out var initialIndices) && Matches(start, key, false))
+                {
+                    indices.UnionWith(initialIndices);
                 }
             }
 
@@ -106,7 +133,7 @@ public sealed partial class ImeContext
 
                 void Finish(int end, IReadOnlyList<ImePathEvidence> evidence, int missing)
                 {
-                    if (fullPinyin && end < input.Length && input[end] == '\'')
+                    if (separated && end < input.Length && input[end] == '\'')
                     {
                         end++;
                     }
@@ -132,7 +159,8 @@ public sealed partial class ImeContext
                     (int syllableIndex, int position, IReadOnlyList<ImePathEvidence> evidence, int missing)
                 {
                     syllableVisits++;
-                    if (fullPinyin && syllableIndex > 0 && position < input.Length && input[position] == '\'')
+                    if (syllableIndex > 0 && (fullPinyin || naturalCode && syllableIndex < syllables.Length) &&
+                        position < input.Length && input[position] == '\'')
                     {
                         position++;
                     }
@@ -168,7 +196,8 @@ public sealed partial class ImeContext
                             Advance(projection.Input.Length, 0);
                         }
 
-                        if (fullPinyin || syllableIndex == syllables.Length - 1)
+                        var naturalInitial = naturalCode && projection.Initial.Length > 0;
+                        if (fullPinyin || syllableIndex == syllables.Length - 1 || naturalInitial)
                         {
                             var limit = Math.Min(projection.Input.Length - 1, input.Length - position);
                             for (var length = 1; length <= limit; length++)
@@ -178,11 +207,23 @@ public sealed partial class ImeContext
                                     continue;
                                 }
 
-                                if (!fullPinyin && position + length < input.Length &&
-                                    lexicon.Projection.Entries.Any
-                                        (p => p.Input.Length > length && Matches(position, p.Input, false)))
+                                var next = position + length;
+                                if (!fullPinyin && next < input.Length)
                                 {
-                                    continue;
+                                    var nextKey = char.ToLowerInvariant(input[next]);
+                                    var explicitBoundary = naturalInitial && nextKey == '\'';
+                                    // A lone final prefix must not turn a mismatched tail into a word candidate.
+                                    var implicitBoundary = naturalInitial && !completeNaturalCode[position] &&
+                                        ImeProjectionDefinition.IsNaturalCodeInitial(nextKey) &&
+                                        Matches(next, nextKey.ToString(), false) &&
+                                        (syllableIndex == 0 || syllableIndex < syllables.Length - 1 ||
+                                         evidence.Any(e => e.Kind == ImeEvidenceKind.Phonetic && e.Range.Length == 1));
+                                    if (!explicitBoundary && !implicitBoundary &&
+                                        lexicon.Projection.Entries.Any
+                                            (p => p.Input.Length > length && Matches(position, p.Input, false)))
+                                    {
+                                        continue;
+                                    }
                                 }
 
                                 if (fullPinyin)

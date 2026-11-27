@@ -55,6 +55,7 @@ public sealed partial class ImeContext
         internal readonly Dictionary<string, string[]> Shapes;
         internal readonly Dictionary<ImePhoneticEntry, ImeLookupAlias[]> Aliases;
         internal readonly Dictionary<string, int[]> Starts;
+        internal readonly Dictionary<string, List<int>>? NaturalCodeInitialStarts;
         internal readonly double LogFrequencyMass;
 
         internal DecodingIndex(ImeLexicon lexicon, IReadOnlyList<ImeFuzzyRule> rules, DecodingIndex? previous)
@@ -72,6 +73,7 @@ public sealed partial class ImeContext
                 Projections = previous.Projections;
                 Shapes = previous.Shapes;
                 Starts = previous.Starts;
+                NaturalCodeInitialStarts = previous.NaturalCodeInitialStarts;
                 Syllables = previous.Syllables;
                 Aliases = previous.Aliases;
                 return;
@@ -90,6 +92,7 @@ public sealed partial class ImeContext
                 Projections = previous.Projections;
                 Shapes = previous.Shapes;
                 Starts = previous.Starts;
+                NaturalCodeInitialStarts = previous.NaturalCodeInitialStarts;
                 Syllables = new(lexicon.Entries.Count);
                 Aliases = new(lexicon.Entries.Count);
                 for (var i = 0; i < lexicon.Entries.Count; i++)
@@ -125,6 +128,11 @@ public sealed partial class ImeContext
                 s => ComponentAliases(s, rules).SelectMany(a => byComponent[a]).ToHashSet()
                     .OrderBy(p => projectionOrder[p]).ToArray(), StringComparer.Ordinal
             );
+            if (lexicon.Projection.Name == NaturalCodeScheme)
+            {
+                NaturalCodeInitialStarts = new(StringComparer.Ordinal);
+            }
+
             Shapes = lexicon.ShapeEntries.GroupBy(s => s.Text, StringComparer.Ordinal).ToDictionary
             (
                 g => g.Key,
@@ -136,19 +144,29 @@ public sealed partial class ImeContext
             for (var i = 0; i < lexicon.Entries.Count; i++)
             {
                 var entry = lexicon.Entries[i];
-                foreach (var code in Projections[Syllables[entry][0]].Select(p => p.Input)
-                             .Concat(Aliases[entry].Select(a => a.Input)).Distinct(StringComparer.Ordinal))
+                var projections = Projections[Syllables[entry][0]];
+                AddStarts(starts, projections.Select(p => p.Input).Concat(Aliases[entry].Select(a => a.Input)), i);
+                if (NaturalCodeInitialStarts is not null)
                 {
-                    if (!starts.TryGetValue(code, out var indices))
-                    {
-                        starts.Add(code, indices = []);
-                    }
-
-                    indices.Add(i);
+                    AddStarts(NaturalCodeInitialStarts,
+                        projections.Where(p => p.Initial.Length > 0).Select(p => p.Input[..1]), i);
                 }
             }
 
             Starts = starts.ToDictionary(p => p.Key, p => p.Value.ToArray(), StringComparer.Ordinal);
+
+            static void AddStarts(Dictionary<string, List<int>> index, IEnumerable<string> codes, int entryIndex)
+            {
+                foreach (var code in codes.Distinct(StringComparer.Ordinal))
+                {
+                    if (!index.TryGetValue(code, out var indices))
+                    {
+                        index.Add(code, indices = []);
+                    }
+
+                    indices.Add(entryIndex);
+                }
+            }
         }
 
         internal string[] CharacterShapes(string text) => Shapes.GetValueOrDefault(text) ?? [];
